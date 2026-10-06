@@ -637,11 +637,11 @@ acropolisSanctuaryFlameTask = 0x8017F4E8; // type:func absolute:True owner=acrop
 
 func_acropolis_security_room_801805A4 = 0x801805A4; // type:func absolute:True owner=acropolis_security_room
 
-func_acropolis_security_room_80180E34 = 0x80180E34; // type:func absolute:True owner=acropolis_security_room
+acropolisSecurityRoomMonitorFeedTask = 0x80180E34; // type:func absolute:True owner=acropolis_security_room
 
-func_acropolis_security_room_80181108 = 0x80181108; // type:func absolute:True owner=acropolis_security_room
+acropolisSecurityRoomFallingQuadTask = 0x80181108; // type:func absolute:True owner=acropolis_security_room
 
-func_acropolis_security_room_801817A4 = 0x801817A4; // type:func absolute:True owner=acropolis_security_room
+acropolisSecurityRoomMonitorGlowTask = 0x801817A4; // type:func absolute:True owner=acropolis_security_room
 
 func_acropolis_square_801823DC = 0x801823DC; // type:func absolute:True owner=acropolis_square
 

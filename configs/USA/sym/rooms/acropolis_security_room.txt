@@ -79,11 +79,11 @@ D_acropolis_security_room_80182604 = 0x80182604; // size:0x14 defined:True
 
 func_acropolis_security_room_801805A4 = 0x801805A4; // type:func
 
-func_acropolis_security_room_80180E34 = 0x80180E34; // type:func
+acropolisSecurityRoomMonitorFeedTask = 0x80180E34; // type:func
 
-func_acropolis_security_room_80181108 = 0x80181108; // type:func
+acropolisSecurityRoomFallingQuadTask = 0x80181108; // type:func
 
-func_acropolis_security_room_801817A4 = 0x801817A4; // type:func
+acropolisSecurityRoomMonitorGlowTask = 0x801817A4; // type:func
 actionPromptMoveCursors = 0x8017E490; // type:func
 actionPromptDrawCursor = 0x8017E8F0; // type:func
 actionPromptHitTest = 0x8017ECB4; // type:func
@@ -91,3 +91,10 @@ actionPromptReset = 0x8017EDE4; // type:func
 actionPromptOutlineRect = 0x8017EF78; // type:func
 ActorContact_PushContact = 0x80181C84; // type:func
 ActorContact_Push = 0x80181E28; // type:func
+_acropolisSecurityRoomResolveTransition = 0x8017d6ac; // type:func
+_acropolisSecurityRoomMessageIdle = 0x8017d97c; // type:func
+_acropolisSecurityRoomOutlinePromptRect = 0x8017de80; // type:func
+_acropolisSecurityRoomDrawMonitorWash = 0x8017e0c4; // type:func
+_acropolisSecurityRoomShowReleasedLocks = 0x8017fd64; // type:func
+_acropolisSecurityRoomPowerSupplyRestoreRoomView = 0x80180010; // type:func
+_acropolisSecurityRoomDrawSweepLine = 0x80180a78; // type:func

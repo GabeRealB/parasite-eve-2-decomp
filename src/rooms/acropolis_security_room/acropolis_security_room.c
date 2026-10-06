@@ -300,12 +300,138 @@ extern AreaApplyRec D_acropolis_security_room_80184F78[];
 extern AreaApplyRec D_acropolis_security_room_80184F7C[];
 extern AreaApplyRec D_acropolis_security_room_80184F80[];
 
+/// Initializes one reserved prompt edge from signed screen coordinates and RGB bytes.
+///
+/// The packet must be writable. Arguments must be side-effect-free; the packet
+/// is evaluated repeatedly. Expands to standalone statements without linking.
+#define ACROPOLIS_SECURITY_ROOM_INIT_PROMPT_EDGE(line, startX, startY, endX, endY, red, green, blue) \
+    setLineF2(line);                                                                                 \
+    (line)->x0 = (startX);                                                                           \
+    (line)->y0 = (startY);                                                                           \
+    (line)->x1 = (endX);                                                                             \
+    (line)->y1 = (endY);                                                                             \
+    (line)->r0 = (red);                                                                              \
+    (line)->g0 = (green);                                                                            \
+    (line)->b0 = (blue);
+
+/// Initializes a reserved semitransparent grey quad over the monitor picture.
+///
+/// Requires the caller's ACROPOLIS_SECURITY_ROOM_MONITOR_* geometry constants.
+/// The packet must be writable and both arguments side-effect-free; each is
+/// evaluated repeatedly. Expands to standalone statements without linking.
+#define ACROPOLIS_SECURITY_ROOM_INIT_MONITOR_WASH(quad, intensity) \
+    setPolyF4(quad);                                               \
+    setSemiTrans(quad, true);                                      \
+    (quad)->r0 = (intensity);                                      \
+    (quad)->g0 = (intensity);                                      \
+    (quad)->b0 = (intensity);                                      \
+    (quad)->x0 = ACROPOLIS_SECURITY_ROOM_MONITOR_LEFT;             \
+    (quad)->y0 = ACROPOLIS_SECURITY_ROOM_MONITOR_TOP;              \
+    (quad)->x1 = ACROPOLIS_SECURITY_ROOM_MONITOR_RIGHT;            \
+    (quad)->y1 = ACROPOLIS_SECURITY_ROOM_MONITOR_TOP;              \
+    (quad)->x2 = ACROPOLIS_SECURITY_ROOM_MONITOR_LEFT;             \
+    (quad)->y2 = ACROPOLIS_SECURITY_ROOM_MONITOR_BOTTOM;           \
+    (quad)->x3 = ACROPOLIS_SECURITY_ROOM_MONITOR_RIGHT;            \
+    (quad)->y3 = ACROPOLIS_SECURITY_ROOM_MONITOR_BOTTOM;
+
+/// Converts a sweep endpoint from the task's local frame to 16-bit projection-input coordinates.
+///
+/// `endpoint` is the member token start or end; line is a live scratch block,
+/// and coord has a composed workm. Pointer arguments are evaluated repeatedly
+/// and must be side-effect-free. Changes GTE rotation/V0/IR state and expands
+/// to standalone statements, retaining XYZ translation order.
+#define ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line, endpoint, coord) \
+    gte_SetRotMatrix(&(coord)->workm);                                          \
+    gte_ldv0(&(line)->endpoint);                                                \
+    gte_rtv0();                                                                 \
+    gte_stsv(&(line)->endpoint);                                                \
+    (line)->endpoint.vx += (coord)->workm.t[0];                                 \
+    (line)->endpoint.vy += (coord)->workm.t[1];                                 \
+    (line)->endpoint.vz += (coord)->workm.t[2];
+
+/// Seeds the falling quad's tumble rates and parent-space displacement per frame.
+///
+/// X/Z rates are -240..256/-112..128 in steps of 16, using 4096 angle units
+/// per turn. XYZ displacement is -15..16 coordinate units. Consumes five
+/// ordered LCG draws, borrowing work and leaving the other fields intact.
+static inline void _acropolisSecurityRoomSeedQuadMotion(EffectWork* work)
+{
+    enum {
+        ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_BIAS = 256,
+        ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_MASK = 0x1F0,
+        ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_BIAS = 128,
+        ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_MASK = 0xF0,
+        ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS     = 16,
+        ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK     = 0x1F,
+    };
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->period    = ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->step      = ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx   = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vz   = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
+}
+
+/// Builds one XZ corner and transforms it to signed 16-bit view coordinates.
+///
+/// cornerIndex is 0..3 and work->scale is the half-side in coordinate units.
+/// Borrows a live scratch block and composed coordinate; changes GTE state.
+/// Writes only the selected vertex's XYZ, narrowing local products and view-space
+/// translations and leaving the vector's fourth halfword intact.
+static inline void _acropolisSecurityRoomTransformQuadCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, EffectWork* work, const GfxCoord* coord)
+{
+    SVECTOR* corner;
+    // Aliases vertices[cornerIndex]; distinct store/GTE addresses must survive CSE.
+    corner                                = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
+    quadScratch->vertices[cornerIndex].vx = D_acropolis_security_room_801839C0[cornerIndex].axis0Sign * work->scale;
+    corner->vy                            = 0;
+    corner->vz                            = D_acropolis_security_room_801839C0[cornerIndex].axis1Sign * work->scale;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&quadScratch->vertices[cornerIndex]);
+    gte_rtv0();
+    gte_stsv(&quadScratch->vertices[cornerIndex]);
+    quadScratch->vertices[cornerIndex].vx += (u32)coord->workm.t[0];
+    corner->vy                            += (u32)coord->workm.t[1];
+    corner->vz                            += (u32)coord->workm.t[2];
+}
+
+/// Initializes a reserved glow quad with a lit centre and black rim.
+///
+/// Borrows a writable packet; redFactor and greenFactor are 0 or 1, and
+/// brightness is 64..176. Only the header and colour bytes are written;
+/// the caller supplies geometry, linkage and additive blending.
+static inline void _acropolisSecurityRoomInitGlowQuad(POLY_G4* quad, s16 brightness, s16 redFactor, s16 greenFactor)
+{
+    setPolyG4(quad);
+    setRGB0(quad, 0, 0, 0);
+    setRGB1(quad, 0, 0, 0);
+    setRGB2(quad, brightness * redFactor, greenFactor * brightness, 0);
+    setRGB3(quad, 0, 0, 0);
+}
+
+/// Initializes a reserved glow line with a lit centre and black rim.
+///
+/// Borrows a writable packet; redFactor and greenFactor are 0 or 1, and
+/// brightness is 64..176. Only the header and colour bytes are written;
+/// the caller supplies geometry, linkage and additive blending.
+static inline void _acropolisSecurityRoomInitGlowLine(LINE_G3* line, s16 brightness, s16 redFactor, s16 greenFactor)
+{
+    setLineG3(line);
+    setRGB0(line, 0, 0, 0);
+    setRGB1(line, brightness * redFactor, greenFactor * brightness, 0);
+    setRGB2(line, 0, 0, 0);
+}
+
 static void func_acropolis_security_room_8017D930(Task* task);
-static void func_acropolis_security_room_8017D97C(Task* task);
+static void _acropolisSecurityRoomMessageIdle(Task* task);
 static void func_acropolis_security_room_8017D9DC(Task* task);
 static void func_acropolis_security_room_8017DB30(Task* task);
 static void func_acropolis_security_room_8017DC7C(Task* task);
-static void func_acropolis_security_room_8017E0C4(s16 id);
+static void _acropolisSecurityRoomDrawMonitorWash(s16 washLevel);
 static void func_acropolis_security_room_8017E37C(Task* task);
 static void func_acropolis_security_room_8017EA28(Task* task);
 static void func_acropolis_security_room_8017EA5C(Task* task);
@@ -320,19 +446,19 @@ static void func_acropolis_security_room_8017FB54(Task* task);
 static void func_acropolis_security_room_8017FBA4(Task* task);
 static void func_acropolis_security_room_8017FC30(Task* task);
 static s32  func_acropolis_security_room_8017FCB0(ActionPromptHotspot* table, s16 x, s16 y);
-static void func_acropolis_security_room_8017FD64(s32 flags);
+static void _acropolisSecurityRoomShowReleasedLocks(s32 releasedLocks);
 static void func_acropolis_security_room_8017FE6C(Task* task);
 static void func_acropolis_security_room_8017FF0C(Task* task);
 static void func_acropolis_security_room_8017FF84(Task* task);
 static void func_acropolis_security_room_8017FFD0(Task* task);
-static void func_acropolis_security_room_80180010(Task* task);
+static void _acropolisSecurityRoomPowerSupplyRestoreRoomView(Task* task);
 static void func_acropolis_security_room_80180030(Task* task);
 static void func_acropolis_security_room_801800A4(Task* task);
 static void func_acropolis_security_room_8018014C(Task* task);
 static void func_acropolis_security_room_801801C4(Task* task);
 static void func_acropolis_security_room_80180218(Task* task);
 static void func_acropolis_security_room_80180308(Task* task);
-static void func_acropolis_security_room_80180A78(Task* task);
+static void _acropolisSecurityRoomDrawSweepLine(Task* task);
 
 void func_acropolis_security_room_8017E9D8(Task*);
 void func_acropolis_security_room_8017F9C8(Task*);
@@ -359,13 +485,13 @@ extern SpriteSource D_acropolis_security_room_801841F0[18];
 extern SpriteSource D_acropolis_security_room_80184390[10];
 extern SpriteSource D_acropolis_security_room_80184470[2];
 
-s32 func_acropolis_security_room_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
-s32 func_acropolis_security_room_8017D708(Task*, s32, s32, s32);
-s32 func_acropolis_security_room_8017D740(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
+static s32 _acropolisSecurityRoomResolveTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+s32        func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
+s32        func_acropolis_security_room_8017D708(Task*, s32, s32, s32);
+s32        func_acropolis_security_room_8017D740(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
 
 TaskMessageEntry D_acropolis_security_room_801825DC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_security_room_8017D6AC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisSecurityRoomResolveTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_security_room_8017D740 },
     { ROOM_MESSAGE_COMMAND, func_acropolis_security_room_8017D708 },
     { 5105, func_acropolis_security_room_8017D6D4 },
@@ -1978,16 +2104,18 @@ Task* D_acropolis_security_room_801855AC;
 
 SVECTOR ActorContact_ScratchPosition;
 
-static void func_acropolis_security_room_8017DE80(ActionPromptRect* rect, u8 r, u8 g, u8 b);
+static void _acropolisSecurityRoomOutlinePromptRect(ActionPromptRect* rect, u8 red, u8 green, u8 blue);
 static void func_acropolis_security_room_8017F1BC(Task* task);
 static void func_acropolis_security_room_8017F300(Task* task);
 static void func_acropolis_security_room_80182574(Task* task);
 
-/// Message 0x13EE handler: copies the incoming location record onto the
-/// outgoing one and answers 1.
-s32 func_acropolis_security_room_8017D6AC(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Accepts a room transition by copying the complete request to its reply.
+///
+/// Both records must be live for this synchronous message; they may alias.
+/// Returns 1 without changing the destination or applying transition effects.
+static s32 _acropolisSecurityRoomResolveTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
+    *reply = *request;
     return 1;
 }
 
@@ -2026,7 +2154,7 @@ s32 func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, DirectionActionR
 /// idle, then kill the task.
 static const TaskFuncTable3 D_acropolis_security_room_8017D5C4 = { {
     func_acropolis_security_room_8017D930,
-    func_acropolis_security_room_8017D97C,
+    _acropolisSecurityRoomMessageIdle,
     taskKill,
 } };
 
@@ -2094,7 +2222,8 @@ static void func_acropolis_security_room_8017D930(Task* arg0)
     D_acropolis_security_room_801855AC = NULL;
 }
 
-static void func_acropolis_security_room_8017D97C(Task* task)
+/// Keeps the room-message task alive and available to receive messages.
+static void _acropolisSecurityRoomMessageIdle(Task* task)
 {
 }
 
@@ -2191,7 +2320,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     hs     = D_acropolis_security_room_80182648;
     prompt = D_80114D28;
     work   = (_AcropolisSecurityRoomMonitorWork*)task->work;
-    func_acropolis_security_room_8017E0C4(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
+    _acropolisSecurityRoomDrawMonitorWash(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     func_acropolis_security_room_8017E37C(task);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -2283,155 +2412,117 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
             work->enemyCaptionStarted = 1;
         }
     }
-    func_acropolis_security_room_8017E0C4(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
+    _acropolisSecurityRoomDrawMonitorWash(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     func_acropolis_security_room_8017E37C(task);
     task->state = 2;
 }
 
-/// Outlines `rect` on screen in the colour (`r`, `g`, `b`) with four
-/// unconnected flat lines -- top, right, bottom and left edge of the rectangle
-/// spanning (`x`, `y`) to (`x + w`, `y + h`) -- each linked into
-/// `gGpuCurrentOt[3]`. Nothing in the overlay calls it; it is the debug box
-/// drawer for the hotspot rectangles.
-static void func_acropolis_security_room_8017DE80(ActionPromptRect* rect, u8 r, u8 g, u8 b)
+/// Queues the four edges of a prompt rectangle in the supplied RGB byte colour.
+///
+/// `rect` is borrowed screen-space geometry; edges include x + w and y + h.
+/// Consumes four LINE_F2 packets in the frame arena at ordering-table slot 3.
+/// This retained drawer has no caller in the room.
+static void _acropolisSecurityRoomOutlinePromptRect(ActionPromptRect* rect, u8 red, u8 green, u8 blue)
 {
+    enum {
+        ACROPOLIS_SECURITY_ROOM_PROMPT_OUTLINE_OT_SLOT = 3,
+    };
     LINE_F2* line;
 
     line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 3, line);
+    ACROPOLIS_SECURITY_ROOM_INIT_PROMPT_EDGE(line, rect->x, rect->y, rect->x + rect->w, rect->y, red, green, blue);
+    addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_PROMPT_OUTLINE_OT_SLOT, line);
 
     line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 3, line);
+    ACROPOLIS_SECURITY_ROOM_INIT_PROMPT_EDGE(line, rect->x + rect->w, rect->y, rect->x + rect->w, rect->y + rect->h, red, green, blue);
+    addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_PROMPT_OUTLINE_OT_SLOT, line);
 
     line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 3, line);
+    ACROPOLIS_SECURITY_ROOM_INIT_PROMPT_EDGE(line, rect->x + rect->w, rect->y + rect->h, rect->x, rect->y + rect->h, red, green, blue);
+    addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_PROMPT_OUTLINE_OT_SLOT, line);
 
     line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 3, line);
+    ACROPOLIS_SECURITY_ROOM_INIT_PROMPT_EDGE(line, rect->x, rect->y + rect->h, rect->x, rect->y, red, green, blue);
+    addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_PROMPT_OUTLINE_OT_SLOT, line);
 }
 
-/// Washes the security-monitor panel with the grey level `id`, which is
-/// `screenLevel` minus `ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS`, as a
-/// semi-transparent `POLY_F4` covering (-0x66, -0x5F) to (0x6C, 0x3C) in
-/// `gGpuCurrentOt[0xC]`, followed by the drawing-mode packet that restores the
-/// panel's texture page. A negative `id` selects `GPU_BLEND_SUBTRACT`,
-/// darkening the panel. The strip below the panel (y 0x3C to 0x38) is then
-/// blacked out with an opaque quad in `gGpuCurrentOt[0xB]`.
-static void func_acropolis_security_room_8017E0C4(s16 id)
+#undef ACROPOLIS_SECURITY_ROOM_INIT_PROMPT_EDGE
+
+/// Draws the monitor's signed grey wash and the opaque black strip at its bottom.
+///
+/// `washLevel` is the stored screen detent minus the screen bias: nonnegative
+/// levels add the low seven bits, negative levels subtract the low byte of
+/// their magnitude. Queues a quad and draw-mode packet at slot 12, then the
+/// black border and its average-blend draw mode at slot 11.
+static void _acropolisSecurityRoomDrawMonitorWash(s16 washLevel)
 {
-    POLY_F4* poly;
-    DR_MODE* dr;
-    u16      c;
+    enum {
+        ACROPOLIS_SECURITY_ROOM_MONITOR_WASH_OT_SLOT   = 12,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_BORDER_OT_SLOT = 11,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_LEFT           = -102,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_RIGHT          = 108,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_TOP            = -95,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_BOTTOM         = 60,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_BORDER_TOP     = 56,
+    };
+    POLY_F4* quad;
+    DR_MODE* drawMode;
+    u16      intensity;
 
-    if (id >= 0) {
-        c              = id & 0x7F;
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 5);
-        setcode(poly, 0x2A);
-        poly->r0 = c;
-        poly->g0 = c;
-        poly->b0 = c;
-        poly->x0 = -0x66;
-        poly->y0 = -0x5F;
-        poly->x1 = 0x6C;
-        poly->y1 = -0x5F;
-        poly->x2 = -0x66;
-        poly->y2 = 0x3C;
-        poly->x3 = 0x6C;
-        poly->y3 = 0x3C;
-        addPrim(gGpuCurrentOt + 0xC, poly);
+    if (washLevel >= 0) {
+        intensity      = washLevel & ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        ACROPOLIS_SECURITY_ROOM_INIT_MONITOR_WASH(quad, intensity);
+        addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_MONITOR_WASH_OT_SLOT, quad);
 
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setlen(dr, 1);
-        dr->code[0] = 0xE100002A;
-        addPrim(gGpuCurrentOt + 0xC, dr);
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setlen(drawMode, 1);
+        drawMode->code[0] = _get_mode(false, false, getTPage(0, GPU_BLEND_ADD, 640, 0));
+        addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_MONITOR_WASH_OT_SLOT, drawMode);
     } else {
-        c              = (~id + 1) & 0xFF;
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 5);
-        setcode(poly, 0x2A);
-        poly->r0 = c;
-        poly->g0 = c;
-        poly->b0 = c;
-        poly->x0 = -0x66;
-        poly->y0 = -0x5F;
-        poly->x1 = 0x6C;
-        poly->y1 = -0x5F;
-        poly->x2 = -0x66;
-        poly->y2 = 0x3C;
-        poly->x3 = 0x6C;
-        poly->y3 = 0x3C;
-        addPrim(gGpuCurrentOt + 0xC, poly);
+        intensity      = (~washLevel + 1) & 0xFF;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        ACROPOLIS_SECURITY_ROOM_INIT_MONITOR_WASH(quad, intensity);
+        addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_MONITOR_WASH_OT_SLOT, quad);
 
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setlen(dr, 1);
-        dr->code[0] = _get_mode(false, false, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));
-        addPrim(gGpuCurrentOt + 0xC, dr);
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setlen(drawMode, 1);
+        drawMode->code[0] = _get_mode(false, false, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));
+        addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_MONITOR_WASH_OT_SLOT, drawMode);
     }
 
-    poly           = gGpuPrimCursor;
-    gGpuPrimCursor = poly + 1;
-    setlen(poly, 5);
-    setcode(poly, 0x28);
-    poly->r0 = 0;
-    poly->g0 = 0;
-    poly->b0 = 0;
-    poly->x0 = -0x66;
-    poly->y0 = 0x3C;
-    poly->x1 = 0x6C;
-    poly->y1 = 0x3C;
-    poly->x2 = -0x66;
-    poly->y2 = 0x38;
-    poly->x3 = 0x6C;
-    poly->y3 = 0x38;
-    addPrim(gGpuCurrentOt + 0xB, poly);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyF4(quad);
+    quad->r0 = 0;
+    quad->g0 = 0;
+    quad->b0 = 0;
+    quad->x0 = ACROPOLIS_SECURITY_ROOM_MONITOR_LEFT;
+    quad->y0 = ACROPOLIS_SECURITY_ROOM_MONITOR_BOTTOM;
+    quad->x1 = ACROPOLIS_SECURITY_ROOM_MONITOR_RIGHT;
+    quad->y1 = ACROPOLIS_SECURITY_ROOM_MONITOR_BOTTOM;
+    quad->x2 = ACROPOLIS_SECURITY_ROOM_MONITOR_LEFT;
+    quad->y2 = ACROPOLIS_SECURITY_ROOM_MONITOR_BORDER_TOP;
+    quad->x3 = ACROPOLIS_SECURITY_ROOM_MONITOR_RIGHT;
+    quad->y3 = ACROPOLIS_SECURITY_ROOM_MONITOR_BORDER_TOP;
+    addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_MONITOR_BORDER_OT_SLOT, quad);
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE100000A;
-    addPrim(gGpuCurrentOt + 0xB, dr);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setlen(drawMode, 1);
+    drawMode->code[0] = _get_mode(false, false, getTPage(0, GPU_BLEND_AVERAGE, 640, 0));
+    addPrim(gGpuCurrentOt + ACROPOLIS_SECURITY_ROOM_MONITOR_BORDER_OT_SLOT, drawMode);
 }
+
+#undef ACROPOLIS_SECURITY_ROOM_INIT_MONITOR_WASH
 
 /// Draws the overlay bar on the monitor panel: a 0x6C-wide grey `TILE` whose
 /// top and height are both `sweepTimer` minus the panel top (0x5F), followed
@@ -2513,7 +2604,7 @@ static void func_acropolis_security_room_8017EA5C(Task* task)
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_acropolis_security_room_8017E0C4(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
+    _acropolisSecurityRoomDrawMonitorWash(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     func_acropolis_security_room_8017E37C(task);
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
@@ -2612,7 +2703,7 @@ static const TaskFuncTable16 D_acropolis_security_room_8017D63C = { {
     func_acropolis_security_room_8017FF0C,
     func_acropolis_security_room_8017FF84,
     func_acropolis_security_room_8017FFD0,
-    func_acropolis_security_room_80180010,
+    _acropolisSecurityRoomPowerSupplyRestoreRoomView,
     func_acropolis_security_room_80180030,
 } };
 
@@ -2693,7 +2784,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 1);
             gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 2);
-            func_acropolis_security_room_8017FD64(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
+            _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
             work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
             task->state   = 6;
             func_800E9BDC(1, 0xF9FF);
@@ -2730,7 +2821,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
             Gp_ClearCollectedBit(0x103);
             sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 2);
-            func_acropolis_security_room_8017FD64(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
+            _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
             work->usedKey            = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
             task->state              = 0xA;
             gGameSession->eventState = 1;
@@ -2809,7 +2900,7 @@ static void func_acropolis_security_room_8017FA18(Task* task)
     task->state++;
     work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
     work->timer   = 0;
-    func_acropolis_security_room_8017FD64(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
+    _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
@@ -2893,32 +2984,39 @@ static void func_acropolis_security_room_8017FC30(Task* task)
 #include "../../shared/action_prompt_hit_test.inc.c"
 #undef actionPromptHitTest
 
-/// Repaints the two security-monitor sprites for the current state of game
-/// flag nibble 9, whose low two bits say which of the two shutters has been
-/// opened. The nibble selects, for each of the two sprite commands of view 6
-/// in this room's sprite record, whether `spriteLinkViewCachedPackets` skips linking it
-/// (`field_4` non-zero) or draws it.
-static void func_acropolis_security_room_8017FD64(s32 flags)
+/// Shows the power-supply panel's released-lock pictures for the supplied flag value.
+///
+/// The low byte must be 0..3: bit 0 releases the left lock, bit 1 the right.
+/// Other values leave visibility unchanged. Updates batches 1 and 2 in the
+/// active stage/variant/area's view 6; those tables must be loaded.
+static void _acropolisSecurityRoomShowReleasedLocks(s32 releasedLocks)
 {
-    GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->location.loc;
+    enum {
+        ACROPOLIS_SECURITY_ROOM_LOCKS_NEITHER     = 0,
+        ACROPOLIS_SECURITY_ROOM_LOCKS_LEFT        = 1,
+        ACROPOLIS_SECURITY_ROOM_LOCKS_RIGHT       = 2,
+        ACROPOLIS_SECURITY_ROOM_LOCKS_BOTH        = 3,
+        ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW = 6,
+    };
+    GameSession*     session  = gGameSession;
+    GameLocationKey* location = &session->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1][5].batches;
-    switch (flags & 0xFF) {
-        case 0:
+    batches = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW - 1].batches;
+    switch (releasedLocks & 0xFF) {
+        case ACROPOLIS_SECURITY_ROOM_LOCKS_NEITHER:
             batches[1].hidden = 1;
             batches[2].hidden = 1;
             break;
-        case 1:
+        case ACROPOLIS_SECURITY_ROOM_LOCKS_LEFT:
             batches[1].hidden = 0;
             batches[2].hidden = 1;
             break;
-        case 2:
+        case ACROPOLIS_SECURITY_ROOM_LOCKS_RIGHT:
             batches[1].hidden = 1;
             batches[2].hidden = 0;
             break;
-        case 3:
+        case ACROPOLIS_SECURITY_ROOM_LOCKS_BOTH:
             batches[1].hidden = 0;
             batches[2].hidden = 0;
             break;
@@ -3004,13 +3102,14 @@ static void func_acropolis_security_room_8017FFD0(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-static void func_acropolis_security_room_80180010(Task* task)
+/// Restores the normal room view after the right-lock scene and advances to cleanup.
+static void _acropolisSecurityRoomPowerSupplyRestoreRoomView(Task* task)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
-    /* Without the barrier GCC hoists the `lw` of `task->state` above the byte
-     * store, dropping the load-delay `nop` and making the body one instruction
-     * short. */
-    task->state = task->state + 1;
+    enum {
+        ACROPOLIS_SECURITY_ROOM_NORMAL_VIEW = 3,
+    };
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_NORMAL_VIEW;
+    task->state                                                = task->state + 1;
 }
 
 static void func_acropolis_security_room_80180030(Task* task)
@@ -3040,7 +3139,7 @@ static void func_acropolis_security_room_801800A4(Task* task)
     if (work->timer >= 0x100) {
         work->timer                                                = 0;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
-        /* Same load-delay shape as `func_acropolis_security_room_80180010`:
+        /* Same load-delay shape as `_acropolisSecurityRoomPowerSupplyRestoreRoomView`:
          * without the barrier GCC hoists the `lw` of `task->state` above the
          * byte store and drops the delay `nop`. */
         task->state = task->state + 1;
@@ -3292,47 +3391,46 @@ void func_acropolis_security_room_801805A4(Task* task)
     }
 
     if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 3) {
-        func_acropolis_security_room_80180A78(task);
+        _acropolisSecurityRoomDrawSweepLine(task);
     }
 }
 
-/// Draws the security room's sweeping laser beam: two points in the emitter's
-/// local frame are rotated into world space by the emitter coordinate's
-/// `workm`, projected through `GsWSMATRIX`, and linked into the current OT as
-/// one semi-transparent flat `LINE_F2`. The beam only exists in the two camera
-/// views selected by the `0xC` bitmask over `GameSession::location.loc.view`, both
-/// endpoints sweep together with the frame counter (`gDisplayState.animFrame * 6`
-/// folded into a 406-step range of their shared local Y), and nothing is queued
-/// when the second endpoint projects closer than an SZ3 / 4 of 0x11.
-static void func_acropolis_security_room_80180A78(Task* task)
+/// Draws a subtractive horizontal segment travelling along the task coordinate's Y axis.
+///
+/// Requires a composed coordinate body and scratch/primitive capacity. Only
+/// room views 3 and 4 draw it. Positions narrow to 16 bits after composed
+/// translation; endpoint `end` supplies camera Z / 4 for the minimum depth 17
+/// and OT sort. Reserves one packet even if culled, and releases the scratch.
+static void _acropolisSecurityRoomDrawSweepLine(Task* task)
 {
+    enum {
+        ACROPOLIS_SECURITY_ROOM_SWEEP_VIEW_MASK = 0xC,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_START_X   = -1063,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_END_X     = -496,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_SPEED     = 6,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_TRAVEL    = 406,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_BASE_Y    = 0xF633,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_Z         = 2479,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_MIN_DEPTH = 17,
+        ACROPOLIS_SECURITY_ROOM_SWEEP_INTENSITY = 16,
+    };
     _AcropolisSecurityRoomSweepLineScratch* line;
     GfxCoord*                               coord;
     LINE_F2*                                prim;
 
     coord = task->extra.coordBody->coord;
-    if ((0xC >> (gGameSession->location.loc.view - 1)) & 1) {
+    if ((ACROPOLIS_SECURITY_ROOM_SWEEP_VIEW_MASK >> (gGameSession->location.loc.view - 1)) & 1) {
+        // Build the travelling segment in the task coordinate and transform it to the projection-input frame.
         line           = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSecurityRoomSweepLineScratch);
-        line->start.vx = -0x427;
-        line->start.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
-        line->start.vz = 0x9AF;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&line->start);
-        gte_rtv0();
-        gte_stsv(&line->start);
-        line->start.vx += coord->workm.t[0];
-        line->start.vy += coord->workm.t[1];
-        line->start.vz += coord->workm.t[2];
-        line->end.vx    = -0x1F0;
-        line->end.vy    = (gDisplayState.animFrame * 6) % 406 + 0xF633;
-        line->end.vz    = 0x9AF;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&line->end);
-        gte_rtv0();
-        gte_stsv(&line->end);
-        line->end.vx += coord->workm.t[0];
-        line->end.vy += coord->workm.t[1];
-        line->end.vz += coord->workm.t[2];
+        line->start.vx = ACROPOLIS_SECURITY_ROOM_SWEEP_START_X;
+        line->start.vy = (gDisplayState.animFrame * ACROPOLIS_SECURITY_ROOM_SWEEP_SPEED) % ACROPOLIS_SECURITY_ROOM_SWEEP_TRAVEL + ACROPOLIS_SECURITY_ROOM_SWEEP_BASE_Y;
+        line->start.vz = ACROPOLIS_SECURITY_ROOM_SWEEP_Z;
+        ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line, start, coord);
+        line->end.vx = ACROPOLIS_SECURITY_ROOM_SWEEP_END_X;
+        line->end.vy = (gDisplayState.animFrame * ACROPOLIS_SECURITY_ROOM_SWEEP_SPEED) % ACROPOLIS_SECURITY_ROOM_SWEEP_TRAVEL + ACROPOLIS_SECURITY_ROOM_SWEEP_BASE_Y;
+        line->end.vz = ACROPOLIS_SECURITY_ROOM_SWEEP_Z;
+        ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line, end, coord);
+        // Project both ends; the second endpoint supplies the culling and sorting depth.
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&line->start);
@@ -3343,11 +3441,11 @@ static void func_acropolis_security_room_80180A78(Task* task)
         gte_stsxy(&prim->x0);
         gte_ldv0(&line->end);
         gte_rtps();
-        prim->code |= 2;
+        setSemiTrans(prim, true);
         gte_stsxy(&prim->x1);
         gte_stszotz(&line->depth);
-        if (line->depth > 0x10) {
-            setRGB0(prim, 0x10, 0x10, 0x10);
+        if (line->depth >= ACROPOLIS_SECURITY_ROOM_SWEEP_MIN_DEPTH) {
+            setRGB0(prim, ACROPOLIS_SECURITY_ROOM_SWEEP_INTENSITY, ACROPOLIS_SECURITY_ROOM_SWEEP_INTENSITY, ACROPOLIS_SECURITY_ROOM_SWEEP_INTENSITY);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
                         ((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
@@ -3357,215 +3455,213 @@ static void func_acropolis_security_room_80180A78(Task* task)
     }
 }
 
-/// Per-frame draw for the security-room's flash sprite: refreshes the task's
-/// coordinate frame, loads it into the GTE, then queues one 128x128 textured
-/// quad from `D_acropolis_security_room_80183970` -- picked by the low two bits
-/// of `Task::spawnArg1` -- into the current OT before releasing its `EffectWork`.
-void func_acropolis_security_room_80180E34(Task* arg0)
-{
-    EffectWork* mem;
-    GfxCoord*   coord;
-    POLY_FT4*   prim;
-    s16         x;
-    s16         y;
-    u16         cx;
-    u16         cy;
+#undef ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT
 
-    coord = arg0->extra.coordBody->coord;
-    mem   = arg0->spawnArg2.pointer;
+void acropolisSecurityRoomMonitorFeedTask(Task* task)
+{
+    enum {
+        ACROPOLIS_SECURITY_ROOM_FEED_INDEX_MASK = 3,
+        ACROPOLIS_SECURITY_ROOM_FEED_SIZE       = 128,
+        ACROPOLIS_SECURITY_ROOM_FEED_SORT_DEPTH = 48,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    POLY_FT4*   quad;
+    s16         edgeX;
+    s16         edgeY;
+    u16         centreXBits;
+    u16         centreYBits;
+
+    coord = task->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    mem->scale  = arg0->spawnArg1.value & 3;
-    prim->tpage = 0xAB;
-    prim->code |= 3;
-    prim->clut  = D_acropolis_security_room_80183970[mem->scale].clutY << 6;
-    cx          = D_acropolis_security_room_80183970[mem->scale].centreX;
-    cy          = D_acropolis_security_room_80183970[mem->scale].centreY;
-    prim->u0    = D_acropolis_security_room_80183970[mem->scale].u;
-    prim->v0    = D_acropolis_security_room_80183970[mem->scale].v;
-    prim->u1    = D_acropolis_security_room_80183970[mem->scale].u + 0x7F;
-    prim->v1    = D_acropolis_security_room_80183970[mem->scale].v;
-    prim->u2    = D_acropolis_security_room_80183970[mem->scale].u;
-    prim->v2    = D_acropolis_security_room_80183970[mem->scale].v + 0x7F;
-    prim->u3    = D_acropolis_security_room_80183970[mem->scale].u + 0x7F;
-    prim->v3    = D_acropolis_security_room_80183970[mem->scale].v + 0x7F;
-    x           = cx - 0x40;
-    prim->x2    = x;
-    prim->x0    = x;
-    x           = cx + 0x3F;
-    prim->x3    = x;
-    prim->x1    = x;
-    y           = cy - 0x40;
-    prim->y1    = y;
-    prim->y0    = y;
-    y           = cy + 0x3F;
-    prim->y3    = y;
-    prim->y2    = y;
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x30 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    effectKillTask(mem, arg0);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    work->scale = task->spawnArg1.value & ACROPOLIS_SECURITY_ROOM_FEED_INDEX_MASK;
+    quad->tpage = getTPage(1, GPU_BLEND_ADD, 704, 0);
+    setSemiTrans(quad, true);
+    setShadeTex(quad, true);
+    quad->clut = getClut(0, D_acropolis_security_room_80183970[work->scale].clutY);
+    // Preserve the placement coordinates as unsigned halfword bits before edge narrowing.
+    centreXBits = D_acropolis_security_room_80183970[work->scale].centreX;
+    centreYBits = D_acropolis_security_room_80183970[work->scale].centreY;
+    quad->u0    = D_acropolis_security_room_80183970[work->scale].u;
+    quad->v0    = D_acropolis_security_room_80183970[work->scale].v;
+    quad->u1    = D_acropolis_security_room_80183970[work->scale].u + ACROPOLIS_SECURITY_ROOM_FEED_SIZE - 1;
+    quad->v1    = D_acropolis_security_room_80183970[work->scale].v;
+    quad->u2    = D_acropolis_security_room_80183970[work->scale].u;
+    quad->v2    = D_acropolis_security_room_80183970[work->scale].v + ACROPOLIS_SECURITY_ROOM_FEED_SIZE - 1;
+    quad->u3    = D_acropolis_security_room_80183970[work->scale].u + ACROPOLIS_SECURITY_ROOM_FEED_SIZE - 1;
+    quad->v3    = D_acropolis_security_room_80183970[work->scale].v + ACROPOLIS_SECURITY_ROOM_FEED_SIZE - 1;
+    edgeX       = centreXBits - ACROPOLIS_SECURITY_ROOM_FEED_SIZE / 2;
+    quad->x2    = edgeX;
+    quad->x0    = edgeX;
+    edgeX       = centreXBits + (ACROPOLIS_SECURITY_ROOM_FEED_SIZE / 2 - 1);
+    quad->x3    = edgeX;
+    quad->x1    = edgeX;
+    edgeY       = centreYBits - ACROPOLIS_SECURITY_ROOM_FEED_SIZE / 2;
+    quad->y1    = edgeY;
+    quad->y0    = edgeY;
+    edgeY       = centreYBits + (ACROPOLIS_SECURITY_ROOM_FEED_SIZE / 2 - 1);
+    quad->y3    = edgeY;
+    quad->y2    = edgeY;
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)ACROPOLIS_SECURITY_ROOM_FEED_SORT_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+    effectKillTask(work, task);
 }
 
-/// Draws a rotating textured quad and updates its drift until it settles.
-void func_acropolis_security_room_80181108(Task* arg0)
+void acropolisSecurityRoomFallingQuadTask(Task* task)
 {
-    EffectQuadCornersScratch* blk;
+    enum {
+        ACROPOLIS_SECURITY_ROOM_QUAD_MOVING                  = 0,
+        ACROPOLIS_SECURITY_ROOM_QUAD_SETTLED                 = 1,
+        ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_HALF_SIZE       = 32,
+        ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_MIN_DEPTH       = 17,
+        ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_SPEED_THRESHOLD = 29,
+        ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_STOP_Y          = -419,
+        ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_VIEW            = 15,
+        ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_LAST_TEXEL      = 7,
+    };
+    EffectQuadCornersScratch* quadScratch;
     GfxCoord*                 coord;
-    EffectWork*               mem;
-    POLY_FT4*                 prim;
-    s32                       i;
-    SVECTOR*                  sv;
-    s32                       ty;
-    s32                       tx;
-    s32                       tz;
+    EffectWork*               work;
+    POLY_FT4*                 quad;
+    s32                       cornerIndex;
+    s32                       fallSpeed;
+    s32                       driftX;
+    s32                       driftZ;
 
     SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
-    blk   = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
-    coord = arg0->extra.coordBody->coord;
-    mem   = arg0->spawnArg2.pointer;
+    quadScratch = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
+    coord       = task->extra.coordBody->coord;
+    work        = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
 
-    if (mem->age == 0) {
-        mem->scale      = 0x20;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->period     = 0x100 - ((gRandomLcgState >> 16) & 0x1F0);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->step       = 0x80 - ((gRandomLcgState >> 16) & 0xF0);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+    if (work->age == 0) {
+        work->scale = ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_HALF_SIZE;
+        _acropolisSecurityRoomSeedQuadMotion(work);
     }
 
-    for (i = 0; i < ARRAY_SIZE(D_acropolis_security_room_801839C0); i++) {
-        // Spelled as an offset rather than `&blk->vertices[i]` so it stays a
-        // separate pointer from the one the GTE macros below take; writing both
-        // the same way lets CSE fold them into one register.
-        sv                  = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
-        blk->vertices[i].vx = D_acropolis_security_room_801839C0[i].axis0Sign * mem->scale;
-        sv->vy              = 0;
-        sv->vz              = D_acropolis_security_room_801839C0[i].axis1Sign * mem->scale;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[i]);
-        blk->vertices[i].vx = (u16)blk->vertices[i].vx + (u16)coord->workm.t[0];
-        sv->vy              = (u16)sv->vy + (u16)coord->workm.t[1];
-        sv->vz              = (u16)sv->vz + (u16)coord->workm.t[2];
+    // Build the local XZ square, narrowing each transformed view-space corner to 16 bits.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_acropolis_security_room_801839C0); cornerIndex++) {
+        _acropolisSecurityRoomTransformQuadCorner(quadScratch, cornerIndex, work, coord);
     }
 
+    // Projection consumes a quad even when the last vertex fails the near-depth test.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vertices[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    gte_stsxy(&quad->x0);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    prim->u0 = 0;
-    prim->v0 = 0;
-    prim->u1 = 7;
-    prim->v1 = 0;
-    prim->u2 = 0;
-    prim->v2 = 7;
-    prim->u3 = 7;
-    prim->v3 = 7;
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->depth);
-    if (blk->depth > 0x10) {
-        prim->tpage = 0x2D;
-        prim->clut  = 0x4390;
-        prim->code |= 1;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+    quad->u0 = 0;
+    quad->v0 = 0;
+    quad->u1 = ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_LAST_TEXEL;
+    quad->v1 = 0;
+    quad->u2 = 0;
+    quad->v2 = ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_LAST_TEXEL;
+    quad->u3 = ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_LAST_TEXEL;
+    quad->v3 = ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_LAST_TEXEL;
+    gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
+    gte_stszotz(&quadScratch->depth);
+    if (quadScratch->depth >= ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_MIN_DEPTH) {
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 832, 0);
+        quad->clut  = getClut(256, 270);
+        setShadeTex(quad, true);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 
-    if (mem->index == 0) {
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        coord->coord.t[2] += mem->move.vz;
-        gfxRotMatrixX(&coord->coord, mem->period, GRAPHICS_ROTATION_COMPOSE);
-        gfxRotMatrixZ(&coord->coord, mem->step, GRAPHICS_ROTATION_COMPOSE);
+    // Draw the entry pose, then move for the next frame; settled quads keep their final pose.
+    if (work->index == ACROPOLIS_SECURITY_ROOM_QUAD_MOVING) {
+        coord->coord.t[0] += work->move.vx;
+        coord->coord.t[1] += work->move.vy;
+        coord->coord.t[2] += work->move.vz;
+        gfxRotMatrixX(&coord->coord, work->period, GRAPHICS_ROTATION_COMPOSE);
+        gfxRotMatrixZ(&coord->coord, work->step, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-        ty = mem->move.vy;
-        if (ty >= 0x1D) {
-            ty--;
+        // Speed approaches 28/29; horizontal drift damps to zero, then reseeds.
+        fallSpeed = work->move.vy;
+        if (fallSpeed >= ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_SPEED_THRESHOLD) {
+            fallSpeed--;
         } else {
-            ty++;
+            fallSpeed++;
         }
-        mem->move.vy = ty;
+        work->move.vy = fallSpeed;
 
-        tx = mem->move.vx;
-        if (tx == 0) {
+        driftX = work->move.vx;
+        if (driftX == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vx   += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
+            work->move.vx  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
         } else {
-            if (tx > 0) {
-                tx--;
+            if (driftX > 0) {
+                driftX--;
             } else {
-                tx++;
+                driftX++;
             }
-            mem->move.vx = tx;
+            work->move.vx = driftX;
         }
 
-        tz = mem->move.vz;
-        if (tz == 0) {
-            mem->move.vz   += mem->step % 32;
+        driftZ = work->move.vz;
+        if (driftZ == 0) {
+            work->move.vz  += work->step % 32;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vz   += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
+            work->move.vz  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
         } else {
-            if (tz > 0) {
-                tz--;
+            if (driftZ > 0) {
+                driftZ--;
             } else {
-                tz++;
+                driftZ++;
             }
-            mem->move.vz = tz;
+            work->move.vz = driftZ;
         }
 
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->period    += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 16;
+        work->period   += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 16;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->step      += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 8;
-        if (coord->coord.t[1] >= -0x1A3) {
-            mem->index = 1;
+        work->step     += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 8;
+        if (coord->coord.t[1] >= ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_STOP_Y) {
+            work->index = ACROPOLIS_SECURITY_ROOM_QUAD_SETTLED;
         }
     }
 
-    mem->age = mem->age + 1;
-    if (gGameSession->location.loc.view != 0xF) {
-        effectKillTask(mem, arg0);
+    work->age = work->age + 1;
+    if (gGameSession->location.loc.view != ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_VIEW) {
+        effectKillTask(work, task);
     }
 }
 
-/// Draws a flash at the object's projected position: two gouraud quads and two
-/// lines meeting at the centre, sized `0xC00 / otz` and skipped when the point
-/// is too near (otz <= 0x10). `spawnArg1` bit 1 lights the red channel and bit 0
-/// the green one, both at one random brightness.
-void func_acropolis_security_room_801817A4(Task* task)
+void acropolisSecurityRoomMonitorGlowTask(Task* task)
 {
+    enum {
+        ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_MIN_DEPTH            = 17,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_EXTENT_DEPTH_PRODUCT = 3072,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_MASK      = 0x70,
+        ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_BASE      = 64,
+    };
     GfxCoord*              coord;
-    void*                  mem;
+    EffectWork*            work;
     RoomGlowSpriteScratch* scratch;
     POLY_G4*               quad;
     LINE_G3*               line;
-    s16                    lum;
-    s16                    red;
-    s16                    green;
-    s32                    i;
+    s16                    brightness;
+    s16                    redFactor;
+    s16                    greenFactor;
+    s32                    armIndex;
 
     coord = task->extra.coordBody->coord;
-    mem   = task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
+    // Project the coordinate origin; both drawing phases share this centre and depth.
     scratch              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
     scratch->worldPos.vx = coord->workm.t[0];
     scratch->worldPos.vy = coord->workm.t[1];
@@ -3576,47 +3672,40 @@ void func_acropolis_security_room_801817A4(Task* task)
     gte_rtps();
     gte_stsxy(&scratch->screenPos);
     gte_stszotz(&scratch->otz);
-    if (scratch->otz >= 0x11) {
-        red                 = (task->spawnArg1.value >> 1) & 1;
-        green               = task->spawnArg1.value & 1;
+    if (scratch->otz >= ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_MIN_DEPTH) {
+        redFactor           = (task->spawnArg1.value >> 1) & 1;
+        greenFactor         = task->spawnArg1.value & 1;
         gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        lum                 = ((gRandomLcgState >> 16) & 0x70) + 0x40;
-        scratch->halfExtent = 0xC00 / scratch->otz;
-        for (i = 0; i < 2; i++) {
+        brightness          = ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_MASK) + ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_BASE;
+        scratch->halfExtent = ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_EXTENT_DEPTH_PRODUCT / scratch->otz;
+        for (armIndex = 0; armIndex < 2; armIndex++) {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
-            setPolyG4(quad);
-            setRGB0(quad, 0, 0, 0);
-            setRGB1(quad, 0, 0, 0);
-            setRGB2(quad, lum * red, green * lum, 0);
-            setRGB3(quad, 0, 0, 0);
+            _acropolisSecurityRoomInitGlowQuad(quad, brightness, redFactor, greenFactor);
             quad->x0 = scratch->screenPos.vx - scratch->halfExtent;
             quad->x1 = quad->x2 = scratch->screenPos.vx;
             quad->x3            = scratch->screenPos.vx + scratch->halfExtent;
             quad->y0 = quad->y2 = quad->y3 = scratch->screenPos.vy;
-            quad->y1                       = (scratch->screenPos.vy - scratch->halfExtent) + scratch->halfExtent * (i + i);
+            quad->y1                       = (scratch->screenPos.vy - scratch->halfExtent) + scratch->halfExtent * (armIndex + armIndex);
             addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }
-        for (i = 0; i < 2; i++) {
+        for (armIndex = 0; armIndex < 2; armIndex++) {
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, lum * red, green * lum, 0);
-            setRGB2(line, 0, 0, 0);
-            line->x0 = scratch->screenPos.vx + scratch->halfExtent * (i * 2 - 1);
-            line->y0 = scratch->screenPos.vy - scratch->halfExtent * (i + 1);
+            _acropolisSecurityRoomInitGlowLine(line, brightness, redFactor, greenFactor);
+            line->x0 = scratch->screenPos.vx + scratch->halfExtent * (armIndex * 2 - 1);
+            line->y0 = scratch->screenPos.vy - scratch->halfExtent * (armIndex + 1);
             line->x1 = scratch->screenPos.vx;
             line->y1 = scratch->screenPos.vy;
-            line->x2 = scratch->screenPos.vx - scratch->halfExtent * (i * 2 - 1);
-            line->y2 = scratch->screenPos.vy + scratch->halfExtent * (i + 1);
+            line->x2 = scratch->screenPos.vx - scratch->halfExtent * (armIndex * 2 - 1);
+            line->y2 = scratch->screenPos.vy + scratch->halfExtent * (armIndex + 1);
             addPrim(&gGpuCurrentOt[((u32)scratch->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
-    effectKillTask(mem, task);
+    effectKillTask(work, task);
 }
 
 #include "../../shared/actor_contacts_push_contact.inc.c"

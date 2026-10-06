@@ -47309,7 +47309,7 @@ alias information has a second, easier-to-miss symptom: the function comes out
 **one instruction shorter** than the target, and every later function in the
 overlay -- plus every `%lo` of its `.data` -- shifts by 4.
 
-`func_acropolis_security_room_80180010` is two statements:
+`_acropolisSecurityRoomPowerSupplyRestoreRoomView` is two statements:
 
 ```c
 D_8007216C  = 3;            /* bare extern s8 */
@@ -51875,7 +51875,7 @@ D_8007216C = 6;
 SOFT_BARRIER();          /* sched1 stops here; the li stays with its call */
 task->state++;
 ...
-func_acropolis_security_room_8017FD64(gameFlagGetNibble(9) & 0xFF);
+_acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(9) & 0xFF);
 ```
 
 Any boundary works — `SCHED_BARRIER()`, `COMPILER_BARRIER()` and a
@@ -52030,7 +52030,7 @@ worse (76% in this function). The two macros are chosen independently.
 
 ## Colour `sb` stores of arguments go last in a prim-fill block
 
-**Problem.** `func_acropolis_security_room_8017DE80` fills four `LINE_F2`
+**Problem.** `_acropolisSecurityRoomOutlinePromptRect` fills four `LINE_F2`
 packets in a row from a `u16` rectangle. Writing the block in the order m2c
 prints it — `x0`, `y0`, `x1`, `r0`, `g0`, `b0`, `y1` — scored 92.0% with
 `reorder=9 insert=2 delete=4`. The `sb $a1/$a2/$a3` trio landed in the middle
@@ -52136,7 +52136,7 @@ local is a single pseudo and cannot reproduce that.
 
 ## Primitive field store order: interleave vertices, do not group by constant
 
-**Problem.** `func_acropolis_security_room_8017E0C4` fills three `POLY_F4`
+**Problem.** `_acropolisSecurityRoomDrawMonitorWash` fills three `POLY_F4`
 packets whose eight coordinates are two distinct constants each (`x` is
 `-0x66` or `0x6C`, `y` is `-0x5F` or `0x3C`). The object dump stores them
 grouped — `sh` to `x0`, `x2`, then `x1`, `x3` — so the obvious source is
@@ -52232,7 +52232,7 @@ The pointer publish needs no placement of its own: written first, as the
 reservation, its `sw` is sunk into the same shadow.
 
 The same rule settled the second half of
-`func_acropolis_security_room_80180A78`: three `+=` of a `MATRIX`'s translation
+`_acropolisSecurityRoomDrawSweepLine`: three `+=` of a `MATRIX`'s translation
 row have to be written back to back, with the *next* block's constant store
 following them, or the scheduler fills the wrong load-delay slot with it.
 
@@ -52993,7 +52993,7 @@ reads and writes back (`gGpuPrimCursor = prim + 1`) is a move-insn with life 3
 (`high`, `lw`, `addiu`, `sw`): 29 × 3 = 87. It hoists into a callee-saved
 register when the loop has ≤ 87 RTL insns and stays inside — reloaded in the
 delay slot of the back edge — at 88 or more. Two otherwise identical loops can
-therefore differ only by their size. `func_acropolis_security_room_801817A4`
+therefore differ only by their size. `acropolisSecurityRoomMonitorGlowTask`
 has both loops at 88+ in the ROM (in-loop `lui v1`) while the natural C gives
 81 and 87; padding with `USE_REG` reproduces the ROM's allocation (92.1% →
 94.5%), so the count is the whole difference, but no source construct that
@@ -53017,7 +53017,7 @@ the pseudos that *won* the registers.
 
 ## The `u16` flag's pre-loop product must use the `s32` value, not the `u16` copy
 
-`func_acropolis_security_room_801817A4` stores `(spawnArg1 >> 1) & 1` as a
+`acropolisSecurityRoomMonitorGlowTask` stores `(spawnArg1 >> 1) & 1` as a
 spilled `u16` (`sh a1, 0x18(sp)`, `lhu` inside loop 2) yet multiplies it before
 loop 1 straight from the `andi` result (`mult s3, a1`, no `lhu`, no
 `andi 0xffff`). `combine` will not fold `zero_extend (reg:HI)` back to the
@@ -66367,7 +66367,7 @@ number-formatting strings begin.
 
 ## A shared brightness needs two preserved copies; a touched literal can load too early
 
-`func_acropolis_security_room_801817A4` matched in `base_40.c`, without hard
+`acropolisSecurityRoomMonitorGlowTask` matched in `base_40.c`, without hard
 register pins. Its raw random brightness is computed into `$v0`, copied to
 `$s3` for the quad loop and independently copied to `$fp` for the line loop.
 `raw = expr; SOFT_TOUCH_REG(raw); quad = raw; saved = raw;` preserves the
@@ -119740,8 +119740,8 @@ writes *is* the psyq type - identify the packet from the offsets and use it:
 `setlen`/`setcode` are byte-aligned `P_TAG` bitfields, so they emit exactly the
 two `sb`s, and `addPrim` is `setaddr(p, getaddr(ot)), setaddr(ot, p)` - the
 masked read-modify-write of both tags. The whole family is already written this
-way in matched code: `func_acropolis_security_room_8017E0C4`
-(`src/rooms/acropolis_security_room/acropolis_security_room_2.c`) is the same
+way in matched code: `_acropolisSecurityRoomDrawMonitorWash`
+(`src/rooms/acropolis_security_room/acropolis_security_room.c`) is the same
 semi-transparent `POLY_F4` + `0xE100004A` drawing-mode pair over a different
 rect, so read it before writing the seed by hand.
 
@@ -142405,7 +142405,7 @@ is also why a `* 0xC0` argument in the same function matched from the start.
 release path written once behind a `goto`: each state that releases calling
 `effectKillTask(mem, index)` itself adds the references that rank `index`
 first, and cross-jumping merges the calls back into one tail.
-## The OT slot spelling moves loop.c's hoisting threshold: `&ot[(z << shift) >> 4 & 0x3FF]` is one RTL insn longer than `((z << shift) >> 2 & 0xFFC) + ot` (func_acropolis_security_room_801817A4, 2026-09-26)
+## The OT slot spelling moves loop.c's hoisting threshold: `&ot[(z << shift) >> 4 & 0x3FF]` is one RTL insn longer than `((z << shift) >> 2 & 0xFFC) + ot` (acropolisSecurityRoomMonitorGlowTask, 2026-09-26)
 
 **Symptom.** Two draw loops, each with a call, where the target leaves some
 invariants inside the loop (`lui %hi(gGpuPrimCursor)`, `lui 0xFF00`, a colour
@@ -142423,8 +142423,8 @@ loop time, two per `addPrim`. That was exactly the gap: the quad loop went 88 ->
 90 and the line loop 92 -> 94, which kept the colour multiply below the line
 (`23 * 2 * 2 = 92 < 94`) while leaving every other decision as it was.
 
-**Also.** The colours were `s16` locals (`red`, `green`, the random `lum`): the
-2-insn sign extensions of `lum` are what loop.c hoists as the `move s3,fp`
+**Also.** The colours were `s16` locals (`redFactor`, `greenFactor`, the random `brightness`): the
+2-insn sign extensions of `brightness` are what loop.c hoists as the `move s3,fp`
 copies in each preheader, and an `s16` whose value is known to be small loses
 its extension in combine. Before padding or pinning a loop to stop a hoist,
 count the loop's insns in the `.loop` dump and check the types and the array

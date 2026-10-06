@@ -35,11 +35,32 @@ extern WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[];
 
 void func_acropolis_security_room_801805A4(Task* task);
 
-void func_acropolis_security_room_80180E34(Task* arg0);
+/// Draws one 128x128 security-camera picture and retires the counted effect.
+///
+/// Requires a coordinate body and owned `EffectWork` in `spawnArg2.pointer`.
+/// `spawnArg1`'s low two bits select one of four feed placements and palettes;
+/// the picture uses raw additive 8-bit texturing at sorting depth 48. Consumes
+/// one frame-arena quad, then releases the work and task before returning.
+void acropolisSecurityRoomMonitorFeedTask(Task* task);
 
-void func_acropolis_security_room_80181108(Task* arg0);
+/// Draws and tumbles an opaque textured square until it settles in room view 15.
+///
+/// Effect-table slot 0x7B requires a coordinate body and a counted `EffectWork`
+/// cleared at spawn. The local XZ square has half-size 32 coordinate units.
+/// X/Z tumble rates use 4096 units per turn; move is parent-space units per
+/// frame. At parent Y >= -419 motion stops, retaining the pose. The quad keeps
+/// drawing until view 15 is left, then frees its work and task. Each draw needs
+/// one quad packet and a temporary `EffectQuadCornersScratch` block.
+void acropolisSecurityRoomFallingQuadTask(Task* task);
 
-void func_acropolis_security_room_801817A4(Task* task);
+/// Draws one flickering additive monitor glow and retires the counted effect.
+///
+/// Requires a coordinate body and owned `EffectWork` in `spawnArg2.pointer`.
+/// `spawnArg1` bit 1 enables red and bit 0 green. A shared random brightness
+/// (64..176 in steps of 16) lights two Gouraud wedges and two crossing lines.
+/// Half-extent is 3072 / (camera Z / 4), in screen pixels; depths below 17 are
+/// rejected. Releases its scratch, counted work and task on every path.
+void acropolisSecurityRoomMonitorGlowTask(Task* task);
 
 void func_acropolis_security_room_8017ED68(Task* task);
 
