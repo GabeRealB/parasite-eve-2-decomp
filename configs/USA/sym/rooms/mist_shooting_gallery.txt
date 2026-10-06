@@ -295,7 +295,7 @@ func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func
 
 mistShootingGalleryDrawLightGlowsTask = 0x801811EC; // type:func
 
-func_mist_shooting_gallery_80182064 = 0x80182064; // type:func
+mistShootingGalleryTracerTask = 0x80182064; // type:func
 _glowDrawCapsule = 0x80181480; // type:func
 glowDrawDisc = 0x80181CC4; // type:func
 jukeboxDrawRow = 0x8018055C; // type:func
@@ -304,3 +304,8 @@ spriteQuadDraw = 0x80182294; // type:func
 _beamStripDraw = 0x801826C4; // type:func
 _mistShootingGalleryScaleRewardOutOfLine = 0x8017fa38; // type:func
 _mistShootingGalleryRejectKeyItemMessage = 0x8017feb0; // type:func
+_mistShootingGalleryDrawClockGlyph = 0x801846f4; // type:func
+_mistShootingGalleryDrawCountdownClock = 0x8018458c; // type:func
+_mistShootingGalleryDrawRedFlash = 0x801847d4; // type:func
+_mistShootingGalleryTickCourseClock = 0x80184ae0; // type:func
+_mistShootingGalleryRedFlashTask = 0x80184b10; // type:func

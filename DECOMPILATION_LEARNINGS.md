@@ -50291,14 +50291,14 @@ Together they took `func_mist_shooting_gallery_8017DE7C` from 97.9% to 100%.
 
 ## A dead `if` still splits the block for `sched1`
 
-`func_mist_shooting_gallery_8018458C` prints a timer as five digits, each
-`q = frames / K; if (q != 0) frames %= K;` followed by a call. The last digit
-divides by 30 and `frames` is dead afterwards, so the obvious C drops the
+`_mistShootingGalleryDrawCountdownClock` prints four timer digits and a colon, each digit
+`q = remainingFrames / K; if (q != 0) remainingFrames %= K;` followed by a call. The last digit
+divides by 30 and `remainingFrames` is dead afterwards, so the obvious C drops the
 `if`:
 
 ```c
-digit3 = frames / 30;
-func_..._801846F4(work->field_0C + 0x30, 0x46, digit3);
+secondOnes = remainingFrames / MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_SECOND;
+_mistShootingGalleryDrawClockGlyph(work->clockX + 0x30, MIST_SHOOTING_GALLERY_CLOCK_Y, secondOnes);
 ```
 
 That scored 95.6% with `reorder`/`regs` leftovers. The target computes the
@@ -50318,7 +50318,7 @@ lh    a0, 0xc(s1)
 Without the `if` the block is one long basic block, so `sched1` fills the
 `mult` latency with the argument setup (`li a1`, `lh a0`, `addiu a0`) and the
 quotient chain lands in `$a2` early instead of in `$v0`/`$v1`. Restoring the
-copy-pasted `if (digit3 != 0) frames %= 30;` matched: `sched1` runs
+copy-pasted `if (secondOnes != 0) remainingFrames %= MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_SECOND;` matched: `sched1` runs
 per-basic-block, so the branch keeps the division and the argument setup apart,
 and the *later* passes delete the whole thing — flow drops the dead `%=` store,
 and jump2 removes the now-empty conditional branch. Nothing survives in the
@@ -50476,13 +50476,13 @@ the `lw` into `lhu` — so the pun is redundant, and it is not harmless: it
 changes the RTL enough to move the store one slot in the schedule.
 
 ```c
-work->field_18 = *(u16*)&coord->workm.t[0] - ((rand >> 16 & 0x3FF) - 0x200);
-work->field_1A = coord->workm.t[1] - 0x800;   /* no pun: still lhu 0x3c */
+work->pos.vx = *(u16*)&coord->workm.t[0] - ((randomX >> 16 & 0x3FF) - 0x200);
+work->pos.vy = coord->workm.t[1] - 0x800;   /* no pun: still lhu 0x3c */
 ```
 
-Both lines emit `lhu` / `addiu` / `sh`. In `func_mist_shooting_gallery_80182064`
+Both lines emit `lhu` / `addiu` / `sh`. In `mistShootingGalleryTracerTask`
 the punned form of the middle line was the last diff at 99.1%: it emitted
-`sh field_18` and the next `lhu` four instructions early. Where a line has no
+`sh pos.vx` and the next `lhu` four instructions early. Where a line has no
 random operand to keep the value 32-bit wide, write the bare field access.
 
 ## Signed test then `(u16)` decrement: the compare must be mentioned first

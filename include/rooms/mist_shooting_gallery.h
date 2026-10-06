@@ -107,7 +107,16 @@ void func_mist_shooting_gallery_8017FBD8(void);
 /// storage and sufficient frame packet space; packets live until GPU completion.
 void mistShootingGalleryDrawLightGlowsTask(Task* unused);
 
-void func_mist_shooting_gallery_80182064(Task* task);
+/// Animates the tracer and blue screen tint of a gallery target's attack.
+///
+/// Effect-bank slot 0x1BD supplies a coordinate body and an owned `EffectWork`
+/// in `task->spawnArg2.pointer`, with a borrowed parent coordinate that must
+/// outlive the effect. The endpoint uses the body's cached world translation,
+/// narrowed to signed 16-bit coordinates; spin uses 4096 units per turn.
+/// Running ticks flicker the sprite and beam and fade the tint by 8 levels;
+/// held ticks redraw at a larger size without advancing age or brightness.
+/// Completion releases the counted effect work and kills the task.
+void mistShootingGalleryTracerTask(Task* task);
 
 void func_mist_shooting_gallery_8018018C(Task* task);
 

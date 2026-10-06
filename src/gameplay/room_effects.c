@@ -983,7 +983,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomArcFlashTask, { NULL } },                              // 0x1BA
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEnergyRingTask, { NULL } },                            // 0x1BB
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomChargeBurstTask, { NULL } },                           // 0x1BC
-    { { { TASK_BODY_COORD, 0x70 } }, func_mist_shooting_gallery_80182064, { NULL } },                         // 0x1BD
+    { { { TASK_BODY_COORD, 0x70 } }, mistShootingGalleryTracerTask, { NULL } },                               // 0x1BD
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_service_gantry_8017E880, { NULL } },                 // 0x1BE
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteRiseTask, { NULL } },                      // 0x1BF
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomLightBeamTask, { NULL } },                             // 0x1C0

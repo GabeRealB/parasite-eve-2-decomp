@@ -1959,7 +1959,7 @@ shelterB2PodBottomArcFlashTask = 0x8017EC78; // type:func absolute:True owner=sh
 
 shelterB2PodBottomEnergyRingTask = 0x8017F448; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
-func_mist_shooting_gallery_80182064 = 0x80182064; // type:func absolute:True owner=mist_shooting_gallery shared=rooms
+mistShootingGalleryTracerTask = 0x80182064; // type:func absolute:True owner=mist_shooting_gallery shared=rooms
 
 func_neo_ark_woodland_path_8017ED00 = 0x8017ED00; // type:func absolute:True owner=neo_ark_woodland_path shared=rooms
 

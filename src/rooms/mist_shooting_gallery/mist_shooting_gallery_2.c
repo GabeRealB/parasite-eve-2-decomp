@@ -141,12 +141,13 @@ extern void   func_actor_215100_8014A908(void);
 extern void   func_actor_215100_8014A9A0(void);
 extern void   actor215100CapCaptionDrawCurrent(void);
 static void   func_mist_shooting_gallery_80184A80(Task* arg0);
-static void   func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
-static u16    func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
+static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
+static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
 static void   func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
 static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGallerySpawn* arg1);
 s32           actor215100CapCaptionSelectScript(s16 arg0, s16 arg1, s32 arg2);
-static void   func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
+static void   _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph);
+static void   _mistShootingGalleryDrawRedFlash(u8 redIntensity);
 static void   func_mist_shooting_gallery_80182B1C(Task* arg0);
 static void   func_mist_shooting_gallery_80182C58(Task* arg0);
 static void   func_mist_shooting_gallery_801831B0(Task* arg0);
@@ -178,12 +179,12 @@ static const TaskFuncTable5 D_mist_shooting_gallery_8017DB8C = {
 
 void func_mist_shooting_gallery_80184C0C(Task*);
 
-void func_mist_shooting_gallery_801849BC(Task*);
-void func_mist_shooting_gallery_80184B10(Task*);
+void        func_mist_shooting_gallery_801849BC(Task*);
+static void _mistShootingGalleryRedFlashTask(Task* task);
 
 TaskDesc D_mist_shooting_gallery_801856B8[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_801849BC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80184B10, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryRedFlashTask, { .value = 0 } },
 };
 
 TaskDesc D_mist_shooting_gallery_801856D0 = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80184C0C, { .value = 0 } };
@@ -2220,73 +2221,83 @@ s32 D_mist_shooting_gallery_8018E0BC = 0;
 
 Task* D_mist_shooting_gallery_8018E0C4;
 
-static void func_mist_shooting_gallery_801847D4(u8 arg0);
-
-/// Per-frame update for one gallery muzzle-flash / tracer effect. The task's
-/// `EffectWork` holds the tracer's endpoint (`pos`), its spin angle (`angle`)
-/// and its brightness ramp (`scale`); the handwritten GTE
-/// routines below draw the beam and its glow from the task's own coordinate.
-/// While `gRoomEffectState->effectControl` is not running the effect only redraws;
-/// once control is running again it seeds a random endpoint around the coordinate's world
-/// position, then fades out by 8 per frame and releases its pool block.
-void func_mist_shooting_gallery_80182064(Task* task)
+void mistShootingGalleryTracerTask(Task* task)
 {
+    enum {
+        MIST_SHOOTING_GALLERY_TRACER_INIT               = 0,
+        MIST_SHOOTING_GALLERY_TRACER_FADE               = 1,
+        MIST_SHOOTING_GALLERY_TRACER_HELD_SIZE          = 0x600,
+        MIST_SHOOTING_GALLERY_TRACER_RUNNING_SIZE       = 0x400,
+        MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_MASK    = 0x3FF,
+        MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_RADIUS  = 0x200,
+        MIST_SHOOTING_GALLERY_TRACER_VERTICAL_OFFSET    = 0x800,
+        MIST_SHOOTING_GALLERY_TRACER_INITIAL_BRIGHTNESS = 0x80,
+        MIST_SHOOTING_GALLERY_TRACER_FADE_STEP          = 8,
+    };
+
     EffectWork* work;
     GfxCoord*   coord;
     u8          rgb[3];
-    u32         rand0;
-    u32         rand1;
-    u32         rand2;
+    u32         randomX;
+    u32         randomZ;
+    u32         randomAngle;
 
-    work  = (EffectWork*)task->spawnArg2.pointer;
+    /// Queues the additive blue tint from this task's work and three-byte rgb buffer.
+    ///
+    /// Expands to four statements; invoke only inside an explicit brace-delimited block.
+    /// Each component narrows to a GPU byte. The work's scale is read three times.
+#define MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT() \
+    rgb[0] = work->scale >> 1;                   \
+    rgb[1] = work->scale >> 1;                   \
+    rgb[2] = work->scale;                        \
+    effectDrawScreenTint(rgb, GPU_BLEND_ADD)
+
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        spriteQuadDraw(coord, work->index, 0x600, work->angle);
-        _beamStripDraw(coord, &work->pos, work->index, 0x600);
-        rgb[0] = work->scale >> 1;
-        rgb[1] = work->scale >> 1;
-        rgb[2] = work->scale;
-        effectDrawScreenTint(rgb, GPU_BLEND_ADD);
+        spriteQuadDraw(coord, work->index, MIST_SHOOTING_GALLERY_TRACER_HELD_SIZE, work->angle);
+        _beamStripDraw(coord, &work->pos, work->index, MIST_SHOOTING_GALLERY_TRACER_HELD_SIZE);
+        MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT();
         return;
     }
 
     work->age++;
     switch (task->state) {
-        case 0:
+        case MIST_SHOOTING_GALLERY_TRACER_INIT:
+            // Attach the origin, but seed the endpoint from the existing world cache.
             coord->parent       = work->parent;
             coord->coord.t[0]   = 0;
             coord->coord.t[1]   = 0;
             coord->coord.t[2]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->state         = 1;
+            task->state         = MIST_SHOOTING_GALLERY_TRACER_FADE;
 
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rand0           = gRandomLcgState;
-            work->pos.vx    = (u16)coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
+            randomX         = gRandomLcgState;
+            work->pos.vx    = (u16)coord->workm.t[0] - ((randomX >> 16 & MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_MASK) - MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_RADIUS);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rand1           = gRandomLcgState;
-            work->pos.vy    = coord->workm.t[1] - 0x800;
+            randomZ         = gRandomLcgState;
+            work->pos.vy    = coord->workm.t[1] - MIST_SHOOTING_GALLERY_TRACER_VERTICAL_OFFSET;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rand2           = gRandomLcgState;
-            work->pos.vz    = (u16)coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
-            work->scale     = 0x80;
-            work->angle     = rand2 >> 16 & 0xFFF;
-        case 1:
+            randomAngle     = gRandomLcgState;
+            work->pos.vz    = (u16)coord->workm.t[2] - ((randomZ >> 16 & MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_MASK) - MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_RADIUS);
+            work->scale     = MIST_SHOOTING_GALLERY_TRACER_INITIAL_BRIGHTNESS;
+            work->angle     = randomAngle >> 16 & ACTOR_TRANSFORM_ANGLE_MASK;
+        case MIST_SHOOTING_GALLERY_TRACER_FADE:
+            // Only odd running ticks advance the texture frame and draw the tracer.
             if (work->age & 1) {
-                spriteQuadDraw(coord, ++work->index, 0x400, work->angle);
-                _beamStripDraw(coord, &work->pos, work->index, 0x400);
+                spriteQuadDraw(coord, ++work->index, MIST_SHOOTING_GALLERY_TRACER_RUNNING_SIZE, work->angle);
+                _beamStripDraw(coord, &work->pos, work->index, MIST_SHOOTING_GALLERY_TRACER_RUNNING_SIZE);
             }
-            rgb[0] = work->scale >> 1;
-            rgb[1] = work->scale >> 1;
-            rgb[2] = work->scale;
-            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-            work->scale -= 8;
-            if (work->scale < 8) {
+            MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT();
+            work->scale -= MIST_SHOOTING_GALLERY_TRACER_FADE_STEP;
+            if (work->scale < MIST_SHOOTING_GALLERY_TRACER_FADE_STEP) {
                 effectKillTask(work, task);
             }
             return;
     }
+#undef MIST_SHOOTING_GALLERY_DRAW_TRACER_TINT
 }
 
 /// Texel width and horizontal stride of each cell in the gallery flash's six-cell strip.
@@ -2529,8 +2540,8 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
                     work->spawnIndex++;
                 }
             }
-            func_mist_shooting_gallery_8018458C(work);
-            if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+            _mistShootingGalleryDrawCountdownClock(work);
+            if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = 0;
                 arg0->state++;
             }
@@ -2645,8 +2656,8 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
                             work->spawnIndex++;
                         }
                     }
-                    func_mist_shooting_gallery_8018458C(work);
-                    if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+                    _mistShootingGalleryDrawCountdownClock(work);
+                    if (_mistShootingGalleryTickCourseClock(work) == 0) {
                         work->phase = 0;
                         arg0->state++;
                     }
@@ -2822,8 +2833,8 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
                     }
                 }
             }
-            func_mist_shooting_gallery_8018458C(work);
-            if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+            _mistShootingGalleryDrawCountdownClock(work);
+            if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = 0;
                 arg0->state++;
             }
@@ -2982,8 +2993,8 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                     }
                 }
             }
-            func_mist_shooting_gallery_8018458C(work);
-            if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+            _mistShootingGalleryDrawCountdownClock(work);
+            if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = 0;
                 arg0->state++;
             }
@@ -3137,8 +3148,8 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                     }
                 }
             }
-            func_mist_shooting_gallery_8018458C(work);
-            if (func_mist_shooting_gallery_80184AE0(work) == 0) {
+            _mistShootingGalleryDrawCountdownClock(work);
+            if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = 0;
                 arg0->state++;
             }
@@ -3283,94 +3294,118 @@ s32 func_mist_shooting_gallery_80184470(s32 score)
     return bonus;
 }
 
-static void func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work)
+/// Slides the course countdown into view and draws its remaining time as MM:SS.
+///
+/// `timeLeft` is measured at 30 frames per second; subsecond frames are omitted.
+/// The courses start at 1800, 3600 or 5400 frames, keeping all digits in 0..9.
+/// Screen positions are pixels relative to the display's drawing origin.
+static void _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work)
 {
-    s32 digit0;
-    s32 digit1;
-    s32 digit2;
-    s32 digit3;
-    s32 frames;
+    enum {
+        MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_SECOND = 30,
+        MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_MINUTE = 60 * MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_SECOND,
+        MIST_SHOOTING_GALLERY_CLOCK_COLON             = 10,
+        MIST_SHOOTING_GALLERY_CLOCK_Y                 = 70,
+    };
 
-    frames = work->timeLeft;
+    s32 minuteTens;
+    s32 minuteOnes;
+    s32 secondTens;
+    s32 secondOnes;
+    s32 remainingFrames;
+
+    /// Extracts and draws one decimal place of the remaining frame count.
+    ///
+    /// Captures work, remainingFrames and the clock Y constant. Pass a digit local,
+    /// a positive constant framesPerPlace and a constant pixel offset. The first two
+    /// arguments occur repeatedly; the quotient must be in 0..9. Expands to several
+    /// statements and must be invoked inside an explicit brace-delimited block.
+#define MIST_SHOOTING_GALLERY_DRAW_CLOCK_PLACE(digit, framesPerPlace, xOffset) \
+    (digit) = remainingFrames / (framesPerPlace);                              \
+    if ((digit) != 0) {                                                        \
+        remainingFrames %= (framesPerPlace);                                   \
+    }                                                                          \
+    _mistShootingGalleryDrawClockGlyph(work->clockX + (xOffset), MIST_SHOOTING_GALLERY_CLOCK_Y, (digit))
+
+    remainingFrames = work->timeLeft;
     if (work->clockX < -0x78) {
         work->clockX += 0xA;
     }
 
-    digit0 = frames / 18000;
-    if (digit0 != 0) {
-        frames %= 18000;
-    }
-    func_mist_shooting_gallery_801846F4(work->clockX, 0x46, digit0);
+    // Peel off each decimal place before submitting its glyph.
+    MIST_SHOOTING_GALLERY_DRAW_CLOCK_PLACE(minuteTens, 10 * MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_MINUTE, 0);
+    MIST_SHOOTING_GALLERY_DRAW_CLOCK_PLACE(minuteOnes, MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_MINUTE, 0xC);
+    MIST_SHOOTING_GALLERY_DRAW_CLOCK_PLACE(secondTens, 10 * MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_SECOND, 0x24);
+    MIST_SHOOTING_GALLERY_DRAW_CLOCK_PLACE(secondOnes, MIST_SHOOTING_GALLERY_CLOCK_FRAMES_PER_SECOND, 0x30);
 
-    digit1 = frames / 1800;
-    if (digit1 != 0) {
-        frames %= 1800;
-    }
-    func_mist_shooting_gallery_801846F4(work->clockX + 0xC, 0x46, digit1);
-
-    digit2 = frames / 300;
-    if (digit2 != 0) {
-        frames %= 300;
-    }
-    func_mist_shooting_gallery_801846F4(work->clockX + 0x24, 0x46, digit2);
-
-    digit3 = frames / 30;
-    if (digit3 != 0) {
-        frames %= 30;
-    }
-    func_mist_shooting_gallery_801846F4(work->clockX + 0x30, 0x46, digit3);
-
-    func_mist_shooting_gallery_801846F4(work->clockX + 0x18, 0x46, 0xA);
+    _mistShootingGalleryDrawClockGlyph(work->clockX + 0x18, MIST_SHOOTING_GALLERY_CLOCK_Y, MIST_SHOOTING_GALLERY_CLOCK_COLON);
+#undef MIST_SHOOTING_GALLERY_DRAW_CLOCK_PLACE
 }
 
-static void func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2)
+/// Queues one unmodulated 15 by 19 pixel clock glyph and its texture-page command.
+///
+/// `glyph` is 0..9 for a digit or 10 for the colon; cells begin every 16 texels.
+/// X and Y are pixels relative to the drawing origin and narrow to signed 16 bits.
+/// The current primitive buffer must hold an SPRT and a DR_TPAGE. The page command
+/// is linked last so it executes before the sprite in the prepend-only table.
+static void _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph)
 {
-    SPRT*     p;
-    DR_TPAGE* dr;
+    enum {
+        MIST_SHOOTING_GALLERY_CLOCK_GLYPH_STRIDE    = 16,
+        MIST_SHOOTING_GALLERY_CLOCK_RAW_SPRITE_CODE = 0x65,
+    };
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    p->w           = 0xF;
-    p->h           = 0x13;
-    p->clut        = 0x4140;
-    setlen(p, 4);
-    p->y0 = arg1;
-    p->u0 = arg2 * 16;
-    p->v0 = 0;
-    setcode(p, 0x65);
-    p->x0 = arg0;
-    addPrim(gGpuCurrentOt, p);
+    SPRT*     sprite;
+    DR_TPAGE* drawMode;
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE1000215;
-    addPrim(gGpuCurrentOt, dr);
+    sprite         = gGpuPrimCursor;
+    gGpuPrimCursor = sprite + 1;
+    sprite->w      = 0xF;
+    sprite->h      = 0x13;
+    sprite->clut   = getClut(0, 261);
+    setlen(sprite, 4);
+    sprite->y0 = screenY;
+    sprite->u0 = glyph * MIST_SHOOTING_GALLERY_CLOCK_GLYPH_STRIDE;
+    sprite->v0 = 0;
+    setcode(sprite, MIST_SHOOTING_GALLERY_CLOCK_RAW_SPRITE_CODE);
+    sprite->x0 = screenX;
+    addPrim(gGpuCurrentOt, sprite);
+
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_AVERAGE, 320, 256));
+    addPrim(gGpuCurrentOt, drawMode);
 }
 
-static void func_mist_shooting_gallery_801847D4(u8 arg0)
+/// Queues an additive red tile covering the viewport, with intensity in 0..255.
+///
+/// The 384 by 256 pixel tile overhangs the centred viewport. The current primitive
+/// buffer must hold a TILE and a DR_TPAGE; the draw-mode command is linked last
+/// so additive blending is selected before the tile executes.
+static void _mistShootingGalleryDrawRedFlash(u8 redIntensity)
 {
-    TILE*     p;
-    DR_TPAGE* dr;
+    enum { MIST_SHOOTING_GALLERY_RED_FLASH_TILE_CODE = 0x62 };
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    p->x0          = -0xA8;
-    p->y0          = -0x7C;
-    p->w           = 0x180;
-    p->h           = 0x100;
-    setlen(p, 3);
-    p->r0 = arg0;
-    p->g0 = 0;
-    p->b0 = 0;
-    setcode(p, 0x62);
-    addPrim(gGpuCurrentOt, p);
+    TILE*     tile;
+    DR_TPAGE* drawMode;
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE1000235;
-    addPrim(gGpuCurrentOt, dr);
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    tile->x0       = -0xA8;
+    tile->y0       = -0x7C;
+    tile->w        = 0x180;
+    tile->h        = 0x100;
+    setlen(tile, 3);
+    tile->r0 = redIntensity;
+    tile->g0 = 0;
+    tile->b0 = 0;
+    setcode(tile, MIST_SHOOTING_GALLERY_RED_FLASH_TILE_CODE);
+    addPrim(gGpuCurrentOt, tile);
+
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_ADD, 320, 256));
+    addPrim(gGpuCurrentOt, drawMode);
 }
 
 void func_mist_shooting_gallery_801848B4(void)
@@ -3448,36 +3483,56 @@ static void func_mist_shooting_gallery_80184A80(Task* arg0)
     taskKill(arg0);
 }
 
-static u16 func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work)
+/// Decrements the course's 30 Hz clock while combat actors run; returns frames left.
+///
+/// A zero clock stays zero. Each course tests the result after drawing the clock
+/// and enters its closing state on the tick that returns zero.
+static u16 _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work)
 {
-    u16 temp = work->timeLeft;
+    u16 framesLeft = work->timeLeft;
 
-    if ((temp != 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
-        work->timeLeft = temp - 1;
+    if ((framesLeft != 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
+        work->timeLeft = framesLeft - 1;
     }
     return work->timeLeft;
 }
 
-void func_mist_shooting_gallery_80184B10(Task* arg0)
+/// Runs a forty-tick red screen flash, drawing and fading on ticks 10..39.
+///
+/// No work block is allocated. The task owns a frame countdown in `killCountdown`
+/// and an 8-bit colour intensity stored in `spawnArg1.value`. Initialization
+/// replaces the spawn payload with 255; each visible tick reduces it by 8 when
+/// above 8, then draws. The task kills itself before drawing at countdown zero.
+static void _mistShootingGalleryRedFlashTask(Task* task)
 {
-    s16 count;
+    enum {
+        MIST_SHOOTING_GALLERY_RED_FLASH_INIT              = 0,
+        MIST_SHOOTING_GALLERY_RED_FLASH_FADE              = 1,
+        MIST_SHOOTING_GALLERY_RED_FLASH_LIFETIME          = 40,
+        MIST_SHOOTING_GALLERY_RED_FLASH_DRAW_BELOW        = 31,
+        MIST_SHOOTING_GALLERY_RED_FLASH_INITIAL_INTENSITY = 255,
+        MIST_SHOOTING_GALLERY_RED_FLASH_FADE_STEP         = 8,
+    };
 
-    switch (arg0->state) {
-        case 0:
-            arg0->state           = 1;
-            arg0->killCountdown   = 0x28;
-            arg0->spawnArg1.value = 0xFF;
-        case 1:
-            count = --arg0->killCountdown;
-            if (count <= 0) {
-                taskKill(arg0);
+    s16 framesLeft;
+
+    switch (task->state) {
+        case MIST_SHOOTING_GALLERY_RED_FLASH_INIT:
+            task->state           = MIST_SHOOTING_GALLERY_RED_FLASH_FADE;
+            task->killCountdown   = MIST_SHOOTING_GALLERY_RED_FLASH_LIFETIME;
+            task->spawnArg1.value = MIST_SHOOTING_GALLERY_RED_FLASH_INITIAL_INTENSITY;
+        case MIST_SHOOTING_GALLERY_RED_FLASH_FADE:
+            framesLeft = --task->killCountdown;
+            if (framesLeft <= 0) {
+                taskKill(task);
                 return;
             }
-            if (count < 0x1F) {
-                if (arg0->spawnArg1.value >= 9) {
-                    arg0->spawnArg1.value -= 8;
+            // Leave the opening ticks clear, then fade the red overlay.
+            if (framesLeft < MIST_SHOOTING_GALLERY_RED_FLASH_DRAW_BELOW) {
+                if (task->spawnArg1.value >= MIST_SHOOTING_GALLERY_RED_FLASH_FADE_STEP + 1) {
+                    task->spawnArg1.value -= MIST_SHOOTING_GALLERY_RED_FLASH_FADE_STEP;
                 }
-                func_mist_shooting_gallery_801847D4((u8)arg0->spawnArg1.value);
+                _mistShootingGalleryDrawRedFlash((u8)task->spawnArg1.value);
             }
             return;
     }
