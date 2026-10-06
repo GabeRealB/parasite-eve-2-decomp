@@ -37,7 +37,14 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_trailer_coach_8018C1E8[
 
 void func_dryfield_night_trailer_coach_8018138C(Task* task);
 
-void func_dryfield_night_trailer_coach_80182924(Task* unused);
+/// Draws the night trailer coach's glows for the current room view each frame.
+///
+/// View 3 draws both strip groups; view 4 draws the second group. Views 2, 5
+/// and 7 draw a cyan diamond and four strips; view 8 draws a pulsing cyan disc.
+/// Other views draw nothing. `unusedTask` only satisfies the task callback
+/// signature. Requires the room overlay, composed view matrices and the
+/// current frame's initialized scratch stack, ordering table and packet arena.
+void dryfieldNightTrailerCoachDrawGlowsTask(Task* unusedTask);
 
 void func_dryfield_night_trailer_coach_801828CC(Task* task);
 

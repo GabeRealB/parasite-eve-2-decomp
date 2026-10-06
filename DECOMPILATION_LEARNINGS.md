@@ -43277,7 +43277,7 @@ move ownership *forward*. When the jump table sits in the middle of the leading
 rodata block, the bytes *after* it cannot go back to the unit that owned them —
 they have to be handed to a unit that comes later in that order.
 
-`func_dryfield_night_trailer_coach_80182924` lives in unit 6 and its table is at
+`dryfieldNightTrailerCoachDrawGlowsTask` lives in unit 6 and its table is at
 `0x240`, inside the `0x21C` block owned by unit 3; the block continues to `0x8CC`
 with a code-shaped blob at `0x25C`. Three cuts, not one:
 
@@ -43314,7 +43314,8 @@ lui    s0, %hi(D_80189400)
 addiu  s0, s0, %lo(D_80189400)
 ```
 
-Giving each case its own local (`p` / `q` / `r`) shrank each live range to one
+Giving each case its own local (`firstStripPoints` / `secondStripPoints` /
+`markerPoints` in `dryfieldNightTrailerCoachDrawGlowsTask`) shrank each live range to one
 block, so `local_alloc` handed all three the same `$s0` and folded the `HIGH`
 temp into it — 99.59% → byte match, with no pins. This is the mirror image of
 "Pinned `s0` entry after a clear loop": reuse of the local is what *causes* the

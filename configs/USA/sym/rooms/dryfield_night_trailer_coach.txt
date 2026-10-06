@@ -295,7 +295,7 @@ D_dryfield_night_trailer_coach_80188510 = 0x80188510; // size:0x1F8 defined:True
 
 func_dryfield_night_trailer_coach_8018138C = 0x8018138C; // type:func
 
-func_dryfield_night_trailer_coach_80182924 = 0x80182924; // type:func
+dryfieldNightTrailerCoachDrawGlowsTask = 0x80182924; // type:func
 Telephone_DrawPlayDataRow = 0x8017FFF4; // type:func
 Telephone_DrawUsageRow = 0x801807C0; // type:func
 Telephone_BuildWeaponUsage = 0x80180BBC; // type:func
@@ -341,3 +341,4 @@ _glowDrawDiamond = 0x80182AB8; // type:func
 roomCutsceneTask = 0x80181DB0; // type:func
 roomCutsceneSoundTask = 0x80182610; // type:func
 trailerCoachSetDepthShift = 0x80182898; // type:func
+_dryfieldNightTrailerCoachDrawGlowCapsule = 0x801838b4; // type:func

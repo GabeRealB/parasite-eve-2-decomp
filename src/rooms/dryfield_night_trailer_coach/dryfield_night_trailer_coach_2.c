@@ -47,8 +47,7 @@ extern SVECTOR D_dryfield_night_trailer_coach_801893F8[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189400[];
 extern SVECTOR D_dryfield_night_trailer_coach_80189480[];
 
-/// Glow markers the room's view handler draws at world-space points.
-static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1);
+static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[2], s32 radiusScale);
 
 extern WorldCollisionGrid         D_dryfield_night_trailer_coach_80189A20[1];
 extern WorldCollisionTrigger      D_dryfield_night_trailer_coach_8018BBA4[4];
@@ -846,49 +845,58 @@ RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C = { 0 };
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-void func_dryfield_night_trailer_coach_80182924(Task* unused)
+void dryfieldNightTrailerCoachDrawGlowsTask(Task* unusedTask)
 {
-    SVECTOR* p;
-    SVECTOR* q;
-    SVECTOR* r;
-    u8       view;
+    enum {
+        DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS       = 0x100,
+        DRYFIELD_NIGHT_TRAILER_COACH_SMALL_GLOW_RADIUS = 0xC0,
+        DRYFIELD_NIGHT_TRAILER_COACH_MARKER_PULSE_RATE = 0x60,
+        DRYFIELD_NIGHT_TRAILER_COACH_DIAMOND_RADIUS    = 0xA0,
+        DRYFIELD_NIGHT_TRAILER_COACH_DISC_RADIUS       = 0x30,
+    };
+
+    const SVECTOR* firstStripPoints;
+    const SVECTOR* secondStripPoints;
+    const SVECTOR* markerPoints;
+    u8             view;
 
     view = gGameSession->location.loc.view;
     switch (view) {
         case 3:
-            p = D_dryfield_night_trailer_coach_80189400;
-            func_dryfield_night_trailer_coach_801838B4(&p[0], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&p[2], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&p[4], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&p[6], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&p[8], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&p[10], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&p[12], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&p[14], 0x100);
+            firstStripPoints = D_dryfield_night_trailer_coach_80189400;
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[0], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[2], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[4], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[6], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[8], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[10], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[12], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&firstStripPoints[14], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            // View 3 also draws the strips visible in view 4.
             /* fallthrough */
         case 4:
-            q = D_dryfield_night_trailer_coach_80189480;
-            func_dryfield_night_trailer_coach_801838B4(&q[0], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&q[2], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&q[4], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&q[6], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&q[8], 0xC0);
-            func_dryfield_night_trailer_coach_801838B4(&q[10], 0xC0);
-            func_dryfield_night_trailer_coach_801838B4(&q[12], 0xC0);
-            func_dryfield_night_trailer_coach_801838B4(&q[14], 0xC0);
+            secondStripPoints = D_dryfield_night_trailer_coach_80189480;
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[0], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[2], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[4], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[6], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[8], DRYFIELD_NIGHT_TRAILER_COACH_SMALL_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[10], DRYFIELD_NIGHT_TRAILER_COACH_SMALL_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[12], DRYFIELD_NIGHT_TRAILER_COACH_SMALL_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&secondStripPoints[14], DRYFIELD_NIGHT_TRAILER_COACH_SMALL_GLOW_RADIUS);
             break;
         case 2:
         case 5:
         case 7:
-            r = D_dryfield_night_trailer_coach_801893F8;
-            _glowDrawDiamond(&r[0], 0x60, 0xA0);
-            func_dryfield_night_trailer_coach_801838B4(&r[1], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&r[3], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&r[5], 0x100);
-            func_dryfield_night_trailer_coach_801838B4(&r[7], 0x100);
+            markerPoints = D_dryfield_night_trailer_coach_801893F8;
+            _glowDrawDiamond(&markerPoints[0], DRYFIELD_NIGHT_TRAILER_COACH_MARKER_PULSE_RATE, DRYFIELD_NIGHT_TRAILER_COACH_DIAMOND_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&markerPoints[1], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&markerPoints[3], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&markerPoints[5], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
+            _dryfieldNightTrailerCoachDrawGlowCapsule(&markerPoints[7], DRYFIELD_NIGHT_TRAILER_COACH_GLOW_RADIUS);
             break;
         case 8:
-            _glowDrawPulsingDisc(&D_dryfield_night_trailer_coach_801893F8[0], 0x60, 0x30);
+            _glowDrawPulsingDisc(&D_dryfield_night_trailer_coach_801893F8[0], DRYFIELD_NIGHT_TRAILER_COACH_MARKER_PULSE_RATE, DRYFIELD_NIGHT_TRAILER_COACH_DISC_RADIUS);
             break;
     }
 }
@@ -897,128 +905,138 @@ void func_dryfield_night_trailer_coach_80182924(Task* unused)
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-/// Draws a glow joining two points: `arg0` and `arg0 + 1` are projected through
-/// `gGfxViewCoord.workm`, and nothing is drawn if either projection sets the GTE
-/// error flag. Each point gets a radius of `(s16)arg1 * 64` over its own OTZ.
-/// Starting from the screen-space angle between the two projected centres, the
-/// sweep lays a gouraud `POLY_G4` fan around each centre and a band joining
-/// them, three primitives per 0x400 step across half a turn. The lit vertices
-/// take a grey that alternates with the animation frame between 0x10 and 0x18.
-/// Other rooms carry a brighter copy of this drawer that is otherwise the
-/// same code.
-static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
+/// Prepares a Gouraud capsule cap with a grey centre and a black rim.
+///
+/// Borrows one writable quad; the caller supplies coordinates, DMA linkage
+/// and the additive blend command. Colour stores use the low intensity byte.
+static inline void _dryfieldNightTrailerCoachInitCapsuleCap(POLY_G4* quad, s32 intensity)
 {
-    SVECTOR*                 p1;
+    setPolyG4(quad);
+    setRGB0(quad, 0, 0, 0);
+    setRGB1(quad, 0, 0, 0);
+    setRGB2(quad, intensity, intensity, intensity);
+    setRGB3(quad, 0, 0, 0);
+}
+
+/// Draws a flickering grey capsule aligned with two projected world points.
+///
+/// `worldPoints` supplies two consecutive points, borrowed for this call.
+/// The signed low halfword of `radiusScale` gives each end a pixel radius of
+/// `radiusScale * 64 / depth`, where depth is camera Z / 4 and must be nonzero.
+/// Negative GTE flags at either end reject the capsule. Grey centre intensity
+/// alternates between 16 and 24; the rim is black. Queues six Gouraud quads
+/// and additive blend commands in the current frame's packet arena. The two
+/// joining quads sort at the mean depth; end caps sort at their own depths.
+/// Requires composed view matrices, an initialized scratch stack with one
+/// `OverlayPointPairScratch` available, and room in the current packet arena.
+static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[2], s32 radiusScale)
+{
+    enum { DRYFIELD_NIGHT_TRAILER_COACH_CAPSULE_BASE_INTENSITY = 16 };
+
+    const SVECTOR*           secondPoint;
     OverlayPointPairScratch* block;
-    POLY_G4*                 prim;
-    DisplayState*            ds;
-    s32                      raw;
-    s32                      ang;
-    s32                      angEnd;
-    s32                      limit;
-    s32                      angStart;
-    s32                      t;
-    s32                      t2;
-    s32                      t3;
-    s32                      conn;
-    s32                      scaled;
-    s32                      blend;
+    POLY_G4*                 quad;
+    const DisplayState*      display;
+    s32                      bearing;
+    s32                      sweepAngle;
+    s32                      halfTurnEnd;
+    s32                      sweepLimit;
+    s32                      baseAngle;
+    s32                      rimAngle;
+    s32                      nextSweepAngle;
+    s32                      farCapAngle;
+    s32                      sideAngle;
+    s32                      scaledRadius;
+    s32                      intensity;
 
-    p1 = arg0 + 1;
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
-    block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
+    secondPoint = worldPoints + 1;
+    block       = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
 
+    // Project both endpoints before deriving radii and the screen-space bearing.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoints);
     gte_rtps();
     gte_stsxy(&block->sx0);
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz0);
-        gte_ldv0(p1);
+        gte_ldv0(secondPoint);
         gte_rtps();
         gte_stsxy(&block->sx1);
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz1);
-            scaled         = (s16)arg1 * 64;
-            block->radius0 = scaled / block->otz0;
-            block->radius1 = scaled / block->otz1;
-            raw            = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
-            ds             = &gDisplayState;
-            ang            = (s16)raw;
-            blend          = (((u8)ds->animFrame & 1) * 8) | 0x10;
-            angEnd         = ang + 0x800;
-            if (ang < angEnd) {
-                angStart = ang;
-                limit    = angEnd;
+            scaledRadius   = (s16)radiusScale * GLOW_RADIUS_SCALE;
+            block->radius0 = scaledRadius / block->otz0;
+            block->radius1 = scaledRadius / block->otz1;
+            bearing        = ratan2((s16)block->sy1 - (s16)block->sy0, (s16)block->sx0 - (s16)block->sx1);
+            display        = &gDisplayState;
+            sweepAngle     = (s16)bearing;
+            intensity      = (((u8)display->animFrame & 1) * GLOW_FLICKER_INTENSITY_STEP) | DRYFIELD_NIGHT_TRAILER_COACH_CAPSULE_BASE_INTENSITY;
+            halfTurnEnd    = sweepAngle + GLOW_HALF_TURN;
+            if (sweepAngle < halfTurnEnd) {
+                baseAngle  = sweepAngle;
+                sweepLimit = halfTurnEnd;
+                // Two quarter-turn sweeps fill the end caps and both sides of the band.
                 do {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, blend, blend, blend);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx0 + ((block->radius0 * rsin(ang)) >> 12);
-                    t        = ang + 0x200;
-                    prim->y0 = block->sy0 + ((block->radius0 * rcos(ang)) >> 12);
-                    prim->x1 = block->sx0 + ((block->radius0 * rsin(t)) >> 12);
-                    prim->y1 = block->sy0 + ((block->radius0 * rcos(t)) >> 12);
-                    t2       = ang + 0x400;
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx0 + ((block->radius0 * rsin(t2)) >> 12);
-                    prim->y3 = block->sy0 + ((block->radius0 * rcos(t2)) >> 12);
+                    quad           = gGpuPrimCursor;
+                    gGpuPrimCursor = quad + 1;
+                    _dryfieldNightTrailerCoachInitCapsuleCap(quad, intensity);
+                    quad->x0       = block->sx0 + ((block->radius0 * rsin(sweepAngle)) >> GLOW_TRIG_SHIFT);
+                    rimAngle       = sweepAngle + GLOW_EIGHTH_TURN;
+                    quad->y0       = block->sy0 + ((block->radius0 * rcos(sweepAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->x1       = block->sx0 + ((block->radius0 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->y1       = block->sy0 + ((block->radius0 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
+                    nextSweepAngle = sweepAngle + GLOW_QUARTER_TURN;
+                    quad->x2       = block->sx0;
+                    quad->y2       = block->sy0;
+                    quad->x3       = block->sx0 + ((block->radius0 * rsin(nextSweepAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->y3       = block->sy0 + ((block->radius0 * rcos(nextSweepAngle)) >> GLOW_TRIG_SHIFT);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+                            quad);
+                    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz0);
 
-                    conn           = angStart + ((ang - angStart) * 2);
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, blend, blend, blend);
-                    setRGB3(prim, blend, blend, blend);
-                    prim->x0 = block->sx0 + ((block->radius0 * rsin(conn)) >> 12);
-                    prim->y0 = block->sy0 + ((block->radius0 * rcos(conn)) >> 12);
-                    prim->x1 = block->sx1 + ((block->radius1 * rsin(conn)) >> 12);
-                    prim->y1 = block->sy1 + ((block->radius1 * rcos(conn)) >> 12);
-                    prim->x2 = block->sx0;
-                    prim->y2 = block->sy0;
-                    prim->x3 = block->sx1;
-                    prim->y3 = block->sy1;
+                    sideAngle      = baseAngle + ((sweepAngle - baseAngle) * 2);
+                    quad           = gGpuPrimCursor;
+                    gGpuPrimCursor = quad + 1;
+                    setPolyG4(quad);
+                    setRGB0(quad, 0, 0, 0);
+                    setRGB1(quad, 0, 0, 0);
+                    setRGB2(quad, intensity, intensity, intensity);
+                    setRGB3(quad, intensity, intensity, intensity);
+                    quad->x0 = block->sx0 + ((block->radius0 * rsin(sideAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->y0 = block->sy0 + ((block->radius0 * rcos(sideAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->x1 = block->sx1 + ((block->radius1 * rsin(sideAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->y1 = block->sy1 + ((block->radius1 * rcos(sideAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->x2 = block->sx0;
+                    quad->y2 = block->sy0;
+                    quad->x3 = block->sx1;
+                    quad->y3 = block->sy1;
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, (block->otz1 + block->otz0) / 2);
+                            quad);
+                    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, (block->otz1 + block->otz0) / 2);
 
-                    prim           = gGpuPrimCursor;
-                    t3             = ang + 0x800;
-                    t              = t3;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, blend, blend, blend);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
-                    prim->y0 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
-                    t        = ang + 0xA00;
-                    prim->x1 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
-                    prim->y1 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
-                    t        = ang + 0xC00;
-                    prim->x2 = block->sx1;
-                    prim->y2 = block->sy1;
-                    prim->x3 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
-                    prim->y3 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
+                    quad           = gGpuPrimCursor;
+                    farCapAngle    = sweepAngle + GLOW_HALF_TURN;
+                    rimAngle       = farCapAngle;
+                    gGpuPrimCursor = quad + 1;
+                    _dryfieldNightTrailerCoachInitCapsuleCap(quad, intensity);
+                    quad->x0 = block->sx1 + ((block->radius1 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->y0 = block->sy1 + ((block->radius1 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
+                    rimAngle = sweepAngle + (GLOW_HALF_TURN + GLOW_EIGHTH_TURN);
+                    quad->x1 = block->sx1 + ((block->radius1 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->y1 = block->sy1 + ((block->radius1 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
+                    rimAngle = sweepAngle + (GLOW_HALF_TURN + GLOW_QUARTER_TURN);
+                    quad->x2 = block->sx1;
+                    quad->y2 = block->sy1;
+                    quad->x3 = block->sx1 + ((block->radius1 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+                    quad->y3 = block->sy1 + ((block->radius1 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
-                    ang = t2;
-                } while (ang < limit);
+                            quad);
+                    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz1);
+                    sweepAngle = nextSweepAngle;
+                } while (sweepAngle < sweepLimit);
             }
         }
     }
