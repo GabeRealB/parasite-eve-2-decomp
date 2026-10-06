@@ -12,30 +12,20 @@
 /// `factoryPanelSpawn` poller. Case 12 only acts while
 /// progress flag 0x49 is 1, and silences the player's and the ally's weapon
 /// before spawning. Every other command does nothing.
-///
-/// The `goto`s are the target's shape: every path shares the single `return 0`
-/// at `end`, so the exit block is the only place `$v0` is zeroed.
 s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
 {
-    TaskDesc* table;
-    s32       idx;
-
     switch (cmd) {
         case 1:
-            table = gFactorySpawnTable;
-            idx   = 2;
+            taskSpawnFromTable(gFactorySpawnTable, 2, cmd, 0);
             break;
         case 2:
-            table = gFactorySpawnTable;
-            idx   = 3;
+            taskSpawnFromTable(gFactorySpawnTable, 3, cmd, 0);
             break;
         case 3:
-            table = gFactorySpawnTable;
-            idx   = 1;
+            taskSpawnFromTable(gFactorySpawnTable, 1, cmd, 0);
             break;
         case 5:
-            table = gFactorySpawnTable;
-            idx   = 0;
+            taskSpawnFromTable(gFactorySpawnTable, 0, cmd, 0);
             break;
         case 6:
             Gp_MsgPlayerWeapon(0);
@@ -43,20 +33,14 @@ s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
             Gp_MsgAllyWeapon(0);
             Gp_MsgAlly3F3(0);
             taskSpawnFromTable(gFactoryPanelSessionDesc, 0, 0, 0);
-            goto end;
+            break;
         case 12:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == 1) {
                 Gp_MsgPlayerWeapon(0);
                 Gp_MsgAllyWeapon(0);
-                table = gFactorySpawnTable;
-                idx   = 6;
-                break;
+                taskSpawnFromTable(gFactorySpawnTable, 6, cmd, 0);
             }
-            goto end;
-        default:
-            goto end;
+            break;
     }
-    taskSpawnFromTable(table, idx, cmd, 0);
-end:
     return 0;
 }
