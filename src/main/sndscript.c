@@ -1590,14 +1590,17 @@ static s32 SndScript_Exec(_SndScript* script)
     switch ((u32)cmd->magic) {
         case SOUND_SCRIPT_PITCH_ENVELOPE_TAG:
             // Envelope data is not a command; halt without advancing the cursor.
+            result = 0;
             break;
         case SOUND_SCRIPT_END_TAG:
-        stop:
             script->ended = 1;
+            result        = 0;
             break;
         case SOUND_SCRIPT_LOOP_TAG:
             if (script->loopDepth >= 8U) {
-                goto stop;
+                script->ended = 1;
+                result        = 0;
+                break;
             }
             ticks = script->tickClock;
             if ((ticks >> 16) >= cmd->data.loop.delayTicks) {
@@ -1607,14 +1610,16 @@ static s32 SndScript_Exec(_SndScript* script)
                 script->loopDepth++;
                 script->tickClock -= cmd->data.loop.delayTicks << 16;
                 result             = 1;
-                goto done;
             } else {
                 _sndScriptAdvanceClock(script);
+                result = 0;
             }
             break;
         case SOUND_SCRIPT_LOOP_END_TAG:
             if (script->loopDepth == 0) {
-                goto stop;
+                script->ended = 1;
+                result        = 0;
+                break;
             }
             index = script->loopDepth - 1;
             if (script->loopCounts[index] == 1) {
@@ -1627,7 +1632,7 @@ static s32 SndScript_Exec(_SndScript* script)
                 }
             }
             result = 1;
-            goto done;
+            break;
         case SOUND_SCRIPT_ENTRY_TAG:
             header = script->bankSlot->image;
             // Reload this entry's controls. The next 24 bytes are then read as a
@@ -1640,7 +1645,7 @@ static s32 SndScript_Exec(_SndScript* script)
             if ((ticks >> 16) < note->delayTicks) {
                 _sndScriptAdvanceClock(script);
                 result = 0;
-                goto done;
+                break;
             }
             voice  = SndVoice_Alloc(note->voicePriority);
             result = 1;
@@ -1656,10 +1661,9 @@ static s32 SndScript_Exec(_SndScript* script)
                         voice->spuVoice = 0;
                         return 0;
                     }
-                    goto setup_voice;
+                } else {
+                    bank = bankSlot->bank;
                 }
-                bank = bankSlot->bank;
-            setup_voice:
                 Spu_GetVoiceRef(voice->spuVoice, &voiceRef);
                 bankLayer    = Snd_GetNote(bank, (u8)note->program, note->layer);
                 attr         = voiceRef.attr;
@@ -1727,27 +1731,24 @@ static s32 SndScript_Exec(_SndScript* script)
             }
             script->tickClock = (s32)(script->tickClock - (note->delayTicks << 0x10));
             script->cursor    = script->cursor + sizeof(_SndScriptNote);
-
-            goto done;
+            break;
         case SOUND_SCRIPT_WAIT_TAG:
             ticks = script->tickClock;
             wait  = cmd->data.waitTicks;
             if ((ticks >> 16) < wait) {
                 _sndScriptAdvanceClock(script);
                 result = 0;
-                goto done;
+                break;
             }
             script->tickClock = ticks - (wait << 16);
             script->cursor    = script->cursor + sizeof(_SndScriptCmd);
             result            = 1;
-            goto done;
+            break;
         case SOUND_SCRIPT_ADSR_TAG:
         default:
             result = 0;
-            goto done;
+            break;
     }
-    result = 0;
-done:
     return result;
 }
 
