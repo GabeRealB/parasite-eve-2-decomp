@@ -710,7 +710,7 @@ dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask = 0x8017EDF4; // type:func
 
 func_dryfield_night_back_street_8017F6DC = 0x8017F6DC; // type:func absolute:True owner=dryfield_night_back_street shared=rooms
 
-func_dryfield_night_dilapidated_house_8017E670 = 0x8017E670; // type:func absolute:True owner=dryfield_night_dilapidated_house
+dryfieldNightDilapidatedHouseDrawLightPrismsTask = 0x8017E670; // type:func absolute:True owner=dryfield_night_dilapidated_house
 
 func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_driveway shared=rooms
 

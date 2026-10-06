@@ -92528,20 +92528,20 @@ Inputs: `base_1.i`
 `3c18e603b12656d7e4b4653d317328a2882cab207fcb4fb1037ee113d42ba8ad` (100.000%,
 first hypothesis), target
 `a7e0d28dccb3e47cda2115ba118b6bcb60b59ef88355ffe215f50f9850f2baf4`.
-## A room coordinate-body task needs its `coord` in a local, because 2.8.1 will not CSE a load across a call (func_dryfield_night_dilapidated_house_8017E670, 2026-09-16)
+## A room coordinate-body task needs its `coord` in a local, because 2.8.1 will not CSE a load across a call (dryfieldNightDilapidatedHouseDrawLightPrismsTask, 2026-09-16)
 
 Rooms carry a per-frame task of a recurring shape: fetch the body's single coordinate
-out of `Task::extra.coordBody`, take the stage-visit byte as a bit index, refresh the
-world matrix, and draw the primitives whose visit set the current visit falls in.
+out of `Task::extra.coordBody`, take the logical view byte as a bit index, refresh the
+composed matrix, and draw the primitives whose view set the current view falls in.
 
 ```c
-coord = arg0->extra.coordBody->coord;
-mask  = 1 << gGameSession->location.loc.view;
+coord    = task->extra.coordBody->coord;
+viewMask = 1 << gGameSession->location.loc.view;
 actorRenderComposeCoord(coord);
-if (mask & 0x99C) {
+if (viewMask & 0x99C) {
     pose(coord, 0);
 }
-if (mask & 0x998) {
+if (viewMask & 0x998) {
     pose(coord, 8);
 }
 ```
@@ -92555,17 +92555,17 @@ the pointer in `$s1` across the four calls.
 Writing the same expression inline at each call site is not equivalent:
 
 ```c
-actorRenderComposeCoord(arg0->extra.coordBody->coord);
-if (mask & 0x99C) {
-    pose(arg0->extra.coordBody->coord, 0);
+actorRenderComposeCoord(task->extra.coordBody->coord);
+if (viewMask & 0x99C) {
+    pose(task->extra.coordBody->coord, 0);
 }
 /* ... */
 ```
 
-GCC 2.8.1 cannot CSE a memory load across a call, so `index->extra` is re-loaded
+GCC 2.8.1 cannot CSE a memory load across a call, so `task->extra` is re-loaded
 after every `actorRenderComposeCoord` / `pose`, and removing those loads is not something
 the scheduler can undo. Measured on
-`func_dryfield_night_dilapidated_house_8017E670`: the local form is 100.000% at 33
+`dryfieldNightDilapidatedHouseDrawLightPrismsTask`: the local form is 100.000% at 33
 instructions, the inline form 53.500% at 42 instructions
 (`insert=14 delete=5 regs=10 branch=3`).
 

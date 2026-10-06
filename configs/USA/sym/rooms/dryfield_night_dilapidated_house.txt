@@ -299,7 +299,7 @@ D_dryfield_night_dilapidated_house_801868EC = 0x801868EC; // size:0x6 defined:Tr
 D_dryfield_night_dilapidated_house_801868F4 = 0x801868F4; // size:0x840 defined:True
 D_dryfield_night_dilapidated_house_80187134 = 0x80187134; // size:0x180 defined:True
 
-func_dryfield_night_dilapidated_house_8017E670 = 0x8017E670; // type:func
+dryfieldNightDilapidatedHouseDrawLightPrismsTask = 0x8017E670; // type:func
 roomEventGate = 0x8017D600; // type:func
 roomEventTask = 0x8017D764; // type:func
 _glowDrawPrism = 0x8017DD30; // type:func

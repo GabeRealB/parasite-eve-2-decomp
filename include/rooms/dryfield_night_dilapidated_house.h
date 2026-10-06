@@ -30,7 +30,15 @@ extern SpriteView D_dryfield_night_dilapidated_house_8018921C[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_dilapidated_house_8018A0E4[];
 
-void func_dryfield_night_dilapidated_house_8017E670(Task* arg0);
+/// Draws the nighttime dilapidated house's view-selected additive light prisms.
+///
+/// Bank-6 effect 0x106 requires a live `TASK_BODY_COORD` task and the loaded
+/// room overlay, with a logical view ID in 1..11. Refreshes the task's composed
+/// transform and selects the three prisms by logical view, before camera mapping.
+/// Each selected prism queues five Gouraud quads and additive blend commands.
+/// The view projection, scratch stack, depth ordering table and frame packet
+/// arena must be ready; queued packet storage must survive GPU drawing.
+void dryfieldNightDilapidatedHouseDrawLightPrismsTask(Task* task);
 
 void func_dryfield_night_dilapidated_house_8017DA18(Task* task);
 

@@ -2477,26 +2477,31 @@ void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
 
 #include "../../shared/glow_draw_prism.inc.c"
 
-/// Per-frame draw of the room's coordinate task: recomputes the task's composed
-/// matrix, then draws up to three prisms, from corner sets 0, 8 and 0x10.
-/// Each is gated on `gGameSession->location.loc.view` taken as a bit index into a
-/// fixed mask; the second mask is contained in the other two, so a view in it
-/// draws all three.
-void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
+void dryfieldNightDilapidatedHouseDrawLightPrismsTask(Task* task)
 {
-    GfxCoord* coord;
-    s32       mask;
+    enum {
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_PRISM_VIEWS   = (1 << 2) | (1 << 3) | (1 << 4) | (1 << 7) | (1 << 8) | (1 << 11),
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SECOND_PRISM_VIEWS  = (1 << 3) | (1 << 4) | (1 << 7) | (1 << 8) | (1 << 11),
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_THIRD_PRISM_VIEWS   = (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 11),
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_PRISM_CORNER  = 0,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SECOND_PRISM_CORNER = 8,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_THIRD_PRISM_CORNER  = 16,
+    };
 
-    coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->location.loc.view;
+    GfxCoord* coord;
+    s32       viewMask;
+
+    coord    = task->extra.coordBody->coord;
+    viewMask = 1 << gGameSession->location.loc.view;
     actorRenderComposeCoord(coord);
-    if (mask & 0x99C) {
-        _glowDrawPrism(coord, 0);
+    // Each block holds four lit corners followed by its four dark-rim corners.
+    if (viewMask & DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_PRISM_VIEWS) {
+        _glowDrawPrism(coord, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_PRISM_CORNER);
     }
-    if (mask & 0x998) {
-        _glowDrawPrism(coord, 8);
+    if (viewMask & DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SECOND_PRISM_VIEWS) {
+        _glowDrawPrism(coord, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SECOND_PRISM_CORNER);
     }
-    if (mask & 0x9F8) {
-        _glowDrawPrism(coord, 0x10);
+    if (viewMask & DRYFIELD_NIGHT_DILAPIDATED_HOUSE_THIRD_PRISM_VIEWS) {
+        _glowDrawPrism(coord, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_THIRD_PRISM_CORNER);
     }
 }
