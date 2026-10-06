@@ -58,10 +58,15 @@
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_night_back_street_80180324[];
 
-// Indexed views below share one contiguous table.
-s32 func_dryfield_night_back_street_8017D724(Task*, s32, s32, s32);
-s32 func_dryfield_night_back_street_8017D72C(Task*, s32, s32, s32);
-s32 func_dryfield_night_back_street_8017D734(Task*, s32, s32, s32);
+enum { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+// World-radius inputs to the flare and shaft projection formulas.
+enum { DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE = 0x300,
+       DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE = 0x100 };
+
+static s32 _dryfieldNightBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32 _dryfieldNightBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode);
+static s32 _dryfieldNightBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
 extern WorldCollisionGrid         D_dryfield_night_back_street_80180B34[1];
 extern WorldCollisionTrigger      D_dryfield_night_back_street_80180D70[6];
@@ -73,9 +78,9 @@ extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, backStreetEventMsg },
-    { 5105, func_dryfield_night_back_street_8017D724 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_back_street_8017D734 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_back_street_8017D72C },
+    { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightBackStreetRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightBackStreetIgnoreRoomActionMessage },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightBackStreetIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -430,24 +435,33 @@ WorldCollisionSurfaceProperties* D_dryfield_night_back_street_8018161C[8] = {
 };
 
 static void func_dryfield_night_back_street_8017D73C(Task* task);
-static void func_dryfield_night_back_street_8017D780(Task* task);
+static void _dryfieldNightBackStreetIdleState(Task* task);
 
 #include "../../shared/back_street_event_msg.inc.c"
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-s32 func_dryfield_night_back_street_8017D724(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in the night back street, returning the menu's unusable result.
+///
+/// Neither payload is read; the room consumes no item and retains no arguments.
+static s32 _dryfieldNightBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg)
+{
+    enum { DRYFIELD_NIGHT_BACK_STREET_KEY_ITEM_UNUSABLE = 0 };
+
+    return DRYFIELD_NIGHT_BACK_STREET_KEY_ITEM_UNUSABLE;
+}
+
+/// Ignores room commands and their execution modes, returning zero.
+static s32 _dryfieldNightBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode)
 {
     return 0;
 }
 
-s32 func_dryfield_night_back_street_8017D72C(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-s32 func_dryfield_night_back_street_8017D734(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests and returns zero.
+///
+/// The request is borrowed during synchronous dispatch; no payload is read or retained.
+static s32 _dryfieldNightBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg)
 {
     return 0;
 }
@@ -461,14 +475,14 @@ static void func_dryfield_night_back_street_8017D73C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// The room entry task's idle state.
-static void func_dryfield_night_back_street_8017D780(Task* task)
+/// Keeps the initialized room task available for messages until its state changes.
+static void _dryfieldNightBackStreetIdleState(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_night_back_street_8017D5C4 = {
-    { func_dryfield_night_back_street_8017D73C, func_dryfield_night_back_street_8017D780, taskKill },
+    { func_dryfield_night_back_street_8017D73C, _dryfieldNightBackStreetIdleState, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
@@ -481,44 +495,38 @@ void func_dryfield_night_back_street_8017D788(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// The room's light points. Two shafts come first, each a pair of ends at
-/// 0x8018034C and 0x8018035C, then glow points in pairs: those of camera view
-/// 2 at 0x8018036C, of view 3 at 0x8018037C and of views 4 and 5 at
-/// 0x8018038C. The code names only the glow pairs, so the shafts are reached
-/// as elements -4 and -2 of the view-2 array.
-///
-/// Per-frame room task. On its first run it stores the effect ids 0x6000A,
-/// 0x60097 and 0x600E4 in three gameplay globals. Each run it sets
-/// `roomEffectMode` to 2 and draws the lights of the current camera view
-/// (`gGameSession->location.loc.view`): view 2 draws a sprite on each of its two
-/// glow points with `_glowDrawFlare` and a shaft
-/// between each pair of shaft ends with
-/// `_glowDrawShaft`; view 3 adds its own two glows
-/// to view 2's set; views 4 and 5 draw their shared two glows; every other
-/// view draws nothing.
-void func_dryfield_night_back_street_8017D7E0(Task* arg0)
+/// Draws the two lamp flares and two light shafts shared by views 2 and 3.
+static inline void _dryfieldNightBackStreetDrawView2Glows(void)
 {
-    if (arg0->state == 0) {
+    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[4], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[5], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[0], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
+    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[2], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
+}
+
+void dryfieldNightBackStreetDrawGlowsTask(Task* task)
+{
+    enum { DRYFIELD_NIGHT_BACK_STREET_EFFECTS_INITIALIZE = 0 };
+
+    if (task->state == DRYFIELD_NIGHT_BACK_STREET_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_DRYFIELD_NIGHT_BACK_STREET_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_NIGHT_BACK_STREET_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_DRYFIELD_NIGHT_BACK_STREET_SPARK_BURST;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    // View 3 includes view 2's lights; the first four points are paired shaft ends.
     switch (gGameSession->location.loc.view) {
         case 3:
-            _glowDrawFlare(&D_dryfield_night_back_street_8018037C[0], 1, 0x300);
-            _glowDrawFlare(&D_dryfield_night_back_street_8018037C[1], 1, 0x300);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[6], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[7], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
             /* fallthrough */
         case 2:
-            _glowDrawFlare(&D_dryfield_night_back_street_8018036C[0], 0, 0x300);
-            _glowDrawFlare(&D_dryfield_night_back_street_8018036C[1], 0, 0x300);
-            _glowDrawShaft(&D_dryfield_night_back_street_8018036C[-4], 0x100);
-            _glowDrawShaft(&D_dryfield_night_back_street_8018036C[-2], 0x100);
+            _dryfieldNightBackStreetDrawView2Glows();
             break;
         case 4:
         case 5:
-            _glowDrawFlare(&D_dryfield_night_back_street_8018038C[0], 1, 0x300);
-            _glowDrawFlare(&D_dryfield_night_back_street_8018038C[1], 1, 0x300);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[8], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[9], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
             break;
     }
 }
@@ -531,14 +539,14 @@ void func_dryfield_night_back_street_8017D7E0(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_dryfield_night_back_street_8017E390(Task* arg0)
+void dryfieldNightBackStreetRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_dryfield_night_back_street_8017EDF4(Task* task)
+void dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

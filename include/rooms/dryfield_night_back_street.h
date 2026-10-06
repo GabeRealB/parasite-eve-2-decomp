@@ -30,13 +30,40 @@ extern SpriteView D_dryfield_night_back_street_80180D34[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_back_street_8018161C[];
 
-void func_dryfield_night_back_street_8017E390(Task* task);
+/// Runs the night back street's charging pink flash, peak screen tint and fading star.
+///
+/// Starts in state 0 with a coordinate body and counted `EffectWork` in
+/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` is a positive
+/// charge duration in active ticks, consumed as a countdown. Nonzero room
+/// effect control pauses it; values at least four cancel it. State 3 also
+/// releases the work and task. The effect controller and room overlay must
+/// remain live until teardown.
+void dryfieldNightBackStreetRoomVisualEffectsFlashTask(Task* task);
 
-void func_dryfield_night_back_street_8017EDF4(Task* task);
+/// Runs the night back street's fading sword beam between two moving endpoint histories.
+///
+/// Starts in state 0 with a coordinate body and counted `EffectWork` in
+/// `spawnArg2.pointer` from `Gp_SpawnEff`; its parent coordinate must stay live.
+/// Owns two eight-coordinate histories in `Task::work`, freed by task teardown.
+/// Allocation failure retries with age zero. Initialization counts as the first
+/// active tick; later ticks record endpoints and draw seven quads tinted 1:2:3
+/// in R:G:B. `spawnArg1.value` is 0 for external teardown or 2..32767 for an
+/// active-age limit. Room effect control at two or above suspends recording and
+/// drawing without cancelling. Requires a live effect controller and room overlay.
+void dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_dryfield_night_back_street_8017F6DC(Task* task);
 
-void func_dryfield_night_back_street_8017D7E0(Task* arg0);
+/// Selects the night back street's enemy effects and draws the current view's light glows.
+///
+/// State 0 installs the room's flash, sword-trail and spark-burst IDs on every
+/// tick until another caller changes the state. Every tick enables the room's
+/// view-effect gate. View 2 draws two flares and two shafts; view 3 adds two
+/// flares to that set; views 4 and 5 share two flares. Other views draw none.
+/// Requires live session/effect state, current view transforms, scratch space
+/// and frame packet storage. The room overlay must stay loaded while its
+/// selected effects can be spawned or run.
+void dryfieldNightBackStreetDrawGlowsTask(Task* task);
 
 void func_dryfield_night_back_street_8017D788(Task* task);
 

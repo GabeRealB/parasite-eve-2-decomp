@@ -96905,7 +96905,7 @@ Inputs: `base_2.i`
 `base_3.i`
 `cfa4bdd28bd87857ae9796d72ab5843f0b9abb2e92f32ec6d8575f38e9a523c1` (100%).
 
-## A switch needs five counted case nodes before GCC 2.8.1 emits a jump table (func_dryfield_night_back_street_8017D7E0, 2026-09-16)
+## A switch needs five counted case nodes before GCC 2.8.1 emits a jump table (dryfieldNightBackStreetDrawGlowsTask, 2026-09-16)
 
 A room effect tick dispatches on four contiguous view values and the target is a
 *comparison tree*, not a jump table:
@@ -96981,7 +96981,7 @@ Input `base_1.c`
 `924d143ad94597409454dbdb6b967ad3ce8be362856c767b27d22cad89f8beda` (100.000%,
 zero penalties, first build after the seed).
 
-## splat's `D_<seg>_<addr>` anchor is not the array base: write the earlier elements as negative indices (func_dryfield_night_back_street_8017D7E0, 2026-09-16)
+## splat's `D_<seg>_<addr>` anchor is not the array base: keep the points in one array (dryfieldNightBackStreetDrawGlowsTask, 2026-09-16)
 
 The same function's four draw calls in one case read a contiguous run of
 `SVECTOR`s, and the target computes them from a *single* base register:
@@ -96995,35 +96995,35 @@ addiu $a0,$s0,-0x20              # &X[0]  (0x8018034C)
 addiu $a0,$s0,-0x10              # &X[2]  (0x8018035C)
 ```
 
-The data is six 0x10-byte light pairs at 0x8018034C..0x801803AC - and 0x8018036C
-is the *third* pair's first endpoint, not the start of anything. splat names the
+The light table is five 0x10-byte pairs at 0x8018034C..0x8018039C; the separate
+`RoomFx_TrailOffsets` pair follows it. 0x8018036C is the *third* light pair's
+first endpoint, not the array base. splat names the
 address each `%hi`/`%lo` pair folds to, and only three of them are ever
 materialised (0x8018036C, 0x8018037C, 0x8018038C - one per case block, because
 CSE's table is per basic block), so the named symbol sits in the middle of the
 run.
 
-The C has to match that arithmetic, which means indexing *before* the named
-symbol:
+The C has to match that arithmetic. Indexing the complete array keeps all four
+addresses related, allowing GCC to choose element 4 as its base register:
 
 ```c
-extern SVECTOR D_dryfield_night_back_street_8018036C[];   /* the third light */
+SVECTOR D_dryfield_night_back_street_8018034C[10];
 
-    Room_Draw17(&D_dryfield_night_back_street_8018036C[0], 0, 0x300);
-    Room_Draw17(&D_dryfield_night_back_street_8018036C[1], 0, 0x300);
-    Room_Draw08(&D_dryfield_night_back_street_8018036C[-4], 0x100);
-    Room_Draw08(&D_dryfield_night_back_street_8018036C[-2], 0x100);
+    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[4], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[5], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[0], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
+    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[2], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
 ```
 
-A `[-4]` / `[-2]` index on an `extern SVECTOR[]` looks wrong and is right: GCC
-CSEs `symbol + const` against a register already holding the same symbol and
-emits the difference as an `addiu` displacement, in either direction. The
-tempting alternative - declare a second symbol for 0x8018034C (adding it to
-`configs/USA/sym/rooms/<overlay>.txt`) and index *that* from zero - is a
-different symbol, so nothing CSEs against the anchor and GCC emits a fresh
+A negative displacement does not require a negative C index: GCC CSEs
+`symbol + const` against a register already holding the same symbol and emits
+the difference as an `addiu` displacement, in either direction. Declaring
+independent symbols for the array base and the middle anchor (adding both to
+`configs/USA/sym/rooms/<overlay>.txt`) prevents that CSE and emits a fresh
 `lui`/`addiu` pair computing 0x8018034C where the target has `addiu $a0,$s0,-0x20`.
-The same rule then reaches the file's readability: the sixth pair is
-`RoomsShared8017f9e4Pos` / `Pos2` to the shared body that owns it, which is the
-positive-index view of the same run.
+The complete array and its positive indices also match inside the static inline
+`_dryfieldNightBackStreetDrawView2Glows`; adjacent trail offsets remain a
+separate object rather than a sixth light pair.
 
 The corollary for reading a target: an `addiu rX,rBase,K` with a *negative* K
 whose `rBase` came from `%hi`/`%lo` of one symbol means the source's array (or
