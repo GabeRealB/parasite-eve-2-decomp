@@ -1845,7 +1845,8 @@ void func_acropolis_patio_8017DA5C(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(3);
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 1:
             task->state = 2;
             return;
@@ -1853,12 +1854,12 @@ void func_acropolis_patio_8017DA5C(Task* task)
             if (Gp_GetCapEventKey() == state) {
                 gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 3);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4), 0, 0);
-            advance:
                 task->state = task->state + 1;
                 return;
             }
             Gp_MsgPlayerWeapon(1);
-            goto kill;
+            taskKill(task);
+            return;
         case 3:
             if (SndVoice_HasActiveId(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4)) != 0) {
                 return;
@@ -1869,7 +1870,6 @@ void func_acropolis_patio_8017DA5C(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
-        kill:
             taskKill(task);
             return;
     }
