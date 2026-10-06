@@ -363,31 +363,30 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
         flags = 0x12;
         if (val == 0) {
             flags = 0x112;
-            goto draw;
-        }
-        if (((obj->panel.control.word >> 16) == state) || (obj->panel.control.word == state)) {
-            table = Gp_PreviewItems;
-            if (val != table[2]) {
-                i = 0;
-                do {
-                    slot     = 2;
-                    minusOne = -1;
-                    p        = table;
-                } while (0);
-                for (; i < 3; i++, p++) {
-                    if (i == slot) {
-                        *p = val;
-                    } else {
-                        *p = minusOne;
+        } else {
+            if (((obj->panel.control.word >> 16) == state) || (obj->panel.control.word == state)) {
+                table = Gp_PreviewItems;
+                if (val != table[2]) {
+                    i = 0;
+                    do {
+                        slot     = 2;
+                        minusOne = -1;
+                        p        = table;
+                    } while (0);
+                    for (; i < 3; i++, p++) {
+                        if (i == slot) {
+                            *p = val;
+                        } else {
+                            *p = minusOne;
+                        }
                     }
+                    Gp_EnqueueItemPreviewCd(val, 2);
                 }
-                Gp_EnqueueItemPreviewCd(val, 2);
+            }
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                flags |= 0x100;
             }
         }
-        if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-            flags |= 0x100;
-        }
-    draw:
         func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
     }
 }
@@ -491,15 +490,14 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     flags = 0x12;
     if (item == 0) {
         flags = 0x112;
-        goto draw;
+    } else {
+        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
+            GP_SET_PREVIEW_ITEM(item, 2);
+        }
+        if (CdCmd_IsIdle() == 0) {
+            flags |= 0x100;
+        }
     }
-    if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-        GP_SET_PREVIEW_ITEM(item, 2);
-    }
-    if (CdCmd_IsIdle() == 0) {
-        flags |= 0x100;
-    }
-draw:
     func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
