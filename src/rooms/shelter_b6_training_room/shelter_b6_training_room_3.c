@@ -1013,7 +1013,8 @@ void shelterB6TrainingRoomRingBandTask(Task* task)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
     work->age++;
     switch (task->state) {
@@ -1027,7 +1028,8 @@ void shelterB6TrainingRoomRingBandTask(Task* task)
             return;
         case SHELTER_B6_TRAINING_ROOM_RING_BAND_RISE:
             if (work->scale < 5) {
-                goto release;
+                effectKillTask(work, task);
+                return;
             }
             if (work->period < 0xC00) {
                 work->period += 0xC0;
@@ -1040,7 +1042,8 @@ void shelterB6TrainingRoomRingBandTask(Task* task)
             return;
         case SHELTER_B6_TRAINING_ROOM_RING_BAND_FADE_MIDDLE:
             if (work->scale < 4) {
-                goto release;
+                effectKillTask(work, task);
+                return;
             }
             work->scale -= 3;
             work->angle += 0x40;
@@ -1049,7 +1052,8 @@ void shelterB6TrainingRoomRingBandTask(Task* task)
             return;
         case SHELTER_B6_TRAINING_ROOM_RING_BAND_FADE_OUTER:
             if (work->scale < 5) {
-                goto release;
+                effectKillTask(work, task);
+                return;
             }
             work->scale -= 4;
             work->angle += 0x180;
@@ -1057,7 +1061,6 @@ void shelterB6TrainingRoomRingBandTask(Task* task)
             _shelterB6TrainingRoomDrawRingBand(work, coord, task->spawnArg1.value);
             return;
         case SHELTER_B6_TRAINING_ROOM_RING_BAND_RELEASE:
-        release:
             effectKillTask(work, task);
         default:
             return;
