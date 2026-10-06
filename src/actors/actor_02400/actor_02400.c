@@ -1484,7 +1484,9 @@ static void Actor02400_Fn02E0C(Enemy* enemy, Task* task)
     coord = obj->coords;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            goto case1;
+            Actor02400_Fn031D0(task);
+            Actor02400_Fn03228(task);
+            return;
         case SCENE_COMBAT_ACTORS_RUNNING:
             obj->flags                    = 0;
             enemy->node.state.parts.flags = 0;
@@ -1502,7 +1504,6 @@ static void Actor02400_Fn02E0C(Enemy* enemy, Task* task)
     Actor02400_Fn0208C(task);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-case1:
     Actor02400_Fn031D0(task);
     Actor02400_Fn03228(task);
 }
