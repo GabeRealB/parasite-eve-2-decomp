@@ -150940,3 +150940,62 @@ have to change which instruction first uses the offset.
 - An asm with an output is not implicitly volatile, including a memory output;
   `"+m"(obj) : "r"(x)` orders `x`'s computation against the reads of `obj`
   without fencing the block.
+### Unresolved, with the mechanism corrected: the `9` barrier is about `$a1`, not about the `9` (func_actor_403100_80136610, 2026-10-06)
+
+Dated note on "Unresolved, with the mechanism measured: three actor barriers":
+its reading of this function ("the `li v0,9` must not be a birth") describes
+what the asm does, not what the target needs. Nothing was removed; the
+condition is now exact.
+
+**What the target order is.** `li v0,9 / lui a1 / addiu a1 / lw v1,D / move a2,s2 / sb v0,0x14(v1)`.
+sched2 has no births; in this block every one of these insns has priority 6
+except the `sb` (7, the load's cost), so sched2 keeps sched1's LUID order, with
+two exceptions: an insn of lower priority that sat below the `sb` floats above
+it, and a load wins its priority group on `potential_hazard`. So the `a1` pair
+and the `a2` copy may have been anywhere *below* the store after sched1; the
+only requirement is `LUID(li) < LUID(lui a1)`.
+
+**Why plain C fails.** The whole body from the allocation check to the loop is
+one basic block (calls do not end blocks). `$a1` is set three times in the
+function (`memCalloc(size, false)`, `enemyDestroy(enemy, task)`,
+`animationInitContext`), so its `lo_sum` is not a birth: priority 6, and every
+store below it is 7 or more because each follows a pointer load. It is taken
+last and lands directly after `worldTargetLinkNode`, above the `lw`/`li`/`sb`
+group. `$a2` and `$a3` are set once, are births, stay beside the call, and
+sched2 lifts `move a2,s2` to the store - which is what the target shows.
+
+**Proof.** With the other two `$a1` sets removed (both calls cast to
+one-argument prototypes, test only), `flags = WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE`
+with no local and no asm gives the target's instructions for the rest of the
+function, registers included. Removing only one of the two changes nothing.
+The target contains both `move a1,...` instructions, flow counts every live
+`SET` of a hard register (`mark_set_1`, final pass), and nothing after flow
+creates an argument load, so a source in which `$a1` is single-set was not
+found.
+
+**What the asm supplies instead.** `TOUCH_REG(kind)` is a volatile asm: every
+later insn depends on it, it is placed first, and the `li` is its input reload.
+It also gives `kind` 4 references, and that is the second half: with the `li`
+first the constant's quantity spans four insns and the pointer's two, so with
+2 references (`floor_log2(refs) * refs / length`) the pointer is allocated
+first and takes `$v0`. Measured:
+
+| form | `li` position | registers |
+|---|---|---|
+| literal, `s32`/`u8` local, inline setter `(node, s32)` / `(u8)`, inline doing the link call and the store (`const` or not) | after the `a1` pair | right |
+| `kind = 1; kind \|= 8` | same (cse folds, one set at flow) | right |
+| a second set of the variable anywhere (`= -1`, `= 0x300`, `= 1`; the loop counter) | first | constant in `$v1`/`$a0`/`$a2`: two deaths, so global-alloc, after local-alloc gave the pointer `$v0` |
+| `kind = 1; do { } while (0); kind \|= 8` | first (the insn after a loop note is a barrier) | swapped: 2 refs |
+
+Not natural by any route tried: a pseudo that is not a birth needs two sets; to
+stay block-local it needs one death; combine decrements `REG_N_SETS` when it
+deletes the first set unless the second set reads its own destination, and cse
+folds that form. The permuter (10 min, 4800 iterations) found only the
+loop-counter form (score 20).
+
+**Use.** When a constant's `li` has to sit above a call's argument setup,
+count the sets of that argument register in the whole function before looking
+at the constant. A register set once is a birth and stays at the call; set
+twice or more it floats to the top of the block whenever the stores between
+are fed by loads. Then test the hypothesis by deleting the other sets in a
+scratch copy: if the function matches, the constant was never the problem.
