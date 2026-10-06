@@ -755,6 +755,31 @@ static void func_actor_403600_8013955C(Task* arg0)
     }
 }
 
+/// Restores a fixed set of fields in `task`'s work block to their starting
+/// values.
+static inline void _actor403600ResetState(Task* task)
+{
+    Actor403600Work* work = task->work;
+
+    work->defeated        = 0;
+    work->animBlendFrames = 8;
+    work->animRate        = 0x10;
+    work->aimMode         = ACTOR_403600_AIM_PLAYER;
+    work->ignorePushOut   = 0;
+    work->ambientBoost    = 0;
+    work->committed       = 0;
+    work->forwardSpeed    = 0;
+    work->action          = ACTOR_403600_ACTION_CHOOSE;
+    work->verticalSpeed   = 0;
+    work->phaseFrame      = 0;
+    work->actionDelay     = 0xA;
+    work->turnRate        = 0x40;
+    work->roll            = 0;
+    work->diving          = 0;
+    work->repositioning   = 0;
+    work->pauseSoundSent  = 0;
+}
+
 static void func_actor_403600_801396F8(Task* arg0)
 {
     SVECTOR          sp10;
@@ -796,10 +821,6 @@ static void func_actor_403600_801396F8(Task* arg0)
     GfxCoord*        temp_s0;
     GfxCoord*        temp_s0_3;
     Actor403600Work* work;
-    Actor403600Work* temp_v0;
-    Actor403600Work* temp_v0_12;
-    Actor403600Work* temp_v0_15;
-    Actor403600Work* temp_v0_3;
 
     work    = arg0->work;
     temp_v1 = work->mode;
@@ -822,25 +843,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                 work->forwardSpeed = -0xA;
             }
             if (work->phaseFrame >= 0x27) {
-                temp_v0                  = arg0->work;
-                temp_v0->animBlendFrames = 8;
-                temp_v0->animRate        = 0x10;
-                temp_v0->actionDelay     = 0xA;
-                temp_v0->defeated        = 0;
-                temp_v0->aimMode         = ACTOR_403600_AIM_PLAYER;
-                temp_v0->ignorePushOut   = 0;
-                temp_v0->ambientBoost    = 0U;
-                temp_v0->committed       = 0;
-                temp_v0->forwardSpeed    = 0;
-                temp_v0->action          = ACTOR_403600_ACTION_CHOOSE;
-                temp_v0->verticalSpeed   = 0;
-                temp_v0->phaseFrame      = 0;
-                temp_v0->turnRate        = 0x40;
-                temp_v0->roll            = 0;
-                temp_v0->diving          = 0;
-                temp_v0->repositioning   = 0;
-                temp_v0->pauseSoundSent  = 0;
-                work->mode               = ACTOR_403600_MODE_FIGHT;
+                _actor403600ResetState(arg0);
+                work->mode = ACTOR_403600_MODE_FIGHT;
                 return;
             }
         default:
@@ -857,26 +861,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                     return;
                 }
             } else if (work->phaseFrame >= 0x11) {
-                Actor403600Work* stunWork = arg0->work;
-
-                stunWork->animBlendFrames = 8;
-                stunWork->animRate        = 0x10;
-                stunWork->actionDelay     = 0xA;
-                stunWork->defeated        = 0;
-                stunWork->aimMode         = ACTOR_403600_AIM_PLAYER;
-                stunWork->ignorePushOut   = 0;
-                stunWork->ambientBoost    = 0U;
-                stunWork->committed       = 0;
-                stunWork->forwardSpeed    = 0;
-                stunWork->action          = ACTOR_403600_ACTION_CHOOSE;
-                stunWork->verticalSpeed   = 0;
-                stunWork->phaseFrame      = 0;
-                stunWork->turnRate        = 0x40;
-                stunWork->roll            = 0;
-                stunWork->diving          = 0;
-                stunWork->repositioning   = 0;
-                stunWork->pauseSoundSent  = 0;
-                work->mode                = ACTOR_403600_MODE_FIGHT;
+                _actor403600ResetState(arg0);
+                work->mode = ACTOR_403600_MODE_FIGHT;
                 return;
             }
             break;
@@ -891,28 +877,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                 work->worldCoord.coord.t[1] += rsin(gDisplayState.animFrame << 9) >> 8;
                 return;
             }
-            {
-                Actor403600Work* freezeWork = arg0->work;
-
-                freezeWork->animBlendFrames = 8;
-                freezeWork->animRate        = 0x10;
-                freezeWork->actionDelay     = 0xA;
-                freezeWork->defeated        = 0;
-                freezeWork->aimMode         = ACTOR_403600_AIM_PLAYER;
-                freezeWork->ignorePushOut   = 0;
-                freezeWork->ambientBoost    = 0U;
-                freezeWork->committed       = 0;
-                freezeWork->forwardSpeed    = 0;
-                freezeWork->action          = ACTOR_403600_ACTION_CHOOSE;
-                freezeWork->verticalSpeed   = 0;
-                freezeWork->phaseFrame      = 0;
-                freezeWork->turnRate        = 0x40;
-                freezeWork->roll            = 0;
-                freezeWork->diving          = 0;
-                freezeWork->repositioning   = 0;
-                freezeWork->pauseSoundSent  = 0;
-                work->mode                  = ACTOR_403600_MODE_FIGHT;
-            }
+            _actor403600ResetState(arg0);
+            work->mode = ACTOR_403600_MODE_FIGHT;
             return;
         case ACTOR_403600_MODE_WEAKEN:
             func_actor_403600_80141B24(arg0);
@@ -959,25 +925,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                 work->forwardSpeed = -0xA;
             }
             if (work->phaseFrame >= 0x27) {
-                temp_v0_3                  = arg0->work;
-                temp_v0_3->animBlendFrames = 8;
-                temp_v0_3->animRate        = 0x10;
-                temp_v0_3->actionDelay     = 0xA;
-                temp_v0_3->defeated        = 0;
-                temp_v0_3->aimMode         = ACTOR_403600_AIM_PLAYER;
-                temp_v0_3->ignorePushOut   = 0;
-                temp_v0_3->ambientBoost    = 0U;
-                temp_v0_3->committed       = 0;
-                temp_v0_3->forwardSpeed    = 0;
-                temp_v0_3->action          = ACTOR_403600_ACTION_CHOOSE;
-                temp_v0_3->verticalSpeed   = 0;
-                temp_v0_3->phaseFrame      = 0;
-                temp_v0_3->turnRate        = 0x40;
-                temp_v0_3->roll            = 0;
-                temp_v0_3->diving          = 0;
-                temp_v0_3->repositioning   = 0;
-                temp_v0_3->pauseSoundSent  = 0;
-                work->mode                 = ACTOR_403600_MODE_FIGHT;
+                _actor403600ResetState(arg0);
+                work->mode = ACTOR_403600_MODE_FIGHT;
             }
             return;
         case ACTOR_403600_MODE_RECOVER:
@@ -1025,26 +974,9 @@ static void func_actor_403600_801396F8(Task* arg0)
                 work->animId        = 4;
                 if (work->phaseFrame >= 0x46) {
                     sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
-                    temp_v0_12                  = arg0->work;
-                    temp_v0_12->animBlendFrames = 8;
-                    temp_v0_12->animRate        = 0x10;
-                    temp_v0_12->actionDelay     = 0xA;
-                    temp_v0_12->defeated        = 0;
-                    temp_v0_12->aimMode         = ACTOR_403600_AIM_PLAYER;
-                    temp_v0_12->ignorePushOut   = 0;
-                    temp_v0_12->ambientBoost    = 0U;
-                    temp_v0_12->committed       = 0;
-                    temp_v0_12->forwardSpeed    = 0;
-                    temp_v0_12->action          = ACTOR_403600_ACTION_CHOOSE;
-                    temp_v0_12->verticalSpeed   = 0;
-                    temp_v0_12->phaseFrame      = 0;
-                    temp_v0_12->turnRate        = 0x40;
-                    temp_v0_12->roll            = 0;
-                    temp_v0_12->diving          = 0;
-                    temp_v0_12->repositioning   = 0;
-                    temp_v0_12->pauseSoundSent  = 0;
-                    work->animId                = 5;
-                    work->weakPhase             = 2;
+                    _actor403600ResetState(arg0);
+                    work->animId    = 5;
+                    work->weakPhase = 2;
                     return;
                 }
             } else {
@@ -1061,26 +993,9 @@ static void func_actor_403600_801396F8(Task* arg0)
                     temp_v0_14 = work->phaseFrame;
                 }
                 if (temp_v0_14 >= 0x1E) {
-                    temp_v0_15                  = arg0->work;
-                    temp_v0_15->animBlendFrames = 8;
-                    temp_v0_15->animRate        = 0x10;
-                    temp_v0_15->defeated        = 0;
-                    temp_v0_15->aimMode         = ACTOR_403600_AIM_PLAYER;
-                    temp_v0_15->ignorePushOut   = 0;
-                    temp_v0_15->ambientBoost    = 0U;
-                    temp_v0_15->committed       = 0;
-                    temp_v0_15->forwardSpeed    = 0;
-                    temp_v0_15->action          = ACTOR_403600_ACTION_CHOOSE;
-                    temp_v0_15->verticalSpeed   = 0;
-                    temp_v0_15->phaseFrame      = 0;
-                    temp_v0_15->actionDelay     = 0xA;
-                    temp_v0_15->turnRate        = 0x40;
-                    temp_v0_15->roll            = 0;
-                    temp_v0_15->diving          = 0;
-                    temp_v0_15->repositioning   = 0;
-                    temp_v0_15->pauseSoundSent  = 0;
-                    work->weakPhase             = 0;
-                    work->mode                  = ACTOR_403600_MODE_FIGHT;
+                    _actor403600ResetState(arg0);
+                    work->weakPhase = 0;
+                    work->mode      = ACTOR_403600_MODE_FIGHT;
                     return;
                 }
             }
@@ -4236,31 +4151,6 @@ static void func_actor_403600_80140488(Enemy* arg0, Task* arg1)
             return;
     }
     _actor403600UpdateAnimation(arg1, 20);
-}
-
-/// Restores a fixed set of fields in `task`'s work block to their starting
-/// values.
-static inline void _actor403600ResetState(Task* task)
-{
-    Actor403600Work* work = task->work;
-
-    work->defeated        = 0;
-    work->animBlendFrames = 8;
-    work->animRate        = 0x10;
-    work->aimMode         = ACTOR_403600_AIM_PLAYER;
-    work->ignorePushOut   = 0;
-    work->ambientBoost    = 0;
-    work->committed       = 0;
-    work->forwardSpeed    = 0;
-    work->action          = ACTOR_403600_ACTION_CHOOSE;
-    work->verticalSpeed   = 0;
-    work->phaseFrame      = 0;
-    work->actionDelay     = 0xA;
-    work->turnRate        = 0x40;
-    work->roll            = 0;
-    work->diving          = 0;
-    work->repositioning   = 0;
-    work->pauseSoundSent  = 0;
 }
 
 s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
