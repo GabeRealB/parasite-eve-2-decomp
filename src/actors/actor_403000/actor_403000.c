@@ -4394,20 +4394,8 @@ static void func_actor_403000_8013A678(Task* arg0)
         }
         work->patrolGoalCell = goal;
         if (work->patrolRingDir == 0) {
-            diff = scratch->cell - scratch->playerCell;
-            if (diff < -5) {
-                goto neg;
-            }
-            if (diff < 0) {
-                goto pos;
-            }
-            if (diff < 5) {
-            neg:
-                dir = -1;
-            } else {
-            pos:
-                dir = 1;
-            }
+            diff                = scratch->cell - scratch->playerCell;
+            dir                 = _actor403000RingSide(diff);
             work->patrolRingDir = -dir;
         }
     }
@@ -4455,19 +4443,7 @@ static void func_actor_403000_8013A678(Task* arg0)
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    angle               = actorWrapAngle(angle);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
