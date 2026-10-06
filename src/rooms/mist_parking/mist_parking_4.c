@@ -689,17 +689,16 @@ void func_mist_parking_801845D0(s32 phase)
     if (t == NULL) {
         return;
     }
-    if (phase >= 2) {
-        goto kill;
+    switch (phase) {
+        case 0:
+        case 1:
+            t->spawnArg1.value = phase;
+            break;
+        default:
+            taskKill(D_mist_parking_8019532C.task);
+            D_mist_parking_8019532C.task = NULL;
+            break;
     }
-    if (phase < 0) {
-        goto kill;
-    }
-    t->spawnArg1.value = phase;
-    return;
-kill:
-    taskKill(D_mist_parking_8019532C.task);
-    D_mist_parking_8019532C.task = NULL;
 }
 
 void func_mist_parking_80184624(s32 arg0)
