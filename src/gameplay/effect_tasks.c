@@ -2480,8 +2480,6 @@ void func_800F4308(Task* arg0)
     s32                            scale11;
     s32                            scale12;
     s32                            count;
-    s32                            cond;
-    s32                            condInc;
     s32                            i;
     s32                            t2_10;
     s32                            t2_11;
@@ -2497,8 +2495,10 @@ void func_800F4308(Task* arg0)
     flag       = gRoomEffectState->effectControl;
     coord      = body->coord;
     if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        cond = flag < ROOM_EFFECT_CONTROL_CANCEL_MIN;
-        goto release;
+        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(mem, arg0);
+        }
+        return;
     }
     actorRenderComposeCoord(coord);
     mem->age = mem->age + 1;
@@ -2561,8 +2561,10 @@ void func_800F4308(Task* arg0)
             t2_10                    = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             lightCoord->coord.t[2]   = t2_10;
-            cond                     = mem->age < 0x15;
-            goto release;
+            if (mem->age >= 0x15) {
+                effectKillTask(mem, arg0);
+            }
+            break;
         case 11:
             switch (arg0->state) {
                 case 0:
@@ -2573,8 +2575,10 @@ void func_800F4308(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x500, &mem->move);
-                    condInc = mem->age < 2;
-                    goto maybe11;
+                    if (mem->age >= 2) {
+                        arg0->state++;
+                    }
+                    break;
                 case 1:
                     i = 0;
                     do {
@@ -2589,8 +2593,10 @@ void func_800F4308(Task* arg0)
                                     &mem->move);
                         i += 1;
                     } while (i < 2);
-                    condInc = mem->age < 9;
-                    goto maybe11;
+                    if (mem->age >= 9) {
+                        arg0->state++;
+                    }
+                    break;
                 case 2:
                     i = 0;
                     do {
@@ -2605,12 +2611,9 @@ void func_800F4308(Task* arg0)
                                     &mem->move);
                         i += 1;
                     } while (i < 2);
-                    condInc = mem->age < 0xD;
-                maybe11:
-                    if (condInc != 0) {
-                        break;
+                    if (mem->age >= 0xD) {
+                        arg0->state++;
                     }
-                    arg0->state += 1;
                     break;
             }
             if (mem->scale++ < 8) {
@@ -2640,44 +2643,43 @@ void func_800F4308(Task* arg0)
             t2_11                    = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             lightCoord->coord.t[2]   = t2_11;
-            cond                     = mem->age < 0x15;
-            goto release;
+            if (mem->age >= 0x15) {
+                effectKillTask(mem, arg0);
+            }
+            break;
         case 12:
-            if (arg0->state != 0) {
-                if (arg0->state == 1) {
-                    goto case12_1;
-                }
-                goto skip12;
+            switch (arg0->state) {
+                case 0:
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x500, &mem->move);
+                    if (mem->age >= 2) {
+                        arg0->state++;
+                    }
+                    break;
+                case 1:
+                    i = 0;
+                    do {
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
+                                    &mem->move);
+                        i += 1;
+                    } while (i < 2);
+                    if (mem->age >= 9) {
+                        arg0->state++;
+                    }
+                    break;
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x500, &mem->move);
-            condInc = mem->age < 2;
-            goto maybe12;
-        case12_1:
-            i = 0;
-            do {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
-                            &mem->move);
-                i += 1;
-            } while (i < 2);
-            condInc = mem->age < 9;
-        maybe12:
-            if (condInc == 0) {
-                arg0->state += 1;
-            }
-        skip12:
             if (mem->scale++ < 8) {
                 rgb[2]  = (-0x80 - (mem->scale << 4)) * 2;
                 rgb[1]  = (rgb[2] & 0xE0) >> 2;
@@ -2703,14 +2705,10 @@ void func_800F4308(Task* arg0)
             t2_12                    = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             lightCoord->coord.t[2]   = t2_12;
-            cond                     = mem->age < 0x15;
-            goto release;
-        default:
-            return;
-    }
-release:
-    if (cond == 0) {
-        effectKillTask(mem, arg0);
+            if (mem->age >= 0x15) {
+                effectKillTask(mem, arg0);
+            }
+            break;
     }
 }
 
