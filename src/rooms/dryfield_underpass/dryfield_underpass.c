@@ -69,8 +69,12 @@ extern ActorCommand             D_dryfield_underpass_8017E8A8;
 extern AnimationBankCopyRequest D_dryfield_underpass_8017E868;
 void                            func_dryfield_underpass_8017DA08(void);
 
-s32 func_dryfield_underpass_8017D900(Task*, s32, s32, s32);
-s32 func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static void _dryfieldUnderpassIdleTask(Task* unusedTask);
+s32         func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+
+/// Inventory's request to use a key item in this room.
+enum { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static AnimationPackedPose _gDryfieldUnderpassAnimation00E64Bank1[10] = {
 #include "assets/dryfield_underpass_animation_00E64_bank1.inc"
@@ -123,7 +127,7 @@ TaskDesc gUnderpassSwitchTaskDesc[2] = {
 
 TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantUnderpassMsg },
-    { 5105, func_dryfield_underpass_8017D900 },
+    { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldUnderpassRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_underpass_8017D908 },
     { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },
     { ROOM_MESSAGE_SOUND, underpassSoundMsg },
@@ -786,7 +790,6 @@ WorldCollisionSurfaceProperties* D_dryfield_underpass_80181164[8] = {
 };
 
 static void func_dryfield_underpass_8017D970(Task* arg0);
-static void func_dryfield_underpass_8017DA00(Task* task);
 
 #include "../../shared/underpass_switches_task.inc.c"
 
@@ -798,10 +801,15 @@ static void func_dryfield_underpass_8017DA00(Task* task);
 
 static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint, s32 textureIndex, s32 radiusScale);
 
-/// Handler for message 0x13F1: does nothing and returns 0.
-s32 func_dryfield_underpass_8017D900(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room without consuming the item.
+///
+/// Returns 0 so inventory displays its "No use now" notice. `itemId` is the
+/// inventory item's integer ID; all callback arguments are ignored.
+static s32 _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_UNDERPASS_KEY_ITEM_USE_REJECTED = 0 };
+
+    return DRYFIELD_UNDERPASS_KEY_ITEM_USE_REJECTED;
 }
 
 /// Handler for message 0x13EF: the first time record `field_2` 1 arrives while
@@ -833,8 +841,8 @@ static void func_dryfield_underpass_8017D970(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Second state of the room task: idles.
-static void func_dryfield_underpass_8017DA00(Task* task)
+/// Keeps the initialized underpass room task alive and idle.
+static void _dryfieldUnderpassIdleTask(Task* unusedTask)
 {
 }
 
@@ -884,7 +892,7 @@ void func_dryfield_underpass_8017DA08(void)
 /// State handlers of the room task `func_dryfield_underpass_8017DAC8`, indexed
 /// by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_underpass_8017D5C4 = {
-    { func_dryfield_underpass_8017D970, func_dryfield_underpass_8017DA00, taskKill },
+    { func_dryfield_underpass_8017D970, _dryfieldUnderpassIdleTask, taskKill },
 };
 
 /// Room task: runs the state handler `D_dryfield_underpass_8017D5C4` names for
@@ -899,31 +907,30 @@ void func_dryfield_underpass_8017DAC8(Task* task)
 
 #include "../../shared/glow_draw_flare_local.inc.c"
 
-/// Per-frame effect on a coordinate task: draws the glow sprites the current visit
-/// lights, one per point in `D_...EAD0` (in the task's local space) whose
-/// `D_...EB10` bitmask contains the visit's bit (`gGameSession->location.loc.view`).
-/// The whole effect is skipped unless nibble 0x53 is clear.
-void func_dryfield_underpass_8017DE30(Task* task)
+void dryfieldUnderpassDrawFlaresTask(Task* task)
 {
-    GfxCoord* coord;
-    s32       mask;
-    s32       i;
-    SVECTOR*  vec;
-    s16*      flags;
+    enum {
+        DRYFIELD_UNDERPASS_FLARE_TEXTURE_INDEX = 0,
+        DRYFIELD_UNDERPASS_FLARE_RADIUS_SCALE  = 640,
+    };
 
-    coord = task->extra.coordBody->coord;
-    mask  = 1 << gGameSession->location.loc.view;
+    const GfxCoord* coord;
+    s32             viewMask;
+    s32             flareIndex;
+    const SVECTOR*  flarePosition;
+    const s16*      flareViewMasks;
+
+    coord    = task->extra.coordBody->coord;
+    viewMask = 1 << gGameSession->location.loc.view;
     if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
-        i     = 0;
-        vec   = D_dryfield_underpass_8017EAD0;
-        flags = D_dryfield_underpass_8017EB10;
-        do {
-            if (mask & *flags) {
-                _glowDrawFlareLocal(coord, vec, 0, 0x280);
+        // Each local position's mask uses the view ID directly as its bit index.
+        flareIndex     = 0;
+        flarePosition  = D_dryfield_underpass_8017EAD0;
+        flareViewMasks = D_dryfield_underpass_8017EB10;
+        for (; flareIndex < (s32)ARRAY_SIZE(D_dryfield_underpass_8017EAD0); flarePosition++, flareIndex++, flareViewMasks++) {
+            if (viewMask & *flareViewMasks) {
+                _glowDrawFlareLocal(coord, flarePosition, DRYFIELD_UNDERPASS_FLARE_TEXTURE_INDEX, DRYFIELD_UNDERPASS_FLARE_RADIUS_SCALE);
             }
-            vec++;
-            i++;
-            flags++;
-        } while (i < 8);
+        }
     }
 }

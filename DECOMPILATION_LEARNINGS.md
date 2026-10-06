@@ -74096,25 +74096,25 @@ hoist `work + 0x814`: `fold` reassociates `(work + 0x814) + i * 0x18` into
 
 ## A two-register `and` keeps the source order: swap the terms to fix the last 0.23%
 
-`mask & *flags` and `*flags & mask` are the same value and different insns:
+`viewMask & *flareViewMasks` and `*flareViewMasks & viewMask` are the same value and different insns:
 
 ```
-and  v0,s4,v0      /* mask & *flags  - the mask is rs */
-and  v0,v0,s4      /* *flags & mask  - the load is rs */
+and  v0,s4,v0      /* viewMask & *flareViewMasks  - the mask is rs */
+and  v0,v0,s4      /* *flareViewMasks & viewMask  - the load is rs */
 ```
 
 `expand_binop` (optabs.c:413) swaps a commutative pair to "make the first
 operand a register ... make the last operand a constant", but only when the
 target is a register or absent (`target == 0 || GET_CODE (target) == REG`),
 otherwise it merely tests `rtx_equal_p (op1, target)`. In a pure test - the
-`if (mask & *flags)` here - the target is not a plain register, so no swap
+`if (viewMask & *flareViewMasks)` here - the target is not a plain register, so no swap
 happens and the tree order survives: the memory operand is then forced into a
 register where it stands, giving `(and (reg mask) (reg loaded))` for one
 spelling and the reverse for the other. Nothing later swaps two pseudos.
 
 This is what was left when a loop body was otherwise exact: 99.77% (regs=10,
-reorder=2, all from that one insn) with `*flags & mask`, 100% after swapping the
-two terms. `func_dryfield_underpass_8017DE30` is the worked example; its sibling
+reorder=2, all from that one insn) with `*flareViewMasks & viewMask`, 100% after swapping the
+two terms. `dryfieldUnderpassDrawFlaresTask` is the worked example; its sibling
 `func_acropolis_observatory_8017E6F8` reads the same shape as `*flags & mask`
 and matched that way, so the two are genuinely different sources, not two
 spellings of one.
@@ -96797,7 +96797,7 @@ target                                   seed, init hoisted
 Isolated by a controlled pair differing only in that statement's position: with
 the init above the `if`, 92.820% (`regs=4 reorder=1 insert=1 delete=1`); with it
 inside, 100.000% all-zero. The sibling's own source
-(`func_dryfield_underpass_8017DE30`) has the same `i = 0` inside the guard, which
+(`dryfieldUnderpassDrawFlaresTask`) has the same `flareIndex = 0` inside the guard, which
 is the shape to copy. Before editing dumps, check whether the seed's counter is
 assigned immediately above the `if` that guards its loop.
 

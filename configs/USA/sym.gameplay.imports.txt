@@ -1765,7 +1765,7 @@ acropolisHallwayEffectControlTask84 = 0x8017D828; // type:func absolute:True own
 
 func_dryfield_toilet_8017DCF0 = 0x8017DCF0; // type:func absolute:True owner=dryfield_toilet
 
-func_dryfield_underpass_8017DE30 = 0x8017DE30; // type:func absolute:True owner=dryfield_underpass shared=rooms
+dryfieldUnderpassDrawFlaresTask = 0x8017DE30; // type:func absolute:True owner=dryfield_underpass shared=rooms
 
 func_dryfield_main_street_8017E4B0 = 0x8017E4B0; // type:func absolute:True owner=dryfield_main_street shared=rooms
 

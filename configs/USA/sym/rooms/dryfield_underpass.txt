@@ -97,9 +97,11 @@ D_dryfield_underpass_8017E870 = 0x8017E870; // size:0x14 defined:True
 D_dryfield_underpass_8017E884 = 0x8017E884; // size:0x14 defined:True
 D_dryfield_underpass_8017E898 = 0x8017E898; // size:0x4 defined:True
 
-func_dryfield_underpass_8017DE30 = 0x8017DE30; // type:func
+dryfieldUnderpassDrawFlaresTask = 0x8017DE30; // type:func
 _glowDrawFlareLocal = 0x8017DB20; // type:func
 roomVariantUnderpassMsg = 0x8017D788; // type:func
 underpassSwitchTask = 0x8017D5D0; // type:func
 underpassSwitchMsg = 0x8017D868; // type:func
 underpassSoundMsg = 0x8017D8CC; // type:func
+_dryfieldUnderpassRejectKeyItemUse = 0x8017d900; // type:func
+_dryfieldUnderpassIdleTask = 0x8017da00; // type:func

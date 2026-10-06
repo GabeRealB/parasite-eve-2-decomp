@@ -729,7 +729,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeDustMoteTask, { NULL } },                                 // 0x0BC
     { { { TASK_BODY_COORD, 0x70 } }, func_8011D1E0, { NULL } },                                               // 0x0BD
     { { { TASK_BODY_COORD, 0x70 } }, func_inferno_8012EF88, { NULL } },                                       // 0x0BE
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_underpass_8017DE30, { NULL } },                            // 0x0BF
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldUnderpassDrawFlaresTask, { NULL } },                             // 0x0BF
     { { { TASK_BODY_COORD, 0x70 } }, func_apobiosis_8012EF4C, { NULL } },                                     // 0x0C0
     { { { TASK_BODY_COORD, 0x70 } }, effectPolyTaskC1, { NULL } },                                            // 0x0C1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGasStationCyanGlowTask, { NULL } },                              // 0x0C2
