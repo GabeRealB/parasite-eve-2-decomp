@@ -3014,14 +3014,18 @@ void effectSpriteTaskF4(Task* task)
     coord         = task->extra.coordBody->coord;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            goto kill;
+            effectKillTask(work, task);
+            return;
         }
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (playerTask->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return;
         }
         actorRenderComposeCoord(coord);
-        goto draw_lcg;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        effectDrawSpinningBillboard(coord, work->index, work->angle,
+                                    work->scale | ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
+        return;
     }
 
     // Four update ticks advance one animation cell; negative local Y rises.
@@ -3045,20 +3049,17 @@ void effectSpriteTaskF4(Task* task)
     if ((work->age & (EFFECT_ENERGY_SPARK_FRAME_TICKS - 1)) == 0) {
         work->index++;
     }
-    if (work->index >= EFFECT_ENERGY_SPARK_FRAME_COUNT) {
-        goto kill;
+    if (work->index < EFFECT_ENERGY_SPARK_FRAME_COUNT) {
+        if (work->period & EFFECT_ENERGY_SPARK_RANDOM_PALETTE) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            effectDrawSpinningBillboard(coord, work->index, work->angle,
+                                        work->scale | ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
+        } else {
+            effectDrawSpinningBillboard(coord, work->index, work->angle,
+                                        work->scale | work->period);
+        }
+        return;
     }
-    if (work->period & EFFECT_ENERGY_SPARK_RANDOM_PALETTE) {
-    draw_lcg:
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectDrawSpinningBillboard(coord, work->index, work->angle,
-                                    work->scale | ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
-    } else {
-        effectDrawSpinningBillboard(coord, work->index, work->angle,
-                                    work->scale | work->period);
-    }
-    return;
-kill:
     effectKillTask(work, task);
 }
 
