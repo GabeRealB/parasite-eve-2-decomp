@@ -671,45 +671,20 @@ void Gp_ItemPaneTask(Task* arg0)
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 obj->result             = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
-                if (arg0->spawnArg1.value == 0) {
-                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-                        goto do_snd;
-                    }
+                if ((arg0->spawnArg1.value == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (arg0->spawnArg1.value == status && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
+                    sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
+                    obj->result = 0xA;
                 }
-                if (arg0->spawnArg1.value == status) {
-                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-                        goto do_snd;
-                    }
-                }
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) == 0) {
-                    goto children;
-                }
-            do_snd:
-                sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                obj->result = 0xA;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
             obj->result = 0x24;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
-            if (arg0->spawnArg1.value == 0) {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-                    obj->result = 0xA;
-                    goto children;
-                }
-            }
-            if (arg0->spawnArg1.value == status) {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-                    obj->result = 0xA;
-                    goto children;
-                }
-            }
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
+            if ((arg0->spawnArg1.value == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (arg0->spawnArg1.value == status && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
                 obj->result = 0xA;
             }
         }
     }
 
-children:
     cb    = _itemMenuHandlePaneChildResult;
     owner = obj->owner;
     child = owner->firstChild;
