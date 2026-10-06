@@ -231,17 +231,16 @@ void func_metabolism_8012EF34(Task* arg0)
     }
 }
 
-/// Moves the sparkle along its parent's Y axis and refreshes its cached transform.
+/// Advances the sparkle's parent-space Y position and composes it for drawing.
 ///
-/// `deltaY` is a signed displacement in parent-coordinate units; the sum must
-/// fit s32. The writable coordinate and its parent chain must remain live.
+/// `deltaY` is a signed displacement in game-coordinate units; adding it to
+/// the local translation must fit s32. Borrows a non-NULL writable `coord`
+/// and its live, writable, acyclic parent chain. Refreshes `workm` through
+/// that chain using the current composition pass and clobbers GTE registers.
 static inline void _metabolismMoveSparkleCoord(GfxCoord* coord, s16 deltaY)
 {
-    s32 nextY;
-
-    nextY               = coord->coord.t[1] + deltaY;
+    coord->coord.t[1]  += deltaY;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]   = nextY;
     actorRenderComposeCoord(coord);
 }
 
