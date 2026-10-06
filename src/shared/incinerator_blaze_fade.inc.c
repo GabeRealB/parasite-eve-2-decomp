@@ -1,10 +1,16 @@
 /* Part of the incinerator blaze library; see incinerator_blaze.h. */
 
-/// Queues the opaque white screen held after the incinerator's colour ramps.
+/// Queues the opaque 320 by 240 white overlay held at the end of the blaze fade.
 ///
-/// Borrows one TILE and one DR_TPAGE from the word-aligned frame arena until
-/// GPU completion. Foreground OT tag -16 must be writable. The fixed screen
-/// rectangle retains the draw environment's vertical shake.
+/// Consumes `sizeof(TILE) + sizeof(DR_TPAGE)` writable bytes from the
+/// word-aligned frame arena without checking capacity. The current ordering
+/// table must provide foreground tag -16; packets borrow the arena until GPU
+/// drawing completes. Coordinates are relative to the centred draw origin,
+/// retaining any vertical shake in the draw environment.
+///
+/// The draw command enables dithering and disables drawing into the displayed
+/// area. Its zero texture-page and blend selectors do not affect the opaque,
+/// untextured tile.
 static inline void _blazeQueueWhiteout(void)
 {
     enum {
@@ -19,13 +25,9 @@ static inline void _blazeQueueWhiteout(void)
     tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     setTile(tile);
-    tile->r0 = BLAZE_FADE_CHANNEL_MAX;
-    tile->g0 = BLAZE_FADE_CHANNEL_MAX;
-    tile->b0 = BLAZE_FADE_CHANNEL_MAX;
-    tile->x0 = -BLAZE_FADE_WIDTH_PIXELS / 2;
-    tile->y0 = -BLAZE_FADE_HEIGHT_PIXELS / 2;
-    tile->w  = BLAZE_FADE_WIDTH_PIXELS;
-    tile->h  = BLAZE_FADE_HEIGHT_PIXELS;
+    setRGB0(tile, BLAZE_FADE_CHANNEL_MAX, BLAZE_FADE_CHANNEL_MAX, BLAZE_FADE_CHANNEL_MAX);
+    setXY0(tile, -BLAZE_FADE_WIDTH_PIXELS / 2, -BLAZE_FADE_HEIGHT_PIXELS / 2);
+    setWH(tile, BLAZE_FADE_WIDTH_PIXELS, BLAZE_FADE_HEIGHT_PIXELS);
     addPrim(gGpuCurrentOt + BLAZE_FADE_OT_INDEX, tile);
 
     // OT insertion prepends: the draw mode must execute before the tile.
