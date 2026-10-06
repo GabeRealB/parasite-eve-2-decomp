@@ -1767,12 +1767,13 @@ void func_actor_121300_801326EC(Task* arg0)
             fade->g = 0xFF;
             fade->b = 0xFF;
             fadeDrawOverlay(fade->r, fade->g, fade->b, GPU_BLEND_SUBTRACT);
-            goto state_inc;
+            arg0->state += 1;
+            break;
         case 2:
             SetDispMask(1);
+            /* fallthrough */
         case 1:
             fadeDrawOverlay(fade->r, fade->g, fade->b, GPU_BLEND_SUBTRACT);
-        state_inc:
             arg0->state += 1;
             break;
         case 3:
