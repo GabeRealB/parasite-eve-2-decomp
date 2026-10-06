@@ -2059,11 +2059,9 @@ static void func_actor_800200_8016436C(Task* arg0)
     GfxCoord*        coord;
     VECTOR3*         vec;
     u8*              head;
-    void**           scratch;
     s8               count;
     s32              pan;
     s32              dist;
-    u16              state;
     s32              next = 1;
     GameActor*       actor2;
 
@@ -2088,44 +2086,41 @@ static void func_actor_800200_8016436C(Task* arg0)
         vec->vy                       = target->coord.t[1];
         vec->vz                       = target->coord.t[2];
     }
-    state = actor->statePhase;
-    if (state != 0) {
-        if (state != 1) {
-            scratch = SCRATCH_HEAD_ADDR;
-        } else {
-            goto tick;
-        }
-    } else {
-        actor->statePhase = next;
-        playerActorPlayChildSlotsWithBlend(arg0, actor->attackControl.targetVariant + 0xA, 0, 4);
-        pan = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(actor->attackControl.targetVariant + 0x40720009, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-    tick:
-        if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-            dist = func_8010BCF4(arg0, vec);
-            if (dist < 0) {
-                dist = -dist;
-            }
-            if ((dist >= 0x281) && (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
-                actor2                 = arg0->work;
-                actor2->mode           = GAME_ACTOR_MODE_NORMAL;
-                actor2->state          = 2;
-                actor2->turnRateIndex  = 2;
-                actor2->animationState = 0;
-                actor2->statePhase     = 0;
-            } else {
-                count                                       = companion->activity.combat.repeatsRemaining - 1;
-                companion->activity.combat.repeatsRemaining = count;
-                if (count <= 0) {
-                    companionEnterIdle(arg0, 0);
+    switch (actor->statePhase) {
+        case 0:
+            actor->statePhase = next;
+            playerActorPlayChildSlotsWithBlend(arg0, actor->attackControl.targetVariant + 0xA, 0, 4);
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(actor->attackControl.targetVariant + 0x40720009, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            /* fallthrough */
+        case 1:
+            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
+                dist = func_8010BCF4(arg0, vec);
+                if (dist < 0) {
+                    dist = -dist;
+                }
+                if ((dist >= 0x281) && (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
+                    actor2                 = arg0->work;
+                    actor2->mode           = GAME_ACTOR_MODE_NORMAL;
+                    actor2->state          = 2;
+                    actor2->turnRateIndex  = 2;
+                    actor2->animationState = 0;
+                    actor2->statePhase     = 0;
                 } else {
-                    actor->statePhase = 0;
+                    count                                       = companion->activity.combat.repeatsRemaining - 1;
+                    companion->activity.combat.repeatsRemaining = count;
+                    if (count <= 0) {
+                        companionEnterIdle(arg0, 0);
+                    } else {
+                        actor->statePhase = 0;
+                    }
                 }
             }
-        }
-        scratch = SCRATCH_HEAD_ADDR;
+            break;
+        default:
+            break;
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
 static void func_actor_800200_80164598(Task* arg0)
