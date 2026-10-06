@@ -154,7 +154,7 @@ extern RoomEventReq gRoomEventReq;
 extern Task* D_dryfield_main_street_80185630;
 
 static void func_dryfield_main_street_8017E0D8(Task* task);
-static void func_dryfield_main_street_8017E158(Task* task);
+static void _dryfieldMainStreetIdle(Task* task);
 static void func_dryfield_main_street_8017E4A4(s32 arg0);
 
 extern WorldCollisionGrid    D_dryfield_main_street_80182C9C[1];
@@ -172,10 +172,12 @@ void                        func_dryfield_main_street_8017E2F4(s32);
 void                        func_dryfield_main_street_8017E320(void);
 void                        func_dryfield_main_street_8017E354(s32);
 
-s32  func_dryfield_main_street_8017E054(Task*, s32, s32, s32);
-s32  func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32);
-void func_dryfield_main_street_8017E1C0(Task*);
-void func_dryfield_main_street_8017E3A8(Task*);
+static s32  _dryfieldMainStreetRejectKeyItemUse(Task* receiver, s32 messageId, s32 itemId, s32 unusedArg);
+s32         func_dryfield_main_street_8017E05C(Task* task, s32 msgId, const void* firstArg, s32);
+static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task);
+void        func_dryfield_main_street_8017E3A8(Task*);
+
+enum { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gMainStreetEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -185,7 +187,7 @@ TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, mainStreetP
 
 TaskMessageEntry D_dryfield_main_street_80180EA0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
-    { 5105, func_dryfield_main_street_8017E054 },
+    { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_main_street_8017E05C },
     { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
     { ROOM_MESSAGE_SOUND, mainStreetCapSoundCue },
@@ -239,7 +241,7 @@ static AnimationSet _gDryfieldMainStreetAnimation03F84 = {
 };
 
 TaskDesc D_dryfield_main_street_8018156C[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E1C0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldMainStreetTurnPlayerTowardAreaActorTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E3A8, { .value = 0 } },
 };
 
@@ -966,7 +968,7 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
-    { func_dryfield_main_street_8017E0D8, func_dryfield_main_street_8017E158, taskKill },
+    { func_dryfield_main_street_8017E0D8, _dryfieldMainStreetIdle, taskKill },
 };
 
 #include "../../shared/main_street_resolve_msg.inc.c"
@@ -977,8 +979,11 @@ static const TaskFuncTable3 D_dryfield_main_street_8017D5F4 = {
 
 #include "../../shared/main_street_talk_msg.inc.c"
 
-/// Does nothing and answers 0.
-s32 func_dryfield_main_street_8017E054(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request, selecting the inventory's cannot-use notice.
+///
+/// Handles message 0x13F1; `itemId` is the collected item ID and `unusedArg`
+/// is normally zero. No argument is read and the result is always zero.
+static s32 _dryfieldMainStreetRejectKeyItemUse(Task* receiver, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
@@ -1015,10 +1020,11 @@ static void func_dryfield_main_street_8017E0D8(Task* task)
     task->state++;
 }
 
-/// The room entry task's idle state; it only opens and closes a stack frame.
-static void func_dryfield_main_street_8017E158(Task* task)
+/// Keeps the initialized room entry task alive without changing its state.
+static void _dryfieldMainStreetIdle(Task* task)
 {
-    char pad[0x10];
+    // Retain the idle callback's 16-byte stack frame; no bytes are accessed.
+    char retainedFrame[16];
 }
 
 /// Runs the room entry task's current state from its three-entry table, which
@@ -1031,59 +1037,67 @@ void func_dryfield_main_street_8017E168(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Per-frame task that turns the player (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`, whose
-/// `Task::work` is the `GameActor` block) to face the object the area work
-/// id resolves to, then kills itself once it is close enough.
+/// Turns the player toward placement zero in the current area during a scripted event.
 ///
-/// The aim angle is `ratan2` of the translation of the *second*
-/// `GfxCoord` node of the target's model (`field_8[1]`) minus the
-/// player's own (`field_8[0]`); the delta against `GameActor::rotation.vy` is
-/// unwrapped into `-0x800..0x800` and stepped by `0x80` per frame, so the
-/// player rotates at a fixed rate. Inside `0x80` of the target the facing
-/// snaps to the exact angle and the task ends.
-///
-/// The task's own argument is only ever the `taskKill` target, reached both
-/// when the work lookup or `gGameSession::eventState` fails and on the frame the
-/// facing settles.
-void func_dryfield_main_street_8017E1C0(Task* task)
+/// Steps yaw by 128 angle units per callback (4096 per turn), choosing the
+/// shorter turn and snapping when at most one step remains. Ends on arrival,
+/// a missing placement, or idle event state. Requires a live player task and
+/// `GameActor` work, a player model with coordinate zero, and a target model
+/// with at least two coordinates. Uses the stored local translations of the
+/// player root and target coordinate one without composing their transforms.
+static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task)
 {
-    Task*      player;
-    GameActor* actor;
-    Enemy*     enemy;
-    GfxCoord*  self;
-    GfxCoord*  target;
-    s32        angle;
-    s32        delta;
-    s32        magnitude;
-    s32        step;
-    s32        wrapped;
+    enum { DRYFIELD_MAIN_STREET_PLAYER_YAW_STEP = 128 };
 
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    actor  = (GameActor*)player->work;
-    enemy  = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-    if ((enemy != NULL) && (gGameSession->eventState != 0)) {
-        self      = player->extra.tmd->coords;
-        target    = &enemy->task->extra.tmd->coords[1];
-        angle     = ratan2(target->coord.t[0] - self->coord.t[0], target->coord.t[2] - self->coord.t[2]);
-        delta     = angle - actor->rotation.vy;
-        magnitude = ABS(delta);
-        if (magnitude >= 0x801) {
-            wrapped = delta - 0x1000;
-            if (delta < 0) {
-                wrapped = delta + 0x1000;
+    Task*      playerTask;
+    GameActor* playerActor;
+    Enemy*     areaActor;
+    GfxCoord*  playerCoord;
+    GfxCoord*  targetCoord;
+    s32        targetYaw;
+    s32        yawDelta;
+    s32        absoluteYawDelta;
+    s32        yawStep;
+    s32        wrappedYawDelta;
+
+    /// Unwraps one yaw difference to the shorter turn, retaining exact half-turn ties.
+    ///
+    /// Angles use 4096 units per turn and require at most one wrapping correction.
+    /// Arguments must be distinct writable s32 locals without side effects: all
+    /// are evaluated repeatedly; magnitude and wrapped are scratch outputs.
+#define DRYFIELD_MAIN_STREET_UNWRAP_YAW_DELTA(delta, magnitude, wrapped) \
+    do {                                                                 \
+        (magnitude) = ABS(delta);                                        \
+        if ((magnitude) >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {        \
+            (wrapped) = (delta) - ACTOR_TRANSFORM_ANGLE_TURN;            \
+            if ((delta) < 0) {                                           \
+                (wrapped) = (delta) + ACTOR_TRANSFORM_ANGLE_TURN;        \
+            }                                                            \
+            (delta) = (wrapped);                                         \
+        }                                                                \
+    } while (0)
+
+    playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerActor = playerTask->work;
+    areaActor   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+    if ((areaActor != NULL) && (gGameSession->eventState != 0)) {
+        playerCoord = playerTask->extra.tmd->coords;
+        targetCoord = &areaActor->task->extra.tmd->coords[1];
+        targetYaw   = ratan2(targetCoord->coord.t[0] - playerCoord->coord.t[0], targetCoord->coord.t[2] - playerCoord->coord.t[2]);
+        yawDelta    = targetYaw - playerActor->rotation.vy;
+        DRYFIELD_MAIN_STREET_UNWRAP_YAW_DELTA(yawDelta, absoluteYawDelta, wrappedYawDelta);
+#undef DRYFIELD_MAIN_STREET_UNWRAP_YAW_DELTA
+        absoluteYawDelta = ABS(yawDelta);
+        if (absoluteYawDelta >= DRYFIELD_MAIN_STREET_PLAYER_YAW_STEP + 1) {
+            yawStep = DRYFIELD_MAIN_STREET_PLAYER_YAW_STEP;
+            if (yawDelta < 0) {
+                yawStep = -DRYFIELD_MAIN_STREET_PLAYER_YAW_STEP;
             }
-            delta = wrapped;
-        }
-        magnitude = ABS(delta);
-        if (magnitude >= 0x81) {
-            step = 0x80;
-            if (delta < 0) {
-                step = -0x80;
-            }
-            actor->rotation.vy = (s16)((u16)actor->rotation.vy + step);
+            // Keep the stored yaw's 16-bit wrap when applying the signed step.
+            playerActor->rotation.vy = (s16)((u16)playerActor->rotation.vy + yawStep);
             return;
         }
-        actor->rotation.vy = angle;
+        playerActor->rotation.vy = targetYaw;
     }
     taskKill(task);
 }
@@ -1207,14 +1221,14 @@ void func_dryfield_main_street_8017E4B0(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_dryfield_main_street_8017EEE8(Task* arg0)
+void dryfieldMainStreetRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_dryfield_main_street_8017F94C(Task* task)
+void dryfieldMainStreetRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

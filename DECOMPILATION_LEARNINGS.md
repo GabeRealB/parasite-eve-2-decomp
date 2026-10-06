@@ -120499,7 +120499,7 @@ Inputs: `base_4.i`
 `a485234089531794d20d9d3d129b425776d56006ac2a260e5619dab452f9d47a` (97.389%).
 ## An absolute value written as an `if` collapses to `negu rd,rs`; the `ABS()` macro keeps `negu rd,rd`
 
-`func_dryfield_main_street_8017E1C0` steps a yaw toward a target and takes two
+`_dryfieldMainStreetTurnPlayerTowardAreaActorTask` steps a yaw toward a target and takes two
 absolute values of the delta. Written the obvious way, both negations read the
 *original* register:
 
@@ -126101,7 +126101,7 @@ identical in the object.
 
 `func_actor_341300_80162278` has no twin: `overlay_dup_index.py find` reports it
 as its own only copy, so nothing was promoted. Its body otherwise matches
-`func_dryfield_main_street_8017E1C0` (`src/rooms/dryfield_main_street/`), which
+`_dryfieldMainStreetTurnPlayerTowardAreaActorTask` (`src/rooms/dryfield_main_street/`), which
 is a matched sibling of the same algorithm — the aim angle, the `-0x800..0x800`
 unwrap and the `0x80`-per-frame step are the same code; only the target
 coordinate differs (a global placement record vs. the work object's second

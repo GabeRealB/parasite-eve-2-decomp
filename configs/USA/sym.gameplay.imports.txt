@@ -682,9 +682,9 @@ dryfieldGasStationCyanGlowTask = 0x80181A78; // type:func absolute:True owner=dr
 
 dryfieldMainStreetPuffTask = 0x8017E830; // type:func absolute:True owner=dryfield_main_street
 
-func_dryfield_main_street_8017EEE8 = 0x8017EEE8; // type:func absolute:True owner=dryfield_main_street
+dryfieldMainStreetRoomVisualEffectsFlashTask = 0x8017EEE8; // type:func absolute:True owner=dryfield_main_street
 
-func_dryfield_main_street_8017F94C = 0x8017F94C; // type:func absolute:True owner=dryfield_main_street
+dryfieldMainStreetRoomVisualEffectsTwinTrailTask = 0x8017F94C; // type:func absolute:True owner=dryfield_main_street
 
 func_dryfield_main_street_80180234 = 0x80180234; // type:func absolute:True owner=dryfield_main_street
 

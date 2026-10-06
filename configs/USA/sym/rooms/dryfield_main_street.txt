@@ -104,9 +104,9 @@ gRoomEventReq = 0x80185644; // size:0x14 defined:True
 
 dryfieldMainStreetPuffTask = 0x8017E830; // type:func
 
-func_dryfield_main_street_8017EEE8 = 0x8017EEE8; // type:func
+dryfieldMainStreetRoomVisualEffectsFlashTask = 0x8017EEE8; // type:func
 
-func_dryfield_main_street_8017F94C = 0x8017F94C; // type:func
+dryfieldMainStreetRoomVisualEffectsTwinTrailTask = 0x8017F94C; // type:func
 
 func_dryfield_main_street_80180234 = 0x80180234; // type:func
 
@@ -123,3 +123,6 @@ mainStreetPlayTimeTask = 0x8017DE78; // type:func
 mainStreetCapSoundCue = 0x8017DEF0; // type:func
 mainStreetTalkMsg = 0x8017DFC8; // type:func
 _mainStreetDrawPuff = 0x8017EA88; // type:func
+_dryfieldMainStreetRejectKeyItemUse = 0x8017e054; // type:func
+_dryfieldMainStreetIdle = 0x8017e158; // type:func
+_dryfieldMainStreetTurnPlayerTowardAreaActorTask = 0x8017e1c0; // type:func

@@ -47,9 +47,28 @@ extern WorldCollisionSurfaceProperties* D_dryfield_main_street_801855EC[];
 /// coordinate between ticks; callers must discard the work pointer on release.
 void dryfieldMainStreetPuffTask(Task* task);
 
-void func_dryfield_main_street_8017EEE8(Task* task);
+/// Runs Main Street's charging pink flash, peak screen tint and fading star.
+///
+/// Starts in state zero with a coordinate body and counted `EffectWork` in
+/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` is a positive
+/// charge duration in active ticks, consumed as a countdown. Nonzero room
+/// effect control pauses it; values at least four cancel it. State three also
+/// requests release. Completion frees the effect work and tears down the task.
+/// Requires a live `gRoomEffectState` and the room overlay to remain loaded.
+void dryfieldMainStreetRoomVisualEffectsFlashTask(Task* task);
 
-void func_dryfield_main_street_8017F94C(Task* task);
+/// Runs Main Street's fading beam between two moving endpoint histories.
+///
+/// Starts in state zero with a coordinate body and counted `EffectWork` in
+/// `spawnArg2.pointer` from `Gp_SpawnEff`. Borrows its parent coordinate while
+/// live and owns two eight-coordinate histories in `Task::work`, freed during
+/// teardown. Allocation failure retries with age reset to zero. Initialization
+/// counts as the first active tick; later ticks record world-space endpoints
+/// and draw seven quads with red:green:blue intensities in the ratio 1:2:3.
+/// `spawnArg1.value` is zero for external teardown, or 2..32767 to expire at
+/// that active age. Room effect control at two or above holds age and drawing
+/// without cancelling. Requires a live `gRoomEffectState` and loaded room overlay.
+void dryfieldMainStreetRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_dryfield_main_street_80180234(Task* task);
 

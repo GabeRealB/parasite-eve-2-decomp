@@ -1197,8 +1197,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsFlashTask, { NULL } },             // 0x290
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsTwinTrailTask, { NULL } },         // 0x291
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_forked_road_801802CC, { NULL } },                       // 0x292
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_8017EEE8, { NULL } },                        // 0x293
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_8017F94C, { NULL } },                        // 0x294
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsFlashTask, { NULL } },              // 0x293
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsTwinTrailTask, { NULL } },          // 0x294
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_80180234, { NULL } },                        // 0x295
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsFlashTask, { NULL } },              // 0x296
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },          // 0x297
