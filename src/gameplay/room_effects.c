@@ -848,7 +848,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_underground_parking_80184A18, { NULL } },                           // 0x133
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_golem_freezer_1_8017DA7C, { NULL } },                               // 0x134
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomShadowTask, { NULL } },                                           // 0x135
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_service_gantry_8017FA7C, { NULL } },                            // 0x136
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryInitEffectsTask, { NULL } },                               // 0x136
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_8017D6D0, { NULL } },                               // 0x137
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelDrawGlowsTask, { NULL } },                          // 0x138
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_elevator_8017DB70, { NULL } },                                      // 0x139
@@ -984,7 +984,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEnergyRingTask, { NULL } },                                       // 0x1BB
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomChargeBurstTask, { NULL } },                                      // 0x1BC
     { { { TASK_BODY_COORD, 0x70 } }, mistShootingGalleryTracerTask, { NULL } },                                          // 0x1BD
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_service_gantry_8017E880, { NULL } },                            // 0x1BE
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryWaterDriftTaskU16, { NULL } },                             // 0x1BE
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteRiseTask, { NULL } },                                 // 0x1BF
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomLightBeamTask, { NULL } },                                        // 0x1C0
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathLeafFallTask, { NULL } },                                         // 0x1C1

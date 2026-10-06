@@ -1052,11 +1052,11 @@ shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017FB9C; // type:fun
 
 func_shelter_b1_pod_access_tunnel_80180484 = 0x80180484; // type:func absolute:True owner=shelter_b1_pod_access_tunnel
 
-func_shelter_b1_pod_service_gantry_8017E880 = 0x8017E880; // type:func absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
+shelterB1PodServiceGantryWaterDriftTaskU16 = 0x8017E880; // type:func absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
 
 shelterB1PodServiceGantryEffectSpriteRiseTask = 0x8017F8C8; // type:func absolute:True owner=shelter_b1_pod_service_gantry
 
-func_shelter_b1_pod_service_gantry_8017FA7C = 0x8017FA7C; // type:func absolute:True owner=shelter_b1_pod_service_gantry
+shelterB1PodServiceGantryInitEffectsTask = 0x8017FA7C; // type:func absolute:True owner=shelter_b1_pod_service_gantry
 
 
 func_shelter_b1_sleeping_quarters_8017D8E0 = 0x8017D8E0; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms

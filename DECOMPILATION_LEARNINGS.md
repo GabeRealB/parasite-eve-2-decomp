@@ -141464,7 +141464,7 @@ through. The block then runs on past the call, and the cross-jump pass after
 `sched2` merges the duplicated `state++` with the other cases' copy. So the
 final code is the fall-through shape, except for the argument order. Where a sibling does the same
 thing, look for that hazard line in its `.sched` dump.
-### Loop-invariant hoist order follows first use in the loop body: fold an LCG step into the store (func_shelter_b1_pod_service_gantry_8017FA7C)
+### Loop-invariant hoist order follows first use in the loop body: fold an LCG step into the store (shelterB1PodServiceGantryInitEffectsTask)
 
 An 8-iteration fill `arr[i] = rng >> 16` written as two statements
 (`gRandomLcgState = gRandomLcgState * 5 + 0x71357911; arr[i] = gRandomLcgState >> 16;`)

@@ -36,9 +36,38 @@ void func_shelter_b1_pod_service_gantry_8017D89C(Task* task);
 
 void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3);
 
-void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0);
+/// Seeds the chain-glow flicker offsets and selects the room's water-spray effect.
+///
+/// A live task in state 0 advances the shared random sequence eight times,
+/// storing bits 16..23 as one byte per chain, then enters idle state 1.
+/// Any nonzero state does nothing. Spawn arguments and the coordinate body are
+/// unused; this callback allocates no work and leaves teardown to its owner.
+void shelterB1PodServiceGantryInitEffectsTask(Task* task);
 
-void func_shelter_b1_pod_service_gantry_8017E880(Task* task);
+/// Advances and draws one counted eight-cell water-spray particle for this room.
+///
+/// Requires a live coordinate-body task in state 0 with owned, initialized
+/// `EffectWork` in `spawnArg2.pointer`, initially at cell 0, and a live
+/// `gRoomEffectState`. Translation and velocity use the coordinate's parent
+/// space, normally view space. Drawing requires initialized scratch storage
+/// and capacity for one textured-quad packet.
+///
+/// `spawnArg1.value` packs perspective size in bits 0..11, running updates per
+/// cell in 12..15 (0 selects 1), launch speed in 16..23 (0 selects 64), and
+/// velocity kind in 24..27 (0 stationary, 1 upward burst, 2 all-axis spray,
+/// 3 narrow upward jet, 5 the copied `pos` direction; others launch at zero).
+/// Any bits 28..31 select an upright sprite; otherwise the random spin angle
+/// stays fixed, in 4096 units per turn. A supplied nonzero `move` bypasses
+/// direction generation and scaling. Velocity is in parent-coordinate units
+/// per running update and its components retain signed halfword precision.
+///
+/// The first running update initializes without drawing or moving. Subsequent
+/// updates draw before moving, add 6 to moving particles' Y velocity, and
+/// retire after eight cells of the selected period. Suspended control values
+/// below 4 redraw without aging; control >= 4 retires without drawing.
+/// Retirement frees the work, decrements the effect count and tears down the
+/// task and coordinate body; callers must not retain pointers after retirement.
+void shelterB1PodServiceGantryWaterDriftTaskU16(Task* task);
 
 void shelterB1PodServiceGantryEffectSpriteRiseTask(Task* task);
 

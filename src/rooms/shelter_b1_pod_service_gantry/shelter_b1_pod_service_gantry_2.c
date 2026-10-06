@@ -357,7 +357,7 @@ static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* c
 
 #include "../../shared/water_drift_task_u16.inc.c"
 
-void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
+void shelterB1PodServiceGantryWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
@@ -652,15 +652,28 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
 
 #include "../../shared/effect_sprite_rise.inc.c"
 
-void func_shelter_b1_pod_service_gantry_8017FA7C(Task* arg0)
+/// Seeds one persistent glow-flicker offset per chain from the shared random sequence.
+///
+/// Advances the sequence once per byte and retains bits 16..23. The glow
+/// drawer uses each byte's low bit to offset the actor's alternating tick.
+static inline void _shelterB1PodServiceGantrySeedGlowFlicker(void)
 {
-    s32 i;
+    s32 chainIndex;
 
-    if (arg0->state == 0) {
-        for (i = 0; i < 8; i++) {
-            D_shelter_b1_pod_service_gantry_8018256C[i] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
-        }
+    for (chainIndex = 0; chainIndex < ARRAY_SIZE(D_shelter_b1_pod_service_gantry_8018256C); chainIndex++) {
+        D_shelter_b1_pod_service_gantry_8018256C[chainIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+    }
+}
+
+void shelterB1PodServiceGantryInitEffectsTask(Task* task)
+{
+    enum {
+        SHELTER_B1_POD_SERVICE_GANTRY_EFFECTS_STATE_NEW  = 0,
+        SHELTER_B1_POD_SERVICE_GANTRY_EFFECTS_STATE_IDLE = 1
+    };
+    if (task->state == SHELTER_B1_POD_SERVICE_GANTRY_EFFECTS_STATE_NEW) {
+        _shelterB1PodServiceGantrySeedGlowFlicker();
         gRoomEffectWaterSprayId = EFFECT_SHELTER_B1_POD_SERVICE_GANTRY_WATER_SPRAY;
-        arg0->state             = 1;
+        task->state             = SHELTER_B1_POD_SERVICE_GANTRY_EFFECTS_STATE_IDLE;
     }
 }
