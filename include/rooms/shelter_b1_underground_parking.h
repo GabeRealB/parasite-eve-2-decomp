@@ -49,7 +49,13 @@ extern SpriteView D_shelter_b1_underground_parking_8018AB9C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_underground_parking_8018D724[];
 
-void func_shelter_b1_underground_parking_801838B4(Task* task);
+/// Runs the underground parking room's initialization, interaction checks and shutdown.
+///
+/// The Shelter map's area-20 descriptor starts a bodyless task at state 0.
+/// States 0, 1 and 2 initialize, check room interactions each frame and kill
+/// the task, respectively; no state bounds check is performed. The room overlay
+/// and its state table must remain loaded for the task's lifetime.
+void shelterB1UndergroundParkingRoomTask(Task* task);
 
 void func_shelter_b1_underground_parking_8017EDE8(Task* task);
 

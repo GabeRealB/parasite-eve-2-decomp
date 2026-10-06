@@ -48413,7 +48413,7 @@ the call, so regalloc must give it a saved register:
 SbupActionPrompt*                      prompt = &D_80114D28;
 _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
-func_shelter_b1_underground_parking_80183B9C();
+_shelterB1UndergroundParkingDrawPanelIndicators();
 prompt->mode = 0;
 ```
 
@@ -88632,7 +88632,7 @@ Check the callee's prototype whenever two call-crossing pointers swap `$sN` in
 a room state body: a `jal` whose argument setup is missing because the value is
 already in `$a0` is not "no argument". The sibling that matches *with* the
 argument is evidence for it; `func_shelter_b1_underground_parking_80184594`'s
-`func_shelter_b1_underground_parking_80183B9C()` is genuinely `void (void)`, so
+`_shelterB1UndergroundParkingDrawPanelIndicators()` is genuinely `void (void)`, so
 its silence is not. This is the same lever as "m2c drops a leading call argument
 that is already in `$a0` on entry" above, but that one *clobbers* `$a0` with
 `li $a0, 7` and so announces itself; here the lost argument leaves no trace in

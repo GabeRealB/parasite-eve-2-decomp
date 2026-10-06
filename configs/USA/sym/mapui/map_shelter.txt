@@ -199,7 +199,7 @@ D_shelter_b1_access_tunnel_8017FA34 = 0x8017FA34; // absolute:True owner=shelter
 D_shelter_b1_access_tunnel_8017FBFC = 0x8017FBFC; // absolute:True owner=shelter_b1_access_tunnel
 D_shelter_b1_access_tunnel_8017FD2C = 0x8017FD2C; // absolute:True owner=shelter_b1_access_tunnel shared=rooms
 D_shelter_b1_access_tunnel_8017FF24 = 0x8017FF24; // absolute:True owner=shelter_b1_access_tunnel shared=rooms
-func_shelter_b1_underground_parking_801838B4 = 0x801838B4; // type:func absolute:True owner=shelter_b1_underground_parking
+shelterB1UndergroundParkingRoomTask = 0x801838B4; // type:func absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_801877B4 = 0x801877B4; // absolute:True owner=shelter_b1_underground_parking shared=rooms
 D_shelter_b1_underground_parking_801877F4 = 0x801877F4; // absolute:True owner=shelter_b1_underground_parking shared=rooms
 D_shelter_b1_underground_parking_8018791C = 0x8018791C; // absolute:True owner=shelter_b1_underground_parking

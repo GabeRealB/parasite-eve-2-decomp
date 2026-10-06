@@ -96,6 +96,12 @@ enum {
     SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY = 0x111,
 };
 
+/// Pixel radii of the panel's switch/selection indicators and fixed map nodes.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_INDICATOR_RADIUS = 7,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_MAP_NODE_RADIUS  = 10,
+};
+
 /// Pulse selection and rendering scales for this room's view-dependent lights.
 enum {
     SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_SLOW                = 0,
@@ -377,12 +383,12 @@ static void func_shelter_b1_underground_parking_80184468(Task* task);
 static void func_shelter_b1_underground_parking_80184594(Task* task);
 static void func_shelter_b1_underground_parking_801845F8(Task* task);
 static void func_shelter_b1_underground_parking_801846EC(Task* arg0);
-static void func_shelter_b1_underground_parking_80184778(Task* task);
+static void _shelterB1UndergroundParkingPanelCommitSelection(Task* task);
 static void func_shelter_b1_underground_parking_801847D0(Task* task);
 
 static void func_shelter_b1_underground_parking_8018390C(void);
-static void func_shelter_b1_underground_parking_801848A4(void);
-static void func_shelter_b1_underground_parking_8018491C(void);
+static void _shelterB1UndergroundParkingPanelResetSelection(void);
+static void _shelterB1UndergroundParkingPanelApplySelection(void);
 static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, s16 pixelRadius, s16 packedRgb);
 static void _shelterB1UndergroundParkingSetFastLightPulse(s16 fastPulse);
 
@@ -414,16 +420,16 @@ s32                               func_shelter_b1_underground_parking_80182830(T
 s32                               func_shelter_b1_underground_parking_80182A60(Task*, s32, s32, s32);
 s32                               func_shelter_b1_underground_parking_80183284(Task*, s32, s32, s32);
 s32                               func_shelter_b1_underground_parking_80183360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, s32);
+static s32                        _shelterB1UndergroundParkingCapSoundCue(Task* roomTask, s32 messageId, s32 soundCue, s32 unused);
 void                              func_shelter_b1_underground_parking_80182DB4(Task*);
-void                              func_shelter_b1_underground_parking_80182FC8(Task*);
+static void                       _shelterB1UndergroundParkingAmbienceTask(Task* task);
 void                              func_shelter_b1_underground_parking_801834D4(Task*);
 void                              func_shelter_b1_underground_parking_80183560(Task*);
 void                              func_shelter_b1_underground_parking_8018363C(Task*);
 void                              func_shelter_b1_underground_parking_801836D8(Task*);
 void                              func_shelter_b1_underground_parking_80183714(Task*);
 static void                       _shelterB1UndergroundParkingSetRoom(u8 roomNumber);
-void                              func_shelter_b1_underground_parking_80183804(u8);
+static void                       _shelterB1UndergroundParkingSetPlayerTickHold(u8 holdPlayerTick);
 void                              func_shelter_b1_underground_parking_80184234(Task*);
 void                              func_shelter_b1_underground_parking_80184284(Task*);
 
@@ -457,7 +463,7 @@ TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
     { 5105, func_shelter_b1_underground_parking_80183284 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_underground_parking_80182830 },
     { ROOM_MESSAGE_COMMAND, func_shelter_b1_underground_parking_80182A60 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b1_underground_parking_801833DC },
+    { ROOM_MESSAGE_SOUND, _shelterB1UndergroundParkingCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -471,7 +477,7 @@ TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_8018363C, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80182DB4, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_801836D8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80182FC8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingAmbienceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_underground_parking_80183714, { .value = 0 } },
 };
 
@@ -496,7 +502,7 @@ EvsCommand D_shelter_b1_underground_parking_801873DC[15] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_shelter_b1_underground_parking_80183804 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetPlayerTickHold }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_underground_parking_801873C8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54140003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1677,7 +1683,7 @@ u16 D_shelter_b1_underground_parking_8018D78C = 0;
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count);
 static void       func_shelter_b1_underground_parking_801826C0(Task* roomTask);
-static void       func_shelter_b1_underground_parking_80183B9C(void);
+static void       _shelterB1UndergroundParkingDrawPanelIndicators(void);
 
 #include "../../shared/telephone.inc.c"
 
@@ -1746,7 +1752,7 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
 }
 
 /// The three states of the room's main task, run by
-/// `func_shelter_b1_underground_parking_801838B4`: set-up, the per-frame
+/// `shelterB1UndergroundParkingRoomTask`: set-up, the per-frame
 /// handler, and the kill.
 static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
     {
@@ -1994,53 +2000,76 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
     }
 }
 
-/// Keeps the room's looping ambience in step with the area the session is in:
-/// `gGameSession->location.loc.view` selects an entry of the ambience table, and
-/// state 0 starts the loop with `sndEvtRequestScriptStart`. Once
-/// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a stop
-/// for the loop that keeps its ADSR release settings and ends the task; otherwise it waits for the session's view to stop matching `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`,
-/// states 2 to 4 walk the task along, and state 5 updates the loop's pan and
-/// attenuation from the new view's table entry with `sndEvtRequestScriptMix`,
-/// then returns to state 1.
-void func_shelter_b1_underground_parking_80182FC8(Task* task)
+/// Runs the room's view-dependent ambience loop while its event is active.
+///
+/// Starts at state 0 with no work or body. View slots 0..8 supply sound-script
+/// pan offsets and halved attenuation; other slots use zero for both. A view
+/// change advances through three delay states before retuning the playing loop.
+/// Clearing the event latch stops it with its existing ADSR release, restores
+/// the slow light pulse and kills this task.
+static void _shelterB1UndergroundParkingAmbienceTask(Task* task)
 {
-    s32 pan;
-    s32 attenuation;
-    u8  idx;
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_SOUND         = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F),
+        SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_START   = 0,
+        SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_WAIT    = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_DELAY_1 = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_DELAY_2 = 3,
+        SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_DELAY_3 = 4,
+        SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_RETUNE  = 5,
+    };
 
-    idx = gGameSession->location.loc.view;
-    if (idx < ARRAY_SIZE(D_shelter_b1_underground_parking_8018761C)) {
-        pan         = D_shelter_b1_underground_parking_8018761C[idx].panOffset;
-        attenuation = D_shelter_b1_underground_parking_8018761C[idx].attenuation / 2;
-    } else {
-        pan         = 0;
-        attenuation = 0;
+    s32 panOffset;
+    s32 attenuation;
+    u8  viewIndex;
+
+    /// Gets the view slot's pan offset and halved attenuation in sound-script units.
+    ///
+    /// Captures this room's ambience table. `index` must be a side-effect-free
+    /// unsigned-byte expression; it is evaluated up to three times. Outputs
+    /// must be distinct writable s32 lvalues, each assigned once. Unlisted
+    /// slots use the base pan and full level. Expands to a compound statement;
+    /// use as a standalone statement. Local to this task; undefined below.
+#define SHELTER_B1_UNDERGROUND_PARKING_GET_VIEW_AMBIENCE_MIX(index, outPanOffset, outAttenuation)  \
+    {                                                                                              \
+        if ((index) < ARRAY_SIZE(D_shelter_b1_underground_parking_8018761C)) {                     \
+            (outPanOffset)   = D_shelter_b1_underground_parking_8018761C[(index)].panOffset;       \
+            (outAttenuation) = D_shelter_b1_underground_parking_8018761C[(index)].attenuation / 2; \
+        } else {                                                                                   \
+            (outPanOffset)   = 0;                                                                  \
+            (outAttenuation) = 0;                                                                  \
+        }                                                                                          \
     }
 
+    viewIndex = gGameSession->location.loc.view;
+    SHELTER_B1_UNDERGROUND_PARKING_GET_VIEW_AMBIENCE_MIX(viewIndex, panOffset, attenuation);
+#undef SHELTER_B1_UNDERGROUND_PARKING_GET_VIEW_AMBIENCE_MIX
+
     switch (task->state) {
-        case 0:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
+        case SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_START:
+            sndEvtRequestScriptStart(SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_SOUND, (s8)panOffset, (s8)attenuation);
             task->state = task->state + 1;
             break;
-        case 1:
+        case SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_WAIT:
             if (D_shelter_b1_underground_parking_8018D758 == 0) {
                 _shelterB1UndergroundParkingSetFastLightPulse(SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_SLOW);
-                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                sndEvtRequestScriptStop(SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_SOUND, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(task);
                 break;
             }
+            // The live save still carries the requested view during a transition.
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
                 task->state = task->state + 1;
             }
             break;
-        case 2:
-        case 3:
-        case 4:
+        case SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_DELAY_1:
+        case SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_DELAY_2:
+        case SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_DELAY_3:
             task->state = task->state + 1;
             break;
-        case 5:
-            sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), (s8)pan, (s8)attenuation);
-            task->state = 1;
+        case SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_RETUNE:
+            sndEvtRequestScriptMix(SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_SOUND, (s8)panOffset, (s8)attenuation);
+            task->state = SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_WAIT;
             break;
     }
 }
@@ -2058,20 +2087,24 @@ static const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4 = {
         func_shelter_b1_underground_parking_80184594,
         func_shelter_b1_underground_parking_801845F8,
         func_shelter_b1_underground_parking_801846EC,
-        func_shelter_b1_underground_parking_80184778,
+        _shelterB1UndergroundParkingPanelCommitSelection,
         func_shelter_b1_underground_parking_801847D0,
     },
 };
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// Answers 1 when a pending room-action trigger with `parameter0` 0xFF was hit.
+/// Tests whether any linked room-event region has a latched hit.
+///
+/// Borrows the null-terminated pending trigger list without clearing hits or
+/// unlinking entries. Returns 1 for a hit on an unflagged room-action trigger
+/// with the room-event region ID, otherwise 0.
 static inline s32 _shelterB1UndergroundParkingRoomTriggerHit(void)
 {
-    WorldCollisionTrigger* node;
+    WorldCollisionTrigger* trigger;
 
-    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
-        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
+    for (trigger = Gp_PendingObj4C; trigger != NULL; trigger = trigger->next) {
+        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
             return 1;
         }
     }
@@ -2106,10 +2139,19 @@ s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEvent
     return 2;
 }
 
-s32 func_shelter_b1_underground_parking_801833DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Plays this room's sound for CAP cue 99 and ignores other sound cues.
+///
+/// Handles `ROOM_MESSAGE_SOUND`; only the first payload word is used. The
+/// receiver, message ID and second payload are unused, and the result is zero.
+static s32 _shelterB1UndergroundParkingCapSoundCue(Task* roomTask, s32 messageId, s32 soundCue, s32 unused)
 {
-    if (arg2 == 0x63) {
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x10), 0, 0);
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_CAP_SOUND_CUE_99 = 0x63,
+        SHELTER_B1_UNDERGROUND_PARKING_CAP_SOUND        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x10),
+    };
+
+    if (soundCue == SHELTER_B1_UNDERGROUND_PARKING_CAP_SOUND_CUE_99) {
+        sndEvtRequestScriptStart(SHELTER_B1_UNDERGROUND_PARKING_CAP_SOUND, 0, 0);
     }
     return 0;
 }
@@ -2219,17 +2261,20 @@ static void _shelterB1UndergroundParkingSetRoom(u8 roomNumber)
     gGameSession->viewDirty                                    = 1;
 }
 
-/// Room script callback: latch this room's script argument into `D_80115768`.
-void func_shelter_b1_underground_parking_80183804(u8 arg0)
+/// Sets the player actor tick hold from a room script's byte argument.
+///
+/// Zero resumes the actor tick; any nonzero byte suspends it. The room's scene
+/// script passes zero after hiding the display so scripted movement can resume.
+static void _shelterB1UndergroundParkingSetPlayerTickHold(u8 holdPlayerTick)
 {
-    D_80115768 = arg0;
+    D_80115768 = holdPlayerTick;
 }
 
 static void func_shelter_b1_underground_parking_80183810(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_underground_parking_80187230;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_shelter_b1_underground_parking_801848A4();
+    _shelterB1UndergroundParkingPanelResetSelection();
     if (gGameSession->location.loc.variant == 0x15) {
         Gp_MsgSlot4Chain(0, 1);
     }
@@ -2240,14 +2285,12 @@ static void func_shelter_b1_underground_parking_80183810(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Dispatches a task through the three-entry state table, copied onto the
-/// stack first.
-void func_shelter_b1_underground_parking_801838B4(Task* task)
+void shelterB1UndergroundParkingRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b1_underground_parking_8017D7F4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b1_underground_parking_8017D7F4;
+    states.funcs[task->state](task);
 }
 
 static void func_shelter_b1_underground_parking_8018390C(void)
@@ -2261,29 +2304,53 @@ static void func_shelter_b1_underground_parking_8018390C(void)
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-static void func_shelter_b1_underground_parking_80183B9C(void)
+/// Draws the panel diagram's fixed dim nodes and pending selection marker.
+///
+/// Requires a pending four-switch pattern in 0..15 and the current frame's
+/// packet arena and ordering table. Coordinates are pixels relative to the
+/// GPU draw offset; queued packets remain borrowed until GPU completion.
+static inline void _shelterB1UndergroundParkingDrawPanelMapMarkers(void)
 {
-    if (D_shelter_b1_underground_parking_8018D789 & 8) {
-        _shelterB1UndergroundParkingDrawPanelGlow(-0x46, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_RED);
-    }
-    if (D_shelter_b1_underground_parking_8018D789 & 4) {
-        _shelterB1UndergroundParkingDrawPanelGlow(-0x28, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_GREEN);
-    }
-    if (D_shelter_b1_underground_parking_8018D789 & 2) {
-        _shelterB1UndergroundParkingDrawPanelGlow(-0xE, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_BLUE);
-    }
-    if (D_shelter_b1_underground_parking_8018D789 & 1) {
-        _shelterB1UndergroundParkingDrawPanelGlow(0xC, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_YELLOW);
-    }
-    _shelterB1UndergroundParkingDrawPanelGlow(0x11, -0x3D, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
-    _shelterB1UndergroundParkingDrawPanelGlow(0x3D, -0x3D, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
-    _shelterB1UndergroundParkingDrawPanelGlow(0x10, 9, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
-    _shelterB1UndergroundParkingDrawPanelGlow(-0x42, -0x19, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
-    _shelterB1UndergroundParkingDrawPanelGlow(-0x17, 0x2B, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
-    _shelterB1UndergroundParkingDrawPanelGlow(0x3D, 0x2B, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(0x11, -0x3D, SHELTER_B1_UNDERGROUND_PARKING_PANEL_MAP_NODE_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(0x3D, -0x3D, SHELTER_B1_UNDERGROUND_PARKING_PANEL_MAP_NODE_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(0x10, 9, SHELTER_B1_UNDERGROUND_PARKING_PANEL_MAP_NODE_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(-0x42, -0x19, SHELTER_B1_UNDERGROUND_PARKING_PANEL_MAP_NODE_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(-0x17, 0x2B, SHELTER_B1_UNDERGROUND_PARKING_PANEL_MAP_NODE_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(0x3D, 0x2B, SHELTER_B1_UNDERGROUND_PARKING_PANEL_MAP_NODE_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
     _shelterB1UndergroundParkingDrawPanelGlow(
         D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vx,
-        D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vy, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_GREEN);
+        D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vy,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_INDICATOR_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_GREEN);
+}
+
+/// Draws the pending panel pattern's four switch lamps and map indicators.
+///
+/// Each set bit lights its switch in red, green, blue or yellow; the complete
+/// pattern selects one of sixteen green marker positions. Requires a pattern
+/// in 0..15, current frame packet space and a depth ordering table. Uses panel
+/// pixel coordinates without view projection, borrowing packets until GPU completion.
+static void _shelterB1UndergroundParkingDrawPanelIndicators(void)
+{
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_RED    = 8,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_GREEN  = 4,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_BLUE   = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_YELLOW = 1,
+    };
+
+    if (D_shelter_b1_underground_parking_8018D789 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_RED) {
+        _shelterB1UndergroundParkingDrawPanelGlow(-0x46, 0x54, SHELTER_B1_UNDERGROUND_PARKING_PANEL_INDICATOR_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_RED);
+    }
+    if (D_shelter_b1_underground_parking_8018D789 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_GREEN) {
+        _shelterB1UndergroundParkingDrawPanelGlow(-0x28, 0x54, SHELTER_B1_UNDERGROUND_PARKING_PANEL_INDICATOR_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_GREEN);
+    }
+    if (D_shelter_b1_underground_parking_8018D789 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_BLUE) {
+        _shelterB1UndergroundParkingDrawPanelGlow(-0xE, 0x54, SHELTER_B1_UNDERGROUND_PARKING_PANEL_INDICATOR_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_BLUE);
+    }
+    if (D_shelter_b1_underground_parking_8018D789 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_SWITCH_YELLOW) {
+        _shelterB1UndergroundParkingDrawPanelGlow(0xC, 0x54, SHELTER_B1_UNDERGROUND_PARKING_PANEL_INDICATOR_RADIUS, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_YELLOW);
+    }
+    _shelterB1UndergroundParkingDrawPanelMapMarkers();
 }
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
@@ -2345,7 +2412,7 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 
-    func_shelter_b1_underground_parking_80183B9C();
+    _shelterB1UndergroundParkingDrawPanelIndicators();
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
@@ -2360,7 +2427,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
     ActionPromptHotspot*                   hs     = D_shelter_b1_underground_parking_8018767C;
     _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
-    func_shelter_b1_underground_parking_80183B9C();
+    _shelterB1UndergroundParkingDrawPanelIndicators();
     gGameSession->hideHud = 1;
     if (Gp_CapBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -2395,7 +2462,7 @@ static void func_shelter_b1_underground_parking_80184594(Task* task)
     ActionPrompt*                          prompt = D_80114D28;
     _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
-    func_shelter_b1_underground_parking_80183B9C();
+    _shelterB1UndergroundParkingDrawPanelIndicators();
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
@@ -2407,7 +2474,7 @@ static void func_shelter_b1_underground_parking_801845F8(Task* task)
     ActionPrompt*                          prompt = D_80114D28;
     _ShelterB1UndergroundParkingPanelWork* work   = task->work;
 
-    func_shelter_b1_underground_parking_80183B9C();
+    _shelterB1UndergroundParkingDrawPanelIndicators();
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
@@ -2447,15 +2514,17 @@ static void func_shelter_b1_underground_parking_801846EC(Task* arg0)
     Task_RequestKill(arg0, 0);
 }
 
-/// Commits the pending destination selected in the parking-lot map task:
-/// promotes the pending value into the committed one, tears down the prompt
-/// display, applies the selection to the session, then kills the child task
-/// spawned for the selection UI and advances to the next state.
-static void func_shelter_b1_underground_parking_80184778(Task* task)
+/// Commits the selector panel's pending switch pattern and starts its closing fade.
+///
+/// Runs in panel state 6 with a live action-prompt child in `spawnArg2.pointer`.
+/// Draws the newly committed indicators, selects the room resources, clears the
+/// countdown and kills that child before advancing to state 7. The parent and
+/// its work remain alive to draw the fade on following frames.
+static void _shelterB1UndergroundParkingPanelCommitSelection(Task* task)
 {
     D_shelter_b1_underground_parking_8018D788 = D_shelter_b1_underground_parking_8018D789;
-    func_shelter_b1_underground_parking_80183B9C();
-    func_shelter_b1_underground_parking_8018491C();
+    _shelterB1UndergroundParkingDrawPanelIndicators();
+    _shelterB1UndergroundParkingPanelApplySelection();
     task->killCountdown = 0;
     taskKill(task->spawnArg2.pointer);
     task->state++;
@@ -2465,7 +2534,7 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
 {
     _ShelterB1UndergroundParkingPanelWork* work = task->work;
 
-    func_shelter_b1_underground_parking_80183B9C();
+    _shelterB1UndergroundParkingDrawPanelIndicators();
     work->fadeLevel += SHELTER_B1_UNDERGROUND_PARKING_PANEL_FADE_STEP;
     if (work->fadeLevel >= 0x100) {
         work->fadeLevel = 0xFF;
@@ -2484,31 +2553,43 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
     }
 }
 
-static void func_shelter_b1_underground_parking_801848A4(void)
+/// Resets the pending pattern to zero and marks the panel selection uncommitted.
+///
+/// The committed byte's 0xFF sentinel differs from every pending four-switch
+/// pattern, so confirming even the initial zero pattern applies a selection.
+static void _shelterB1UndergroundParkingPanelResetSelection(void)
 {
-    D_shelter_b1_underground_parking_8018D788 = 0xFF;
+    enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_SELECTION_UNCOMMITTED = 0xFF };
+
+    D_shelter_b1_underground_parking_8018D788 = SHELTER_B1_UNDERGROUND_PARKING_PANEL_SELECTION_UNCOMMITTED;
     D_shelter_b1_underground_parking_8018D789 = 0;
 }
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-/// Looks up the low nibble of `D_shelter_b1_underground_parking_8018D788` in
-/// the byte table `D_shelter_b1_underground_parking_801876C4`, stores the
-/// result as the current room (both `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` and the session's
-/// `location.loc.room`) and flags the room objects for relinking.
-static void func_shelter_b1_underground_parking_8018491C(void)
+/// Selects the room resources mapped to the committed panel switch pattern.
+///
+/// The low four bits select one of sixteen entries, whose room values are
+/// 2..5. Updates both the session and live save and requests object relinking;
+/// this does not change the view or load another area.
+static void _shelterB1UndergroundParkingPanelApplySelection(void)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
-    gGameSession->location.loc.room                            = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
+    enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK = 0xF };
+
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
+    gGameSession->location.loc.room                            = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
     gGameSession->roomObjsDirty                                = 1;
 }
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-/// Queues the diamond, green disc and grey beam common to six mapped views.
+/// Queues the cyan diamond, green disc and grey beam shared by six mapped views.
 ///
-/// Uses the room's pulse selection and current view/scratch/packet state under
-/// the same contract as `shelterB1UndergroundParkingDrawGlowsTask`.
+/// Uses the room's slow/fast pulse selection for the diamond; the disc and
+/// beam flicker on frame parity. Requires the current view, scratch stack,
+/// packet arena and ordering table under the same contract as
+/// `shelterB1UndergroundParkingDrawGlowsTask`. The beam borrows the final two
+/// consecutive points of the room's thirteen-point light table.
 static inline void _shelterB1UndergroundParkingDrawCommonViewGlows(void)
 {
     if (D_shelter_b1_underground_parking_8018D78C != 0) {
