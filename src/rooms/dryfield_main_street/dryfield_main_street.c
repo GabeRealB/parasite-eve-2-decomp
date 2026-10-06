@@ -1125,17 +1125,16 @@ void func_dryfield_main_street_8017E354(s32 arg0)
     if (t == NULL) {
         return;
     }
-    if (arg0 >= 2) {
-        goto kill;
+    switch (arg0) {
+        case 0:
+        case 1:
+            t->spawnArg1.value = arg0;
+            break;
+        default:
+            taskKill(D_dryfield_main_street_80185630);
+            D_dryfield_main_street_80185630 = NULL;
+            break;
     }
-    if (arg0 < 0) {
-        goto kill;
-    }
-    t->spawnArg1.value = arg0;
-    return;
-kill:
-    taskKill(D_dryfield_main_street_80185630);
-    D_dryfield_main_street_80185630 = NULL;
 }
 
 /// Per-frame ramp task. While `D_801156F9` is clear, state 0 ramps
