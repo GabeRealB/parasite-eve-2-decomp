@@ -3975,16 +3975,29 @@ static void _dryfieldDilapidatedHouseDrawLightPrism(GfxCoord* coord, s16 firstVe
 #undef DRYFIELD_DILAPIDATED_HOUSE_TRANSFORM_PRISM_CORNER
 }
 
-/// Snapshots a composed endpoint relative to the persistent view coordinate.
+/// Stores a trail endpoint in world space, independent of later anchor motion.
 ///
-/// Both transforms must be current and the view rotation orthonormal. The
-/// history frame remains caller-owned; its composition stamp is left untouched.
-static inline void _dryfieldDilapidatedHouseStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* endpoint)
+/// `endpointCoord->workm.t` must be a current view-space endpoint position;
+/// `gGfxViewCoord.workm` must be current with an orthonormal view rotation.
+/// Copies the complete endpoint cache into `historyFrame->workm`, then removes
+/// the view transform to form its world-space `coord`, parented to
+/// `gGfxViewCoord`. Rotation coefficients are copied and rebased too, although
+/// the ribbon consumes only translation. Rotations use 12 fractional bits;
+/// translations are signed 32-bit game coordinates.
+///
+/// The word-aligned coordinates must be disjoint from each other, the view
+/// nodes and the scratch reservation. The frame remains caller-owned;
+/// no endpoint pointer is retained. Leaves `composeStamp` and `param` untouched:
+/// the caller must mark the frame dirty before composing it again.
+/// Loads endpoint rotation and translation into the GTE before rebasing and
+/// changes GTE arithmetic state. Requires 48 free bytes on the initialized
+/// scratch stack, released before return.
+static inline void _dryfieldDilapidatedHouseStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* endpointCoord)
 {
     historyFrame->parent = &gGfxViewCoord;
-    historyFrame->workm  = endpoint->workm;
-    gte_SetRotMatrix(&endpoint->workm);
-    gte_SetTransMatrix(&endpoint->workm);
+    historyFrame->workm  = endpointCoord->workm;
+    gte_SetRotMatrix(&endpointCoord->workm);
+    gte_SetTransMatrix(&endpointCoord->workm);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
 }
 
