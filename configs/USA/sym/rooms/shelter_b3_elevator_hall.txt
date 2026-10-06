@@ -70,9 +70,9 @@ shelterB3ElevatorHallDrawGlowsTask = 0x8017DE70; // type:func
 
 func_shelter_b3_elevator_hall_80180E18 = 0x80180E18; // type:func
 
-func_shelter_b3_elevator_hall_80181370 = 0x80181370; // type:func
+shelterB3ElevatorHallRoomVisualEffectsFlyingSparkTask = 0x80181370; // type:func
 
-func_shelter_b3_elevator_hall_80181FD0 = 0x80181FD0; // type:func
+shelterB3ElevatorHallRoomVisualEffectsFlyingOrangeBurstTask = 0x80181FD0; // type:func
 
 shelterB3ElevatorHallRoomVisualEffectsMoteTask = 0x8017E7F4; // type:func
 

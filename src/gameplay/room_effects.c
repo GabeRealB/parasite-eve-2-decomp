@@ -1096,7 +1096,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask, { NULL } },              // 0x22B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask, { NULL } },       // 0x22C
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask, { NULL } },                 // 0x22D
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_80181370, { NULL } },                                 // 0x22E
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallRoomVisualEffectsFlyingSparkTask, { NULL } },                  // 0x22E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80184C20, { NULL } },                                   // 0x22F
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirRoomVisualEffectsFlyingSparkTask, { NULL } },                     // 0x230
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_80180F34, { NULL } },                                  // 0x231
@@ -1107,7 +1107,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },        // 0x236
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask, { NULL } }, // 0x237
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2OperatingRoomRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },           // 0x238
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_80181FD0, { NULL } },                                 // 0x239
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },            // 0x239
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80185880, { NULL } },                                   // 0x23A
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },               // 0x23B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_80181B94, { NULL } },                                  // 0x23C

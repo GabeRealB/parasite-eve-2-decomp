@@ -55,9 +55,31 @@ void shelterB3ElevatorHallDrawGlowsTask(Task* task);
 
 void func_shelter_b3_elevator_hall_80180E18(Task* arg0);
 
-void func_shelter_b3_elevator_hall_80181370(Task* task);
+/// Animates the elevator hall's flying spark along its initial target displacement.
+///
+/// Requires a counted single-coordinate effect task, initially in state 0
+/// with age and frame index zero, and owned `EffectWork` in `spawnArg2.pointer`.
+/// State 0 samples the composed world matrices of its
+/// coordinate and the borrowed target `GfxCoord` in `spawnArg1.pointer`; the
+/// target must remain live through that first active tick. The step is
+/// 204/4096 of the initial displacement transformed into parent axes and
+/// narrowed to signed 16-bit components. State 1 moves by the fixed step and
+/// draws on odd ages. At age 20 it releases the work and
+/// retires the task. Room effect control 0 advances it, nonzero values below
+/// 4 pause it, and values of 4 or above cancel it. The room overlay must
+/// remain loaded.
+void shelterB3ElevatorHallRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_shelter_b3_elevator_hall_80181FD0(Task* arg0);
+/// Expands and fades the elevator hall's orange disc, layered glow and ring.
+///
+/// Requires a counted single-coordinate effect task with owned `EffectWork`
+/// in `spawnArg2.pointer`, starting in state 0; `spawnArg1` is unused.
+/// State 1 expands the glow while
+/// fading the ring, then fades the disc, releases the work and retires the task.
+/// Active draws also refresh a short-lived orange point light. Room effect
+/// control 0 advances it, nonzero values below 4 pause it, and values of 4
+/// or above cancel it. The room overlay must remain loaded.
+void shelterB3ElevatorHallRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
 /// Runs the hall's animated, vertically drifting mote until its brightness fades.
 ///

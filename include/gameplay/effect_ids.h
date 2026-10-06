@@ -1538,10 +1538,9 @@ enum {
     /// for 20 ticks; the room stores it in slot gRoomEffectFlyingSparkId, spawned by the room
     /// GLOW_DISC task (gRoomEffectGlowDiscId) at random player joints.
     EFFECT_SHELTER_B2_OPERATING_ROOM_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22D),
-    /// shelter_b3_elevator_hall's copy of the RoomFx flying spark: an animated textured square
-    /// that takes a fixed step toward its initial target position during a 20-tick lifetime; the
-    /// room stores it in slot gRoomEffectFlyingSparkId, spawned by the room glow-disc effect at
-    /// random player joints.
+    /// Elevator-hall animated spark, spawned at player joints by the glow disc.
+    /// Uses a fixed initial target displacement for 20 active ticks; selected
+    /// through `gRoomEffectFlyingSparkId` while the room overlay is loaded.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_FLYING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x22E),
     /// Flying spark (_roomVisualEffectsFlyingSparkTask): a textured square that moves each tick
     /// by 0xCC/0x1000 of its initial target displacement, with a 20-tick lifetime; stored in
@@ -1589,8 +1588,9 @@ enum {
     /// growing disc and glow with an expanding, fading ring; the room stores it in slot
     /// gRoomEffectOrangeBurst2Id, which actor_02400 spawns where its fireball ends.
     EFFECT_SHELTER_B2_OPERATING_ROOM_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x238),
-    /// Orange burst (_roomVisualEffectsFlyingOrangeBurstTask, this unit's copy of the orange burst);
-    /// stored in gRoomEffectOrangeBurst2Id, which actor_02400 spawns.
+    /// Elevator-hall expanding orange burst with layered glow and a ring that fades first.
+    /// Selected through `gRoomEffectOrangeBurst2Id` for fireball endings while
+    /// the room overlay is loaded.
     EFFECT_SHELTER_B3_ELEVATOR_HALL_ORANGE_BURST_2 = EFFECT_ID(EFFECT_TASK_BANK, 0x239),
     /// shelter_b4_upper_sewer's copy of the shared orange burst
     /// (_roomVisualEffectsFlyingOrangeBurstTask, the flying-section copy of the orange burst): growing
