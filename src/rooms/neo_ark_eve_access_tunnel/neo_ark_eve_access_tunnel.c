@@ -665,8 +665,8 @@ static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
     CdCmdQueue* queue = &gCdCmdQueue;
 
     if (gGameSession->location.loc.variant < 4U) {
-        func_neo_ark_eve_access_tunnel_8017E090(0, 0);
-        func_neo_ark_eve_access_tunnel_8017E090(1, 0);
+        neoArkEveAccessTunnelSetPartDestroyedSprites(0, NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT);
+        neoArkEveAccessTunnelSetPartDestroyedSprites(1, NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT);
     }
     if (gGameSession->location.loc.variant == 0xB) {
         queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;

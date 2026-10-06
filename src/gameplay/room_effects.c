@@ -873,7 +873,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E3B8, { NULL } },                                   // 0x14C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_airlock_8017D6D0, { NULL } },                            // 0x14D
     { { { TASK_BODY_COORD, 0x70 } }, neoArkObservatoryGlowTask, { NULL } },                                   // 0x14E
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_eve_access_tunnel_8017E15C, { NULL } },                     // 0x14F
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkEveAccessTunnelDrawViewGlowsTask, { NULL } },                      // 0x14F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_eve_elevator_8017D71C, { NULL } },                          // 0x150
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017D720, { NULL } },                       // 0x151
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_8017F48C, { NULL } },                      // 0x152

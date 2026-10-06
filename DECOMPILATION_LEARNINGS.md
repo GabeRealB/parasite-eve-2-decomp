@@ -4954,7 +4954,7 @@ dump is the first one that shows a merge; a shared label present in `.jump2` and
 
 ## A view dispatcher's cases share their call tails; the shared label lands *inside* the case's block
 
-`func_neo_ark_eve_access_tunnel_8017E15C` is a `switch (viewGetMappedIndex())` with
+`neoArkEveAccessTunnelDrawViewGlowsTask` is a `switch (viewGetMappedIndex())` with
 cases 2..6, each drawing two adjacent emitters per call out of one of four
 `SVECTOR` runs. The target reads like a hand-written goto graph — one shared
 `Room_Draw01(p); Room_Draw01(p + 0x10)` pair that cases 3, 4, 5 and 6 all jump
@@ -120950,7 +120950,7 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_neo_ark_eve_access_tunnel_8017DB18-vacuum`.
 
-## Merging per-block pointer temps into one variable puts *that* value first in `allocno_order`, and it takes the register the tallies had (func_neo_ark_eve_access_tunnel_8017E090, 2026-09-17)
+## Merging per-block pointer temps into one variable puts *that* value first in `allocno_order`, and it takes the register the tallies had (neoArkEveAccessTunnelSetPartDestroyedSprites, 2026-09-17)
 
 **Symptom.** 98.000% with `regs=20` and nothing else — `blocks=11/11`,
 `instructions=51/51`, `predicates_match=True`. The whole delta is two register
@@ -120996,13 +120996,13 @@ record pointer, and the two names swap.
 `_dryfieldNightGasStationSetFlickerSpritesVisible`:
 
 ```c
-    NaetSprtView* view;
+    SpriteBatch* batches;
 
-    if (run == 0) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            view           = rec->field_1C;
-            view->field_24 = 1;
+    if (slot == 0) {
+        destroyedState = destroyed;
+        if (destroyedState == NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT) {
+            batches           = views[2].batches;
+            batches[4].hidden = true;
             return;
         }
 ```
@@ -121022,7 +121022,7 @@ SHA256 `af9261f264c3eb4f0768ba44ba8f835aed4ebec137ae3f9848fa14cc93fb7e59`;
 target.o SHA256
 `3734384ca471469b592638f7a437074d20eacf09aafdd6c7a16b49dae7c6d691`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_neo_ark_eve_access_tunnel_8017E090-vacuum`.
+Scratch `nonmatchings/neoArkEveAccessTunnelSetPartDestroyedSprites-vacuum`.
 
 ## A guard of `slti` on a `sll 16`/`sra 16` of the *incremented* temp means the loop counter is `s16` (func_neo_ark_submarine_gallery_8017EC24, 2026-09-17)
 

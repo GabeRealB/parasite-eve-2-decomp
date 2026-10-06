@@ -72,7 +72,7 @@ gScreenWaveRows = 0x80156868; // size:0xF0 defined:True
 gScreenWaveGrid = 0x80156958; // size:0x4B00 defined:True
 D_actor_205200_8015B458 = 0x8015B458; // size:0xC defined:True
 
-func_neo_ark_eve_access_tunnel_8017E090 = 0x8017E090; // type:func absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
+neoArkEveAccessTunnelSetPartDestroyedSprites = 0x8017E090; // type:func absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 
 func_shelter_b6_training_room_80181930 = 0x80181930; // type:func absolute:True owner=shelter_b6_training_room
 

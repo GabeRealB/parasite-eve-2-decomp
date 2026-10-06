@@ -152,78 +152,83 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2] = {
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Hides or shows sprite commands of the area's views through their
-/// `SpriteBatch::hidden`: `arg0` 0 drives command 4 of view 2, `arg0` 1 command
-/// 3 of view 3 and command 2 of view 4. `arg1` 0 hides them and 1 shows them;
-/// any other value changes nothing.
-void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
+/// Draws two capsules from four consecutive world endpoints using the same tint and radius scale.
+static inline void _neoArkEveAccessTunnelDrawGlowPair(const SVECTOR worldPoints[4], s32 radiusScale, s32 packedColor)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-    SpriteBatch*     batches;
-    s32              run = arg0 & 0xFF;
-    s32              flag;
-
-    if (run == 0) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            batches           = rec[2].batches;
-            batches[4].hidden = 1;
-            return;
-        }
-        if (flag == 1) {
-            batches           = rec[2].batches;
-            batches[4].hidden = 0;
-            return;
-        }
-    } else if (run == 1) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            batches           = rec[3].batches;
-            batches[3].hidden = run;
-            batches           = rec[4].batches;
-            batches[2].hidden = run;
-            return;
-        }
-        if (flag == run) {
-            batches           = rec[3].batches;
-            batches[3].hidden = 0;
-            batches           = rec[4].batches;
-            batches[2].hidden = 0;
-        }
-    }
+    _glowDrawCapsule(&worldPoints[0], radiusScale, packedColor);
+    _glowDrawCapsule(&worldPoints[2], radiusScale, packedColor);
 }
 
-/// Draws whichever emitters the current view shows: two adjacent positions per
-/// drawn wedge, stepping through the view's run. View 4 chains into view 5's
-/// emitters (`D_..._8017EB08` then `D_..._8017EB28`); every other view stops at
-/// its own.
-void func_neo_ark_eve_access_tunnel_8017E15C(Task* unused)
+void neoArkEveAccessTunnelSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
 {
-    u8 view;
+    const GameLocationKey* location = &gGameSession->location.loc;
+    SpriteView*            views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    SpriteBatch*           batches;
+    s32                    slot = partSlot;
+    s32                    destroyedState;
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    // Updates both views of part 1; captures views and the shared batches temp.
+    // The isHidden argument must be a side-effect-free byte value, used twice.
+#define NEO_ARK_EVE_ACCESS_TUNNEL_SET_PART_1_SPRITES_HIDDEN(isHidden) \
+    do {                                                              \
+        batches           = views[3].batches;                         \
+        batches[3].hidden = (isHidden);                               \
+        batches           = views[4].batches;                         \
+        batches[2].hidden = (isHidden);                               \
+    } while (0)
+
+    // A destroyed part exposes its scenery in each view that can show it.
+    if (slot == 0) {
+        destroyedState = destroyed;
+        if (destroyedState == NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT) {
+            batches           = views[2].batches;
+            batches[4].hidden = true;
+            return;
+        }
+        if (destroyedState == NEO_ARK_EVE_ACCESS_TUNNEL_PART_DESTROYED) {
+            batches           = views[2].batches;
+            batches[4].hidden = false;
+            return;
+        }
+    } else if (slot == 1) {
+        destroyedState = destroyed;
+        if (destroyedState == NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT) {
+            NEO_ARK_EVE_ACCESS_TUNNEL_SET_PART_1_SPRITES_HIDDEN(true);
+            return;
+        }
+        if (destroyedState == NEO_ARK_EVE_ACCESS_TUNNEL_PART_DESTROYED) {
+            NEO_ARK_EVE_ACCESS_TUNNEL_SET_PART_1_SPRITES_HIDDEN(false);
+        }
+    }
+#undef NEO_ARK_EVE_ACCESS_TUNNEL_SET_PART_1_SPRITES_HIDDEN
+}
+
+void neoArkEveAccessTunnelDrawViewGlowsTask(Task* unusedTask)
+{
+    enum {
+        NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_RADIUS_SCALE = 0x180, // Pixel radius = scale * 64 / (camera Z / 4)
+        NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_COLOR        = 0x444, // Packed RGB nibbles; channels 64, or 72 on odd frames
+    };
+    u8 mappedViewIndex;
+
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[0], 0x180, 0x444);
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[2], 0x180, 0x444);
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[4], 0x180, 0x444);
+            _neoArkEveAccessTunnelDrawGlowPair(D_neo_ark_eve_access_tunnel_8017EB48, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_RADIUS_SCALE, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_COLOR);
+            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[4], NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_RADIUS_SCALE, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EAE8[0], 0x180, 0x444);
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EAE8[2], 0x180, 0x444);
+            _neoArkEveAccessTunnelDrawGlowPair(D_neo_ark_eve_access_tunnel_8017EAE8, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_RADIUS_SCALE, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_COLOR);
             break;
         case 4:
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB08[0], 0x180, 0x444);
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB08[2], 0x180, 0x444);
+            _neoArkEveAccessTunnelDrawGlowPair(D_neo_ark_eve_access_tunnel_8017EB08, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_RADIUS_SCALE, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_COLOR);
+            // This view also sees the next run of glows.
             /* fallthrough */
         case 5:
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB28[0], 0x180, 0x444);
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB28[2], 0x180, 0x444);
+            _neoArkEveAccessTunnelDrawGlowPair(D_neo_ark_eve_access_tunnel_8017EB28, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_RADIUS_SCALE, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_COLOR);
             break;
         case 6:
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[0], 0x180, 0x444);
-            _glowDrawCapsule(&D_neo_ark_eve_access_tunnel_8017EB48[2], 0x180, 0x444);
+            _neoArkEveAccessTunnelDrawGlowPair(D_neo_ark_eve_access_tunnel_8017EB48, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_RADIUS_SCALE, NEO_ARK_EVE_ACCESS_TUNNEL_GLOW_COLOR);
             break;
     }
 }
