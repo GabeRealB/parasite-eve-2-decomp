@@ -128570,11 +128570,9 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## Equivalent pointer loads: their *source order* is what picks each one's call-saved register
 
-`func_actor_135600_80133240` is `_actor350700KyleMadiganWalkerSetDrawModeMsg`'s body over one
-more child: `work->field_4FC` / `field_500` / `field_504` are read into three
-`TmdObject*` locals, and the tail republishes `obj->flags` onto all three. The
-`_actor135600SetKyleMadiganDrawMode` is `func_actor_350700_80163840`'s body over one
-more child: `work->handTasks[0]` / `work->handTasks[1]` / `work->heldItemTask` are read into three
+`_actor135600SetKyleMadiganDrawMode` performs the same draw-policy operation as
+`_actor350700KyleMadiganWalkerSetDrawModeMsg`: `work->handTasks[0]` /
+`work->handTasks[1]` / `work->heldItemTask` are read into three
 `TmdObject*` locals, and the tail republishes `bodyModel->flags` onto all three. The
 first attempt matched everything except which of `$s2` / `$s3` / `$s4` holds
 which pointer (`regs=7`, 99.533%); the tail's store order was already right, so
