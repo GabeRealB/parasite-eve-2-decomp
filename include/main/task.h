@@ -103,7 +103,21 @@ Task* Task_SpawnOnDefaultListA(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, T
 /// the child immediately. Callers must not access the released task or resources.
 void taskKill(Task* task);
 
-void Task_KillChildren(Task* task);
+/// Dispatches each child's exit handler, then clears the parent's child head.
+///
+/// `parentTask` must be non-NULL and remain live throughout the call. A nonempty
+/// child list must be a closed sibling ring of live tasks with loaded, non-NULL
+/// exit handlers. Each child's `parent` is cleared before its handler runs, so
+/// default teardown leaves the sibling traversal intact. Cleanup follows each
+/// handler's contract; a replacement handler may leave its child allocated.
+///
+/// The successor is read after the handler returns. Handlers must preserve that
+/// link's storage and the remaining ring until consumed, including when freeing
+/// a child immediately; released storage must not be reused during traversal.
+/// Sibling links are not reset to self-links. The parent keeps its own resources,
+/// handlers, parent relationship and execution-list membership. Its child head
+/// is cleared even when there were no children; no task is allocated here.
+void taskCallChildExits(Task* parentTask);
 
 /// Dispatches a live task's current exit callback once.
 ///

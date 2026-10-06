@@ -4214,7 +4214,7 @@ static s32 _sceneBroadcastToPlacedActors(Task* scene, s32 messageId, s32 payload
 
 static void Gp_KillSlot4Children(void)
 {
-    Task_KillChildren(gameGetTaskSlot(GAME_TASK_SLOT_SCENE));
+    taskCallChildExits(gameGetTaskSlot(GAME_TASK_SLOT_SCENE));
 }
 
 static void func_800B6014(void)

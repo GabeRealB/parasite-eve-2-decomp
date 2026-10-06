@@ -149194,7 +149194,7 @@ The `for` with `break` matches only with the three increments kept.
 `taskKill` (11 gotos) had two copies of "stop, test the countdown, release
 the body by kind, mark released", one comparing `task->bodyKind` with the
 constant 2 and one with the register holding the outer switch's index. That
-is one `static inline` (`_taskReleaseBodyInline`) called under
+is one `static inline` (`_taskReleaseBodySynchronously`) called under
 `case TASK_BODY_COORD:` and under `case TASK_BODY_NONE: default:`; in the
 first, cse knows the index is 2 and uses its register. The shared
 release/mark tails are cross-jumping. The outer `==1; <2 -> default; ==2`

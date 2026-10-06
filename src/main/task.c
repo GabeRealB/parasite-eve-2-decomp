@@ -252,30 +252,38 @@ static inline void _taskStopForInlineBodyRelease(Task* task)
     task->killCountdown--;
 }
 
-/// Completes a non-deferred body teardown within the current call.
+/// Releases a task's body synchronously and marks the task for walker collection.
 ///
-/// Stops the task's handlers, then releases whichever body the task holds
-/// once the synchronous countdown has reached zero, and marks the task for
-/// execution-list collection.
-static inline void _taskReleaseBodyInline(Task* task)
+/// `task` must be non-NULL, live and not already released. The caller finishes
+/// child/parent teardown and work cleanup before making the task collectible.
+/// An owned TMD body must be on the live model list; it is unlinked here and
+/// freed with its primitive buffer. A coordinate body must already be unlinked
+/// from its refresh list before this call, which frees only its allocation.
+/// Other body kinds release no body allocation.
+///
+/// Both handlers become inert and the signed halfword countdown is initialized
+/// to one and decremented once. At zero, the body is released and `bodyKind`
+/// becomes `TASK_BODY_RELEASED`; a nonzero result leaves it unchanged. The task
+/// allocation and its execution links remain live for the walker to collect.
+/// `extra` retains its released pointer and must no longer be dereferenced.
+static inline void _taskReleaseBodySynchronously(Task* task)
 {
     TmdObject* model;
 
     _taskStopForInlineBodyRelease(task);
-    if (task->killCountdown != 0) {
-        return;
+    if (task->killCountdown == 0) {
+        switch (task->bodyKind) {
+            case TASK_BODY_TMD:
+                model = task->extra.tmd;
+                modelObjectUnlinkTmd(&model->link);
+                modelObjectFreeTmd(model);
+                break;
+            case TASK_BODY_COORD:
+                modelObjectFreeCoordBody(task->extra.coordBody);
+                break;
+        }
+        task->bodyKind = TASK_BODY_RELEASED;
     }
-    switch (task->bodyKind) {
-        case TASK_BODY_TMD:
-            model = task->extra.tmd;
-            modelObjectUnlinkTmd(&model->link);
-            modelObjectFreeTmd(model);
-            break;
-        case TASK_BODY_COORD:
-            modelObjectFreeCoordBody(task->extra.coordBody);
-            break;
-    }
-    task->bodyKind = TASK_BODY_RELEASED;
 }
 
 void taskKill(Task* task)
@@ -345,13 +353,13 @@ void taskKill(Task* task)
                 task->exitCallback      = taskNoopCallback;
                 break;
             case TASK_BODY_COORD:
-                // Coordinate bodies leave their refresh list before inline release.
+                // Coordinate bodies leave their refresh list before synchronous release.
                 modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
-                _taskReleaseBodyInline(task);
+                _taskReleaseBodySynchronously(task);
                 break;
             case TASK_BODY_NONE:
             default:
-                _taskReleaseBodyInline(task);
+                _taskReleaseBodySynchronously(task);
                 break;
         }
         return;
@@ -390,23 +398,38 @@ Task* Task_Spawn(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg ar
     return _taskSpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
 }
 
-void Task_KillChildren(Task* task)
+/// Dispatches exits around a nonempty child ring with parents cleared first.
+///
+/// `firstChild` heads a closed ring of live tasks with loaded, non-NULL handlers.
+/// Each handler must preserve the child's sibling-link storage until the
+/// post-handler read and keep the remaining traversal intact, even when freeing
+/// the child.
+/// The ring head is a pointer comparison boundary and is not dereferenced again
+/// after its own dispatch. The ring owner's child head is left for the caller.
+static inline void _taskCallChildRingExits(Task* firstChild)
 {
-    Task* start;
-    Task* cur;
-    Task* temp;
+    Task* child;
 
-    temp = task->firstChild;
-    if (temp != NULL) {
-        start = temp;
-        cur   = start;
-        do {
-            cur->parent = NULL;
-            cur->exitCallback(cur);
-            cur = cur->nextSibling;
-        } while (cur != start);
+    child = firstChild;
+    // Clear the parent before dispatch; read the preserved successor afterward.
+    do {
+        child->parent = NULL;
+        child->exitCallback(child);
+        child = child->nextSibling;
+    } while (child != firstChild);
+}
+
+void taskCallChildExits(Task* parentTask)
+{
+    Task* firstChild;
+    Task* childHead;
+
+    childHead = parentTask->firstChild;
+    if (childHead != NULL) {
+        firstChild = childHead;
+        _taskCallChildRingExits(firstChild);
     }
-    task->firstChild = NULL;
+    parentTask->firstChild = NULL;
 }
 
 void taskCallExit(Task* task)
@@ -502,23 +525,34 @@ void taskInitList(TaskNode* listHead)
     listHead->prev   = listHead;
 }
 
-/// Collects a released cursor and returns its successor after callback dispatch.
+/// Advances a task walk, collecting its cursor when body teardown is complete.
 ///
-/// Requires the selected head to own tail tasks and cursor fields to remain
-/// readable until this call. Saves the successor before unlinking and freeing
-/// a marked task; unmarked tasks remain linked. No callback runs here.
-static inline Task* _taskCollectReleasedAndAdvance(Task* task, DisplayState* display)
+/// `cursor` must be non-NULL with readable body-kind and execution-link storage
+/// after dispatch. A marked cursor must still be a linked primary-heap task
+/// allocation with its work, body and teardown relationships already released.
+/// Its predecessor is a bare head or a live task node; its successor is a live
+/// task or NULL. The selected head must own the cursor when it is the tail.
+/// `display` must remain live and writable through collection.
+///
+/// Saves the successor before unlinking and freeing a `TASK_BODY_RELEASED`
+/// cursor, clearing `display->stopTaskWalk` only in that branch. Otherwise reads
+/// the current successor without unlinking or freeing. Returns that borrowed
+/// task, or NULL at the list end, without dispatching a callback. Callers consume
+/// a stop request equal to one before reaching this helper. An exit that already
+/// freed an unmarked cursor must retain its inspected bytes without reuse until
+/// advancement; this helper does not extend the released allocation's lifetime.
+static inline Task* _taskCollectReleasedAndAdvance(Task* cursor, DisplayState* display)
 {
     Task* nextTask;
 
-    if (task->bodyKind == TASK_BODY_RELEASED) {
-        nextTask              = task->node.next;
+    if (cursor->bodyKind == TASK_BODY_RELEASED) {
+        nextTask              = cursor->node.next;
         display->stopTaskWalk = 0;
-        _taskUnlinkFromSelectedList(task);
-        _taskFree(task);
+        _taskUnlinkFromSelectedList(cursor);
+        _taskFree(cursor);
         return nextTask;
     }
-    return task->node.next;
+    return cursor->node.next;
 }
 
 void taskExecList(TaskNode* listHead)
