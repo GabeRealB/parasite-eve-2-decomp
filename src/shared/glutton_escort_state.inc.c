@@ -108,26 +108,14 @@ void gluttonEscortState(Task* arg0)
             }
             break;
     }
-    coord = arg0->extra.tmd->coords;
-    v     = &vec;
-    v->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    v->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    v->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    rot   = arg0->extra.tmd->coords;
-    angle = ratan2(v->vx, v->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
+    coord               = arg0->extra.tmd->coords;
+    v                   = &vec;
+    v->vx               = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    v->vy               = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    v->vz               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    rot                 = arg0->extra.tmd->coords;
+    angle               = ratan2(v->vx, v->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+    angle               = actorWrapAngle(angle);
     work->neckYawTarget = angle;
     gluttonTickAnim(arg0);
     if (work->animId == 0x10 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
