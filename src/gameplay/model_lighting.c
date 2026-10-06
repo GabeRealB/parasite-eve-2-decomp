@@ -1700,13 +1700,7 @@ u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
                     // Draw if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0.
-                    if (workspace->gteResult > 0) {
-                        goto draw;
-                    }
-                    gte_nclip();
-                    gte_stopz(gteResultDestination);
-                    if (workspace->gteResult < 0) {
-                    draw:
+                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
                         _modelLightingLightGt4CornerNormals(quad, workspace, (const _ModelLightingGt4GeometryRefs*)elementHalfwords);
