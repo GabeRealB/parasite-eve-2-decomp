@@ -6,7 +6,7 @@ D_inferno_8012EF68 = 0x8012EF68; // size:0x4
 
 func_inferno_8012EF88 = 0x8012EF88; // type:func
 
-func_inferno_8012F530 = 0x8012F530; // type:func
+infernoFlameFanTask = 0x8012F530; // type:func
 _infernoDrawScreenWash = 0x8012f3ec; // type:func
 _infernoDrawRisingFanBand = 0x8012f978; // type:func
 _infernoDrawConstantLiftFanBand = 0x8012ff34; // type:func

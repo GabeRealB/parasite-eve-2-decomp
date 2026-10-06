@@ -5570,16 +5570,16 @@ branch pick the **first** of the two in *source* as the shared tail: its add
 fills the `j` delay and its store sits at the join, while the second is fully
 completed in each case body.
 
-`func_inferno_8012F530` needs `sh field_2A` in the case and `addiu; sh field_28`
-at the join. Writing `field_2A` then `field_28` (offset order, and the order
-the stores *appear* in the target) made `field_2A` the tail. Writing the
+`infernoFlameFanTask` needs `sh step` in the case and `addiu; sh period`
+at the join. Writing `step` then `period` (offset order, and the order
+the stores *appear* in the target) made `step` the tail. Writing the
 join-store first is what matches:
 
 ```c
-mem->field_28 = (u16)mem->field_28 + 0xC0; /* first → j delay + join sh */
-mem->field_2A = (u16)mem->field_2A + 0x18; /* second → completed in the case */
-func_...(mem, coord, 0, map);
-func_...(mem, coord, 1, map);
+work->period = work->period + 0xC0; /* first → j delay + join sh */
+work->step = work->step + 0x18; /* second → completed in the case */
+_infernoDrawRisingFanBand(work, coord, INFERNO_FAN_RISING_BAND, texturePhase);
+_infernoDrawConstantLiftFanBand(work, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, texturePhase);
 ```
 
 Empty `asm` / `SOFT_COMPILER_BARRIER` between them forces the in-case order
@@ -149294,7 +149294,7 @@ attempts; left as it was.
   (`sp+16`), so cross-jumping still merges them into the later case; the frame
   does not grow. First try both times.
 - **`if (cancel) goto release;` at the top, `release:` after a switch whose
-  cases all return** (`func_inferno_8012EF88`, `_8012F530`,
+  cases all return** (`func_inferno_8012EF88`, `infernoFlameFanTask`,
   `func_energyball_8012F180`, `func_combustion_8012EF34`) is
   `effectKillTask(mem, arg0); return;` written at the site. The copy merges
   into the last identical call before the epilogue, wherever that is (the

@@ -320,144 +320,142 @@ static void _infernoDrawScreenWash(s16 intensity)
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
 }
 
-/// Companion inferno-cast task: state 0 allocates an `_InfernoFanTexturePhase` and
-/// fills both bands from the LCG, scales `EffectWork::pos` by 0x80
-/// (`gte_gpf12`) and rotates it into `move`. States 1–6 fade `scale` while
-/// spinning `angle` / `period` / `step` and drawing the rising band through
-/// `_infernoDrawRisingFanBand` and the constant-lift band through
-/// `_infernoDrawConstantLiftFanBand`. State 3 also walks the effect coordinate by
-/// `move`. Releases if the player is dying, the room is fading, or the
-/// state's brightness floor is hit. `Task::spawnArg1 + 1` selects the chain
-/// from state 0.
-void func_inferno_8012F530(Task* arg0)
+/// Fades and grows both flame bands before drawing them in their composed frame.
+///
+/// Requires live work, texture phases and a composed coordinate. Brightness
+/// decay and coordinate-distance growth narrow to signed halfwords before drawing.
+static inline void _infernoFadeAndDrawFanBands(EffectWork* work, const GfxCoord* coord, const _InfernoFanTexturePhase* texturePhase,
+                                               s32 brightnessDecay, s32 radiusGrowth, s32 liftGrowth, s32 spreadGrowth)
 {
-    EffectWork*              mem;
-    GfxCoord*                coord;
-    _InfernoFanTexturePhase* phase;
-    u8*                      segment;
-    s32                      i;
-    s32                      rng;
-    s32                      tz;
+    work->scale  = work->scale - brightnessDecay;
+    work->angle  = work->angle + radiusGrowth;
+    work->period = work->period + liftGrowth;
+    work->step   = work->step + spreadGrowth;
+    _infernoDrawRisingFanBand(work, coord, INFERNO_FAN_RISING_BAND, texturePhase);
+    _infernoDrawConstantLiftFanBand(work, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, texturePhase);
+}
 
-    phase = (_InfernoFanTexturePhase*)arg0->work;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+void infernoFlameFanTask(Task* task)
+{
+    enum {
+        INFERNO_FAN_STATE_INITIALIZE          = 0,
+        INFERNO_FAN_STATE_GROW_THEN_FADE      = 1,
+        INFERNO_FAN_STATE_STATIONARY_BURST    = 2,
+        INFERNO_FAN_STATE_DRIFTING_BURST      = 3,
+        INFERNO_FAN_STATE_WIDE_IGNITION       = 4,
+        INFERNO_FAN_STATE_SHALLOW_RING        = 5,
+        INFERNO_FAN_STATE_FAST_IGNITION       = 6,
+        INFERNO_FAN_INITIAL_BRIGHTNESS        = 0x80,
+        INFERNO_FAN_RISING_LIFT_LIMIT         = 0xC00,
+        INFERNO_FAN_DRIFT_SCALE_Q12           = 0x80,
+        INFERNO_FAN_SLOW_BRIGHTNESS_DECAY     = 4,
+        INFERNO_FAN_BURST_BRIGHTNESS_DECAY    = 8,
+        INFERNO_FAN_IGNITION_BRIGHTNESS_DECAY = 6,
+        INFERNO_FAN_RANDOM_PHASE_SHIFT        = 16
+    };
+    EffectWork*              work;
+    GfxCoord*                coord;
+    _InfernoFanTexturePhase* texturePhase;
+    u8*                      segmentPhases;
+    s32                      segmentIndex;
+    u32                      randomDraw;
+
+    texturePhase = task->work;
+    work         = task->spawnArg2.pointer;
+    coord        = task->extra.coordBody->coord;
     if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            phase = memCalloc(sizeof(_InfernoFanTexturePhase), 0);
-            if (phase == NULL) {
-                mem->age = 0;
+    work->age = work->age + 1;
+    switch (task->state) {
+        case INFERNO_FAN_STATE_INITIALIZE:
+            texturePhase = memCalloc(sizeof(*texturePhase), false);
+            if (texturePhase == NULL) {
+                work->age = 0;
                 return;
             }
-            arg0->work = phase;
-            mem->scale = 0x80;
-            // Segment i of the rising band, then the same segment of the constant-lift band.
-            i = 0;
+            task->work  = texturePhase;
+            work->scale = INFERNO_FAN_INITIAL_BRIGHTNESS;
+            // Seed each segment in both bands, preserving the interleaved random draws.
+            segmentIndex = 0;
             do {
-                segment         = &phase->byte[i];
-                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rng;
-                segment[0]      = (u32)rng >> 16;
-                i++;
-                rng                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState                    = rng;
-                segment[INFERNO_FAN_SEGMENT_COUNT] = (u32)rng >> 16;
-            } while (i < INFERNO_FAN_SEGMENT_COUNT);
-            arg0->state = arg0->spawnArg1.value + 1;
-            gte_lddp(0x80);
-            gte_ldsv(&mem->pos);
+                segmentPhases    = &texturePhase->byte[segmentIndex];
+                randomDraw       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState  = randomDraw;
+                segmentPhases[0] = randomDraw >> INFERNO_FAN_RANDOM_PHASE_SHIFT;
+                segmentIndex++;
+                randomDraw                               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState                          = randomDraw;
+                segmentPhases[INFERNO_FAN_SEGMENT_COUNT] = randomDraw >> INFERNO_FAN_RANDOM_PHASE_SHIFT;
+            } while (segmentIndex < INFERNO_FAN_SEGMENT_COUNT);
+            task->state = task->spawnArg1.value + INFERNO_FAN_STATE_GROW_THEN_FADE;
+            // Cache a 1/32-offset step rotated into the coordinate's parent frame.
+            gte_lddp(INFERNO_FAN_DRIFT_SCALE_Q12);
+            gte_ldsv(&work->pos);
             gte_gpf12();
-            gte_stsv(&mem->move);
+            gte_stsv(&work->move);
             gte_SetRotMatrix(&coord->coord);
-            gte_ldv0(&mem->move);
+            gte_ldv0(&work->move);
             gte_rtv0();
-            gte_stsv(&mem->move);
+            gte_stsv(&work->move);
             return;
-        case 1:
-            if (mem->scale >= 5) {
-                if (mem->period < 0xC00) {
-                    mem->period = mem->period + 0xC0;
+        case INFERNO_FAN_STATE_GROW_THEN_FADE:
+            // The centered fan reaches its lift limit before brightness starts fading.
+            if (work->scale >= INFERNO_FAN_SLOW_BRIGHTNESS_DECAY + 1) {
+                if (work->period < INFERNO_FAN_RISING_LIFT_LIMIT) {
+                    work->period = work->period + 0xC0;
                 } else {
-                    mem->scale = mem->scale - 4;
+                    work->scale = work->scale - INFERNO_FAN_SLOW_BRIGHTNESS_DECAY;
                 }
-                mem->angle = mem->angle + 0x20;
-                mem->step  = mem->step + 0x18;
-                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+                work->angle = work->angle + 0x20;
+                work->step  = work->step + 0x18;
+                _infernoDrawRisingFanBand(work, coord, INFERNO_FAN_RISING_BAND, texturePhase);
+                _infernoDrawConstantLiftFanBand(work, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, texturePhase);
                 return;
             }
             break;
-        case 2:
-            if (mem->scale >= 9) {
-                mem->scale  = mem->scale - 8;
-                mem->angle  = mem->angle + 0x20;
-                mem->period = mem->period + 0xC0;
-                mem->step   = mem->step + 0x18;
-                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+        case INFERNO_FAN_STATE_STATIONARY_BURST:
+            if (work->scale >= INFERNO_FAN_BURST_BRIGHTNESS_DECAY + 1) {
+                _infernoFadeAndDrawFanBands(work, coord, texturePhase, INFERNO_FAN_BURST_BRIGHTNESS_DECAY, 0x20, 0xC0, 0x18);
                 return;
             }
             break;
-        case 3:
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            tz                  = coord->coord.t[2] + mem->move.vz;
+        case INFERNO_FAN_STATE_DRIFTING_BURST:
+            // Leave the composed matrix at this frame's old position; refresh next frame.
+            coord->coord.t[0]  += work->move.vx;
+            coord->coord.t[1]  += work->move.vy;
+            coord->coord.t[2]  += work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[2]   = tz;
-            if (mem->scale >= 9) {
-                mem->scale  = mem->scale - 8;
-                mem->angle  = mem->angle + 0x20;
-                mem->period = mem->period + 0xC0;
-                mem->step   = mem->step + 0x18;
-                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+            if (work->scale >= INFERNO_FAN_BURST_BRIGHTNESS_DECAY + 1) {
+                _infernoFadeAndDrawFanBands(work, coord, texturePhase, INFERNO_FAN_BURST_BRIGHTNESS_DECAY, 0x20, 0xC0, 0x18);
                 return;
             }
             break;
-        case 4:
-            if (mem->scale >= 7) {
-                mem->scale  = mem->scale - 6;
-                mem->angle  = mem->angle + 0x40;
-                mem->period = mem->period + 0xC0;
-                mem->step   = mem->step + 0x10;
-                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+        case INFERNO_FAN_STATE_WIDE_IGNITION:
+            if (work->scale >= INFERNO_FAN_IGNITION_BRIGHTNESS_DECAY + 1) {
+                _infernoFadeAndDrawFanBands(work, coord, texturePhase, INFERNO_FAN_IGNITION_BRIGHTNESS_DECAY, 0x40, 0xC0, 0x10);
                 return;
             }
             break;
-        case 5:
-            if (mem->scale >= 7) {
-                mem->scale  = mem->scale - 6;
-                mem->angle  = mem->angle + 0x40;
-                mem->period = mem->period + 0x40;
-                mem->step   = mem->step + 0x18;
-                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+        case INFERNO_FAN_STATE_SHALLOW_RING:
+            if (work->scale >= INFERNO_FAN_IGNITION_BRIGHTNESS_DECAY + 1) {
+                _infernoFadeAndDrawFanBands(work, coord, texturePhase, INFERNO_FAN_IGNITION_BRIGHTNESS_DECAY, 0x40, 0x40, 0x18);
                 return;
             }
             break;
-        case 6:
-            if (mem->scale >= 7) {
-                mem->scale  = mem->scale - 6;
-                mem->angle  = mem->angle + 0x80;
-                mem->period = mem->period + 0x20;
-                mem->step   = mem->step + 0x20;
-                _infernoDrawRisingFanBand(mem, coord, INFERNO_FAN_RISING_BAND, phase);
-                _infernoDrawConstantLiftFanBand(mem, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, phase);
+        case INFERNO_FAN_STATE_FAST_IGNITION:
+            if (work->scale >= INFERNO_FAN_IGNITION_BRIGHTNESS_DECAY + 1) {
+                _infernoFadeAndDrawFanBands(work, coord, texturePhase, INFERNO_FAN_IGNITION_BRIGHTNESS_DECAY, 0x80, 0x20, 0x20);
                 return;
             }
             break;
         default:
             return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 /// Draws the Inferno fan band whose upper rim rises with its animated height.

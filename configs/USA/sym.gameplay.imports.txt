@@ -2027,7 +2027,7 @@ func_inferno_8012EF88 = 0x8012EF88; // type:func absolute:True owner=inferno
 
 func_apobiosis_8012EF4C = 0x8012EF4C; // type:func absolute:True owner=apobiosis
 
-func_inferno_8012F530 = 0x8012F530; // type:func absolute:True owner=inferno
+infernoFlameFanTask = 0x8012F530; // type:func absolute:True owner=inferno
 
 energyshotRisingBillboardTask = 0x8012FFB8; // type:func absolute:True owner=energyshot
 
