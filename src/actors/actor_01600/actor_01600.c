@@ -3778,8 +3778,6 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     s16                             temp_v0_4;
     s16                             temp_v0_5;
     s16                             temp_v1_2;
-    s16                             var_v0;
-    s16                             var_v0_2;
     s32                             scaled;
     s32                             startYaw;
     s32                             var_s4;
@@ -3799,16 +3797,10 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     } else {
         work->probeYaw = (s16)angle;
         if ((s16)angle >= 0x801) {
-            var_v0 = angle - 0x1000;
-            goto block_5;
+            work->probeYaw = angle - 0x1000;
+        } else if ((s16)angle < -0x800) {
+            work->probeYaw = angle + 0x1000;
         }
-        if ((s16)angle >= -0x800) {
-            goto block_6;
-        }
-        var_v0 = angle + 0x1000;
-    block_5:
-        work->probeYaw = var_v0;
-    block_6:;
     }
     // Turn the probe's length about Y to its yaw; the turned length is the capsule's far end.
     rotation                       = &scratch->rotation;
@@ -3833,8 +3825,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
             } else {
                 work->clearArcs[temp_v0_3].endYaw = work->probeYaw;
                 if (var_s4 == 1) {
-                    var_v0_2 = (u16)work->clearArcCount + 1;
-                    goto block_18;
+                    work->clearArcCount = (u16)work->clearArcCount + 1;
                 }
             }
         } else {
@@ -3851,9 +3842,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
             temp_v0_5           = (u16)work->clearArcCount + 1;
             work->clearArcCount = temp_v0_5;
             if (temp_v0_5 >= ARRAY_SIZE(work->clearArcs) - 1) {
-                var_v0_2 = ARRAY_SIZE(work->clearArcs) - 1;
-            block_18:
-                work->clearArcCount = var_v0_2;
+                work->clearArcCount = ARRAY_SIZE(work->clearArcs) - 1;
             }
         }
     }
