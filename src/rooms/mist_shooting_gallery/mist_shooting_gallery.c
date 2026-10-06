@@ -1473,10 +1473,7 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     TextDrawReq req4;
     UiObject*   obj;
     s32         val;
-    s32         q;
     s32         color;
-    s32         rawExp;
-    s32         rawBp;
     s32         xOff;
     s16         top;
     s32         y;
@@ -1525,27 +1522,8 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     textDrawString(&req2, "MP");
     textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    y      = top + 0x2D;
-    rawExp = D_mist_shooting_gallery_8018E0BC;
-    switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-        case 3:
-            val = 0;
-            break;
-        case 2:
-            q = rawExp / 100;
-            goto clamp_exp;
-        case 1:
-            q = rawExp / 20;
-            goto clamp_exp;
-        default:
-            q = rawExp / 10;
-        clamp_exp:
-            if (q > 999999) {
-                q = 999999;
-            }
-            val = q;
-            break;
-    }
+    y   = top + 0x2D;
+    val = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
 
     req3.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
@@ -1557,27 +1535,8 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     textDrawString(&req3, "EXP");
     textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    y    += 0xF;
-    rawBp = D_mist_shooting_gallery_8018E0C0;
-    switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-        case 3:
-            val = 0;
-            break;
-        case 2:
-            q = rawBp / 100;
-            goto clamp_bp;
-        case 1:
-            q = rawBp / 20;
-            goto clamp_bp;
-        default:
-            q = rawBp / 10;
-        clamp_bp:
-            if (q > 999999) {
-                q = 999999;
-            }
-            val = q;
-            break;
-    }
+    y  += 0xF;
+    val = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
 
     req4.x          = obj->panel.contentOriginX.unsignedValue + xOff;
     req4.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
