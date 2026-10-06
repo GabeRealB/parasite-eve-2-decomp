@@ -3329,14 +3329,10 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
         } else {
             func_actor_110600_80136210(arg1);
         }
-        if (arg0->hp > 0) {
-            goto block_24;
-        }
     }
-    if (gPlayerStatus.hp <= 0) {
+    if ((arg0->hp <= 0) && (gPlayerStatus.hp <= 0)) {
         arg0->hp = 1;
     }
-block_24:
     worldCollisionClearContacts(work->gridContacts);
     worldCollisionClearContacts(work->hitContacts);
     worldCollisionClearContacts(work->attackContacts);
