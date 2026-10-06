@@ -632,66 +632,65 @@ static inline void _actor311500Draw(Task* actor)
 /// does nothing.
 void func_actor_311500_80163334(Task* arg0)
 {
-    Task*             actor = arg0;
     _Actor311500Work* work;
     TmdObject*        obj;
     s32               pan;
 
-    work = actor->work;
-    obj  = actor->extra.tmd;
+    work = arg0->work;
+    obj  = arg0->extra.tmd;
     switch (gSceneCombatState.actorControl) {
         case 0:
             if (work->prevActorControl != 0) {
                 obj->flags = work->savedModelFlags;
             }
-            switch (actor->state) {
+            switch (arg0->state) {
                 case 0:
                     memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, sizeof(D_actor_311500_80169304));
                     memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, sizeof(D_actor_311500_801692FC));
                     memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
-                    func_actor_311500_801629D8(actor);
-                    work = actor->work;
-                    _actor311500TickAnim(actor);
-                    actor->state += 1;
+                    func_actor_311500_801629D8(arg0);
+                    work = arg0->work;
+                    _actor311500TickAnim(arg0);
+                    arg0->state += 1;
                     break;
 
                 case 1:
-                    func_actor_311500_80162C34(actor, obj);
-                    if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
-                        pan = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
+                    func_actor_311500_80162C34(arg0, obj);
+                    if ((func_actor_311500_80162DDC(arg0) << 0x10) != 0) {
+                        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                         sndEvtRequestScriptStart(SOUND_ACTOR_311500_HURT, pan,
-                                                 (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
-                        work->step    = 0;
-                        actor->state += 1;
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        work->step   = 0;
+                        arg0->state += 1;
                     }
                     worldCollisionClearContacts(work->hitContacts);
                     break;
 
                 case 2:
-                    if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
+                    if ((func_actor_311500_80162DDC(arg0) << 0x10) != 0) {
                         work->step = 0;
                     }
-                    if ((func_actor_311500_80162F28(actor) << 0x10) > 0) {
-                        work->step    = 0;
-                        actor->state -= 1;
+                    if ((func_actor_311500_80162F28(arg0) << 0x10) > 0) {
+                        work->step   = 0;
+                        arg0->state -= 1;
                         break;
                     }
-                    if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
+                    if ((func_actor_311500_80162F28(arg0) << 0x10) < 0) {
                         memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, 0x20);
                         memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, 8);
                         memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
                         work->present = 0;
                         work->step    = 0;
-                        actor->state += 1;
+                        arg0->state  += 1;
                     }
                     break;
 
                 case 3:
-                    if ((func_actor_311500_801630A4(actor) << 0x10) != 0) {
-                        actor->state += 1;
+                    if ((func_actor_311500_801630A4(arg0) << 0x10) != 0) {
+                        arg0->state += 1;
                         return;
                     }
-                    _actor311500Draw(actor);
+                    _actor311500Draw(arg0);
                     return;
 
                 case 4:
@@ -703,14 +702,14 @@ void func_actor_311500_80163334(Task* arg0)
             if (work->prevActorControl != 2) {
                 work->savedModelFlags = obj->flags;
             }
-            actor->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
 
         case 1:
             break;
     }
     work->prevActorControl = gSceneCombatState.actorControl;
-    _actor311500Draw(actor);
+    _actor311500Draw(arg0);
 }
 
 s32 func_actor_311500_801636A0(Task* arg0, s32 arg1, s32 arg2, u32* arg3)
