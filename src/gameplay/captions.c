@@ -91,7 +91,6 @@ void func_800E44A0(Task* task)
     s32        taskState;
     s32        phase;
     s32        activeViewFlags;
-    s32        soundId;
     s32        confirmMask;
     u16        oldChoice;
     u8         viewPhase;
@@ -100,7 +99,6 @@ void func_800E44A0(Task* task)
     u8         choiceSound;
     u8         view;
     u8         nextPhase;
-    s32        firstPhase;
     s32        capFlags;
     s32        viewFlags;
     s32        activeFlags;
@@ -155,24 +153,21 @@ void func_800E44A0(Task* task)
     if (D_80115678 > 0) {
         D_80115678 = (u16)D_80115678 - 1;
     }
-    nextPhase  = D_8011566E;
-    firstPhase = 1;
-    phase      = nextPhase & 0xFF;
-    if (phase == 0) {
-        goto processEvent;
-    }
-    if (phase == firstPhase) {
-        D_8011566E = nextPhase + firstPhase;
-        return;
-    }
-    if (phase != 2) {
-        goto resumeView;
-    }
-    D_8011566E = nextPhase + 1;
-    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA7, (s32)(s8)D_801155BB, 0);
-    return;
-resumeView:
-    if (D_801156A4 & 0x20) {
+    nextPhase = D_8011566E;
+    phase     = nextPhase & 0xFF;
+    if (phase != 0) {
+        if (phase == 1) {
+            D_8011566E = nextPhase + 1;
+            return;
+        }
+        if (phase == 2) {
+            D_8011566E = nextPhase + 1;
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), 0xFA7, (s32)(s8)D_801155BB, 0);
+            return;
+        }
+        if (!(D_801156A4 & 0x20)) {
+            return;
+        }
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 5) {
             sndEvtRequestScriptStart(0, 0, 0);
         }
@@ -182,102 +177,100 @@ resumeView:
         if (D_8011566A == 1) {
             D_8011566A = (u16)D_801156BC - 0x1E;
         }
-    processEvent:
-        savedViewPhase = D_801155BB;
-        if (savedViewPhase != 0 && gGameSession->viewReady != 0) {
-            D_801155BB = 0;
+    }
+    savedViewPhase = D_801155BB;
+    if (savedViewPhase != 0 && gGameSession->viewReady != 0) {
+        D_801155BB = 0;
+    }
+    // View records reinterpret the timing bytes as a delayed message.
+    if (eventFlags & CAP_SEQUENCE_VIEW_CONTROL) {
+        capFlags  = D_801156A4;
+        viewFlags = capFlags ^ 0x40;
+        viewFlags = viewFlags & 0x40;
+        if (eventFlags & viewFlags) {
+            return;
         }
-        // View records reinterpret the timing bytes as a delayed message.
-        if (eventFlags & CAP_SEQUENCE_VIEW_CONTROL) {
-            capFlags  = D_801156A4;
-            viewFlags = capFlags ^ 0x40;
-            viewFlags = viewFlags & 0x40;
-            if (eventFlags & viewFlags) {
-                return;
+        viewFlags       = capFlags & 0x40;
+        activeFlags     = eventFlags & viewFlags;
+        activeViewFlags = activeFlags & 0xFF;
+        if (activeViewFlags != (eventFlags & CAP_SEQUENCE_SCENE_PHASE)) {
+            return;
+        }
+        if (activeViewFlags != 0) {
+            D_801156A4 = capFlags & 0xBF;
+        }
+        if (D_8011569C == 0) {
+            view   = Gp_CapTable[(s16)D_801155AE].control.scene.view;
+            viewId = view & 0xFF;
+            if (viewId != 0) {
+                view = Gp_FindViewIndex(viewId);
             }
-            viewFlags       = capFlags & 0x40;
-            activeFlags     = eventFlags & viewFlags;
-            activeViewFlags = activeFlags & 0xFF;
-            if (activeViewFlags != (eventFlags & CAP_SEQUENCE_SCENE_PHASE)) {
-                return;
-            }
-            if (activeViewFlags != 0) {
-                D_801156A4 = capFlags & 0xBF;
-            }
-            if (D_8011569C == 0) {
-                view   = Gp_CapTable[(s16)D_801155AE].control.scene.view;
-                viewId = view & 0xFF;
-                if (viewId != 0) {
-                    view = Gp_FindViewIndex(viewId);
-                }
-            } else {
-                view = Gp_CapTable[(s16)D_801155AE].control.scene.view;
-            }
-            if (eventFlags & CAP_SEQUENCE_DELAYED_MESSAGE) {
-                taskSpawnFromTable(D_8010FB4C, 1, Gp_CapTable[(s16)D_801155AE].control.scene.messageValue | (Gp_CapTable[(s16)D_801155AE].control.scene.messageDelayFrames << 8) | (Gp_CapTable[(s16)D_801155AE].trigger.messageRecipient << 0x10), 0);
-            }
-            func_800E704C();
-            sceneText = Gp_CapTable[(s16)D_801155AE].textRef;
-            if (sceneText.offset != CAP_TEXT_REF_END) {
-                D_801155B4 = Gp_CapTextTopY(sceneText.text);
-                D_801155B2 = Gp_CapCenterX(Gp_CapTable[(s16)D_801155AE].textRef.text);
-                D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
-                nextView   = view & 0xFF;
-                D_801155BB = 0;
-                if ((nextView != 0) && (nextView != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view)) {
-                    if (D_80115688 == 0) {
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = view;
-                        D_801155BB                                                 = 1;
-                        if (gDisplayState.debugMode != 0) {
-                            if (D_8011564A == -1) {
-                                D_8011564A = 0;
-                            }
-                            func_8072455C(D_8011564A, nextView);
+        } else {
+            view = Gp_CapTable[(s16)D_801155AE].control.scene.view;
+        }
+        if (eventFlags & CAP_SEQUENCE_DELAYED_MESSAGE) {
+            taskSpawnFromTable(D_8010FB4C, 1, Gp_CapTable[(s16)D_801155AE].control.scene.messageValue | (Gp_CapTable[(s16)D_801155AE].control.scene.messageDelayFrames << 8) | (Gp_CapTable[(s16)D_801155AE].trigger.messageRecipient << 0x10), 0);
+        }
+        func_800E704C();
+        sceneText = Gp_CapTable[(s16)D_801155AE].textRef;
+        if (sceneText.offset != CAP_TEXT_REF_END) {
+            D_801155B4 = Gp_CapTextTopY(sceneText.text);
+            D_801155B2 = Gp_CapCenterX(Gp_CapTable[(s16)D_801155AE].textRef.text);
+            D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+            nextView   = view & 0xFF;
+            D_801155BB = 0;
+            if ((nextView != 0) && (nextView != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view)) {
+                if (D_80115688 == 0) {
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = view;
+                    D_801155BB                                                 = 1;
+                    if (gDisplayState.debugMode != 0) {
+                        if (D_8011564A == -1) {
+                            D_8011564A = 0;
                         }
+                        func_8072455C(D_8011564A, nextView);
                     }
                 }
-                if (eventFlags & CAP_SEQUENCE_SCENE_CONTROL) {
-                    {
-                        viewPending = D_801155BB;
-                        if (viewPending != 0) {
-                            viewPhase  = D_801155BB;
-                            D_801155BB = viewPhase + 1;
-                            if (D_801156F4.sceneKey != NULL) {
-                                cdCmdSceneViewChangeNoOp();
-                            }
-                        } else if (!(eventFlags & CAP_SEQUENCE_SCENE_PHASE)) {
-                            D_8011566A = 1;
+            }
+            if (eventFlags & CAP_SEQUENCE_SCENE_CONTROL) {
+                {
+                    viewPending = D_801155BB;
+                    if (viewPending != 0) {
+                        viewPhase  = D_801155BB;
+                        D_801155BB = viewPhase + 1;
+                        if (D_801156F4.sceneKey != NULL) {
+                            cdCmdSceneViewChangeNoOp();
                         }
+                    } else if (!(eventFlags & CAP_SEQUENCE_SCENE_PHASE)) {
+                        D_8011566A = 1;
                     }
-                    D_8011566E = 1;
-                    return;
                 }
-            } else {
-                task->state += 1;
+                D_8011566E = 1;
                 return;
             }
         } else {
-            if (D_80115648 == 0) {
-                if (Gp_CapTable[(s16)D_801155AE].trigger.soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, (Gp_CapTable[(s16)D_801155AE].trigger.soundAndTextFlags >> 1), 0);
-                    D_80115648 = 1;
-                }
+            task->state += 1;
+            return;
+        }
+    } else {
+        if (D_80115648 == 0) {
+            if (Gp_CapTable[(s16)D_801155AE].trigger.soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK) {
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, (Gp_CapTable[(s16)D_801155AE].trigger.soundAndTextFlags >> 1), 0);
+                D_80115648 = 1;
             }
+        }
 
-            if (Gp_CapTable[(s16)D_801155AE].actionId != 0) {
-                if (D_801155AC == 0) {
-                    D_801155A0.actionId = Gp_CapTable[(s16)D_801155AE].actionId;
-                    if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
-                        if (Gp_GetCurBit2Flag(D_801155A0.actionId) == 2) {
-                            D_801155AC          = 1;
-                            D_801155A0.done     = 1;
-                            D_801155A0.accepted = 1;
-                            return;
-                        }
-                        if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
-                            goto spawnDialog;
-                        }
+        if (Gp_CapTable[(s16)D_801155AE].actionId != 0) {
+            if (D_801155AC == 0) {
+                D_801155A0.actionId = Gp_CapTable[(s16)D_801155AE].actionId;
+                if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
+                    if (Gp_GetCurBit2Flag(D_801155A0.actionId) == 2) {
+                        D_801155AC          = 1;
+                        D_801155A0.done     = 1;
+                        D_801155A0.accepted = 1;
+                        return;
                     }
+                }
+                if (D_801155A0.actionId >= (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
                     lookupTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     target     = lookupTask;
                     TASK_MESSAGE_DISPATCH_SECOND_POINTER(lookupTask, SCENE_MESSAGE_FIND_OTHER_CHILD, D_801155A0.actionId - CAP_SEQUENCE_CHILD_ACTION_BASE, &target);
@@ -289,8 +282,7 @@ resumeView:
                         D_801155A0.done     = 1;
                         D_801155A0.accepted = 1;
                     }
-                    goto waitDialog;
-                spawnDialog:
+                } else {
                     D_801155A0.done = 0;
                     if (D_80115666 == 1) {
                         D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
@@ -301,206 +293,185 @@ resumeView:
                     } else {
                         Display_InitModeObj(Task_GetDesc(9U, 0xBU), 0, &D_801155A0, 0);
                     }
-                waitDialog:
-                    D_801155AC = 1;
+                }
+                D_801155AC = 1;
+                return;
+            }
+            if (D_801155A0.done != 0) {
+                if (D_80115666 != 0) {
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566D;
+                }
+                D_801155AC = 0;
+                if (D_801155A0.accepted == 0) {
+                    if (Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey != 0) {
+                        Gp_CapEventKey = Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey;
+                    }
+                }
+                func_800E704C();
+                D_801155AC = 0;
+                D_801155B0 = 0;
+                D_801155C0 = 0;
+                dialogText = Gp_CapTable[(s16)D_801155AE].textRef;
+                if (dialogText.offset == CAP_TEXT_REF_END) {
+                    task->state += 1;
                     return;
                 }
-                if (D_801155A0.done != 0) {
-                    if (D_80115666 != 0) {
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566D;
-                    }
-                    D_801155AC = 0;
-                    if (D_801155A0.accepted == 0) {
-                        if (Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey != 0) {
-                            Gp_CapEventKey = Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey;
-                        }
-                    }
+                D_801155B4 = Gp_CapTextTopY(dialogText.text);
+                D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                return;
+            }
+        } else if (D_801155AC == 1) {
+            if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
+                if (D_80115698 != 0) {
+                    func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                    D_80115698 = (u16)D_80115698 - 1;
+                    return;
+                }
+                if (D_8011569A == 0) {
                     func_800E704C();
+                    timedText = Gp_CapTable[(s16)D_801155AE].textRef;
+                    if (timedText.offset == CAP_TEXT_REF_END) {
+                        task->state += 1;
+                    } else {
+                        D_801155B4 = Gp_CapTextTopY(timedText.text);
+                        D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                    }
                     D_801155AC = 0;
                     D_801155B0 = 0;
                     D_801155C0 = 0;
-                    dialogText = Gp_CapTable[(s16)D_801155AE].textRef;
-                    if (dialogText.offset == CAP_TEXT_REF_END) {
-                        task->state += 1;
-                        return;
-                    }
-                    D_801155B4 = Gp_CapTextTopY(dialogText.text);
-                    D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
                     return;
                 }
-            } else if (D_801155AC == 1) {
-                if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
-                    if (D_80115698 != 0) {
-                        func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                        D_80115698 = (u16)D_80115698 - 1;
-                        return;
-                    }
-                    if (D_8011569A == 0) {
-                        func_800E704C();
-                        timedText = Gp_CapTable[(s16)D_801155AE].textRef;
-                        if (timedText.offset != CAP_TEXT_REF_END) {
-                            D_801155B4 = Gp_CapTextTopY(timedText.text);
-                            D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
-                            goto resetText;
-                        }
-                        task->state += 1;
-                        goto resetText;
-                    }
-                    if (D_8011569A != CAP_SEQUENCE_PAUSE_UNTIL_RESUMED) {
-                        D_8011569A = (u16)D_8011569A - 1;
-                        return;
-                    }
-                } else {
-                    func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                    nextChoiceIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
-                    if ((Gp_CapTable[nextChoiceIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextChoiceIndex].actionId == 0)) {
-                        if (Gp_CapTable[nextChoiceIndex].control.text.displayFrames == 0) {
-                            if (Gp_CapTable[nextChoiceIndex].control.text.pauseFrames == 0) {
-                                goto checkChoice;
-                            }
-                            goto checkCaret;
-                        }
-                    checkChoice:
-                        if ((D_801155BE != 0) || (Gp_CapTable[nextChoiceIndex].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) {
-                            goto checkCaret;
-                        }
-                        goto drawCaret;
-                    }
-                checkCaret:
-                    if (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET) {
-                    drawCaret:
-                        Gp_DrawCapCaret(0xA0, 0xDC);
-                    } else {
-                        D_80115664 = 0;
-                    }
-                    oldChoice = (u16)D_801155C0;
-                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-                        D_801155C0 = (u16)D_801155C0 - 1;
-                    }
-                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
-                        D_801155C0 = (u16)D_801155C0 - D_80115680;
-                    }
-                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-                        D_801155C0 = (u16)D_801155C0 + 1;
-                    }
-                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
-                        D_801155C0 = (u16)D_801155C0 + D_80115680;
-                    }
-                    if (D_801155C0 < 0) {
-                        D_801155C0 = (s16)oldChoice;
-                    }
-                    if (D_801155C0 >= D_801155BE) {
-                        D_801155C0 = (s16)oldChoice;
-                    }
-                    if ((D_801155C0 != (s16)oldChoice) && (D_801155BE != 0)) {
-                        sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
-                    }
-                    func_800E62C0();
-                    confirmMask = Pad_MaskConfirm;
-                    if (D_801155BE == 0) {
-                        confirmMask |= Pad_MaskCancel;
-                    }
-                    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, confirmMask) != 0) {
-                        if (D_801155BE != 0) {
-                            if (D_80115659 == 0) {
-                                choiceSound = D_801155D0[D_801155C0].confirmSound;
-                                if (choiceSound != CAP_CHOICE_SOUND_CONFIRM) {
-                                    if (choiceSound == CAP_CHOICE_SOUND_CURSOR) {
-                                        soundId = SOUND_SYSTEM_CURSOR;
-                                        goto playChoiceSound;
-                                    }
-                                } else {
-                                    soundId = SOUND_SYSTEM_CONFIRM;
-                                playChoiceSound:
-                                    sndEvtRequestScriptStart(soundId, 0, 0);
-                                }
-                                goto confirmChoice;
-                            }
-                        } else {
-                        confirmChoice:
-                            D_801156A8 = (s32)D_801155C0;
-                            if (D_801155BE != 0) {
-                                Gp_CapEventKey = (s16)D_801155D0[D_801155C0].eventKey;
-                            }
-                            D_8011567A = (s16)(u16)D_80115678;
-                            func_800E704C();
-                            choiceText = Gp_CapTable[(s16)D_801155AE].textRef;
-                            if (choiceText.offset == CAP_TEXT_REF_END) {
-                                task->state += 1;
-                            } else {
-                                D_801155B4 = Gp_CapTextTopY(choiceText.text);
-                                D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
-                            }
-                        resetText:
-                            D_801155AC = 0;
-                            D_801155B0 = 0;
-                            D_801155C0 = 0;
-                            return;
-                        }
-                    }
-                }
-            } else if ((Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) && !(D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
-                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                if ((s8)D_801155B8 > D_801155B9) {
-                    D_801155B9 = (u8)D_801155B9 + 1;
-                } else {
-                    D_801155B9 = 0;
-                    D_801155B0 = (u16)D_801155B0 + 1;
-                }
-                if (D_80115660 != 0) {
-                    D_80115660(D_80115650, D_80115652, Gp_CapTable[(s16)D_801155AE].textRef.text, D_801155B0, D_801155B9 == 0);
-                }
-                if (D_801155AC != 0) {
-                    D_8011569A = Gp_CapTable[(s16)D_801155AE].control.text.pauseFrames;
-                    D_80115698 = Gp_CapTable[(s16)D_801155AE].control.text.displayFrames;
-                    D_80115664 = 0;
+                if (D_8011569A != CAP_SEQUENCE_PAUSE_UNTIL_RESUMED) {
+                    D_8011569A = (u16)D_8011569A - 1;
                     return;
                 }
             } else {
-                if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
-                    if (Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) {
-                        func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                    }
+                func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                nextChoiceIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
+                if (((Gp_CapTable[nextChoiceIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextChoiceIndex].actionId == 0) && ((Gp_CapTable[nextChoiceIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextChoiceIndex].control.text.pauseFrames == 0)) && (D_801155BE == 0) && !(Gp_CapTable[nextChoiceIndex].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
+                    Gp_DrawCapCaret(0xA0, 0xDC);
+                } else {
                     D_80115664 = 0;
-                    D_801155AC = 1;
-
-                    pauseFrames = Gp_CapTable[(s16)D_801155AE].control.text.pauseFrames;
-                    D_8011569A  = pauseFrames;
-                    D_80115698  = Gp_CapTable[(s16)D_801155AE].control.text.displayFrames;
-                    if (pauseFrames < D_8011566A) {
-                        D_8011569A  = 0;
-                        D_80115698 -= D_8011566A;
-                        if (D_80115698 < 0) {
-                            D_80115698 = 0;
+                }
+                oldChoice = (u16)D_801155C0;
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
+                    D_801155C0 = (u16)D_801155C0 - 1;
+                }
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP) != 0) {
+                    D_801155C0 = (u16)D_801155C0 - D_80115680;
+                }
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
+                    D_801155C0 = (u16)D_801155C0 + 1;
+                }
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_DOWN) != 0) {
+                    D_801155C0 = (u16)D_801155C0 + D_80115680;
+                }
+                if (D_801155C0 < 0) {
+                    D_801155C0 = (s16)oldChoice;
+                }
+                if (D_801155C0 >= D_801155BE) {
+                    D_801155C0 = (s16)oldChoice;
+                }
+                if ((D_801155C0 != (s16)oldChoice) && (D_801155BE != 0)) {
+                    sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
+                }
+                func_800E62C0();
+                confirmMask = Pad_MaskConfirm;
+                if (D_801155BE == 0) {
+                    confirmMask |= Pad_MaskCancel;
+                }
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, confirmMask) != 0) {
+                    if (D_801155BE != 0) {
+                        if (D_80115659 != 0) {
+                            return;
                         }
+                        choiceSound = D_801155D0[D_801155C0].confirmSound;
+                        if (choiceSound != CAP_CHOICE_SOUND_CONFIRM) {
+                            if (choiceSound == CAP_CHOICE_SOUND_CURSOR) {
+                                sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
+                            }
+                        } else {
+                            sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
+                        }
+                    }
+                    D_801156A8 = (s32)D_801155C0;
+                    if (D_801155BE != 0) {
+                        Gp_CapEventKey = (s16)D_801155D0[D_801155C0].eventKey;
+                    }
+                    D_8011567A = (s16)(u16)D_80115678;
+                    func_800E704C();
+                    choiceText = Gp_CapTable[(s16)D_801155AE].textRef;
+                    if (choiceText.offset == CAP_TEXT_REF_END) {
+                        task->state += 1;
                     } else {
-                        D_8011569A = pauseFrames - (u16)D_8011566A;
+                        D_801155B4 = Gp_CapTextTopY(choiceText.text);
+                        D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
                     }
-                    D_8011566A = 0;
+                    D_801155AC = 0;
+                    D_801155B0 = 0;
+                    D_801155C0 = 0;
                     return;
                 }
-                if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
-                    D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                    nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
-                    if (((Gp_CapTable[nextTextIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextTextIndex].actionId == 0) && ((Gp_CapTable[nextTextIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextTextIndex].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
-                        Gp_DrawCapCaret(0xA0, 0xDC);
-                        return;
-                    }
-                    D_80115664 = 0;
-                    return;
-                }
-
-                D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                if ((s8)D_801155B8 > D_801155B9) {
-                    D_801155B9 = (u8)D_801155B9 + 1;
-                    return;
-                }
+            }
+        } else if ((Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) && !(D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
+            D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+            if ((s8)D_801155B8 > D_801155B9) {
+                D_801155B9 = (u8)D_801155B9 + 1;
+            } else {
                 D_801155B9 = 0;
                 D_801155B0 = (u16)D_801155B0 + 1;
             }
+            if (D_80115660 != 0) {
+                D_80115660(D_80115650, D_80115652, Gp_CapTable[(s16)D_801155AE].textRef.text, D_801155B0, D_801155B9 == 0);
+            }
+            if (D_801155AC != 0) {
+                D_8011569A = Gp_CapTable[(s16)D_801155AE].control.text.pauseFrames;
+                D_80115698 = Gp_CapTable[(s16)D_801155AE].control.text.displayFrames;
+                D_80115664 = 0;
+                return;
+            }
+        } else {
+            if (Gp_CapTable[(s16)D_801155AE].control.packed & CAP_SEQUENCE_TIMING_MASK) {
+                if (Gp_CapTable[(s16)D_801155AE].control.text.displayFrames != 0) {
+                    func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                }
+                D_80115664 = 0;
+                D_801155AC = 1;
+
+                pauseFrames = Gp_CapTable[(s16)D_801155AE].control.text.pauseFrames;
+                D_8011569A  = pauseFrames;
+                D_80115698  = Gp_CapTable[(s16)D_801155AE].control.text.displayFrames;
+                if (pauseFrames < D_8011566A) {
+                    D_8011569A  = 0;
+                    D_80115698 -= D_8011566A;
+                    if (D_80115698 < 0) {
+                        D_80115698 = 0;
+                    }
+                } else {
+                    D_8011569A = pauseFrames - (u16)D_8011566A;
+                }
+                D_8011566A = 0;
+                return;
+            }
+            if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
+                D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+                nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
+                if (((Gp_CapTable[nextTextIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextTextIndex].actionId == 0) && ((Gp_CapTable[nextTextIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextTextIndex].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
+                    Gp_DrawCapCaret(0xA0, 0xDC);
+                    return;
+                }
+                D_80115664 = 0;
+                return;
+            }
+
+            D_801155AC = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 0, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
+            if ((s8)D_801155B8 > D_801155B9) {
+                D_801155B9 = (u8)D_801155B9 + 1;
+                return;
+            }
+            D_801155B9 = 0;
+            D_801155B0 = (u16)D_801155B0 + 1;
         }
-    } else {
-        return;
     }
 }
 
