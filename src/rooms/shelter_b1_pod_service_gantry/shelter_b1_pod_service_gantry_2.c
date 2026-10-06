@@ -424,28 +424,28 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
         WATER_SPIN_U16_LAST_TEXEL_ROW  = 255,
         WATER_SPIN_U16_QUARTER_TURN    = 0x400
     };
-    void**                                          scratchCursor;
-    _ShelterB1PodServiceGantrySpinScratch*          scratchEnd;
-    _ShelterB1PodServiceGantrySpinScratch*          projection;
-    register _ShelterB1PodServiceGantrySpinScratch* depthProjection asm("s0");
-    POLY_FT4*                                       quad;
-    s32                                             cellU;
-    s32                                             lastU;
-    s32                                             firstV;
-    s32                                             cornerAngle;
-    s32                                             perpendicularAngle;
+    void**                                 scratchCursor;
+    _ShelterB1PodServiceGantrySpinScratch* scratchEnd;
+    _ShelterB1PodServiceGantrySpinScratch* projection;
+    s32*                                   depth;
+    POLY_FT4*                              quad;
+    s32                                    cellU;
+    s32                                    lastU;
+    s32                                    firstV;
+    s32                                    cornerAngle;
+    s32                                    perpendicularAngle;
 
     // Project the composed centre before constructing the screen-space quad.
     scratchCursor  = SCRATCH_STACK_CURSOR_SLOT;
     scratchEnd     = *scratchCursor;
     projection     = scratchEnd - 1;
     *scratchCursor = projection;
+    // The GTE writes SZ3 / 4 through this pointer once the projection is accepted.
+    depth = &projection->depth;
     memFillBytes(projection, 0, sizeof(*projection));
     projection->worldPoint.vx = (u16)coord->workm.t[0];
     projection->worldPoint.vy = (u16)coord->workm.t[1];
     projection->worldPoint.vz = (u16)coord->workm.t[2];
-    // Reuse the saved coordinate register after capturing the position.
-    depthProjection = projection;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&(scratchEnd - 1)->worldPoint);
@@ -453,7 +453,7 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
     gte_stsxy(&(scratchEnd - 1)->screenX);
     gte_stflg(&(scratchEnd - 1)->projectionFlags);
     if (projection->projectionFlags >= 0) {
-        gte_stszotz(&depthProjection->depth);
+        gte_stszotz(depth);
         quad           = gGpuPrimCursor;
         cornerAngle    = spinAngle;
         gGpuPrimCursor = quad + 1;
@@ -478,7 +478,7 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
         quad->x2 = projection->screenX - (u16)projection->cornerOffsetX;
         quad->y1 = projection->screenY - (u16)projection->cornerOffsetY;
         quad->y2 = projection->screenY + (u16)projection->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(scratchEnd - 1)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)*depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
     SCRATCH_POP_AT(scratchCursor, _ShelterB1PodServiceGantrySpinScratch);

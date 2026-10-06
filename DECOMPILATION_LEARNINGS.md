@@ -148879,6 +148879,9 @@ the source's second set was is not known. Not it: a `switch` (five cases over
   at the store. Not taken. The room cannot include `water_spin_u16.inc.c`: its
   drawer clears the block with `memFillBytes`, uses texture page 0x2C and a
   scratch block laid out depth-first.
+  *Note 2026-10-06:* the pin is gone. The pointer was assigned before the
+  `memFillBytes` call; see "A pointer assigned before a call keeps `crosses 1
+  call` after sched1 sinks it below" at the end of this file.
 - `screenWaveGridTask` (`SOFT_USE_REG(p)`). `p` (25 refs / 168 insns, 0.595)
   has to outrank the row pointer's reduced giv (reg 731, 29 / 186, 0.624) for
   `$s4`; the asm adds two references at loop depth 2 (0.639). Writing the row as
@@ -151542,3 +151545,65 @@ to read it. No reason for the copy was recovered.
 - `0 / x` survives cse and dies in combine; if a frame is 8 bytes too large
   after such a fold, the remainder pseudo of the deleted `divmodsi4` took a
   stack slot.
+## A pointer assigned before a call keeps `crosses 1 call` after sched1 sinks it below (_waterDrawSpinU16 of shelter_b1_pod_service_gantry, 2026-10-06)
+
+**Symptom.** A pointer that is only a copy of another one, set in one block and
+used in the next, sits in a call-saved register although no call lies between
+its `move` and its use, and the register is the one a parameter has just left:
+
+```
+jal  memFillBytes
+...
+lhu  v0,0x40(s0)        # last read of coord
+move s0,s3              # copy of the block pointer
+...
+bltz v0,...
+mfc2 t4,$19 ; sra t4,t4,2 ; sw t4,0(s0)     # gte_stszotz
+```
+
+A local assigned after the call gets `$v1` (`move v1,s3`): it crosses no call,
+`find_reg` takes the first free register, and nothing gives it a preference -
+`set_preference` only sees a `SET` whose source, or source's first operand, is
+a register already in a hard register, and `(set X (reg projection))` names a
+global pseudo. The function was pinned `asm("s0")`.
+
+**Mechanism.** The pointer was assigned *before* the call. Flow then counts it
+as live across `memFillBytes`. Its only reader is far below, so sched1 sinks
+the copy under the call (`register 90 life shortened from 23 to 13`), where it no longer
+overlaps `coord`, which local-alloc has already put in `$s0`. But sched1 may
+not clear the call count of a pseudo that lives in more than one block
+(`sched.c`, end of `schedule_insns`: "We can't change the value of
+reg_n_calls_crossed to zero for pseudos which are live in more than one
+block"), so `.lreg` still prints `across 13 insns; crosses 1 call`. Global-alloc
+therefore restricts it to call-saved registers, and the lowest one free over
+its 13 insns is `$s0`: `coord` (block-local) died one insn earlier and the
+block-local `radiusScale * 31` is born after the first `rsin`.
+
+```c
+projection     = scratchEnd - 1;
+*scratchCursor = projection;
+depth          = &projection->depth;      /* before the call */
+memFillBytes(projection, 0, sizeof(*projection));
+...
+if (projection->projectionFlags >= 0) {
+    gte_stszotz(depth);
+```
+
+`depth` is an `s32*` to the first member, so the copy is `(set depth
+projection)`; the `asm_operands` of a `gte_*` macro is volatile and cse leaves
+its operand alone, while every `*depth` read is rewritten to `-28(scratchEnd)`
+(`find_best_addr` on an address-cost tie keeps the costlier expression), which
+is why the pointer ends with one reader.
+
+**Use.**
+- A copy in a call-saved register with no call inside its final range, held by
+  a pseudo that spans two blocks: look for `crosses N calls` in `.lreg` against
+  the physical range. If they disagree, the assignment was written above a
+  call and scheduled below it. A block-local pseudo does not behave this way
+  (sched1 resets its count).
+- The position of the assignment is what matches here, and it is the position
+  of an ordinary "take the field pointers when the block is reserved" style.
+  The earlier conclusion (only `coord = (const GfxCoord*)projection` reaches
+  `$s0`) looked for a tie or a preference and did not consider the call count.
+- Not checked in other functions: the same shape may explain other pins on a
+  short-lived pointer that takes a parameter's call-saved register.
