@@ -441,7 +441,13 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
 static void func_shelter_b1_south_maintenance_walkway_8017D9E8(Task* task);
 static void _shelterB1SouthMaintenanceWalkwayIdle(Task* task);
 
-/// Selects this room's exported tasks for effects spawned while it is loaded.
+/// Binds this room's six actor-effect selectors to its exported effect tasks.
+///
+/// Installs packed bank/type IDs for the flash, twin trail, spark burst, glow
+/// disc, flying spark and orange burst. Call after room-effect controller
+/// initialization and before spawning these effects. The IDs persist until
+/// the controller resets them or another room replaces them; this overlay
+/// must remain loaded while the selected tasks run.
 static inline void _shelterB1SouthMaintenanceWalkwayBindEffects(void)
 {
     gRoomEffectFlashId        = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLASH;
