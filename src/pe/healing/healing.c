@@ -65,6 +65,32 @@ static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
 static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
+/// Draws the healing disc and its glow bands at the work's current radius and
+/// brightness.
+static inline void _healingDrawGlow(GfxCoord* coord, EffectWork* mem)
+{
+    u8 rgb[3];
+
+    rgb[0] = mem->scale >> 2;
+    rgb[1] = mem->scale >> 1;
+    rgb[2] = (u8)mem->scale;
+    effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
+    effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
+    rgb[0] >>= 1;
+    rgb[1] >>= 1;
+    rgb[2] >>= 1;
+    effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
+    if (mem->age & 1) {
+        effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
+    }
+    if (mem->index != 0) {
+        rgb[0] >>= 1;
+        rgb[1] >>= 1;
+        rgb[2] >>= 1;
+        effectDrawOuterGlowBand(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
+    }
+}
+
 /// Healing PE ring. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or
 /// `gRoomEffectState->peEffectControl >= 4`) releases the work block, and if the effect has
 /// not started yet also sets `field_6` bit 3. State 0 parents the coordinate
@@ -85,7 +111,6 @@ void func_healing_8012EF34(Task* arg0)
     s16               ang;
     s32               rng;
     s32               temp_lo;
-    u8                rgb[3];
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
@@ -149,7 +174,8 @@ void func_healing_8012EF34(Task* arg0)
             if (mem->angle >= D_healing_8012FC1C[mem->index].radiusLimit) {
                 arg0->state = 2;
             }
-            goto draw;
+            _healingDrawGlow(coord, mem);
+            return;
         case 2:
             gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -159,25 +185,7 @@ void func_healing_8012EF34(Task* arg0)
             if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
-        draw:
-            rgb[0] = mem->scale >> 2;
-            rgb[1] = mem->scale >> 1;
-            rgb[2] = (u8)mem->scale;
-            effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
-            effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
-            rgb[0] >>= 1;
-            rgb[1] >>= 1;
-            rgb[2] >>= 1;
-            effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
-            if (mem->age & 1) {
-                effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
-            }
-            if (mem->index != 0) {
-                rgb[0] >>= 1;
-                rgb[1] >>= 1;
-                rgb[2] >>= 1;
-                effectDrawOuterGlowBand(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
-            }
+            _healingDrawGlow(coord, mem);
             return;
         case 3:
             gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].radiusStep * 2), 0);
