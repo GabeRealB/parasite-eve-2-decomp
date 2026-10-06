@@ -424,12 +424,11 @@ static void _tmdResolveSourceDrawHandlers(TmdSource* source)
                 opcode = stream->dataWord;
                 // Terminator at entry, or after a group marker. Leave the word in place.
                 if (opcode == TMD_STREAM_END) {
-                    goto done;
+                    source->handlersResolved = TMD_SOURCE_HANDLERS_RESOLVED;
+                    return;
                 }
             }
         }
-    done:
-        source->handlersResolved = TMD_SOURCE_HANDLERS_RESOLVED;
     }
 }
 
