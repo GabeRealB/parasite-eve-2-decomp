@@ -890,19 +890,19 @@ neoArkPavilionWaterRippleTaskFixedCoord = 0x8017EC4C; // type:func absolute:True
 
 neoArkPavilionWaterDriftTaskU16FixedCoord = 0x8017F0CC; // type:func absolute:True owner=neo_ark_pavilion
 
-func_neo_ark_pavilion_8017FC10 = 0x8017FC10; // type:func absolute:True owner=neo_ark_pavilion
+neoArkPavilionInstallRoomEffectsTask = 0x8017FC10; // type:func absolute:True owner=neo_ark_pavilion
 
-func_neo_ark_pavilion_8017FCB0 = 0x8017FCB0; // type:func absolute:True owner=neo_ark_pavilion
+neoArkPavilionRoomVisualEffectsFlashTask = 0x8017FCB0; // type:func absolute:True owner=neo_ark_pavilion
 
-func_neo_ark_pavilion_80180714 = 0x80180714; // type:func absolute:True owner=neo_ark_pavilion
+neoArkPavilionRoomVisualEffectsTwinTrailTask = 0x80180714; // type:func absolute:True owner=neo_ark_pavilion
 
 func_neo_ark_pavilion_80180FFC = 0x80180FFC; // type:func absolute:True owner=neo_ark_pavilion
 
 func_neo_ark_pavilion_80181C44 = 0x80181C44; // type:func absolute:True owner=neo_ark_pavilion
 
-func_neo_ark_pavilion_8018219C = 0x8018219C; // type:func absolute:True owner=neo_ark_pavilion
+neoArkPavilionRoomVisualEffectsFlyingSparkTask = 0x8018219C; // type:func absolute:True owner=neo_ark_pavilion
 
-func_neo_ark_pavilion_80182DFC = 0x80182DFC; // type:func absolute:True owner=neo_ark_pavilion
+neoArkPavilionRoomVisualEffectsFlyingOrangeBurstTask = 0x80182DFC; // type:func absolute:True owner=neo_ark_pavilion
 
 func_neo_ark_power_plant_2_8017DDF4 = 0x8017DDF4; // type:func absolute:True owner=neo_ark_power_plant_2
 

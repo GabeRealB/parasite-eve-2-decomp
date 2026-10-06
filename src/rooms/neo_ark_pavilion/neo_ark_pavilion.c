@@ -83,10 +83,6 @@ extern TaskDesc D_neo_ark_pavilion_80183864;
 /// The room's message table.
 extern TaskMessageEntry D_neo_ark_pavilion_80183870[];
 
-/// Offsets from the parent coordinate of the two points whose trails
-/// `func_neo_ark_pavilion_80180714` records.
-/// The second of those offsets, which the recording frames read by name.
-
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
 
@@ -98,10 +94,13 @@ extern RoomLatchedEvent gRoomEventLatched;
 /// Set by the message handler when its last message latched an event and
 /// spawned the room's event task; every such message clears it first.
 
-s32 func_neo_ark_pavilion_8017E9EC(Task*, s32, s32, s32);
-s32 func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, s32);
-s32 func_neo_ark_pavilion_8017EB78(Task*, s32, s32, s32);
+/// Room-local key-item-use request; its first payload is an inventory item ID.
+enum { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32 _neoArkPavilionRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedMessageArg);
+s32        func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, s32);
+static s32 _neoArkPavilionIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedMessageArg);
 
 extern WorldCollisionGrid     D_neo_ark_pavilion_801841E4[1];
 extern WorldCollisionOccluder D_neo_ark_pavilion_8018798C[1];
@@ -120,8 +119,8 @@ TaskDesc D_neo_ark_pavilion_80183864 = { { { TASK_BODY_NONE, 32 } }, roomEventSt
 
 TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },
-    { 5105, func_neo_ark_pavilion_8017E9EC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pavilion_8017EB78 },
+    { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM, _neoArkPavilionRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPavilionIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_pavilion_8017EB3C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1079,7 +1078,7 @@ RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_pavilion_8017EB80(Task* arg0);
-static void           func_neo_ark_pavilion_8017EBEC(Task* task);
+static void           _neoArkPavilionRoomIdleState(Task* task);
 
 #include "../../shared/water_refraction_task.inc.c"
 
@@ -1087,7 +1086,10 @@ static void           func_neo_ark_pavilion_8017EBEC(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-s32 func_neo_ark_pavilion_8017E9EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request in the pavilion with a zero reply.
+///
+/// All callback arguments are ignored; no item is consumed or retained.
+static s32 _neoArkPavilionRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedMessageArg)
 {
     return 0;
 }
@@ -1140,7 +1142,10 @@ s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_neo_ark_pavilion_8017EB78(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests and returns zero without starting an action.
+///
+/// The borrowed request and the other callback arguments are never read or retained.
+static s32 _neoArkPavilionIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedMessageArg)
 {
     return 0;
 }
@@ -1157,14 +1162,15 @@ static void func_neo_ark_pavilion_8017EB80(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-static void func_neo_ark_pavilion_8017EBEC(Task* task)
+/// Keeps the initialized room task idle while its message table remains installed.
+static void _neoArkPavilionRoomIdleState(Task* task)
 {
 }
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_pavilion_8017EBF4`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_pavilion_8017D628 = {
-    { func_neo_ark_pavilion_8017EB80, func_neo_ark_pavilion_8017EBEC, taskKill }
+    { func_neo_ark_pavilion_8017EB80, _neoArkPavilionRoomIdleState, taskKill }
 };
 
 /// Task tick that dispatches on the task's state through the three-entry
@@ -1187,9 +1193,12 @@ void func_neo_ark_pavilion_8017EBF4(Task* task)
 
 #include "../../shared/water_tile_u16.inc.c"
 
-void func_neo_ark_pavilion_8017FC10(Task* arg0)
+void neoArkPavilionInstallRoomEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { NEO_ARK_PAVILION_EFFECTS_INSTALL,
+           NEO_ARK_PAVILION_EFFECTS_INSTALLED };
+
+    if (task->state == NEO_ARK_PAVILION_EFFECTS_INSTALL) {
         gRoomEffectFlashId        = EFFECT_NEO_ARK_PAVILION_FLASH;
         gRoomEffectTwinTrailId    = EFFECT_NEO_ARK_PAVILION_TWIN_TRAIL;
         gRoomEffectSparkBurstId   = EFFECT_NEO_ARK_PAVILION_SPARK_BURST;
@@ -1198,7 +1207,7 @@ void func_neo_ark_pavilion_8017FC10(Task* arg0)
         gRoomEffectOrangeBurst2Id = EFFECT_NEO_ARK_PAVILION_ORANGE_BURST_2;
         gRoomEffectWaterRippleId  = EFFECT_NEO_ARK_PAVILION_WATER_RIPPLE;
         gRoomEffectWaterSprayId   = EFFECT_NEO_ARK_PAVILION_WATER_SPRAY;
-        arg0->state               = 1;
+        task->state               = NEO_ARK_PAVILION_EFFECTS_INSTALLED;
     }
 }
 
@@ -1206,14 +1215,14 @@ void func_neo_ark_pavilion_8017FC10(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_pavilion_8017FCB0(Task* arg0)
+void neoArkPavilionRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_pavilion_80180714(Task* task)
+void neoArkPavilionRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -1234,16 +1243,16 @@ void func_neo_ark_pavilion_80181C44(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_neo_ark_pavilion_8018219C(Task* task)
+void neoArkPavilionRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_neo_ark_pavilion_80182DFC(Task* arg0)
+void neoArkPavilionRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"
