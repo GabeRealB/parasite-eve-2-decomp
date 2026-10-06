@@ -242,7 +242,9 @@ D_dryfield_water_tank_8017FD90 = 0x8017FD90; // size:0x18 defined:True
 
 func_dryfield_water_tank_8017E78C = 0x8017E78C; // type:func
 
-func_dryfield_water_tank_8017F084 = 0x8017F084; // type:func
+dryfieldWaterTankUpdateViewEffectGateTask = 0x8017F084; // type:func
 actorMsgPlaceYawPitchRoll = 0x8017E0E8; // type:func
 screenFadeInTileTask = 0x8017E220; // type:func
 waterTankSwayTask = 0x8017EDF4; // type:func
+_dryfieldWaterTankFadeOutTileTask = 0x8017e3c4; // type:func
+dryfieldWaterTankSetPreOperationSprites = 0x8017eff4; // type:func

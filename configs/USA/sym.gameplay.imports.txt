@@ -1783,7 +1783,7 @@ dryfieldParkingLotUpdateViewEffectGateTask = 0x8017DBAC; // type:func absolute:T
 
 func_dryfield_water_tower_80180348 = 0x80180348; // type:func absolute:True owner=dryfield_water_tower
 
-func_dryfield_water_tank_8017F084 = 0x8017F084; // type:func absolute:True owner=dryfield_water_tank
+dryfieldWaterTankUpdateViewEffectGateTask = 0x8017F084; // type:func absolute:True owner=dryfield_water_tank
 
 func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // type:func absolute:True owner=dryfield_breezeway shared=rooms
 

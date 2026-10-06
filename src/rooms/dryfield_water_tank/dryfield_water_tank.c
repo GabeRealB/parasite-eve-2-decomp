@@ -1121,10 +1121,10 @@ static void func_dryfield_water_tank_8017DB48(void)
         case 0:
         case 1:
         case 2:
-            func_dryfield_water_tank_8017EFF4(1);
+            dryfieldWaterTankSetPreOperationSprites(1);
             break;
         case 3:
-            func_dryfield_water_tank_8017EFF4(0);
+            dryfieldWaterTankSetPreOperationSprites(0);
             break;
     }
 }

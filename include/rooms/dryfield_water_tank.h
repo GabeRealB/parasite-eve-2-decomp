@@ -30,7 +30,14 @@ extern SpriteView D_dryfield_water_tank_80187F80[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_water_tank_80188CFC[];
 
-void func_dryfield_water_tank_8017F084(Task* unused);
+/// Updates the ambient-effect gate for the current water-tank camera view.
+///
+/// Mapped view 9 publishes `ROOM_EFFECT_VIEW_ENABLED`; views 1..8 and 10 publish
+/// `ROOM_EFFECT_VIEW_DISABLED`. Requires initialized `gRoomEffectState`, the
+/// water-tank overlay and view resources to remain loaded, and a mapped index
+/// in 1..10. The mapping and table lookup are unchecked. The task argument is
+/// unused; the callback runs every frame without changing state or ending itself.
+void dryfieldWaterTankUpdateViewEffectGateTask(Task* task);
 
 void func_dryfield_water_tank_8017DAF0(Task* task);
 

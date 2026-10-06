@@ -749,7 +749,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldSaloonGRDrawLightEffectsTask, { NULL } },                        // 0x0D0
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGRKitchenDrawLightBeamsTask, { NULL } },                         // 0x0D1
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_tower_80180348, { NULL } },                          // 0x0D2
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_tank_8017F084, { NULL } },                           // 0x0D3
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterTankUpdateViewEffectGateTask, { NULL } },                   // 0x0D3
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_8017FF7C, { NULL } },                            // 0x0D4
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldFactoryDrawGlowsTask, { NULL } },                                // 0x0D5
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGarageEffectNoopTaskD6, { NULL } },                              // 0x0D6

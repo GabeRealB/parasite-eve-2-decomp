@@ -89463,7 +89463,7 @@ two statements later stayed a struct field and the body still matched, and the
 sibling `func_dryfield_water_tank_8017E194` in the same TU is plain struct access
 throughout — the flag is per-access, and the diagnostic names which access.
 
-## m2c's `M2C_UNK` base pointer scales the index a second time - retype the table to the access width (func_dryfield_water_tank_8017F084, 2026-09-15)
+## m2c's `M2C_UNK` base pointer scales the index a second time - retype the table to the access width (dryfieldWaterTankUpdateViewEffectGateTask, 2026-09-15)
 
 `M2C_UNK` is `s32` (`tools/m2c/m2c_macros.h`), so an m2c seed that scales an
 element index by hand — `((viewGetMappedIndex() & 0xFF) - 1) * 2 + &D_x` — scales it
@@ -89528,7 +89528,7 @@ move  a0, zero
 j     end
 nop
 L1:   li a0, 1
-call: jal   func_dryfield_water_tank_8017EFF4
+call: jal   dryfieldWaterTankSetPreOperationSprites
 ```
 
 The m2c seed reads this as `if (v >= 0) { if (v >= 3) { arg = 0; if (v != 3)
@@ -89557,10 +89557,10 @@ The source is the switch:
         case 0:
         case 1:
         case 2:
-            func_dryfield_water_tank_8017EFF4(1);
+            dryfieldWaterTankSetPreOperationSprites(1);
             break;
         case 3:
-            func_dryfield_water_tank_8017EFF4(0);
+            dryfieldWaterTankSetPreOperationSprites(0);
             break;
     }
 ```
@@ -92051,7 +92051,7 @@ allowed to happen, and a seed that hand-writes the shared block prevents it
 landing where the ROM puts it.
 
 The same seed also carried m2c's `M2C_UNK` element-size bug (see the
-`func_dryfield_water_tank_8017F084` entry above - same `gRoomEffectState->roomEffectMode`
+`dryfieldWaterTankUpdateViewEffectGateTask` entry above - same `gRoomEffectState->roomEffectMode`
 view-table shape). Retyping the view table `u16` and the drawn arrays `SVECTOR`
 together with duplicating the calls took 71.8% to 100.000%, all penalties zero,
 on the first build. The per-arm pointer reset (`const SVECTOR* viewPoints = D_x;` inside each
@@ -121599,15 +121599,15 @@ match at `base_v1.c` (same source with the two store lines transposed).
 
 ### A one-constant toggle: literals stay block-local and win `$v0`, a pointer variable is global and takes `$v1`
 
-`func_dryfield_water_tank_8017EFF4` stores a `1` and a `0` in each arm of an
-`if (!(index & 0xFF))`, and the ROM materialises the `1` **once**, in the branch
+`dryfieldWaterTankSetPreOperationSprites` stores a `1` and a `0` in each arm of its
+low-byte test, and the ROM materialises the `1` **once**, in the branch
 delay slot (`addiu $v0,$zero,1`), with both arms' pointer temps in `$v1`:
 
 ```c
-    if (sess->field_3 == 2) {
-        rec = Gp_SprtTables[sess->field_3 - 1]->areaViews[sess->field_2 - 1];
-        if (!(arg0 & 0xFF)) { rec[2].batches[3].hidden = 0; rec[7].batches[1].hidden = 1; return; }
-        rec[2].batches[3].hidden = 1;  rec[7].batches[1].hidden = 0;
+    if (location->stage == GAME_STAGE_DRYFIELD) {
+        views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+        if (!beforeOperation) { views[2].batches[3].hidden = 0; views[7].batches[1].hidden = 1; return; }
+        views[2].batches[3].hidden = 1;  views[7].batches[1].hidden = 0;
     }
 ```
 
@@ -121629,13 +121629,13 @@ Writing every use through **one** variable fixes it:
 ```c
     SpriteBatch* batches;
     ...
-        if (!(arg0 & 0xFF)) {
-            batches = rec[2].batches; batches[3].hidden = 0;
-            batches = rec[7].batches; batches[1].hidden = 1;
+        if (!beforeOperation) {
+            batches = views[2].batches; batches[3].hidden = 0;
+            batches = views[7].batches; batches[1].hidden = 1;
             return;
         }
-        batches = rec[2].batches; batches[3].hidden = 1;
-        batches = rec[7].batches; batches[1].hidden = 0;
+        batches = views[2].batches; batches[3].hidden = 1;
+        batches = views[7].batches; batches[1].hidden = 0;
 ```
 
 The variable is set and used in two blocks, so `REG_BASIC_BLOCK` is -1 and it
@@ -121659,7 +121659,7 @@ Input hash: `base_4.c`
 `99aef3994fd0315579cd95b7f5c003ed3b14a5381e04612baa6747228a128474`.
 The near-miss seeds — `base_2.c`, the shared-constant variable at 98.43%, and
 `base_3.c`, one pointer variable over two distinct view types at 97.86% — live
-in the scratch env `nonmatchings/func_dryfield_water_tank_8017EFF4-vacuum/`,
+in the scratch env `nonmatchings/dryfieldWaterTankSetPreOperationSprites-vacuum/`,
 next to `mine_oracle.c`, the sibling compiled as the oracle.
 
 
@@ -122096,8 +122096,8 @@ sign-extend at the assignment", reached from the unsigned side and from a
 parameter rather than a call result. The tell is the pair: an `andi`/`sll`/`sra`
 that appears *after* the code that could have used it, and the value's source
 register still live in a second home. `func_mine_cavern_8017E3A0` and
-`func_dryfield_water_tank_8017EFF4` — the two matched siblings of this body —
-both spell it the wider way.
+`dryfieldWaterTankSetPreOperationSprites` — the two matched siblings of this body —
+both used the wider spelling during this experiment.
 
 Inputs: `base_1.c` (82.382%, `regs=7 branch=2`), `base_2.c` (100.000%).
 Compiler SHA256

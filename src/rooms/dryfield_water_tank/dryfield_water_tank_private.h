@@ -85,13 +85,17 @@ extern AnimationSet gDryfieldWaterTankAnimation06F48;
 
 extern TaskMessageEntry D_dryfield_water_tank_8017FD90[3];
 
-/// Toggle the room's cutscene-“watched” state over two of the area's sprite
-/// commands: `arg0 != 0` hides the first and shows the second by setting and
-/// clearing their `SpriteBatch::hidden`, `arg0 == 0` does the opposite. No-op unless `GameSession.location.loc.stage` is 2, i.e. only for the stage
-/// whose sprite table has a record for the current room.
-/// `func_dryfield_water_tank_8017DB48` passes the game-flag `0x55` nibble
-/// through it, one way per value.
-void func_dryfield_water_tank_8017EFF4(s32 arg0);
+/// Selects the room sprites shown before or after operating the tank mechanism.
+///
+/// Nonzero shows the pre-operation sprite in mapped view 8 and hides the
+/// post-operation sprite in mapped view 3; zero reverses them. The caller uses
+/// nonzero for mechanism states 0..2 and zero for state 3. Only the argument's
+/// low byte is significant. No-op outside `GAME_STAGE_DRYFIELD`.
+///
+/// In that stage, the active area's loaded sprite directory must be the water
+/// tank's ten-view array, with at least four batches in view 3 and two in view 8.
+/// Mutates the room-owned batches without allocating or releasing resources.
+void dryfieldWaterTankSetPreOperationSprites(u8 beforeOperation);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tank_8017DD20(Task*);

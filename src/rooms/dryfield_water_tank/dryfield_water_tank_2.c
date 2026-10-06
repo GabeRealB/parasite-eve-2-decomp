@@ -117,7 +117,7 @@ extern SVECTOR D_dryfield_water_tank_801847C0[];
 void func_dryfield_water_tank_8017E9F8(Task*);
 
 static TmdSource _gDryfieldWaterTankModel020D4;
-void             func_dryfield_water_tank_8017E3C4(Task*);
+static void      _dryfieldWaterTankFadeOutTileTask(Task* task);
 void             func_dryfield_water_tank_8017E568(Task*);
 void             func_dryfield_water_tank_8017EB80(s16);
 void             func_dryfield_water_tank_8017EBA0(void);
@@ -339,7 +339,7 @@ TaskDesc D_dryfield_water_tank_80180764[4] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E568, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTileTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E3C4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankFadeOutTileTask, { .value = 0 } },
 };
 
 TaskDesc D_dryfield_water_tank_80180794 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E9F8, { .value = 0 } };
@@ -882,66 +882,92 @@ SVECTOR D_dryfield_water_tank_801847C0[52] = {
 
 static void func_dryfield_water_tank_8017E78C(Task* task);
 
-/// Fade the water tank to white and tear the task down.
+/// Appends a full-screen subtractive tile using the ramp's low red/green bytes.
 ///
-/// State 0 allocates the ramp at `Task::work` and zeroes it; a failed
-/// allocation kills the task outright. State 1 runs every frame: it links a
-/// semi-transparent full-screen `TILE` (`-0xA0,-0x78`, `0x140x0xF0`) plus the
-/// `0xE1000240` `DR_TPAGE` into `gGpuCurrentOt[-16]`, tinting the tile `r`/`g`/`r`,
-/// then steps all three channels by `Task::spawnArg1`. Once `r` saturates past
-/// 0xFF the screen is fully covered, so the task kills itself. The fade-up half
-/// of the same pair is `screenFadeInTileTask`.
-void func_dryfield_water_tank_8017E3C4(Task* arg0)
+/// Uses red for blue too. Requires space for both packets in the current frame
+/// arena and foreground tag -16 in the current ordering table. Packets borrow
+/// the arena until GPU drawing completes; the draw mode enables dithering.
+static inline void _dryfieldWaterTankDrawFadeOverlay(const ScreenFadeWork* fade)
 {
-    ScreenFadeWork* fade;
-    ScreenFadeWork* alloc;
-    u8              r;
-    u8              g;
-    TILE*           tile;
-    DR_TPAGE*       dr;
+    enum {
+        DRYFIELD_WATER_TANK_FADE_WIDTH_PIXELS   = 320,
+        DRYFIELD_WATER_TANK_FADE_HEIGHT_PIXELS  = 240,
+        DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG = -16,
+    };
 
-    fade = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+    u8        red;
+    u8        green;
+    TILE*     tile;
+    DR_TPAGE* drawMode;
+
+    red            = fade->r;
+    green          = fade->g;
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setTile(tile);
+    setSemiTrans(tile, true);
+    tile->r0 = red;
+    tile->g0 = green;
+    tile->b0 = red;
+    tile->x0 = -DRYFIELD_WATER_TANK_FADE_WIDTH_PIXELS / 2;
+    tile->y0 = -DRYFIELD_WATER_TANK_FADE_HEIGHT_PIXELS / 2;
+    tile->w  = DRYFIELD_WATER_TANK_FADE_WIDTH_PIXELS;
+    tile->h  = DRYFIELD_WATER_TANK_FADE_HEIGHT_PIXELS;
+    addPrim(gGpuCurrentOt + DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG, tile);
+
+    // Prepending the mode after the tile makes the GPU execute it first.
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
+    addPrim(gGpuCurrentOt + DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG, drawMode);
+}
+
+/// Darkens the screen before the water-tank movie with a rising subtractive tile.
+///
+/// The room supplies a rate of 8 colour units per frame in `Task::spawnArg1`;
+/// only its low 16 bits are used. State 0 allocates owned `ScreenFadeWork` and
+/// clears its channels, then draws immediately. State 1 draws before advancing
+/// the signed 16-bit ramp and ends at red >= 256. Allocation failure also ends
+/// the task; `taskKill` releases the work in either case.
+///
+/// Requires the frame arena to hold a `TILE` and `DR_TPAGE`, and the active
+/// ordering table to provide foreground tag -16. Packets borrow the frame
+/// arena until GPU drawing completes. The reverse ramp is `screenFadeInTileTask`.
+static void _dryfieldWaterTankFadeOutTileTask(Task* task)
+{
+    enum {
+        DRYFIELD_WATER_TANK_FADE_STATE_INIT  = 0,
+        DRYFIELD_WATER_TANK_FADE_STATE_DRAW  = 1,
+        DRYFIELD_WATER_TANK_FADE_CHANNEL_END = 256,
+    };
+
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
+
+    fade = task->work;
+    switch (task->state) {
+        case DRYFIELD_WATER_TANK_FADE_STATE_INIT:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 break;
             }
-            fade         = alloc;
+            fade         = allocatedFade;
             fade->b      = 0;
             fade->g      = 0;
             fade->r      = 0;
-            arg0->state += 1;
+            task->state += 1;
             /* fallthrough */
-        case 1:
-            r              = fade->r;
-            g              = fade->g;
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            setlen(tile, 3);
-            setcode(tile, 0x62);
-            tile->r0 = r;
-            tile->g0 = g;
-            tile->b0 = r;
-            tile->x0 = -0xA0;
-            tile->y0 = -0x78;
-            tile->w  = 0x140;
-            tile->h  = 0xF0;
-            addPrim(gGpuCurrentOt - 16, tile);
+        case DRYFIELD_WATER_TANK_FADE_STATE_DRAW:
+            _dryfieldWaterTankDrawFadeOverlay(fade);
 
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000240;
-            addPrim(gGpuCurrentOt - 16, dr);
-
-            fade->r += (u16)arg0->spawnArg1.value;
-            fade->g += (u16)arg0->spawnArg1.value;
-            fade->b += (u16)arg0->spawnArg1.value;
-            if (fade->r >= 0x100) {
-                taskKill(arg0);
+            // Blue follows the ramp even though the packet uses red for blue.
+            fade->r += (u16)task->spawnArg1.value;
+            fade->g += (u16)task->spawnArg1.value;
+            fade->b += (u16)task->spawnArg1.value;
+            if (fade->r >= DRYFIELD_WATER_TANK_FADE_CHANNEL_END) {
+                taskKill(task);
             }
             break;
     }
@@ -1256,40 +1282,40 @@ void func_dryfield_water_tank_8017ED30(Task* arg0)
 
 #include "../../shared/water_tank_sway_task.inc.c"
 
-/// Toggle the room's cutscene-“watched” state over two of the area's sprite
-/// commands, hiding one and showing the other through their
-/// `SpriteBatch::hidden`. Every use goes through one pointer variable: the compiler keeps it
-/// in a global allocno, which is what pushes the two literals' constant into
-/// `$v0` (see DECOMPILATION_LEARNINGS.md, "A one-constant toggle…").
-void func_dryfield_water_tank_8017EFF4(s32 arg0)
+void dryfieldWaterTankSetPreOperationSprites(u8 beforeOperation)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
-    SpriteBatch*     batches;
+    enum {
+        DRYFIELD_WATER_TANK_POST_OPERATION_VIEW_INDEX  = 2,
+        DRYFIELD_WATER_TANK_POST_OPERATION_BATCH_INDEX = 3,
+        DRYFIELD_WATER_TANK_PRE_OPERATION_VIEW_INDEX   = 7,
+        DRYFIELD_WATER_TANK_PRE_OPERATION_BATCH_INDEX  = 1,
+    };
 
-    sess = &gGameSession->location.loc;
-    if (sess->stage == GAME_STAGE_DRYFIELD) {
-        rec = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-        if (!(arg0 & 0xFF)) {
-            batches           = rec[2].batches;
-            batches[3].hidden = 0;
-            batches           = rec[7].batches;
-            batches[1].hidden = 1;
+    const GameLocationKey* location;
+    SpriteView*            views;
+    SpriteBatch*           batches;
+
+    location = &gGameSession->location.loc;
+    if (location->stage == GAME_STAGE_DRYFIELD) {
+        views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+        if (beforeOperation == 0) {
+            batches                                                        = views[DRYFIELD_WATER_TANK_POST_OPERATION_VIEW_INDEX].batches;
+            batches[DRYFIELD_WATER_TANK_POST_OPERATION_BATCH_INDEX].hidden = false;
+            batches                                                        = views[DRYFIELD_WATER_TANK_PRE_OPERATION_VIEW_INDEX].batches;
+            batches[DRYFIELD_WATER_TANK_PRE_OPERATION_BATCH_INDEX].hidden  = true;
             return;
         }
-        batches           = rec[2].batches;
-        batches[3].hidden = 1;
-        batches           = rec[7].batches;
-        batches[1].hidden = 0;
+        batches                                                        = views[DRYFIELD_WATER_TANK_POST_OPERATION_VIEW_INDEX].batches;
+        batches[DRYFIELD_WATER_TANK_POST_OPERATION_BATCH_INDEX].hidden = true;
+        batches                                                        = views[DRYFIELD_WATER_TANK_PRE_OPERATION_VIEW_INDEX].batches;
+        batches[DRYFIELD_WATER_TANK_PRE_OPERATION_BATCH_INDEX].hidden  = false;
     }
 }
 
-/// Publishes the variant index the current camera view maps to: reads the view
-/// index back and stores `D_dryfield_water_tank_801868CC[view - 1]` into the
-/// shared work block's `field_A`. Gameplay holds this address in its data
-/// (0x80110614, pointing at the room overlay), and `dryfield_parking_lot` and
-/// `dryfield_water_tower` carry the same body.
-void func_dryfield_water_tank_8017F084(Task* unused)
+void dryfieldWaterTankUpdateViewEffectGateTask(Task* task)
 {
-    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(viewGetMappedIndex() & 0xFF) - 1];
+    s32 mappedViewIndex;
+
+    mappedViewIndex                  = viewGetMappedIndex();
+    gRoomEffectState->roomEffectMode = D_dryfield_water_tank_801868CC[(u8)mappedViewIndex - 1];
 }
