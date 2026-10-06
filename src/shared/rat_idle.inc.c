@@ -4,7 +4,7 @@
 /// gRatSlowMoveChance / gRatFastMoveChance (indexed by the place row) to start
 /// a timed move at speed 0x14 (animation 7) or 0x32 (animation 2), with
 /// durations from gRatSlowMoveTimes / gRatFastMoveTimes. Re-picks a random
-/// heading within +-0x3FF of the current one every 0-31 frames; once the sensor
+/// heading within +-0x3FF of the current 1 every 0-31 frames; once the sensor
 /// has fired it switches to mode 1, sets a 60-91 frame timer and plays sound 3.
 /// Ends by ticking the idle sound.
 void ratIdle(Task* arg0)
@@ -13,7 +13,6 @@ void ratIdle(Task* arg0)
     TmdObject* obj;
     GfxCoord*  coord;
     s32        state;
-    s32        one;
     s32        rng0;
     s32        rng1;
     s32        rng2;
@@ -26,93 +25,77 @@ void ratIdle(Task* arg0)
     s32        snd;
     s32        pan;
 
-    one   = 1;
     work  = arg0->work;
     obj   = arg0->extra.tmd;
     state = work->step;
     coord = obj->coords;
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            work->forwardSpeed      = 0;
+            work->sensorBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->timer++;
+            if (work->timer < 0x1E) {
+                break;
+            }
+            rng0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng0;
+            if ((s32)(((u32)rng0 >> 16) & 0xF) <
+                gRatSlowMoveChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+                work->animId    = RAT_ANIM_WALK;
+                next            = gRatSlowMoveTimes[((u32)(rng1 = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                gRandomLcgState = rng1;
+                work->step      = 1;
+                work->timer     = next;
+                break;
+            }
+            rng2            = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng2;
+            if ((s32)(((u32)rng2 >> 16) & 0xF) <
+                gRatFastMoveChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+                work->animId    = RAT_ANIM_RUN;
+                next            = gRatFastMoveTimes[((u32)(rng3 = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                gRandomLcgState = rng3;
+                work->step      = 2;
+                work->timer     = next;
+                break;
+            }
+            work->timer = 0;
+            break;
+        case 1:
+            work->forwardSpeed = 0x14;
+            work->timer--;
+            if (work->timer > 0) {
+                break;
+            }
+            work->animId = RAT_ANIM_IDLE;
+            work->timer  = 0;
+            work->step   = 0;
+            break;
+        case 2:
+            work->forwardSpeed = 0x32;
+            work->timer--;
+            if (work->timer > 0) {
+                break;
+            }
+            work->animId = RAT_ANIM_IDLE;
+            work->timer  = 0;
+            work->step   = 0;
+            break;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto tail;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto tail;
-case0:
-    work->forwardSpeed      = 0;
-    work->sensorBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    work->timer++;
-    if (work->timer < 0x1E) {
-        goto tail;
-    }
-    rng0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gRandomLcgState = rng0;
-    if ((s32)(((u32)rng0 >> 16) & 0xF) <
-        gRatSlowMoveChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
-        work->animId    = RAT_ANIM_WALK;
-        next            = gRatSlowMoveTimes[((u32)(rng1 = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-        gRandomLcgState = rng1;
-        work->step      = one;
-        work->timer     = next;
-        goto tail;
-    }
-    rng2            = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gRandomLcgState = rng2;
-    if ((s32)(((u32)rng2 >> 16) & 0xF) <
-        gRatFastMoveChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
-        work->animId    = RAT_ANIM_RUN;
-        next            = gRatFastMoveTimes[((u32)(rng3 = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-        gRandomLcgState = rng3;
-        work->step      = 2;
-        work->timer     = next;
-        goto tail;
-    }
-    work->timer = 0;
-    goto tail;
-case1:
-    work->forwardSpeed = 0x14;
-    work->timer--;
-    if (work->timer > 0) {
-        goto tail;
-    }
-    work->animId = one;
-    work->timer  = 0;
-    work->step   = 0;
-    goto tail;
-case2:
-    work->forwardSpeed = 0x32;
-    work->timer--;
-    if (work->timer > 0) {
-        goto tail;
-    }
-    work->animId = one;
-    work->timer  = 0;
-    work->step   = 0;
-tail:
     work->wanderTimer--;
-    if (work->wanderTimer > 0) {
-        goto post;
+    if (work->wanderTimer <= 0) {
+        work->turnRate    = 0x19;
+        rng4              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        rng5              = rng4 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        ang               = ((u32)rng5 >> 16) & 0x3FF;
+        gRandomLcgState   = rng4;
+        work->wanderTimer = ((u32)rng4 >> 16) & 0x1F;
+        gRandomLcgState   = rng5;
+        if ((((u32)rng5 >> 16) & 0x400) == 0) {
+            ang = -ang;
+        }
+        work->targetYaw = ((u16)work->yaw + ang) & 0xFFF;
     }
-    work->turnRate    = 0x19;
-    rng4              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    rng5              = rng4 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    ang               = ((u32)rng5 >> 16) & 0x3FF;
-    gRandomLcgState   = rng4;
-    work->wanderTimer = ((u32)rng4 >> 16) & 0x1F;
-    gRandomLcgState   = rng5;
-    if ((((u32)rng5 >> 16) & 0x400) == 0) {
-        ang = -ang;
-    }
-    work->targetYaw = ((u16)work->yaw + ang) & 0xFFF;
-post:
     if (work->attackRequested != 0) {
         work->mode            = RAT_MODE_ATTACK;
         work->attackRequested = 0;
