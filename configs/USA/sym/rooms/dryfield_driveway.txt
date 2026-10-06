@@ -72,10 +72,14 @@ D_dryfield_driveway_8017E328 = 0x8017E328; // size:0x8 defined:True
 D_dryfield_driveway_8017E330 = 0x8017E330; // size:0x14 defined:True
 D_dryfield_driveway_8017E344 = 0x8017E344; // size:0x14 defined:True
 
-func_dryfield_driveway_8017DE6C = 0x8017DE6C; // type:func
+dryfieldDrivewayEnableAmbientEffectsTask = 0x8017DE6C; // type:func
 roomEventStagedTask = 0x8017D5E4; // type:func
 drivewayResolveEvent = 0x8017D77C; // type:func
 drivewayBlackoutTask = 0x8017DAD0; // type:func
 drivewayCutsceneTask = 0x8017DB68; // type:func
 drivewayScriptSound = 0x8017DC70; // type:func
 drivewaySetViewDirty = 0x8017DC54; // type:func
+_dryfieldDrivewaySetEncounterWave = 0x8017dc48; // type:func
+_dryfieldDrivewayIgnoreRoomCommand = 0x8017ddb0; // type:func
+_dryfieldDrivewayIgnoreRoomAction = 0x8017ddb8; // type:func
+_dryfieldDrivewayIdleRoomTask = 0x8017de04; // type:func

@@ -30,7 +30,11 @@ extern SpriteView D_dryfield_driveway_8017FC44[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_driveway_80180660[];
 
-void func_dryfield_driveway_8017DE6C(Task* unused);
+/// Enables the current view's ambient effects on every room-effect update.
+///
+/// Requires the initialized room-effect controller at `gRoomEffectState`.
+/// The task argument is ignored; the callback neither advances nor ends it.
+void dryfieldDrivewayEnableAmbientEffectsTask(Task* unusedTask);
 
 void func_dryfield_driveway_8017DE14(Task* task);
 

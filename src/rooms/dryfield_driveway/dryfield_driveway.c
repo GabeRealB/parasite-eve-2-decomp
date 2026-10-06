@@ -75,10 +75,14 @@ extern WorldCollisionTrigger    D_dryfield_driveway_801802F8[11];
 extern WorldCoordRoomLights     D_dryfield_driveway_801802E0[1];
 extern TaskDesc                 Actor00100_D1BA84;
 s32                             func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
-s32                             func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
-s32                             func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
-void                            func_dryfield_driveway_8017DC48(s32);
+static s32                      _dryfieldDrivewayIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
+static s32                      _dryfieldDrivewayIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, s32 unusedRequestWord, s32 unusedSecondArg);
+static void                     _dryfieldDrivewaySetEncounterWave(s32 waveStage);
+static void                     _dryfieldDrivewayIdleRoomTask(Task* unusedTask);
 void                            func_dryfield_driveway_8017DC64(u8);
+
+/// The script releases actor 03700's staged entrance before combat waves advance.
+enum { DRYFIELD_DRIVEWAY_ENCOUNTER_WAVE_BEGIN = 1 };
 
 static AnimationPackedPose _gDryfieldDrivewayAnimation00D08Bank1[10] = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
@@ -131,7 +135,7 @@ EvsCommand gDrivewayCutsceneScript[14] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E358 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5219000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_driveway_8017DC48 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldDrivewaySetEncounterWave }, { .value = DRYFIELD_DRIVEWAY_ENCOUNTER_WAVE_BEGIN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E330 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -180,8 +184,8 @@ EvsCommand gDrivewayBlackoutTail[9] = {
 TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
     { 5105, func_dryfield_driveway_8017DCC0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_driveway_8017DDB8 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_driveway_8017DDB0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldDrivewayIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldDrivewayIgnoreRoomCommand },
     { ROOM_MESSAGE_SOUND, drivewayScriptSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -617,7 +621,6 @@ u8 D_dryfield_driveway_80180693 = 207;
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static void func_dryfield_driveway_8017DDC0(Task* task);
-static void func_dryfield_driveway_8017DE04(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
@@ -627,10 +630,14 @@ static void func_dryfield_driveway_8017DE04(Task* task);
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 
-/// Script callback: stores its argument in the gameplay byte `gSceneCombatState.actor03700Wave`.
-void func_dryfield_driveway_8017DC48(s32 arg0)
+/// Sets the actor 03700 encounter's entrance and wave stage from an event script.
+///
+/// Stores the argument's low signed byte without clamping: 0 is the initial stage,
+/// 1 begins wave progression, and 2..5 release successive waves. The script passes
+/// `DRYFIELD_DRIVEWAY_ENCOUNTER_WAVE_BEGIN`; actor tasks advance the later stages.
+static void _dryfieldDrivewaySetEncounterWave(s32 waveStage)
 {
-    gSceneCombatState.actor03700Wave = arg0;
+    gSceneCombatState.actor03700Wave = waveStage;
 }
 
 #include "../../shared/dryfield_driveway_set_view_dirty.inc.c"
@@ -678,14 +685,19 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Message handler that reports every message as unhandled.
-s32 func_dryfield_driveway_8017DDB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Answers `ROOM_MESSAGE_COMMAND` with zero without executing a room command.
+///
+/// All four callback arguments are ignored; no task or payload is accessed.
+static s32 _dryfieldDrivewayIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg)
 {
     return 0;
 }
 
-/// Message handler that reports every message as unhandled.
-s32 func_dryfield_driveway_8017DDB8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Answers `DIRECTION_MESSAGE_ROOM_ACTION` with zero without executing an action.
+///
+/// The borrowed action request stays an unused argument word; it is never
+/// dereferenced or retained. All other callback arguments are ignored too.
+static s32 _dryfieldDrivewayIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, s32 unusedRequestWord, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -699,10 +711,14 @@ static void func_dryfield_driveway_8017DDC0(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room task: does nothing.
-static void func_dryfield_driveway_8017DE04(Task* task)
+/// Keeps the room task idle after its message table and room slot are installed.
+///
+/// Ignores the task argument and leaves the task in this state until another
+/// owner changes its state or destroys it.
+static void _dryfieldDrivewayIdleRoomTask(Task* unusedTask)
 {
-    char pad[0x10];
+    // Retain the target's unused 16-byte stack frame; it has no accessed payload.
+    char stackReservation[0x10];
 }
 
 /// The room task's state table, dispatched by `func_dryfield_driveway_8017DE14`
@@ -710,7 +726,7 @@ static void func_dryfield_driveway_8017DE04(Task* task)
 static const TaskFuncTable3 D_dryfield_driveway_8017D5D8 = {
     {
         func_dryfield_driveway_8017DDC0,
-        func_dryfield_driveway_8017DE04,
+        _dryfieldDrivewayIdleRoomTask,
         taskKill,
     },
 };
@@ -725,8 +741,7 @@ void func_dryfield_driveway_8017DE14(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Sets the room effect mode to 2.
-void func_dryfield_driveway_8017DE6C(Task* unused)
+void dryfieldDrivewayEnableAmbientEffectsTask(Task* unusedTask)
 {
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }
