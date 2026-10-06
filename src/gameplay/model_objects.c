@@ -1121,7 +1121,7 @@ u32* tmdDrawStreamPrimGt4PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                 GPU_PRIMITIVE_XY_WORD(&(*packetPair)[1], 0) = GPU_PRIMITIVE_XY_WORD(&(*packetPair)[1], 1);
                 gte_stopz(gteResultDestination);
                 if (workspace->gteResult >= 0) {
-                    goto next;
+                    continue;
                 }
             } else {
                 gte_stopz(gteResultDestination);
@@ -1189,11 +1189,8 @@ u32* tmdDrawStreamPrimGt4PreXformEnvLayer(TmdStreamWorkspace* workspace, s32 obj
                     }
                 }
             }
-        next:
             // Culled elements consume both packet slots too.
-            packetPair++;
-            elements += workspace->elemStride;
-        } while (workspace->elemCount-- > 0);
+        } while (packetPair++, elements += workspace->elemStride, workspace->elemCount-- > 0);
     }
     workspace->preXformWrite = (u8*)packetPair;
     return elements;
