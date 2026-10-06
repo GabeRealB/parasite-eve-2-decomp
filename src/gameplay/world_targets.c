@@ -476,48 +476,35 @@ void func_800DA6E8(void* arg0, s32 arg1, s32 arg2)
     i     = 0;
     p     = Gp_LockSlots;
     // Non-negative totals and healing totals occupy separate slots.
-loop:
-    if (p->binding.node == arg0) {
-        if (arg1 >= 0) {
-            if (p->amount >= 0) {
+    for (; i < 0x20; i++) {
+        if (p->binding.node == arg0) {
+            if (arg1 >= 0) {
+                if (p->amount >= 0) {
+                    found = p;
+                    break;
+                }
+                p++;
+            } else if (p->amount < 0) {
                 found = p;
-                goto done;
+                break;
+            } else {
+                p++;
             }
-            p++;
-        } else if (p->amount < 0) {
-            found = p;
-            goto done;
         } else {
             p++;
         }
-    } else {
-        p++;
     }
-    i++;
-    if (i < 0x20) {
-        goto loop;
-    }
-done:
     if (found == NULL) {
-        i = 0;
-        p = Gp_LockSlots;
-    loop2:
-        if (p->binding.node == NULL) {
-            found           = p;
-            p->binding.node = arg0;
-            found->amount   = 0;
-        } else {
-            i++;
-            p++;
-            if (i < 0x20) {
-                goto loop2;
+        for (i = 0, p = Gp_LockSlots; i < 0x20; i++, p++) {
+            if (p->binding.node == NULL) {
+                found           = p;
+                p->binding.node = arg0;
+                found->amount   = 0;
+                break;
             }
         }
-        if (found != NULL) {
-            goto update;
-        }
-    } else {
-    update:
+    }
+    if (found != NULL) {
         found->framesLeft = WORLD_TARGET_READOUT_FRAMES;
         found->amount    += arg1;
     }
