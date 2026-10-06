@@ -59,6 +59,12 @@ void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0);
 
 void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0);
 
-void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0);
+/// Binds the room's effect tasks once and draws the active view's lamp glows each frame.
+///
+/// Task state 0 selects the room effect IDs and advances to state 1; every state
+/// draws glows in views 2..6, while other views emit none. Requires this room
+/// overlay to remain loaded, composed view matrices, the glow drawers' scratch
+/// stack capacity, and room in the current frame's packet arena and ordering table.
+void shelterB1NorthMaintenanceWalkwayDrawGlowsTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_H

@@ -1861,7 +1861,7 @@ func_shelter_b1_south_maintenance_walkway_8017DA8C = 0x8017DA8C; // type:func ab
 
 func_shelter_b1_storeroom_8017D7EC = 0x8017D7EC; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
 
-func_shelter_b1_north_maintenance_walkway_8017DBC8 = 0x8017DBC8; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway shared=rooms
+shelterB1NorthMaintenanceWalkwayDrawGlowsTask = 0x8017DBC8; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway shared=rooms
 
 shelterB1ArmoryDrawGlowsTask = 0x801807E4; // type:func absolute:True owner=shelter_b1_armory shared=rooms
 

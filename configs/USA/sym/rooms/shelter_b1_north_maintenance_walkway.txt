@@ -80,7 +80,7 @@ func_shelter_b1_north_maintenance_walkway_8017F998 = 0x8017F998; // type:func
 
 func_shelter_b1_north_maintenance_walkway_80180DA8 = 0x80180DA8; // type:func
 
-func_shelter_b1_north_maintenance_walkway_8017DBC8 = 0x8017DBC8; // type:func
+shelterB1NorthMaintenanceWalkwayDrawGlowsTask = 0x8017DBC8; // type:func
 _roomVisualEffectsDrawMote = 0x8017EB84; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017EE48; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017F26C; // type:func
@@ -99,3 +99,8 @@ _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80184700; // type:func
 glowDrawDimGreyCapsule = 0x8017DDE0; // type:func
 glowDrawRedDisc = 0x8017E55C; // type:func
 roomEventStagedTask = 0x8017D60C; // type:func
+_shelterB1NorthMaintenanceWalkwayRejectKeyItemUse = 0x8017da34; // type:func
+_shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand = 0x8017da3c; // type:func
+_shelterB1NorthMaintenanceWalkwayIgnoreRoomAction = 0x8017da44; // type:func
+_shelterB1NorthMaintenanceWalkwayRoomIdle = 0x8017daf4; // type:func
+_shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility = 0x8017db54; // type:func

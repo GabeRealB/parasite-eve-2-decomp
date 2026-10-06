@@ -49,23 +49,26 @@ extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[];
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B18[];
 extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[];
 
-static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
+static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSeen);
 
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
 
-s32  func_shelter_b1_north_maintenance_walkway_8017D7A4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-void func_shelter_b1_north_maintenance_walkway_8017D918(Task*);
-s32  func_shelter_b1_north_maintenance_walkway_8017DA34(Task*, s32, s32, s32);
-s32  func_shelter_b1_north_maintenance_walkway_8017DA3C(Task*, s32, s32, s32);
-s32  func_shelter_b1_north_maintenance_walkway_8017DA44(Task*, s32, s32, s32);
+s32        func_shelter_b1_north_maintenance_walkway_8017D7A4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+void       func_shelter_b1_north_maintenance_walkway_8017D918(Task*);
+static s32 _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32 _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Requests use of the key item in the first payload word.
+enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
-    { 5105, func_shelter_b1_north_maintenance_walkway_8017DA34 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_north_maintenance_walkway_8017DA44 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_north_maintenance_walkway_8017DA3C },
+    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -107,7 +110,22 @@ SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[1] = {
 static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event);
 static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0);
-static void func_shelter_b1_north_maintenance_walkway_8017DAF4(Task* task);
+static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task);
+
+/// Selects this room's task IDs for the resident effect spawners.
+static __inline__ void _shelterB1NorthMaintenanceWalkwayBindEffectTasks(void)
+{
+    gRoomEffectMoteId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MOTE;
+    gRoomEffectHaloId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER;
+    gRoomEffectFlashId        = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST;
+    gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_GLOW_DISC;
+    gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLYING_SPARK;
+    gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
+}
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -201,17 +219,20 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
     }
 }
 
-s32 func_shelter_b1_north_maintenance_walkway_8017DA34(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in this room, returning 0 without changing the item or room.
+static s32 _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_north_maintenance_walkway_8017DA3C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and both payload words, returning 0.
+static s32 _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_north_maintenance_walkway_8017DA44(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room actions without reading the borrowed request, returning 0.
+static s32 _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -227,18 +248,18 @@ static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
             Gp_SpawnIfCapIdle(4, 0);
         }
     }
-    func_shelter_b1_north_maintenance_walkway_8017DB54(gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN));
+    _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN));
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// The room task's idle state: does nothing.
-static void func_shelter_b1_north_maintenance_walkway_8017DAF4(Task* task)
+/// Keeps the initialized room task idle until another owner changes its state.
+static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task)
 {
 }
 
 /// The room task's three states: set-up, idle and exit.
 static const TaskFuncTable3 D_shelter_b1_north_maintenance_walkway_8017D5D8 = {
-    { func_shelter_b1_north_maintenance_walkway_8017DA4C, func_shelter_b1_north_maintenance_walkway_8017DAF4, taskKill },
+    { func_shelter_b1_north_maintenance_walkway_8017DA4C, _shelterB1NorthMaintenanceWalkwayRoomIdle, taskKill },
 };
 
 /// The room task. Runs the handler for its current state from the room's
@@ -251,75 +272,77 @@ void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
+/// Restores view 3's scene sprite visibility from the B2 north walkway scene flag.
+///
+/// Requires this room's loaded sprite directory. Flag 0 hides the single-sprite
+/// batch, 1 reveals it, and all other byte values preserve its current visibility.
+static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSeen)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      rec;
-    SpriteBatch*     batches;
-    s32              mode;
+    enum { SCENE_NOT_SEEN    = 0,
+           SCENE_SEEN        = 1,
+           SCENE_VIEW_INDEX  = 2,
+           SCENE_BATCH_INDEX = 2 };
+    const GameLocationKey* location = &gGameSession->location.loc;
+    SpriteView*            views;
+    SpriteBatch*           batches;
 
-    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-    mode = arg0 & 0xFF;
-    if (mode == 0) {
-        batches           = rec[2].batches;
-        batches[2].hidden = 1;
-    } else if (mode == 1) {
-        batches           = rec[2].batches;
-        batches[2].hidden = 0;
+    views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    if (sceneSeen == SCENE_NOT_SEEN) {
+        batches                           = views[SCENE_VIEW_INDEX].batches;
+        batches[SCENE_BATCH_INDEX].hidden = 1;
+    } else if (sceneSeen == SCENE_SEEN) {
+        batches                           = views[SCENE_VIEW_INDEX].batches;
+        batches[SCENE_BATCH_INDEX].hidden = 0;
     }
 }
 
-void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
+void shelterB1NorthMaintenanceWalkwayDrawGlowsTask(Task* task)
 {
-    if (arg0->state == 0) {
-        gRoomEffectMoteId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MOTE;
-        gRoomEffectHaloId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_HALO;
-        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST;
-        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER;
-        gRoomEffectFlashId        = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST;
-        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_GLOW_DISC;
-        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_FLYING_SPARK;
-        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
-        arg0->state               = 1;
+    enum { GLOW_TASK_INITIALIZE   = 0,
+           GLOW_TASK_DRAW         = 1,
+           LAMP_GLOW_RADIUS_SCALE = 0x200 };
+
+    if (task->state == GLOW_TASK_INITIALIZE) {
+        _shelterB1NorthMaintenanceWalkwayBindEffectTasks();
+        task->state = GLOW_TASK_DRAW;
     }
 
+    // The point arrays' boundaries are unresolved; views 3, 4 and 6 cross them.
     switch (gGameSession->location.loc.view) {
         case 2: {
-            SVECTOR* p;
-            p = D_shelter_b1_north_maintenance_walkway_80184B18;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[4], 0x200, -0x400);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_north_maintenance_walkway_80184B18;
+            glowDrawDimGreyCapsule(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[4], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
         case 3: {
-            SVECTOR* p;
-            p = D_shelter_b1_north_maintenance_walkway_80184B08;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[2], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[4], 0x200, -0x400);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_north_maintenance_walkway_80184B08;
+            glowDrawDimGreyCapsule(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[2], LAMP_GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[4], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
         case 4:
         case 6: {
-            SVECTOR* p;
-            p = D_shelter_b1_north_maintenance_walkway_80184B48;
-            glowDrawRedDisc(&p[0], 0x200);
-            glowDrawDimGreyCapsule(&p[-18], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-16], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-12], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[-10], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[-8], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[-6], 0x200, 0x800);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_north_maintenance_walkway_80184B48;
+            glowDrawRedDisc(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&glowPoints[-18], LAMP_GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-16], LAMP_GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-12], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-10], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-8], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-6], LAMP_GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
             break;
         }
         case 5: {
-            SVECTOR* p;
-            p = D_shelter_b1_north_maintenance_walkway_80184AB8;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[6], 0x200, -0x400);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_north_maintenance_walkway_80184AB8;
+            glowDrawDimGreyCapsule(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[6], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
     }

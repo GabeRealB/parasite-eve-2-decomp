@@ -837,7 +837,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallDrawGlowsTask, { NULL } },                          // 0x128
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017DA8C, { NULL } },             // 0x129
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017D7EC, { NULL } },                             // 0x12A
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017DBC8, { NULL } },             // 0x12B
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1NorthMaintenanceWalkwayDrawGlowsTask, { NULL } },               // 0x12B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ArmoryDrawGlowsTask, { NULL } },                                   // 0x12C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sleeping_quarters_8017D8E0, { NULL } },                     // 0x12D
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorDrawViewLightsTask, { NULL } },                     // 0x12E
