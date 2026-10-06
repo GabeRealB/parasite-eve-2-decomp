@@ -2559,7 +2559,6 @@ void effectSpriteTask32(Task* task)
     u32         nextRandomState;
     u16         nextAge;
     s32         fixedOne;
-    s32         nextState;
 
     work       = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
@@ -2595,19 +2594,20 @@ void effectSpriteTask32(Task* task)
             _effectPositionChargeParticle(coord, work, orbitAngle);
             task->state = EFFECT_CHARGE_PARTICLE_STATE_ORBIT;
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto release;
+                task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                break;
             }
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
-                goto setState;
+                task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                break;
             }
             break;
         case EFFECT_CHARGE_PARTICLE_STATE_ORBIT:
             orbitAngle = ((s16)nextAge + work->scale) * EFFECT_CHARGE_PARTICLE_ANGLE_STEP;
             _effectPositionChargeParticle(coord, work, orbitAngle);
             if ((gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED)) {
-                nextState = EFFECT_CHARGE_PARTICLE_STATE_FALL;
-                goto setState;
+                task->state = EFFECT_CHARGE_PARTICLE_STATE_FALL;
+                break;
             }
             if (Gp_StateC08.duration < EFFECT_CHARGE_PARTICLE_CONTRACT_DURATION) {
                 task->state = EFFECT_CHARGE_PARTICLE_STATE_CONTRACT;
@@ -2620,35 +2620,29 @@ void effectSpriteTask32(Task* task)
             work->move.vy = ((rsin(work->move.vz) * work->step) >> EFFECT_DRAW_FRACTION_BITS) - EFFECT_CHARGE_PARTICLE_HEIGHT_OFFSET;
             _effectPositionChargeParticle(coord, work, orbitAngle);
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
-                goto setState;
+                task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                break;
             }
             if (work->step < EFFECT_CHARGE_PARTICLE_CONTRACT_STEP) {
-                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
-                goto setState;
+                task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                break;
             }
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
-                goto setState;
+                task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
+                break;
             }
             break;
         case EFFECT_CHARGE_PARTICLE_STATE_FALL:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             coord->coord.t[1]  += EFFECT_CHARGE_PARTICLE_FALL_STEP;
             actorRenderComposeCoord(coord);
-            if (work->period < EFFECT_CHARGE_PARTICLE_FADE_STEP + 1) {
-                nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
-                goto setState;
+            if (work->period >= EFFECT_CHARGE_PARTICLE_FADE_STEP + 1) {
+                work->period = work->period - EFFECT_CHARGE_PARTICLE_FADE_STEP;
+                break;
             }
-            work->period = work->period - EFFECT_CHARGE_PARTICLE_FADE_STEP;
+            task->state = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
             break;
     }
-    goto draw;
-release:
-    nextState = EFFECT_CHARGE_PARTICLE_STATE_RELEASE;
-setState:
-    task->state = nextState;
-draw:
     effectDrawModulatedBillboard(coord, work->age, work->angle | EFFECT_CHARGE_PARTICLE_SPRITE_BANK,
                                  work->period | EFFECT_CHARGE_PARTICLE_PALETTE_BITS);
     if (task->state == EFFECT_CHARGE_PARTICLE_STATE_RELEASE) {
