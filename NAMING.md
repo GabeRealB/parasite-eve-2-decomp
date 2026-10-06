@@ -689,7 +689,9 @@ reset, blended reseed and placement, so a carrier binds `PACED_WALK_WORK_T` to
 second model on one of its parts, carried by `actor_150400`, `actor_450800`,
 `actor_451100` and `actor_535700`. Its implementation interface is
 `src/shared/pair_walk.h`, one fragment per function. `PairWalkWork` is the
-task's work block, kept at `Task::work`.
+task's work block, kept at `Task::work`. Its animation update, slot helpers,
+message handlers and carried-model callback have static per-carrier instances,
+marked `_pairWalk`; their declarations describe the same shared implementation.
 
 `footstepWalk` owns the included walk of the nineteen-part NPC that publishes
 its work block in a global and can sound its steps, carried by `actor_151000`,

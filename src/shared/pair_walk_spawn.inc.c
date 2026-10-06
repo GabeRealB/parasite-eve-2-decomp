@@ -4,7 +4,7 @@
 /// `func_actor_450800_80133264`'s `fns` table. Builds the enemy's `PairWalkWork` block,
 /// spawns its own model task out of the same `gPairWalkTasks` table,
 /// faces it at the placed spawn point, starts the animation and hands the state
-/// machine to `pairWalkUpdate`.
+/// machine to `_pairWalkUpdate`.
 void pairWalkSpawn(Enemy* enemy, Task* task)
 {
     VECTOR        vec;
@@ -43,6 +43,6 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
     work->st.animId = 1;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable  = gPairWalkMessages;
-    pairWalkUpdate(task);
+    _pairWalkUpdate(task);
     task->state++;
 }

@@ -1,24 +1,32 @@
 /* Part of the pair walk library; see pair_walk.h. */
 
-/// Starts the actor's scripted animation selected by the request.
+/// Applies an indexed animation request immediately to the walker.
 ///
-/// Rejects ids 6 and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 pairWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` with live `PairWalkWork` and a
+/// borrowed, word-aligned request. The ID must select a loaded set below 6;
+/// negative IDs and missing entries are not checked. Ignores the request's
+/// source and collision words. Nonzero `blend` captures initialized slots and
+/// keeps the low signed halfword of `blendFrames` (whole normal-rate frames;
+/// 0 to 2047 avoids signed blend-time overflow); zero restarts without blending.
+/// Consumes the request during dispatch and retains no payload pointer.
+/// The message ID and second payload are ignored. Returns 0 on acceptance,
+/// or -1 for an ID of 6 or above without changing playback state.
+static s32 _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
+    enum { PAIR_WALK_ANIMATION_ID_LIMIT = 6 };
     PairWalkWork* work;
 
     work = task->work;
-    if (args->animationId < 6) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
+    if (request->animationId < PAIR_WALK_ANIMATION_ID_LIMIT) {
+        work->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-            work->blendFrames = args->blendFrames;
+            work->blendFrames = request->blendFrames;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
-        pairWalkUpdate(task);
+        _pairWalkUpdate(task);
         return 0;
     }
     return -1;

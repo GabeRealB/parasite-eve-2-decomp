@@ -1383,8 +1383,8 @@ static AnimationSet _gActor451100Animation1C86C = {
 
 TaskMessageEntry D_actor_451100_8014E6B4[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_451100_80132E98 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
-    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_451100_80132FE0 },
     { ACTOR_MESSAGE_WALK_TO, func_actor_451100_80132FE8 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1678,7 +1678,7 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
     work->st.animId = 1;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable  = D_actor_451100_8014E6B4;
-    pairWalkUpdate(task);
+    _pairWalkUpdate(task);
     task->state += 1;
 }
 
@@ -1699,7 +1699,7 @@ void func_actor_451100_80132BD4(Task* task)
 }
 
 #define walkerFrame      func_actor_451100_80132C28
-#define walkerUpdate     pairWalkUpdate
+#define walkerUpdate     _pairWalkUpdate
 #define walkerDrawShadow func_actor_451100_80132CD4
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1742,7 +1742,7 @@ s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args,
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
-        pairWalkUpdate(task);
+        _pairWalkUpdate(task);
         return 0;
     }
     return -1;

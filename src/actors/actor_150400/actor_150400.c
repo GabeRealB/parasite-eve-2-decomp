@@ -38,6 +38,9 @@
 #include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
 
+static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static void _pairWalkSubModelTask(Task* task);
+
 extern TaskDesc D_actor_150400_80132CF0;
 extern Task*    D_actor_150400_8013C924;
 extern Task*    D_actor_150400_8013C928;
@@ -320,9 +323,9 @@ static TmdSource _gActor150400GolemBeamSword = {
 };
 
 TaskMessageEntry D_actor_150400_8013C8C4[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, pairWalkPlay },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
-    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_150400_801327EC },
     { ACTOR_MESSAGE_WALK_TO, func_actor_150400_801327F4 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -330,7 +333,7 @@ TaskMessageEntry D_actor_150400_8013C8C4[6] = {
 
 TaskDesc D_actor_150400_8013C8F4[2] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_150400_801323E0, { .model = &_gActor150400No9GolemDryfieldBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &_gActor150400GolemBeamSword } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor150400GolemBeamSword } },
 };
 
 u8 D_actor_150400_8013C90C[24] = {
@@ -442,7 +445,7 @@ void func_actor_150400_80131FB8(void)
 /// State-0 handler of the actor's task: allocates the work block, starts the
 /// sub-model task and parents it under this one, textures the sub-model from
 /// the placement record of the current area, then starts the animation in
-/// state 2 and runs the step body `pairWalkUpdate` once.
+/// state 2 and runs the step body `_pairWalkUpdate` once.
 static void func_actor_150400_80132014(Enemy* enemy, Task* task)
 {
     VECTOR        vec;
@@ -482,7 +485,7 @@ static void func_actor_150400_80132014(Enemy* enemy, Task* task)
     work->st.animId = 1;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable  = D_actor_150400_8013C8C4;
-    pairWalkUpdate(task);
+    _pairWalkUpdate(task);
     task->state++;
 }
 
@@ -502,7 +505,7 @@ void func_actor_150400_801323E0(Task* task)
 }
 
 #define walkerFrame      func_actor_150400_80132434
-#define walkerUpdate     pairWalkUpdate
+#define walkerUpdate     _pairWalkUpdate
 #define walkerDrawShadow walkerDrawShadowShaded
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame

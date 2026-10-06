@@ -55,11 +55,11 @@ D_shelter_b1_control_room_80181BBC = 0x80181BBC; // absolute:True owner=shelter_
 
 D_shelter_b1_control_room_80183BE0 = 0x80183BE0; // absolute:True owner=shelter_b1_control_room
 walkerDrawShadowShaded = 0x801324E0; // type:func
-pairWalkUpdate = 0x80132228; // type:func
-pairWalkTickAnim = 0x8013257C; // type:func
-pairWalkResetAnim = 0x801325C8; // type:func
-pairWalkReseedAnim = 0x80132640; // type:func
-pairWalkPlay = 0x801326A4; // type:func
-pairWalkSetVisibility = 0x80132710; // type:func
-pairWalkPlace = 0x80132774; // type:func
-pairWalkSubModelTask = 0x801328BC; // type:func
+_pairWalkUpdate = 0x80132228; // type:func
+_pairWalkTickAnim = 0x8013257C; // type:func
+_pairWalkResetAnim = 0x801325C8; // type:func
+_pairWalkReseedAnim = 0x80132640; // type:func
+_pairWalkPlay = 0x801326A4; // type:func
+_pairWalkSetVisibility = 0x80132710; // type:func
+_pairWalkPlace = 0x80132774; // type:func
+_pairWalkSubModelTask = 0x801328BC; // type:func

@@ -1,40 +1,52 @@
 /* Part of the pair walk library; see pair_walk.h. */
 
-/// The enemy's animation state machine, run by its spawn and per-frame
-/// handlers. States 1 and 2 start the clip in `animId` through
-/// `pairWalkReseedAnim` or `pairWalkResetAnim` and advance to
-/// state 3. State 3 walks the model 12 units a frame while the walk clip (4)
-/// has `travel` left, dropping back to clip 1 with reset argument 0xA when it
-/// runs out, then ticks the slots.
-void pairWalkUpdate(Task* task)
+/// Consumes an attempted movement tick and records the idle choice on arrival.
+static __inline__ void _pairWalkCompleteTravelTick(PairWalkWork* work)
+{
+    work->st.travel--;
+    if (work->st.travel == 0) {
+        work->blendFrames = PAIR_WALK_IDLE_BLEND_FRAMES;
+        work->st.animId   = PAIR_WALK_ANIM_IDLE;
+    }
+}
+
+/// Applies animation requests or advances the walker by a 12-unit travel tick.
+///
+/// Requires a live TMD walker with `PairWalkWork` and animation's loaded data,
+/// initialized scratch stack and GTE. BLEND captures poses and RESET restarts
+/// tracks, then each enters TICK and returns without another slot tick. TICK
+/// moves along local Z only while the requested clip is WALK and travel is
+/// nonzero, then advances slots 1 to 18. Other states do nothing.
+/// Travel counts down even when actor freezing suppresses translation. Arrival
+/// records IDLE and a ten-frame blend duration but leaves TICK and the playing
+/// tracks unchanged; another request is needed to apply a clip change.
+static void _pairWalkUpdate(Task* task)
 {
     PairWalkWork* work;
-    s16           animId;
+    s16           requestedAnimId;
 
     work = task->work;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        pairWalkReseedAnim(task);
+        _pairWalkReseedAnim(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
     if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
-        pairWalkResetAnim(task);
+        _pairWalkResetAnim(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
     if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
+        // Keep the actor-freeze test's constant separate from the state test's.
         do {
         } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            _actorMovementStepModelForward(task, 0xC);
-            work->st.travel--;
-            if (work->st.travel == 0) {
-                work->blendFrames = 0xA;
-                work->st.animId   = 1;
-            }
+        requestedAnimId = work->st.animId;
+        if (requestedAnimId == PAIR_WALK_ANIM_WALK && work->st.travel != 0) {
+            _actorMovementStepModelForward(task, PAIR_WALK_MODEL_STEP_UNITS);
+            // Travel counts attempted steps, including those suppressed by freezing.
+            _pairWalkCompleteTravelTick(work);
         }
-        pairWalkTickAnim(task);
+        _pairWalkTickAnim(task);
         return;
     }
 }

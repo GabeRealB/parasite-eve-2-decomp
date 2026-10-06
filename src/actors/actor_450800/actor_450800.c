@@ -46,6 +46,10 @@
 #include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
 
+static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _pairWalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
+static void _pairWalkSubModelTask(Task* task);
+
 /// The clips the package's event scripts add to the player's animation bank,
 /// with the first three player play requests stored after them.
 ///
@@ -2615,17 +2619,17 @@ static AnimationSet _gActor450800Animation21B64 = {
 };
 
 TaskMessageEntry gPairWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, pairWalkPlay },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
-    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_450800_80133670 },
-    { ACTOR_MESSAGE_WALK_TO, pairWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _pairWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gPairWalkTasks[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_450800_80133264, { .model = &_gActor450800PawnGolemBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &_gActor450800GolemBeamSword } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor450800GolemBeamSword } },
 };
 
 u8 gPairWalkAnimParams[24] = {
@@ -3161,7 +3165,7 @@ void func_actor_450800_80133264(Task* task)
 }
 
 #define walkerFrame      func_actor_450800_801332B8
-#define walkerUpdate     pairWalkUpdate
+#define walkerUpdate     _pairWalkUpdate
 #define walkerDrawShadow func_actor_450800_80133364
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame

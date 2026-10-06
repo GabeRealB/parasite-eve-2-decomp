@@ -46,6 +46,9 @@ static void _footstepWalkBlendAnim(void);
 static s32  _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
 static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 static s32  _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
+static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _pairWalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
+static void _pairWalkSubModelTask(Task* task);
 
 /// Reset argument the first enemy's "play animation" opcode leaves behind:
 /// `_footstepWalkBlendAnim` forwards it to every reseeded slot, and the
@@ -1070,17 +1073,17 @@ static AnimationSet _gActor535700Animation14998 = {
 };
 
 TaskMessageEntry gPairWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, pairWalkPlay },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, pairWalkSetVisibility },
-    { ACTOR_MESSAGE_PLACE, pairWalkPlace },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
+    { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_535700_8013332C },
-    { ACTOR_MESSAGE_WALK_TO, pairWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _pairWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gPairWalkTasks[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_535700_80132F20, { .model = &_gActor535700PawnGolemBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, pairWalkSubModelTask, { .model = &_gActor535700GolemBeamSword } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor535700GolemBeamSword } },
 };
 
 u8 gPairWalkAnimParams[24] = {
@@ -1272,7 +1275,7 @@ void func_actor_535700_80132F20(Task* task)
 }
 
 #define walkerFrame      func_actor_535700_80132F74
-#define walkerUpdate     pairWalkUpdate
+#define walkerUpdate     _pairWalkUpdate
 #define walkerDrawShadow func_actor_535700_80133020
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
