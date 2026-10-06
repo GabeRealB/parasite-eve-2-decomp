@@ -48,8 +48,7 @@ void func_p229_8011DDA0(Task* arg0);
 
 #include "../../shared/muzzle_flash_task.inc.c"
 
-/// The P229\'s muzzle-flash task, named by gameplay\'s effect table.
-void func_p229_8011D1DC(Task* task)
+void p229MuzzleFlashTask(Task* task)
 {
     _muzzleFlashTask(task);
 }
