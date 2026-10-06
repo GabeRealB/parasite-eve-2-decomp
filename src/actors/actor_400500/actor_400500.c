@@ -2144,24 +2144,34 @@ static s32 func_actor_400500_80133160(Task* arg0)
     return 0;
 }
 
+/// Returns 1 when slot 1 reports a reached boundary, control jump, or held boundary pose.
+static inline s32 _actor400500HitFlagged(Task* task)
+{
+    _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)task->work;
+
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        return 1;
+    }
+    return 0;
+}
+
 static s32 func_actor_400500_80133358(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
     _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* hit;
     s16                          mode;
     s16                          sub;
     s32                          flag;
-    s32                          cond;
-    s32                          ret;
 
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     mode = work->hitTaken;
     if (mode == 1) {
-        ret = 0;
         sub = work->hitReaction;
         if (sub == mode) {
-            goto zero_both;
+            work->hitTaken    = 0;
+            work->hitReaction = ACTOR_400500_HIT_REACTION_NONE;
+            return 0;
         }
         if ((sub == ACTOR_400500_HIT_REACTION_HEAVY) || (sub == ACTOR_400500_HIT_REACTION_BLAST)) {
             if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != mode)) {
@@ -2175,26 +2185,13 @@ static s32 func_actor_400500_80133358(Task* arg0)
             work2->animId          = 0xA;
             work2->animRequest     = ACTOR_400500_ANIM_REQUEST_BLEND;
             work->hitReaction      = ACTOR_400500_HIT_REACTION_NONE;
-            goto check_hit;
+        } else if (sub == ACTOR_400500_HIT_REACTION_STATUS) {
+            func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_STATUS_HOLD);
+            work->hitTaken    = 0;
+            work->hitReaction = ACTOR_400500_HIT_REACTION_NONE;
+            return 1;
         }
-        if (sub != ACTOR_400500_HIT_REACTION_STATUS) {
-            goto check_hit;
-        }
-        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_STATUS_HOLD);
-        ret = 1;
-    zero_both:
-        work->hitTaken    = 0;
-        work->hitReaction = ACTOR_400500_HIT_REACTION_NONE;
-        return ret;
-    check_hit:
-        hit = (_Actor400500GrayStalkerWork*)arg0->work;
-        if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        if (_actor400500HitFlagged(arg0)) {
             work->hitTaken = 0;
         }
         return 1;
@@ -2326,18 +2323,6 @@ static inline void _actor400500TickAnim(Task* task)
         animationTickSlot(&work->rig.anim, i);
         i++;
     } while (i < ARRAY_SIZE(work->rig.slots));
-}
-
-/// Returns 1 when slot 1 reports a reached boundary, control jump, or held boundary pose.
-static inline s32 _actor400500HitFlagged(Task* task)
-{
-    _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)task->work;
-
-    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        return 1;
-    }
-    return 0;
 }
 
 /// Consumes a pending knockdown: clears the request, enters the knockdown
