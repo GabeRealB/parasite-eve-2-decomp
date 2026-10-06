@@ -156,7 +156,7 @@ extern RoomCutsceneRec D_mine_refuge_80182AE0;
 
 static void func_mine_refuge_8017FE78(s32 arg0);
 static void func_mine_refuge_8017FF4C(Task* task);
-static void func_mine_refuge_8017FFAC(Task* task);
+static void _mineRefugeIdleRoomTask(Task* task);
 
 extern WorldCollisionGrid         D_mine_refuge_80181BA4[1];
 extern WorldCollisionTrigger      D_mine_refuge_80182778[2];
@@ -524,9 +524,9 @@ u8 D_mine_refuge_80182ADC[4] = {
 
 RoomCutsceneRec D_mine_refuge_80182AE0;
 
-static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void _mineRefugeDrawPulsingCyanStar(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _mineRefugeDrawPulsingCyanBurst(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _mineRefugeDrawLayeredGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
 #include "../../shared/telephone.inc.c"
 
@@ -548,7 +548,7 @@ void func_mine_refuge_8017EA78(Task* task)
 static const TaskFuncTable3 D_mine_refuge_8017D6A4 = {
     {
         func_mine_refuge_8017FF4C,
-        func_mine_refuge_8017FFAC,
+        _mineRefugeIdleRoomTask,
         taskKill,
     },
 };
@@ -739,10 +739,11 @@ static void func_mine_refuge_8017FF4C(Task* arg0)
     D_80115598             = 1;
 }
 
-/// Idle state of the room's message task: does nothing.
-static void func_mine_refuge_8017FFAC(Task* task)
+/// Keeps the room message task idle while its installed handlers remain available.
+static void _mineRefugeIdleRoomTask(Task* task)
 {
-    char pad[0x10];
+    // Retain the idle callback's 16-byte stack frame.
+    char stackFrame[0x10];
 }
 
 /// Runs the handler for the task's current state, from a local copy of
@@ -757,340 +758,344 @@ void func_mine_refuge_8017FFBC(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
-/// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
-/// radius of `(s16)arg2 * 32 / depth`. The lit vertex pulses on green and blue at
-/// `rsin(animFrame * (s16)arg1) / 34 + 0x78`. A 0x18-byte scratch block in the
-/// `EffectCentreScratch` layout is taken from the scratch stack and returned.
-static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Initializes a Gouraud glow quad with a lit centre and a black rim.
+///
+/// Color arguments narrow to bytes. The caller owns allocation, coordinates,
+/// ordering-table linkage and blend setup; the packet must be writable.
+static inline void _mineRefugeInitGlowQuad(POLY_G4* quad, s32 redIntensity, s32 greenIntensity, s32 blueIntensity)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_G4*             prim;
-    LINE_G3*             line;
-    s32                  sine;
-    s32                  pulse;
-    s32                  radius;
-    s32                  i;
-    s32                  t1;
-    s32                  t2;
-    s32                  twice;
-    u16                  sx;
-    u16                  sy;
+    setPolyG4(quad);
+    setRGB0(quad, 0, 0, 0);
+    setRGB1(quad, 0, 0, 0);
+    setRGB2(quad, redIntensity, greenIntensity, blueIntensity);
+    setRGB3(quad, 0, 0, 0);
+}
 
-    {
-        void** scratch;
-        u8*    tmp;
+/// Draws a pulsing cyan diamond and two crossing diagonals at a world point.
+///
+/// The signed low halfword of `pulseRate` is in 4096 angle units per animation
+/// frame. Intensity is `rsin(animFrame * pulseRate) / 34 + 120` (0..240).
+/// The signed low halfword of `radiusScale` gives a pixel half-extent of
+/// `radiusScale * 32 / depth`, where depth is camera Z / 4. The second diagonal
+/// extends twice as far as the diamond. Rejects negative GTE flags and requires
+/// nonzero depth. Borrows the point during this call, reserves and releases one
+/// `EffectCentreScratch`, and queues two additive quads and two three-point
+/// lines plus their blend commands in the current frame.
+static void _mineRefugeDrawPulsingCyanStar(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale)
+{
+    EffectCentreScratch* scratchEnd;
+    EffectCentreScratch* scratchBlock;
+    POLY_G4*             quad;
+    LINE_G3*             diagonal;
+    s32                  pulseSine;
+    s32                  cyanIntensity;
+    s32                  screenRadius;
+    s32                  partIndex;
+    s32                  xRadiusMultiple;
+    s32                  yRadiusMultiple;
+    s32                  verticalSide;
+    u16                  screenX;
+    u16                  screenY;
 
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - sizeof(EffectCentreScratch));
-        block   = (EffectCentreScratch*)tmp;
-    }
+    scratchEnd   = *SCRATCH_STACK_CURSOR_SLOT;
+    scratchBlock = (*SCRATCH_STACK_CURSOR_SLOT = scratchEnd - 1);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        sine                = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius              = ((s16)arg2 * 32) / block->depth;
-        i                   = 0;
-        pulse               = sine / 34 + 0x78;
-        block->screenExtent = radius;
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (scratchBlock->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        pulseSine                  = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        screenRadius               = ((s16)radiusScale * GLOW_DIAMOND_RADIUS_SCALE) / scratchBlock->depth;
+        partIndex                  = 0;
+        cyanIntensity              = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+        scratchBlock->screenExtent = screenRadius;
+        // Fill the diamond, then add diagonals; the second diagonal has twice the extent.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, pulse, pulse);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX - (u16)block->screenExtent;
-            sx       = block->screenX;
-            prim->x2 = sx;
-            prim->x1 = sx;
-            prim->x3 = block->screenX + (u16)block->screenExtent;
-            sy       = block->screenY;
-            prim->y3 = sy;
-            prim->y2 = sy;
-            prim->y0 = sy;
-            twice    = i * 2;
-            prim->y1 = (block->screenY - (u16)block->screenExtent) + (block->screenExtent * twice);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-            i++;
-        } while (i < 2);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _mineRefugeInitGlowQuad(quad, 0, cyanIntensity, cyanIntensity);
+            quad->x0     = scratchBlock->screenX - scratchBlock->screenExtent;
+            screenX      = scratchBlock->screenX;
+            quad->x2     = screenX;
+            quad->x1     = screenX;
+            quad->x3     = scratchBlock->screenX + scratchBlock->screenExtent;
+            screenY      = scratchBlock->screenY;
+            quad->y3     = screenY;
+            quad->y2     = screenY;
+            quad->y0     = screenY;
+            verticalSide = partIndex * 2;
+            quad->y1     = (scratchBlock->screenY - scratchBlock->screenExtent) + (scratchBlock->screenExtent * verticalSide);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratchBlock->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratchBlock->depth);
+            partIndex++;
+        } while (partIndex < 2);
 
-        i = 0;
+        partIndex = 0;
         do {
-            line           = gGpuPrimCursor;
-            gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, 0, pulse, pulse);
-            setRGB2(line, 0, 0, 0);
-            t1       = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->screenX + (block->screenExtent * t1);
-            line->y0 = block->screenY - (block->screenExtent * t2);
-            line->x1 = block->screenX;
-            line->y1 = block->screenY;
-            line->x2 = block->screenX - (block->screenExtent * t1);
-            line->y2 = block->screenY + (block->screenExtent * t2);
-            addPrim((&gGpuCurrentOt[((u32)block->depth << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
-                    line);
-            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->depth);
-            i = t2;
-        } while (i < 2);
+            diagonal       = gGpuPrimCursor;
+            gGpuPrimCursor = diagonal + 1;
+            setLineG3(diagonal);
+            setRGB0(diagonal, 0, 0, 0);
+            setRGB1(diagonal, 0, cyanIntensity, cyanIntensity);
+            setRGB2(diagonal, 0, 0, 0);
+            xRadiusMultiple = partIndex * 3 - 1;
+            yRadiusMultiple = partIndex + 1;
+            diagonal->x0    = scratchBlock->screenX + (scratchBlock->screenExtent * xRadiusMultiple);
+            diagonal->y0    = scratchBlock->screenY - (scratchBlock->screenExtent * yRadiusMultiple);
+            diagonal->x1    = scratchBlock->screenX;
+            diagonal->y1    = scratchBlock->screenY;
+            diagonal->x2    = scratchBlock->screenX - (scratchBlock->screenExtent * xRadiusMultiple);
+            diagonal->y2    = scratchBlock->screenY + (scratchBlock->screenExtent * yRadiusMultiple);
+            addPrim((&gGpuCurrentOt[((u32)scratchBlock->depth << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)]),
+                    diagonal);
+            gpuSetPrimitiveBlendMode(diagonal, GPU_BLEND_ADD, scratchBlock->depth);
+            partIndex = yRadiusMultiple;
+        } while (partIndex < 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues a glow of gouraud `POLY_G4` wedges
-/// around the projected centre: an eight-wedge disc of radius
-/// `(s16)arg2 * 64 / otz`, each wedge paired with a half-radius copy, then four
-/// wedges reaching between that radius and an inner one of `(s16)arg2 * 8 /
-/// otz`. Only the centre vertex is lit, on green and blue, with a level of
-/// `rsin(animFrame * (s16)arg1) / 34 + 0x78` so the glow pulses; the half-radius
-/// copies take that level and every other wedge half of it. The scratch block is returned to
-/// the scratch stack on exit.
-static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws a pulsing cyan disc with four extended blades at a world point.
+///
+/// The signed low halfword of `pulseRate` is in 4096 angle units per animation
+/// frame. Intensity is `rsin(animFrame * pulseRate) / 34 + 120` (0..240).
+/// The signed low halfword of `radiusScale` gives outer and inner pixel radii
+/// of `radiusScale * 64 / depth` and `radiusScale * 8 / depth`, where depth is
+/// camera Z / 4. Eight half-bright outer wedges have full-bright copies at
+/// half radius; four half-bright blades alternate tips at one and two outer
+/// radii. Rejects negative GTE flags and requires nonzero depth. Borrows the
+/// point during this call, reserves and releases one `EffectShapeScratch`,
+/// and queues twenty additive quads plus blend commands in the current frame.
+static void _mineRefugeDrawPulsingCyanBurst(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale)
 {
-    void**              scratch;
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_G4*            prim;
-    s32                 pulse;
-    s32                 color;
-    s32                 half;
-    s32                 size;
-    s32                 ang;
-    s32                 t;
-    s32                 t2;
-    s32                 u;
+    void**              scratchCursor;
+    EffectShapeScratch* scratchEnd;
+    EffectShapeScratch* scratchBlock;
+    POLY_G4*            quad;
+    s32                 pulseSine;
+    s32                 cyanIntensity;
+    s32                 halfIntensity;
+    s32                 radiusNumerator;
+    s32                 angle;
+    s32                 middleAngle;
+    s32                 endAngle;
+    s32                 rimAngle;
 
-    scratch = SCRATCH_STACK_CURSOR_SLOT;
-    head    = *scratch;
-    block   = (*scratch = head - 1);
+    scratchCursor = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd    = *scratchCursor;
+    scratchBlock  = (*scratchCursor = scratchEnd - 1);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        pulse                     = rsin(gDisplayState.animFrame * (s16)arg1);
-        ang                       = 0;
-        size                      = (s16)arg2;
-        block->extent.burst.outer = (size * 64) / block->depth;
-        block->extent.burst.inner = (size * 8) / block->depth;
-        color                     = pulse / 34 + 0x78;
+    gte_stsxy(&(scratchEnd - 1)->screenX);
+    gte_stflg(&(scratchEnd - 1)->projectionFlags);
+    if (scratchBlock->projectionFlags >= 0) {
+        gte_stszotz(&(scratchEnd - 1)->depth);
+        pulseSine                        = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        angle                            = 0;
+        radiusNumerator                  = (s16)radiusScale;
+        scratchBlock->extent.burst.outer = (radiusNumerator * GLOW_RADIUS_SCALE) / scratchBlock->depth;
+        scratchBlock->extent.burst.inner = (radiusNumerator * GLOW_INNER_RADIUS_SCALE) / scratchBlock->depth;
+        cyanIntensity                    = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+        // Pair eight dim outer wedges with brighter wedges at half the radius.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            half = (s16)color >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, half, half);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(t)) >> 12);
-            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->extent.burst.outer * rsin(t2)) >> 12);
-            prim->y3 = block->screenY + ((block->extent.burst.outer * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            halfIntensity  = (s16)cyanIntensity >> 1;
+            _mineRefugeInitGlowQuad(quad, 0, halfIntensity, halfIntensity);
+            quad->x0    = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            middleAngle = angle + GLOW_SIXTEENTH_TURN;
+            quad->y0    = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            quad->x1    = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(middleAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y1    = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(middleAngle)) >> GLOW_TRIG_SHIFT);
+            endAngle    = angle + GLOW_EIGHTH_TURN;
+            quad->x2    = scratchBlock->screenX;
+            quad->y2    = scratchBlock->screenY;
+            quad->x3    = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(endAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y3    = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(endAngle)) >> GLOW_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratchBlock->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratchBlock->depth);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 13);
-            prim->y0 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 13);
-            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(t)) >> 13);
-            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(t)) >> 13);
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->extent.burst.outer * rsin(t2)) >> 13);
-            prim->y3 = block->screenY + ((block->extent.burst.outer * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        } while (ang < 0x1000);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _mineRefugeInitGlowQuad(quad, 0, cyanIntensity, cyanIntensity);
+            quad->x0 = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->y0 = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->x1 = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(middleAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->y1 = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(middleAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->x2 = scratchBlock->screenX;
+            quad->y2 = scratchBlock->screenY;
+            quad->x3 = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(endAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->y3 = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(endAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            angle    = endAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratchBlock->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratchBlock->depth);
+        } while (angle < GLOW_FULL_TURN);
 
-        color = half;
-        ang   = 0x200;
+        // Add four blades, alternating tips at one and two outer radii.
+        cyanIntensity = halfIntensity;
+        angle         = GLOW_EIGHTH_TURN;
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->screenX + ((block->extent.burst.inner * rsin(u)) >> 13);
-            prim->y0 = block->screenY + ((block->extent.burst.inner * rcos(u)) >> 13);
-            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 12);
-            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 12);
-            u        = ang + 0x400;
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->extent.burst.inner * rsin(u)) >> 13);
-            prim->y3 = block->screenY + ((block->extent.burst.inner * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _mineRefugeInitGlowQuad(quad, 0, cyanIntensity, cyanIntensity);
+            rimAngle = angle - GLOW_QUARTER_TURN;
+            quad->x0 = scratchBlock->screenX + ((scratchBlock->extent.burst.inner * rsin(rimAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->y0 = scratchBlock->screenY + ((scratchBlock->extent.burst.inner * rcos(rimAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->x1 = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            quad->y1 = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            rimAngle = angle + GLOW_QUARTER_TURN;
+            quad->x2 = scratchBlock->screenX;
+            quad->y2 = scratchBlock->screenY;
+            quad->x3 = scratchBlock->screenX + ((scratchBlock->extent.burst.inner * rsin(rimAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            quad->y3 = scratchBlock->screenY + ((scratchBlock->extent.burst.inner * rcos(rimAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratchBlock->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratchBlock->depth);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->extent.burst.inner * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->extent.burst.inner * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(u)) >> 11);
-            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(u)) >> 11);
-            u        = ang + 0x800;
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->extent.burst.inner * rsin(u)) >> 12);
-            prim->y3 = block->screenY + ((block->extent.burst.inner * rcos(u)) >> 12);
-            ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        } while (ang < 0x1000);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _mineRefugeInitGlowQuad(quad, 0, cyanIntensity, cyanIntensity);
+            quad->x0 = scratchBlock->screenX + ((scratchBlock->extent.burst.inner * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            quad->y0 = scratchBlock->screenY + ((scratchBlock->extent.burst.inner * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            quad->x1 = scratchBlock->screenX + ((scratchBlock->extent.burst.outer * rsin(rimAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            quad->y1 = scratchBlock->screenY + ((scratchBlock->extent.burst.outer * rcos(rimAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            rimAngle = angle + GLOW_HALF_TURN;
+            quad->x2 = scratchBlock->screenX;
+            quad->y2 = scratchBlock->screenY;
+            quad->x3 = scratchBlock->screenX + ((scratchBlock->extent.burst.inner * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y3 = scratchBlock->screenY + ((scratchBlock->extent.burst.inner * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
+            angle    = rimAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratchBlock->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratchBlock->depth);
+        } while (angle < GLOW_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues three concentric rings of eight
-/// gouraud `POLY_G4` wedges around the projected centre. The first ring's
-/// radius is `(s16)arg1 * 64 / otz`; each later ring doubles it and halves the
-/// centre colour. `arg2` packs three RGB nibbles for the centre vertex, each
-/// offset by `(animFrame & 1) << 5` so the glow flickers on alternate frames.
-/// Unlike the room's other draws it never returns its 0x10-byte scratch block
-/// to the scratch stack.
-static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Draws three overlapping, flickering discs with a fading centre at a world point.
+///
+/// The signed low halfword of `radiusScale` gives the first pixel radius as
+/// `radiusScale * 64 / depth`, where depth is camera Z / 4. Later discs double
+/// that radius and halve each centre color byte; each disc has eight wedges.
+/// `packedColor` is RGB444 (0..0xFFF); each nibble is scaled by 16 and odd
+/// animation frames add 32 before byte narrowing. Rims are black.
+///
+/// Rejects negative GTE flags and requires nonzero depth. Borrows the point
+/// during this call and queues twenty-four additive quads plus blend commands.
+/// Reserves one `GlowCentreScratch` even for a rejected projection and leaves
+/// that reservation active until the enclosing scratch-stack reset.
+static void _mineRefugeDrawLayeredGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
 {
-    void**             scratch;
-    u8*                head;
-    GlowCentreScratch* block;
-    POLY_G4*           prim;
-    s32                ring;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                r;
-    s32                g;
-    s32                b;
+    enum {
+        MINE_REFUGE_GLOW_DISC_COUNT         = 3,
+        MINE_REFUGE_GLOW_FLICKER_SHIFT      = 5,
+        MINE_REFUGE_GLOW_COLOR_NIBBLE_SHIFT = 4,
+        MINE_REFUGE_GLOW_COLOR_NIBBLE_MASK  = 0xF,
+        MINE_REFUGE_GLOW_COLOR_BYTE_MASK    = 0xF0,
+    };
 
-    scratch = SCRATCH_STACK_CURSOR_SLOT;
-    head    = *scratch;
-    block   = (GlowCentreScratch*)(*scratch = head - 0x10);
+    void**             scratchCursor;
+    GlowCentreScratch* scratchEnd;
+    GlowCentreScratch* scratchBlock;
+    POLY_G4*           quad;
+    s32                screenRadius;
+    s32                discIndex;
+    s32                angle;
+    s32                middleAngle;
+    s32                endAngle;
+    s32                shiftedColor;
+    s32                flickerIntensity;
+    s32                redIntensity;
+    s32                greenIntensity;
+    s32                blueIntensity;
+
+    scratchCursor = SCRATCH_STACK_CURSOR_SLOT;
+    scratchEnd    = *scratchCursor;
+    scratchBlock  = (*scratchCursor = scratchEnd - 1);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
-    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
-        ring          = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) << 5;
-        packed        = arg2 << 16;
-        r             = blend + ((packed >> 20) & 0xF0);
-        g             = blend + ((packed >> 16) & 0xF0);
-        b             = blend + ((arg2 & 0xF) << 4);
-        block->radius = arg1;
+    gte_stsxy(&(scratchEnd - 1)->sx);
+    gte_stflg(&(scratchEnd - 1)->flag);
+    if (scratchBlock->flag >= 0) {
+        gte_stszotz(&scratchBlock->otz);
+        screenRadius         = ((s16)radiusScale * GLOW_RADIUS_SCALE) / (scratchEnd - 1)->otz;
+        discIndex            = 0;
+        flickerIntensity     = ((u8)gDisplayState.animFrame & 1) << MINE_REFUGE_GLOW_FLICKER_SHIFT;
+        shiftedColor         = packedColor << 16;
+        redIntensity         = flickerIntensity + ((shiftedColor >> (16 + MINE_REFUGE_GLOW_COLOR_NIBBLE_SHIFT)) & MINE_REFUGE_GLOW_COLOR_BYTE_MASK);
+        greenIntensity       = flickerIntensity + ((shiftedColor >> 16) & MINE_REFUGE_GLOW_COLOR_BYTE_MASK);
+        blueIntensity        = flickerIntensity + ((packedColor & MINE_REFUGE_GLOW_COLOR_NIBBLE_MASK) << MINE_REFUGE_GLOW_COLOR_NIBBLE_SHIFT);
+        scratchBlock->radius = screenRadius;
+        // Each filled disc doubles the radius and halves the centre color.
         do {
-            ang = 0;
+            angle = 0;
             do {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, r, g, b);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-                t        = ang + 0x100;
-                prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-                prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-                prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-                t2       = ang + 0x200;
-                prim->x2 = block->sx;
-                prim->y2 = block->sy;
-                prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-                prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-                ang      = t2;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-            } while (ang < 0x1000);
-            r              = (u8)r >> 1;
-            g              = (u8)g >> 1;
-            b              = (u8)b >> 1;
-            block->radius *= 2;
-            ring++;
-        } while (ring < 3);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                _mineRefugeInitGlowQuad(quad, redIntensity, greenIntensity, blueIntensity);
+                quad->x0    = scratchBlock->sx + ((scratchBlock->radius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+                middleAngle = angle + GLOW_SIXTEENTH_TURN;
+                quad->y0    = scratchBlock->sy + ((scratchBlock->radius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+                quad->x1    = scratchBlock->sx + ((scratchBlock->radius * rsin(middleAngle)) >> GLOW_TRIG_SHIFT);
+                quad->y1    = scratchBlock->sy + ((scratchBlock->radius * rcos(middleAngle)) >> GLOW_TRIG_SHIFT);
+                endAngle    = angle + GLOW_EIGHTH_TURN;
+                quad->x2    = scratchBlock->sx;
+                quad->y2    = scratchBlock->sy;
+                quad->x3    = scratchBlock->sx + ((scratchBlock->radius * rsin(endAngle)) >> GLOW_TRIG_SHIFT);
+                quad->y3    = scratchBlock->sy + ((scratchBlock->radius * rcos(endAngle)) >> GLOW_TRIG_SHIFT);
+                angle       = endAngle;
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratchBlock->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        quad);
+                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratchBlock->otz);
+            } while (angle < GLOW_FULL_TURN);
+            redIntensity          = (u8)redIntensity >> 1;
+            greenIntensity        = (u8)greenIntensity >> 1;
+            blueIntensity         = (u8)blueIntensity >> 1;
+            scratchBlock->radius *= 2;
+            discIndex++;
+        } while (discIndex < MINE_REFUGE_GLOW_DISC_COUNT);
     }
 }
 
-/// Draws the room's glows for whichever view is current. View 2 draws a
-/// sprite and a diamond; views 3 and 4/5 draw rings at one anchor, but only
-/// while progress nibble 0xC3 is 1; view 6 draws a pulsing disc.
-void func_mine_refuge_80181454(Task* unused)
+void mineRefugeDrawGlowsTask(Task* task)
 {
-    u8 view;
+    enum { MINE_REFUGE_POWER_PANEL_ON  = 1,
+           MINE_REFUGE_CYAN_PULSE_RATE = 0x60 };
+    u8 viewIndex;
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    viewIndex = viewGetMappedIndex();
+    switch (viewIndex) {
         case 2:
             _glowDrawFlare(&D_mine_refuge_801818D8[0], 1, 0x300);
-            func_mine_refuge_8018029C(&D_mine_refuge_801818D8[1], 0x60, 0x40);
+            _mineRefugeDrawPulsingCyanStar(&D_mine_refuge_801818D8[1], MINE_REFUGE_CYAN_PULSE_RATE, 0x40);
             break;
         case 3:
-            if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
-                func_mine_refuge_80181094(&D_mine_refuge_801818E8, 0x30, 0xF0);
+            if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == MINE_REFUGE_POWER_PANEL_ON) {
+                _mineRefugeDrawLayeredGlow(&D_mine_refuge_801818E8, 0x30, 0xF0);
             }
             break;
         case 4:
         case 5:
-            if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == 1) {
-                func_mine_refuge_80181094(&D_mine_refuge_801818E8, 0x60, 0xD0);
+            if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == MINE_REFUGE_POWER_PANEL_ON) {
+                _mineRefugeDrawLayeredGlow(&D_mine_refuge_801818E8, 0x60, 0xD0);
             }
             break;
         case 6:
-            func_mine_refuge_80180710(&D_mine_refuge_801818D8[1], 0x60, 0x80);
+            _mineRefugeDrawPulsingCyanBurst(&D_mine_refuge_801818D8[1], MINE_REFUGE_CYAN_PULSE_RATE, 0x80);
             break;
     }
 }

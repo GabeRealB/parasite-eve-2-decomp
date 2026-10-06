@@ -82,7 +82,7 @@ D_mine_refuge_80182AE0 = 0x80182AE0; // size:0x18 defined:True
 
 func_mine_refuge_8017EA78 = 0x8017EA78; // type:func
 
-func_mine_refuge_80181454 = 0x80181454; // type:func
+mineRefugeDrawGlowsTask = 0x80181454; // type:func
 Telephone_DrawPlayDataRow = 0x8017D6E0; // type:func
 Telephone_DrawUsageRow = 0x8017DEAC; // type:func
 Telephone_BuildWeaponUsage = 0x8017E2A8; // type:func
@@ -105,3 +105,7 @@ Telephone_Data_8017D630 = 0x8017D630;
 _glowDrawFlare = 0x80180014; // type:func
 roomCutsceneTask = 0x8017F49C; // type:func
 roomCutsceneSoundTask = 0x8017FB24; // type:func
+_mineRefugeIdleRoomTask = 0x8017ffac; // type:func
+_mineRefugeDrawPulsingCyanStar = 0x8018029c; // type:func
+_mineRefugeDrawPulsingCyanBurst = 0x80180710; // type:func
+_mineRefugeDrawLayeredGlow = 0x80181094; // type:func

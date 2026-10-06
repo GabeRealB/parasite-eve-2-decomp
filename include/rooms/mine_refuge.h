@@ -32,7 +32,16 @@ extern WorldCollisionSurfaceProperties* D_mine_refuge_80182AB4[];
 
 void func_mine_refuge_8017EA78(Task* task);
 
-void func_mine_refuge_80181454(Task* unused);
+/// Draws the Mine Refuge lights selected by the mapped camera view.
+///
+/// View 2 draws a textured flare and cyan star; view 6 draws a cyan burst.
+/// Views 3..5 draw the layered panel glow only while the power-panel flag is 1,
+/// with a smaller radius in view 3. Other views queue nothing.
+/// The task argument is unused. Requires the room's composed view matrix,
+/// current frame packet arena and depth ordering table, and initialized scratch
+/// stack. Drawing a panel glow leaves one 16-byte scratch reservation active
+/// until the enclosing stack reset. The normal game loop resets it each frame.
+void mineRefugeDrawGlowsTask(Task* task);
 
 void func_mine_refuge_8017FFBC(Task* task);
 

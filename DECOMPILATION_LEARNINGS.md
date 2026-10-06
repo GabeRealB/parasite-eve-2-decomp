@@ -139632,14 +139632,14 @@ function-wide register shift.
 
 **How to check.** Break on `reload1.c:alter_reg` and `assign_stack_local` in the bundled cc1 (both symbols are in `trace_gcc.py`'s table), and log `frame_offset` before and after each call along with the register number. That gives every slot's owner, including padding.
 
-## Reset a nested loop's counter at the top of the outer body, not before the loop and again at its bottom (func_mine_refuge_80181094, 2026-09-23)
+## Reset a nested loop's counter at the top of the outer body, not before the loop and again at its bottom (_mineRefugeDrawLayeredGlow, 2026-09-23)
 
-A two-level `do`/`while` where both counters start at zero: writing `ang = 0`
+A two-level `do`/`while` where both counters start at zero: writing `angle = 0`
 once before the outer loop and again at the bottom of the outer body lets CSE
-fold the first `ang = 0` into `ring = 0`, so the object gains a `move $s3,$s8`
+fold the first `angle = 0` into `discIndex = 0`, so the object gains a `move $s3,$s8`
 beside `move $s8,$zero` and the target's `move $s3,$zero` just before the loop
 head disappears. Put the reset at the top of the outer body instead
-(`do { ang = 0; do { ... } while (ang < 0x1000); ... } while (++ring < 3)`);
+(`do { angle = 0; do { ... } while (angle < 0x1000); ... } while (++discIndex < 3)`);
 jump threading still places one copy before entry and one in the outer
 branch's delay slot, which is what the target has.
 
