@@ -2118,31 +2118,29 @@ static void func_actor_800100_80164B9C(Task* arg0)
             actor->stateTimer   = 0;
             actor->movementMode = 3;
             playerActorPlayChildSlotsWithBlend(arg0, 0xC, 0, 5);
+            /* fallthrough */
         case 1:
         case 2:
+            actor->movementSign = 1;
+            playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta);
+            distance = playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz);
+            if (actor->targetNode != NULL) {
+                val = (rand() & 0x3FF) + 0xB00;
+            } else {
+                val = 0xB00;
+            }
+            if (val >= distance || actor->statePhase == 2) {
+                actor3                 = arg0->work;
+                actor3->mode           = GAME_ACTOR_MODE_NORMAL;
+                actor3->state          = 4;
+                actor3->animationState = 0;
+                actor3->statePhase     = 0;
+                actor3->movementSign   = 0;
+                actor3->turnSign       = 0;
+                playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
+            }
             break;
-        default:
-            goto tail;
     }
-    actor->movementSign = 1;
-    playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta);
-    distance = playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz);
-    if (actor->targetNode != NULL) {
-        val = (rand() & 0x3FF) + 0xB00;
-    } else {
-        val = 0xB00;
-    }
-    if (val >= distance || actor->statePhase == 2) {
-        actor3                 = arg0->work;
-        actor3->mode           = GAME_ACTOR_MODE_NORMAL;
-        actor3->state          = 4;
-        actor3->animationState = 0;
-        actor3->statePhase     = 0;
-        actor3->movementSign   = 0;
-        actor3->turnSign       = 0;
-        playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
-    }
-tail:
     func_8010BD88(arg0, &block->targetPoint);
     func_8010BE5C(arg0, &block->targetPoint);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor800100TargetScratch);
