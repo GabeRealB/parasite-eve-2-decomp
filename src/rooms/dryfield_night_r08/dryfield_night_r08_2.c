@@ -293,17 +293,36 @@ enum {
     DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN = 1
 };
 
-/// Draws the eight fixed flares shared by views 3, 6 and 8.
+/// Submits four consecutive world points as the room's flickering flare row.
+///
+/// Borrows `worldPoints` for the call; all four word-aligned entries, including
+/// their pad halfwords, must be readable. Uses the current frame's glow state.
+static inline void _dryfieldNightR08DrawFlareRow(const SVECTOR worldPoints[4])
+{
+    glowDrawFlareClipped(&worldPoints[0], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&worldPoints[1], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&worldPoints[2], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&worldPoints[3], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+}
+
+/// Submits the two four-flare rows shared by night room 8's views 3, 6 and 8.
+///
+/// Uses the current composed view and frame animation to draw texture column 1
+/// with pixel half-extent `0x300 * 39 / (camera Z / 4)` at depths of at least 17.
+/// Requires an initialized scratch stack with room for `GlowCentreRadiusScratch`,
+/// a current ordering table and eight `POLY_FT4` packets in the frame arena,
+/// including packets for points rejected by depth clipping. Queued packets
+/// remain in that arena until GPU completion.
 static inline void _dryfieldNightR08DrawMainFlares(void)
 {
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[13], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[14], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[15], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[16], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[20], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[21], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[22], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    enum {
+        DRYFIELD_NIGHT_R08_MAIN_FLARE_NEGATIVE_X_START = 13,
+        DRYFIELD_NIGHT_R08_MAIN_FLARE_POSITIVE_X_START = 20
+    };
+
+    // Submit the negative-X row before the positive-X row to retain packet order.
+    _dryfieldNightR08DrawFlareRow(&D_dryfield_night_r08_801805AC[DRYFIELD_NIGHT_R08_MAIN_FLARE_NEGATIVE_X_START]);
+    _dryfieldNightR08DrawFlareRow(&D_dryfield_night_r08_801805AC[DRYFIELD_NIGHT_R08_MAIN_FLARE_POSITIVE_X_START]);
 }
 
 void dryfieldNightR08DrawGlowsTask(Task* task)
