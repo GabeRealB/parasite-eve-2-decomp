@@ -73,6 +73,18 @@ static void func_shelter_r47_801856AC(Task* task);
 static void func_shelter_r47_8018571C(Task* task);
 static void func_shelter_r47_8018585C(Task* task);
 
+/// Disc colours and perspective radius scales for this room's view glows.
+///
+/// Colours are RGB nibbles; disc pixel radii are scale * 64 / (camera Z / 4).
+enum {
+    SHELTER_R47_GLOW_COLOR_GREY                    = 0x444,
+    SHELTER_R47_GLOW_COLOR_COOL_GREY               = 0x344,
+    SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL       = 0x100,
+    SHELTER_R47_GLOW_DISC_RADIUS_SCALE_MEDIUM      = 0x180,
+    SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE       = 0x280,
+    SHELTER_R47_GLOW_DISC_RADIUS_SCALE_EXTRA_LARGE = 0x300,
+};
+
 /// State handlers of the room's map terminal, run by
 /// `func_shelter_r47_80185214`.
 static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
@@ -1779,22 +1791,24 @@ static void func_shelter_r47_801844A0(Task* task)
     }
 }
 
-/// State 4 of the map terminal: acts on the hotspot latched in
-/// `hotspotId` once `func_800D4EC0` reports non-zero. The side panel and the
-/// page title each start one of five cap slots picked by `page`. Previous and
-/// next start a cap while their latch (`D_shelter_r47_8018A696` /
-/// `D_shelter_r47_8018A697`) is clear, setting it, or otherwise set
-/// `labelTargetX` off to the left, clear the quad targets, play the page-switch
-/// sound and move to state 6. Every other path returns to state 2, except an
-/// unknown hotspot id, which leaves the state unchanged.
-static inline void _shelterR47MapTerminalLeavePage(Task* task, ShelterR47MapTerminalWork* st)
+/// Starts closing the current terminal page before selecting an adjacent page.
+///
+/// `state` must be this task's live map-terminal work, with `hotspotId`
+/// identifying the previous or next page. Sets closing targets for both quads
+/// and an off-screen target for the label, then enters the state that waits
+/// for the map to close before changing `page`. Queues the page-switch sound
+/// and stops the terminal loop while retaining the voices' ADSR release
+/// settings; the terminal task and work stay live.
+static inline void _shelterR47MapTerminalLeavePage(Task* task, ShelterR47MapTerminalWork* state)
 {
-    st->labelTargetX      = SHELTER_R47_MAP_LABEL_X_AWAY;
-    st->mapTargetWidth    = 0;
-    st->mapTargetHeight   = 0;
-    st->panelTargetWidth  = 0;
-    st->panelTargetHeight = 0;
-    task->state           = 6;
+    enum { SHELTER_R47_MAP_STATE_SWITCH_PAGE = 6 };
+
+    state->labelTargetX      = SHELTER_R47_MAP_LABEL_X_AWAY;
+    state->mapTargetWidth    = 0;
+    state->mapTargetHeight   = 0;
+    state->panelTargetWidth  = 0;
+    state->panelTargetHeight = 0;
+    task->state              = SHELTER_R47_MAP_STATE_SWITCH_PAGE;
     sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_PAGE_SWITCH, 0, 0);
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
 }
@@ -2136,37 +2150,50 @@ static void func_shelter_r47_8018580C(Task* task)
 #include "../../shared/action_prompt_reset.inc.c"
 #undef actionPromptReset
 
-void func_shelter_r47_801858BC(Task* unused)
+/// Draws the disc pair shared by three room views, borrowing the two world points.
+static inline void _shelterR47DrawViewGlowPair(const SVECTOR* worldPoints)
 {
-    u8 view;
+    glowDrawDisc(&worldPoints[0], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+    glowDrawDisc(&worldPoints[1], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_MEDIUM, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+}
 
-    view = viewGetMappedIndex();
-    switch (view) {
-        case 5:
-            _glowDrawDiamond(&D_shelter_r47_80187624[0], 0x60, 0xA0);
-            glowDrawDisc(&D_shelter_r47_80187624[1], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_r47_80187624[2], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_r47_80187624[3], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_r47_80187624[4], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_r47_80187624[5], 0x280, 0x444);
-            glowDrawDisc(&D_shelter_r47_80187624[6], 0x100, 0x344);
-            glowDrawDisc(&D_shelter_r47_80187624[7], 0x300, 0x344);
-            glowDrawDisc(&D_shelter_r47_80187624[8], 0x280, 0x344);
-            glowDrawDisc(&D_shelter_r47_80187624[9], 0x180, 0x344);
+void shelterR47DrawViewGlowsTask(Task* unusedTask)
+{
+    enum {
+        SHELTER_R47_GLOW_VIEW_FULL          = 5,
+        SHELTER_R47_GLOW_VIEW_PAIR          = 13,
+        SHELTER_R47_GLOW_VIEW_PARTIAL       = 14,
+        SHELTER_R47_GLOW_VIEW_PULSING       = 44,
+        SHELTER_R47_GLOW_PULSE_RATE         = 0x60, // 4096 angle units per turn, per animation frame
+        SHELTER_R47_GLOW_PULSE_RADIUS_SCALE = 0xA0, // Diamond scale * 32 / depth; disc scale * 64 / depth
+    };
+    u8 mappedView;
+
+    // Select visible world points by the mapped camera index, preserving packet order.
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
+        case SHELTER_R47_GLOW_VIEW_FULL:
+            _glowDrawDiamond(&D_shelter_r47_80187624[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
+            glowDrawDisc(&D_shelter_r47_80187624[1], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&D_shelter_r47_80187624[2], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&D_shelter_r47_80187624[3], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&D_shelter_r47_80187624[4], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&D_shelter_r47_80187624[5], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&D_shelter_r47_80187624[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+            glowDrawDisc(&D_shelter_r47_80187624[7], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_EXTRA_LARGE, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+            _shelterR47DrawViewGlowPair(&D_shelter_r47_80187624[8]);
             break;
-        case 13:
-            glowDrawDisc(&D_shelter_r47_80187624[8], 0x280, 0x344);
-            glowDrawDisc(&D_shelter_r47_80187624[9], 0x180, 0x344);
+        case SHELTER_R47_GLOW_VIEW_PAIR:
+            _shelterR47DrawViewGlowPair(&D_shelter_r47_80187624[8]);
             break;
-        case 14:
-            _glowDrawDiamond(&D_shelter_r47_80187624[0], 0x60, 0xA0);
-            glowDrawDisc(&D_shelter_r47_80187624[6], 0x100, 0x344);
-            glowDrawDisc(&D_shelter_r47_80187624[8], 0x280, 0x344);
-            glowDrawDisc(&D_shelter_r47_80187624[9], 0x180, 0x344);
+        case SHELTER_R47_GLOW_VIEW_PARTIAL:
+            _glowDrawDiamond(&D_shelter_r47_80187624[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
+            glowDrawDisc(&D_shelter_r47_80187624[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+            _shelterR47DrawViewGlowPair(&D_shelter_r47_80187624[8]);
             break;
-        case 44:
-            _glowDrawPulsingDisc(&D_shelter_r47_80187624[0], 0x60, 0xA0);
-            glowDrawDisc(&D_shelter_r47_80187624[6], 0x100, 0x344);
+        case SHELTER_R47_GLOW_VIEW_PULSING:
+            _glowDrawPulsingDisc(&D_shelter_r47_80187624[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
+            glowDrawDisc(&D_shelter_r47_80187624[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
             break;
     }
 }

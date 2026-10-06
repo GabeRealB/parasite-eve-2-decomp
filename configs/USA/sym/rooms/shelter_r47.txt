@@ -190,7 +190,7 @@ D_shelter_r47_80187284 = 0x80187284; // size:0x18 defined:True
 
 func_shelter_r47_8017EC04 = 0x8017EC04; // type:func
 
-func_shelter_r47_801858BC = 0x801858BC; // type:func
+shelterR47DrawViewGlowsTask = 0x801858BC; // type:func
 Telephone_DrawPlayDataRow = 0x8017D86C; // type:func
 Telephone_DrawUsageRow = 0x8017E038; // type:func
 Telephone_BuildWeaponUsage = 0x8017E434; // type:func
