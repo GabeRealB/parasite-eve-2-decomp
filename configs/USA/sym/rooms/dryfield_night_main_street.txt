@@ -122,11 +122,11 @@ func_dryfield_night_main_street_8017E484 = 0x8017E484; // type:func
 
 dryfieldNightMainStreetPuffTask = 0x8017F3B0; // type:func
 
-func_dryfield_night_main_street_8017FA68 = 0x8017FA68; // type:func
+dryfieldNightMainStreetRoomVisualEffectsMoteTask = 0x8017FA68; // type:func
 
-func_dryfield_night_main_street_801807B0 = 0x801807B0; // type:func
+dryfieldNightMainStreetRoomVisualEffectsHaloTask = 0x801807B0; // type:func
 
-func_dryfield_night_main_street_80180B48 = 0x80180B48; // type:func
+dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask = 0x80180B48; // type:func
 
 func_dryfield_night_main_street_80181F58 = 0x80181F58; // type:func
 _roomVisualEffectsDrawMote = 0x8017FD34; // type:func
@@ -145,3 +145,6 @@ mainStreetPlayTimeTask = 0x8017DE78; // type:func
 mainStreetCapSoundCue = 0x8017DEF0; // type:func
 mainStreetTalkMsg = 0x8017DFC8; // type:func
 _mainStreetDrawPuff = 0x8017F608; // type:func
+_dryfieldNightMainStreetRejectKeyItemUse = 0x8017e054; // type:func
+_dryfieldNightMainStreetIgnoreRoomAction = 0x8017e05c; // type:func
+_dryfieldNightMainStreetRoomIdle = 0x8017e0b8; // type:func

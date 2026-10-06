@@ -155,11 +155,14 @@ extern RoomEventReq gRoomEventReq;
 extern u8 gRoomEventActive;
 
 static void func_dryfield_night_main_street_8017E064(Task* arg0);
-static void func_dryfield_night_main_street_8017E0B8(Task* task);
+static void _dryfieldNightMainStreetRoomIdle(Task* task);
 static void func_dryfield_night_main_street_8017E118(void);
 
-s32 func_dryfield_night_main_street_8017E054(Task*, s32, s32, s32);
-s32 func_dryfield_night_main_street_8017E05C(Task*, s32, s32, s32);
+static s32 _dryfieldNightMainStreetRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg);
+static s32 _dryfieldNightMainStreetIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Requests use of a collected key item; the room replies with the item-menu result.
+enum { DRYFIELD_NIGHT_MAIN_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid    D_dryfield_night_main_street_801833D0[1];
 extern WorldCollisionGrid    D_dryfield_night_main_street_80184540[1];
@@ -217,8 +220,8 @@ TaskDesc gMainStreetPlayTimeTaskDesc = { { { TASK_BODY_NONE, 32 } }, mainStreetP
 
 TaskMessageEntry D_dryfield_night_main_street_801820B0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
-    { 5105, func_dryfield_night_main_street_8017E054 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_main_street_8017E05C },
+    { DRYFIELD_NIGHT_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightMainStreetRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMainStreetIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, mainStreetTalkMsg },
     { ROOM_MESSAGE_SOUND, mainStreetCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1618,7 +1621,7 @@ RoomEventReq gRoomEventReq;
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
-    { func_dryfield_night_main_street_8017E064, func_dryfield_night_main_street_8017E0B8, taskKill },
+    { func_dryfield_night_main_street_8017E064, _dryfieldNightMainStreetRoomIdle, taskKill },
 };
 
 #include "../../shared/main_street_resolve_msg.inc.c"
@@ -1629,12 +1632,25 @@ static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
 
 #include "../../shared/main_street_talk_msg.inc.c"
 
-s32 func_dryfield_night_main_street_8017E054(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the nighttime main street.
+///
+/// Handles message 0x13F1 with the collected item ID and a zero second payload.
+/// Reads no argument and returns 0 to select the item menu's cannot-use notice,
+/// without consuming an item or changing the room.
+static s32 _dryfieldNightMainStreetRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_NIGHT_MAIN_STREET_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_NIGHT_MAIN_STREET_KEY_ITEM_REFUSED;
 }
 
-s32 func_dryfield_night_main_street_8017E05C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-specific trigger actions in the nighttime main street.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`, borrowing a `DirectionActionRequest`
+/// for synchronous dispatch with a zero second payload. Reads no argument,
+/// retains no request and leaves the room unchanged. Returns 0, which the
+/// trigger dispatcher ignores.
+static s32 _dryfieldNightMainStreetIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -1651,8 +1667,8 @@ static void func_dryfield_night_main_street_8017E064(Task* arg0)
     D_80115598  = 1;
 }
 
-/// The room entry task's idle state.
-static void func_dryfield_night_main_street_8017E0B8(Task* task)
+/// Keeps the initialized room entry task alive without changing its state.
+static void _dryfieldNightMainStreetRoomIdle(Task* task)
 {
 }
 
@@ -1751,21 +1767,21 @@ void func_dryfield_night_main_street_8017E484(Task* task)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_dryfield_night_main_street_8017FA68(Task* task)
+void dryfieldNightMainStreetRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_dryfield_night_main_street_801807B0(Task* arg0)
+void dryfieldNightMainStreetRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_dryfield_night_main_street_80180B48(Task* arg0)
+void dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

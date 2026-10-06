@@ -61,11 +61,50 @@ void func_dryfield_night_main_street_8017E484(Task* task);
 /// coordinate between ticks; callers must discard the work pointer on release.
 void dryfieldNightMainStreetPuffTask(Task* task);
 
-void func_dryfield_night_main_street_8017FA68(Task* task);
+/// Runs this room's animated mote with rising or steady vertical motion and a fade.
+///
+/// Requires the counted task and zeroed `EffectWork` created by `Gp_SpawnEff`,
+/// with a live coordinate body and owned work in `spawnArg2.pointer`.
+/// `spawnArg1` packs half-extent in bits 0..11 (0..4095 world units), palette
+/// in bits 12..15 (0 default), unsigned speed in bits 16..23 (coordinate units
+/// per active tick), and signed lifetime in bits 24..31 (active ticks).
+/// Bits 0..1 overlap the extent: either bit selects steady motion, with bit 1
+/// selecting upward motion. Otherwise it rises at speed plus a random 0..63.
+/// The first active tick only initializes; later ticks move along local Y and
+/// draw on odd ages. Brightness fades by 16 after age exceeds lifetime minus 8;
+/// the following tick releases the work and task once brightness is zero.
+/// Nonzero room effect control pauses it; control 4 or above cancels it.
+/// The controller and coordinate ancestors must stay live until release;
+/// callers must discard the work pointer when the effect ends.
+void dryfieldNightMainStreetRoomVisualEffectsMoteTask(Task* task);
 
-void func_dryfield_night_main_street_801807B0(Task* arg0);
+/// Runs this room's expanding tinted halo, shrinking ring and fading star.
+///
+/// Requires the counted task and zeroed `EffectWork` created by `Gp_SpawnEff`,
+/// with a live coordinate body and owned work in `spawnArg2.pointer`.
+/// Initialization attaches to the work's borrowed parent at its saved local
+/// offset in game coordinate units. `spawnArg1.halves.low` supplies 1..65535
+/// expansion ticks; `halves.high` selects tint row 0..2. Initialization replaces
+/// the argument word with the remaining ticks. Brightness and world-unit disc
+/// radius grow by integer 256 / duration each active tick, then the star fades.
+/// State 3 requests release. Nonzero room effect control pauses all phases,
+/// including that request; control 4 or above cancels immediately.
+/// Completion or cancellation releases the work and task. The controller and
+/// borrowed coordinate parent must stay live until release; callers must
+/// discard the work pointer when the effect ends.
+void dryfieldNightMainStreetRoomVisualEffectsHaloTask(Task* task);
 
-void func_dryfield_night_main_street_80180B48(Task* arg0);
+/// Runs this room's growing orange disc and layered glow inside a fading ring.
+///
+/// Requires the counted task and zeroed `EffectWork` created by `Gp_SpawnEff`,
+/// with a live coordinate body and owned work in `spawnArg2.pointer`.
+/// `spawnArg1` is unused. The first active tick initializes and draws; later
+/// ticks expand the burst and fade its ring before fading the centre.
+/// Nonzero room effect control pauses it; control 4 or above cancels it.
+/// Completion or cancellation releases the work and task. The controller and
+/// coordinate ancestors must stay live until release; callers must discard
+/// the work pointer when the effect ends.
+void dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
 void func_dryfield_night_main_street_80181F58(Task* arg0);
 

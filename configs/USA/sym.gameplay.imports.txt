@@ -735,11 +735,11 @@ func_dryfield_night_main_street_8017E484 = 0x8017E484; // type:func absolute:Tru
 
 dryfieldNightMainStreetPuffTask = 0x8017F3B0; // type:func absolute:True owner=dryfield_night_main_street
 
-func_dryfield_night_main_street_8017FA68 = 0x8017FA68; // type:func absolute:True owner=dryfield_night_main_street
+dryfieldNightMainStreetRoomVisualEffectsMoteTask = 0x8017FA68; // type:func absolute:True owner=dryfield_night_main_street
 
-func_dryfield_night_main_street_801807B0 = 0x801807B0; // type:func absolute:True owner=dryfield_night_main_street
+dryfieldNightMainStreetRoomVisualEffectsHaloTask = 0x801807B0; // type:func absolute:True owner=dryfield_night_main_street
 
-func_dryfield_night_main_street_80180B48 = 0x80180B48; // type:func absolute:True owner=dryfield_night_main_street
+dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask = 0x80180B48; // type:func absolute:True owner=dryfield_night_main_street
 
 func_dryfield_night_main_street_80181F58 = 0x80181F58; // type:func absolute:True owner=dryfield_night_main_street
 
