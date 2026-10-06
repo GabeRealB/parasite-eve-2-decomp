@@ -7598,13 +7598,11 @@ void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2)
 void weaponRecordUse(s32 weaponId)
 {
     enum { WEAPON_USE_COUNT_MAX = 99999 };
-    register s32 incrementLimit asm("v0");
-    s32          useCountIndex;
 
-    incrementLimit = WEAPON_USE_COUNT_MAX - 1;
-    useCountIndex  = weaponId - 1;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[useCountIndex] <= incrementLimit) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[useCountIndex]++;
+    // Weapon ids start at 1; the counts are indexed from 0.
+    weaponId--;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[weaponId] < WEAPON_USE_COUNT_MAX) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[weaponId]++;
     }
 }
 
