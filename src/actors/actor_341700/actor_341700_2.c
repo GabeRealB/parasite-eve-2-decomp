@@ -451,23 +451,23 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
             switch ((work->stateFrame - 11) % 8) {
                 case 0:
                     vec = D_actor_341700_80175F7C[35];
-                    func_shelter_b3_dumping_hole_8017FCF4(arg1->extra.tmd->coords, &vec);
+                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
                     break;
                 case 1:
                     vec = D_actor_341700_80175F7C[8];
-                    func_shelter_b3_dumping_hole_8017FCF4(arg1->extra.tmd->coords, &vec);
+                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
                     break;
                 case 2:
                     vec = D_actor_341700_80175F7C[25];
-                    func_shelter_b3_dumping_hole_8017FCF4(arg1->extra.tmd->coords, &vec);
+                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
                     break;
                 case 4:
                     vec = D_actor_341700_80175F7C[24];
-                    func_shelter_b3_dumping_hole_8017FCF4(arg1->extra.tmd->coords, &vec);
+                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
                     break;
                 case 5:
                     vec = D_actor_341700_80175F7C[26];
-                    func_shelter_b3_dumping_hole_8017FCF4(arg1->extra.tmd->coords, &vec);
+                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
                     break;
             }
         }
@@ -532,7 +532,7 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
         vec.vx += r / 2;
         vec.vy -= r;
         vec.vz += r;
-        func_shelter_b3_dumping_hole_8017FCF4(arg1->extra.tmd->coords, &vec);
+        shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
     }
 }
 

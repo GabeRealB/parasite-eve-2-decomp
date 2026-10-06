@@ -211,13 +211,13 @@ D_shelter_b3_dumping_hole_8018F4D4 = 0x8018F4D4; // size:0x4 defined:True
 D_shelter_b3_dumping_hole_8018F4D8 = 0x8018F4D8; // size:0x4 defined:True
 D_shelter_b3_dumping_hole_8018B86C = 0x8018B86C; // size:0x160 defined:True
 
-func_shelter_b3_dumping_hole_8017FCF4 = 0x8017FCF4; // type:func
+shelterB3DumpingHoleSpawnActorSprite = 0x8017FCF4; // type:func
 
-func_shelter_b3_dumping_hole_80183F84 = 0x80183F84; // type:func
+shelterB3DumpingHoleDrawViewGlowsTask = 0x80183F84; // type:func
 
 shelterB3DumpingHoleEffectSpriteDriftTaskAimed = 0x8018521C; // type:func
 
-func_shelter_b3_dumping_hole_80186218 = 0x80186218; // type:func
+shelterB3DumpingHoleGluttonRainParticleTask = 0x80186218; // type:func
 
 func_shelter_b3_dumping_hole_80186D4C = 0x80186D4C; // type:func
 CapCaption_RunSchedule = 0x80181B64; // type:func
@@ -243,3 +243,15 @@ actorMsgSetDrawMode = 0x801817D8; // type:func
 _effectSpriteDrawBanked = 0x8018596C; // type:func
 _effectSpriteDrawChip = 0x801866CC; // type:func
 _effectSpriteDrawBillboard = 0x80186AB8; // type:func
+_shelterB3DumpingHoleDrawSprite = 0x8017da00; // type:func
+_shelterB3DumpingHoleInitDebrisModel = 0x8017e7dc; // type:func
+_shelterB3DumpingHoleDebrisSpriteTask = 0x8017dcfc; // type:func
+_shelterB3DumpingHoleActorSpriteTask = 0x8017df90; // type:func
+_shelterB3DumpingHolePlayerSpriteTask = 0x8017e440; // type:func
+_shelterB3DumpingHoleDebrisModelTask = 0x8017e94c; // type:func
+_shelterB3DumpingHoleFadeFromBlackTask = 0x8017fba0; // type:func
+_shelterB3DumpingHoleStopPlayerSprites = 0x8017fe10; // type:func
+_shelterB3DumpingHoleShardTask = 0x8018005c; // type:func
+_shelterB3DumpingHoleShakeTask = 0x80181a48; // type:func
+_shelterB3DumpingHoleEncounterStopMessage = 0x80183530; // type:func
+_madChaserWavePairDropDead = 0x80183f04; // type:func

@@ -144,7 +144,7 @@ D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=s
 
 D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole
 
-func_shelter_b3_dumping_hole_8017FCF4 = 0x8017FCF4; // type:func absolute:True owner=shelter_b3_dumping_hole
+shelterB3DumpingHoleSpawnActorSprite = 0x8017FCF4; // type:func absolute:True owner=shelter_b3_dumping_hole
 ActorContact_TurnJoint = 0x8016AC64; // type:func
 ActorContact_FindPush = 0x8016AF70; // type:func
 ActorContact_Steer = 0x8016B2B8; // type:func

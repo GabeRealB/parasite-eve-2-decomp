@@ -5751,7 +5751,7 @@ W->field_20 = (gRandomLcgState >> 16) & 7;               /* CSE'd to roll2 reg *
 
 The intervening field-store reads keep the two `sw` non-adjacent, so both
 survive, while CSE still feeds roll2 from roll1's register (no `lw` reload).
-`func_shelter_b3_dumping_hole_8017DCFC` is the example.
+`_shelterB3DumpingHoleDebrisSpriteTask` is the example.
 
 ## Earlyclobber empty asm copies an SI value (`move`) instead of `andi` / in-place `sll`
 
@@ -69861,23 +69861,23 @@ fixed, so which of the two moved the allocation was not isolated.
 
 ## A call between deriving `p = a->b` and re-using `a->b` reloads the expression: reference it inline post-call
 
-`func_shelter_b3_dumping_hole_8017E7DC` caches `extra = index->extra` (a saved
-reg `s2`) for `coord = extra->coords` and `tmdAllocPrimitiveBuffer(extra)`, but the
-`extra->flags = 0` store *after* an intervening `memFillBytes(work,…)` call comes
+`_shelterB3DumpingHoleInitDebrisModel` caches `model = task->extra.tmd` (a saved
+reg `s2`) for `coord = model->coords` and `tmdAllocPrimitiveBuffer(model)`, but the
+`model->flags = 0` store *after* an intervening `memFillBytes(work,…)` call comes
 out as a fresh `lw v0,0x2C(s4)` reload, not `sh zero,0xC(s2)`. GCC 2.8.1's CSE
-does not carry a memory load across a call: `index->extra` read before `memFillBytes`
+does not carry a memory load across a call: `task->extra.tmd` read before `memFillBytes`
 is invalidated, so a later reference reloads — even though the pointer is still
 sitting in a saved register. Match it by referencing the chain inline at that
-one use, `((TmdObject*)index->extra)->flags = 0;`, and keeping the cached
-`extra` local for the uses that *do* reuse `s2`.
+one use, `task->extra.tmd->flags = 0;`, and keeping the cached
+`model` local for the uses that *do* reuse `s2`.
 
-The same function's `worldCoordSetModelLighting(extra, coord->workm.t, 0, 3)` tail
+The same function's `worldCoordSetModelLighting(model, coord->workm.t, 0, 3)` tail
 is not a direct pass: retail copies `coord->workm.t[0..2]` into a stack `VECTOR`
-and passes `&v`, reloading `index->extra->coords` for each element (each stack
+and passes `&worldPos`, reloading `task->extra.tmd->coords` for each element (each stack
 store kills the CSE of the next load) while the *first* reload's `a0` is shared
-with the call's first argument. Reproduce with an explicit `VECTOR v;`, a local
-`e2 = (TmdObject*)index->extra;` used for both `v.vx` and the call, and inline
-`((TmdObject*)index->extra)->coords->workm.t[i]` for `v.vy`/`v.vz`. Passing
+with the call's first argument. Reproduce with an explicit `VECTOR worldPos;`, a local
+`lightingModel = task->extra.tmd;` used for both `worldPos.vx` and the call, and inline
+`task->extra.tmd->coords->workm.t[i]` for `worldPos.vy`/`worldPos.vz`. Passing
 `(VECTOR*)coord->workm.t` directly (the `room_util20` form) instead emits no
 stack copy and no reloads.
 
@@ -141240,7 +141240,7 @@ Target loop body: `lui t2,%hi(gGfxViewCoord); addiu t2,…; sw t2,0x5c(sp)`, whi
 
 `e->depth / 2` with `s16 depth` compiles to `lhu; sll v0,v0,16; sra v1,v0,16; srl v0,v0,31; addu; sra 1`, the same bytes as `(s16)e->depth / 2` with `u16 depth`. The signed bias reads the sign bit from the shifted-up copy, so the value is never loaded with `lh`. The same field divided by 16 uses `lh` and a `bgez`/`addiu 0xF` bias. Two drawers reading one surface array showed this: one divided offset 4 by 16 and offset 6 by 2, the other did the reverse, and a single all-`s16` struct matched both with no casts. Before adding a second struct type to explain an `lhu`-then-sign-extend load, check whether the load feeds a signed `/ 2`.
 
-### cse's jump-following path holds at most 9 followed branches; `if (...) { kill; return; }` per test spends them (func_shelter_b3_dumping_hole_8017E94C, 2026-09-24)
+### cse's jump-following path holds at most 9 followed branches; `if (...) { kill; return; }` per test spends them (_shelterB3DumpingHoleDebrisModelTask, 2026-09-24)
 **Symptom.** A `switch (state)` whose `case 2` ends in a nested `switch
 (spawnArg1)`. Ours compared `spawnArg1` against `$s6` (the `li 1` from the outer
 switch) and against the `state` register (known `== 2` from the jump), both kept
@@ -141261,7 +141261,7 @@ cross-jumps the five kill blocks back into the single one the target has.
 Separate `if`s also stop `fold` from merging `x < -A || x > A` into the
 `addiu; andi 0xffff; sltiu` range test.
 
-### Splitting an `||` chain's first test into its own `else if` arm is an invisible live-length knob for a global-alloc near-tie (func_shelter_b3_dumping_hole_8017DA00, 2026-09-24)
+### Splitting an `||` chain's first test into its own `else if` arm is an invisible live-length knob for a global-alloc near-tie (_shelterB3DumpingHoleDrawSprite, 2026-09-24)
 
 **Symptom.** 99.76%, only two stack-passed `s16` parameters swapped between
 `$s6` and `$s7`. `trace_gcc.py --regs` showed the global priorities 327 vs 322
@@ -141274,22 +141274,22 @@ are live flips the order once `3(61+k) > 2(93+k)`. A probe of two empty
 the tie before looking for source.
 
 **Fix.** The culling test was
-`if (sx < -0xA0 || (sx > 0xA0 || ...)) off = 1; else off = 0;` (right-nested only
-to stop `fold_range_test` turning the `sx` pair into `sltiu`). Writing it as
+`if (screenX < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH || (screenX > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH || ...)) culled = 1; else culled = 0;` (right-nested only
+to stop `fold_range_test` turning the `screenX` pair into `sltiu`). Writing it as
 
 ```c
-if (sx < -0xA0) {
-    off = 1;
-} else if (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0) {
-    off = 1;
+if (screenX < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH) {
+    culled = 1;
+} else if (screenX > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH || screenY < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT || screenY > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT || cullDepth < 0) {
+    culled = 1;
 } else {
-    off = 0;
+    culled = 0;
 }
 ```
 
 emits the identical object but carries extra jump insns through sched1, where
 live lengths are recomputed; jump2 threads them away after allocation. It also
-makes the right-nesting unnecessary, since `sx < -0xA0` and `sx > 0xA0` are no
+makes the right-nesting unnecessary, since `screenX < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH` and `screenX > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH` are no
 longer operands of one `||`.
 
 ### A scratchpad scale block whose loads straddle the head store wants a C store, not `asm("sw …")` (func_shelter_b3_dumping_hole_8018098C, 2026-09-24)
@@ -141328,7 +141328,7 @@ Three more from the same function:
   not the same block as `call(...); work->command = 0; return;` - the inline
   store changes sched1's picture and the argument load moved from first to last.
 
-## A signed `/ 4096` whose `sra` sits *after* a following RNG draw is split rounding, and `c ? a - b : a` loses its else-arm when `c` has no side effects (func_shelter_b3_dumping_hole_8018005C, 2026-09-24)
+## A signed `/ 4096` whose `sra` sits *after* a following RNG draw is split rounding, and `c ? a - b : a` loses its else-arm when `c` has no side effects (_shelterB3DumpingHoleShardTask, 2026-09-24)
 
 **Symptom.** `v = size * rsin(x) / 4096;` followed by an LCG draw
 `w = (RAND() & 1) ? v + d : v;` matched everything except the division's
@@ -141671,38 +141671,38 @@ invariant hoisting there, so pick a use outside nested loops. To size the ref
 count, compute `floor_log2(n) * n / live_length` for the neighbours from the
 `.lreg` "Register N used X times across Y insns" lines.
 
-### Load in a short-lived register, long-lived variable a copy of it: give the copy a narrower mode (func_shelter_b3_dumping_hole_8017DF90, 2026-09-24)
+### Load in a short-lived register, long-lived variable a copy of it: give the copy a narrower mode (_shelterB3DumpingHoleActorSpriteTask, 2026-09-24)
 
 **Symptom.** The target loads a value (`lh a0,0x22(sp)`), copies it right away
 to the register the later arithmetic uses (`move t2,a0`), and the original
 register lives on only as far as an inlined range check, where a second copy
-feeds the compares (`move v1,a0`). With `s32 y = sxy.vy; s32 sy = y;` the
-function reached 99.16% and kept failing: sy itself was the load, and the
+feeds the compares (`move v1,a0`). With `s32 projectedY = screenPos.vy; s32 screenY = projectedY;` the
+function reached 99.16% and kept failing: screenY itself was the load, and the
 `move t2,a0` never appeared.
 
-**Cause (observed in `.cse`).** Because sy and y have the same mode, they end
+**Cause (observed in `.cse`).** Because screenY and projectedY have the same mode, they end
 up in one cse equivalence class. `make_regs_eqv` makes the copy's destination
 the class canonical because its last use is later, rewrites the inline
-parameter's `subreg` to read sy, and combine then folds the load into sy's
+parameter's `subreg` to read screenY, and combine then folds the load into screenY's
 copy. Putting a statement between the load and the copy changes nothing.
 
 **Fix.** Declare the long-lived variable `s16` and keep the loaded one `s32`,
 and give the inline `s16` parameters:
 
 ```c
-s16 sx, sy;  s32 y;
-sx = sxy.vx;
-y  = sxy.vy;          /* lh -> y (s32) */
-sy = y;               /* HImode copy: a different class, so y stays canonical */
-if (isOffscreen(sx, y)) { ... }   /* static inline u16 isOffscreen(s16 x, s16 y) */
+s16 screenX, screenY;  s32 projectedY;
+screenX = screenPos.vx;
+projectedY  = screenPos.vy;          /* lh -> projectedY (s32) */
+screenY = projectedY;               /* HImode copy: a different class, so projectedY stays canonical */
+if (_shelterB3DumpingHoleIsOffscreen(screenX, projectedY)) { ... }   /* static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 screenX, s16 screenY) */
 ```
 
 The `s16` parameter makes `integrate.c` emit `copy_to_mode_reg` for the
-`(subreg:HI y)` argument, and the sign extension at the compare later folds back
-to a copy of y. That copy is the target's block-3 `move v1,a0`. With an `s32`
+`(subreg:HI projectedY)` argument, and the sign extension at the compare later folds back
+to a copy of projectedY. That copy is the target's block-3 `move v1,a0`. With an `s32`
 parameter the second copy disappears.
 
-## An insn with no in-block predecessor sinks to the top of its block; an empty asm reading the chain holds it down (func_shelter_b3_dumping_hole_8018005C, 2026-09-24)
+## An insn with no in-block predecessor sinks to the top of its block; an empty asm reading the chain holds it down (_shelterB3DumpingHoleShardTask, 2026-09-24)
 
 **Symptom.** A value computed from a register set in an *earlier* block (`q = v >> 12`
 after an `if (v < 0) v += 0xFFF;` rounding) belongs, in the target, after an inline
@@ -144088,7 +144088,7 @@ The order of the last two macros is the whole fix: `setSemiTrans` before
 matches. The `head - 0x10` casts on the scratch block were not needed either.
 Every copy with the same pin can take this body with its own names.
 
-## A random jitter on a quotient is `q + (RAND() & 1 ? d : 0)`, not a branch on a precomputed `q` (func_shelter_b3_dumping_hole_8018005C, 2026-09-26)
+## A random jitter on a quotient is `q + (RAND() & 1 ? d : 0)`, not a branch on a precomputed `q` (_shelterB3DumpingHoleShardTask, 2026-09-26)
 
 Target shape after `x * rsin(a)` and the `bgez`/`addiu 0xFFF` of a `/ 4096`: the
 LCG step runs first, and the `sra 12` (or `sra` + `negu`) lands after its store,
@@ -149615,7 +149615,7 @@ attempts; left as it was.
 ### Goto removal, batch 12: a range test split by a goto, three mentions for a register, the generator (2026-10-06)
 
 - **`if (sx < -0xA0) goto kill; if (sx > 0xA0 || sy < -0x78 || sy > 0x78 ||
-  otz < 0) { kill: ... }`** (`func_shelter_b3_dumping_hole_8018005C`) is one
+  otz < 0) { kill: ... }`** (`_shelterB3DumpingHoleShardTask`) is one
   condition, but not the flat chain: as the two leading operands of one `||`
   the x tests fold into an unsigned range compare (`addiu; sltiu`, one insn
   shorter), while the image has `slti -160; slti 161`. `fold_truthop` only

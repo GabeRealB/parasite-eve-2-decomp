@@ -861,7 +861,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorDrawViewGlowsTask, { NULL } },                                 // 0x140
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankGlowTask, { NULL } },                                            // 0x141
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelDrawLightBeamsTask, { NULL } },                             // 0x142
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_dumping_hole_80183F84, { NULL } },                                  // 0x143
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleDrawViewGlowsTask, { NULL } },                                  // 0x143
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_garbage_incinerator_8018110C, { NULL } },                           // 0x144
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_incinerator_control_room_8017FD10, { NULL } },                      // 0x145
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_8017DE70, { NULL } },                                 // 0x146
@@ -948,7 +948,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, pepperSprayEffectTask, { NULL } },                                                  // 0x197
     { { { TASK_BODY_COORD, 0x70 } }, ofudaEffectTask, { NULL } },                                                        // 0x198
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleEffectSpriteDriftTaskAimed, { NULL } },                         // 0x199
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_dumping_hole_80186218, { NULL } },                                  // 0x19A
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleGluttonRainParticleTask, { NULL } },                            // 0x19A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_dumping_hole_80186D4C, { NULL } },                                  // 0x19B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorEffectSpriteDebrisTask, { NULL } },                      // 0x19C
     { { { TASK_BODY_COORD, 0x70 } }, flareEffectTask, { NULL } },                                                        // 0x19D

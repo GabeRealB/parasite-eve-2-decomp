@@ -94,6 +94,69 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 
 #define DUMPING_HOLE_RAND() ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16))
 
+/// Advances a sprite frame and returns from its task after killing the closing frame.
+///
+/// Arguments must be side-effect-free task/work pointers and a twelve-entry
+/// duration table. Expands to a compound statement in braced case arms.
+/// Work fields are read and written repeatedly; the task is evaluated only
+/// on completion. Uses this room's frame table `D_shelter_b3_dumping_hole_801880B8`. The frame starts in 0-11 and advances at most
+/// once, advancing only after the timer exceeds its duration and testing the
+/// sentinel before a later tick could read its duration.
+#define SHELTER_B3_DUMPING_HOLE_ADVANCE_SPRITE_FRAME(task, work, frameDurations)                                       \
+    {                                                                                                                  \
+        (work)->frameTimer++;                                                                                          \
+        if ((frameDurations)[(work)->frame] < (work)->frameTimer) {                                                    \
+            (work)->frame++;                                                                                           \
+            (work)->frameTimer = 0;                                                                                    \
+            if (D_shelter_b3_dumping_hole_801880B8[(work)->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) { \
+                taskKill(task);                                                                                        \
+                return;                                                                                                \
+            }                                                                                                          \
+        }                                                                                                              \
+    }
+
+/// Kills and returns from a rubble task when its projected origin is outside the screen or at negative depth.
+///
+/// Arguments must be side-effect-free task, signed pixel coordinates and signed
+/// SZ3/4 depth expressions. Tests the origin against inclusive centre-relative
+/// bounds, retaining five separate exits. Expands to a compound statement;
+/// completion returns from the calling void callback after task teardown.
+#define SHELTER_B3_DUMPING_HOLE_CULL_DEBRIS_MODEL(task, screenX, screenY, depth) \
+    {                                                                            \
+        if ((screenX) < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH) {            \
+            taskKill((task));                                                    \
+            return;                                                              \
+        }                                                                        \
+        if ((screenX) > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH) {             \
+            taskKill((task));                                                    \
+            return;                                                              \
+        }                                                                        \
+        if ((screenY) < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT) {           \
+            taskKill((task));                                                    \
+            return;                                                              \
+        }                                                                        \
+        if ((screenY) > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT) {            \
+            taskKill((task));                                                    \
+            return;                                                              \
+        }                                                                        \
+        if ((depth) < 0) {                                                       \
+            taskKill((task));                                                    \
+            return;                                                              \
+        }                                                                        \
+    }
+
+/// Centre-relative screen bounds, sprite texture units and depth sorting of this room's event sprites.
+enum {
+    SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH  = 160,
+    SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT = 120,
+    SHELTER_B3_DUMPING_HOLE_SPRITE_CLUT        = getClut(0, 271),
+    SHELTER_B3_DUMPING_HOLE_TEXTURE_4BIT       = 0,
+    SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_WORDS = 64,
+    SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_LINES = 256,
+    SHELTER_B3_DUMPING_HOLE_OT_DEPTH_SHIFT     = 4,
+    SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK = 7,
+};
+
 /// Allocation and clear size of a `_ShelterB3DumpingHoleSpriteWork`, which extends
 /// 2 bytes past its last accessed field.
 enum { SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES = 0x24 };
@@ -451,36 +514,36 @@ static void func_shelter_b3_dumping_hole_80183C8C(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183D34(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183E08(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183F04(Task* arg0);
+static void _madChaserWavePairDropDead(Task* task);
 
-void func_shelter_b3_dumping_hole_8017DCFC(Task*);
-void func_shelter_b3_dumping_hole_8017DF90(Task*);
-void func_shelter_b3_dumping_hole_8017E440(Task*);
-void func_shelter_b3_dumping_hole_8017E94C(Task*);
-void func_shelter_b3_dumping_hole_8017F820(Task*);
-void func_shelter_b3_dumping_hole_8017FBA0(Task*);
-void func_shelter_b3_dumping_hole_8017FCA0(s16);
-void func_shelter_b3_dumping_hole_8017FE34(void);
-void func_shelter_b3_dumping_hole_8017FE64(s32);
-void func_shelter_b3_dumping_hole_8017FE9C(s32);
-void func_shelter_b3_dumping_hole_8017FED4(s16);
-void func_shelter_b3_dumping_hole_8017FEF4(s16);
-void func_shelter_b3_dumping_hole_8017FF14(void);
-void func_shelter_b3_dumping_hole_8017FFF4(void);
-void func_shelter_b3_dumping_hole_80180014(void);
-void func_shelter_b3_dumping_hole_80180034(void);
+static void _shelterB3DumpingHoleDebrisSpriteTask(Task* task);
+static void _shelterB3DumpingHoleActorSpriteTask(Task* task);
+static void _shelterB3DumpingHolePlayerSpriteTask(Task* task);
+static void _shelterB3DumpingHoleDebrisModelTask(Task* task);
+void        func_shelter_b3_dumping_hole_8017F820(Task*);
+static void _shelterB3DumpingHoleFadeFromBlackTask(Task* task);
+void        func_shelter_b3_dumping_hole_8017FCA0(s16);
+void        func_shelter_b3_dumping_hole_8017FE34(void);
+void        func_shelter_b3_dumping_hole_8017FE64(s32);
+void        func_shelter_b3_dumping_hole_8017FE9C(s32);
+void        func_shelter_b3_dumping_hole_8017FED4(s16);
+void        func_shelter_b3_dumping_hole_8017FEF4(s16);
+void        func_shelter_b3_dumping_hole_8017FF14(void);
+void        func_shelter_b3_dumping_hole_8017FFF4(void);
+void        func_shelter_b3_dumping_hole_80180014(void);
+void        func_shelter_b3_dumping_hole_80180034(void);
 
-void func_shelter_b3_dumping_hole_8018005C(Task*);
-void func_shelter_b3_dumping_hole_80181430(void);
-void func_shelter_b3_dumping_hole_80181560(Task*);
-void func_shelter_b3_dumping_hole_801818E0(void);
-void func_shelter_b3_dumping_hole_80181958(s32);
-void func_shelter_b3_dumping_hole_80181990(s16);
-void func_shelter_b3_dumping_hole_801819B0(void);
-void func_shelter_b3_dumping_hole_801819D0(void);
-void func_shelter_b3_dumping_hole_801819F0(void);
+static void _shelterB3DumpingHoleShardTask(Task* task);
+void        func_shelter_b3_dumping_hole_80181430(void);
+void        func_shelter_b3_dumping_hole_80181560(Task*);
+void        func_shelter_b3_dumping_hole_801818E0(void);
+void        func_shelter_b3_dumping_hole_80181958(s32);
+void        func_shelter_b3_dumping_hole_80181990(s16);
+void        func_shelter_b3_dumping_hole_801819B0(void);
+void        func_shelter_b3_dumping_hole_801819D0(void);
+void        func_shelter_b3_dumping_hole_801819F0(void);
 
-void func_shelter_b3_dumping_hole_80181A48(Task*);
+static void _shelterB3DumpingHoleShakeTask(Task* task);
 
 static AnimationSet _gShelterB3DumpingHoleAnimation0C810;
 static AnimationSet _gShelterB3DumpingHoleAnimation0CCB4;
@@ -503,7 +566,7 @@ extern WorldCollisionGrid    D_shelter_b3_dumping_hole_8018C3EC[1];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018E88C[8];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018EF9C[8];
 
-s32  func_shelter_b3_dumping_hole_80183530(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
+s32  _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused);
 void func_shelter_b3_dumping_hole_80183550(Task*);
 void func_shelter_b3_dumping_hole_801835C8(Task*);
 void func_shelter_b3_dumping_hole_80183620(Task*);
@@ -761,17 +824,17 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
 
 TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017F820, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_8017FBA0, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &gShelterB3DumpingHoleModel0A0CC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &gShelterB3DumpingHoleModel0A348 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_8017E94C, { .model = &gShelterB3DumpingHoleModel0A5EC } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB3DumpingHoleFadeFromBlackTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A0CC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A348 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A5EC } },
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
-    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8017DCFC, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8017DF90, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _shelterB3DumpingHoleDebrisSpriteTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _shelterB3DumpingHoleActorSpriteTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8017E440, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _shelterB3DumpingHolePlayerSpriteTask, { .value = 0 } },
 };
 
 static TmdBone _gShelterB3DumpingHoleModel0BAC8Skeleton[4] = {
@@ -869,7 +932,7 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
 
 TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_dumping_hole_80181560, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
-    { { { TASK_BODY_COORD, 192 } }, func_shelter_b3_dumping_hole_8018005C, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _shelterB3DumpingHoleShardTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gShelterB3DumpingHoleAnimation0C810Bank1[6] = {
@@ -948,7 +1011,7 @@ PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2] = {
     { 0, 0, 9, 0 },
 };
 
-TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_dumping_hole_80181A48, { .value = 0 } };
+TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { { { TASK_BODY_NONE, 192 } }, _shelterB3DumpingHoleShakeTask, { .value = 0 } };
 
 _ShelterB3DumpingHoleAnimationBankExtensionStorage D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
 
@@ -1073,7 +1136,7 @@ OverlayEncounterSpot D_shelter_b3_dumping_hole_8018B74C[12] = {
 };
 
 TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_shelter_b3_dumping_hole_80183530 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _shelterB3DumpingHoleEncounterStopMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2038,55 +2101,71 @@ u16 D_shelter_b3_dumping_hole_8018F4D4[2] = {
 
 s32 D_shelter_b3_dumping_hole_8018F4D8;
 
-static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y);
-static u16        func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, s16 u,
-                                                        s16 v, s16 tpageX, s16 tpageY, s16 scale,
-                                                        s16 clut, s32 otzOverride);
-static void       func_shelter_b3_dumping_hole_8017E7DC(Task* arg0);
-static void       func_shelter_b3_dumping_hole_8017FE10(s32 arg0);
-static void       func_shelter_b3_dumping_hole_8018098C(Task* task);
+static void func_shelter_b3_dumping_hole_8018098C(Task* task);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Returns 1 when the screen position (`x`, `y`) lies outside the 320x240
-/// screen centred on the origin, 0 when it is on screen.
-static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 x, s16 y)
+/// Draws a signed rubble tumble step in -127..127, in 4096 units per turn.
+///
+/// Consumes two LCG draws in order: magnitude first, then bit 15 for the sign.
+static inline s32 _shelterB3DumpingHoleRandomDebrisSpin(void)
 {
-    if (x < -0xA0) {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_SPIN_MAGNITUDE_MASK = 0x7F,
+        SHELTER_B3_DUMPING_HOLE_SPIN_SIGN_BIT       = 0x8000,
+    };
+    s32 spin = DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SPIN_MAGNITUDE_MASK;
+    if (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SPIN_SIGN_BIT) {
+        spin = -spin;
+    }
+    return spin;
+}
+
+/// Tests a centre-relative pixel position against the inclusive 320x240 screen bounds.
+///
+/// Returns 1 outside [-160, 160] by [-120, 120], otherwise 0; tests the
+/// point alone, irrespective of a primitive's extent.
+static inline u16 _shelterB3DumpingHoleIsOffscreen(s16 screenX, s16 screenY)
+{
+    if (screenX < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH) {
         return 1;
     }
-    if (x > 0xA0) {
+    if (screenX > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH) {
         return 1;
     }
-    if (y < -0x78) {
+    if (screenY < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT) {
         return 1;
     }
-    if (y > 0x78) {
+    if (screenY > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT) {
         return 1;
     }
     return 0;
 }
 
-/// Draws a camera-facing textured quad centred on `coord`'s origin. The origin
-/// is projected with the coordinate's world-screen matrix; if it lands outside
-/// the 320x240 screen or behind the camera nothing is drawn and 1 is returned.
-/// Otherwise a semi-transparent `POLY_FT4` of `w` x `h` texels at (`u`, `v`),
-/// scaled by `scale` (4096 = 1.0), is linked into the ordering table at the
-/// projected depth, or at `otzOverride` when that is non-zero, and 0 is returned.
-static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, s16 u,
-                                                 s16 v, s16 tpageX, s16 tpageY, s16 scale,
-                                                 s16 clut, s32 otzOverride)
+/// Queues a raw-texture, additive billboard at a coordinate origin, or returns 1 if culled.
+///
+/// `width` and `height` are texels and unit-scale pixels; `scale` is Q12
+/// (`ONE` = 1.0). UV endpoints narrow to GPU bytes. `vramX` is in VRAM
+/// words and `vramY` in lines; their page bases select a 4-bit texture.
+/// `clut` is a packed GPU palette selector. A nonzero `depthOverride` replaces
+/// SZ3/4 for both sorting and the negative-depth test; zero uses projection.
+/// Returns 0 after queuing in the current packet arena. Culls the origin
+/// against the centre-relative screen bounds, without testing GTE flags.
+/// The coordinate is composed here; the caller marks later movement dirty.
+static u16 _shelterB3DumpingHoleDrawSprite(GfxCoord* coord, s16 width, s16 height, s16 u,
+                                           s16 v, s16 vramX, s16 vramY, s16 scale,
+                                           s16 clut, s32 depthOverride)
 {
     SVECTOR   origin;
-    s32       sxy;
-    s32       z;
-    s32       otz;
-    u16       off;
+    s32       packedScreenXY;
+    s32       depth;
+    s32       cullDepth;
+    u16       culled;
     POLY_FT4* prim;
-    u16       hw;
-    u16       hh;
-    s16       sx;
-    s16       sy;
+    u16       widthPixels;
+    u16       heightPixels;
+    s16       screenX;
+    s16       screenY;
 
     actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&coord->workm);
@@ -2094,88 +2173,96 @@ static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, 
     origin.vx = origin.vy = origin.vz = 0;
     gte_ldv0(&origin);
     gte_rtps();
-    gte_stsxy(&sxy);
-    gte_stszotz(&z);
-    sy = sxy >> 16;
-    sx = sxy;
-    if (otzOverride != 0) {
-        z = otzOverride;
+    gte_stsxy(&packedScreenXY);
+    gte_stszotz(&depth);
+    screenY = packedScreenXY >> 16;
+    screenX = packedScreenXY;
+    if (depthOverride != 0) {
+        depth = depthOverride;
     }
-    otz = z;
-    if (sx < -0xA0) {
-        off = 1;
-    } else if (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0) {
-        off = 1;
+    cullDepth = depth;
+    if (screenX < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH) {
+        culled = 1;
+    } else if (screenX > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH || screenY < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT || screenY > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT || cullDepth < 0) {
+        culled = 1;
     } else {
-        off = 0;
+        culled = 0;
     }
-    if (off) {
+    if (culled) {
         return 1;
     }
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2F);
-    hw = w * scale / 4096;
-    hh = h * scale / 4096;
-    setXY4(prim, sx - hw / 2, sy - hh / 2, sx + hw / 2, sy - hh / 2, sx - hw / 2, sy + hh / 2,
-           sx + hw / 2, sy + hh / 2);
-    setUV4(prim, u, v, u + w - 1, v, u, v + h - 1, u + w - 1, v + h - 1);
+    setPolyFT4(prim);
+    setSemiTrans(prim, 1);
+    setShadeTex(prim, 1);
+    widthPixels  = width * scale / ONE;
+    heightPixels = height * scale / ONE;
+    setXY4(prim, screenX - widthPixels / 2, screenY - heightPixels / 2, screenX + widthPixels / 2, screenY - heightPixels / 2, screenX - widthPixels / 2, screenY + heightPixels / 2,
+           screenX + widthPixels / 2, screenY + heightPixels / 2);
+    setUV4(prim, u, v, u + width - 1, v, u, v + height - 1, u + width - 1, v + height - 1);
     prim->clut  = clut;
-    prim->tpage = getTPage(0, 1, tpageX / 64 * 64, tpageY / 256 * 256);
-    addPrim(gGpuCurrentOt + (z >> 4), prim);
+    prim->tpage = getTPage(SHELTER_B3_DUMPING_HOLE_TEXTURE_4BIT, GPU_BLEND_ADD, vramX / SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_WORDS * SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_WORDS, vramY / SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_LINES * SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_LINES);
+    addPrim(gGpuCurrentOt + (depth >> SHELTER_B3_DUMPING_HOLE_OT_DEPTH_SHIFT), prim);
     return 0;
 }
 
-void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
+/// Runs a debris-ring sprite from its seeded world position until its animation ends.
+///
+/// Waits for the debris director's rise signal, starts at frame 5 after a
+/// 0-7 tick delay, and moves upward 10-17 world units per animation tick.
+/// Uses the debris duration table and the seed's Q12 scale. Removal signals,
+/// frame-table completion and drawing cull each kill the task. The spawner
+/// provides the task-owned work block; the debris director must stay live.
+static void _shelterB3DumpingHoleDebrisSpriteTask(Task* task)
 {
-    _ShelterB3DumpingHoleSpriteWork*      work   = arg0->work;
-    GfxCoord*                             coord  = arg0->extra.coordBody->coord;
-    _ShelterB3DumpingHoleDebrisEventWork* entity = D_shelter_b3_dumping_hole_8018F4A8->work;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_SETUP       = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_WAIT_SIGNAL = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_WAIT_DELAY  = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_ANIMATE     = 3,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_FIRST_FRAME = 5,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_RISE_SPEED  = 10,
+    };
+    _ShelterB3DumpingHoleSpriteWork*      work      = task->work;
+    GfxCoord*                             coord     = task->extra.coordBody->coord;
+    _ShelterB3DumpingHoleDebrisEventWork* eventWork = D_shelter_b3_dumping_hole_8018F4A8->work;
 
-    if (entity->debrisSpriteSignal == SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE) {
-        taskKill(arg0);
+    if (eventWork->debrisSpriteSignal == SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE) {
+        taskKill(task);
         return;
     }
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_SETUP:
             coord->parent     = &gGfxViewCoord;
             coord->coord.t[0] = work->seed.pos.vx;
             coord->coord.t[1] = work->seed.pos.vy;
             coord->coord.t[2] = work->seed.pos.vz;
-            arg0->state++;
+            task->state++;
             return;
-        case 1:
-            if (entity->debrisSpriteSignal != SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE) {
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_WAIT_SIGNAL:
+            if (eventWork->debrisSpriteSignal != SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE) {
                 return;
             }
-            work->frame     = 5;
+            work->frame     = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_FIRST_FRAME;
             work->vel.vx    = 0;
             work->vel.vz    = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->vel.vy    = -10 - ((gRandomLcgState >> 16) & 7);
+            work->vel.vy    = -SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_RISE_SPEED - ((gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->delay     = (gRandomLcgState >> 16) & 7;
-            arg0->state++;
+            work->delay     = (gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK;
+            task->state++;
             return;
-        case 2:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_WAIT_DELAY:
             if (work->delay == 0) {
-                arg0->state = 3;
+                task->state = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_ANIMATE;
             } else {
                 work->delay--;
             }
             return;
-        case 3: {
-            work->frameTimer++;
-            if (D_shelter_b3_dumping_hole_80188154[work->frame] < work->frameTimer) {
-                work->frame++;
-                work->frameTimer = 0;
-                if (D_shelter_b3_dumping_hole_801880B8[work->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
-                    taskKill(arg0);
-                    return;
-                }
-            }
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_ANIMATE: {
+            SHELTER_B3_DUMPING_HOLE_ADVANCE_SPRITE_FRAME(task, work, D_shelter_b3_dumping_hole_80188154);
             break;
         }
         default:
@@ -2183,7 +2270,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
     }
 
     coord->coord.t[1] += work->vel.vy;
-    if (func_shelter_b3_dumping_hole_8017DA00(
+    if (_shelterB3DumpingHoleDrawSprite(
             coord,
             D_shelter_b3_dumping_hole_801880B8[work->frame].w,
             D_shelter_b3_dumping_hole_801880B8[work->frame].h,
@@ -2191,74 +2278,83 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             D_shelter_b3_dumping_hole_801880B8[work->frame].v,
             D_shelter_b3_dumping_hole_801880B8[work->frame].vramX,
             D_shelter_b3_dumping_hole_801880B8[work->frame].vramY,
-            work->seed.scale, 0x43C0, 0) != 0) {
-        taskKill(arg0);
+            work->seed.scale, SHELTER_B3_DUMPING_HOLE_SPRITE_CLUT, 0) != 0) {
+        taskKill(task);
         return;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
+/// Runs a dark rising sprite sampled once from an actor coordinate plus a world offset.
+///
+/// The source coordinate in spawn argument 2 must live through setup. After
+/// 20-27 delay ticks, frames 0-11 rise 10-17 world units per tick at unit
+/// scale and fixed sorting depth 1000/16. The actor duration table controls
+/// frame holds. The director's stop flag, final frame and offscreen origin
+/// kill the task. Unlike the raw-texture event sprites, this quad modulates
+/// its texture with intensity 32 and does not use projected depth.
+static void _shelterB3DumpingHoleActorSpriteTask(Task* task)
 {
-    _ShelterB3DumpingHoleSpriteWork* work  = arg0->work;
-    GfxCoord*                        coord = arg0->extra.coordBody->coord;
-    SVECTOR                          vec;
-    SVECTOR                          pos;
-    DVECTOR                          sxy;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_SETUP      = 0,
+        SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_WAIT_DELAY = 1,
+        SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_ANIMATE    = 2,
+        SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_DELAY      = 20,
+        SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_RISE_SPEED = 10,
+        SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_SORT_DEPTH = 1000,
+        SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_INTENSITY  = 0x20,
+    };
+    _ShelterB3DumpingHoleSpriteWork* work  = task->work;
+    GfxCoord*                        coord = task->extra.coordBody->coord;
+    SVECTOR                          sourceWorldPos;
+    SVECTOR                          origin;
+    DVECTOR                          screenPos;
     POLY_FT4*                        prim;
     u16                              offscreen;
-    u16                              hw;
-    u16                              hh;
-    s16                              sx;
-    s16                              sy;
-    s32                              y;
-    s16                              w;
-    s16                              h;
+    u16                              widthPixels;
+    u16                              heightPixels;
+    s16                              screenX;
+    s16                              screenY;
+    s32                              projectedY;
+    s16                              width;
+    s16                              height;
     s16                              u;
     s16                              v;
-    s16                              tx;
-    s16                              ty;
-    s16                              scale = 0x1000;
-    s32                              otz   = 0x3E8;
+    s16                              vramX;
+    s16                              vramY;
+    s16                              scale        = ONE;
+    s32                              sortingDepth = SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_SORT_DEPTH;
 
-    if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->actorSpritesStop == 1) {
-        taskKill(arg0);
+    if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->actorSpritesStop == true) {
+        taskKill(task);
         return;
     }
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_SETUP:
             coord->parent = &gGfxViewCoord;
-            gfxComposeNodeWorldTransform(arg0->spawnArg2.pointer, &coord->coord, &vec);
-            coord->coord.t[0] = vec.vx + work->offset.vx;
-            coord->coord.t[1] = vec.vy + work->offset.vy;
-            coord->coord.t[2] = vec.vz + work->offset.vz;
+            gfxComposeNodeWorldTransform(task->spawnArg2.pointer, &coord->coord, &sourceWorldPos);
+            coord->coord.t[0] = sourceWorldPos.vx + work->offset.vx;
+            coord->coord.t[1] = sourceWorldPos.vy + work->offset.vy;
+            coord->coord.t[2] = sourceWorldPos.vz + work->offset.vz;
             gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->vel.vy      = -10 - ((gRandomLcgState >> 16) & 7);
+            work->vel.vy      = -SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_RISE_SPEED - ((gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
             work->vel.vx      = 0;
             work->vel.vz      = 0;
             work->frame       = 0;
             gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->delay       = ((gRandomLcgState >> 16) & 7) + 0x14;
-            arg0->state++;
+            work->delay       = ((gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_DELAY;
+            task->state++;
             return;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_WAIT_DELAY:
             if (work->delay == 0) {
-                arg0->state = 2;
+                task->state = SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_ANIMATE;
             } else {
                 work->delay--;
             }
             return;
-        case 2: {
-            work->frameTimer++;
-            if (D_shelter_b3_dumping_hole_8018816C[work->frame] < work->frameTimer) {
-                work->frame++;
-                work->frameTimer = 0;
-                if (D_shelter_b3_dumping_hole_801880B8[work->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
-                    taskKill(arg0);
-                    return;
-                }
-            }
+        case SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_ANIMATE: {
+            SHELTER_B3_DUMPING_HOLE_ADVANCE_SPRITE_FRAME(task, work, D_shelter_b3_dumping_hole_8018816C);
             break;
         }
         default:
@@ -2266,129 +2362,137 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
     }
 
     coord->coord.t[1] += work->vel.vy;
-    w                  = D_shelter_b3_dumping_hole_801880B8[work->frame].w;
-    h                  = D_shelter_b3_dumping_hole_801880B8[work->frame].h;
+    width              = D_shelter_b3_dumping_hole_801880B8[work->frame].w;
+    height             = D_shelter_b3_dumping_hole_801880B8[work->frame].h;
     u                  = D_shelter_b3_dumping_hole_801880B8[work->frame].u;
     v                  = D_shelter_b3_dumping_hole_801880B8[work->frame].v;
-    tx                 = D_shelter_b3_dumping_hole_801880B8[work->frame].vramX;
-    ty                 = D_shelter_b3_dumping_hole_801880B8[work->frame].vramY;
+    vramX              = D_shelter_b3_dumping_hole_801880B8[work->frame].vramX;
+    vramY              = D_shelter_b3_dumping_hole_801880B8[work->frame].vramY;
+    // Project the origin, then draw a modulated quad at the fixed ordering depth.
     actorRenderComposeCoord(coord);
     gte_SetTransMatrix(&coord->workm);
     gte_SetRotMatrix(&coord->workm);
-    pos.vx = pos.vy = pos.vz = 0;
-    gte_ldv0(&pos);
+    origin.vx = origin.vy = origin.vz = 0;
+    gte_ldv0(&origin);
     gte_rtps();
-    gte_stsxy(&sxy);
-    sx        = sxy.vx;
-    y         = sxy.vy;
-    sy        = y;
-    offscreen = _shelterB3DumpingHoleIsOffscreen(sx, y);
+    gte_stsxy(&screenPos);
+    screenX    = screenPos.vx;
+    projectedY = screenPos.vy;
+    screenY    = projectedY;
+    offscreen  = _shelterB3DumpingHoleIsOffscreen(screenX, projectedY);
     if (offscreen) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyFT4(prim);
     setSemiTrans(prim, 1);
-    prim->r0 = prim->g0 = prim->b0 = 0x20;
-    hw                             = w * scale / 4096;
-    hh                             = h * scale / 4096;
-    setXY4(prim, sx - hw / 2, sy - hh / 2, sx + hw / 2, sy - hh / 2, sx - hw / 2, sy + hh / 2, sx + hw / 2, sy + hh / 2);
-    setUV4(prim, u, v, u + w - 1, v, u, v + h - 1, u + w - 1, v + h - 1);
-    prim->clut  = 0x43C0;
-    prim->tpage = getTPage(0, 1, (tx / 64) * 64, (ty / 256) * 256);
-    addPrim(&gGpuCurrentOt[otz >> 4], prim);
+    prim->r0 = prim->g0 = prim->b0 = SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_INTENSITY;
+    widthPixels                    = width * scale / ONE;
+    heightPixels                   = height * scale / ONE;
+    setXY4(prim, screenX - widthPixels / 2, screenY - heightPixels / 2, screenX + widthPixels / 2, screenY - heightPixels / 2, screenX - widthPixels / 2, screenY + heightPixels / 2, screenX + widthPixels / 2, screenY + heightPixels / 2);
+    setUV4(prim, u, v, u + width - 1, v, u, v + height - 1, u + width - 1, v + height - 1);
+    prim->clut  = SHELTER_B3_DUMPING_HOLE_SPRITE_CLUT;
+    prim->tpage = getTPage(SHELTER_B3_DUMPING_HOLE_TEXTURE_4BIT, GPU_BLEND_ADD, (vramX / SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_WORDS) * SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_WORDS, (vramY / SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_LINES) * SHELTER_B3_DUMPING_HOLE_TEXTURE_PAGE_LINES);
+    addPrim(&gGpuCurrentOt[sortingDepth >> SHELTER_B3_DUMPING_HOLE_OT_DEPTH_SHIFT], prim);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
+/// Runs a rising sprite sampled once from the player model, with a selected Z drift.
+///
+/// Allocates its task-owned work at setup and samples the coordinate lent in
+/// spawn argument 2. Spawn argument 1 supplies signed world units per tick
+/// for Z drift, jittered by 0 or 1 away from zero; zero chooses -1, 0 or 1.
+/// After 0-7 delay ticks it rises 15-22 units per tick through frames 0-11
+/// at unit Q12 scale. The player duration table ends the animation; the
+/// director's stop flag also removes it. Drawing cull alone does not kill it.
+static void _shelterB3DumpingHolePlayerSpriteTask(Task* task)
 {
-    _ShelterB3DumpingHoleSpriteWork* work  = arg0->work;
-    GfxCoord*                        coord = arg0->extra.coordBody->coord;
-    SVECTOR                          vec;
-    s32                              sa1;
-    u32                              roll1;
-    u32                              roll2;
-    s32                              velZ;
-    s16                              var0;
-    s16                              delta;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_SETUP      = 0,
+        SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_WAIT_DELAY = 1,
+        SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_ANIMATE    = 2,
+        SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_RISE_SPEED = 15,
+    };
+    _ShelterB3DumpingHoleSpriteWork* work  = task->work;
+    GfxCoord*                        coord = task->extra.coordBody->coord;
+    SVECTOR                          sourceWorldPos;
+    s32                              baseDriftZ;
+    u32                              riseRandomState;
+    u32                              directionRandomState;
+    s32                              currentDriftZ;
+    s16                              randomDriftZ;
+    s16                              biasedDriftZ;
 
-    if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->playerSpritesStop == 1) {
-        taskKill(arg0);
+    if (((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->playerSpritesStop == true) {
+        taskKill(task);
         return;
     }
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_SETUP:
             coord->parent = &gGfxViewCoord;
-            gfxComposeNodeWorldTransform(arg0->spawnArg2.pointer, &coord->coord, &vec);
-            coord->coord.t[0] = vec.vx;
-            coord->coord.t[1] = vec.vy;
-            coord->coord.t[2] = vec.vz;
-            arg0->work        = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
-            if (arg0->work == NULL) {
-                taskKill(arg0);
+            gfxComposeNodeWorldTransform(task->spawnArg2.pointer, &coord->coord, &sourceWorldPos);
+            coord->coord.t[0] = sourceWorldPos.vx;
+            coord->coord.t[1] = sourceWorldPos.vy;
+            coord->coord.t[2] = sourceWorldPos.vz;
+            task->work        = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
+            if (task->work == NULL) {
+                taskKill(task);
                 return;
             }
-            work = arg0->work;
+            work = task->work;
             memFillBytes(work, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
             work->vel.vy     = -0xA;
             work->vel.vx     = 0;
             work->vel.vz     = 0;
             work->seed.scale = ONE;
             work->vel.vx     = 0;
-            roll1            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->vel.vy     = -15 - ((roll1 >> 16) & 7);
-            sa1              = arg0->spawnArg1.value;
-            gRandomLcgState  = roll1;
-            if (sa1 == 0) {
-                roll2           = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                velZ            = work->vel.vz;
-                gRandomLcgState = roll2;
-                if ((roll2 >> 16) & 1) {
-                    gRandomLcgState = roll2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    var0            = velZ + ((gRandomLcgState >> 16) & 1);
+            riseRandomState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->vel.vy     = -SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_RISE_SPEED - ((riseRandomState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
+            baseDriftZ       = task->spawnArg1.value;
+            gRandomLcgState  = riseRandomState;
+            // Retain the halfword wrap and the original random-draw order for Z drift.
+            if (baseDriftZ == 0) {
+                directionRandomState = riseRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                currentDriftZ        = work->vel.vz;
+                gRandomLcgState      = directionRandomState;
+                if ((directionRandomState >> 16) & 1) {
+                    gRandomLcgState = directionRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    randomDriftZ    = currentDriftZ + ((gRandomLcgState >> 16) & 1);
                 } else {
-                    gRandomLcgState = roll2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    var0            = velZ - ((gRandomLcgState >> 16) & 1);
+                    gRandomLcgState = directionRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    randomDriftZ    = currentDriftZ - ((gRandomLcgState >> 16) & 1);
                 }
-                work->vel.vz = var0;
+                work->vel.vz = randomDriftZ;
             } else {
-                if (sa1 < 0) {
-                    gRandomLcgState = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    delta           = (u16)work->vel.vz + ((u16)arg0->spawnArg1.value - ((gRandomLcgState >> 16) & 1));
+                if (baseDriftZ < 0) {
+                    gRandomLcgState = riseRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    biasedDriftZ    = (u16)work->vel.vz + ((u16)task->spawnArg1.value - ((gRandomLcgState >> 16) & 1));
                 } else {
-                    gRandomLcgState = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    delta           = (u16)work->vel.vz + ((u16)arg0->spawnArg1.value + ((gRandomLcgState >> 16) & 1));
+                    gRandomLcgState = riseRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    biasedDriftZ    = (u16)work->vel.vz + ((u16)task->spawnArg1.value + ((gRandomLcgState >> 16) & 1));
                 }
-                work->vel.vz = delta;
+                work->vel.vz = biasedDriftZ;
             }
             work->frame     = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->delay     = (gRandomLcgState >> 16) & 7;
-            arg0->state++;
+            work->delay     = (gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK;
+            task->state++;
             return;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_WAIT_DELAY:
             if (work->delay == 0) {
-                arg0->state = 2;
+                task->state = SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_ANIMATE;
             } else {
                 work->delay--;
             }
             return;
-        case 2: {
-            work->frameTimer++;
-            if (D_shelter_b3_dumping_hole_80188184[work->frame] < work->frameTimer) {
-                work->frame++;
-                work->frameTimer = 0;
-                if (D_shelter_b3_dumping_hole_801880B8[work->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) {
-                    taskKill(arg0);
-                    return;
-                }
-            }
+        case SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_ANIMATE: {
+            SHELTER_B3_DUMPING_HOLE_ADVANCE_SPRITE_FRAME(task, work, D_shelter_b3_dumping_hole_80188184);
             coord->coord.t[1] += work->vel.vy;
             coord->coord.t[2] += work->vel.vz;
-            func_shelter_b3_dumping_hole_8017DA00(
+            _shelterB3DumpingHoleDrawSprite(
                 coord,
                 D_shelter_b3_dumping_hole_801880B8[work->frame].w,
                 D_shelter_b3_dumping_hole_801880B8[work->frame].h,
@@ -2396,167 +2500,172 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
                 D_shelter_b3_dumping_hole_801880B8[work->frame].v,
                 D_shelter_b3_dumping_hole_801880B8[work->frame].vramX,
                 D_shelter_b3_dumping_hole_801880B8[work->frame].vramY,
-                work->seed.scale, 0x43C0, 0);
+                work->seed.scale, SHELTER_B3_DUMPING_HOLE_SPRITE_CLUT, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
         }
     }
 }
 
-static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
+#undef SHELTER_B3_DUMPING_HOLE_ADVANCE_SPRITE_FRAME
+
+/// Places and lights one rubble model as a child of the debris event director.
+///
+/// Borrows the ActorTransform in spawn argument 2 for this setup call.
+/// The model borrows lighting matrices from a new task-owned work block;
+/// its primitive buffer is allocated here because the descriptor skips it.
+/// Allocation failure kills the task and returns without setting up the model.
+static void _shelterB3DumpingHoleInitDebrisModel(Task* task)
 {
     _ShelterB3DumpingHoleDebrisModelWork* work;
-    TmdObject*                            extra;
+    TmdObject*                            model;
     GfxCoord*                             coord;
     ActorTransform*                       placement;
-    VECTOR                                v;
-    TmdObject*                            e2;
+    VECTOR                                worldPos;
+    TmdObject*                            lightingModel;
 
-    extra      = arg0->extra.tmd;
-    placement  = arg0->spawnArg2.pointer;
-    coord      = extra->coords;
+    model      = task->extra.tmd;
+    placement  = task->spawnArg2.pointer;
+    coord      = model->coords;
     work       = memMalloc(sizeof(*work), false);
-    arg0->work = work;
+    task->work = work;
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     memFillBytes(work, 0, sizeof(*work));
     coord->parent          = &gGfxViewCoord;
-    arg0->extra.tmd->flags = 0;
-    tmdAllocPrimitiveBuffer(extra);
-    extra->lightMtx   = &work->lightMtx;
-    extra->colorMtx   = &work->colorMtx;
+    task->extra.tmd->flags = 0;
+    tmdAllocPrimitiveBuffer(model);
+    model->lightMtx   = &work->lightMtx;
+    model->colorMtx   = &work->colorMtx;
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
-    gfxRotMatrixY(&coord->coord, placement->rot.vy, 1);
+    gfxRotMatrixY(&coord->coord, placement->rot.vy, GRAPHICS_ROTATION_REPLACE);
     gfxRotMatrixX(&coord->coord, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixZ(&coord->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    taskReparent(D_shelter_b3_dumping_hole_8018F4A8, arg0);
+    taskReparent(D_shelter_b3_dumping_hole_8018F4A8, task);
     actorRenderComposeCoord(coord);
-    e2   = arg0->extra.tmd;
-    v.vx = e2->coords->workm.t[0];
-    v.vy = arg0->extra.tmd->coords->workm.t[1];
-    v.vz = arg0->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(e2, &v, 0, 3);
+    // Reload the model after reparenting and composing its coordinate.
+    lightingModel = task->extra.tmd;
+    worldPos.vx   = lightingModel->coords->workm.t[0];
+    worldPos.vy   = task->extra.tmd->coords->workm.t[1];
+    worldPos.vz   = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(lightingModel, &worldPos, 0, 3);
 }
 
-/// Debris thrown from the hole. Once the room signals, the piece is projected
-/// to the screen: off-screen or behind the camera it is dropped, otherwise it
-/// is launched away from the screen centre with a random speed and spin, and
-/// then falls under a growing downward speed.
-void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
+/// Waits for the debris signal, launches a rubble model away from screen centre, then tumbles it.
+///
+/// Spawn argument 1 selects the +X speed tier (0 fast, 1 medium, 2 slow);
+/// argument 2 lends its ActorTransform through setup. Launch projects the
+/// world origin, removes out-of-bounds or negative-depth pieces, and uses
+/// the screen angle for YZ spread. Velocities are world units per tick and
+/// spin uses 4096 units per turn. In flight downward speed grows by five
+/// per tick; X and Y rotations are applied, while Z is advanced only.
+/// The director's remove signal kills the task in any state.
+static void _shelterB3DumpingHoleDebrisModelTask(Task* task)
 {
-    _ShelterB3DumpingHoleDebrisModelWork* work   = arg0->work;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_SETUP        = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_WAIT         = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_LAUNCH       = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_FLY          = 3,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_FAST               = 0,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MEDIUM             = 1,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SLOW               = 2,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_Z_SPREAD           = 17,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_Y_SPREAD           = 5,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_FAST_X_SPEED       = 50,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_MEDIUM_X_SPEED     = 40,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SLOW_X_SPEED       = 30,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK  = 0x1F,
+        SHELTER_B3_DUMPING_HOLE_DEBRIS_SPREAD_JITTER_MASK = 7,
+    };
+    _ShelterB3DumpingHoleDebrisModelWork* work   = task->work;
     u16                                   signal = ((_ShelterB3DumpingHoleDebrisEventWork*)D_shelter_b3_dumping_hole_8018F4A8->work)->debrisModelSignal;
-    GfxCoord*                             coord  = arg0->extra.tmd->coords;
-    GfxCoord*                             c2;
-    SVECTOR                               pos;
-    s32                                   sxy;
-    s32                                   otz;
-    s16                                   sx;
-    s16                                   sy;
-    s16                                   angle;
-    s32                                   x;
-    s32                                   y;
-    s32                                   z;
+    GfxCoord*                             coord  = task->extra.tmd->coords;
+    GfxCoord*                             movingCoord;
+    SVECTOR                               worldPos;
+    s32                                   packedScreenXY;
+    s32                                   depth;
+    s16                                   screenX;
+    s16                                   screenY;
+    s16                                   spreadAngle;
+    s32                                   spinX;
+    s32                                   spinY;
+    s32                                   spinZ;
 
     if (signal == SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
-    switch (arg0->state) {
-        case 0:
-            func_shelter_b3_dumping_hole_8017E7DC(arg0);
-            arg0->state++;
+    switch (task->state) {
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_SETUP:
+            _shelterB3DumpingHoleInitDebrisModel(task);
+            task->state++;
             return;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_WAIT:
             if (signal == SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_LAUNCH) {
-                arg0->state = 2;
+                task->state = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_LAUNCH;
             }
             return;
-        case 2:
-            pos.vx = coord->workm.t[0];
-            pos.vy = coord->workm.t[1];
-            pos.vz = coord->workm.t[2];
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_LAUNCH:
+            worldPos.vx = coord->workm.t[0];
+            worldPos.vy = coord->workm.t[1];
+            worldPos.vz = coord->workm.t[2];
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
-            gte_ldv0(&pos);
+            gte_ldv0(&worldPos);
             gte_rtps();
-            gte_stsxy(&sxy);
-            gte_stszotz(&otz);
-            sx = sxy;
-            sy = sxy >> 16;
-            if (sx < -0xA0) {
-                taskKill(arg0);
-                return;
-            }
-            if (sx > 0xA0) {
-                taskKill(arg0);
-                return;
-            }
-            if (sy < -0x78) {
-                taskKill(arg0);
-                return;
-            }
-            if (sy > 0x78) {
-                taskKill(arg0);
-                return;
-            }
-            if (otz < 0) {
-                taskKill(arg0);
-                return;
-            }
-            angle        = ratan2(sy, sx);
-            work->vel.vz = rcos(angle) * ((DUMPING_HOLE_RAND() & 7) + 0x11) / 4096;
-            work->vel.vy = rsin(angle) * ((DUMPING_HOLE_RAND() & 7) + 5) / 4096;
-            switch (arg0->spawnArg1.value) {
-                case 0:
-                    work->vel.vx = (DUMPING_HOLE_RAND() & 0x1F) + 0x32;
+            gte_stsxy(&packedScreenXY);
+            gte_stszotz(&depth);
+            screenX = packedScreenXY;
+            screenY = packedScreenXY >> 16;
+            SHELTER_B3_DUMPING_HOLE_CULL_DEBRIS_MODEL(task, screenX, screenY, depth);
+            // Spread in YZ from the projected centre while the tier drives motion along +X.
+            spreadAngle  = ratan2(screenY, screenX);
+            work->vel.vz = rcos(spreadAngle) * ((DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPREAD_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_Z_SPREAD) / ONE;
+            work->vel.vy = rsin(spreadAngle) * ((DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPREAD_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_Y_SPREAD) / ONE;
+            switch (task->spawnArg1.value) {
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_FAST:
+                    work->vel.vx = (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_FAST_X_SPEED;
                     break;
-                case 1:
-                    work->vel.vx = (DUMPING_HOLE_RAND() & 0x1F) + 0x28;
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_MEDIUM:
+                    work->vel.vx = (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_MEDIUM_X_SPEED;
                     break;
-                case 2:
-                    work->vel.vx = (DUMPING_HOLE_RAND() & 0x1F) + 0x1E;
+                case SHELTER_B3_DUMPING_HOLE_DEBRIS_SLOW:
+                    work->vel.vx = (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_SLOW_X_SPEED;
                     break;
             }
-            x = DUMPING_HOLE_RAND() & 0x7F;
-            if (DUMPING_HOLE_RAND() & 0x8000) {
-                x = -x;
-            }
-            work->spin.vx = x;
-            y             = DUMPING_HOLE_RAND() & 0x7F;
-            if (DUMPING_HOLE_RAND() & 0x8000) {
-                y = -y;
-            }
-            work->spin.vy = y;
-            z             = DUMPING_HOLE_RAND() & 0x7F;
-            if (DUMPING_HOLE_RAND() & 0x8000) {
-                z = -z;
-            }
-            work->spin.vz = z;
+            spinX         = _shelterB3DumpingHoleRandomDebrisSpin();
+            work->spin.vx = spinX;
+            spinY         = _shelterB3DumpingHoleRandomDebrisSpin();
+            work->spin.vy = spinY;
+            spinZ         = _shelterB3DumpingHoleRandomDebrisSpin();
+            work->spin.vz = spinZ;
             work->fall    = 0;
-            arg0->state++;
+            task->state++;
             return;
-        case 3:
-            work->rot.vx   += work->spin.vx;
-            work->rot.vy   += work->spin.vy;
-            work->rot.vz   += work->spin.vz;
-            work->fall     += SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_GRAVITY;
-            c2              = arg0->extra.tmd->coords;
-            c2->parent      = &gGfxViewCoord;
-            c2->coord.t[0] += work->vel.vx;
-            c2->coord.t[1] += work->vel.vy + work->fall;
-            c2->coord.t[2] += work->vel.vz;
-            gfxRotMatrixY(&c2->coord, work->rot.vy, 1);
-            gfxRotMatrixX(&c2->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
-            c2->composeStamp = GRAPHICS_COORD_DIRTY;
+        case SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_FLY:
+            work->rot.vx            += work->spin.vx;
+            work->rot.vy            += work->spin.vy;
+            work->rot.vz            += work->spin.vz;
+            work->fall              += SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL_GRAVITY;
+            movingCoord              = task->extra.tmd->coords;
+            movingCoord->parent      = &gGfxViewCoord;
+            movingCoord->coord.t[0] += work->vel.vx;
+            movingCoord->coord.t[1] += work->vel.vy + work->fall;
+            movingCoord->coord.t[2] += work->vel.vz;
+            gfxRotMatrixY(&movingCoord->coord, work->rot.vy, GRAPHICS_ROTATION_REPLACE);
+            gfxRotMatrixX(&movingCoord->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
+            movingCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
     }
 }
+
+#undef SHELTER_B3_DUMPING_HOLE_CULL_DEBRIS_MODEL
 
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
 {
@@ -2891,39 +3000,50 @@ s16 func_shelter_b3_dumping_hole_8017FB70(void)
     return D_shelter_b3_dumping_hole_8018809C;
 }
 
-void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
+/// Fades the debris event's subtractive black overlay away at its spawn-selected rate.
+///
+/// Spawn argument 1's low halfword is subtracted from each signed channel
+/// every tick after drawing; the low channel bytes are drawn, with red
+/// also supplying blue. Setup allocates task-owned work and draws that
+/// same tick. Negative red or the director's stop flag kills the task.
+static void _shelterB3DumpingHoleFadeFromBlackTask(Task* task)
 {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_FADE_SETUP          = 0,
+        SHELTER_B3_DUMPING_HOLE_FADE_RUN            = 1,
+        SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY = 0xFF,
+    };
     ScreenFadeWork*                       fade;
-    ScreenFadeWork*                       alloc;
-    _ShelterB3DumpingHoleDebrisEventWork* ent;
+    ScreenFadeWork*                       allocatedFade;
+    _ShelterB3DumpingHoleDebrisEventWork* eventWork;
 
-    ent  = D_shelter_b3_dumping_hole_8018F4A8->work;
-    fade = arg0->work;
-    if (ent->fadeStop == 1) {
-        taskKill(arg0);
+    eventWork = D_shelter_b3_dumping_hole_8018F4A8->work;
+    fade      = task->work;
+    if (eventWork->fadeStop == true) {
+        taskKill(task);
         return;
     }
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+    switch (task->state) {
+        case SHELTER_B3_DUMPING_HOLE_FADE_SETUP:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
+            fade         = allocatedFade;
+            fade->b      = SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY;
+            fade->g      = SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY;
+            fade->r      = SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY;
+            task->state += 1;
             /* fallthrough */
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_FADE_RUN:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r -= (u16)arg0->spawnArg1.value;
-            fade->g -= (u16)arg0->spawnArg1.value;
-            fade->b -= (u16)arg0->spawnArg1.value;
+            fade->r -= (u16)task->spawnArg1.value;
+            fade->g -= (u16)task->spawnArg1.value;
+            fade->b -= (u16)task->spawnArg1.value;
             if (fade->r < 0) {
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
@@ -2942,12 +3062,12 @@ void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
-void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
+void shelterB3DumpingHoleSpawnActorSprite(GfxCoord* sourceCoord, const SVECTOR* worldOffset)
 {
     Task*                            task;
     _ShelterB3DumpingHoleSpriteWork* work;
 
-    task       = taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
+    task       = taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, sourceCoord);
     work       = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
     task->work = work;
     if (work == NULL) {
@@ -2955,9 +3075,9 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
         return;
     }
     memFillBytes(work, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
-    work->offset.vx = arg1->vx;
-    work->offset.vy = arg1->vy;
-    work->offset.vz = arg1->vz;
+    work->offset.vx = worldOffset->vx;
+    work->offset.vy = worldOffset->vy;
+    work->offset.vz = worldOffset->vz;
 }
 
 static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1)
@@ -2969,11 +3089,12 @@ static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1)
     }
 }
 
-static void func_shelter_b3_dumping_hole_8017FE10(s32 arg0)
+/// Asks the debris director to stop its player-model sprites when `selector` is zero.
+static void _shelterB3DumpingHoleStopPlayerSprites(s32 selector)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    if (arg0 == 0) {
-        p->playerSpritesStop = 1;
+    _ShelterB3DumpingHoleDebrisEventWork* eventWork = D_shelter_b3_dumping_hole_8018F4A8->work;
+    if (selector == 0) {
+        eventWork->playerSpritesStop = true;
     }
 }
 
@@ -3049,82 +3170,99 @@ void func_shelter_b3_dumping_hole_80180034(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-/// A shard thrown out of the hole, alive only while the room flag is set. On
-/// its first frame it places itself from the spawn record and randomises its
-/// velocity, spin and triangle shape; afterwards it falls and spins, is dropped
-/// once its origin leaves the screen or passes behind the camera, and otherwise
-/// draws itself as a shaded triangle.
-void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
+/// Draws a tumbling triangular shard sampled from the collapse model's emitter.
+///
+/// Spawn argument 2 lends a shard-spawn record through the first tick.
+/// Setup allocates task-owned work, samples the emitter world position and
+/// randomizes velocity, spin and three local XY corners about its radius.
+/// Later ticks move under the record's downward acceleration, cull the
+/// origin, draw a grey Gouraud triangle, then advance rotation for the next
+/// tick. A cleared collapse-shards flag removes it. Angles use 4096 units
+/// per turn; positions and velocities use world units and ticks.
+static void _shelterB3DumpingHoleShardTask(Task* task)
 {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_SHARD_SETUP                = 0,
+        SHELTER_B3_DUMPING_HOLE_SHARD_FLY                  = 1,
+        SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK = 0x1F,
+        SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK     = 0x7F,
+        SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN             = 100,
+        SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_60             = 0x2AA,
+        SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_30             = 0x155,
+        SHELTER_B3_DUMPING_HOLE_SHARD_DARK_INTENSITY       = 0x10,
+        SHELTER_B3_DUMPING_HOLE_SHARD_MID_INTENSITY        = 0x40,
+        SHELTER_B3_DUMPING_HOLE_SHARD_LIGHT_INTENSITY      = 0x80,
+    };
     _ShelterB3DumpingHoleShardWork*  work;
     GfxCoord*                        coord;
     _ShelterB3DumpingHoleShardSpawn* spawn;
     POLY_G3*                         prim;
-    SVECTOR                          ofs;
-    s16                              x[3];
-    s16                              y[3];
+    SVECTOR                          emitterWorldPos;
+    s16                              vertexScreenX[3];
+    s16                              vertexScreenY[3];
     SVECTOR                          origin;
-    s32                              sxy;
-    s32                              otz;
-    s16                              i;
-    s16                              sx;
-    s16                              sy;
+    s32                              packedScreenXY;
+    s32                              depth;
+    s16                              vertexIndex;
+    s16                              originScreenX;
+    s16                              originScreenY;
 
-    work  = arg0->work;
-    coord = arg0->extra.coordBody->coord;
-    spawn = arg0->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.coordBody->coord;
+    spawn = task->spawnArg2.pointer;
     if (D_shelter_b3_dumping_hole_8018F4B0_value == 0) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
-    switch (arg0->state) {
-        case 0:
-            arg0->work = memCalloc(SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES, 0);
-            if (arg0->work == NULL) {
-                taskKill(arg0);
+    switch (task->state) {
+        case SHELTER_B3_DUMPING_HOLE_SHARD_SETUP:
+            task->work = memCalloc(SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES, false);
+            if (task->work == NULL) {
+                taskKill(task);
                 break;
             }
-            work          = arg0->work;
+            work          = task->work;
             coord->parent = &gGfxViewCoord;
-            memFillBytes(arg0->work, 0, SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES);
-            gfxComposeNodeWorldTransform(spawn->emitter, &coord->coord, &ofs);
-            coord->coord.t[0] = ofs.vx + spawn->offset.vx;
-            coord->coord.t[1] = ofs.vy + spawn->offset.vy;
-            coord->coord.t[2] = ofs.vz + spawn->offset.vz;
-            work->vel.vx      = spawn->vel.vx + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
-            work->vel.vy      = spawn->vel.vy + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
-            work->vel.vz      = spawn->vel.vz + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x1F) : -(DUMPING_HOLE_RAND() & 0x1F));
+            memFillBytes(task->work, 0, SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES);
+            gfxComposeNodeWorldTransform(spawn->emitter, &coord->coord, &emitterWorldPos);
+            coord->coord.t[0] = emitterWorldPos.vx + spawn->offset.vx;
+            coord->coord.t[1] = emitterWorldPos.vy + spawn->offset.vy;
+            coord->coord.t[2] = emitterWorldPos.vz + spawn->offset.vz;
+            work->vel.vx      = spawn->vel.vx + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
+            work->vel.vy      = spawn->vel.vy + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
+            work->vel.vz      = spawn->vel.vz + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
             work->gravity     = spawn->gravity;
-            work->spin.vx     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
-            work->spin.vy     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
-            work->spin.vz     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & 0x7F) : -(DUMPING_HOLE_RAND() & 0x7F);
+            work->spin.vx     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
+            work->spin.vy     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
+            work->spin.vz     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
             if (work->spin.vx > 0) {
-                work->spin.vx += 100;
+                work->spin.vx += SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN;
             } else {
-                work->spin.vx -= 100;
+                work->spin.vx -= SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN;
             }
             if (work->spin.vy > 0) {
-                work->spin.vy += 100;
+                work->spin.vy += SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN;
             } else {
-                work->spin.vy -= 100;
+                work->spin.vy -= SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN;
             }
             if (work->spin.vz > 0) {
-                work->spin.vz += 100;
+                work->spin.vz += SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN;
             } else {
-                work->spin.vz -= 100;
+                work->spin.vz -= SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN;
             }
+            // Equilateral corners receive outward jitter of one tenth of the radius.
             work->verts[0].vx = 0;
             work->verts[0].vy = spawn->radius + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
             work->verts[0].vz = 0;
-            work->verts[1].vx = spawn->radius * rsin(0x2AA) / 4096 + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
-            work->verts[1].vy = -(spawn->radius * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[1].vx = spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_60) / ONE + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[1].vy = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_30) / ONE) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
             work->verts[1].vz = 0;
-            work->verts[2].vx = -(spawn->radius * rsin(0x2AA) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
-            work->verts[2].vy = -(spawn->radius * rsin(0x155) / 4096) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[2].vx = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_60) / ONE) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[2].vy = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_30) / ONE) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
             work->verts[2].vz = 0;
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_SHARD_FLY:
             work->vel.vy      += work->gravity;
             coord->coord.t[0] += work->vel.vx;
             coord->coord.t[1] += work->vel.vy;
@@ -3137,41 +3275,40 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             origin.vx = 0;
             gte_ldv0(&origin);
             gte_rtps();
-            gte_stsxy(&sxy);
-            gte_stszotz(&otz);
-            sy = sxy >> 16;
-            sx = sxy;
-            /* The grouping keeps the two x tests apart: as direct operands of
-             * one `||` they fold into a single unsigned range compare. */
-            if (sx < -0xA0 || (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0)) {
-                taskKill(arg0);
+            gte_stsxy(&packedScreenXY);
+            gte_stszotz(&depth);
+            originScreenY = packedScreenXY >> 16;
+            originScreenX = packedScreenXY;
+            // Cull the origin before projecting and queuing the three triangle corners.
+            if (originScreenX < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH || (originScreenX > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_WIDTH || originScreenY < -SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT || originScreenY > SHELTER_B3_DUMPING_HOLE_SCREEN_HALF_HEIGHT || depth < 0)) {
+                taskKill(task);
                 break;
             }
-            for (i = 0; i < 3; i++) {
-                gte_ldv0(&work->verts[i]);
+            for (vertexIndex = 0; vertexIndex < (s16)ARRAY_SIZE(work->verts); vertexIndex++) {
+                gte_ldv0(&work->verts[vertexIndex]);
                 gte_rtps();
-                gte_stsxy(&sxy);
-                gte_stszotz(&otz);
-                x[i] = sxy;
-                y[i] = sxy >> 16;
+                gte_stsxy(&packedScreenXY);
+                gte_stszotz(&depth);
+                vertexScreenX[vertexIndex] = packedScreenXY;
+                vertexScreenY[vertexIndex] = packedScreenXY >> 16;
             }
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
             setPolyG3(prim);
-            setRGB0(prim, 0x10, 0x10, 0x10);
-            setRGB1(prim, 0x40, 0x40, 0x40);
-            setRGB2(prim, 0x80, 0x80, 0x80);
-            prim->x0 = x[0];
-            prim->y0 = y[0];
-            prim->x1 = x[1];
-            prim->y1 = y[1];
-            prim->x2 = x[2];
-            prim->y2 = y[2];
-            addPrim(&gGpuCurrentOt[otz >> 4], prim);
+            setRGB0(prim, SHELTER_B3_DUMPING_HOLE_SHARD_DARK_INTENSITY, SHELTER_B3_DUMPING_HOLE_SHARD_DARK_INTENSITY, SHELTER_B3_DUMPING_HOLE_SHARD_DARK_INTENSITY);
+            setRGB1(prim, SHELTER_B3_DUMPING_HOLE_SHARD_MID_INTENSITY, SHELTER_B3_DUMPING_HOLE_SHARD_MID_INTENSITY, SHELTER_B3_DUMPING_HOLE_SHARD_MID_INTENSITY);
+            setRGB2(prim, SHELTER_B3_DUMPING_HOLE_SHARD_LIGHT_INTENSITY, SHELTER_B3_DUMPING_HOLE_SHARD_LIGHT_INTENSITY, SHELTER_B3_DUMPING_HOLE_SHARD_LIGHT_INTENSITY);
+            prim->x0 = vertexScreenX[0];
+            prim->y0 = vertexScreenY[0];
+            prim->x1 = vertexScreenX[1];
+            prim->y1 = vertexScreenY[1];
+            prim->x2 = vertexScreenX[2];
+            prim->y2 = vertexScreenY[2];
+            addPrim(&gGpuCurrentOt[depth >> SHELTER_B3_DUMPING_HOLE_OT_DEPTH_SHIFT], prim);
             work->rot.vx += work->spin.vx;
             work->rot.vy += work->spin.vy;
             work->rot.vz += work->spin.vz;
-            gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
+            gfxRotMatrixY(&coord->coord, work->rot.vy, GRAPHICS_ROTATION_REPLACE);
             gfxRotMatrixX(&coord->coord, work->rot.vx, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&coord->coord, work->rot.vz, GRAPHICS_ROTATION_COMPOSE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3594,24 +3731,35 @@ void func_shelter_b3_dumping_hole_80181A18(void)
     taskSpawnFromTable(&D_shelter_b3_dumping_hole_8018AFBC, 0, 0, 0);
 }
 
-void func_shelter_b3_dumping_hole_80181A48(Task* arg0)
+/// Alternates the display's vertical shake by three pixels for nine updates, then clears it.
+///
+/// Setup reuses spawn argument 1 as the signed amplitude and killCountdown
+/// as an eight-to-minus-one timer. The final shaking update advances the
+/// state; the following update clears the global displacement and kills it.
+static void _shelterB3DumpingHoleShakeTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
-            arg0->spawnArg1.value = 3;
-            arg0->killCountdown   = 8;
-            arg0->state          += 1;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_SHAKE_SETUP     = 0,
+        SHELTER_B3_DUMPING_HOLE_SHAKE_RUN       = 1,
+        SHELTER_B3_DUMPING_HOLE_SHAKE_AMPLITUDE = 3,
+        SHELTER_B3_DUMPING_HOLE_SHAKE_COUNTDOWN = 8,
+    };
+    switch (task->state) {
+        case SHELTER_B3_DUMPING_HOLE_SHAKE_SETUP:
+            task->spawnArg1.value = SHELTER_B3_DUMPING_HOLE_SHAKE_AMPLITUDE;
+            task->killCountdown   = SHELTER_B3_DUMPING_HOLE_SHAKE_COUNTDOWN;
+            task->state          += 1;
             break;
-        case 1:
-            if (--arg0->killCountdown < 0) {
-                arg0->state += 1;
+        case SHELTER_B3_DUMPING_HOLE_SHAKE_RUN:
+            if (--task->killCountdown < 0) {
+                task->state += 1;
             }
-            displaySetShakeY(arg0->spawnArg1.value);
-            arg0->spawnArg1.value = -arg0->spawnArg1.value;
+            displaySetShakeY(task->spawnArg1.value);
+            task->spawnArg1.value = -task->spawnArg1.value;
             break;
         default:
             displaySetShakeY(0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -3624,7 +3772,7 @@ void func_shelter_b3_dumping_hole_80181B04(s16 arg0)
 
 void func_shelter_b3_dumping_hole_80181B44(s32 arg0)
 {
-    func_shelter_b3_dumping_hole_8017FE10(arg0);
+    _shelterB3DumpingHoleStopPlayerSprites(arg0);
 }
 
 #include "../../shared/cap_captions.inc.c"
@@ -3740,13 +3888,21 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
     }
 }
 
-s32 func_shelter_b3_dumping_hole_80183530(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
+/// Latches the encounter stop command and returns `OVERLAY_ENCOUNTER_COMMAND_STOP`.
+///
+/// Installed for `ACTOR_COMMAND_MESSAGE_APPLY`; borrows `request` for this
+/// call. Other commands do not change the controller, but still return 4.
+/// `messageId` and the second payload word are unused.
+static s32 _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused)
 {
-    OverlayEncounterControllerWork* work = arg0->work;
+    OverlayEncounterControllerWork* work = task->work;
+    // The comparison value is also the callback result on either path.
+    register s32 stopCommand __asm__("$2") = OVERLAY_ENCOUNTER_COMMAND_STOP;
 
-    if (request->command == OVERLAY_ENCOUNTER_COMMAND_STOP) {
+    if (request->command == stopCommand) {
         work->stop = request->command;
     }
+    return stopCommand;
 }
 
 /// States of the task that works through the room's 16 enemy slots: set-up,
@@ -4028,7 +4184,7 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
     OverlayEncounterPairWork* work = arg0->work;
     Enemy*                    t    = work->enemy1;
 
-    func_shelter_b3_dumping_hole_80183F04(arg0);
+    _madChaserWavePairDropDead(arg0);
     if (work->enemy1 != NULL) {
         if (++work->frames <= 60) {
             return;
@@ -4054,7 +4210,7 @@ static void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
 {
     OverlayEncounterPairWork* work = arg0->work;
 
-    func_shelter_b3_dumping_hole_80183F04(arg0);
+    _madChaserWavePairDropDead(arg0);
     if (work->goneMask == OVERLAY_ENCOUNTER_PAIR_GONE_BOTH) {
         D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(arg0);
@@ -4076,9 +4232,14 @@ static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-static void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
+/// Forgets dead encounter-pair enemies and marks their slots gone on the next check.
+///
+/// Only HP at or below zero clears a non-NULL borrowed enemy pointer. A
+/// pointer already NULL sets its goneMask bit; clearing and marking occur
+/// on successive calls. Enemy tasks remain owned by the actor system.
+static void _madChaserWavePairDropDead(Task* task)
 {
-    OverlayEncounterPairWork* work = arg0->work;
+    OverlayEncounterPairWork* work = task->work;
 
     if (work->enemy0 != NULL) {
         if (work->enemy0->hp <= 0) {
@@ -4096,8 +4257,21 @@ static void func_shelter_b3_dumping_hole_80183F04(Task* arg0)
     }
 }
 
-void func_shelter_b3_dumping_hole_80183F84(Task* task)
+void shelterB3DumpingHoleDrawViewGlowsTask(Task* task)
 {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE    = 0x200,
+        SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE = 0x280,
+        SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE       = 0x300,
+        SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE = 0x400,
+        SHELTER_B3_DUMPING_HOLE_GLOW_DIM_RED                 = 0x100,
+        SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED              = 0x200,
+        SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED              = 0x300,
+        SHELTER_B3_DUMPING_HOLE_GLOW_RED                     = 0x400,
+        SHELTER_B3_DUMPING_HOLE_GLOW_GREY                    = 0x444,
+        SHELTER_B3_DUMPING_HOLE_GLOW_CYAN                    = 0x44,
+        SHELTER_B3_DUMPING_HOLE_GLOW_GREEN                   = 0x40,
+    };
     u8 view;
 
     if (task->state == 0) {
@@ -4105,138 +4279,139 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
         task->state                        = 1;
     }
 
+    // Each mapped view selects only the visible subset of the room's world points.
     view = viewGetMappedIndex();
     switch (view) {
         case 2:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x100);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_DIM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[36], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 3:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x300);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 4:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[9], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[28], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[29], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[37], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 7:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[0], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[1], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[2], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[3], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 33)[4], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[36], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[37], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 14:
             if (D_shelter_b3_dumping_hole_8018F4D8 != 0) {
-                glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
-                glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
+                glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[30], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_CYAN);
+                glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[31], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREEN);
             }
             break;
         case 15:
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x100);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x21], 0x300, 0x200);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x22], 0x300, 0x300);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x23], 0x300, 0x400);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_DIM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 17:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 36)[0], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[36], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 18:
-            _glowDrawCapsule(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0], 0x200, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x12], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x13], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x19], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1A], 0x300, 0x300);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 10)[0x1B], 0x300, 0x200);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[10], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[28], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[29], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[36], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[37], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
             break;
         case 19:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 21:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 24)[0], 0x400, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 24)[1], 0x400, 0x444);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[25], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
             break;
         case 22:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[0], 0x280, 0x44);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 30)[1], 0x280, 0x40);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[30], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_CYAN);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[31], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREEN);
             break;
         case 23:
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[0x20], 0x300, 0x400);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 26:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 26)[0], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 26)[1], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[27], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 29:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[28], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[29], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[30], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_CYAN);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[31], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREEN);
             break;
         case 30:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[0], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[1], 0x280, 0x444);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[2], 0x280, 0x44);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 28)[3], 0x280, 0x40);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[28], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[29], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[30], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_CYAN);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[31], SHELTER_B3_DUMPING_HOLE_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREEN);
             break;
         case 31:
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], 0x300, 0x200);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], 0x300, 0x300);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], 0x300, 0x400);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[38], 0x300, 0x200);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[39], 0x300, 0x300);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[40], 0x300, 0x400);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[38], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[39], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[40], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 34:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x200);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[2], 0x300, 0x300);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[3], 0x300, 0x300);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[4], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[5], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[36], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[37], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 35:
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[0], 0x300, 0x200);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[1], 0x300, 0x400);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[6], 0x300, 0x200);
-            glowDrawDisc(&(D_shelter_b3_dumping_hole_8018B86C + 32)[7], 0x300, 0x400);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[38], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[39], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
             break;
         case 13:
         case 37:
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[6], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[16], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], 0x400, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[25], 0x400, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], 0x400, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[27], 0x400, 0x444);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], 0x300, 0x100);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], 0x300, 0x200);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], 0x300, 0x300);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], 0x300, 0x400);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[38], 0x300, 0x100);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[39], 0x300, 0x200);
-            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[40], 0x300, 0x300);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[0], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[2], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[4], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[6], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[12], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[14], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b3_dumping_hole_8018B86C[16], SHELTER_B3_DUMPING_HOLE_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[24], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[25], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[26], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[27], SHELTER_B3_DUMPING_HOLE_GLOW_LARGE_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[32], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_DIM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[33], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[34], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[35], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[38], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_DIM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[39], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_MEDIUM_RED);
+            glowDrawDisc(&D_shelter_b3_dumping_hole_8018B86C[40], SHELTER_B3_DUMPING_HOLE_GLOW_DISC_RADIUS_SCALE, SHELTER_B3_DUMPING_HOLE_GLOW_BRIGHT_RED);
             break;
     }
 }
@@ -4251,29 +4426,46 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
 
 #include "../../shared/effect_sprite_draw_rotated.inc.c"
 
-/// Per-frame update of an effect task drawn with
-/// `_effectSpriteDrawChip` (state 1) or
-/// `_effectSpriteDrawBillboard` (state 2). State 0 seeds the work from
-/// `spawnArg1` and, when `move` is zero, picks a random velocity scaled
-/// through the GTE. Later ticks draw, drift the coordinate by that velocity
-/// with `vy` growing by 6, and advance the frame every `period` ticks,
-/// releasing the task after frame 7. While an event is running the task only
-/// draws, and is released once the event state reaches 4.
-void func_shelter_b3_dumping_hole_80186218(Task* task)
+void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
 {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_RAIN_SETUP                = 0,
+        SHELTER_B3_DUMPING_HOLE_RAIN_CHIP                 = 1,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BILLBOARD            = 2,
+        SHELTER_B3_DUMPING_HOLE_RAIN_SIZE_MASK            = 0xFFF,
+        SHELTER_B3_DUMPING_HOLE_RAIN_ANGLE_MASK           = 0xFFF,
+        SHELTER_B3_DUMPING_HOLE_RAIN_PERIOD_BITS          = 0xF000,
+        SHELTER_B3_DUMPING_HOLE_RAIN_PERIOD_SHIFT         = 12,
+        SHELTER_B3_DUMPING_HOLE_RAIN_NIBBLE_MASK          = 0xF,
+        SHELTER_B3_DUMPING_HOLE_RAIN_DRAWER_BITS          = 0xF0000000,
+        SHELTER_B3_DUMPING_HOLE_RAIN_SPEED_BITS           = 0xFF0000,
+        SHELTER_B3_DUMPING_HOLE_RAIN_SPEED_SHIFT          = 16,
+        SHELTER_B3_DUMPING_HOLE_RAIN_SPEED_MASK           = 0xFF,
+        SHELTER_B3_DUMPING_HOLE_RAIN_DEFAULT_SPEED        = 64,
+        SHELTER_B3_DUMPING_HOLE_RAIN_STILL                = 0,
+        SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_UPWARD        = 1,
+        SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_ALL_AXES      = 2,
+        SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_NARROW_UPWARD = 3,
+        SHELTER_B3_DUMPING_HOLE_RAIN_OFFSET_DIRECTION     = 5,
+        SHELTER_B3_DUMPING_HOLE_RAIN_GRAVITY              = 6,
+        SHELTER_B3_DUMPING_HOLE_RAIN_FRAME_COUNT          = 8,
+        SHELTER_B3_DUMPING_HOLE_RAIN_UPWARD_Y_BITS        = 0xFFC0,
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         kind;
-    s32         step;
-    s32         state;
-    s32         level;
+    SVECTOR*    velocity;
+    s32         velocityKind;
+    s32         framePeriod;
+    s32         drawState;
+    s32         speed;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
+    // Suspended effects redraw without advancing motion or the animation cursor.
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        // Suspended effects redraw without advancing motion or the animation cursor.
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (task->state < 2) {
+            if (task->state < SHELTER_B3_DUMPING_HOLE_RAIN_BILLBOARD) {
                 _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
             } else {
                 _effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
@@ -4285,43 +4477,43 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
     }
     work->age++;
     switch (task->state) {
-        case 0:
-            work->scale     = task->spawnArg1.halves.low & 0xFFF;
+        case SHELTER_B3_DUMPING_HOLE_RAIN_SETUP:
+            work->scale     = task->spawnArg1.halves.low & SHELTER_B3_DUMPING_HOLE_RAIN_SIZE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 0xF;
+            work->angle     = (gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_RAIN_ANGLE_MASK;
+            if (task->spawnArg1.value & SHELTER_B3_DUMPING_HOLE_RAIN_PERIOD_BITS) {
+                framePeriod = (task->spawnArg1.value >> SHELTER_B3_DUMPING_HOLE_RAIN_PERIOD_SHIFT) & 0xF;
             } else {
-                step = 1;
+                framePeriod = 1;
             }
-            work->period = step;
+            work->period = framePeriod;
             work->age    = 0;
-            state        = 1;
-            if (task->spawnArg1.value & 0xF0000000) {
-                state = 2;
+            drawState    = SHELTER_B3_DUMPING_HOLE_RAIN_CHIP;
+            if (task->spawnArg1.value & SHELTER_B3_DUMPING_HOLE_RAIN_DRAWER_BITS) {
+                drawState = SHELTER_B3_DUMPING_HOLE_RAIN_BILLBOARD;
             }
-            task->state = state;
+            task->state = drawState;
             if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
+                if (task->spawnArg1.value & SHELTER_B3_DUMPING_HOLE_RAIN_SPEED_BITS) {
+                    speed = (task->spawnArg1.value >> SHELTER_B3_DUMPING_HOLE_RAIN_SPEED_SHIFT) & SHELTER_B3_DUMPING_HOLE_RAIN_SPEED_MASK;
                 } else {
-                    level = 0x40;
+                    speed = SHELTER_B3_DUMPING_HOLE_RAIN_DEFAULT_SPEED;
                 }
-                work->step = level;
-                kind       = task->spawnArg1.signedBytes[3];
-                switch (kind & 0xF) {
-                    case 0:
+                work->step   = speed;
+                velocityKind = task->spawnArg1.signedBytes[3];
+                switch (velocityKind & SHELTER_B3_DUMPING_HOLE_RAIN_NIBBLE_MASK) {
+                    case SHELTER_B3_DUMPING_HOLE_RAIN_STILL:
                         work->step = 0;
                         break;
-                    case 1:
+                    case SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
+                        work->move.vy   = SHELTER_B3_DUMPING_HOLE_RAIN_UPWARD_Y_BITS - ((gRandomLcgState >> 16) & 0x7F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 2:
+                    case SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_ALL_AXES:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -4329,7 +4521,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 3:
+                    case SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_NARROW_UPWARD:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -4337,26 +4529,27 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
-                    case 5:
+                    case SHELTER_B3_DUMPING_HOLE_RAIN_OFFSET_DIRECTION:
                         work->move.vx = work->pos.vx;
                         work->move.vy = work->pos.vy;
                         work->move.vz = work->pos.vz;
                         break;
                 }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
+                // Normalize the selected direction and scale it to units per running tick.
+                velocity = &work->move;
+                VectorNormalSS(velocity, velocity);
                 gte_lddp(work->step);
-                gte_ldsv(vec);
+                gte_ldsv(velocity);
                 gte_gpf12();
-                gte_stsv(vec);
+                gte_stsv(velocity);
             } else {
-                work->step = 0x40;
+                work->step = SHELTER_B3_DUMPING_HOLE_RAIN_DEFAULT_SPEED;
             }
             return;
-        case 1:
+        case SHELTER_B3_DUMPING_HOLE_RAIN_CHIP:
             _effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
             break;
-        case 2:
+        case SHELTER_B3_DUMPING_HOLE_RAIN_BILLBOARD:
             _effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
             break;
         default:
@@ -4367,11 +4560,11 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
         coord->coord.t[1]  += work->move.vy;
         coord->coord.t[2]  += work->move.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->move.vy      += 6;
+        work->move.vy      += SHELTER_B3_DUMPING_HOLE_RAIN_GRAVITY;
     }
     if ((work->age % work->period) == 0) {
         work->index++;
-        if (work->index >= 8) {
+        if (work->index >= SHELTER_B3_DUMPING_HOLE_RAIN_FRAME_COUNT) {
             effectKillTask(work, task);
         }
     }
