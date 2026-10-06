@@ -608,57 +608,43 @@ void func_actor_341300_8016268C(void)
 void func_actor_341300_80162698(Task* arg0)
 {
     s16 i;
-    s16 next;
-    u16 count;
 
     switch (arg0->state) {
         case 0:
-            i = 0;
-            do {
+            for (i = 0; i < 0xA; i++) {
                 taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
-                next = i + 1;
-                i    = next;
-            } while (next < 0xA);
-            goto done;
+            }
+            arg0->killCountdown = 0;
+            arg0->state         = arg0->state + 1;
+            break;
         case 1:
-            count               = (u16)arg0->killCountdown + 1;
-            arg0->killCountdown = count;
-            i                   = 0;
-            if ((s16)count >= 0x1F) {
-                do {
+            arg0->killCountdown++;
+            if (arg0->killCountdown >= 0x1F) {
+                for (i = 0; i < 0xA; i++) {
                     taskSpawnFromTable(D_actor_341300_80165A68, 1, 0, arg0);
-                    next = i + 1;
-                    i    = next;
-                } while (next < 0xA);
-                goto done;
+                }
+                arg0->killCountdown = 0;
+                arg0->state         = arg0->state + 1;
             }
             break;
         case 2:
-            count               = (u16)arg0->killCountdown + 1;
-            arg0->killCountdown = count;
-            i                   = 0;
-            if ((s16)count >= 0x10) {
-                do {
+            arg0->killCountdown++;
+            if (arg0->killCountdown >= 0x10) {
+                for (i = 0; i < 0xA; i++) {
                     taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
-                    next = i + 1;
-                    i    = next;
-                } while (next < 0xA);
-                goto done;
+                }
+                arg0->killCountdown = 0;
+                arg0->state         = arg0->state + 1;
             }
             break;
         case 3:
         case 4:
-            count               = (u16)arg0->killCountdown + 1;
-            arg0->killCountdown = count;
-            i                   = 0;
-            if ((s16)count >= 0x10) {
-                do {
+            arg0->killCountdown++;
+            if (arg0->killCountdown >= 0x10) {
+                for (i = 0; i < 0xA; i++) {
                     taskSpawnFromTable(D_actor_341300_80165A68, 1, 3, arg0);
                     taskSpawnFromTable(D_actor_341300_80165A68, 1, 1, arg0);
-                    next = i + 1;
-                    i    = next;
-                } while (next < 0xA);
-            done:
+                }
                 arg0->killCountdown = 0;
                 arg0->state         = arg0->state + 1;
             }
@@ -695,7 +681,8 @@ void func_actor_341300_80162878(Task* arg0)
         case 0:
             arg0->work = memCalloc(sizeof(_Actor341300ShardWork), 0);
             if (arg0->work == NULL) {
-                goto kill;
+                taskKill(arg0);
+                break;
             }
             work          = arg0->work;
             coord->parent = &gGfxViewCoord;
@@ -754,7 +741,6 @@ void func_actor_341300_80162878(Task* arg0)
             break;
         case 1:
             if (coord->coord.t[1] > 0) {
-            kill:
                 taskKill(arg0);
                 break;
             }
@@ -853,7 +839,8 @@ void func_actor_341300_801631D4(Task* arg0)
         case 0:
             arg0->work = memCalloc(sizeof(_Actor341300ShardWork), 0);
             if (arg0->work == NULL) {
-                goto kill;
+                taskKill(arg0);
+                break;
             }
             work          = arg0->work;
             coord->parent = &gGfxViewCoord;
@@ -916,7 +903,6 @@ void func_actor_341300_801631D4(Task* arg0)
             break;
         case 1:
             if (coord->coord.t[1] > 0) {
-            kill:
                 taskKill(arg0);
                 break;
             }
