@@ -342,9 +342,9 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
             gameFlagSetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN, 0);
             break;
         case ACTOR_205200_SITE_B6_CORRIDOR:
-            func_shelter_b6_corridor_8017EE08(0, 0);
-            func_shelter_b6_corridor_8017EE08(1, 0);
-            func_shelter_b6_corridor_8017EE08(2, 0);
+            shelterB6CorridorSetPartDestroyedSprites(0, SHELTER_B6_CORRIDOR_PART_INTACT);
+            shelterB6CorridorSetPartDestroyedSprites(1, SHELTER_B6_CORRIDOR_PART_INTACT);
+            shelterB6CorridorSetPartDestroyedSprites(2, SHELTER_B6_CORRIDOR_PART_INTACT);
             gameFlagSetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 0);
             gameFlagSetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN, 0);
             break;
@@ -677,7 +677,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                     gameFlagSetNibble(part->slot + GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN, 1);
                     break;
                 case ACTOR_205200_SITE_B6_CORRIDOR:
-                    func_shelter_b6_corridor_8017EE08((u8)part->slot, 1);
+                    shelterB6CorridorSetPartDestroyedSprites(part->slot, SHELTER_B6_CORRIDOR_PART_DESTROYED);
                     gameFlagSetNibble(part->slot + GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN, 1);
                     break;
                 case ACTOR_205200_SITE_B6_TRAINING_ROOM:

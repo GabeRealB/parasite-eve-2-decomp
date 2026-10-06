@@ -1312,9 +1312,9 @@ shelterB4WaterSupplyRoomVisualEffectsFlyingSparkTask = 0x80180F34; // type:func 
 
 shelterB4WaterSupplyRoomVisualEffectsFlyingOrangeBurstTask = 0x80181B94; // type:func absolute:True owner=shelter_b4_water_supply
 
-func_shelter_b6_corridor_8017E238 = 0x8017E238; // type:func absolute:True owner=shelter_b6_corridor
+shelterB6CorridorDrawViewGlowsTask = 0x8017E238; // type:func absolute:True owner=shelter_b6_corridor
 
-func_shelter_b6_corridor_8017ECA8 = 0x8017ECA8; // type:func absolute:True owner=shelter_b6_corridor
+shelterB6CorridorPlayerHitGlowTask = 0x8017ECA8; // type:func absolute:True owner=shelter_b6_corridor
 
 func_shelter_b6_growth_room_8017D9D8 = 0x8017D9D8; // type:func absolute:True owner=shelter_b6_growth_room
 

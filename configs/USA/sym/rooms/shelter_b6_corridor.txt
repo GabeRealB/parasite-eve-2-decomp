@@ -68,10 +68,15 @@ D_shelter_b6_corridor_801851B8 = 0x801851B8; // size:0x4 defined:True
 
 func_shelter_b6_corridor_8017EBA4 = 0x8017EBA4; // type:func
 
-func_shelter_b6_corridor_8017EE08 = 0x8017EE08; // type:func
+shelterB6CorridorSetPartDestroyedSprites = 0x8017EE08; // type:func
 
-func_shelter_b6_corridor_8017E238 = 0x8017E238; // type:func
+shelterB6CorridorDrawViewGlowsTask = 0x8017E238; // type:func
 
-func_shelter_b6_corridor_8017ECA8 = 0x8017ECA8; // type:func
+shelterB6CorridorPlayerHitGlowTask = 0x8017ECA8; // type:func
 _glowDrawCapsule = 0x8017E360; // type:func
 screenWaveGridTask = 0x8017D5D0; // type:func
+_shelterB6CorridorRejectKeyItemUse = 0x8017dea8; // type:func
+_shelterB6CorridorIgnoreRoomAction = 0x8017e020; // type:func
+_shelterB6CorridorInitRoom = 0x8017e064; // type:func
+_shelterB6CorridorSetImageMaskMode = 0x8017e12c; // type:func
+shelterB6CorridorRoomTask = 0x8017e144; // type:func

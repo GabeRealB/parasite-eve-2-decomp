@@ -888,7 +888,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineFlareTask, { NULL } },                                                  // 0x15B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_nursery_801800A0, { NULL } },                                       // 0x15C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_growth_room_8017D9D8, { NULL } },                                   // 0x15D
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_corridor_8017E238, { NULL } },                                      // 0x15E
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorDrawViewGlowsTask, { NULL } },                                     // 0x15E
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomGlowTask, { NULL } },                                          // 0x15F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017E954, { NULL } },                                           // 0x160
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017EA08, { NULL } },                                    // 0x161
@@ -1203,7 +1203,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsFlashTask, { NULL } },                           // 0x296
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x297
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017ED1C, { NULL } },                                     // 0x298
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_corridor_8017ECA8, { NULL } },                                      // 0x299
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorPlayerHitGlowTask, { NULL } },                                     // 0x299
     { { { TASK_BODY_COORD, 0x70 } }, func_gunblade_8011DAA4, { NULL } },                                                 // 0x29A
 };
 s32 D_80111B70[20] = {

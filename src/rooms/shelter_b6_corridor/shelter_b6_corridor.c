@@ -123,11 +123,11 @@ void                            func_shelter_b6_corridor_8017E204(void);
 void func_shelter_b6_corridor_8017E19C(s32);
 void func_shelter_b6_corridor_8017E204(void);
 
-s32 func_shelter_b6_corridor_8017DEA8(Task*, s32, s32, s32);
-s32 func_shelter_b6_corridor_8017DEB0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b6_corridor_8017DF48(Task*, s32, s32, s32);
-s32 func_shelter_b6_corridor_8017E020(Task*, s32, s32, s32);
-s32 func_shelter_b6_corridor_8017E028(Task*, s32, s32, s32);
+static s32 _shelterB6CorridorRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedArg);
+s32        func_shelter_b6_corridor_8017DEB0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_shelter_b6_corridor_8017DF48(Task*, s32, s32, s32);
+static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, DirectionActionRequest* unusedRequest, s32 unusedArg);
+s32        func_shelter_b6_corridor_8017E028(Task*, s32, s32, s32);
 
 TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
     { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
@@ -136,10 +136,12 @@ TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
 
 s32 gScreenWaveRamp = 256;
 
+enum { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
 TaskMessageEntry D_shelter_b6_corridor_8017EF24[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_corridor_8017DEB0 },
-    { 5105, func_shelter_b6_corridor_8017DEA8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_corridor_8017E020 },
+    { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB6CorridorRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB6CorridorIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b6_corridor_8017DF48 },
     { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b6_corridor_8017E028 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -526,14 +528,18 @@ _ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 
 s32 D_shelter_b6_corridor_801851B8;
 
-static void func_shelter_b6_corridor_8017E064(Task* arg0);
-static void func_shelter_b6_corridor_8017E12C(Task* task);
+static void _shelterB6CorridorInitRoom(Task* task);
+static void _shelterB6CorridorSetImageMaskMode(Task* unusedTask);
 
 #include "../../shared/screen_wave_grid.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this room without changing the scene.
+///
+/// Message 0x13F1 carries the collected item ID and a zero second payload.
+/// All arguments are ignored; returning 0 reports that the item cannot be used.
+static s32 _shelterB6CorridorRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedArg)
 {
     return 0;
 }
@@ -594,7 +600,11 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017E020(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests and returns 0 without changing the scene.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a request for this dispatch and
+/// supplies a zero second payload. This room reads neither payload.
+static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, DirectionActionRequest* unusedRequest, s32 unusedArg)
 {
     return 0;
 }
@@ -606,49 +616,72 @@ s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-static void func_shelter_b6_corridor_8017E064(Task* arg0)
+/// Sets the mask bit in every decoded background pixel.
+///
+/// The loaded 320-by-240 RGB16 frame must occupy the complete image workspace;
+/// no decode may write it during this call. The halfword view accesses pixels
+/// individually within the workspace's packed two-pixel words.
+static inline void _shelterB6CorridorMaskImagePixels(void)
 {
-    u16* ptr;
-    s32  i;
+    u16* pixel;
+    s32  pixelIndex;
 
-    arg0->msgTable = D_shelter_b6_corridor_8017EF24;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    ptr = (u16*)Fs_ImgBuffers;
-    i   = 0;
+    pixel      = (u16*)Fs_ImgBuffers;
+    pixelIndex = 0;
     do {
-        *ptr = (u16)(*ptr | FILE_SYSTEM_IMAGE_PIXEL_MASK);
-        i   += 1;
-        ptr += 1;
-    } while (i <= FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS * 2 - 1);
+        *pixel     |= FILE_SYSTEM_IMAGE_PIXEL_MASK;
+        pixelIndex += 1;
+        pixel      += 1;
+    } while (pixelIndex <= (s32)(sizeof(*Fs_ImgBuffers) / sizeof(*pixel)) - 1);
+}
+
+/// Registers the room task, masks its loaded background and selects scene music.
+///
+/// State 0 requires the room's decoded image and session to be loaded. Variant
+/// 1 selects scene-music entry 2 and suppresses area/ending music selection.
+/// Advances to state 1 after initialization. The write-only room halfword's
+/// role remains unproven.
+static void _shelterB6CorridorInitRoom(Task* task)
+{
+    enum {
+        SHELTER_B6_CORRIDOR_SCENE_MUSIC_VARIANT = 1,
+        SHELTER_B6_CORRIDOR_SCENE_MUSIC_ENTRY   = 2,
+    };
+
+    task->msgTable = D_shelter_b6_corridor_8017EF24;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    _shelterB6CorridorMaskImagePixels();
     D_shelter_b6_corridor_801851B0.field_0 = 2;
-    if (gGameSession->location.loc.variant == 1) {
-        gStageSceneMusicEntry    = 2;
+    if (gGameSession->location.loc.variant == SHELTER_B6_CORRIDOR_SCENE_MUSIC_VARIANT) {
+        gStageSceneMusicEntry    = SHELTER_B6_CORRIDOR_SCENE_MUSIC_ENTRY;
         gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
         gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
-static void func_shelter_b6_corridor_8017E12C(Task* task)
+/// Re-arms pixel bit 15 for the next background-image MDEC decode.
+///
+/// The decoder resets this one-image mode after starting each decode, so the
+/// room's state 1 refreshes it every tick. The task argument is unused.
+static void _shelterB6CorridorSetImageMaskMode(Task* unusedTask)
 {
-    char pad[0x10];
+    char stackReservation[0x10]; // Unaccessed frame storage; original contents unproven
 
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
 }
 
 /// The room task's three states: set the room up, the per-frame state, end.
 static const TaskFuncTable3 D_shelter_b6_corridor_8017D5C4 = {
-    { func_shelter_b6_corridor_8017E064, func_shelter_b6_corridor_8017E12C, taskKill },
+    { _shelterB6CorridorInitRoom, _shelterB6CorridorSetImageMaskMode, taskKill },
 };
 
-/// Runs the room task's current state from its three-entry table, which it
-/// copies onto the stack before the call.
-void func_shelter_b6_corridor_8017E144(Task* task)
+void shelterB6CorridorRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b6_corridor_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b6_corridor_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 void func_shelter_b6_corridor_8017E19C(s32 arg0)
@@ -668,33 +701,48 @@ void func_shelter_b6_corridor_8017E204(void)
     Gp_PulseState1C();
 }
 
-void func_shelter_b6_corridor_8017E238(Task* task)
+/// Draws two adjacent capsule glows from four borrowed world endpoints.
+///
+/// Requires the current view transform, initialized scratch stack and frame
+/// arena. The four endpoints must be word-aligned; accepted projections must
+/// have nonzero camera depth. Pairs [0, 1] and [2, 3] share the perspective
+/// radius numerator and packed RGB nibbles. Each capsule queues six additive quads.
+static inline void _shelterB6CorridorDrawGlowPair(const SVECTOR worldPoints[4], s32 radiusScale, s32 packedColor)
 {
-    u8 view;
+    _glowDrawCapsule(&worldPoints[0], radiusScale, packedColor);
+    _glowDrawCapsule(&worldPoints[2], radiusScale, packedColor);
+}
 
-    if (task->state == 0) {
+void shelterB6CorridorDrawViewGlowsTask(Task* task)
+{
+    enum {
+        SHELTER_B6_CORRIDOR_GLOWS_START       = 0,
+        SHELTER_B6_CORRIDOR_GLOWS_ACTIVE      = 1,
+        SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE = 0x140, // Pixel radius = scale * 64 / (camera Z / 4)
+        SHELTER_B6_CORRIDOR_GLOW_COLOR        = 0x442, // RGB nibbles: yellow, with odd-frame bit-3 flicker
+    };
+    u8 mappedViewIndex;
+
+    if (task->state == SHELTER_B6_CORRIDOR_GLOWS_START) {
         D_shelter_b6_corridor_801851B8 = 0;
-        task->state                    = 1;
+        task->state                    = SHELTER_B6_CORRIDOR_GLOWS_ACTIVE;
     }
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    // Draw only the wall-light endpoint pairs visible from this camera.
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[0], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[2], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[8], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[10], 0x140, 0x442);
+            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[8], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[0], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[2], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[4], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[8], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[10], 0x140, 0x442);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[12], 0x140, 0x442);
+            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F844[0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[4], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F844[8], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[12], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F874[0], 0x140, 0x442);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F874[0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
     }
 }
@@ -723,95 +771,124 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
     }
 }
 
-void func_shelter_b6_corridor_8017ECA8(Task* task)
+/// Expands and draws one yellow player-hit glow from its work and composed centre.
+///
+/// `scale` is brightness and `angle` is the radius numerator. Drawing narrows
+/// the doubled and quadrupled radii to signed halfwords and requires the
+/// current view, scratch stack, frame arena and ordering table. The zero-width
+/// outer-band call is retained; the disc has four times the base radius.
+static inline void _shelterB6CorridorDrawPlayerHitGlow(const GfxCoord* centreCoord, EffectWork* work)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s16         effectControl;
-    u8          rgb[3];
+    enum { SHELTER_B6_CORRIDOR_HIT_GLOW_RADIUS_STEP = 0x18 };
+    u8 rgb[3];
 
-    mem           = task->spawnArg2.pointer;
+    rgb[0]       = work->scale;
+    rgb[1]       = work->scale;
+    rgb[2]       = work->scale >> 1;
+    work->angle += SHELTER_B6_CORRIDOR_HIT_GLOW_RADIUS_STEP;
+    effectDrawOuterGlowBand(centreCoord, (s16)(work->angle * 2), 0, rgb);
+    effectDrawGouraudDisc(centreCoord, (s16)((u16)work->angle * 4), rgb);
+}
+
+void shelterB6CorridorPlayerHitGlowTask(Task* task)
+{
+    enum {
+        SHELTER_B6_CORRIDOR_HIT_GLOW_START              = 0,
+        SHELTER_B6_CORRIDOR_HIT_GLOW_ACTIVE             = 1,
+        SHELTER_B6_CORRIDOR_HIT_GLOW_INITIAL_BRIGHTNESS = 0xC0,
+        SHELTER_B6_CORRIDOR_HIT_GLOW_INITIAL_RADIUS     = 0x200,
+        SHELTER_B6_CORRIDOR_HIT_GLOW_FADE_START_TICK    = 9,
+        SHELTER_B6_CORRIDOR_HIT_GLOW_BRIGHTNESS_STEP    = 0x18,
+    };
+    EffectWork* work;
+    GfxCoord*   centreCoord;
+    s16         effectControl;
+
+    work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
-    coord         = task->extra.coordBody->coord;
+    centreCoord   = task->extra.coordBody->coord;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, task);
+            effectKillTask(work, task);
         }
         return;
     }
-    mem->age++;
-    if (task->state == 0) {
-        mem->scale = 0xC0;
-        mem->angle = 0x200;
+    work->age++;
+    // Claim the shared generation only when this instance starts running.
+    if (task->state == SHELTER_B6_CORRIDOR_HIT_GLOW_START) {
+        work->scale = SHELTER_B6_CORRIDOR_HIT_GLOW_INITIAL_BRIGHTNESS;
+        work->angle = SHELTER_B6_CORRIDOR_HIT_GLOW_INITIAL_RADIUS;
         D_shelter_b6_corridor_801851B8++;
-        task->state           = 1;
+        task->state           = SHELTER_B6_CORRIDOR_HIT_GLOW_ACTIVE;
         task->spawnArg1.value = D_shelter_b6_corridor_801851B8;
     }
     if (task->spawnArg1.value != D_shelter_b6_corridor_801851B8) {
-        effectKillTask(mem, task);
+        effectKillTask(work, task);
         return;
     }
-    rgb[0]      = mem->scale;
-    rgb[1]      = mem->scale;
-    rgb[2]      = mem->scale >> 1;
-    mem->angle += 0x18;
-    effectDrawOuterGlowBand(coord, (s16)(mem->angle * 2), 0, rgb);
-    effectDrawGouraudDisc(coord, (s16)((u16)mem->angle * 4), rgb);
-    if (mem->age < 9) {
+    _shelterB6CorridorDrawPlayerHitGlow(centreCoord, work);
+    if (work->age < SHELTER_B6_CORRIDOR_HIT_GLOW_FADE_START_TICK) {
         return;
     }
-    mem->scale -= 0x18;
-    if (mem->scale < 0x18) {
-        effectKillTask(mem, task);
+    // Draw this tick at the old brightness, then fade or retire it.
+    work->scale -= SHELTER_B6_CORRIDOR_HIT_GLOW_BRIGHTNESS_STEP;
+    if (work->scale < SHELTER_B6_CORRIDOR_HIT_GLOW_BRIGHTNESS_STEP) {
+        effectKillTask(work, task);
     }
 }
 
-void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
+void shelterB6CorridorSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-    SpriteBatch*     batches;
-    s32              run = arg0 & 0xFF;
-    s32              flag;
+    const GameLocationKey* location = &gGameSession->location.loc;
+    SpriteView*            views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    SpriteBatch*           batches;
+    s32                    slot = partSlot;
+    s32                    destroyedState;
 
-    if (run == 0) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            batches           = rec[1].batches;
-            batches[1].hidden = 1;
+    // Updates the middle part in both views; captures views and batches.
+    // isHidden must be a side-effect-free 0/1 value: it is evaluated twice.
+#define SHELTER_B6_CORRIDOR_SET_PART_1_SPRITES_HIDDEN(isHidden) \
+    do {                                                        \
+        batches           = views[1].batches;                   \
+        batches[2].hidden = (isHidden);                         \
+        batches           = views[2].batches;                   \
+        batches[2].hidden = (isHidden);                         \
+    } while (0)
+
+    // Expose each part's destroyed scenery in the views that can show it.
+    if (slot == 0) {
+        destroyedState = destroyed;
+        if (destroyedState == SHELTER_B6_CORRIDOR_PART_INTACT) {
+            batches           = views[1].batches;
+            batches[1].hidden = true;
             return;
         }
-        if (flag == 1) {
-            batches           = rec[1].batches;
-            batches[1].hidden = 0;
+        if (destroyedState == SHELTER_B6_CORRIDOR_PART_DESTROYED) {
+            batches           = views[1].batches;
+            batches[1].hidden = false;
             return;
         }
-    } else if (run == 1) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            batches           = rec[1].batches;
-            batches[2].hidden = run;
-            batches           = rec[2].batches;
-            batches[2].hidden = run;
+    } else if (slot == 1) {
+        destroyedState = destroyed;
+        if (destroyedState == SHELTER_B6_CORRIDOR_PART_INTACT) {
+            SHELTER_B6_CORRIDOR_SET_PART_1_SPRITES_HIDDEN(true);
             return;
         }
-        if (flag == run) {
-            batches           = rec[1].batches;
-            batches[2].hidden = 0;
-            batches           = rec[2].batches;
-            batches[2].hidden = 0;
+        if (destroyedState == SHELTER_B6_CORRIDOR_PART_DESTROYED) {
+            SHELTER_B6_CORRIDOR_SET_PART_1_SPRITES_HIDDEN(false);
             return;
         }
-    } else if (run == 2) {
-        flag = arg1 & 0xFF;
-        if (flag == 0) {
-            batches           = rec[2].batches;
-            batches[1].hidden = 1;
+    } else if (slot == 2) {
+        destroyedState = destroyed;
+        if (destroyedState == SHELTER_B6_CORRIDOR_PART_INTACT) {
+            batches           = views[2].batches;
+            batches[1].hidden = true;
             return;
         }
-        if (flag == 1) {
-            batches           = rec[2].batches;
-            batches[1].hidden = 0;
+        if (destroyedState == SHELTER_B6_CORRIDOR_PART_DESTROYED) {
+            batches           = views[2].batches;
+            batches[1].hidden = false;
         }
     }
+#undef SHELTER_B6_CORRIDOR_SET_PART_1_SPRITES_HIDDEN
 }
