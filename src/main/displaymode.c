@@ -33,7 +33,14 @@ static const u16 Display_HeightTable[] = {
     0x1E0,
 };
 
-/// Initializes two environments that draw and display opposite VRAM regions.
+/// Resets both draw/display pairs to use opposite framebuffer regions in VRAM.
+///
+/// Dimensions count pixels: `widthPixels` is 256/320/384/512/640 and
+/// `heightPixels` is 240. Pair 0 draws at y=0 and displays at y=272;
+/// pair 1 reverses those regions, leaving a 32-row gap between them.
+/// SDK width arguments take the unsigned low 16 bits of `widthPixels`.
+/// The pairs replace the environments in `display` with SDK defaults;
+/// subsequent mode setup adjusts their origins and flags before GPU submission.
 static inline void _displayInitializeAlternatingFramebuffers(DisplayState* display, u32 widthPixels, s32 heightPixels)
 {
     s32 lowerFramebufferY;
@@ -45,7 +52,13 @@ static inline void _displayInitializeAlternatingFramebuffers(DisplayState* displ
     SetDefDispEnv(&display->dispEnv[1], 0, 0, (u16)widthPixels, heightPixels);
 }
 
-/// Initializes two environments that draw and display the same VRAM region.
+/// Resets both draw/display pairs to use one shared framebuffer region in VRAM.
+///
+/// Dimensions count pixels: `widthPixels` is 256/320/384/512/640 and
+/// `heightPixels` is 480. Both pairs draw and display at (0, 0).
+/// SDK width arguments take the unsigned low 16 bits of `widthPixels`.
+/// The pairs replace the environments in `display` with SDK defaults;
+/// subsequent mode setup adjusts their origins and flags before GPU submission.
 static inline void _displayInitializeSharedFramebuffers(DisplayState* display, u32 widthPixels, s32 heightPixels)
 {
     SetDefDrawEnv(&display->drawEnv[0], 0, 0, (u16)widthPixels, heightPixels);
