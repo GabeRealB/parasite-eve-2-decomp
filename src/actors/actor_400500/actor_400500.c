@@ -2340,6 +2340,20 @@ static inline s32 _actor400500HitFlagged(Task* task)
     return 0;
 }
 
+/// Consumes a pending knockdown: clears the request, enters the knockdown
+/// state and returns 1; returns 0 when none is pending.
+static inline s32 _actor400500TakeKnockdown(Task* task)
+{
+    _Actor400500GrayStalkerWork* work = (_Actor400500GrayStalkerWork*)task->work;
+
+    if (work->knockdownPending != 0) {
+        work->knockdownPending = 0;
+        func_actor_400500_8013DB64(task, ACTOR_400500_STATE_KNOCKDOWN);
+        return 1;
+    }
+    return 0;
+}
+
 /// Records in `pos` the view-space X and Z of the actor's node `part`.
 static inline void _actor400500SampleView(Task* task, s16 part, SVECTOR3* pos)
 {
@@ -4486,10 +4500,6 @@ static void func_actor_400500_801385D0(Task* arg0)
     Enemy*                       enemy;
     TaskFuncTable3               sp10;
     TaskFuncTable3               sp20;
-    _Actor400500GrayStalkerWork* workA;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          skip;
-    s32                          i;
 
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
@@ -4505,44 +4515,15 @@ static void func_actor_400500_801385D0(Task* arg0)
         work->rightArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmOuter.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmInner.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        goto common;
-    }
-    workA = (_Actor400500GrayStalkerWork*)arg0->work;
-    if (workA->knockdownPending != 0) {
-        workA->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        skip = 1;
     } else {
-        skip = 0;
-    }
-    if (skip == 0) {
+        if (_actor400500TakeKnockdown(arg0)) {
+            return;
+        }
         sp10.funcs[(s16)work->subState](arg0);
         ((_Actor400500GrayStalkerWork*)arg0->work)->ceilingFallPending = 0;
         func_actor_400500_80133358(arg0);
-    common:
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_BLEND) {
-            if (work2->appliedAnim != work2->animId) {
-                work2->animFrames = 0;
-            } else {
-                work2->animFrames = func_actor_400500_8013DD8C(arg0, work2->animFrames);
-            }
-            func_actor_400500_8013DCD4(arg0);
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING;
-        } else if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_RESET) {
-            func_actor_400500_8013DC4C(arg0);
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING;
-            work2->animFrames  = 0;
-        } else if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_PLAYING) {
-            work2->animFrames = (u16)work2->animFrames + 1;
-        }
-        i = 1;
-        do {
-            work2->rig.slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->rig.anim, i);
-            i++;
-        } while (i < ARRAY_SIZE(work2->rig.slots));
     }
+    _actor400500TickAnim(arg0);
 }
 
 static void func_actor_400500_801387E8(Task* arg0)
