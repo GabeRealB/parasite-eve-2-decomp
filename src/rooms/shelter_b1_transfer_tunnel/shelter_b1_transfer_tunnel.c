@@ -356,7 +356,12 @@ void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Selects this loaded room's visual-effect exports for actor effect requests.
+/// Binds shared actor effect requests to this room's counted bank-6 tasks.
+///
+/// Installs seven packed bank/type IDs for `Gp_SpawnEff` after the room-effect
+/// controller clears its selectors. Each ID persists until overwritten or the
+/// controller is reinitialized. Keep this overlay loaded while the selected
+/// effects are requested or running.
 static inline void _shelterB1TransferTunnelBindEffects(void)
 {
     gRoomEffectMoteId         = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_MOTE;
