@@ -76,21 +76,21 @@ RoomFx_TrailOffsets = 0x80183DDC; // size:0x10 defined:True
 
 shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func
 
-func_shelter_b2_pod_access_tunnel_80181C2C = 0x80181C2C; // type:func
+shelterB2PodAccessTunnelRoomVisualEffectsFlashTask = 0x80181C2C; // type:func
 
-func_shelter_b2_pod_access_tunnel_80182690 = 0x80182690; // type:func
+shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x80182690; // type:func
 
 func_shelter_b2_pod_access_tunnel_80182F78 = 0x80182F78; // type:func
 
-func_shelter_b2_pod_access_tunnel_8017F608 = 0x8017F608; // type:func
+shelterB2PodAccessTunnelRoomVisualEffectsMoteTask = 0x8017F608; // type:func
 
-func_shelter_b2_pod_access_tunnel_80180350 = 0x80180350; // type:func
+shelterB2PodAccessTunnelRoomVisualEffectsHaloTask = 0x80180350; // type:func
 
-func_shelter_b2_pod_access_tunnel_801806E8 = 0x801806E8; // type:func
+shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask = 0x801806E8; // type:func
 
 func_shelter_b2_pod_access_tunnel_80181AF8 = 0x80181AF8; // type:func
 
-func_shelter_b2_pod_access_tunnel_8017DC6C = 0x8017DC6C; // type:func
+shelterB2PodAccessTunnelDrawLightBeamsTask = 0x8017DC6C; // type:func
 _roomVisualEffectsDrawMote = 0x8017F8D4; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017FB98; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017FFBC; // type:func

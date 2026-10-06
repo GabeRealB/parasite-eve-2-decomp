@@ -576,71 +576,79 @@ WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1] = {
     { NULL, NULL, { 4815, -1856, -6112, 0 }, { { -1689, 2880, 2964, 0 }, { 1690, 2880, -2964, 0 }, { -1689, -2880, 2964, 0 }, { 1690, -2880, -2964, 0 } }, { 3574, 0, 2037, 0 }, 4463, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-/// On the task's first tick stores seven room-specific values into resident
-/// gameplay globals, then draws the beams
-/// (`glowDrawDimGreyCapsule`) the current camera view
-/// shows.
-void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
+/// Selects this room's loaded implementations for effects spawned by actors.
+static inline void _shelterB2PodAccessTunnelInstallEffectIds(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectMoteId         = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_MOTE;
-        gRoomEffectHaloId         = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_HALO;
-        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_ORANGE_BURST;
-        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_EMITTER;
-        gRoomEffectFlashId        = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_BURST;
-        arg0->state               = 1;
+    gRoomEffectMoteId         = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_MOTE;
+    gRoomEffectHaloId         = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_EMITTER;
+    gRoomEffectFlashId        = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_SPARK_BURST;
+}
+
+void shelterB2PodAccessTunnelDrawLightBeamsTask(Task* task)
+{
+    enum { BEAMS_INITIALIZE,
+           BEAMS_DRAW,
+           BEAM_RADIUS_SCALE = 512 };
+
+    // Bind actor-spawned effects to the implementations in this loaded room.
+    if (task->state == BEAMS_INITIALIZE) {
+        _shelterB2PodAccessTunnelInstallEffectIds();
+        task->state = BEAMS_DRAW;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Draw the light fixtures visible in the mapped camera view.
+    switch ((u8)viewGetMappedIndex()) {
         case 2: {
-            SVECTOR* p;
-            p = D_shelter_b2_pod_access_tunnel_80183C08;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[2], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[4], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[6], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[12], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[14], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[16], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[18], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[28], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[30], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[32], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[34], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[40], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[42], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[44], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[46], 0x200, 0);
+            const SVECTOR* beamPoints;
+            beamPoints = D_shelter_b2_pod_access_tunnel_80183C08;
+            glowDrawDimGreyCapsule(&beamPoints[0], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[2], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[4], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[6], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[12], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[14], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[16], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[18], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[28], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[30], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[32], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[34], BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[40], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[42], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[44], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[46], BEAM_RADIUS_SCALE, 0);
             break;
         }
         case 3:
         case 6: {
-            SVECTOR* p;
-            p = D_shelter_b2_pod_access_tunnel_80183C48;
-            glowDrawDimGreyCapsule(&p[0], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[2], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[10], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[12], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[14], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[16], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[28], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[30], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[38], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[40], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[42], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[44], 0x200, 0x800);
+            const SVECTOR* beamPoints;
+            beamPoints = D_shelter_b2_pod_access_tunnel_80183C48;
+            glowDrawDimGreyCapsule(&beamPoints[0], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[2], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[10], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[12], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[14], BEAM_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[16], BEAM_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[28], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[30], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[38], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[40], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&beamPoints[42], BEAM_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[44], BEAM_RADIUS_SCALE, GLOW_HALF_TURN);
             break;
         }
         case 4:
         case 7: {
-            SVECTOR* p;
-            p = D_shelter_b2_pod_access_tunnel_80183CC8;
-            glowDrawDimGreyCapsule(&p[0], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[2], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[28], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[30], 0x200, -0x400);
+            const SVECTOR* beamPoints;
+            beamPoints = D_shelter_b2_pod_access_tunnel_80183CC8;
+            glowDrawDimGreyCapsule(&beamPoints[0], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[2], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[28], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&beamPoints[30], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
     }
@@ -662,21 +670,21 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
+void shelterB2PodAccessTunnelRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b2_pod_access_tunnel_80180350(Task* arg0)
+void shelterB2PodAccessTunnelRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b2_pod_access_tunnel_801806E8(Task* arg0)
+void shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -689,14 +697,14 @@ void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
+void shelterB2PodAccessTunnelRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
+void shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

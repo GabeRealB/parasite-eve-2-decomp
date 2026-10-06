@@ -860,7 +860,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2BreedingRoomDrawGlowsTask, { NULL } },                                     // 0x13F
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorDrawViewGlowsTask, { NULL } },                                 // 0x140
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_8017EB7C, { NULL } },                                   // 0x141
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_8017DC6C, { NULL } },                             // 0x142
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelDrawLightBeamsTask, { NULL } },                             // 0x142
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_dumping_hole_80183F84, { NULL } },                                  // 0x143
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_garbage_incinerator_8018110C, { NULL } },                           // 0x144
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_incinerator_control_room_8017FD10, { NULL } },                      // 0x145
@@ -1007,7 +1007,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask, { NULL } },             // 0x1D2
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorRoomVisualEffectsFlashTask, { NULL } },                        // 0x1D3
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80180BE0, { NULL } },                                   // 0x1D4
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80181C2C, { NULL } },                             // 0x1D5
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsFlashTask, { NULL } },                     // 0x1D5
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsFlashTask, { NULL } },                       // 0x1D6
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsFlashTask, { NULL } },                    // 0x1D7
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsFlashTask, { NULL } },                         // 0x1D8
@@ -1035,7 +1035,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask, { NULL } },         // 0x1EE
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorRoomVisualEffectsTwinTrailTask, { NULL } },                    // 0x1EF
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80181644, { NULL } },                                   // 0x1F0
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80182690, { NULL } },                             // 0x1F1
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask, { NULL } },                 // 0x1F1
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsTwinTrailTask, { NULL } },                   // 0x1F2
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask, { NULL } },                // 0x1F3
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask, { NULL } },                     // 0x1F4
@@ -1126,7 +1126,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1TransferTunnelRoomVisualEffectsMoteTask, { NULL } },                       // 0x249
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2ElevatorHallRoomVisualEffectsMoteTask, { NULL } },                         // 0x24A
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsMoteTask, { NULL } },              // 0x24B
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_8017F608, { NULL } },                             // 0x24C
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsMoteTask, { NULL } },                      // 0x24C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_8017E7F4, { NULL } },                                 // 0x24D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80180110, { NULL } },                                   // 0x24E
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsMoteTask, { NULL } },                          // 0x24F
@@ -1138,7 +1138,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1TransferTunnelRoomVisualEffectsHaloTask, { NULL } },                       // 0x255
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2ElevatorHallRoomVisualEffectsHaloTask, { NULL } },                         // 0x256
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloTask, { NULL } },              // 0x257
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80180350, { NULL } },                             // 0x258
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsHaloTask, { NULL } },                      // 0x258
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_8017F53C, { NULL } },                                 // 0x259
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80180E58, { NULL } },                                   // 0x25A
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsHaloTask, { NULL } },                          // 0x25B
@@ -1149,7 +1149,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1TransferTunnelRoomVisualEffectsHaloOrangeBurstTask, { NULL } },            // 0x260
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2ElevatorHallRoomVisualEffectsHaloOrangeBurstTask, { NULL } },              // 0x261
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask, { NULL } },   // 0x262
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_801806E8, { NULL } },                             // 0x263
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask, { NULL } },           // 0x263
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_8017F8D4, { NULL } },                                 // 0x264
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_801811F0, { NULL } },                                   // 0x265
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask, { NULL } },               // 0x266

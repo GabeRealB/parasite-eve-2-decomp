@@ -1169,17 +1169,17 @@ shelterB2OperatingRoomRoomVisualEffectsFlyingOrangeBurstTask = 0x8017FEB4; // ty
 
 shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_8017F608 = 0x8017F608; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
+shelterB2PodAccessTunnelRoomVisualEffectsMoteTask = 0x8017F608; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_80180350 = 0x80180350; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
+shelterB2PodAccessTunnelRoomVisualEffectsHaloTask = 0x80180350; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 
-func_shelter_b2_pod_access_tunnel_801806E8 = 0x801806E8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
+shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask = 0x801806E8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 func_shelter_b2_pod_access_tunnel_80181AF8 = 0x80181AF8; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_80181C2C = 0x80181C2C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
+shelterB2PodAccessTunnelRoomVisualEffectsFlashTask = 0x80181C2C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
-func_shelter_b2_pod_access_tunnel_80182690 = 0x80182690; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
+shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x80182690; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
 func_shelter_b2_pod_access_tunnel_80182F78 = 0x80182F78; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
@@ -1885,7 +1885,7 @@ shelterB2BreedingRoomDrawGlowsTask = 0x8017D898; // type:func absolute:True owne
 
 shelterB2MainCorridorDrawViewGlowsTask = 0x8017EC34; // type:func absolute:True owner=shelter_b2_main_corridor shared=rooms
 
-func_shelter_b2_pod_access_tunnel_8017DC6C = 0x8017DC6C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
+shelterB2PodAccessTunnelDrawLightBeamsTask = 0x8017DC6C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 
 func_shelter_b3_incinerator_control_room_8017FD10 = 0x8017FD10; // type:func absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 
