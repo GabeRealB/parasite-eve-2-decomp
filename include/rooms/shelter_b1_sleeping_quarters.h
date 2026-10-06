@@ -57,8 +57,29 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task);
 
 void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0);
 
-void func_shelter_b1_sleeping_quarters_8017F894(Task* arg0);
+/// Runs the sleeping quarters' orange burst with a growing glow and fading ring.
+///
+/// Requires a counted effect task with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body and initial state zero; `spawnArg1` is ignored. Running
+/// updates expand the disc and layered glow, refresh a transient point light,
+/// and fade the ring before the central disc. Room effect control 0 runs;
+/// other values below 4 pause without drawing, and values 4 or above cancel.
+/// Cancellation or completed fading releases the work and tears down the task.
+/// The sleeping-quarters overlay must remain loaded while the task is live.
+void shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
-void func_shelter_b1_sleeping_quarters_8017EC34(Task* task);
+/// Runs the sleeping quarters' glowing-disc spark toward an initial target position.
+///
+/// Requires a counted effect task with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body, initial state zero, and zero work age and animation index.
+/// `spawnArg1.pointer` borrows a `GfxCoord` through the first running update;
+/// both world matrices must be composed then. That update narrows the initial
+/// displacement to signed 16-bit local components and fixes a parent-space
+/// step scaled by 204/4096. Later updates move by that step and draw on odd
+/// ages; the target is not sampled again. At age 20 the work is released and
+/// the task torn down. Room effect control 0 runs; other values below 4 pause
+/// without drawing, and values 4 or above cancel and release the effect.
+/// The sleeping-quarters overlay must remain loaded while the task is live.
+void shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_SLEEPING_QUARTERS_H

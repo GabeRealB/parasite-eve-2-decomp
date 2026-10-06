@@ -80,9 +80,9 @@ func_shelter_b1_sleeping_quarters_8017D778 = 0x8017D778; // type:func
 
 func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func
 
-func_shelter_b1_sleeping_quarters_8017F894 = 0x8017F894; // type:func
+shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F894; // type:func
 
-func_shelter_b1_sleeping_quarters_8017EC34 = 0x8017EC34; // type:func
+shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask = 0x8017EC34; // type:func
 _roomVisualEffectsDrawFlyingSpark = 0x8017EE58; // type:func
 _roomVisualEffectsDrawFlyingRing = 0x8017F0DC; // type:func
 _roomVisualEffectsDrawFlyingDisc = 0x8017F500; // type:func

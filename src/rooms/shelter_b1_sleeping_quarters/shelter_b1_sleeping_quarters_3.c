@@ -740,16 +740,16 @@ void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b1_sleeping_quarters_8017EC34(Task* task)
+void shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b1_sleeping_quarters_8017F894(Task* arg0)
+void shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

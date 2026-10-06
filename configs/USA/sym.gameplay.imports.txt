@@ -1063,7 +1063,7 @@ shelterB1SleepingQuartersDrawViewLightsTask = 0x8017D8E0; // type:func absolute:
 
 func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 
-func_shelter_b1_sleeping_quarters_8017F894 = 0x8017F894; // type:func absolute:True owner=shelter_b1_sleeping_quarters
+shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F894; // type:func absolute:True owner=shelter_b1_sleeping_quarters
 
 func_shelter_b1_south_maintenance_walkway_8017E760 = 0x8017E760; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 
@@ -1941,7 +1941,7 @@ func_shelter_b1_south_maintenance_walkway_8017FAAC = 0x8017FAAC; // type:func ab
 
 func_neo_ark_shrine_801811EC = 0x801811EC; // type:func absolute:True owner=neo_ark_shrine shared=rooms
 
-func_shelter_b1_sleeping_quarters_8017EC34 = 0x8017EC34; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
+shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask = 0x8017EC34; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 
 shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F7D4; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 

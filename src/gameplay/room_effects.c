@@ -1093,7 +1093,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017F790, { NULL } },                                           // 0x228
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_801832B8, { NULL } },                                     // 0x229
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask, { NULL } },       // 0x22A
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sleeping_quarters_8017EC34, { NULL } },                             // 0x22B
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask, { NULL } },              // 0x22B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_south_maintenance_walkway_80180E88, { NULL } },                     // 0x22C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_operating_room_8017F254, { NULL } },                                // 0x22D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_80181370, { NULL } },                                 // 0x22E
@@ -1104,7 +1104,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkGardenRoomVisualEffectsFlyingSparkTask, { NULL } },                           // 0x233
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80183F18, { NULL } },                                     // 0x234
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask, { NULL } }, // 0x235
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sleeping_quarters_8017F894, { NULL } },                             // 0x236
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },        // 0x236
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_south_maintenance_walkway_80181AE8, { NULL } },                     // 0x237
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_operating_room_8017FEB4, { NULL } },                                // 0x238
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_80181FD0, { NULL } },                                 // 0x239
