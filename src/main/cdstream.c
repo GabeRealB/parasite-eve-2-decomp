@@ -1854,7 +1854,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
         retry_mode:
             CdControlF(CdlSetmode, (u8*)&sp.mode[0]);
             entry->phase = CD_STREAM_STEP_SETMODE_SYNC;
-            goto phase_advanced;
+            break;
         case CD_STREAM_STEP_SETMODE_SYNC:
             modeSync = CdSync(1, &sp.result[0]);
             if (modeSync == CdlDiskError) {
@@ -1890,7 +1890,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
                 CdStream_PhaseTimeout = 3;
                 case CD_STREAM_STEP_SPEED_SETTLE:
                     if (--CdStream_PhaseTimeout != 0) {
-                        goto phase_advanced;
+                        break;
                     }
                     entry->phase = CD_STREAM_STEP_SETLOC;
             }
@@ -1943,7 +1943,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             CdStream_Runtime.state.readPhase   = CD_STREAM_READ_AUDIO;
             CdControlF(CdlReadN, NULL);
             entry->phase = CD_STREAM_STEP_READ_SYNC;
-            goto phase_advanced;
+            break;
         case CD_STREAM_STEP_READ_SYNC:
             D_80068B54 = 0;
             readSync   = CdSync(1, &sp.result[0]);
@@ -2035,7 +2035,7 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
         pause_read:
             CdControlF(CdlPause, NULL);
             entry->phase = CD_STREAM_STEP_PAUSE_SYNC;
-            goto phase_advanced;
+            break;
         case CD_STREAM_STEP_PAUSE_SYNC:
             D_80068B54 = 0;
             pauseSync  = CdSync(1, &sp.result[0]);
@@ -2070,7 +2070,6 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
             CdStream_CurrentPhase = 0;
             return 1;
     }
-phase_advanced:
     CdStream_LastPhase = entry->phase;
     return 0;
 wait_for_progress:
