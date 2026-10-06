@@ -30,7 +30,13 @@ extern SpriteView D_neo_ark_r26_8017E898[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[];
 
-void func_neo_ark_r26_8017D778(Task* unused);
+/// Leaves the room's effect task unchanged each tick.
+///
+/// Effect bank 6, slot 0x168 supplies a single-coordinate task. This callback
+/// ignores it, draws nothing and performs no teardown; the task remains live
+/// until another owner tears it down. The `neo_ark_r26` overlay must remain
+/// loaded while this callback can be dispatched.
+void neoArkR26EffectNoopTask(Task* unusedTask);
 
 void func_neo_ark_r26_8017D720(Task* task);
 

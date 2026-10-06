@@ -41,10 +41,17 @@ extern EvsCommand D_neo_ark_r26_8017DFCC[];
 /// Room message handler table installed into `Task::msgTable`.
 extern TaskMessageEntry D_neo_ark_r26_8017E0A4[];
 
-s32 func_neo_ark_r26_8017D648(Task*, s32, s32, s32);
-s32 func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_r26_8017D694(Task*, s32, s32, s32);
-s32 func_neo_ark_r26_8017D69C(Task*, s32, s32, s32);
+/// Key-item request and refusal result used by this room's message handler.
+enum {
+    NEO_ARK_R26_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    NEO_ARK_R26_KEY_ITEM_USE_REFUSED = 0,
+};
+
+static s32  _neoArkR26RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+s32         func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _neoArkR26IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
+static s32  _neoArkR26IgnoreRoomActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
+static void _neoArkR26RoomIdleState(Task* unusedTask);
 
 extern WorldCollisionGrid         D_neo_ark_r26_8017E19C[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5];
@@ -202,9 +209,9 @@ EvsCommand D_neo_ark_r26_8017DFCC[9] = {
 
 TaskMessageEntry D_neo_ark_r26_8017E0A4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r26_8017D650 },
-    { 5105, func_neo_ark_r26_8017D648 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_r26_8017D69C },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_r26_8017D694 },
+    { NEO_ARK_R26_MESSAGE_USE_KEY_ITEM, _neoArkR26RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkR26IgnoreRoomActionMessage },
+    { ROOM_MESSAGE_COMMAND, _neoArkR26IgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -439,7 +446,6 @@ WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[8] = {
 };
 
 static void func_neo_ark_r26_8017D6A4(Task* arg0);
-static void func_neo_ark_r26_8017D710(Task* task);
 
 /// Script callback: unless attract demo 9 is playing, points the save's
 /// location at stage 5, area 0x1C, warp 1, room 1, sets `gDisplayState.spriteVariant`, spawns
@@ -457,9 +463,13 @@ void func_neo_ark_r26_8017D5D0(void)
     }
 }
 
-s32 func_neo_ark_r26_8017D648(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in this room.
+///
+/// Ignores every argument. The zero result makes the
+/// key-item menu report that the item cannot be used here.
+static s32 _neoArkR26RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return NEO_ARK_R26_KEY_ITEM_USE_REFUSED;
 }
 
 /// Message handler for the save location: copies the incoming `RoomEventMsg`
@@ -471,12 +481,19 @@ s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
     return 1;
 }
 
-s32 func_neo_ark_r26_8017D694(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and returns zero without changing room state.
+///
+/// Neither the command selector nor its integer argument is used.
+static s32 _neoArkR26IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg)
 {
     return 0;
 }
 
-s32 func_neo_ark_r26_8017D69C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores trigger-driven room actions and returns zero.
+///
+/// The borrowed request is neither read nor retained; the second payload word
+/// is unused.
+static s32 _neoArkR26IgnoreRoomActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -494,10 +511,14 @@ static void func_neo_ark_r26_8017D6A4(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Room task state 1: does nothing, keeping the task alive.
-static void func_neo_ark_r26_8017D710(Task* task)
+/// Keeps the room task in its idle state after setup.
+///
+/// State 1 leaves the task, its message table and its room-slot registration
+/// intact; state 2 selects the teardown handler.
+static void _neoArkR26RoomIdleState(Task* unusedTask)
 {
-    char pad[0x10];
+    // Retain the idle callback's unused 16-byte stack frame.
+    char unusedStackFrame[0x10];
 }
 
 /// State handlers of the room task `func_neo_ark_r26_8017D720`, indexed by
@@ -505,7 +526,7 @@ static void func_neo_ark_r26_8017D710(Task* task)
 static const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
     {
         func_neo_ark_r26_8017D6A4,
-        func_neo_ark_r26_8017D710,
+        _neoArkR26RoomIdleState,
         taskKill,
     },
 };
@@ -519,6 +540,6 @@ void func_neo_ark_r26_8017D720(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_neo_ark_r26_8017D778(Task* unused)
+void neoArkR26EffectNoopTask(Task* unusedTask)
 {
 }
