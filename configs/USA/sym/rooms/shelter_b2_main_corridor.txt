@@ -101,17 +101,17 @@ gRoomEventLatched = 0x80189674; // size:0x10 defined:True
 D_shelter_b2_main_corridor_80189684 = 0x80189684; // size:0xC defined:True
 D_shelter_b2_main_corridor_801828E0 = 0x801828E0; // size:0x10 defined:True
 
-func_shelter_b2_main_corridor_8017EF24 = 0x8017EF24; // type:func
+shelterB2MainCorridorWaterRippleTask = 0x8017EF24; // type:func
 
 waterDriftTaskNoUpdate = 0x8017F3AC; // type:func
 
-func_shelter_b2_main_corridor_8018094C = 0x8018094C; // type:func
+shelterB2MainCorridorRoomVisualEffectsFlashTask = 0x8018094C; // type:func
 
-func_shelter_b2_main_corridor_801813B0 = 0x801813B0; // type:func
+shelterB2MainCorridorRoomVisualEffectsTwinTrailTask = 0x801813B0; // type:func
 
 func_shelter_b2_main_corridor_80181C98 = 0x80181C98; // type:func
 
-func_shelter_b2_main_corridor_8017EC34 = 0x8017EC34; // type:func
+shelterB2MainCorridorDrawViewGlowsTask = 0x8017EC34; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180BF0; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8018101C; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x801818A0; // type:func
@@ -125,3 +125,11 @@ _waterDrawSpinU16 = 0x8017F860; // type:func
 _waterDrawTileU16 = 0x8017FC4C; // type:func
 roomVariantResolveNeoArk = 0x8017E0FC; // type:func
 _waterDrawWaveStrips = 0x8017E390; // type:func
+_shelterB2MainCorridorRejectKeyItemMessage = 0x8017e1cc; // type:func
+_shelterB2MainCorridorIgnoreCommandMessage = 0x8017e1d4; // type:func
+_shelterB2MainCorridorHandleSoundMessage = 0x8017e1dc; // type:func
+_shelterB2MainCorridorInitializeRoomTask = 0x8017e2d4; // type:func
+_shelterB2MainCorridorIdleRoomTask = 0x8017e330; // type:func
+shelterB2MainCorridorRoomTask = 0x8017e338; // type:func
+_shelterB2MainCorridorInitializeWaterTask = 0x8017ebf4; // type:func
+_shelterB2MainCorridorWaterTask = 0x8017eb8c; // type:func

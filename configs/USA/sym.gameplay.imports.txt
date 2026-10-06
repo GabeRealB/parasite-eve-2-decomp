@@ -1135,13 +1135,13 @@ func_shelter_b2_elevator_hall_80182B48 = 0x80182B48; // type:func absolute:True 
 
 shelterB2LaboratoryGlowTask = 0x80180548; // type:func absolute:True owner=shelter_b2_laboratory
 
-func_shelter_b2_main_corridor_8017EF24 = 0x8017EF24; // type:func absolute:True owner=shelter_b2_main_corridor shared=rooms
+shelterB2MainCorridorWaterRippleTask = 0x8017EF24; // type:func absolute:True owner=shelter_b2_main_corridor shared=rooms
 
 waterDriftTaskNoUpdate = 0x8017F3AC; // type:func absolute:True owner=shelter_b2_main_corridor
 
-func_shelter_b2_main_corridor_8018094C = 0x8018094C; // type:func absolute:True owner=shelter_b2_main_corridor
+shelterB2MainCorridorRoomVisualEffectsFlashTask = 0x8018094C; // type:func absolute:True owner=shelter_b2_main_corridor
 
-func_shelter_b2_main_corridor_801813B0 = 0x801813B0; // type:func absolute:True owner=shelter_b2_main_corridor
+shelterB2MainCorridorRoomVisualEffectsTwinTrailTask = 0x801813B0; // type:func absolute:True owner=shelter_b2_main_corridor
 
 func_shelter_b2_main_corridor_80181C98 = 0x80181C98; // type:func absolute:True owner=shelter_b2_main_corridor
 
@@ -1883,7 +1883,7 @@ func_shelter_b2_north_maintenance_walkway_8017DDE8 = 0x8017DDE8; // type:func ab
 
 shelterB2BreedingRoomDrawGlowsTask = 0x8017D898; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 
-func_shelter_b2_main_corridor_8017EC34 = 0x8017EC34; // type:func absolute:True owner=shelter_b2_main_corridor shared=rooms
+shelterB2MainCorridorDrawViewGlowsTask = 0x8017EC34; // type:func absolute:True owner=shelter_b2_main_corridor shared=rooms
 
 func_shelter_b2_pod_access_tunnel_8017DC6C = 0x8017DC6C; // type:func absolute:True owner=shelter_b2_pod_access_tunnel shared=rooms
 

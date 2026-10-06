@@ -166,20 +166,32 @@ extern SVECTOR D_shelter_b2_main_corridor_8018306C[];
 extern AreaApplyRec D_shelter_b2_main_corridor_80189644[];
 
 static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
-static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0);
-static void func_shelter_b2_main_corridor_8017E330(Task* arg0);
-static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
+static void _shelterB2MainCorridorInitializeRoomTask(Task* task);
+static void _shelterB2MainCorridorIdleRoomTask(Task* task);
+static void _shelterB2MainCorridorInitializeWaterTask(Task* task);
 
 extern TaskDesc D_actor_100400_80147E48;
 
-s32  func_shelter_b2_main_corridor_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_main_corridor_8017DC88(Task* task, s32 msgId, const void* firstArg, s32);
-s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, s32, s32);
-s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, s32, s32);
-s32  func_shelter_b2_main_corridor_8017E1DC(Task*, s32, s32, s32);
-void func_shelter_b2_main_corridor_8017DEB0(Task*);
-void func_shelter_b2_main_corridor_8017E210(Task*);
-void func_shelter_b2_main_corridor_8017EB8C(Task*);
+s32         func_shelter_b2_main_corridor_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32         func_shelter_b2_main_corridor_8017DC88(Task* task, s32 msgId, const void* firstArg, s32);
+static s32  _shelterB2MainCorridorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _shelterB2MainCorridorIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _shelterB2MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundCommandId, s32 unusedArg);
+void        func_shelter_b2_main_corridor_8017DEB0(Task*);
+void        func_shelter_b2_main_corridor_8017E210(Task*);
+static void _shelterB2MainCorridorWaterTask(Task* task);
+
+enum { SHELTER_B2_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Fixed beam/flare perspective scales and packed beam RGB factors for this room.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE    = 0x200,
+    SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE     = 0x111,
+    SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN     = 0x10,
+    SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_RED       = 0x100,
+    SHELTER_B2_MAIN_CORRIDOR_FLARE_TEXTURE_COLUMN = 1,
+    SHELTER_B2_MAIN_CORRIDOR_FLARE_RADIUS_SCALE   = 0x300,
+};
 
 _ShelterB2MainCorridorDepartureTaskDescStorage D_shelter_b2_main_corridor_801828E0 = { { 0 }, { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } } };
 
@@ -209,10 +221,10 @@ TaskDesc D_shelter_b2_main_corridor_80182C08 = { { { TASK_BODY_NONE, 32 } }, roo
 
 TaskMessageEntry D_shelter_b2_main_corridor_80182C14[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_main_corridor_8017D9C4 },
-    { 5105, func_shelter_b2_main_corridor_8017E1CC },
+    { SHELTER_B2_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB2MainCorridorRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_main_corridor_8017DC88 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_main_corridor_8017E1D4 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b2_main_corridor_8017E1DC },
+    { ROOM_MESSAGE_COMMAND, _shelterB2MainCorridorIgnoreCommandMessage },
+    { ROOM_MESSAGE_SOUND, _shelterB2MainCorridorHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -250,7 +262,7 @@ EvsCommand D_shelter_b2_main_corridor_80182CA8[13] = {
 };
 
 TaskDesc D_shelter_b2_main_corridor_80182DE0[1] = {
-    { { { TASK_BODY_NONE, 96 } }, func_shelter_b2_main_corridor_8017EB8C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 96 } }, _shelterB2MainCorridorWaterTask, { .value = 0 } },
 };
 
 /// Four water rectangles rendered as Z-running wave strips, followed by the list end.
@@ -1751,10 +1763,10 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* fir
 }
 
 /// The room task's three states, run by
-/// `func_shelter_b2_main_corridor_8017E338`: install the message table and
+/// `shelterB2MainCorridorRoomTask`: install the message table and
 /// spawn the room's tasks, idle, and end.
 static const TaskFuncTable3 D_shelter_b2_main_corridor_8017D5F0 = {
-    { func_shelter_b2_main_corridor_8017E2D4, func_shelter_b2_main_corridor_8017E330, taskKill }
+    { _shelterB2MainCorridorInitializeRoomTask, _shelterB2MainCorridorIdleRoomTask, taskKill }
 };
 
 void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
@@ -1824,20 +1836,28 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
 
 #include "../../shared/room_variants_neo_ark.inc.c"
 
-s32 func_shelter_b2_main_corridor_8017E1CC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room, returning the menu's unavailable result zero.
+static s32 _shelterB2MainCorridorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b2_main_corridor_8017E1D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and returns zero without changing room state.
+static s32 _shelterB2MainCorridorIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b2_main_corridor_8017E1DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Queues room sound script 9 for command 9; other commands are ignored, and the result is always zero.
+static s32 _shelterB2MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundCommandId, s32 unusedArg)
 {
-    if (arg2 == 9) {
-        sndEvtRequestScriptStart(0x54210000 | 9, 0, 0);
+    enum {
+        SOUND_COMMAND_START_SCRIPT_9 = 9,
+        SOUND_SCRIPT_9               = 0x54210009, // Bank 0x5421, instance 0, entry 9
+    };
+
+    if (soundCommandId == SOUND_COMMAND_START_SCRIPT_9) {
+        sndEvtRequestScriptStart(SOUND_SCRIPT_9, 0, 0);
     }
     return 0;
 }
@@ -1863,28 +1883,29 @@ static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
     }
 }
 
-static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0)
+/// Registers the room's message receiver, starts its water task and advances to idle.
+///
+/// Called once in state zero; the loaded overlay supplies the borrowed message
+/// table for the room task's lifetime.
+static void _shelterB2MainCorridorInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b2_main_corridor_80182C14;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_shelter_b2_main_corridor_80182C14;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_shelter_b2_main_corridor_80182DE0, 0, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
-/// The room task's idle state.
-static void func_shelter_b2_main_corridor_8017E330(Task* arg0)
+/// Keeps the initialized room task live to receive messages without per-frame work.
+static void _shelterB2MainCorridorIdleRoomTask(Task* task)
 {
 }
 
-/// Runs one tick of the room task through the three-state table
-/// `D_shelter_b2_main_corridor_8017D5F0`, copying the table onto the stack and
-/// calling the entry for the task's current state.
-void func_shelter_b2_main_corridor_8017E338(Task* task)
+void shelterB2MainCorridorRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b2_main_corridor_8017D5F0;
-    sp.funcs[task->state](task);
+    states = D_shelter_b2_main_corridor_8017D5F0;
+    states.funcs[task->state](task);
 }
 
 /// Selects the drawer's actor-load cursor reset and corridor view exclusions.
@@ -1913,99 +1934,118 @@ void func_shelter_b2_main_corridor_8017E338(Task* task)
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 6
 #include "../../shared/water_wave_strips.inc.c"
 
-/// The water task: runs its state, first
-/// `func_shelter_b2_main_corridor_8017EBF4` and then the surface drawer above,
-/// and each tick publishes the room's water height to the session.
-void func_shelter_b2_main_corridor_8017EB8C(Task* task)
+/// Draws the corridor's wave surfaces and publishes their signed world Y each tick.
+///
+/// State 0 clears the selected actor-load buffer's session word; state 1 draws
+/// four rectangles except in Shelter views 10 and 11. The task stays live. The selected buffer
+/// must remain available for both display halves until GPU consumption; each
+/// drawing tick can use 0x1800 bytes of its current 0xC000-byte half.
+static void _shelterB2MainCorridorWaterTask(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b2_main_corridor_8017EBF4, _waterDrawWaveStrips };
+    TaskFunc states[] = { _shelterB2MainCorridorInitializeWaterTask, _waterDrawWaveStrips };
 
     states[task->state](task);
     gGameSession->waterY = gShelterB2MainCorridorWaterY;
 }
 
-/// First state of the water task: clears the session's `field_80` or
-/// `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and advances to the next state.
-static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
+/// Clears the session word associated with the actor-load buffer used for water.
+///
+/// With no companion, selects buffer 2; otherwise selects buffer 1. The word's
+/// nonzero meaning is unproven. Advances state 0 to the surface-drawing state 1.
+static void _shelterB2MainCorridorInitializeWaterTask(Task* task)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
-void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
+/// Draws three white beam pairs with alternating quarter- and half-turn caps.
+///
+/// Requires ten readable points, borrowed for this draw; pairs start at 0, 4 and 8.
+static inline void _shelterB2MainCorridorDrawWhiteBeamGroup(const SVECTOR* beamPoints)
 {
-    switch (arg0->state) {
-        case 0:
+    _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+    _glowDrawBeam(&beamPoints[4], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+    _glowDrawBeam(&beamPoints[8], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+}
+
+void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
+{
+    enum { VIEW_GLOWS_INITIALIZE,
+           VIEW_GLOWS_DRAW,
+           VIEW_GLOWS_INDEX_MASK = 0xFF };
+
+    switch (task->state) {
+        case VIEW_GLOWS_INITIALIZE:
+            // Install this loaded overlay's effect IDs before drawing its first view.
             gRoomEffectFlashId       = EFFECT_SHELTER_B2_MAIN_CORRIDOR_FLASH;
             gRoomEffectTwinTrailId   = EFFECT_SHELTER_B2_MAIN_CORRIDOR_TWIN_TRAIL;
             gRoomEffectSparkBurstId  = EFFECT_SHELTER_B2_MAIN_CORRIDOR_SPARK_BURST;
             gRoomEffectWaterRippleId = EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_RIPPLE;
             gRoomEffectWaterSprayId  = EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_SPRAY;
-            arg0->state              = 1;
-        case 1:
-            switch (viewGetMappedIndex() & 0xFF) {
+            task->state              = VIEW_GLOWS_DRAW;
+            /* fallthrough */
+        case VIEW_GLOWS_DRAW:
+            switch (viewGetMappedIndex() & VIEW_GLOWS_INDEX_MASK) {
                 case 2: {
-                    SVECTOR* p = D_shelter_b2_main_corridor_80182F7C;
-                    _glowDrawBeam(&p[0], 0x200, 0, 0x111);
-                    _glowDrawBeam(&p[2], 0x200, 0, 0x111);
+                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182F7C;
+                    _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+                    _glowDrawBeam(&beamPoints[2], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
                     break;
                 }
                 case 3: {
-                    SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-                    _glowDrawBeam(&p[2], 0x200, 0, 0x10);
-                    _glowDrawBeam(&p[4], 0x200, 0, 0x10);
-                    _glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
-                    glowDrawFlareClipped(&p[14], 1, 0x300);
-                    glowDrawFlareClipped(&p[21], 1, 0x300);
+                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182FAC;
+                    _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&beamPoints[2], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&beamPoints[4], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&beamPoints[6], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_RED);
+                    glowDrawFlareClipped(&beamPoints[14], SHELTER_B2_MAIN_CORRIDOR_FLARE_TEXTURE_COLUMN, SHELTER_B2_MAIN_CORRIDOR_FLARE_RADIUS_SCALE);
+                    glowDrawFlareClipped(&beamPoints[21], SHELTER_B2_MAIN_CORRIDOR_FLARE_TEXTURE_COLUMN, SHELTER_B2_MAIN_CORRIDOR_FLARE_RADIUS_SCALE);
                     break;
                 }
                 case 4: {
-                    SVECTOR* p = D_shelter_b2_main_corridor_80182F9C;
-                    _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-                    _glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
-                    _glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
+                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182F9C;
+                    _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&beamPoints[24], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+                    _glowDrawBeam(&beamPoints[28], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+                    _glowDrawBeam(&beamPoints[32], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
                     break;
                 }
                 case 5:
-                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FBC, 0x200, 0, 0x10);
+                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FBC, SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     break;
                 case 6:
-                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FAC, 0x200, 0x800, 0x10);
+                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FAC, SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    // View 6 also includes the beams visible in view 7.
+                    /* fallthrough */
                 case 7: {
-                    SVECTOR* p = D_shelter_b2_main_corridor_80182FCC;
-                    _glowDrawBeam(&p[0], 0x200, 0, 0x10);
-                    _glowDrawBeam(&p[2], 0x200, 0x800, 0x100);
+                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182FCC;
+                    _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&beamPoints[2], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_RED);
                     break;
                 }
                 case 8: {
-                    SVECTOR* p = D_shelter_b2_main_corridor_80182FAC;
-                    _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-                    _glowDrawBeam(&p[24], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[28], 0x200, -0x400, 0x111);
-                    _glowDrawBeam(&p[32], 0x200, 0x800, 0x111);
+                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182FAC;
+                    _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&beamPoints[24], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+                    _glowDrawBeam(&beamPoints[28], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+                    _glowDrawBeam(&beamPoints[32], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
                     break;
                 }
                 case 9:
-                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FCC, 0x200, 0, 0x10);
+                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FCC, SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     break;
                 case 10: {
-                    SVECTOR* p = D_shelter_b2_main_corridor_8018305C;
-                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
+                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_8018305C;
+                    _shelterB2MainCorridorDrawWhiteBeamGroup(beamPoints);
                     break;
                 }
                 case 11: {
-                    SVECTOR* p = D_shelter_b2_main_corridor_8018306C;
-                    _glowDrawBeam(&p[0], 0x200, 0x400, 0x111);
-                    _glowDrawBeam(&p[4], 0x200, 0x800, 0x111);
-                    _glowDrawBeam(&p[8], 0x200, 0x400, 0x111);
+                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_8018306C;
+                    _shelterB2MainCorridorDrawWhiteBeamGroup(beamPoints);
                     break;
                 }
             }
@@ -2015,7 +2055,7 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_shelter_b2_main_corridor_8017EF24(Task* task)
+void shelterB2MainCorridorWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -2036,14 +2076,14 @@ void func_shelter_b2_main_corridor_8017EF24(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b2_main_corridor_8018094C(Task* arg0)
+void shelterB2MainCorridorRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b2_main_corridor_801813B0(Task* task)
+void shelterB2MainCorridorRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
