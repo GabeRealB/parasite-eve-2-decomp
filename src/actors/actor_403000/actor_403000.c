@@ -3417,11 +3417,10 @@ static inline s8 _actor403000RingSide(s16 diff)
     if (diff < -5) {
         return -1;
     }
-    if (diff < 0) {
-        return 1;
-    }
-    if (diff < 5) {
-        return -1;
+    if (diff >= 0) {
+        if (diff < 5) {
+            return -1;
+        }
     }
     return 1;
 }
@@ -4276,19 +4275,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
         scratch->cell                      = cell;
         if (cell != scratch->playerCell) {
             diff = cell - scratch->playerCell;
-            if (diff < -5) {
-                goto neg;
-            }
-            if (diff < 0) {
-                goto pos;
-            }
-            if (diff < 5) {
-            neg:
-                dir = -1;
-            } else {
-            pos:
-                dir = 1;
-            }
+            dir  = _actor403000RingSide(diff);
         } else {
             dir = work->seekRingDir;
         }
@@ -4321,19 +4308,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    angle               = actorWrapAngle(angle);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
