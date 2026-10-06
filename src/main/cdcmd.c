@@ -631,6 +631,32 @@ s32 CdCmd_ActivatePhase1(void)
     return 0;
 }
 
+static inline void _cdCmdFinishSceneAudio(void)
+{
+    CdCmdQueue* p;
+
+    p = &gCdCmdQueue;
+    memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
+    p->replacementEntry.cmd = CD_COMMAND_EMPTY;
+    p->blockGamePause       = 0;
+    p->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
+    Gp_ApplySndBankMasks(p->sceneStream->data.scene.soundBankMask);
+    Gp_RestoreStreamRng();
+    if (p->busy != 0) {
+        p->busy              = 0;
+        gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+    }
+    p->step               = 0;
+    p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+    p->pausePlayClock     = 0;
+    p->cdOperationPending = 0;
+    if (p->readIdx != p->writeIdx) {
+        p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
+        p->readIdx                 = p->readIdx + 1;
+        p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
+    }
+}
+
 static void CdCmd_ProcessPhase1(void)
 {
     CdCmdQueue* p;
@@ -732,39 +758,21 @@ static void CdCmd_ProcessPhase1(void)
                                 p->cancelStep = p->cancelStep + 1;
                                 return;
                             }
-                            goto case8_cleanup;
+                            _cdCmdFinishSceneAudio();
+                            return;
                         }
                         return;
                     case CD_COMMAND_CANCEL_FINISH:
                         if (CdAudio_Phase.waveLoadStep == CD_AUDIO_WAVE_LOAD_STEP_DONE) {
-                            goto case8_cleanup;
+                            _cdCmdFinishSceneAudio();
+                            return;
                         }
                         return;
                     default:
                         return;
                 }
             } else {
-            case8_cleanup:
-                p = &gCdCmdQueue;
-                memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
-                p->replacementEntry.cmd = CD_COMMAND_EMPTY;
-                p->blockGamePause       = 0;
-                p->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
-                Gp_ApplySndBankMasks(p->sceneStream->data.scene.soundBankMask);
-                Gp_RestoreStreamRng();
-                if (p->busy != 0) {
-                    p->busy              = 0;
-                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
-                }
-                p->step               = 0;
-                p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                p->pausePlayClock     = 0;
-                p->cdOperationPending = 0;
-                if (p->readIdx != p->writeIdx) {
-                    p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
-                    p->readIdx                 = p->readIdx + 1;
-                    p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
-                }
+                _cdCmdFinishSceneAudio();
             }
             return;
         case 5:
