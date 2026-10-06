@@ -1840,13 +1840,7 @@ u32* tmdDrawStreamPrimGt4Unlit(TmdStreamWorkspace* workspace, s32 objectFlags, u
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                    if (workspace->gteResult > 0) {
-                        goto draw;
-                    }
-                    gte_nclip();
-                    gte_stopz(gteResultDestination);
-                    if (workspace->gteResult < 0) {
-                    draw:
+                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
                         gte_stotz(gteResultDestination);
