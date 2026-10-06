@@ -30,7 +30,15 @@ extern SpriteView D_dryfield_night_motel_room_1_8017FE98[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_1_80180844[];
 
-void func_dryfield_night_motel_room_1_8017D9B0(Task* unused);
+/// Draws night motel room 1's flickering light flares for the mapped camera.
+///
+/// Camera indices 2, 3, 8 and 9 select the flare with the larger radius scale;
+/// 5 and 6 select the smaller one. Other indices draw nothing. Gameplay dispatches
+/// this callback through effect-bank slot 0x107; `task` is unused.
+/// The room overlay and view map must remain loaded, with the current view
+/// matrices, scratch stack, packet arena and depth ordering table ready for
+/// drawing. A selected flare reserves one packet even when depth-clipped.
+void dryfieldNightMotelRoom1DrawGlowsTask(Task* task);
 
 void func_dryfield_night_motel_room_1_8017D6DC(Task* task);
 

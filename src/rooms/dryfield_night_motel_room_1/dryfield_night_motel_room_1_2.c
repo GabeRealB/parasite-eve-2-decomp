@@ -1078,23 +1078,29 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_1_80180844[8] = {
     D_dryfield_night_motel_room_1_80180824,
 };
 
-/// Night motel room 1 draw: queues one of the room's two glowing discs for the
-/// camera `viewGetMappedIndex` selects - views 2, 3, 8 and 9 the disc at
-/// `D_...DA54` (texture cell 1, half-extent 0x200), 5 and 6 the one at
-/// `D_...DA5C` (cell 2, half-extent 0x180). Views outside the 2..9 span draw
-/// nothing. `jump.c` cross-jumps the two trailing sprite calls into one tail.
-void func_dryfield_night_motel_room_1_8017D9B0(Task* unused)
+void dryfieldNightMotelRoom1DrawGlowsTask(Task* task)
 {
-    switch (viewGetMappedIndex() & 0xFF) {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_ROOM_1_LARGE_FLARE_TEXTURE_INDEX = 1,
+        DRYFIELD_NIGHT_MOTEL_ROOM_1_SMALL_FLARE_TEXTURE_INDEX = 2,
+        DRYFIELD_NIGHT_MOTEL_ROOM_1_LARGE_FLARE_RADIUS_SCALE  = 0x200,
+        DRYFIELD_NIGHT_MOTEL_ROOM_1_SMALL_FLARE_RADIUS_SCALE  = 0x180,
+    };
+    u8 mappedViewIndex;
+
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
         case 3:
         case 8:
         case 9:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA54[0], 1, 0x200);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA54[0], DRYFIELD_NIGHT_MOTEL_ROOM_1_LARGE_FLARE_TEXTURE_INDEX,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_1_LARGE_FLARE_RADIUS_SCALE);
             break;
         case 5:
         case 6:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA5C[0], 2, 0x180);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA5C[0], DRYFIELD_NIGHT_MOTEL_ROOM_1_SMALL_FLARE_TEXTURE_INDEX,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_1_SMALL_FLARE_RADIUS_SCALE);
             break;
     }
 }

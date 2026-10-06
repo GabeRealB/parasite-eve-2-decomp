@@ -4843,7 +4843,7 @@ the score sits at 86%. Read the `lui` destination as the tell: when the target
 writes the address into the argument register itself, the source had no
 intervening variable.
 
-`func_dryfield_night_motel_room_1_8017D9B0` is the switch-case instance of the
+`dryfieldNightMotelRoom1DrawGlowsTask` is the switch-case instance of the
 same rule and pins down what is *not* the cause. Its m2c seed assigns `var_a0` /
 `var_a1` / `var_a2` in each case and reaches the one `Room_Draw20` through a
 `goto block_4`; it scores 67.394% with `lui $v0` / `addiu $a0,$v0` and the tail
