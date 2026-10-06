@@ -258,25 +258,15 @@ void displayReleaseMenuHold(void)
 
 static s32 Display_GetHoldMode(void)
 {
-    s32 temp;
-
-    temp = Display_HoldMode;
-    if (temp == 2) {
-        goto case2;
+    switch (Display_HoldMode) {
+        case 2:
+            return 4;
+        case 3:
+            return 6;
+        case 1: // some case below 2 was listed with the default; which is not recoverable
+        default:
+            return gDisplayState.holdState;
     }
-    if (temp < 3) {
-        goto default_case;
-    }
-    if (temp == 3) {
-        goto case3;
-    }
-    goto default_case;
-case2:
-    return 4;
-case3:
-    return 6;
-default_case:
-    return gDisplayState.holdState;
 }
 
 void Gpu_InitOtSmall(void)
