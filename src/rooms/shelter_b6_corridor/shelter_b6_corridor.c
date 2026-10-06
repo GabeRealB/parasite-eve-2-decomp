@@ -616,23 +616,22 @@ s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Sets the mask bit in every decoded background pixel.
+/// Sets bit 15 in all 320-by-240 decoded background pixels, preserving their RGB bits.
 ///
-/// The loaded 320-by-240 RGB16 frame must occupy the complete image workspace;
-/// no decode may write it during this call. The halfword view accesses pixels
-/// individually within the workspace's packed two-pixel words.
+/// `Fs_ImgBuffers` must contain the completed RGB16 frame and remain writable
+/// without concurrent decoding, DMA or reuse. It updates the resident RAM
+/// image for subsequent uploads. The halfword view visits both pixels of each
+/// packed GPU word across the complete workspace.
 static inline void _shelterB6CorridorMaskImagePixels(void)
 {
     u16* pixel;
     s32  pixelIndex;
 
-    pixel      = (u16*)Fs_ImgBuffers;
-    pixelIndex = 0;
-    do {
-        *pixel     |= FILE_SYSTEM_IMAGE_PIXEL_MASK;
-        pixelIndex += 1;
-        pixel      += 1;
-    } while (pixelIndex <= (s32)(sizeof(*Fs_ImgBuffers) / sizeof(*pixel)) - 1);
+    pixel = (u16*)Fs_ImgBuffers;
+    for (pixelIndex = 0; pixelIndex < (s32)(sizeof(*Fs_ImgBuffers) / sizeof(*pixel)); pixelIndex++) {
+        *pixel |= FILE_SYSTEM_IMAGE_PIXEL_MASK;
+        pixel++;
+    }
 }
 
 /// Registers the room task, masks its loaded background and selects scene music.
@@ -701,12 +700,16 @@ void func_shelter_b6_corridor_8017E204(void)
     Gp_PulseState1C();
 }
 
-/// Draws two adjacent capsule glows from four borrowed world endpoints.
+/// Draws two wall-light capsule glows from consecutive pairs of world endpoints.
 ///
-/// Requires the current view transform, initialized scratch stack and frame
-/// arena. The four endpoints must be word-aligned; accepted projections must
-/// have nonzero camera depth. Pairs [0, 1] and [2, 3] share the perspective
-/// radius numerator and packed RGB nibbles. Each capsule queues six additive quads.
+/// Borrows four word-aligned `worldPoints`, pairing [0, 1] before [2, 3].
+/// The signed low halfword of `radiusScale` gives each end's pixel radius as
+/// radiusScale * 64 / (camera Z / 4). `packedColor` bits 8..11, 4..7 and 0..3
+/// are RGB nibbles scaled by 16, with bit 3 inserted on odd animation frames.
+/// Requires the current view transform, scratch stack, frame arena and ordering
+/// table. Each capsule independently rejects negative projection flags and
+/// requires nonzero endpoint depths; an accepted capsule queues six additive
+/// Gouraud quads and their blend commands, retained until GPU drawing completes.
 static inline void _shelterB6CorridorDrawGlowPair(const SVECTOR worldPoints[4], s32 radiusScale, s32 packedColor)
 {
     _glowDrawCapsule(&worldPoints[0], radiusScale, packedColor);
@@ -771,23 +774,31 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
     }
 }
 
-/// Expands and draws one yellow player-hit glow from its work and composed centre.
+/// Advances the player-hit glow's radius and draws its yellow disc at a composed centre.
 ///
-/// `scale` is brightness and `angle` is the radius numerator. Drawing narrows
-/// the doubled and quadrupled radii to signed halfwords and requires the
-/// current view, scratch stack, frame arena and ordering table. The zero-width
-/// outer-band call is retained; the disc has four times the base radius.
+/// Borrows writable `work`: `scale` is brightness (24..192 in the live task)
+/// and `angle` is the base radius numerator, increased by 24 even if culled.
+/// RGB is (brightness, brightness, brightness / 2); this call does not fade it.
+/// Doubled and quadrupled radii narrow to s16 before perspective scaling by
+/// 64 / (camera Z / 4 + 1). `centreCoord` supplies a cached translation in the
+/// current view's space; its rotation is unused. Requires the scratch stack,
+/// frame arena and ordering table. Accepted projections append 24 additive
+/// Gouraud quads and their blend commands, retained until GPU drawing completes.
 static inline void _shelterB6CorridorDrawPlayerHitGlow(const GfxCoord* centreCoord, EffectWork* work)
 {
     enum { SHELTER_B6_CORRIDOR_HIT_GLOW_RADIUS_STEP = 0x18 };
-    u8 rgb[3];
+    u8  yellowRgb[3];
+    u16 baseRadius;
 
-    rgb[0]       = work->scale;
-    rgb[1]       = work->scale;
-    rgb[2]       = work->scale >> 1;
+    yellowRgb[0] = work->scale;
+    yellowRgb[1] = work->scale;
+    yellowRgb[2] = work->scale >> 1;
     work->angle += SHELTER_B6_CORRIDOR_HIT_GLOW_RADIUS_STEP;
-    effectDrawOuterGlowBand(centreCoord, (s16)(work->angle * 2), 0, rgb);
-    effectDrawGouraudDisc(centreCoord, (s16)((u16)work->angle * 4), rgb);
+
+    // Keep the zero-width band's packets even though its two edges coincide.
+    effectDrawOuterGlowBand(centreCoord, (s16)(work->angle * 2), 0, yellowRgb);
+    baseRadius = work->angle;
+    effectDrawGouraudDisc(centreCoord, (s16)(baseRadius * 4), yellowRgb);
 }
 
 void shelterB6CorridorPlayerHitGlowTask(Task* task)
