@@ -84,63 +84,82 @@ SVECTOR D_shelter_b2_breeding_room_80180450[32] = {
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Room light task. Its first frame sets the effect ids in `gRoomEffectGlowDiscId`,
-/// `gRoomEffectFlyingSparkId` and `gRoomEffectOrangeBurst2Id`; every frame it draws the glows of the lights
-/// the current camera view shows, from the room's light position tables.
-void func_shelter_b2_breeding_room_8017D898(Task* arg0)
+/// Selects the breeding room's implementations of the three Amoeba effects.
+static inline void _shelterB2BreedingRoomInstallAmoebaEffects(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_BREEDING_ROOM_GLOW_DISC;
-        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_BREEDING_ROOM_FLYING_SPARK;
-        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B2_BREEDING_ROOM_ORANGE_BURST_2;
-        arg0->state               = 1;
+    gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_BREEDING_ROOM_GLOW_DISC;
+    gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_BREEDING_ROOM_FLYING_SPARK;
+    gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B2_BREEDING_ROOM_ORANGE_BURST_2;
+}
+
+void shelterB2BreedingRoomDrawGlowsTask(Task* task)
+{
+    enum {
+        SHELTER_B2_BREEDING_ROOM_GLOW_STATE_INIT      = 0,
+        SHELTER_B2_BREEDING_ROOM_GLOW_STATE_DRAW      = 1,
+        SHELTER_B2_BREEDING_ROOM_GLOW_VIEW_INDEX_MASK = 0xFF,
+        // Pixel radius = scale * 64 / (camera Z / 4).
+        SHELTER_B2_BREEDING_ROOM_GLOW_SMALL_RADIUS_SCALE = 0x100,
+        SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE = 0x200,
+        // Packed RGB nibbles; each channel is multiplied by 16 before flicker.
+        SHELTER_B2_BREEDING_ROOM_GLOW_DIM_GREY       = 0x111,
+        SHELTER_B2_BREEDING_ROOM_GLOW_GREY           = 0x222,
+        SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHT_GREY    = 0x333,
+        SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY = 0x444,
+        SHELTER_B2_BREEDING_ROOM_GLOW_GREEN          = 0x142,
+    };
+
+    if (task->state == SHELTER_B2_BREEDING_ROOM_GLOW_STATE_INIT) {
+        _shelterB2BreedingRoomInstallAmoebaEffects();
+        task->state = SHELTER_B2_BREEDING_ROOM_GLOW_STATE_DRAW;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Select fixed world points by mapped camera index, rather than logical view.
+    switch (viewGetMappedIndex() & SHELTER_B2_BREEDING_ROOM_GLOW_VIEW_INDEX_MASK) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180470[0], 0x100, 0x142);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[24], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[25], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[26], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[27], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180470[0], SHELTER_B2_BREEDING_ROOM_GLOW_SMALL_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREEN);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[24], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[25], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[26], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180470[27], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
             break;
         case 3:
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[0], 0x200, 0x222);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[1], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180450[2], 0x200, 0x222);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[12], 0x200, 0x333);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[13], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[16], 0x200, 0x333);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[17], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[0], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[1], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180450[2], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[12], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHT_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[13], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[16], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHT_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180450[17], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
             break;
         case 4:
-            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[0], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[1], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[4], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[5], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[7], 0x200, 0x444);
+            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[0], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[1], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[4], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[5], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_801804C0[7], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], 0x100, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[8], 0x200, 0x111);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[9], 0x200, 0x111);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[12], 0x200, 0x222);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[13], 0x200, 0x222);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[14], 0x200, 0x333);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[15], 0x200, 0x333);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[16], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[17], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], SHELTER_B2_BREEDING_ROOM_GLOW_SMALL_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[8], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_DIM_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[9], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_DIM_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[12], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[13], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[14], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHT_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[15], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHT_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[16], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[17], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[2], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[4], 0x100, 0x142);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[16], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[17], 0x200, 0x444);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[18], 0x200, 0x222);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[19], 0x200, 0x222);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[20], 0x200, 0x111);
-            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[21], 0x200, 0x111);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[0], SHELTER_B2_BREEDING_ROOM_GLOW_SMALL_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[2], SHELTER_B2_BREEDING_ROOM_GLOW_SMALL_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            _glowDrawCapsule(&D_shelter_b2_breeding_room_80180480[4], SHELTER_B2_BREEDING_ROOM_GLOW_SMALL_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREEN);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[16], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[17], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_BRIGHTEST_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[18], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[19], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[20], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_DIM_GREY);
+            glowDrawDisc(&D_shelter_b2_breeding_room_80180480[21], SHELTER_B2_BREEDING_ROOM_GLOW_LARGE_RADIUS_SCALE, SHELTER_B2_BREEDING_ROOM_GLOW_DIM_GREY);
             break;
     }
 }

@@ -52,6 +52,14 @@ void func_shelter_b2_breeding_room_8017ECCC(Task* task);
 
 void func_shelter_b2_breeding_room_8017F92C(Task* arg0);
 
-void func_shelter_b2_breeding_room_8017D898(Task* arg0);
+/// Draws the breeding room's fixed disc and capsule glows for the active camera.
+///
+/// Bank-6 slot 0x13F. A live task starting at state 0 installs this room's
+/// glow-disc, flying-spark and orange-burst effect IDs, then advances to state 1.
+/// Draws on that first tick and every later tick for mapped camera indices 2..6;
+/// other indices emit no glow packets. The room overlay must remain loaded.
+/// Requires the current view transform, an initialized scratch stack and space
+/// in the current frame's GPU packet arena.
+void shelterB2BreedingRoomDrawGlowsTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B2_BREEDING_ROOM_H

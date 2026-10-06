@@ -83,7 +83,7 @@ func_shelter_b2_breeding_room_8017ECCC = 0x8017ECCC; // type:func
 
 func_shelter_b2_breeding_room_8017F92C = 0x8017F92C; // type:func
 
-func_shelter_b2_breeding_room_8017D898 = 0x8017D898; // type:func
+shelterB2BreedingRoomDrawGlowsTask = 0x8017D898; // type:func
 _roomVisualEffectsDrawFlyingSpark = 0x8017EEF0; // type:func
 _roomVisualEffectsDrawFlyingRing = 0x8017F174; // type:func
 _roomVisualEffectsDrawFlyingDisc = 0x8017F598; // type:func
