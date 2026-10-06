@@ -583,18 +583,16 @@ static void func_dryfield_night_garage_80180604(s32 arg0)
 
 void func_dryfield_night_garage_801807E4(Task* arg0)
 {
-    s32 temp_v1;
-
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
+    switch (arg0->state) {
         case 0:
             Gp_StartCapSlot((s16)arg0->spawnArg1.value, 0, 0);
             TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
-            goto block_12;
+            arg0->state++;
+            return;
         case 1:
             if (Gp_CapBusy() == 0) {
                 func_800D4D2C(0x20);
-                goto block_12;
+                arg0->state++;
             }
             return;
         case 2:
@@ -602,8 +600,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT) == 0) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT, 1);
             }
-        block_12:
-            arg0->state = arg0->state + 1;
+            arg0->state++;
             return;
         case 3:
             if (Gp_CapBusy() != 0) {
