@@ -2469,22 +2469,9 @@ static void func_actor_105100_80135B40(Task* arg0)
                 target = next - 0x50;
             }
         }
-    } else {
-        if (diff > 0) {
-            if (0x1000 - diff < 0x51) {
-                goto snapTurn;
-            } else {
-                goto turn;
-            }
-        } else if (0x1000 + diff < 0x51) {
-            goto snapTurn;
-        } else {
-            goto turn;
-        }
-    snapTurn:
+    } else if (diff > 0 ? 0x1000 - diff < 0x51 : 0x1000 + diff < 0x51) {
         target = snap;
-        goto done;
-    turn:
+    } else {
         step = (s16)target;
         if (diff > 0) {
             target = step - 0x50;
@@ -2492,7 +2479,6 @@ static void func_actor_105100_80135B40(Task* arg0)
             target = step + 0x50;
         }
     }
-done:
     sc->rot.vx = 0;
     sc->rot.vy = target;
     sc->rot.vz = 0;
