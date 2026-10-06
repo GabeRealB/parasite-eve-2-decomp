@@ -2586,7 +2586,7 @@ static void func_actor_421600_80136138(Task* arg0)
     ActorTurnScratch *head, *turn;
     Enemy*            ctx;
     TmdObject*        obj;
-    GfxCoord *        coord2, *coord3, *coord4;
+    GfxCoord *        coord3, *coord4;
     s16               playerZone, zone;
     s16               nextZone;
     s16               angle;
@@ -2684,9 +2684,7 @@ static void func_actor_421600_80136138(Task* arg0)
     turn->delta.vx      = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
     turn->delta.vy      = 0;
     turn->delta.vz      = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    coord2              = arg0->extra.tmd->coords;
-    angle               = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
+    angle               = actorYawTo(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
     turn->angle         = angle;
     work->lookYawTarget = angle;
     if (turn->angle >= 0x21)
