@@ -546,16 +546,16 @@ void func_shelter_b1_control_room_8017FF80(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b1_control_room_801804D8(Task* task)
+void shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b1_control_room_80181138(Task* arg0)
+void shelterB1ControlRoomRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

@@ -59,8 +59,32 @@ void shelterB1ControlRoomDrawGlowsTask(Task* task);
 
 void func_shelter_b1_control_room_8017FF80(Task* arg0);
 
-void func_shelter_b1_control_room_801804D8(Task* task);
+/// Runs the control room's animated spark toward its initial target position.
+///
+/// Requires live `gRoomEffectState`, a counted effect task with a coordinate
+/// body, initial state zero, and owned `EffectWork` in `spawnArg2.pointer` with
+/// age and frame index zero.
+/// `spawnArg1.pointer` borrows a target `GfxCoord` through the first running
+/// update; both cached matrices must be current in the same view space.
+/// That update fixes a parent-space step at 204/4096 of the initial separation,
+/// with signed 16-bit narrowing before scaling. Later running updates move by
+/// that step and draw on odd ages; age 20 releases the work and tears down the
+/// task. Room effect control 1..3 pauses; 4 or above cancels. The target is not
+/// sampled again. The control room overlay must remain loaded while dispatched.
+void shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_shelter_b1_control_room_80181138(Task* arg0);
+/// Runs the control room's orange burst with an expanding glow and fading ring.
+///
+/// Requires live `gRoomEffectState`, a counted effect task with a coordinate
+/// body, initial state zero, and owned `EffectWork` in `spawnArg2.pointer`;
+/// `spawnArg1` is ignored.
+/// Running updates compose the coordinate, grow the disc and layered glow,
+/// and fade the ring before fading the disc. A successful ground projection
+/// adds a ground quad; the glow refreshes a flickering orange point light even
+/// when off screen. Room effect control 1..3
+/// pauses; 4 or above cancels. Cancellation or completed fading releases the
+/// work and tears down the task; callers must not retain released pointers.
+/// The control room overlay must remain loaded while dispatched.
+void shelterB1ControlRoomRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_CONTROL_ROOM_H

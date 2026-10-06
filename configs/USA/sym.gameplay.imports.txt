@@ -978,9 +978,9 @@ shelterB1ControlRoomDrawGlowsTask = 0x8017F150; // type:func absolute:True owner
 
 func_shelter_b1_control_room_8017FF80 = 0x8017FF80; // type:func absolute:True owner=shelter_b1_control_room shared=rooms
 
-func_shelter_b1_control_room_801804D8 = 0x801804D8; // type:func absolute:True owner=shelter_b1_control_room
+shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask = 0x801804D8; // type:func absolute:True owner=shelter_b1_control_room
 
-func_shelter_b1_control_room_80181138 = 0x80181138; // type:func absolute:True owner=shelter_b1_control_room
+shelterB1ControlRoomRoomVisualEffectsFlyingOrangeBurstTask = 0x80181138; // type:func absolute:True owner=shelter_b1_control_room
 
 func_shelter_b1_control_room_access_tunnel_8017E1BC = 0x8017E1BC; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 

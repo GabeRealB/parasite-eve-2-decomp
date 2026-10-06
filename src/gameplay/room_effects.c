@@ -1169,8 +1169,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameConeTask, { NULL } },                       // 0x274
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameRingTask, { NULL } },                       // 0x275
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_8017FF80, { NULL } },                       // 0x276
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_801804D8, { NULL } },                       // 0x277
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_80181138, { NULL } },                       // 0x278
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask, { NULL } },        // 0x277
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },  // 0x278
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_8018026C, { NULL } },         // 0x279
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_801807C4, { NULL } },         // 0x27A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_80181424, { NULL } },         // 0x27B
