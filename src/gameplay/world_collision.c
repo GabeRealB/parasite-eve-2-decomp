@@ -517,49 +517,47 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
         block->axisPoint.vy = (u16)block->extendedEnd1.vy + ((block->segmentDirection.vy * proj) >> 12);
         block->axisPoint.vz = (u16)block->extendedEnd1.vz + ((block->segmentDirection.vz * proj) >> 12);
         proj                = tmp;
-        goto check;
+    } else {
+        if (arg1->flags & (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT)) {
+            gte_SetRotMatrix(&arg1->coord->workm);
+            block->work.localEndpoint.vx = (u16)rec->ends[0].vx + (u16)arg1->pos.vx;
+            block->work.localEndpoint.vy = (u16)rec->ends[0].vy + (u16)arg1->pos.vy;
+            block->work.localEndpoint.vz = (u16)rec->ends[0].vz + (u16)arg1->pos.vz;
+            gte_ldv0(&block->work.localEndpoint);
+            gte_rtv0();
+            gte_stlvnl(&block->ends[0]);
+            block->ends[0].vx += (arg1->coord)->workm.t[0];
+            block->ends[0].vy += (arg1->coord)->workm.t[1];
+            block->ends[0].vz += (arg1->coord)->workm.t[2];
+        }
+
+        block->segmentDelta.vx = block->ends[0].vx - block->ends[1].vx;
+        block->segmentDelta.vy = block->ends[0].vy - block->ends[1].vy;
+        block->segmentDelta.vz = block->ends[0].vz - block->ends[1].vz;
+        dx2                    = block->segmentDelta.vx * block->segmentDelta.vx;
+        dy2                    = block->segmentDelta.vy * block->segmentDelta.vy;
+        dz2                    = block->segmentDelta.vz * block->segmentDelta.vz;
+        len                    = SquareRoot0(dx2 + dy2 + dz2);
+
+        block->work.projectionOffset.vx = (block->segmentDirection.vx * proj) >> 12;
+        block->work.projectionOffset.vy = (block->segmentDirection.vy * proj) >> 12;
+        block->work.projectionOffset.vz = (block->segmentDirection.vz * proj) >> 12;
+        dx3                             = block->work.projectionOffset.vx * block->work.projectionOffset.vx;
+        dy3                             = block->work.projectionOffset.vy * block->work.projectionOffset.vy;
+        dz3                             = block->work.projectionOffset.vz * block->work.projectionOffset.vz;
+        proj                            = len;
+        plen                            = SquareRoot0(dx3 + dy3 + dz3);
+
+        r0                  = (rec->end0Radius << 12) / rec->end1Radius;
+        proj                = (plen << 12) / proj;
+        tmp                 = r0 - 0x1000;
+        r1                  = arg0->radius;
+        proj                = r1 + ((((tmp * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
+        block->axisPoint.vx = (u16)block->work.projectionOffset.vx + (u16)block->extendedEnd1.vx;
+        block->axisPoint.vy = (u16)block->work.projectionOffset.vy + (u16)block->extendedEnd1.vy;
+        block->axisPoint.vz = (u16)block->work.projectionOffset.vz + (u16)block->extendedEnd1.vz;
     }
 
-    if (arg1->flags & (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT)) {
-        gte_SetRotMatrix(&arg1->coord->workm);
-        block->work.localEndpoint.vx = (u16)rec->ends[0].vx + (u16)arg1->pos.vx;
-        block->work.localEndpoint.vy = (u16)rec->ends[0].vy + (u16)arg1->pos.vy;
-        block->work.localEndpoint.vz = (u16)rec->ends[0].vz + (u16)arg1->pos.vz;
-        gte_ldv0(&block->work.localEndpoint);
-        gte_rtv0();
-        gte_stlvnl(&block->ends[0]);
-        block->ends[0].vx += (arg1->coord)->workm.t[0];
-        block->ends[0].vy += (arg1->coord)->workm.t[1];
-        block->ends[0].vz += (arg1->coord)->workm.t[2];
-    }
-
-    block->segmentDelta.vx = block->ends[0].vx - block->ends[1].vx;
-    block->segmentDelta.vy = block->ends[0].vy - block->ends[1].vy;
-    block->segmentDelta.vz = block->ends[0].vz - block->ends[1].vz;
-    dx2                    = block->segmentDelta.vx * block->segmentDelta.vx;
-    dy2                    = block->segmentDelta.vy * block->segmentDelta.vy;
-    dz2                    = block->segmentDelta.vz * block->segmentDelta.vz;
-    len                    = SquareRoot0(dx2 + dy2 + dz2);
-
-    block->work.projectionOffset.vx = (block->segmentDirection.vx * proj) >> 12;
-    block->work.projectionOffset.vy = (block->segmentDirection.vy * proj) >> 12;
-    block->work.projectionOffset.vz = (block->segmentDirection.vz * proj) >> 12;
-    dx3                             = block->work.projectionOffset.vx * block->work.projectionOffset.vx;
-    dy3                             = block->work.projectionOffset.vy * block->work.projectionOffset.vy;
-    dz3                             = block->work.projectionOffset.vz * block->work.projectionOffset.vz;
-    proj                            = len;
-    plen                            = SquareRoot0(dx3 + dy3 + dz3);
-
-    r0                  = (rec->end0Radius << 12) / rec->end1Radius;
-    proj                = (plen << 12) / proj;
-    tmp                 = r0 - 0x1000;
-    r1                  = arg0->radius;
-    proj                = r1 + ((((tmp * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
-    block->axisPoint.vx = (u16)block->work.projectionOffset.vx + (u16)block->extendedEnd1.vx;
-    block->axisPoint.vy = (u16)block->work.projectionOffset.vy + (u16)block->extendedEnd1.vy;
-    block->axisPoint.vz = (u16)block->work.projectionOffset.vz + (u16)block->extendedEnd1.vz;
-
-check:
     block->work.centreToAxis.vx = (u16)block->axisPoint.vx - (u16)block->sphereCenter.vx;
     block->work.centreToAxis.vy = (u16)block->axisPoint.vy - (u16)block->sphereCenter.vy;
     block->work.centreToAxis.vz = (u16)block->axisPoint.vz - (u16)block->sphereCenter.vz;
