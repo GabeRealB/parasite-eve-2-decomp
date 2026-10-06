@@ -15,30 +15,26 @@ void ratHurt(Task* arg0)
     obj   = arg0->extra.tmd;
     state = work->step;
     coord = obj->coords;
-    if (state == 0) {
-        goto case0;
+    switch (state) {
+        case 0:
+            work->animId        = RAT_ANIM_HURT;
+            work->appliedAnimId = RAT_ANIM_IDLE;
+            work->forwardSpeed  = 0;
+            work->turnRate      = 0;
+            work->step          = 1;
+            snd                 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070002;
+            pan                 = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            break;
+        case 1:
+            if (work->animFrame < 0x18) {
+                break;
+            }
+            work->mode            = RAT_MODE_IDLE;
+            work->step            = 0;
+            work->animId          = RAT_ANIM_IDLE;
+            work->timer           = 0;
+            work->attackRequested = 1;
+            break;
     }
-    if (state == 1) {
-        goto case1;
-    }
-    return;
-case0:
-    work->animId        = RAT_ANIM_HURT;
-    work->appliedAnimId = RAT_ANIM_IDLE;
-    work->forwardSpeed  = 0;
-    work->turnRate      = 0;
-    work->step          = 1;
-    snd                 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070002;
-    pan                 = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-    return;
-case1:
-    if (work->animFrame < 0x18) {
-        return;
-    }
-    work->mode            = RAT_MODE_IDLE;
-    work->step            = 0;
-    work->animId          = state;
-    work->timer           = 0;
-    work->attackRequested = state;
 }
