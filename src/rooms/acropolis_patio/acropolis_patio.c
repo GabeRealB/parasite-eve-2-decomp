@@ -2167,59 +2167,73 @@ void func_acropolis_patio_8017E100(Task* task)
     }
 }
 
-/// Projects and queues one fountain jet sprite.
+/// Sets a light glow's square screen bounds from its projected centre.
 ///
-/// Borrows the caller's reserved scratch block and consumes frame-arena packets.
-static inline void _acropolisPatioDrawFountainJetSprite(const GfxCoord* coord, const EffectWork* work, RoomGlowSpriteScratch* block)
+/// `screenPos` and `halfExtent` count pixels. Each edge narrows to a signed
+/// halfword before filling the two corners that share it; vertex order is
+/// top-left, top-right, bottom-left, bottom-right. Only packet coordinates change.
+static inline void _acropolisPatioSetLightGlowBounds(POLY_FT4* glowQuad, const RoomGlowSpriteScratch* spriteScratch)
 {
-    POLY_FT4* prim;
+    glowQuad->x0 = glowQuad->x2 = spriteScratch->screenPos.vx - spriteScratch->halfExtent;
+    glowQuad->x1 = glowQuad->x3 = spriteScratch->screenPos.vx + spriteScratch->halfExtent;
+    glowQuad->y0 = glowQuad->y1 = spriteScratch->screenPos.vy - spriteScratch->halfExtent;
+    glowQuad->y2 = glowQuad->y3 = spriteScratch->screenPos.vy + spriteScratch->halfExtent;
+}
+
+/// Projects a patio light's cached view position into a flickering additive glow.
+///
+/// `composedCoord->workm.t` supplies signed game coordinates, narrowed to s16
+/// before projection through `GsWSMATRIX`. The caller supplies GTE projection
+/// settings and a complete, word-aligned `spriteScratch` block. FLAG is not
+/// tested. `glowWork->angle` selects cell/CLUT 0..2, `scale` is the size scale
+/// (1..4095), and `period` is resting grey (48, 64 or 80); odd animation frames
+/// add 16. Screen half-extent is scale * 39 / (SZ3 / 4), in integer pixels.
+///
+/// Reserves one `POLY_FT4` even when depth is below `ACROPOLIS_PATIO_JET_MIN_DEPTH`.
+/// Accepted depths wrap into the current 1024-tag ordering table. The arena and
+/// sprite texture/CLUT must remain live until GPU completion; inputs and scratch
+/// are borrowed only for this call. Changes GTE state and uses the texture page's
+/// additive blend mode without allocating a separate draw-mode command.
+static inline void _acropolisPatioDrawLightGlow(const GfxCoord* composedCoord, const EffectWork* glowWork, RoomGlowSpriteScratch* spriteScratch)
+{
+    enum {
+        ACROPOLIS_PATIO_LIGHT_GLOW_CLUT_STRIDE             = 16,
+        ACROPOLIS_PATIO_LIGHT_GLOW_FRAME_PARITY_MASK       = 1,
+        ACROPOLIS_PATIO_LIGHT_GLOW_DEPTH_TO_OT_BYTES_SHIFT = 2
+    };
+
+    POLY_FT4* glowQuad;
     u8        greyLevel;
-    s16       screenEdge;
 
     // Project the narrowed cached view translation into the sprite's centre.
-    block->worldPos.vx = coord->workm.t[0];
-    block->worldPos.vy = coord->workm.t[1];
-    block->worldPos.vz = coord->workm.t[2];
+    spriteScratch->worldPos.vx = composedCoord->workm.t[0];
+    spriteScratch->worldPos.vy = composedCoord->workm.t[1];
+    spriteScratch->worldPos.vz = composedCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPos);
+    gte_ldv0(&spriteScratch->worldPos);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->screenPos);
-    gte_stszotz(&block->otz);
-    if (block->otz >= ACROPOLIS_PATIO_JET_MIN_DEPTH) {
-        greyLevel   = work->period + (((u8)gDisplayState.animFrame & 1) << ACROPOLIS_PATIO_JET_FLICKER_SHIFT);
-        prim->tpage = ACROPOLIS_PATIO_JET_TEXTURE_PAGE;
-        prim->r0    = greyLevel;
-        prim->g0    = greyLevel;
-        prim->b0    = greyLevel;
-        setSemiTrans(prim, 1);
-        setClut(prim, work->angle * 16, ACROPOLIS_PATIO_JET_CLUT_Y);
-        prim->u0 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE;
-        prim->v0 = 0;
-        prim->u1 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE + (ACROPOLIS_PATIO_JET_CELL_SIZE - 1);
-        prim->v1 = 0;
-        prim->u2 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE;
-        prim->v2 = ACROPOLIS_PATIO_JET_CELL_SIZE - 1;
-        prim->u3 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE + (ACROPOLIS_PATIO_JET_CELL_SIZE - 1);
-        prim->v3 = ACROPOLIS_PATIO_JET_CELL_SIZE - 1;
+    // Consume a packet even when the depth test will reject the projection.
+    glowQuad       = gGpuPrimCursor;
+    gGpuPrimCursor = glowQuad + 1;
+    setPolyFT4(glowQuad);
+    gte_stsxy(&spriteScratch->screenPos);
+    gte_stszotz(&spriteScratch->otz);
+    if (spriteScratch->otz >= ACROPOLIS_PATIO_JET_MIN_DEPTH) {
+        greyLevel       = glowWork->period + (((u8)gDisplayState.animFrame & ACROPOLIS_PATIO_LIGHT_GLOW_FRAME_PARITY_MASK) << ACROPOLIS_PATIO_JET_FLICKER_SHIFT);
+        glowQuad->tpage = ACROPOLIS_PATIO_JET_TEXTURE_PAGE;
+        setRGB0(glowQuad, greyLevel, greyLevel, greyLevel);
+        setSemiTrans(glowQuad, true);
+        setClut(glowQuad, glowWork->angle * ACROPOLIS_PATIO_LIGHT_GLOW_CLUT_STRIDE, ACROPOLIS_PATIO_JET_CLUT_Y);
+        // Texture endpoints include the final texel of the fixed 40-by-40 cell.
+        setUVWH(glowQuad, glowWork->angle * ACROPOLIS_PATIO_JET_CELL_SIZE, 0,
+                ACROPOLIS_PATIO_JET_CELL_SIZE - 1, ACROPOLIS_PATIO_JET_CELL_SIZE - 1);
 
-        block->halfExtent = (work->scale * (ACROPOLIS_PATIO_JET_CELL_SIZE - 1)) / block->otz;
-        screenEdge        = block->screenPos.vx - block->halfExtent;
-        prim->x2          = screenEdge;
-        prim->x0          = screenEdge;
-        screenEdge        = block->screenPos.vx + block->halfExtent;
-        prim->x3          = screenEdge;
-        prim->x1          = screenEdge;
-        screenEdge        = block->screenPos.vy - block->halfExtent;
-        prim->y1          = screenEdge;
-        prim->y0          = screenEdge;
-        screenEdge        = block->screenPos.vy + block->halfExtent;
-        prim->y3          = screenEdge;
-        prim->y2          = screenEdge;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        spriteScratch->halfExtent = (glowWork->scale * (ACROPOLIS_PATIO_JET_CELL_SIZE - 1)) / spriteScratch->otz;
+        _acropolisPatioSetLightGlowBounds(glowQuad, spriteScratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                    (((u32)spriteScratch->otz << gDisplayState.otDepthShift) >> ACROPOLIS_PATIO_LIGHT_GLOW_DEPTH_TO_OT_BYTES_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK),
+                glowQuad);
     }
 }
 
@@ -2251,7 +2265,7 @@ void acropolisPatioFountainJetTask(Task* task)
             work->period          = levels[work->angle];
             task->state           = task->state + 1;
         }
-        _acropolisPatioDrawFountainJetSprite(coord, work, block);
+        _acropolisPatioDrawLightGlow(coord, work, block);
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
 }
@@ -2263,39 +2277,54 @@ void acropolisPatioFountainJetTask(Task* task)
 /// function.
 static const u8 D_acropolis_patio_8017D5EB = 0xF2;
 
-/// Projects and queues one fountain mist tile.
+/// Projects a cached light-mote position into a random-grey, average-blended pixel.
 ///
-/// Borrows the caller's reserved scratch block and consumes frame-arena packets.
-static inline void _acropolisPatioDrawFountainMistPoint(const GfxCoord* coord, EffectPointTileScratch* tileScratch)
+/// Reads only `cachedCoord->workm.t`, in signed game units narrowed to s16.
+/// This cache is the snapshot composed before the caller moved the local node;
+/// a dirty composition stamp does not invalidate that snapshot for this draw.
+/// Requires configured GTE projection settings, `GsWSMATRIX`, and a complete,
+/// word-aligned `tileScratch` block. FLAG is not tested; depth is SZ3 / 4.
+///
+/// The word-aligned arena needs one `TILE_1` even on depth rejection and one
+/// additional `DR_TPAGE` at `EFFECT_POINT_TILE_MIN_DEPTH` or further. Only an
+/// accepted depth advances the shared LCG, selecting grey 0..191. Queues the
+/// blend command before the pixel in the current 1024-tag ordering table and
+/// leaves average draw mode active. Packet storage lives until GPU completion;
+/// neither input nor scratch is retained. Changes GTE state.
+static inline void _acropolisPatioDrawLightMote(const GfxCoord* cachedCoord, EffectPointTileScratch* tileScratch)
 {
-    enum { ACROPOLIS_PATIO_MIST_GREY_LEVELS = 192 };
+    enum {
+        ACROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS             = 192,
+        ACROPOLIS_PATIO_LIGHT_MOTE_DEPTH_TO_OT_BYTES_SHIFT = 2
+    };
 
-    TILE_1* prim;
+    TILE_1* moteTile;
     u32     greyLevel;
 
     // Draw the pre-movement view cache; the dirty stamp defers recomposition.
-    tileScratch->viewPoint.vx = coord->workm.t[0];
-    tileScratch->viewPoint.vy = coord->workm.t[1];
-    tileScratch->viewPoint.vz = coord->workm.t[2];
+    tileScratch->viewPoint.vx = cachedCoord->workm.t[0];
+    tileScratch->viewPoint.vy = cachedCoord->workm.t[1];
+    tileScratch->viewPoint.vz = cachedCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&tileScratch->viewPoint);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setTile1(prim);
-    gte_stsxy(&prim->x0);
+    // Reserve the tile before rejecting depth, without consuming random state.
+    moteTile       = gGpuPrimCursor;
+    gGpuPrimCursor = moteTile + 1;
+    setTile1(moteTile);
+    gte_stsxy(&moteTile->x0);
     gte_stszotz(&tileScratch->depth);
     if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         greyLevel       = gRandomLcgState >> 16;
-        greyLevel      %= ACROPOLIS_PATIO_MIST_GREY_LEVELS;
-        prim->r0        = greyLevel;
-        prim->g0        = greyLevel;
-        prim->b0        = greyLevel;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, tileScratch->depth);
+        greyLevel      %= ACROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS;
+        setRGB0(moteTile, greyLevel, greyLevel, greyLevel);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                    (((u32)tileScratch->depth << gDisplayState.otDepthShift) >> ACROPOLIS_PATIO_LIGHT_MOTE_DEPTH_TO_OT_BYTES_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK),
+                moteTile);
+        // Prepending at the same depth makes the GPU set blending before the tile.
+        gpuSetPrimitiveBlendMode(moteTile, GPU_BLEND_AVERAGE, tileScratch->depth);
     }
 }
 
@@ -2380,7 +2409,7 @@ void acropolisPatioFountainMistTask(Task* task)
         coord->coord.t[1]  += work->move.vy;
         coord->coord.t[2]  += work->move.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        _acropolisPatioDrawFountainMistPoint(coord, tileScratch);
+        _acropolisPatioDrawLightMote(coord, tileScratch);
         SCRATCH_STACK_RELEASE_BLOCK(EffectPointTileScratch);
     }
 }
