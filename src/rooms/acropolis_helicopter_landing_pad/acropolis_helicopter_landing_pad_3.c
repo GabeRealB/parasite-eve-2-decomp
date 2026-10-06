@@ -615,15 +615,13 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
     GameLoc     key;
     s16         slot;
     CdCmdQueue* queue;
-    Task*       task;
 
-    task  = arg0;
     queue = &gCdCmdQueue;
-    switch (task->state) {
+    switch (arg0->state) {
         case 0:
             SetDispMask(0);
             Mem_AllocAuxWithImages(1);
-            task->state++;
+            arg0->state++;
             break;
         case 1:
             key          = gGameSession->location;
@@ -631,32 +629,32 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
             slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state++;
+            arg0->state++;
             break;
         case 2:
             if (queue->movieReady != 0) {
                 SetDispMask(1);
-                task->state++;
+                arg0->state++;
                 break;
             }
             break;
         case 3:
             if (CdCmd_IsIdle() & 0xFFFF) {
                 SetDispMask(0);
-                task->state++;
+                arg0->state++;
                 break;
             }
             if (Pad_CheckFlag800() != 0) {
                 SetDispMask(0);
                 CdCmd_ActivatePhase1();
-                task->state++;
+                arg0->state++;
                 break;
             }
             break;
         case 4:
             if (CdCmd_IsIdle() & 0xFFFF) {
                 Stream_ResetRestoreState();
-                task->state++;
+                arg0->state++;
                 break;
             }
             break;
@@ -664,7 +662,7 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
             if (Stream_RestoreAfterLoad(0, 0) & 0xFFFF) {
                 memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
                 SetDispMask(1);
-                taskKill(task);
+                taskKill(arg0);
                 displayResumeGameLoop();
             }
             break;
