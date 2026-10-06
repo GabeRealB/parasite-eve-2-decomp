@@ -2618,26 +2618,36 @@ u32* actor403600DrawStreamGt3PreXformBottomFade(TmdStreamWorkspace* workspace, s
     return elements;
 }
 
-/// Tests a quad's second triangle once the first has failed the facing test.
+/// Tests whether a quad's second triangle faces the viewer.
 ///
-/// The GTE screen FIFO must hold corners 1, 2 and 3. Stores their NCLIP result
-/// through `gteResult`, which must address `workspace->gteResult`, and returns
-/// nonzero when it is negative.
-static inline s32 _actor403600SecondHalfFacesViewer(const TmdStreamWorkspace* workspace, s32* gteResult)
+/// The caller must leave projected corners 1, 2 and 3 in the GTE screen FIFO,
+/// in that order. `signedAreaDestination` must be the cached address of the
+/// writable `workspace->gteResult` word. Stores the signed screen-space area
+/// there and returns 1 for a negative area, 0 otherwise. The corner order
+/// reverses the second triangle's winding relative to the first triangle's
+/// positive NCLIP(0,1,2) test. A zero area is rejected. The caller uses this
+/// fallback only when the first triangle's area is nonpositive.
+static inline s32 _actor403600SecondHalfFacesViewer(TmdStreamWorkspace* workspace, s32* signedAreaDestination)
 {
     gte_nclip();
-    gte_stopz(gteResult);
+    gte_stopz(signedAreaDestination);
     return workspace->gteResult < 0;
 }
 
-/// As `_actor403600SecondHalfFacesViewer`, for a packet whose corners are
-/// already projected: pushes corner 3 onto the screen FIFO first.
-static inline s32 _actor403600PreXformSecondHalfFacesViewer(const POLY_GT4* packet, const TmdStreamWorkspace* workspace, s32* gteResult)
+/// Tests a pre-transformed quad's second triangle for facing the viewer.
+///
+/// The GTE screen FIFO must hold this packet's projected corners 0, 1 and 2,
+/// in that order. Pushes its packed signed pixel coordinates for corner 3,
+/// leaving corners 1, 2 and 3 for `_actor403600SecondHalfFacesViewer`.
+/// `packet` must provide a readable, word-aligned POLY_GT4; it is not changed.
+/// `signedAreaDestination` must be the cached address of the writable
+/// `workspace->gteResult` word. Returns 1 when the stored signed area is
+/// negative, 0 otherwise, including a degenerate triangle. Call only after
+/// the first triangle's NCLIP(0,1,2) result is nonpositive.
+static inline s32 _actor403600PreXformSecondHalfFacesViewer(const POLY_GT4* packet, TmdStreamWorkspace* workspace, s32* signedAreaDestination)
 {
-    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 3));
-    gte_nclip();
-    gte_stopz(gteResult);
-    return workspace->gteResult < 0;
+    gte_ldSXYP(*(const u32*)&packet->x3);
+    return _actor403600SecondHalfFacesViewer(workspace, signedAreaDestination);
 }
 
 u32* actor403600DrawStreamGt4BottomFade(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
