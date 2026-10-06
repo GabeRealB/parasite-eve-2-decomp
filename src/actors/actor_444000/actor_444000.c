@@ -6130,7 +6130,6 @@ static void func_actor_444000_80141618(Task* task)
     Enemy*                escort;
     PlayerStatus*         cfg;
     GfxCoord*             coord;
-    GfxCoord*             facing;
     TmdObject*            model;
     AreaPlacement*        entry;
     GameLocationKey       key;
@@ -6141,7 +6140,6 @@ static void func_actor_444000_80141618(Task* task)
     s32                   blastPan;
     s32                   rnd;
     s32                   state;
-    s16                   angle;
     u32                   frame;
 
     sc   = SCRATCH_STACK_RESERVE_BLOCK(GluttonSummonScratch);
@@ -6203,10 +6201,7 @@ static void func_actor_444000_80141618(Task* task)
     sc->toPlayer.vx     = cfg->coordMtx->t[0] - coord->coord.t[0];
     sc->toPlayer.vy     = cfg->coordMtx->t[1] - coord->coord.t[1];
     sc->toPlayer.vz     = cfg->coordMtx->t[2] - coord->coord.t[2];
-    facing              = task->extra.tmd->coords;
-    angle               = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
-    work->neckYawTarget = angle;
+    work->neckYawTarget = actorYawTo(task->extra.tmd->coords, sc->toPlayer.vx, sc->toPlayer.vz);
     if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0x13) {
         work->animId   = 1;
         work->animStep = GLUTTON_ANIM_STEP_BLEND;
