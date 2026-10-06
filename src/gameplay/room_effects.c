@@ -895,7 +895,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r49_8017D9D0, { NULL } },                                   // 0x162
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017DF6C, { NULL } },                     // 0x163
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockDrawLightsTask, { NULL } },                     // 0x164
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017E2A4, { NULL } },                            // 0x165
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkDrawGlowsTask, { NULL } },                               // 0x165
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_heliport_80180B4C, { NULL } },                           // 0x166
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_guardroom_8017DA28, { NULL } },                          // 0x167
     { { { TASK_BODY_COORD, 0x70 } }, neoArkR26EffectNoopTask, { NULL } },                                     // 0x168
@@ -988,8 +988,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteRiseTask, { NULL } },                      // 0x1BF
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomLightBeamTask, { NULL } },                             // 0x1C0
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathLeafFallTask, { NULL } },                              // 0x1C1
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017E38C, { NULL } },                            // 0x1C2
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017EDF0, { NULL } },                            // 0x1C3
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkRoomVisualEffectsFlashTask, { NULL } },                  // 0x1C2
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkRoomVisualEffectsTwinTrailTask, { NULL } },              // 0x1C3
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017F6D8, { NULL } },                            // 0x1C4
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPyramidConfigureEffectsTask, { NULL } },                           // 0x1C5
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryEffectSpriteRiseTask, { NULL } },               // 0x1C6

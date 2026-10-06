@@ -79,7 +79,7 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
-static void func_shelter_1f_bulwark_8017DC18(Task* task);
+static void _shelter1fBulwarkIdle(Task* task);
 
 extern WorldCollisionGrid     D_shelter_1f_bulwark_80180648[1];
 extern WorldCollisionOccluder D_shelter_1f_bulwark_80180E08[2];
@@ -87,21 +87,24 @@ extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180A8C[2];
 extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180B24[8];
 extern WorldCoordRoomLights   D_shelter_1f_bulwark_80180A74[1];
 
-s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, s32, s32);
-s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, s32, s32);
-s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, s32, s32);
-void func_shelter_1f_bulwark_8017DA60(Task*);
-void func_shelter_1f_bulwark_8017DC78(Task*);
-void func_shelter_1f_bulwark_8017DE04(Task*);
+s32        func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelter1fBulwarkRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32 _shelter1fBulwarkIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 mode);
+static s32 _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused);
+void       func_shelter_1f_bulwark_8017DA60(Task*);
+void       func_shelter_1f_bulwark_8017DC78(Task*);
+void       func_shelter_1f_bulwark_8017DE04(Task*);
 
 TaskDesc D_shelter_1f_bulwark_80180320 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
+/// Room message sent by the inventory's key-item use prompt.
+enum { SHELTER_1F_BULWARK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
 TaskMessageEntry D_shelter_1f_bulwark_8018032C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_bulwark_8017D7B4 },
-    { 5105, func_shelter_1f_bulwark_8017DBBC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_bulwark_8017DBCC },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_bulwark_8017DBC4 },
+    { SHELTER_1F_BULWARK_MESSAGE_USE_KEY_ITEM, _shelter1fBulwarkRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fBulwarkIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelter1fBulwarkIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -366,7 +369,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
 static const TaskFuncTable3 D_shelter_1f_bulwark_8017D5D8 = {
     {
         func_shelter_1f_bulwark_8017DBD4,
-        func_shelter_1f_bulwark_8017DC18,
+        _shelter1fBulwarkIdle,
         taskKill,
     },
 };
@@ -417,17 +420,26 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
     }
 }
 
-s32 func_shelter_1f_bulwark_8017DBBC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects every key-item use request in the Bulwark.
+///
+/// Returns zero so the inventory reports that the selected item cannot be used
+/// here. Neither payload is consumed and no room state changes.
+static s32 _shelter1fBulwarkRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores CAP room commands and returns zero without changing room state.
+static s32 _shelter1fBulwarkIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 mode)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room action requests and returns zero without changing room state.
+///
+/// The request is borrowed for synchronous dispatch and is neither read nor
+/// retained; the second payload word is unused.
+static s32 _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused)
 {
     return 0;
 }
@@ -441,7 +453,8 @@ static void func_shelter_1f_bulwark_8017DBD4(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-static void func_shelter_1f_bulwark_8017DC18(Task* task)
+/// Keeps the room controller idle while its message handlers remain installed.
+static void _shelter1fBulwarkIdle(Task* task)
 {
 }
 
@@ -542,29 +555,40 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
 
 #include "../../shared/glow_draw_factor_disc.inc.c"
 
-void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
+void shelter1fBulwarkDrawGlowsTask(Task* task)
 {
-    u8 view;
+    enum {
+        GLOWS_INITIALIZE,
+        GLOWS_DRAW,
+        GLOW_VIEW_2_RADIUS = 0x300, // World-unit radii before perspective projection
+        GLOW_VIEW_3_RADIUS = 0x200,
+        // Packed intensity factors: red bits 8..15, green 4..5, blue 0..1.
+        GLOW_RED_GREEN_FACTORS = (2 << 8) | (1 << 4),
+        GLOW_EQUAL_RGB_FACTORS = (1 << 8) | (1 << 4) | 1,
+        GLOW_RED_FACTOR        = 2 << 8
+    };
+    u8 mappedViewIndex;
 
-    if (arg0->state == 0) {
+    // Publish this room's combat-effect entries before drawing its fixed glows.
+    if (task->state == GLOWS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_SHELTER_1F_BULWARK_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_SHELTER_1F_BULWARK_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_SHELTER_1F_BULWARK_SPARK_BURST;
-        arg0->state             = 1;
+        task->state             = GLOWS_DRAW;
     }
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2: {
-            SVECTOR* p = D_shelter_1f_bulwark_80180378;
-            _glowDrawFactorDisc(&p[0], 0x300, 0x210);
-            _glowDrawFactorDisc(&p[1], 0x300, 0x210);
-            _glowDrawFactorDisc(&p[2], 0x300, 0x111);
-            _glowDrawFactorDisc(&p[3], 0x300, 0x111);
+            const SVECTOR* glowPoints = D_shelter_1f_bulwark_80180378;
+            _glowDrawFactorDisc(&glowPoints[0], GLOW_VIEW_2_RADIUS, GLOW_RED_GREEN_FACTORS);
+            _glowDrawFactorDisc(&glowPoints[1], GLOW_VIEW_2_RADIUS, GLOW_RED_GREEN_FACTORS);
+            _glowDrawFactorDisc(&glowPoints[2], GLOW_VIEW_2_RADIUS, GLOW_EQUAL_RGB_FACTORS);
+            _glowDrawFactorDisc(&glowPoints[3], GLOW_VIEW_2_RADIUS, GLOW_EQUAL_RGB_FACTORS);
             break;
         }
         case 3:
-            _glowDrawFactorDisc(&D_shelter_1f_bulwark_80180398[0], 0x200, 0x200);
+            _glowDrawFactorDisc(&D_shelter_1f_bulwark_80180398[0], GLOW_VIEW_3_RADIUS, GLOW_RED_FACTOR);
             break;
     }
 }
@@ -573,14 +597,14 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_1f_bulwark_8017E38C(Task* arg0)
+void shelter1fBulwarkRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_1f_bulwark_8017EDF0(Task* task)
+void shelter1fBulwarkRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

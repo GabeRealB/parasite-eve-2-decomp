@@ -43,16 +43,20 @@ RoomFx_TrailOffsets = 0x801803A0; // size:0x10 defined:True
 D_shelter_1f_bulwark_80180ECC = 0x80180ECC; // size:0x4 defined:True
 gRoomEventLatched = 0x80180ED0; // size:0xC defined:True
 
-func_shelter_1f_bulwark_8017E38C = 0x8017E38C; // type:func
+shelter1fBulwarkRoomVisualEffectsFlashTask = 0x8017E38C; // type:func
 
-func_shelter_1f_bulwark_8017EDF0 = 0x8017EDF0; // type:func
+shelter1fBulwarkRoomVisualEffectsTwinTrailTask = 0x8017EDF0; // type:func
 
 func_shelter_1f_bulwark_8017F6D8 = 0x8017F6D8; // type:func
 
-func_shelter_1f_bulwark_8017E2A4 = 0x8017E2A4; // type:func
+shelter1fBulwarkDrawGlowsTask = 0x8017E2A4; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E630; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017EA5C; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017F2E0; // type:func
 _roomVisualEffectsDrawBurstStar = 0x8017F960; // type:func
 roomEventStagedTask = 0x8017D61C; // type:func
 _glowDrawFactorDisc = 0x8017DF00; // type:func
+_shelter1fBulwarkRejectKeyItem = 0x8017dbbc; // type:func
+_shelter1fBulwarkIgnoreRoomCommand = 0x8017dbc4; // type:func
+_shelter1fBulwarkIgnoreRoomAction = 0x8017dbcc; // type:func
+_shelter1fBulwarkIdle = 0x8017dc18; // type:func
