@@ -150609,3 +150609,64 @@ constant).
   beside it.** `madChaserSpawnHidden`'s `two = 2` and `kind` were both
   unnecessary once the failure path was written twice instead of as a jump
   into the second `if`.
+
+### A compare computed one block early keeps a clamp's copy below its `slt`: `Gp_EquipRelatedItem` without the barrier (2026-10-06)
+
+Corrects the `Gp_EquipRelatedItem` paragraph of "Unresolved, with the mechanism
+measured: five gameplay barriers" and the `asm volatile("" : "=r"(arg3)); arg3 = 0;`
+half of "Empty `asm volatile("")` pins `if (x <= 0) return`". The barrier is gone.
+
+Problem: the target zeroes `$s2` in the arm reached by `beqz s2`
+(`move s2,zero`), and cse1 deletes `arg3 = 0` there. The deletion is cse.c's
+"same as the destination" case: the taken `beqz` puts the register in the class
+of `const 0`, the set becomes `(set r r)` and `delete_dead_from_cse` removes
+it. So the zero is a set of a second pseudo, the result, which shares `$s2`
+with the parameter. Global alloc gives it `$s2` only by exclusion: it must
+conflict with `have` (`$s0`) and `slot` (`$s1`), have 7 refs (below `slot`'s
+9 refs / 29 insns), and leave the parameter 8 refs. That needs, at `.lreg`:
+
+```
+slt   flag, have, arg3      # reads the PARAMETER
+used = arg3                 # arg3 dies here, have still live
+beqz  flag
+used = have
+```
+
+Symptom: every clamp spelling written inside `if (arg3 != 0)` gives 8/7 the
+wrong way round (`used` in `$s1`, `slot` in `$s2`, parameter in `$s4`).
+`if (have < arg3) used = have; else used = arg3;` does leave jump.c's
+`slt; copy; branch`, but sched1 then launches the `slt` at `LAUNCH_PRIORITY`
+(`birthing_insn_p`: single-set and live) while the copy of the multi-set `used`
+stays at priority 1, so the copy rises above the `slt`, and
+`optimize_reg_copy_1` rewrites the `slt` to read `used`. `?:` folds to
+`MIN_EXPR`, whose expansion compares the target itself. The in-place clamp with
+`used = arg3` after the stores is born with `have` dead and takes `$s0`.
+
+Fix: the `slt` must not sit in the block that holds the copy. Computing the
+compare before the `arg3 != 0` test does that, the flag then crosses a block
+and is allocated globally (it still gets `$v0`), and dbr puts the `slt` in the
+`beqz s2` delay slot where the target has it:
+
+```c
+limited = have < arg3;
+if (arg3 != 0) {
+    used = limited ? have : arg3;
+    ... stores of used ...
+} else {
+    used = 0;
+}
+if (used > 0) { ... }
+return used;
+```
+
+`if (limited) used = have; else used = arg3;` and `used = arg3; if (limited)
+used = have;` compile the same. A flag local set at both clamps (multi-set, so
+not launched) also matches; hoisting it above the `have <= 0` return does not.
+
+General: when a register is right only if a compare reads the *source* of a
+copy rather than its destination, look at the block the compare is in. sched1
+orders a block's leftovers, it cannot move anything across a branch, so a
+value computed before the preceding test is the one thing it leaves alone.
+The earlier attempts all kept the compare inside the `if` because the existing
+body had it there; the m2c seed has it there too, so this came from the
+allocation measurement (`.greg` order, refs / live length), not from the seed.
