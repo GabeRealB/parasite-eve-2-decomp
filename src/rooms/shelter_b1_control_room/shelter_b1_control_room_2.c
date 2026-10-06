@@ -79,6 +79,18 @@ SVECTOR D_shelter_b1_control_room_80181BD4[18] = {
     { 5180, -850, -2530, 0 },
 };
 
+/// Glow radii use scale * 64 / camera depth (camera Z / 4) in pixels.
+///
+/// Colours pack red, green and blue nibbles, each scaled by 16 before flicker.
+enum {
+    SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE     = 0x100,
+    SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES      = 0x243,
+    SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RADIUS_SCALE = 0x180,
+    SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RGB_NIBBLES  = 0x421,
+    SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE   = 0x200,
+    SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES    = 0x023,
+};
+
 #include "../../shared/streamed_scene_play_then_hold.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
@@ -91,51 +103,57 @@ void func_shelter_b1_control_room_8017F100(Task* arg0)
     taskKill(arg0);
 }
 
-void func_shelter_b1_control_room_8017F150(Task* task)
+/// Draws the six capsule glows and orange disc shared by mapped views 2 and 3.
+static inline void _shelterB1ControlRoomDrawCapsuleGlows(void)
 {
-    u8 view;
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    glowDrawDisc(&D_shelter_b1_control_room_80181BD4[12], SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RGB_NIBBLES);
+}
 
-    if (task->state == 0) {
+void shelterB1ControlRoomDrawGlowsTask(Task* task)
+{
+    enum {
+        SHELTER_B1_CONTROL_ROOM_GLOW_INITIALIZE = 0,
+        SHELTER_B1_CONTROL_ROOM_GLOW_READY      = 1,
+    };
+    u8 mappedViewIndex;
+
+    // Install the room's actor effects once, including when this view has no glows.
+    if (task->state == SHELTER_B1_CONTROL_ROOM_GLOW_INITIALIZE) {
         gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_CONTROL_ROOM_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_CONTROL_ROOM_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_CONTROL_ROOM_ORANGE_BURST_2;
-        task->state               = 1;
+        task->state               = SHELTER_B1_CONTROL_ROOM_GLOW_READY;
     }
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    // Select fixed world points using the current 1-based mapped camera index.
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
-            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[12], 0x180, 0x421);
+            _shelterB1ControlRoomDrawCapsuleGlows();
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], 0x100, 0x243);
-            _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], 0x100, 0x243);
-            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[12], 0x180, 0x421);
-            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[14], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[15], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[16], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[17], 0x200, 0x23);
+            _shelterB1ControlRoomDrawCapsuleGlows();
+            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[14], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[15], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[16], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181BD4[17], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
             break;
         case 4:
-            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[0], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[1], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[2], 0x200, 0x23);
+            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[0], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[1], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[2], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
             break;
         case 6:
-            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[0], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[1], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[2], 0x200, 0x23);
-            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[3], 0x200, 0x23);
+            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[0], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[1], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[2], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
+            glowDrawDisc(&D_shelter_b1_control_room_80181C3C[3], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
             break;
     }
 }

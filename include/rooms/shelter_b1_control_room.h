@@ -46,7 +46,16 @@ extern WorldCollisionSurfaceProperties* D_shelter_b1_control_room_80183BC0[];
 
 void func_shelter_b1_control_room_8017EECC(Task* task);
 
-void func_shelter_b1_control_room_8017F150(Task* task);
+/// Draws the control room's fixed glows for the current mapped camera view.
+///
+/// On state 0, installs this room's glow-disc, flying-spark and orange-burst
+/// effect IDs, sets state 1 and draws in the same tick. Mapped views 2 and 3
+/// draw six capsules and an orange disc; view 3 adds four blue discs. Views 4
+/// and 6 draw three and four blue discs respectively; other views draw none.
+/// Requires the room overlay and view mapping to remain loaded, the current
+/// view matrix composed, and the frame's scratch stack and GPU arena ready.
+/// Uses only `task->state`; keeps running until its owner removes the task.
+void shelterB1ControlRoomDrawGlowsTask(Task* task);
 
 void func_shelter_b1_control_room_8017FF80(Task* arg0);
 

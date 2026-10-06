@@ -843,7 +843,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017DDF0, { NULL } },                      // 0x12E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sterilization_room_8018188C, { NULL } },                 // 0x12F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_access_tunnel_8017E7D4, { NULL } },                  // 0x130
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_8017F150, { NULL } },                       // 0x131
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomDrawGlowsTask, { NULL } },                           // 0x131
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1AccessTunnelDrawGlowsTask, { NULL } },                          // 0x132
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_underground_parking_80184A18, { NULL } },                // 0x133
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_golem_freezer_1_8017DA7C, { NULL } },                    // 0x134

@@ -55,7 +55,7 @@ D_actor_150400_8013C8F4 = 0x8013C8F4; // absolute:True owner=actor_150400
 D_actor_202400_8014E47C = 0x8014E47C; // absolute:True owner=actor_202400
 D_shelter_b1_control_room_80183BE0 = 0x80183BE0; // size:0x8 defined:True
 
-func_shelter_b1_control_room_8017F150 = 0x8017F150; // type:func
+shelterB1ControlRoomDrawGlowsTask = 0x8017F150; // type:func
 
 func_shelter_b1_control_room_8017FF80 = 0x8017FF80; // type:func
 
