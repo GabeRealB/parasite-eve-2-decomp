@@ -30,7 +30,11 @@ extern SpriteView D_dryfield_motel_room_2_8017FCD0[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_2_801804B0[];
 
-void func_dryfield_motel_room_2_8017D6B4(Task* unused);
+/// Inert room-effect callback for bank 6, slot 0xCA, selected for daytime Motel Room 2.
+///
+/// Ignores the task without drawing, advancing state or releasing resources.
+/// Keep the Dryfield Motel Room 2 overlay loaded while this callback is scheduled.
+void dryfieldMotelRoom2EffectNoopTaskCA(Task* unusedTask);
 
 void func_dryfield_motel_room_2_8017D65C(Task* task);
 

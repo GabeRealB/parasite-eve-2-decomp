@@ -1777,7 +1777,7 @@ func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func absolute:True ow
 
 dryfieldMotelRoom1NoOpEffectTask = 0x8017E0A0; // type:func absolute:True owner=dryfield_motel_room_1
 
-func_dryfield_motel_room_2_8017D6B4 = 0x8017D6B4; // type:func absolute:True owner=dryfield_motel_room_2
+dryfieldMotelRoom2EffectNoopTaskCA = 0x8017D6B4; // type:func absolute:True owner=dryfield_motel_room_2
 
 func_dryfield_parking_lot_8017DBAC = 0x8017DBAC; // type:func absolute:True owner=dryfield_parking_lot shared=rooms
 

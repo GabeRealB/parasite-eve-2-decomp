@@ -26,10 +26,12 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_motel_room_2_8017D6BC[];
 
-s32 func_dryfield_motel_room_2_8017D5D0(Task*, s32, s32, s32);
-s32 func_dryfield_motel_room_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_motel_room_2_8017D600(Task*, s32, s32, s32);
-s32 func_dryfield_motel_room_2_8017D608(Task*, s32, s32, s32);
+enum { DRYFIELD_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32 _dryfieldMotelRoom2RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldMotelRoom2ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _dryfieldMotelRoom2IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
+static s32 _dryfieldMotelRoom2IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 extern WorldCollisionGrid     D_dryfield_motel_room_2_8017DE0C[1];
 extern WorldCollisionOccluder D_dryfield_motel_room_2_80180140[2];
@@ -39,10 +41,10 @@ extern WorldCollisionTrigger  D_dryfield_motel_room_2_8017FF78[6];
 extern WorldCoordRoomLights D_dryfield_motel_room_2_80180398[1];
 
 TaskMessageEntry D_dryfield_motel_room_2_8017D6BC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_2_8017D5D8 },
-    { 5105, func_dryfield_motel_room_2_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_2_8017D608 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_room_2_8017D600 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom2ResolveRoomEvent },
+    { DRYFIELD_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom2RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom2IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldMotelRoom2IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -749,32 +751,51 @@ WorldCollisionSurfaceProperties* D_dryfield_motel_room_2_801804B0[8] = {
 };
 
 static void func_dryfield_motel_room_2_8017D610(Task* task);
-static void func_dryfield_motel_room_2_8017D654(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_motel_room_2_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in Dryfield Motel Room 2.
+///
+/// Returns 0 so the inventory shows its "No use now" notice. The item ID and
+/// the other arguments are ignored; no item is consumed or room event started.
+static s32 _dryfieldMotelRoom2RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_MOTEL_ROOM_2_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_MOTEL_ROOM_2_KEY_ITEM_REFUSED;
 }
 
-/// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply unchanged and returns 1.
-s32 func_dryfield_motel_room_2_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+/// Allows a room transition with the requested destination unchanged.
+///
+/// Copies the complete eight-byte record and returns 1 for both query and
+/// execution requests. `request` and `reply` must be live, non-null records
+/// during synchronous dispatch; they may be the same object. The reply must
+/// be writable. No payload is retained and no transition side effects occur.
+static s32 _dryfieldMotelRoom2ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    return 1;
+    enum { DRYFIELD_MOTEL_ROOM_2_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_MOTEL_ROOM_2_TRANSITION_ALLOWED;
 }
 
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_motel_room_2_8017D600(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands without starting an action.
+///
+/// Both command words are ignored and the message result is always 0.
+static s32 _dryfieldMotelRoom2IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument)
 {
-    return 0;
+    enum { DRYFIELD_MOTEL_ROOM_2_COMMAND_IGNORED = 0 };
+
+    return DRYFIELD_MOTEL_ROOM_2_COMMAND_IGNORED;
 }
 
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_motel_room_2_8017D608(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room actions selected by direction triggers.
+///
+/// The borrowed request is neither read nor retained. The sender passes zero
+/// as the second payload word and ignores the result, which is always 0.
+static s32 _dryfieldMotelRoom2IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_MOTEL_ROOM_2_ACTION_IGNORED = 0 };
+
+    return DRYFIELD_MOTEL_ROOM_2_ACTION_IGNORED;
 }
 
 /// First state of the room task: publishes the room's message table, claims
@@ -786,14 +807,17 @@ static void func_dryfield_motel_room_2_8017D610(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Second state of the room task: the room has nothing to do each frame.
-static void func_dryfield_motel_room_2_8017D654(Task* task)
+/// Keeps the initialized room task idle between messages.
+///
+/// Leaves its state, message table and resources intact so synchronous room
+/// messages remain available. Task teardown is handled by the separate kill state.
+static void _dryfieldMotelRoom2IdleRoomTask(Task* unusedTask)
 {
 }
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_motel_room_2_8017D5C4 = {
-    { func_dryfield_motel_room_2_8017D610, func_dryfield_motel_room_2_8017D654, taskKill },
+    { func_dryfield_motel_room_2_8017D610, _dryfieldMotelRoom2IdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
@@ -806,7 +830,6 @@ void func_dryfield_motel_room_2_8017D65C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// An empty function nothing in the package refers to.
-void func_dryfield_motel_room_2_8017D6B4(Task* unused)
+void dryfieldMotelRoom2EffectNoopTaskCA(Task* unusedTask)
 {
 }

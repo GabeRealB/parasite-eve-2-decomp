@@ -50,4 +50,9 @@ D_map_dryfield_8017B0B4 = 0x8017B0B4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B0E4 = 0x8017B0E4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B154 = 0x8017B154; // absolute:True owner=map_dryfield
 
-func_dryfield_motel_room_2_8017D6B4 = 0x8017D6B4; // type:func
+dryfieldMotelRoom2EffectNoopTaskCA = 0x8017D6B4; // type:func
+_dryfieldMotelRoom2RejectKeyItemUse = 0x8017d5d0; // type:func
+_dryfieldMotelRoom2ResolveRoomEvent = 0x8017d5d8; // type:func
+_dryfieldMotelRoom2IgnoreRoomCommand = 0x8017d600; // type:func
+_dryfieldMotelRoom2IgnoreRoomAction = 0x8017d608; // type:func
+_dryfieldMotelRoom2IdleRoomTask = 0x8017d654; // type:func
