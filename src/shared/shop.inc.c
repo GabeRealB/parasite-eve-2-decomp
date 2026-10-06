@@ -1277,7 +1277,7 @@ static void Shop_SessionTask(Task* task)
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();
-            Stage_SetEndingFlag();
+            stageRequestModeTaskExit();
         }
     }
 }

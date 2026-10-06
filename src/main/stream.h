@@ -1,11 +1,22 @@
 #ifndef MAIN_PRIVATE_STREAM_H
 #define MAIN_PRIVATE_STREAM_H
 
+#include <psyq/sys/types.h>
+
 #include "types.h"
 
 extern u16 D_8006AC58;
 
-void Mdec_BeginDecode(void* arg0);
+/// Schedules a standalone background bitstream for asynchronous image decoding.
+///
+/// `bitstream` starts a word-aligned PSX BS command stream and remains readable
+/// until VLC expansion. The filesystem borrows the resident image workspace
+/// for this input; decoded strips subsequently overwrite it. Requires standalone
+/// image loading (no available scene payload), a valid VLC table or its pending
+/// rebuild, and auxiliary storage large enough for the complete expanded stream.
+/// The request replaces decoder bookkeeping without allocating or cancelling
+/// an existing decode, so the previous operation must have ended.
+void mdecRequestImageDecode(u_long* bitstream);
 
 /// Requests a rebuild of the VLC lookup table in the shared image workspace.
 ///

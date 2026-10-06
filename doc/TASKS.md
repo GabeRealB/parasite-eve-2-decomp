@@ -347,7 +347,7 @@ The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` 
 
 | Type | Callback | Notes |
 |------|----------|-------|
-| `07` | `func_800E70AC` | **Caption / dialogue.** `Gp_CapTask = Task_Spawn(2, 7, …)` or `Display_InitModeObj(Task_GetDesc(2, 7), …)` |
+| `07` | `func_800E70AC` | **Caption / dialogue.** `Gp_CapTask = Task_Spawn(2, 7, …)` or `displayQueueModeTask(Task_GetDesc(2, 7), …)` |
 | `0B` | `padScriptBinaryMotorHoldTask` | `Gp_SpawnPadHold` — port 0 binary-motor vibration, remaining script frames in `spawnArg1.value` |
 | `0C` | `padScriptVariableMotorRampTask` | `Gp_SpawnPadLerp` — port 0 variable-motor Q8 intensity ramp, owned work block in `work` |
 | `0D` | `Gp_Script18Task` | Script-18 dispatcher |
@@ -412,7 +412,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 |-------|-----------------|
 | `Title_TaskDescs[0]` | `Title_BootTask` |
 | `Title_TaskDescs[1]` | `Title_DemoStreamTask` (`Display_SpawnWithOt`) |
-| `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`Stage_WaitCdActivate` … `Stage_FinishCdFollowUp`) |
+| `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`Stage_WaitCdActivate` … `_stageResumeMovieAndFinishModeTask`) |
 | `D_80062774[0]` | `Stage_DispatchTaskTable` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
 | `Stage_Ctx->taskDesc` | Per-stage desc table; `Display_SpawnFromMode` spawns index 0 |
@@ -421,7 +421,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 
 `Task_GetDesc(bank, type)` is the typed way to hand a bank entry to
-`Display_InitModeObj` without spawning onto the current list.
+`displayQueueModeTask` without spawning onto the current list.
 
 ---
 

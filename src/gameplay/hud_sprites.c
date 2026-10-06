@@ -985,7 +985,7 @@ void Gp_TriggerPeIfArmed(void)
             Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
             Gp_PulseState1C80();
             gDisplayState.suppressDisconnectPause = 0;
-            Display_InitModeObj(&D_8010CABC, 1, 0, 0x102);
+            displayQueueModeTask(&D_8010CABC, 1, 0, STAGE_ENTRY_RELOAD_FORCED);
         }
     }
 }

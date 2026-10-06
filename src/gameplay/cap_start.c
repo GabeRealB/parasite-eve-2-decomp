@@ -97,7 +97,7 @@ s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2)
     D_80115660 = 0;
     if (arg1 != 0) {
         desc       = Task_GetDesc(2, 7);
-        Gp_CapTask = Display_InitModeObj(desc, 0, 0, 0);
+        Gp_CapTask = displayQueueModeTask(desc, 0, 0, STAGE_ENTRY_RELOAD);
         if (D_80115666 != 3) {
             return 0;
         }

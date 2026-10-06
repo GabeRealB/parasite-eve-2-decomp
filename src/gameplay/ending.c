@@ -221,7 +221,7 @@ void Gp_EndingTask(Task* arg0)
     if (arg0->killCountdown <= 0) {
         if (gStageMusicLoadState == 0xFF) {
             taskKill(arg0);
-            Stage_SetEndingFlag();
+            stageRequestModeTaskExit();
         }
     }
 }

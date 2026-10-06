@@ -156,7 +156,7 @@ void func_mist_parking_80183634(s32 arg0)
 
 void func_mist_parking_80183688(s32 arg0)
 {
-    Display_InitModeObj(taskGetDescAt(D_mist_parking_8018D75C, 5U), arg0, 0, 0);
+    displayQueueModeTask(taskGetDescAt(D_mist_parking_8018D75C, 5U), arg0, 0, STAGE_ENTRY_RELOAD);
 }
 
 void func_mist_parking_801836CC(Task* arg0)
@@ -167,7 +167,7 @@ void func_mist_parking_801836CC(Task* arg0)
     arg0->spawnArg1.value = temp_v0;
     if (temp_v0 < 0) {
         taskKill(arg0);
-        Stage_SetEndingFlag();
+        stageRequestModeTaskExit();
     }
 }
 

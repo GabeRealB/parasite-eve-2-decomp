@@ -415,10 +415,10 @@ void Gp_MenuRootTask(Task* arg0)
             return;
         }
         case 0xA:
-            if (Stage_GetFadeStatus() != 1) {
+            if (stageGetFadeStatus() != STAGE_FADE_AT_MAX) {
                 return;
             }
-            Stage_RequestImageCapture();
+            stageRequestFrameCapture();
             Stage_ResetFade();
             arg0->killCountdown = 2;
             arg0->state        += 5;
@@ -597,8 +597,8 @@ void Gp_MenuRootTask(Task* arg0)
             gDisplayState.keepGraphics = 0;
             gGameSession->uiOpen       = 0;
             gpuResetAndInvalidateModelBuffers();
-            if (Stage_GetModeByte12() == 0) {
-                Stage_SetEndingFlag();
+            if (stageGetLoadBuffersCleared() == 0) {
+                stageRequestModeTaskExit();
             } else {
                 Stage_BeginTransitionKind7(gGameSession->location.loc.view);
             }

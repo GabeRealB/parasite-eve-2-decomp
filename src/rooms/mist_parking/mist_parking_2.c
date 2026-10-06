@@ -1095,11 +1095,11 @@ static void func_mist_parking_801833F8(Task* task)
 }
 
 /// Exit callback of the two-option choice task: kills it and calls
-/// `Stage_SetEndingFlag`.
+/// `stageRequestModeTaskExit`.
 static void func_mist_parking_80183434(Task* arg0)
 {
     taskKill(arg0);
-    Stage_SetEndingFlag();
+    stageRequestModeTaskExit();
 }
 
 void func_mist_parking_8018345C(Task* arg0)

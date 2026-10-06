@@ -2169,7 +2169,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
 /// `func_dryfield_night_saloon_g_r_8017DB74` (state 2) still passes one.
 static s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
 {
-    Display_InitModeObj(&D_dryfield_night_saloon_g_r_80185068, 0, 0, 0);
+    displayQueueModeTask(&D_dryfield_night_saloon_g_r_80185068, 0, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 

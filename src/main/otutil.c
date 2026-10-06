@@ -288,9 +288,9 @@ s32 Display_DispatchModeId(s32 arg0)
         if (arg0 < DISPLAY_MODE_MENU_LIMIT) {
             gDisplayState.pendingMode = DISPLAY_MODE_NONE;
             if (arg0 != 0x43) {
-                Display_InitModeObj(&Display_MenuTaskDesc, arg0, 0, 0);
+                displayQueueModeTask(&Display_MenuTaskDesc, arg0, 0, STAGE_ENTRY_RELOAD);
             } else {
-                Display_InitModeObj(&Display_MenuTaskDesc, 0x43, 0, 0);
+                displayQueueModeTask(&Display_MenuTaskDesc, 0x43, 0, STAGE_ENTRY_RELOAD);
             }
             gDisplayState.pendingMode = arg0;
             if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {

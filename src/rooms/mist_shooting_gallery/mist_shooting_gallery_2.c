@@ -3541,7 +3541,7 @@ static void _mistShootingGalleryRedFlashTask(Task* task)
 static void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
 {
     actor215100CapCaptionSelectScript(arg0, arg1, 0xD0);
-    Display_InitModeObj(&D_mist_shooting_gallery_801856D0, arg2, 0, 0);
+    displayQueueModeTask(&D_mist_shooting_gallery_801856D0, arg2, 0, STAGE_ENTRY_RELOAD);
 }
 
 void func_mist_shooting_gallery_80184C0C(Task* arg0)
@@ -3565,7 +3565,7 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
             break;
         case 2:
             taskKill(arg0);
-            Stage_SetEndingFlag();
+            stageRequestModeTaskExit();
             break;
     }
 }

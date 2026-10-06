@@ -1858,7 +1858,7 @@ void Gp_PickupExitTask(Task* arg0)
     if (arg0->killCountdown <= 0) {
         taskKill(arg0);
         Stage_ReleasePrimBuf();
-        Stage_SetEndingFlag();
+        stageRequestModeTaskExit();
     }
 }
 

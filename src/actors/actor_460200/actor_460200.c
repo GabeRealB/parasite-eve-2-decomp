@@ -2171,7 +2171,7 @@ void func_actor_460200_80132090(Task* arg0)
 
     var_v0 = arg0->spawnArg1.value;
     if (var_v0 < 0) {
-        Stage_SetEndingFlag();
+        stageRequestModeTaskExit();
         taskKill(arg0);
         var_v0 = arg0->spawnArg1.value;
     }

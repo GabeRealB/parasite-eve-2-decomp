@@ -1748,13 +1748,13 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             taskCallExit(task);
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             Wip_UiHolder = NULL;
-            Stage_SetEndingFlag();
+            stageRequestModeTaskExit();
         }
     }
 }
 s32 func_mist_shooting_gallery_8017F95C(s32 unused)
 {
-    Display_InitModeObj(&D_mist_shooting_gallery_80184F8C, 0x44, 0, 0);
+    displayQueueModeTask(&D_mist_shooting_gallery_80184F8C, 0x44, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
@@ -1795,7 +1795,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
 void func_mist_shooting_gallery_8017FBD8(void)
 {
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.loc.warp == 7)) {
-        Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
+        displayQueueModeTask(&D_mist_shooting_gallery_801850D0, 0, 0, STAGE_ENTRY_RELOAD);
     }
 }
 static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
@@ -2230,7 +2230,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
 
 s32 func_mist_shooting_gallery_80180B34(s32 unused)
 {
-    Display_InitModeObj(&D_mist_shooting_gallery_80185378, 0, 0, 0);
+    displayQueueModeTask(&D_mist_shooting_gallery_80185378, 0, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 

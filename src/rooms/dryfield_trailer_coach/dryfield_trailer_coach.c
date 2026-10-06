@@ -1777,11 +1777,11 @@ static void _dryfieldTrailerCoachWaitForTopicChoice(Task* task)
 }
 
 /// Exit callback of the two-option choice task: kills it and calls
-/// `Stage_SetEndingFlag`.
+/// `stageRequestModeTaskExit`.
 static void func_dryfield_trailer_coach_801827D0(Task* arg0)
 {
     taskKill(arg0);
-    Stage_SetEndingFlag();
+    stageRequestModeTaskExit();
 }
 
 /// State table of the room's cutscene task, run by
@@ -1796,7 +1796,7 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
 
 /// State table of the room's two-option choice task, run by
 /// `func_dryfield_trailer_coach_801827F8`: open the dialog, wait for its
-/// answer, then kill the task and call `Stage_SetEndingFlag`.
+/// answer, then kill the task and call `stageRequestModeTaskExit`.
 static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     {
         func_dryfield_trailer_coach_801826A0,

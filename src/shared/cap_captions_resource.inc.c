@@ -3,7 +3,7 @@
 static void CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2)
 {
     CapCaption_SelectScript(arg0, arg1, 0xD0);
-    Display_InitModeObj(&CapCaption_Data_80154508, arg2, 0, 0);
+    displayQueueModeTask(&CapCaption_Data_80154508, arg2, 0, STAGE_ENTRY_RELOAD);
 }
 
 static inline void CapCaption_LoadResource(s16 arg0, s16 arg1, s16 arg2)

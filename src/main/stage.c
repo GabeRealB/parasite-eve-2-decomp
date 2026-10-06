@@ -40,18 +40,8 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/world_collision.h"
 
-/// Presentation mode stored for a queued mode task.
-///
-/// Modes 1, 3 and 4 keep the room's current resources. Mode 0, mode 2 and every
-/// mode from 5 up reload them. A default request in the Acropolis plaza is
-/// stored as mode 1.
-enum {
-    STAGE_ENTRY_RELOAD       = 0,     // Capture the frame, reset, and reload room resources
-    STAGE_ENTRY_KEEP         = 1,     // Keep resources; full flip and image strips
-    STAGE_ENTRY_HOLD         = 3,     // Keep resources; hold the flip and draw no image
-    STAGE_ENTRY_DRAW_ACTORS  = 4,     // Keep resources, draw active actors, flip during a view transition
-    STAGE_ENTRY_GRAY_CAPTURE = 0x100, // Reload path, then invert the captured RAM image to grey
-};
+/// Vertical spacing of the two 240-row VRAM framebuffers, in rows.
+enum { DISPLAY_FRAMEBUFFER_STRIDE_ROWS = 272 };
 
 /// Ordering-table contents while a mode task owns the frame.
 ///
@@ -158,9 +148,9 @@ static const TaskFuncTable6 Display_TaskStates;
 
 void func_80701470(Task* arg0);
 
-static void Display_StepFadeOverlay(void);
+static void _stageStepFadeOverlay(void);
 
-static s32 Display_TransitionLoad(Task* unused);
+static s32 _stageStepFileLoadTransition(Task* unused);
 
 static Task* Display_SpawnFromMode(void);
 
@@ -180,22 +170,22 @@ static void Stage_WaitCdAndSpawn(Task* task);
 
 static void Display_TaskLoadStep(Task* task);
 
-static void Stage_WaitCdEntry(Task* task);
+static void _stageWaitModeExitLoad(Task* task);
 
-static void Stage_FinishCdFollowUp(Task* task);
+static void _stageResumeMovieAndFinishModeTask(Task* task);
 
 static void Display_DispatchTaskTable(Task* task);
 
-static __inline__ void mdecFinishDecode(void);
+static __inline__ void _mdecFinishImageDecode(void);
 
 /// imageDecodeStep state machine: start DCT, apply work-lists / image chunks, complete.
 static void Mdec_ProcessDecode(void);
 
-static void Mdec_DecodeToVram(void);
+static void _mdecStepStandaloneImageDecode(void);
 
-static void Mdec_StripCallback(void);
+static void _mdecImageStripCallback(void);
 
-// resolved decode base (Mdec_ResolveStreamBuffer)
+// resolved decode base (mdecRequestSceneImageDecode)
 // matched gCdCmdQueue.sceneImageHeaders entry
 
 /// Active stage/flow context pointer.
@@ -215,21 +205,72 @@ static const TaskFuncTable6 Display_TaskStates = { {
     Stage_WaitCdAndSpawn,
     Display_TransitionTask,
     Display_TaskLoadStep,
-    Stage_WaitCdEntry,
-    Stage_FinishCdFollowUp,
+    _stageWaitModeExitLoad,
+    _stageResumeMovieAndFinishModeTask,
 } };
 
-static void Display_StepFadeOverlay(void)
+/// Links the current grey fade tile behind its add/subtract draw-mode command.
+static __inline__ void _stageAppendFadeOverlay(void)
+{
+    enum {
+        STAGE_FADE_SEMITRANSPARENT_TILE_CODE = 0x62,
+        STAGE_FADE_TILE_COMMAND_WORDS        = (sizeof(TILE) - sizeof(u_long)) / sizeof(u_long),
+    };
+    s32       otIndex;
+    s32       drawOriginYOffset;
+    u8        fadeLevel;
+    TILE*     tile;
+    DR_TPAGE* drawModePacket;
+
+    otIndex = 0;
+    if (Stage_Ctx->fadeFlags & STAGE_FADE_FRONT) {
+        otIndex = (1 << GPU_ORDERING_TABLE_DEPTH_BITS) - 1;
+        if (Stage_Ctx->fullOtReady == 0) {
+            otIndex = GPU_SMALL_ORDERING_TABLE_ENTRIES - 1;
+        }
+    }
+
+    tile              = gGpuPrimCursor;
+    gGpuPrimCursor    = tile + 1;
+    drawOriginYOffset = gDisplayState.vramYOffset;
+    setlen(tile, STAGE_FADE_TILE_COMMAND_WORDS);
+    setcode(tile, STAGE_FADE_SEMITRANSPARENT_TILE_CODE);
+    tile->x0  = -FILE_SYSTEM_IMAGE_WIDTH / 2;
+    tile->y0  = -FILE_SYSTEM_IMAGE_HEIGHT / 2 - drawOriginYOffset;
+    tile->w   = FILE_SYSTEM_IMAGE_WIDTH;
+    tile->h   = FILE_SYSTEM_IMAGE_HEIGHT;
+    fadeLevel = Stage_Ctx->fadeLevel;
+    tile->b0  = fadeLevel;
+    tile->g0  = fadeLevel;
+    tile->r0  = fadeLevel;
+
+    drawModePacket = gGpuPrimCursor;
+    gGpuPrimCursor = drawModePacket + 1;
+    if (!(Stage_Ctx->fadeFlags & STAGE_FADE_ADDITIVE)) {
+        setlen(drawModePacket, ARRAY_SIZE(drawModePacket->code));
+        drawModePacket->code[0] = _get_mode(0, 1, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
+    } else {
+        setlen(drawModePacket, ARRAY_SIZE(drawModePacket->code));
+        drawModePacket->code[0] = _get_mode(0, 1, getTPage(0, GPU_BLEND_ADD, 0, 0));
+    }
+
+    addPrim(&gGpuCurrentOt[otIndex], tile);
+    addPrim(&gGpuCurrentOt[otIndex], drawModePacket);
+}
+
+/// Advances the stage fade by nominal frame ticks and links its grey blend tile.
+///
+/// The skip bit suppresses both phases once. Holding presentation stops level
+/// changes but still draws a nonzero overlay. The byte step is signed and the
+/// level saturates at zero or fadeMax. Requires room for a TILE and DR_TPAGE in
+/// the primitive arena and the ordering table selected by fullOtReady.
+static void _stageStepFadeOverlay(void)
 {
     StageCtx* stage;
-    s32       temp;
-    s32       product;
-    s32       otIdx;
-    s32       yoff;
-    u8        max;
-    u8        val;
-    TILE*     tile;
-    DR_TPAGE* dr;
+    s32       signedStep;
+    s32       nextLevel;
+    s32       levelDelta;
+    u8        maxLevel;
 
     stage = Stage_Ctx;
     if ((s8)stage->fadeFlags & STAGE_FADE_SKIP) {
@@ -237,71 +278,71 @@ static void Display_StepFadeOverlay(void)
         return;
     }
 
+    // Hold freezes the level; the overlay still participates in drawing.
     if (gDisplayState.control.flags.flipMode != DISPLAY_FLIP_HOLD) {
-        temp = (s8)stage->fadeStep;
-        if (temp != 0) {
-            product = temp * gDisplayState.frameTicks;
-            temp    = stage->fadeLevel;
-            temp    = temp + product;
-            if (temp <= 0) {
+        signedStep = (s8)stage->fadeStep;
+        if (signedStep != 0) {
+            levelDelta = signedStep * gDisplayState.frameTicks;
+            nextLevel  = stage->fadeLevel;
+            nextLevel  = nextLevel + levelDelta;
+            if (nextLevel <= 0) {
                 stage->fadeLevel    = 0;
                 Stage_Ctx->fadeStep = 0;
             } else {
-                max = stage->fadeMax;
-                if (temp >= (s32)max) {
-                    stage->fadeLevel    = max;
+                maxLevel = stage->fadeMax;
+                if (nextLevel >= (s32)maxLevel) {
+                    stage->fadeLevel    = maxLevel;
                     Stage_Ctx->fadeStep = 0;
                 } else {
-                    stage->fadeLevel = (u8)temp;
+                    stage->fadeLevel = (u8)nextLevel;
                 }
             }
         }
     }
 
+    // Link the blend command ahead of the tile at the selected ordering depth.
     if (Stage_Ctx->fadeLevel != 0) {
-        otIdx = 0;
-        if (Stage_Ctx->fadeFlags & STAGE_FADE_FRONT) {
-            otIdx = (1 << GPU_ORDERING_TABLE_DEPTH_BITS) - 1;
-            if (Stage_Ctx->fullOtReady == 0) {
-                otIdx = GPU_SMALL_ORDERING_TABLE_ENTRIES - 1;
-            }
-        }
-
-        tile           = gGpuPrimCursor;
-        gGpuPrimCursor = tile + 1;
-        yoff           = gDisplayState.vramYOffset;
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->x0 = -0xA0;
-        tile->y0 = -0x78 - yoff;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        val      = Stage_Ctx->fadeLevel;
-        tile->b0 = val;
-        tile->g0 = val;
-        tile->r0 = val;
-
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        if (!(Stage_Ctx->fadeFlags & STAGE_FADE_ADDITIVE)) {
-            setlen(dr, 1);
-            dr->code[0] = _get_mode(0, 1, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
-        } else {
-            setlen(dr, 1);
-            dr->code[0] = _get_mode(0, 1, getTPage(0, GPU_BLEND_ADD, 0, 0));
-        }
-
-        addPrim(&gGpuCurrentOt[otIdx], tile);
-        addPrim(&gGpuCurrentOt[otIdx], dr);
+        _stageAppendFadeOverlay();
     }
 }
 
-static s32 Display_TransitionLoad(Task* unused)
+/// Steps a queued file load while replacing and clearing the room frame.
+///
+/// Hides presentation, waits for the CD queue and a framebuffer change, then
+/// captures the new room frame before clearing both VRAM buffers. Completion
+/// selects task-only drawing with transition strips and consumes the request.
+/// The task argument is unused and the retained return value is always 1.
+static s32 _stageStepFileLoadTransition(Task* unused)
 {
-    RECT rect;
+/// Clears and synchronizes both 320x240 VRAM framebuffers before publishing the latch.
+///
+/// Captures the writable RECT local frameRect and gDisplayState. The framebuffer
+/// index must be 0 or 1. Takes no arguments; expands to a compound statement and
+/// is undefined after this function. Each reset remains necessary across SDK calls.
+#define STAGE_CLEAR_LOAD_FRAMEBUFFERS()                                                  \
+    {                                                                                    \
+        frameRect.x = 0;                                                                 \
+        frameRect.w = FILE_SYSTEM_IMAGE_WIDTH;                                           \
+        frameRect.h = FILE_SYSTEM_IMAGE_HEIGHT;                                          \
+        frameRect.y = (gDisplayState.frameBuffer ^ 1) * DISPLAY_FRAMEBUFFER_STRIDE_ROWS; \
+        ClearImage(&frameRect, 0, 0, 0);                                                 \
+        frameRect.x = 0;                                                                 \
+        frameRect.w = FILE_SYSTEM_IMAGE_WIDTH;                                           \
+        frameRect.h = FILE_SYSTEM_IMAGE_HEIGHT;                                          \
+        frameRect.y = gDisplayState.frameBuffer * DISPLAY_FRAMEBUFFER_STRIDE_ROWS;       \
+        ClearImage(&frameRect, 0, 0, 0);                                                 \
+        DrawSync(0);                                                                     \
+    }
+    enum {
+        STAGE_FILE_LOAD_BEGIN        = 0,
+        STAGE_FILE_LOAD_WAIT_QUEUE   = 1,
+        STAGE_FILE_LOAD_WAIT_FRAME   = 2,
+        STAGE_FILE_LOAD_RESTORE_DRAW = 3,
+    };
+    RECT frameRect;
 
     switch (Stage_Ctx->transitionStep) {
-        case 0:
+        case STAGE_FILE_LOAD_BEGIN:
             SetDispMask(0);
             Stage_Ctx->heldFrameBuffer = gDisplayState.frameBuffer;
             gDisplayState.keepGraphics = 1;
@@ -309,36 +350,27 @@ static s32 Display_TransitionLoad(Task* unused)
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             Stage_Ctx->transitionStep            = Stage_Ctx->transitionStep + 1;
             break;
-        case 1:
+        case STAGE_FILE_LOAD_WAIT_QUEUE:
             if (cdCmdIsIdle() & 0xFFFF) {
                 cdCmdEnqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->loadFileKey, Stage_Ctx->loadFileArgs);
                 Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
             }
             break;
-        case 2:
+        case STAGE_FILE_LOAD_WAIT_FRAME:
             if ((cdCmdIsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->heldFrameBuffer)) {
                 gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
                                     MEMORY_PRIMITIVE_HEAP_BYTES);
                 memInitAuxHeap();
-                rect.x = 0;
-                rect.w = 0x140;
-                rect.h = 0xF0;
-                rect.y = (gDisplayState.frameBuffer ^ 1) * 0x110;
-                ClearImage(&rect, 0, 0, 0);
-                rect.x = 0;
-                rect.w = 0x140;
-                rect.h = 0xF0;
-                rect.y = gDisplayState.frameBuffer * 0x110;
-                ClearImage(&rect, 0, 0, 0);
-                DrawSync(0);
+                STAGE_CLEAR_LOAD_FRAMEBUFFERS();
                 Stage_Ctx->loadBuffersCleared = 1;
                 Stage_Ctx->transitionStep     = Stage_Ctx->transitionStep + 1;
             }
             break;
-        case 3:
+        case STAGE_FILE_LOAD_RESTORE_DRAW:
             gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
             Stage_Ctx->transitionStep               = Stage_Ctx->transitionStep + 1;
+            /* fallthrough */
         default:
             SetDispMask(1);
             Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_FILE_LOAD;
@@ -346,6 +378,7 @@ static s32 Display_TransitionLoad(Task* unused)
     }
     return 1;
 }
+#undef STAGE_CLEAR_LOAD_FRAMEBUFFERS
 
 static Task* Display_SpawnFromMode(void)
 {
@@ -506,7 +539,7 @@ static void Display_TransitionTask(Task* task)
                 break;
         }
     } else if (flags & STAGE_REQUEST_FILE_LOAD) {
-        Display_TransitionLoad(task);
+        _stageStepFileLoadTransition(task);
     } else if ((s32)flags < 0) {
         task->state = task->state + 1;
         Display_TaskLoadStep(task);
@@ -555,6 +588,10 @@ static void Display_FlipOtAndDispatch(s32 unused)
 }
 
 /// Replaces four RGB555 pixels in two writable words with inverted grey, clearing bit 15.
+///
+/// The two distinct word-aligned words each contain two little-endian pixels.
+/// Grey is 31 - floor((3R + 4G + B) / 8), replicated into the three channels.
+/// All four input mask bits are ignored and cleared in the result.
 static __inline__ void _gfxInvertFourRgb555PixelsGray(u32* firstWord, u32* secondWord)
 {
     // RGB555 channel masks and the 3:4:1 weighting of red, green and blue.
@@ -639,7 +676,7 @@ void Stage_InitOtAndSpawn(void)
     taskSpawnFromTable(&Display_ModeTaskDesc, 0, 0, 0);
 }
 
-s32 Stage_SetEndingFlag(void)
+s32 stageRequestModeTaskExit(void)
 {
     Stage_Ctx->requestFlags |= STAGE_REQUEST_ENDING;
     return 0;
@@ -685,7 +722,7 @@ s32 Stage_BeginTransitionKind7(s32 arg0)
     return ret;
 }
 
-s32 Stage_RequestImageCapture(void)
+s32 stageRequestFrameCapture(void)
 {
     Stage_Ctx->requestFlags |= STAGE_REQUEST_CAPTURE;
     return 0;
@@ -711,20 +748,20 @@ s32 Stage_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 Stage_GetFadeStatus(void)
+s32 stageGetFadeStatus(void)
 {
     StageCtx* stage;
-    u8        temp_a0;
+    u8        fadeLevel;
 
-    stage   = Stage_Ctx;
-    temp_a0 = stage->fadeLevel;
-    if (temp_a0 == 0) {
-        return 0;
+    stage     = Stage_Ctx;
+    fadeLevel = stage->fadeLevel;
+    if (fadeLevel == 0) {
+        return STAGE_FADE_CLEAR;
     }
-    if (temp_a0 >= stage->fadeMax) {
-        return 1;
+    if (fadeLevel >= stage->fadeMax) {
+        return STAGE_FADE_AT_MAX;
     }
-    return -1;
+    return STAGE_FADE_BETWEEN;
 }
 
 s32 Stage_HasTransitionFlags(void)
@@ -761,25 +798,25 @@ void Stage_SetFadeMax(u8 arg0)
     Stage_Ctx->fadeMax = arg0;
 }
 
-void Display_SetDrawMode(s32 arg0)
+void displaySetTaskDrawMode(s32 drawMode)
 {
-    switch (arg0) {
-        case 0:
+    switch (drawMode) {
+        case DISPLAY_TASK_DRAW_CLEAR:
             gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             displaySetClearColor(0, 0, 0);
             return;
-        case 1:
-            gDisplayState.control.flags.flipMode    = (u8)arg0;
+        case DISPLAY_TASK_DRAW_ROOM:
+            gDisplayState.control.flags.flipMode    = drawMode;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
             displaySetClearColor(DISPLAY_CLEAR_DISABLED, 0, 0);
             return;
-        case 2:
+        case DISPLAY_TASK_DRAW_TRANSITION:
             gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
             displaySetClearColor(DISPLAY_CLEAR_DISABLED, 0, 0);
             return;
-        case 3:
+        case DISPLAY_TASK_DRAW_HOLD:
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
             return;
     }
@@ -805,23 +842,23 @@ static s32 Stage_BeginTransitionKind3(void)
     return 0;
 }
 
-Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32 arg3)
+Task* displayQueueModeTask(TaskDesc* descriptor, s32 spawnArg1, TaskSpawnArg spawnArg2, s32 entryMode)
 {
     StageCtx* stage;
 
     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
-        return 0;
+        return NULL;
     }
 
-    MEM_CLEAR(Stage_Ctx, sizeof(StageCtx));
+    MEM_CLEAR(Stage_Ctx, sizeof(*Stage_Ctx));
 
     stage            = Stage_Ctx;
     stage->taskDesc  = descriptor;
-    stage->spawnArg1 = arg1;
-    stage->spawnArg2 = arg2;
-    stage->entryMode = arg3;
+    stage->spawnArg1 = spawnArg1;
+    stage->spawnArg2 = spawnArg2;
+    stage->entryMode = entryMode;
     // A default request in the Acropolis plaza keeps the current resources.
-    if (arg3 == STAGE_ENTRY_RELOAD) {
+    if (entryMode == STAGE_ENTRY_RELOAD) {
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) ==
             GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             stage->entryMode = STAGE_ENTRY_KEEP;
@@ -829,10 +866,10 @@ Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32
     }
     Stage_Ctx->fadeMax        = STAGE_FADE_OPAQUE;
     gDisplayState.pendingMode = DISPLAY_MODE_DESCRIPTOR;
-    return 0;
+    return NULL;
 }
 
-s32 Stage_GetModeByte12(void)
+s32 stageGetLoadBuffersCleared(void)
 {
     return Stage_Ctx->loadBuffersCleared;
 }
@@ -890,17 +927,24 @@ static void Display_TaskLoadStep(Task* task)
     }
     CdCmd_EnqueueLoadFile(0, 0, 4);
     task->state = (s32)(task->state + 1);
-    Stage_WaitCdEntry(task);
+    _stageWaitModeExitLoad(task);
 }
 
-static void Stage_WaitCdEntry(Task* task)
+/// Advances past the mode-exit reload once CD work permits movie resumption.
+///
+/// A queued scene-audio command also permits progress; it need not have finished.
+static void _stageWaitModeExitLoad(Task* task)
 {
     if (cdCmdIsIdleOrSceneAudioPending() != 0) {
         task->state += 1;
     }
 }
 
-static void Stage_FinishCdFollowUp(Task* task)
+/// Resumes a suspended movie before returning presentation to the game loop.
+///
+/// Waits for its first frame or retirement, then consumes the display-mode
+/// request, selects image strips without clearing and exits the mode task.
+static void _stageResumeMovieAndFinishModeTask(Task* task)
 {
     if (cdCmdResumeSuspendedMovie() != 0) {
         gDisplayState.displayOwner              = DISPLAY_OWNER_GAME_LOOP;
@@ -917,95 +961,100 @@ static void Display_DispatchTaskTable(Task* task)
 
     sp = Display_TaskStates;
     sp.funcs[task->state](task);
-    Display_StepFadeOverlay();
+    _stageStepFadeOverlay();
 }
 
-void Mdec_ResolveStreamBuffer(u8* arg0)
+void mdecRequestSceneImageDecode(const u8* viewId)
 {
-    u16         i;
-    u16         found;
+    u16         headerIndex;
+    u16         headerFound;
     s16         bufferKind;
-    s32         key;
+    s32         requestedView;
     s32         imageDataOffset;
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p     = &gCdCmdQueue;
-    i     = 0;
-    found = 0;
-    key   = *arg0;
-    for (; i < ARRAY_SIZE(p->sceneImageHeaders); i++) {
-        if (key == p->sceneImageHeaders[i].viewId) {
-            found = 1;
+    queue         = &gCdCmdQueue;
+    headerIndex   = 0;
+    headerFound   = 0;
+    requestedView = *viewId;
+    for (; headerIndex < ARRAY_SIZE(queue->sceneImageHeaders); headerIndex++) {
+        if (requestedView == queue->sceneImageHeaders[headerIndex].viewId) {
+            headerFound = 1;
             break;
         }
     }
-    if (!found || p->scenePayloadLoading != 0) {
-        p->imageDecodePending = 1;
-        p->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
-        p->imageDecodeStep    = CD_COMMAND_IMAGE_WAIT_HEADER;
+    if (!headerFound || queue->scenePayloadLoading != 0) {
+        queue->imageDecodePending = 1;
+        queue->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
+        queue->imageDecodeStep    = CD_COMMAND_IMAGE_WAIT_HEADER;
         return;
     }
 
-    Stage_CdEntry = &p->sceneImageHeaders[i];
+    // Payload bytes follow any VLC and timing reservations in a shared actor arena.
+    Stage_CdEntry = &queue->sceneImageHeaders[headerIndex];
     bufferKind    = Stage_CdEntry->bufferKind;
     switch (bufferKind) {
         case STREAM_SCENE_BUFFER_DECODE:
-            Mdec_DecodeBase = p->decodeBuffer;
+            Mdec_DecodeBase = queue->decodeBuffer;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_0:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0;
-            if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
+            if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
                 Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
             }
-            if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
-                Mdec_DecodeBase = Mdec_DecodeBase + p->sceneStream->data.scene.timingBufferBytes;
+            if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
+                Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;
             }
             gGameSession->field_7C = 0;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_1:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1;
-            if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
+            if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
                 Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
             }
-            if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
-                Mdec_DecodeBase = Mdec_DecodeBase + p->sceneStream->data.scene.timingBufferBytes;
+            if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
+                Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;
             }
             gGameSession->field_7E = 0;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_2:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2;
-            if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
+            if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
                 Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
             }
-            if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
-                Mdec_DecodeBase = Mdec_DecodeBase + p->sceneStream->data.scene.timingBufferBytes;
+            if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
+                Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;
             }
             gGameSession->field_80 = 0;
             break;
         case STREAM_SCENE_BUFFER_EXTERNAL:
-            Mdec_DecodeBase = p->externalScenePayloadBuffer;
+            Mdec_DecodeBase = queue->externalScenePayloadBuffer;
             break;
     }
-    imageDataOffset       = Stage_CdEntry->imageDataOffset;
-    D_8007A35C            = 0;
-    p->imageDecodePending = 1;
-    p->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
-    p->imageDecodeStep    = CD_COMMAND_IMAGE_START;
-    D_8007A360            = Mdec_DecodeBase + imageDataOffset;
+    imageDataOffset           = Stage_CdEntry->imageDataOffset;
+    D_8007A35C                = 0;
+    queue->imageDecodePending = 1;
+    queue->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
+    queue->imageDecodeStep    = CD_COMMAND_IMAGE_START;
+    D_8007A360                = Mdec_DecodeBase + imageDataOffset;
 }
 
-static __inline__ void mdecFinishDecode(void)
+/// Releases image-decode bookkeeping and restores model buffers when requested.
+///
+/// Also used on the scene decoder's timeout path. This marks the image complete
+/// and invalidates scene-payload reuse; it does not stop MDEC or remove its callback.
+static __inline__ void _mdecFinishImageDecode(void)
 {
-    CdCmdQueue* q = &gCdCmdQueue;
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     if (gDisplayState.keepGraphics == 0) {
         tmdResetAuxHeapAndRestoreBuffers();
     }
-    q->imageLoadStatus      = CD_COMMAND_IMAGE_COMPLETE;
-    q->imageDecodePending   = 0;
-    D_8007A35C              = 0;
-    q->imageDecodeStep      = CD_COMMAND_IMAGE_START;
-    q->scenePayloadReusable = 0;
+    queue->imageLoadStatus      = CD_COMMAND_IMAGE_COMPLETE;
+    queue->imageDecodePending   = 0;
+    D_8007A35C                  = 0;
+    queue->imageDecodeStep      = CD_COMMAND_IMAGE_START;
+    queue->scenePayloadReusable = 0;
 }
 
 /// imageDecodeStep state machine: start DCT, apply work-lists / image chunks, complete.
@@ -1022,14 +1071,14 @@ static void Mdec_ProcessDecode(void)
     p = &gCdCmdQueue;
     switch (p->imageDecodeStep) {
         case CD_COMMAND_IMAGE_WAIT_HEADER:
-            Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
+            mdecRequestSceneImageDecode(&gGameSession->location.loc.view);
             if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
                 gpuResetAndInvalidateModelBuffers();
                 if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
-                mdecFinishDecode();
+                _mdecFinishImageDecode();
             }
             break;
         case CD_COMMAND_IMAGE_START:
@@ -1045,7 +1094,7 @@ static void Mdec_ProcessDecode(void)
             DecDCTvlc2((u_long*)D_8007A360, gMemActiveAuxHeap,
                        p->vlcTable);
             D_8007A35E = 1;
-            DecDCToutCallback(Mdec_StripCallback);
+            DecDCToutCallback(_mdecImageStripCallback);
             DecDCTin(gMemActiveAuxHeap, p->imageMdecMode);
             p->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
             DecDCTout(Fs_ImgBuffers->strips[0], FILE_SYSTEM_IMAGE_STRIP_WORDS);
@@ -1096,82 +1145,84 @@ static void Mdec_ProcessDecode(void)
                     memCopyBytes(&Mdec_DecodeBase[Stage_CdEntry->timingDataOffset], p->timingBuffer,
                                  Stage_CdEntry->timingDataBytes);
                 }
-                mdecFinishDecode();
+                _mdecFinishImageDecode();
             } else if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
                 gpuResetAndInvalidateModelBuffers();
                 if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
-                mdecFinishDecode();
+                _mdecFinishImageDecode();
             }
             break;
     }
 }
 
-static void Mdec_DecodeToVram(void)
+/// Steps a standalone BS image decode and converts its strips to a contiguous frame.
+///
+/// Expands VLC into the selected auxiliary region, then lets MDEC callbacks fill
+/// twenty 16x240 RGB555 strips. Once complete, VRAM assembles those strips and
+/// reads back one 320x240 frame into the same RAM workspace. The optional display
+/// preservation copies a 480-word-wide rectangle, sufficient for a 320-pixel
+/// RGB24 movie. Input, VLC and output workspaces must stay valid until consumed;
+/// the auxiliary region must fit the complete expanded command stream.
+static void _mdecStepStandaloneImageDecode(void)
 {
-    RECT          rect;
-    s32           i;
-    s32           temp;
-    CdCmdQueue*   p;
-    CdCmdQueue*   q;
-    DisplayState* d;
+    enum {
+        MDEC_VLC_UNLIMITED_OUTPUT    = 0,
+        MDEC_PRESERVED_DISPLAY_WIDTH = FILE_SYSTEM_IMAGE_WIDTH * 3 / 2,
+    };
+    RECT          frameRect;
+    u16           stripCursor;
+    CdCmdQueue*   queue;
+    DisplayState* display;
 
-    p = &gCdCmdQueue;
-    switch (p->imageDecodeStep) {
+    queue = &gCdCmdQueue;
+    switch (queue->imageDecodeStep) {
         case CD_COMMAND_IMAGE_START:
             gpuResetAndInvalidateModelBuffers();
-            p->mdecOutputPending = 1;
+            queue->mdecOutputPending = 1;
             DecDCTReset(0);
-            DecDCTvlcSize2(0);
+            DecDCTvlcSize2(MDEC_VLC_UNLIMITED_OUTPUT);
             DecDCTvlc2((u_long*)D_8007A360, gMemActiveAuxHeap,
                        (u_short*)((u8*)Fs_ImgBuffers + FILE_SYSTEM_IMAGE_VLC_OFFSET));
             D_8007A35E = 1;
-            DecDCToutCallback(Mdec_StripCallback);
-            DecDCTin(gMemActiveAuxHeap, p->imageMdecMode);
-            p->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
+            DecDCToutCallback(_mdecImageStripCallback);
+            DecDCTin(gMemActiveAuxHeap, queue->imageMdecMode);
+            queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
             DecDCTout(Fs_ImgBuffers->strips[0], FILE_SYSTEM_IMAGE_STRIP_WORDS);
-            p->imageDecodeStep += 1;
+            queue->imageDecodeStep += 1;
             /* fallthrough */
         case CD_COMMAND_IMAGE_WAIT_OUTPUT:
-            i = 0;
-            if (p->mdecOutputPending == 0) {
-                rect.w = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-                rect.h = FILE_SYSTEM_IMAGE_HEIGHT;
-                rect.y = (gDisplayState.drawBuffer ^ 1) * 0x110;
+            stripCursor = 0;
+            if (queue->mdecOutputPending == 0) {
+                frameRect.w = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+                frameRect.h = FILE_SYSTEM_IMAGE_HEIGHT;
+                // Assemble the decoded columns in the other framebuffer, then read back rows.
+                frameRect.y = (gDisplayState.drawBuffer ^ 1) * DISPLAY_FRAMEBUFFER_STRIDE_ROWS;
                 do {
-                    temp   = i & 0xFFFF;
-                    rect.x = temp * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-                    LoadImage(&rect, Fs_ImgBuffers->strips[temp]);
-                    i++;
-                } while ((u32)(i & 0xFFFF) < (u32)FILE_SYSTEM_IMAGE_STRIP_COUNT);
-                rect.w = FILE_SYSTEM_IMAGE_WIDTH;
-                rect.x = 0;
-                rect.h = FILE_SYSTEM_IMAGE_HEIGHT;
-                d      = &gDisplayState;
-                rect.y = (d->drawBuffer ^ 1) * 0x110;
-                StoreImage(&rect, Fs_ImgBuffers->strips[0]);
-                if (p->preserveDisplayAfterDecode != 0) {
-                    rect.x = 0;
-                    rect.w = 0x1E0;
-                    rect.h = FILE_SYSTEM_IMAGE_HEIGHT;
-                    rect.y = d->drawBuffer * 0x110;
-                    MoveImage(&rect, 0, (d->drawBuffer ^ 1) * 0x110);
-                    p->preserveDisplayAfterDecode = 0;
+                    frameRect.x = stripCursor * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+                    LoadImage(&frameRect, Fs_ImgBuffers->strips[stripCursor]);
+                    stripCursor++;
+                } while ((u32)stripCursor < ARRAY_SIZE(Fs_ImgBuffers->strips));
+                frameRect.w = FILE_SYSTEM_IMAGE_WIDTH;
+                frameRect.x = 0;
+                frameRect.h = FILE_SYSTEM_IMAGE_HEIGHT;
+                display     = &gDisplayState;
+                frameRect.y = (display->drawBuffer ^ 1) * DISPLAY_FRAMEBUFFER_STRIDE_ROWS;
+                StoreImage(&frameRect, Fs_ImgBuffers->strips[0]);
+                if (queue->preserveDisplayAfterDecode != 0) {
+                    frameRect.x = 0;
+                    frameRect.w = MDEC_PRESERVED_DISPLAY_WIDTH;
+                    frameRect.h = FILE_SYSTEM_IMAGE_HEIGHT;
+                    frameRect.y = display->drawBuffer * DISPLAY_FRAMEBUFFER_STRIDE_ROWS;
+                    MoveImage(&frameRect, 0, (display->drawBuffer ^ 1) * DISPLAY_FRAMEBUFFER_STRIDE_ROWS);
+                    queue->preserveDisplayAfterDecode = 0;
                 } else {
-                    ClearImage(&rect, 0, 0, 0);
+                    ClearImage(&frameRect, 0, 0, 0);
                 }
-                p->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
-                q              = &gCdCmdQueue;
-                if (gDisplayState.keepGraphics == 0) {
-                    tmdResetAuxHeapAndRestoreBuffers();
-                }
-                q->imageLoadStatus      = CD_COMMAND_IMAGE_COMPLETE;
-                q->imageDecodePending   = 0;
-                D_8007A35C              = 0;
-                q->imageDecodeStep      = CD_COMMAND_IMAGE_START;
-                q->scenePayloadReusable = 0;
+                queue->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
+                _mdecFinishImageDecode();
             }
             return;
     }
@@ -1188,24 +1239,24 @@ void CdCmd_StepVlcRebuild(void)
             p->rebuildImageVlcTable = 0;
         }
         if ((p->imageDecodePending != 0) && (p->rebuildImageVlcTable == 0)) {
-            Mdec_DecodeToVram();
+            _mdecStepStandaloneImageDecode();
         }
     } else if (p->imageDecodePending != 0) {
         Mdec_ProcessDecode();
     }
 }
 
-void Mdec_BeginDecode(void* arg0)
+void mdecRequestImageDecode(u_long* bitstream)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    D_8007A35C            = 0;
-    p                     = &gCdCmdQueue;
-    p->imageDecodePending = 1;
-    p->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
-    p->imageDecodeStep    = CD_COMMAND_IMAGE_START;
-    D_8007A360            = arg0;
-    D_8007A358            = 0;
+    D_8007A35C                = 0;
+    queue                     = &gCdCmdQueue;
+    queue->imageDecodePending = 1;
+    queue->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
+    queue->imageDecodeStep    = CD_COMMAND_IMAGE_START;
+    D_8007A360                = bitstream;
+    D_8007A358                = 0;
 }
 
 void mdecRequestImageVlcRebuild(void)
@@ -1213,16 +1264,21 @@ void mdecRequestImageVlcRebuild(void)
     gCdCmdQueue.rebuildImageVlcTable = true;
 }
 
-static void Mdec_StripCallback(void)
+/// Chains image-output DMA strips and releases the pending-output latch at the last one.
+///
+/// Runs as the no-argument MDEC output callback. The image start path sets the
+/// strip-width multiplier to 1, giving twenty output transfers of 1920 words.
+/// The workspace and queue state must remain live through callback removal.
+static void _mdecImageStripCallback(void)
 {
-    s32         temp;
-    CdCmdQueue* p;
+    s32         stripCount;
+    CdCmdQueue* queue;
 
-    temp = FILE_SYSTEM_IMAGE_WIDTH / (D_8007A35E * FILE_SYSTEM_IMAGE_STRIP_WIDTH);
-    p    = &gCdCmdQueue;
-    if (D_8007A35C == temp - 1) {
-        p->mdecOutputPending = 0;
-        DecDCToutCallback(0);
+    stripCount = FILE_SYSTEM_IMAGE_WIDTH / (D_8007A35E * FILE_SYSTEM_IMAGE_STRIP_WIDTH);
+    queue      = &gCdCmdQueue;
+    if (D_8007A35C == stripCount - 1) {
+        queue->mdecOutputPending = 0;
+        DecDCToutCallback(NULL);
     } else {
         D_8007A35C = D_8007A35C + 1;
         DecDCTout(Fs_ImgBuffers->strips[D_8007A35C], FILE_SYSTEM_IMAGE_STRIP_WORDS);

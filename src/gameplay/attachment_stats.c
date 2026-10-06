@@ -1574,7 +1574,7 @@ void Gp_HudTask(HudState* hud)
                     currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
                     hud->field_8         = 0;
                     if (currentStageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                        Display_InitModeObj(&D_8010CAB0, 0, hud, 0x100);
+                        displayQueueModeTask(&D_8010CAB0, 0, hud, STAGE_ENTRY_GRAY_CAPTURE);
                     } else {
                         hud->battleStep = hud->battleStep + 1;
                     }
@@ -1677,7 +1677,7 @@ void Gp_HudTask(HudState* hud)
                         hud->battleStep = HUD_BATTLE_STEP_START;
                         hud->inBattle   = 0;
                     } else {
-                        Display_InitModeObj(&D_8010CABC, 0, hud, 0);
+                        displayQueueModeTask(&D_8010CABC, 0, hud, STAGE_ENTRY_RELOAD);
                     }
                 }
                 attachment = &Gp_StateC08;

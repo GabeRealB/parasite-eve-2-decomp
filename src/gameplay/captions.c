@@ -182,7 +182,7 @@ void func_800E44A0(Task* task)
         D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
-        Stage_RequestImageCapture();
+        stageRequestFrameCapture();
         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
     }
     eventIndex = Gp_FindCapEvt((s32)(s16)D_801155AE);
@@ -334,7 +334,7 @@ void func_800E44A0(Task* task)
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
                     } else {
-                        Display_InitModeObj(Task_GetDesc(9U, 0xBU), 0, &D_801155A0, 0);
+                        displayQueueModeTask(Task_GetDesc(9U, 0xBU), 0, &D_801155A0, STAGE_ENTRY_RELOAD);
                     }
                 }
                 D_801155AC = 1;
@@ -883,7 +883,7 @@ void Gp_CapExit(Task* arg0)
     }
     if (D_80115666 != 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == D_8011566C) {
-            Stage_SetEndingFlag();
+            stageRequestModeTaskExit();
         } else {
             queue->imageMdecMode = D_8011565C;
             Stage_BeginTransitionKind7(D_8011566C);

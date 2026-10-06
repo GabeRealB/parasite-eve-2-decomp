@@ -2867,7 +2867,7 @@ void func_dryfield_dilapidated_house_8017E858(Task* arg0)
 
     var_v0 = arg0->spawnArg1.value;
     if (var_v0 < 0) {
-        Stage_SetEndingFlag();
+        stageRequestModeTaskExit();
         taskKill(arg0);
         var_v0 = arg0->spawnArg1.value;
     }
@@ -2917,7 +2917,7 @@ void func_dryfield_dilapidated_house_8017E8C8(void)
 /// body. A positive argument is stored in `state`
 /// (`SCREEN_WAVE_RAMP_FALLING` counts the ramp down, `SCREEN_WAVE_RAMP_FINISHED`
 /// ends the task); otherwise the CD command queue is dropped into
-/// Mdec_DecodeToVram mode 2 and -- except for the -2 "already ran" message --
+/// _mdecStepStandaloneImageDecode mode 2 and -- except for the -2 "already ran" message --
 /// the spawn block is filled and the `D_dryfield_dilapidated_house_80183E48` entry started.
 ///
 /// Both halves of the block are written in *each* arm of the `span` test so

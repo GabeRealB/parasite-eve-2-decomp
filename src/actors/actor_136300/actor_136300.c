@@ -1504,7 +1504,7 @@ void func_actor_136300_80132854(Task* arg0)
     }
     var_v0 = arg0->spawnArg1.value;
     if (var_v0 < 0) {
-        Stage_SetEndingFlag();
+        stageRequestModeTaskExit();
         taskKill(arg0);
         var_v0 = arg0->spawnArg1.value;
     }
@@ -1583,7 +1583,7 @@ void func_actor_136300_801329EC(void)
 
 void func_actor_136300_80132A4C(s32 arg0)
 {
-    Display_InitModeObj(&D_actor_136300_8013B134, arg0, 0, 0x100);
+    displayQueueModeTask(&D_actor_136300_8013B134, arg0, 0, STAGE_ENTRY_GRAY_CAPTURE);
 }
 
 void func_actor_136300_80132A7C(s32 arg0)

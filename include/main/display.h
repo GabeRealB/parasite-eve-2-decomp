@@ -189,10 +189,47 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
 
 Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3);
 
-void Display_SetDrawMode(s32 arg0);
+/// Drawing policy selected while a display-mode task presents the frame.
+enum {
+    DISPLAY_TASK_DRAW_CLEAR      = 0, // Task OT over a black clear, with no background image
+    DISPLAY_TASK_DRAW_ROOM       = 1, // Task OT over the captured room image, without clearing
+    DISPLAY_TASK_DRAW_TRANSITION = 2, // Task OT over transition strips, without clearing
+    DISPLAY_TASK_DRAW_HOLD       = 3, // Hold presentation; retain the image and clear-colour settings
+};
 
-/// Queues a mode transition; the task is spawned asynchronously, so returns NULL.
-Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32 arg3);
+/// Selects task-owned presentation, its background image and its clear policy.
+///
+/// `drawMode` is a `DISPLAY_TASK_DRAW_*` selector. Hold changes only the flip
+/// mode; other unrecognized values leave all settings intact. No frame is
+/// presented and no display ownership is acquired by this call.
+void displaySetTaskDrawMode(s32 drawMode);
+
+/// Presentation mode stored for a queued mode task.
+///
+/// Modes 1, 3 and 4 keep the room's current resources. Mode 0, mode 2 and every
+/// mode from 5 up reload them. A default request in the Acropolis plaza is
+/// stored as mode 1.
+enum {
+    STAGE_ENTRY_RELOAD        = 0,     // Capture the frame, reset, and reload room resources
+    STAGE_ENTRY_KEEP          = 1,     // Keep resources; full flip and image strips
+    STAGE_ENTRY_HOLD          = 3,     // Keep resources; hold the flip and draw no image
+    STAGE_ENTRY_DRAW_ACTORS   = 4,     // Keep resources, draw active actors, flip during a view transition
+    STAGE_ENTRY_GRAY_CAPTURE  = 0x100, // Reload path, then invert the captured RAM image to grey
+    STAGE_ENTRY_RELOAD_FORCED = 0x102, // Reload without grey conversion, including in the Acropolis plaza
+};
+
+/// Queues a display-mode task and its presentation policy for asynchronous spawning.
+///
+/// Borrows entry 0 of `descriptor` and copies the two spawn words. Keep the
+/// descriptor, its callback and any pointed-to payload loaded until the task
+/// has finished using them. A pending display-mode request rejects this call
+/// without changing it. Otherwise the transition context and fade are reset;
+/// `STAGE_ENTRY_RELOAD` in the Acropolis plaza becomes `STAGE_ENTRY_KEEP`.
+/// Other entry modes follow the resource rules above.
+///
+/// Always returns `NULL`, including after accepting the request. This is not
+/// the spawned task pointer and does not report whether the request was accepted.
+Task* displayQueueModeTask(TaskDesc* descriptor, s32 spawnArg1, TaskSpawnArg spawnArg2, s32 entryMode);
 
 /// Resets queued GPU work and forgets attached-model buffers before image-memory reuse.
 ///

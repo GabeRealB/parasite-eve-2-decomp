@@ -1469,7 +1469,7 @@ void func_shelter_b1_pod_access_tunnel_8017E704(void)
 
 void func_shelter_b1_pod_access_tunnel_8017E734(s32 arg0)
 {
-    Display_InitModeObj(taskGetDescAt(D_shelter_b1_pod_access_tunnel_80182D2C, 2U), arg0, 0, 0x100);
+    displayQueueModeTask(taskGetDescAt(D_shelter_b1_pod_access_tunnel_80182D2C, 2U), arg0, 0, STAGE_ENTRY_GRAY_CAPTURE);
 }
 
 /// Counts the spawn argument down one per frame; once it goes negative, kills
@@ -1482,7 +1482,7 @@ void func_shelter_b1_pod_access_tunnel_8017E778(Task* arg0)
     arg0->spawnArg1.value = temp_v0;
     if (temp_v0 < 0) {
         taskKill(arg0);
-        Stage_SetEndingFlag();
+        stageRequestModeTaskExit();
     }
 }
 

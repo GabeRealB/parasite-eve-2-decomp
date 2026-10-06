@@ -167,7 +167,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 SndEvt_EnqueueType9(SOUND_COMMON(0x0D));
                 taskKill(arg0);
                 Stage_ReleasePrimBuf();
-                Stage_SetEndingFlag();
+                stageRequestModeTaskExit();
             }
         }
     }

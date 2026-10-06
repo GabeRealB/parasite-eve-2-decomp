@@ -849,7 +849,7 @@ static u8 Fs_ProcessChunkData(void)
             }
             if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
                 if (Fs_ChunkMode != 3) {
-                    Mdec_BeginDecode(Fs_ImgBuffers);
+                    mdecRequestImageDecode((u_long*)Fs_ImgBuffers);
                 }
                 endFlag = Fs_ChunkEndFlag;
                 if (endFlag == FILE_SYSTEM_CHUNK_LAST) {

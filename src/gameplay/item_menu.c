@@ -1417,9 +1417,9 @@ void Gp_ItemPickupTilt(Task* arg0)
         if (arg0->killCountdown >= 0x14) {
             /* Unique items and stackables open the same pickup result task. */
             if (item < 0xA0) {
-                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, arg0->spawnArg2.value, 0);
+                displayQueueModeTask(Task_GetDesc(1, 0x26), 0, arg0->spawnArg2.value, STAGE_ENTRY_RELOAD);
             } else {
-                Display_InitModeObj(Task_GetDesc(1, 0x26), 0, arg0->spawnArg2.value, 0);
+                displayQueueModeTask(Task_GetDesc(1, 0x26), 0, arg0->spawnArg2.value, STAGE_ENTRY_RELOAD);
             }
             arg0->state++;
         }

@@ -295,7 +295,7 @@ static void func_map_akropolis_80179E8C(Task* task)
             gGameSession->uiOpen = 0;
             taskKill(task);
             Stage_ReleasePrimBuf();
-            Stage_SetEndingFlag();
+            stageRequestModeTaskExit();
         }
     }
 }
@@ -314,7 +314,7 @@ s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1)
         } while (i < 4);
         D_map_akropolis_8017A9A8 = 0;
     }
-    Display_InitModeObj(&D_map_akropolis_8017AA00, 0, 0, 0);
+    displayQueueModeTask(&D_map_akropolis_8017AA00, 0, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
@@ -644,7 +644,7 @@ static UiObjectDesc D_map_akropolis_8017A9E4 = {
     0,
 };
 
-/// The display-mode task `Display_InitModeObj` seeds for this map.
+/// The display-mode task `displayQueueModeTask` seeds for this map.
 static TaskDesc D_map_akropolis_8017AA00 = { { { TASK_BODY_NONE, 0xC0 } }, func_map_akropolis_80179E8C, 0 };
 
 u16 D_map_akropolis_8017AA0C[14] = {

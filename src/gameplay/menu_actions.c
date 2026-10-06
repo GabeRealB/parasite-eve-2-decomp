@@ -1020,9 +1020,9 @@ void Gp_MapTaskState2(Task* arg0)
     Gp_DrawMapMarks(arg0);
     func_800D15D0(arg0);
     if (gDisplayState.keepGraphics != 0) {
-        Display_SetDrawMode(1);
+        displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
     } else {
-        Display_SetDrawMode(0);
+        displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | PAD_BUTTON_SELECT) != 0) {
@@ -1052,7 +1052,7 @@ void Gp_MapTaskState2(Task* arg0)
                 if (func_800D1434(room, flags[room]) == 1) {
                     if ((s8)Gp_MapRoomId != room) {
                         Gp_MapRoomId = room;
-                        Display_SetDrawMode(3);
+                        displaySetTaskDrawMode(DISPLAY_TASK_DRAW_HOLD);
                         sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                         Gp_EnqueueMapRoomCd();
                         arg0->state = 1;
@@ -1069,7 +1069,7 @@ void Gp_MapTaskState2(Task* arg0)
                 if (func_800D1434(room, flags[room]) == 1) {
                     if ((s8)Gp_MapRoomId != room) {
                         Gp_MapRoomId = room;
-                        Display_SetDrawMode(3);
+                        displaySetTaskDrawMode(DISPLAY_TASK_DRAW_HOLD);
                         sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                         Gp_EnqueueMapRoomCd();
                         arg0->state = 1;
@@ -1808,7 +1808,7 @@ void Gp_MapPanelInit(Task* arg0)
         rect.w = 0x80;
         rect.y = 0;
         rect.h = 0x100;
-        Display_SetDrawMode(0);
+        displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
         StoreImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
     }
     Gp_RebuildAreaIdBits();
@@ -1921,7 +1921,7 @@ static void func_800D2020(u8 arg0)
     rect.h = 0x100;
     rect.y = 0;
     if (arg0 == 0) {
-        Display_SetDrawMode(0);
+        displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
         StoreImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
     } else {
         Gp_LoadViewImages();
@@ -2905,7 +2905,7 @@ void Gp_MapScreenTask(Task* arg0)
             gGameSession->uiOpen = 0;
             taskKill(arg0);
             Stage_ReleasePrimBuf();
-            Stage_SetEndingFlag();
+            stageRequestModeTaskExit();
         }
     }
 }
@@ -3170,25 +3170,25 @@ s32 func_800D4D2C(s32 arg0)
     *(volatile s32*)&Wip_UiHolder = 0;
     switch (val & ~0xFFFF) {
         case 0x1130000:
-            Display_InitModeObj(&D_mist_parking_8018668C, arg0, 0, 0);
+            displayQueueModeTask(&D_mist_parking_8018668C, arg0, 0, STAGE_ENTRY_RELOAD);
             break;
         case 0x21B0000:
-            Display_InitModeObj(&D_dryfield_trailer_coach_80183F84, arg0, 0, 0);
+            displayQueueModeTask(&D_dryfield_trailer_coach_80183F84, arg0, 0, STAGE_ENTRY_RELOAD);
             break;
         case 0x31B0000:
-            Display_InitModeObj(&D_dryfield_night_trailer_coach_801846D0, arg0, 0, 0);
+            displayQueueModeTask(&D_dryfield_night_trailer_coach_801846D0, arg0, 0, STAGE_ENTRY_RELOAD);
             break;
         case 0x3180000:
-            Display_InitModeObj(&D_dryfield_night_garage_80181C2C, arg0, 0, 0);
+            displayQueueModeTask(&D_dryfield_night_garage_80181C2C, arg0, 0, STAGE_ENTRY_RELOAD);
             break;
         case 0x40D0000:
-            Display_InitModeObj(&D_shelter_b1_armory_801824D0, arg0, 0, 0);
+            displayQueueModeTask(&D_shelter_b1_armory_801824D0, arg0, 0, STAGE_ENTRY_RELOAD);
             break;
         case 0x4140000:
-            Display_InitModeObj(&D_shelter_b1_underground_parking_801871F0.desc, arg0, 0, 0);
+            displayQueueModeTask(&D_shelter_b1_underground_parking_801871F0.desc, arg0, 0, STAGE_ENTRY_RELOAD);
             break;
         case 0x5040000:
-            Display_InitModeObj(&D_shelter_1f_heliport_80181188, arg0, 0, 0);
+            displayQueueModeTask(&D_shelter_1f_heliport_80181188, arg0, 0, STAGE_ENTRY_RELOAD);
             break;
         default:
             return 0;
@@ -3210,7 +3210,7 @@ s32 func_800D4E78(s32 arg0, s32 arg1, s32 arg2)
     D_80114E94 = arg2;
     D_80114E8C = arg0;
     D_80114E90 = arg1;
-    Display_InitModeObj(&D_8010F85C, arg2, 0, 0);
+    displayQueueModeTask(&D_8010F85C, arg2, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 

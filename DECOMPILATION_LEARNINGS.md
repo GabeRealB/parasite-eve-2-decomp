@@ -7300,7 +7300,7 @@ if (t->spawnArg2 == 0) {
 }
 ```
 
-`_fadeTickPulse` is the example; `Display_StepFadeOverlay` uses the same
+`_fadeTickPulse` is the example; `_stageAppendFadeOverlay` uses the same
 shape (its branch delay is a shared `lui 0xE100` because `gGpuPrimCursor`
 was already incremented).
 
@@ -11535,7 +11535,7 @@ That is 100.00%: one return block, and because `out:` is a label on the value
 store, `reorg` cannot pull the store into the `jr` delay slot — the target's
 signature is the pair of labels, one at the store and one at the `jr`, with the
 `default` path's store threaded into the dispatch branch's delay slot
-(`beq ...; addu v0,zero,zero` then `j <jr>`, the same shape as `Stage_GetFadeStatus`
+(`beq ...; addu v0,zero,zero` then `j <jr>`, the same shape as `stageGetFadeStatus`
 and `ActorsShared8013288c`, which reach it from three and two plain returns).
 A `goto` into a shared `return` is therefore not a decomp artefact here: it is
 how the source keeps one epilogue.
@@ -14173,7 +14173,7 @@ build has `div` then immediate `mflo` (and the rest of the function shifts by
 Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
 (`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
 divides that become shifts do not need this. Known TUs: `tmd.c`
-(`Mdec_StripCallback`), `sndbank.c` (`LinInterp_Setup`).
+(`_mdecImageStripCallback`), `sndbank.c` (`LinInterp_Setup`).
 
 ## Keep the `- 1` outside the div assignment for schedule
 
@@ -14205,7 +14205,7 @@ bne    v0,v1,else
 ```
 
 Also type strip counters that the target loads with `lhu` as `u16` (not `s16`),
-or you get a second `lh` and sign-extend on the index path. `Mdec_StripCallback`.
+or you get a second `lh` and sign-extend on the index path. `_mdecImageStripCallback`.
 
 ## Pin `val` to `$a0` and abs temp to `$v0` for in-place `$a1` diff
 
@@ -18496,7 +18496,7 @@ end:
     return 1;
 ```
 
-`Display_TransitionLoad` is the pure example (switch ~96.7%, shared-goto ~97.2%,
+`_stageStepFileLoadTransition` is the pure example (switch ~96.7%, shared-goto ~97.2%,
 duplicated tails + if/gotos → 100%).
 
 ## Duplicate shared RECT/field updates into both `if`/`else` arms
@@ -21533,7 +21533,7 @@ if (!(flag)) {
 
 Also: a shared `tpage` temporary tends to hoist `lui ...,0xe100` and break the
 `j`/`ori` delay-slot form; assigning the full constant in each branch avoids
-that. `Display_StepFadeOverlay` is the pure example.
+that. `_stageAppendFadeOverlay` is the pure example.
 
 ## OT index: `(idx << 2) + (s32)base` vs `base + idx`
 
@@ -21573,7 +21573,7 @@ temp    = field;
 temp    = temp + product;
 ```
 
-`Display_StepFadeOverlay` needs this for the fade-step update.
+`_stageStepFadeOverlay` needs this for the fade-step update.
 
 ## Separate vars when two loops need different register sets
 
@@ -21905,7 +21905,7 @@ p->imageDecodeStep = neg;  /* sh v0, field */
 Changing the field type to `s16` also works in isolation but can break
 already-matched functions that load the same field as `lhu` / cast through
 `(s16)`. Prefer the temporary when the field type must stay `u16`.
-`Mdec_ResolveStreamBuffer` is the pure example.
+The earlier unsigned declaration in `mdecRequestSceneImageDecode` was this example.
 
 ## Zero-pad itoa: force magic-before-`'0'` load order
 
@@ -22153,7 +22153,7 @@ Two live pointers force extra registers and scramble constant hoisting
 the second SPRT alloc). One reused `page` matches the target's `$t7` reuse and
 ~100% schedule. Prefer raw `setlen` + `page->code[0] = 0xE1000xxx` over
 `setDrawTPage` when the target stores the full GPU word as a constant (same
-pattern as `Display_StepFadeOverlay` / `_textDrawGlyphOutlinedSingleEntry`).
+pattern as `_stageAppendFadeOverlay` / `_textDrawGlyphOutlinedSingleEntry`).
 
 ## Empty `asm volatile` after field reads blocks pointer strength-reduction
 
@@ -65708,8 +65708,8 @@ a successful room test returns even when the selected room is unchanged.
 Write `if (func_800D1434(room, flags[room]) == 1)` and `task->state = 1`
 inside that arm: CSE keeps the sign-extended result across calls and reuses it
 for the store. A separate m2c `s8` result local added moves and conversions.
-Likewise, preserve `if (displayFlag) Display_SetDrawMode(1); else
-Display_SetDrawMode(0);`: building a 0/1 temporary before one call instead
+Likewise, preserve `if (displayFlag) displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM); else
+displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);`: building a 0/1 temporary before one call instead
 produced `sltu`, where the target has a branch and a shared call.
 Use a byte-array declaration for the per-stage room limit (`D_8010F130`);
 m2c's unknown-type pointer arithmetic incorrectly scaled the index by four.
@@ -78612,7 +78612,7 @@ Move the arithmetic to the join and update **one** variable in place:
 ```c
 var_v0 = arg0->spawnArg1;
 if (var_v0 < 0) {
-    Stage_SetEndingFlag();
+    stageRequestModeTaskExit();
     taskKill(arg0);
     var_v0 = arg0->spawnArg1;   /* still dead across the calls */
 }
@@ -86611,7 +86611,7 @@ subtract in the shared tail:
 ```c
     var_v0 = arg0->spawnArg1;
     if (var_v0 < 0) {
-        Stage_SetEndingFlag();
+        stageRequestModeTaskExit();
         taskKill(arg0);
         var_v0 = arg0->spawnArg1;
     }
@@ -150600,7 +150600,7 @@ constant).
 ## Removing `goto`: unsigned switch trees, range cases, and when a written-out tail does not merge (stage, cdsync, player_state, 2026-10-06)
 
 - **`beq 1; beqz; beq 2; beq 3; j default` is a four-case `switch` on an
-  unsigned index** (`Display_TransitionLoad`). Signed, the root (1) has two
+  unsigned index** (`_stageStepFileLoadTransition`). Signed, the root (1) has two
   unbounded children and the emitter splits with `slti x,2`. Unsigned, the
   left node 0 is bounded (type minimum below, the root above), so the split is
   `x < 1`, which comes out as `beqz`, and the right list `2 3` follows
@@ -150618,9 +150618,9 @@ constant).
   (`func_mist_parking_80183634`): a range node is emitted as two signed bound
   tests. `if (x >= 2 || x < 0)` folds to one `sltiu`.
 - **`li v0,-1; sh` into a field declared `u16` is an `s16` field.** The `neg`
-  local in `Mdec_ResolveStreamBuffer` was standing in for the field's type
+  local in `mdecRequestSceneImageDecode` was standing in for the field's type
   (`imageDecodeStep`); with `s16` the `(s16)` casts at its switches go too.
-  The same function's `i = 0; found = 0; key = *arg0;` in front of
+  The same function's `headerIndex = 0; headerFound = 0; requestedView = *viewId;` in front of
   `for (; i < N; i++)` fixes the order of the three initial moves.
 - **A tail written out in each arm merges only if cse knows the same things
   on every copy.** `Task_AllocIdMap`: `gStageMusicLoadState = 0xFF;

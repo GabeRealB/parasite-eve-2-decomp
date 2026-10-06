@@ -68,7 +68,7 @@ void Gp_ViewBeginLoad(Task* task)
         DrawPrim(&D_80114C50);
         ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
         if (q->scenePayloadAvailable != 0) {
-            Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
+            mdecRequestSceneImageDecode(&gGameSession->location.loc.view);
             task->state = 5;
         } else {
             D_80114C40 = streamFindMovieSlot(&gGameSession->location.loc, 0, 1);

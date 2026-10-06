@@ -34,7 +34,18 @@ extern u16* D_8006AC60;
 
 extern u16 D_8006AC6C;
 
-void Mdec_ResolveStreamBuffer(u8* arg0);
+/// Schedules the cached scene image selected by the byte at `viewId`.
+///
+/// Reads this byte only during the call. A matching, fully loaded header selects
+/// decode, actor 0/1/2 or external payload storage; shared actor storage follows
+/// its reserved VLC-table and timing prefixes. Header selectors and byte offsets
+/// must be valid for the loaded scene, and its payload and decode workspaces must
+/// remain available through completion. No allocation or capacity check occurs.
+///
+/// If the header is absent or a payload is still loading, the decoder waits and
+/// retries using the current session's view. This replaces the pending request;
+/// it does not queue an independent decode or retain the `viewId` pointer.
+void mdecRequestSceneImageDecode(const u8* viewId);
 
 u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
 

@@ -37,7 +37,7 @@ void Gp_EndWaitTask(Task* task)
             break;
         case 1:
             if (request->done != 0) {
-                Stage_SetEndingFlag();
+                stageRequestModeTaskExit();
                 taskKill(task);
             }
             break;
