@@ -606,18 +606,25 @@ static void _shelterB6GrowthRoomDrawBottomGlow(s16 heightPixels, s16 brightness)
     gpuSetPrimitiveBlendMode(gradient, GPU_BLEND_ADD, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_SORT_DEPTH);
 }
 
-/// Converts a particle's sampled direction into its signed per-tick displacement.
+/// Sets a room particle's local drift displacement from its direction and speed.
 ///
-/// Normalizes `move` in place to Q12, then multiplies by the integer speed in
-/// `step` with a 12-bit fractional shift. Borrows the live work block and changes
-/// GTE state; the speed is read after normalization and the block is not retained.
+/// `work` borrows live, writable effect storage. Its nonzero horizontal `move`
+/// is normalized to an approximate Q12 unit vector, then scaled by `step`
+/// (1..255 local coordinate units per task tick). Each component rounds down,
+/// so the displacement's length need not equal the requested speed.
+///
+/// Writes only `move.vx`, `move.vy` and `move.vz`; the vector's `pad`, `step`
+/// and the rest of the work stay intact. Reads `step` after normalization.
+/// Overwrites GTE state and retains no pointer.
 static inline void _shelterB6GrowthRoomScaleDriftVelocity(EffectWork* work)
 {
-    VectorNormalSS(&work->move, &work->move);
+    SVECTOR* driftVelocity = &work->move;
+
+    VectorNormalSS(driftVelocity, driftVelocity);
     gte_lddp(work->step);
-    gte_ldsv(&work->move);
+    gte_ldsv(driftVelocity);
     gte_gpf12();
-    gte_stsv(&work->move);
+    gte_stsv(driftVelocity);
 }
 
 void shelterB6GrowthRoomMistTask(Task* task)
