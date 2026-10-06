@@ -3708,43 +3708,25 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
     GfxCoord*        temp_s1;
     TmdObject*       temp_a1;
     Actor510900Work* temp_s2;
-    s32              one;
-    s32              sp;
 
     temp_s2 = arg1->work;
     temp_a1 = arg1->extra.tmd;
     temp_s1 = temp_a1->coords;
     if (temp_s2->activation != 0) {
-        sp  = gSceneCombatState.actorControl;
-        one = 1;
-        if (sp == one) {
-            goto case1;
+        switch (gSceneCombatState.actorControl) {
+            case SCENE_COMBAT_ACTORS_RUNNING:
+                temp_a1->flags               = 0;
+                arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+                break;
+            case SCENE_COMBAT_ACTORS_PAUSED:
+                no9GolemDrawShadow(arg1);
+                func_actor_510900_8013BC38(arg1, temp_s1);
+                return;
+            case SCENE_COMBAT_ACTORS_HIDDEN:
+                temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                return;
         }
-        if (sp >= 2) {
-            goto ge2;
-        }
-        if (sp == 0) {
-            goto case0;
-        }
-        goto default_body;
-    ge2:
-        if (sp == 2) {
-            goto case2;
-        }
-        goto default_body;
-    case0:
-        temp_a1->flags               = 0;
-        arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        goto default_body;
-    case1:
-        no9GolemDrawShadow(arg1);
-        func_actor_510900_8013BC38(arg1, temp_s1);
-        return;
-    case2:
-        temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        arg0->node.state.parts.flags = one;
-        return;
-    default_body:
         if (arg0->reactionFlags != 0) {
             func_actor_510900_8013B804(arg1);
         }
