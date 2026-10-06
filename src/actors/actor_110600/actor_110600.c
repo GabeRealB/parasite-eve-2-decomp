@@ -1933,7 +1933,6 @@ static void func_actor_110600_80135454(Task* arg0)
     TmdObject*          obj;
     Enemy*              enemy;
     GfxCoord*           coord;
-    GfxCoord*           facing;
     BossStrangerWalker* walker;
     SVECTOR             delta;
     SVECTOR*            d;
@@ -1982,9 +1981,7 @@ static void func_actor_110600_80135454(Task* arg0)
     walker->speed       = ramp;
     bossStrangerTick(walker);
     work->stateFrame++;
-    facing = arg0->extra.tmd->coords;
-    angle  = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    angle  = actorWrapAngle(angle);
+    angle = actorYawTo(arg0->extra.tmd->coords, delta.vx, d->vz);
     if (abs(angle) < 0x80) {
         if (actorOutsideRadius(&delta, 500) != 0) {
             if (actorOutsideRadius(&delta, 1000) == 0 && work->stateFrame >= 25)
