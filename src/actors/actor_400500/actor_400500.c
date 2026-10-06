@@ -3335,39 +3335,21 @@ static void func_actor_400500_80135EBC(Task* arg0)
 static void func_actor_400500_801361EC(Task* arg0)
 {
     GfxMatrix                    rot;
-    MATRIX                       local;
     GfxMatrix*                   src;
     MATRIX*                      dst;
     _Actor400500GrayStalkerWork* work;
     _Actor400500GrayStalkerWork* workA;
-    _Actor400500GrayStalkerWork* work2;
     _Actor400500GrayStalkerWork* work3;
-    _Actor400500GrayStalkerWork* work4;
     GfxCoord*                    coord;
-    GfxCoord*                    coords;
-    GfxCoord*                    coords2;
-    SVECTOR3*                    pos;
-    SVECTOR3*                    pos2;
-    SVECTOR3*                    pos3;
-    SVECTOR3*                    pos4;
-    s32                          flag;
     s32                          flag2;
     s32                          heading;
-    s32                          i;
     s32                          tx;
     s32                          playerZone;
 
     work    = (_Actor400500GrayStalkerWork*)arg0->work;
     heading = (u16)work->yaw & 0xFFF;
     coord   = arg0->extra.tmd->coords;
-    if (work->knockdownPending != 0) {
-        work->knockdownPending = 0;
-        func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag == 0) {
+    if (!_actor400500TakeKnockdown(arg0)) {
         workA = (_Actor400500GrayStalkerWork*)arg0->work;
         if (workA->ceilingFallPending != 0) {
             workA->ceilingFallPending = 0;
@@ -3384,32 +3366,8 @@ static void func_actor_400500_801361EC(Task* arg0)
             work3              = (_Actor400500GrayStalkerWork*)arg0->work;
             work3->turnRequest = ACTOR_400500_TURN_NONE;
             work3->turnStarted = 0;
-            work4              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work4->animRate    = 0x18;
-            work4->animId      = 2;
-            work4->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-            work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-            if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_BLEND) {
-                if (work2->appliedAnim != work2->animId) {
-                    work2->animFrames = 0;
-                } else {
-                    work2->animFrames = func_actor_400500_8013DD8C(arg0, work2->animFrames);
-                }
-                func_actor_400500_8013DCD4(arg0);
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING;
-            } else if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_RESET) {
-                func_actor_400500_8013DC4C(arg0);
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING;
-                work2->animFrames  = 0;
-            } else if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_PLAYING) {
-                work2->animFrames = (u16)work2->animFrames + 1;
-            }
-            i = 1;
-            do {
-                work2->rig.slots[i].rate = work2->animRate;
-                animationTickSlot(&work2->rig.anim, i);
-                i++;
-            } while (i < ARRAY_SIZE(work2->rig.slots));
+            _actor400500SetAnim(arg0, 2, 0x18);
+            _actor400500TickAnim(arg0);
             switch ((s16)((u16)work->zone - 1)) {
                 case 3:
                     if (heading == 0x400) {
@@ -3487,25 +3445,11 @@ static void func_actor_400500_801361EC(Task* arg0)
                     dst->m[2][0] = src->mat.m[2][0];
                     dst->m[2][1] = src->mat.m[2][1];
                     dst->m[2][2] = src->mat.m[2][2];
-                    pos2         = &work->anchorPos;
-                    coords       = arg0->extra.tmd->coords;
-                    actorRenderComposeCoord(&coords[11]);
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords[11].workm, &local);
-                    pos                     = pos2;
-                    pos->vx                 = local.t[0];
-                    pos->vz                 = local.t[2];
-                    coords[11].composeStamp = GRAPHICS_COORD_DIRTY;
-                    work->subState          = 1;
+                    _actor400500SampleView(arg0, 11, &work->anchorPos);
+                    work->subState = 1;
                     break;
             }
-            pos4    = &work->anchorPos;
-            coords2 = arg0->extra.tmd->coords;
-            actorRenderComposeCoord(&coords2[11]);
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coords2[11].workm, &local);
-            pos3                     = pos4;
-            pos3->vx                 = local.t[0];
-            pos3->vz                 = local.t[2];
-            coords2[11].composeStamp = GRAPHICS_COORD_DIRTY;
+            _actor400500SampleView(arg0, 11, &work->anchorPos);
         }
     }
 }
