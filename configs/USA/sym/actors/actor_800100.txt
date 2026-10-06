@@ -48,9 +48,16 @@ D_actor_800100_80167130 = 0x80167130; // size:0xD0 defined:True
 
 func_actor_800100_80161F20 = 0x80161F20; // type:func
 
-func_actor_800100_801624F0 = 0x801624F0; // type:func
+actor800100PykeFlameTask = 0x801624F0; // type:func
 _actor800100GetContactDistance = 0x8016709c; // type:func
 _pykeFlameDrawNozzle = 0x80162264; // type:func
 _pykeFlameDrawBlob = 0x80162A14; // type:func
 _pykeFlameDrawSplash = 0x80162E90; // type:func
 _pykeFlameRelease = 0x801631C8; // type:func
+_actor800100ScheduleTeardown = 0x80163bf8; // type:func
+_actor800100EnterFollowPlayer = 0x801656c8; // type:func
+_actor800100EnterTurnToPlayer = 0x801656f4; // type:func
+_actor800100EnterWander = 0x80165720; // type:func
+_actor800100CombatExitState = 0x80165818; // type:func
+_actor800100StoppedDamageState = 0x80165928; // type:func
+_actor800100EnterAttackLoop = 0x80166dd0; // type:func

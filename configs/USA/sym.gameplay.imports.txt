@@ -2049,7 +2049,7 @@ func_m4a1_pyke_8011D7D4 = 0x8011D7D4; // type:func absolute:True owner=m4a1_pyke
 
 func_actor_800100_80161F20 = 0x80161F20; // type:func absolute:True owner=actor_800100
 
-func_actor_800100_801624F0 = 0x801624F0; // type:func absolute:True owner=actor_800100
+actor800100PykeFlameTask = 0x801624F0; // type:func absolute:True owner=actor_800100
 
 func_m4a1_hammer_8011DD08 = 0x8011DD08; // type:func absolute:True owner=m4a1_hammer
 

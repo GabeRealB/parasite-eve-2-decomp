@@ -923,7 +923,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017D718, { NULL } },                          // 0x17E
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_pyke_8011D7D4, { NULL } },                                   // 0x17F
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_80161F20, { NULL } },                                // 0x180
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_801624F0, { NULL } },                                // 0x181
+    { { { TASK_BODY_COORD, 0x70 } }, actor800100PykeFlameTask, { NULL } },                                  // 0x181
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_hammer_8011DD08, { NULL } },                                 // 0x182
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinContactFlashTask, { NULL } },                               // 0x183
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_8013482C, { NULL } },                                // 0x184

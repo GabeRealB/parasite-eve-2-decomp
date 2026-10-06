@@ -76388,7 +76388,7 @@ __asm__(".section .rodata\n"
         "nonmatching D_actor_800100_80161E88\n"
         "dlabel D_actor_800100_80161E88\n"
         "    .word func_actor_800100_801658E8\n"
-        "    .word func_actor_800100_80165928\n"
+        "    .word _actor800100StoppedDamageState\n"
         "enddlabel D_actor_800100_80161E88\n"
         ".section .text");
 #endif
@@ -110794,7 +110794,7 @@ allocation one, and pinning the pointer is one line.
 
 ## A 0.99-shape sibling in another family is a template: diff the two targets, then port it
 
-`func_actor_800100_801624F0` (actors) listed `func_m4a1_pyke_8011D7D4` (weapons)
+`actor800100PykeFlameTask` (actors) listed `func_m4a1_pyke_8011D7D4` (weapons)
 at 0.99 in all three `overlay_dup_index.py similar` classes. `find` reported no
 shared body, so nothing was due for promotion - but the sibling's *matched C*
 was the answer: porting it into this overlay's own names and types matched

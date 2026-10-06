@@ -161,15 +161,15 @@ static void func_actor_800100_801652B0(Task* arg0);
 static void func_actor_800100_801655C0(Task* arg0);
 static void func_actor_800100_80165630(Task* arg0);
 static void func_actor_800100_80165664(Task* arg0);
-static void func_actor_800100_801656C8(Task* arg0);
-static void func_actor_800100_801656F4(Task* arg0);
-static void func_actor_800100_80165720(Task* arg0);
+static void _actor800100EnterFollowPlayer(Task* task);
+static void _actor800100EnterTurnToPlayer(Task* task);
+static void _actor800100EnterWander(Task* task);
 static void func_actor_800100_80165748(Task* arg0);
 static void func_actor_800100_801657D8(Task* arg0);
-static void func_actor_800100_80165818(Task* arg0);
+static void _actor800100CombatExitState(Task* task);
 static void func_actor_800100_80165850(Task* arg0);
 static void func_actor_800100_801658E8(Task* arg0);
-static void func_actor_800100_80165928(Task* arg0);
+static void _actor800100StoppedDamageState(Task* unusedTask);
 static void func_actor_800100_80165930(Task* arg0);
 static void func_actor_800100_801659EC(Task* arg0);
 static void func_actor_800100_80165C38(Task* arg0);
@@ -179,12 +179,18 @@ static void func_actor_800100_80166190(Task* arg0);
 static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1);
 static void func_actor_800100_801668C0(GfxCoord* arg0);
 static s32  func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2);
-static void func_actor_800100_80166DD0(Task* arg0);
+static void _actor800100EnterAttackLoop(Task* task);
 static void func_actor_800100_80166DF0(Task* arg0);
 static void func_actor_800100_80166E14(Task* arg0);
 void        func_actor_800100_80166E94(Task* arg0, s32 arg1);
 static void func_actor_800100_80166EE8(Task* arg0);
-static s32  _actor800100GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY);
+static s32  _actor800100GetContactDistance(const GfxCoord* originCoord, const WorldCollisionContact* contact, u16 contactZY[2]);
+
+/// Animation controller 0 leaves the behavior phase alone; turn-rate row 1 steps 64/4096 turns per tick.
+enum {
+    ACTOR_800100_ANIMATION_CONTROLLER_NONE = 0,
+    ACTOR_800100_TURN_RATE_64              = 1
+};
 
 extern u8* D_actor_800100_801672F8[];
 extern u8  D_actor_800100_80167308[];
@@ -988,7 +994,7 @@ GpuImageUpload* D_actor_800100_80167A60[2] = {
     NULL,
 };
 
-static void func_actor_800100_80163BF8(Task* arg0);
+static void _actor800100ScheduleTeardown(Task* task);
 static void func_actor_800100_80166514(Task* arg0);
 static void func_actor_800100_80166F50(Task* arg0);
 
@@ -1116,8 +1122,7 @@ void func_actor_800100_80161F20(Task* task)
 #define PYKE_FLAME_REDRAW_UPDATES_COORD 1
 #include "../../shared/pyke_flame_task.inc.c"
 
-/// Per-frame task for one flame actor_800100's Pyke throws (see pyke_flame.h).
-void func_actor_800100_801624F0(Task* task)
+void actor800100PykeFlameTask(Task* task)
 {
     _pykeFlameTask(task);
 }
@@ -1441,9 +1446,12 @@ static void func_actor_800100_80163A58(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-static void func_actor_800100_80163BF8(Task* arg0)
+/// Schedules companion teardown for the next tick of its main task.
+static void _actor800100ScheduleTeardown(Task* task)
 {
-    arg0->state = 3;
+    enum { ACTOR_800100_TASK_TEARDOWN = 3 };
+
+    task->state = ACTOR_800100_TASK_TEARDOWN;
 }
 
 static void func_actor_800100_80163C04(Task* arg0)
@@ -1487,7 +1495,7 @@ static void func_actor_800100_80163C04(Task* arg0)
 static const TaskFuncTable4 D_actor_800100_80161E3C = { {
     func_actor_800100_80163214,
     func_actor_800100_801635F4,
-    func_actor_800100_80163BF8,
+    _actor800100ScheduleTeardown,
     func_actor_800100_80163C04,
 } };
 
@@ -1522,7 +1530,7 @@ static void func_actor_800100_80163D54(Task* arg0)
         companionSetDecisionDelay(arg0, 0xA, 0x1F);
         dist = companionGetPlayerPlanarDistance(coord);
         if ((dist >= 0x600 && (rand() & 0xFF) >= 0xF1) || (dist >= 0x400 && flag != 0)) {
-            func_actor_800100_801656C8(arg0);
+            _actor800100EnterFollowPlayer(arg0);
         } else {
             count = (u16)actor->idleTicks + 1;
             do {
@@ -1533,7 +1541,7 @@ static void func_actor_800100_80163D54(Task* arg0)
                     actor->statePhase = 1;
                     playerActorPlayChildSlotsWithBlend(arg0, 0x17, 0, 5);
                 } else if ((rand() & 0xFF) >= 0xD0) {
-                    func_actor_800100_80165720(arg0);
+                    _actor800100EnterWander(arg0);
                 }
             } else {
                 val = func_8010BCF4(arg0, MATRIX_TRANS(&target->coord));
@@ -1542,7 +1550,7 @@ static void func_actor_800100_80163D54(Task* arg0)
                 }
                 if (val >= 0x200) {
                     actor->targetNode = NULL;
-                    func_actor_800100_801656F4(arg0);
+                    _actor800100EnterTurnToPlayer(arg0);
                 }
             }
         }
@@ -1567,7 +1575,7 @@ static const TaskFuncTable12 D_actor_800100_80161E58 = { {
     func_actor_800100_80164710,
     func_actor_800100_80164940,
     func_actor_800100_80164B9C,
-    func_actor_800100_80165818,
+    _actor800100CombatExitState,
     func_actor_800100_80164E60,
     func_actor_800100_80165010,
     func_actor_800100_801652B0,
@@ -2473,45 +2481,68 @@ static void func_actor_800100_80165664(Task* arg0)
     playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 6);
 }
 
-static void func_actor_800100_801656C8(Task* arg0)
+/// Clears animation-driven phase and idle-decision progress on behavior entry.
+static inline void _actor800100ResetBehaviorProgress(GameActor* actor)
 {
-    GameActor* actor;
-
-    actor                 = arg0->work;
-    actor->state          = 1;
-    actor->turnRateIndex  = 1;
-    actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->animationState = 0;
-    actor->statePhase     = 0;
-    actor->idleTicks      = 0;
-    actor->actionValue    = 0x3C;
-}
-
-static void func_actor_800100_801656F4(Task* arg0)
-{
-    GameActor* actor;
-
-    actor                 = arg0->work;
-    actor->state          = 2;
-    actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->movementMode   = 0;
-    actor->turnRateIndex  = 1;
-    actor->animationState = 0;
+    actor->animationState = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
     actor->idleTicks      = 0;
 }
 
-static void func_actor_800100_80165720(Task* arg0)
+/// Starts following the player and seeds a 60-tick movement-speed reconsideration delay.
+///
+/// Requires live `GameActor` work. The behavior chooses its movement animation
+/// on its next tick and selects a 64-angle-unit turn step (4096 per turn).
+static void _actor800100EnterFollowPlayer(Task* task)
 {
+    enum {
+        ACTOR_800100_STATE_FOLLOW_PLAYER         = 1,
+        ACTOR_800100_FOLLOW_RESELECT_DELAY_TICKS = 60
+    };
     GameActor* actor;
 
-    actor                 = arg0->work;
-    actor->state          = 0xB;
-    actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->turnRateIndex  = 1;
-    actor->animationState = 0;
-    actor->statePhase     = 0;
-    actor->idleTicks      = 0;
+    actor                = task->work;
+    actor->state         = ACTOR_800100_STATE_FOLLOW_PLAYER;
+    actor->turnRateIndex = ACTOR_800100_TURN_RATE_64;
+    actor->mode          = GAME_ACTOR_MODE_NORMAL;
+    _actor800100ResetBehaviorProgress(actor);
+    actor->actionValue = ACTOR_800100_FOLLOW_RESELECT_DELAY_TICKS;
+}
+
+/// Starts an in-place turn toward the player after the idle decision clears the target node.
+///
+/// Requires live `GameActor` work with `targetNode == NULL`. The next behavior
+/// tick selects the left/right turn animation; yaw steps by 64/4096 turns.
+static void _actor800100EnterTurnToPlayer(Task* task)
+{
+    enum {
+        ACTOR_800100_STATE_TURN_TO_PLAYER = 2,
+        ACTOR_800100_MOVEMENT_STOPPED     = 0
+    };
+    GameActor* actor;
+
+    actor                = task->work;
+    actor->state         = ACTOR_800100_STATE_TURN_TO_PLAYER;
+    actor->mode          = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode  = ACTOR_800100_MOVEMENT_STOPPED;
+    actor->turnRateIndex = ACTOR_800100_TURN_RATE_64;
+    _actor800100ResetBehaviorProgress(actor);
+}
+
+/// Starts the idle wander behavior: choose a heading, pause, then walk briefly.
+///
+/// Requires live `GameActor` work with companion probe storage. The next tick
+/// chooses the heading and turn animation; yaw steps by 64/4096 turns.
+static void _actor800100EnterWander(Task* task)
+{
+    enum { ACTOR_800100_STATE_WANDER = 11 };
+    GameActor* actor;
+
+    actor                = task->work;
+    actor->state         = ACTOR_800100_STATE_WANDER;
+    actor->mode          = GAME_ACTOR_MODE_NORMAL;
+    actor->turnRateIndex = ACTOR_800100_TURN_RATE_64;
+    _actor800100ResetBehaviorProgress(actor);
 }
 
 static void func_actor_800100_80165748(Task* arg0)
@@ -2542,13 +2573,17 @@ static void func_actor_800100_801657D8(Task* arg0)
     func_actor_800100_801659EC(arg0);
 }
 
-static void func_actor_800100_80165818(Task* arg0)
+/// Returns to idle once the combat-exit animation has advanced the behavior phase.
+///
+/// Requires the live actor and animation resources used by `companionEnterIdle`.
+static void _actor800100CombatExitState(Task* task)
 {
+    enum { ACTOR_800100_COMBAT_EXIT_WAITING = 0 };
     GameActor* actor;
 
-    actor = arg0->work;
-    if (actor->statePhase != 0) {
-        companionEnterIdle(arg0, 0);
+    actor = task->work;
+    if (actor->statePhase != ACTOR_800100_COMBAT_EXIT_WAITING) {
+        companionEnterIdle(task, false);
     }
 }
 
@@ -2557,7 +2592,7 @@ static const TaskFuncTable4 D_actor_800100_80161E88 = { {
     func_actor_800100_801658E8,
     func_actor_800100_801658E8,
     func_actor_800100_801658E8,
-    func_actor_800100_80165928,
+    _actor800100StoppedDamageState,
 } };
 
 static void func_actor_800100_80165850(Task* arg0)
@@ -2589,7 +2624,11 @@ static void func_actor_800100_801658E8(Task* arg0)
     }
 }
 
-static void func_actor_800100_80165928(Task* arg0)
+/// Keeps the stopped pose for damage-mode selector 3 without returning to idle.
+///
+/// The dispatcher still ticks animation, turning and movement. This callback
+/// ignores its task and has no side effects.
+static void _actor800100StoppedDamageState(Task* unusedTask)
 {
 }
 
@@ -2692,7 +2731,7 @@ static void func_actor_800100_801659EC(Task* arg0)
                 actor->aimTrackingState                     = GAME_ACTOR_AIM_TRACKING_TARGET;
                 actor->attackControl.cooldownTicks          = (rand() & 0x1F) + 0xF;
                 companion->activity.combat.repeatsRemaining = D_actor_800100_80167310[rand() & 7];
-                func_actor_800100_80166DD0(arg0);
+                _actor800100EnterAttackLoop(arg0);
             }
             break;
         case 2:
@@ -2751,7 +2790,7 @@ static void func_actor_800100_80165C38(Task* arg0)
             if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
                 actor->attackControl.cooldownTicks           = 0xA;
                 companion->activity.combat.repeatsRemaining -= 1;
-                func_actor_800100_80166DD0(arg0);
+                _actor800100EnterAttackLoop(arg0);
             }
             break;
     }
@@ -2793,7 +2832,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
             if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
                 actor->attackControl.cooldownTicks           = 0x12;
                 companion->activity.combat.repeatsRemaining -= 1;
-                func_actor_800100_80166DD0(arg0);
+                _actor800100EnterAttackLoop(arg0);
             }
             break;
     }
@@ -2874,7 +2913,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                 }
             }
             if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
-                func_actor_800100_80166DD0(arg0);
+                _actor800100EnterAttackLoop(arg0);
             }
             break;
     }
@@ -2993,7 +3032,7 @@ static void func_actor_800100_80166190(Task* arg0)
             if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
                 actor->attackControl.cooldownTicks          = 0xF;
                 companion->activity.combat.repeatsRemaining = (actor->attackButton == 1) ? companion->activity.combat.repeatsRemaining - 1 : 0;
-                func_actor_800100_80166DD0(arg0);
+                _actor800100EnterAttackLoop(arg0);
             }
             break;
     }
@@ -3243,14 +3282,19 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
     return i;
 }
 
-static void func_actor_800100_80166DD0(Task* arg0)
+/// Restarts the attack loop that waits for cooldown and dispatches the equipped weapon.
+///
+/// Requires live `GameActor` work. Clears both behavior phases while preserving
+/// the target, cooldown and companion attack/repetition budgets.
+static void _actor800100EnterAttackLoop(Task* task)
 {
+    enum { ACTOR_800100_STATE_ATTACK_LOOP = 5 };
     GameActor* actor;
 
-    actor                 = arg0->work;
+    actor                 = task->work;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->state          = 5;
-    actor->animationState = 0;
+    actor->state          = ACTOR_800100_STATE_ATTACK_LOOP;
+    actor->animationState = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
     actor->stateAux       = 0;
 }
@@ -3344,17 +3388,22 @@ static void func_actor_800100_80166F50(Task* arg0)
     }
 }
 
-/// Planar distance from the coordinate origin to a nonempty contact, or 0.
+/// Returns the XZ distance from a cached coordinate origin to one keyed contact.
 ///
-/// Distances use world units. Optional `contactZY` needs two halfwords and
-/// receives the signed coordinate bits (Z, Y). The original X, Y, Z stores
-/// deliberately retain their order, with Z overwriting X.
-static s32 _actor800100GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY)
+/// Requires non-NULL inputs in the same composed frame and integer game units;
+/// the origin's `workm` must already be current. Differences, absolute values,
+/// squares and their sum must fit s32. Y is ignored. A zero key returns 0,
+/// indistinguishable from a contact at the same XZ position.
+///
+/// Optional `contactZY` provides two writable halfwords. For a nonzero key it
+/// receives the signed coordinate bits (Z, Y); an empty contact leaves it alone.
+/// The X, Y, Z stores retain their order, with Z overwriting X. No pointer is retained.
+static s32 _actor800100GetContactDistance(const GfxCoord* originCoord, const WorldCollisionContact* contact, u16 contactZY[2])
 {
     s32 distance;
 
     if (contact->key.value != 0) {
-        distance = playerActorPlanarLength(coord->workm.t[0] - contact->point.vx, coord->workm.t[2] - contact->point.vz);
+        distance = playerActorPlanarLength(originCoord->workm.t[0] - contact->point.vx, originCoord->workm.t[2] - contact->point.vz);
         if (contactZY != NULL) {
             // Retain the original repeated first-halfword write.
             contactZY[0] = contact->point.vx;
