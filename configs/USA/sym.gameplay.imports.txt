@@ -794,7 +794,7 @@ func_dryfield_toilet_8017F854 = 0x8017F854; // type:func absolute:True owner=dry
 func_dryfield_trailer_coach_801838DC = 0x801838DC; // type:func absolute:True owner=dryfield_trailer_coach
 
 
-func_dryfield_warehouse_8017F494 = 0x8017F494; // type:func absolute:True owner=dryfield_warehouse
+dryfieldWarehouseDrawGlowsTask = 0x8017F494; // type:func absolute:True owner=dryfield_warehouse
 
 func_dryfield_water_hole_8017EC90 = 0x8017EC90; // type:func absolute:True owner=dryfield_water_hole shared=rooms
 

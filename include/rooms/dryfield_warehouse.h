@@ -30,7 +30,18 @@ extern SpriteView D_dryfield_warehouse_80181638[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_warehouse_80182194[];
 
-void func_dryfield_warehouse_8017F494(Task* arg0);
+/// Draws the daytime warehouse's view-selected grey prism and circular light beams.
+///
+/// `task` must have a `TASK_BODY_COORD` body with a valid coordinate whose `workm`
+/// already maps the room's light geometry to camera space; this callback borrows
+/// the coordinate without composing or changing it. Requires current view
+/// matrices, scratch storage, ordering table and packet arena.
+///
+/// Room-local views are 1..9, before camera/image remapping. View 2 draws the
+/// first beam; views 2, 3, 6 and 9 draw the prism and second beam; views 2, 3, 4
+/// and 6..9 draw the last two beams. Publishes `ROOM_EFFECT_VIEW_ENABLED` on
+/// every update, including views with no lights, to permit view-gated effects.
+void dryfieldWarehouseDrawGlowsTask(Task* task);
 
 void func_dryfield_warehouse_8017DA00(Task* task);
 

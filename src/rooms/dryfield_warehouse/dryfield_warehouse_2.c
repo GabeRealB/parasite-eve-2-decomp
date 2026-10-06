@@ -475,7 +475,7 @@ SpriteBatch D_dryfield_warehouse_801815E8[2] = {
 };
 
 static void func_dryfield_warehouse_8017DBB0(Task* arg0);
-static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2);
+static void _dryfieldWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing, s16 segmentCount);
 
 /// Message handler of the warehouse's cutscene task. Message 0 re-opens the
 /// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,
@@ -804,126 +804,144 @@ void func_dryfield_warehouse_8017E3F4(s16 arg0)
 
 #include "../../shared/glow_draw_grey_prism.inc.c"
 
-/// Draws one ring of gouraud `POLY_G4` segments between two circles in the XZ
-/// plane of `coord`: circle `arg1` of the room's centre/radius tables forms the
-/// lit edge and circle `arg1 + 1` the black one. `arg2` segments cover the full
-/// turn, starting at a phase that advances with the frame counter. Each corner
-/// is placed in `coord`'s space through its `workm`, then projected through
-/// `GsWSMATRIX`; the lit edge glows at 0x14 plus a small pulse.
-static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2)
+/// Draws a rotating, pulsing grey light beam between two circular local-space rings.
+///
+/// `firstRing` selects a lit centre/radius and the following dark centre/radius;
+/// callers select 0, 2, 4 or 6. Distances use local coordinate units. The borrowed
+/// `coord->workm` must already map these positions into camera space.
+/// `segmentCount` is 1..4096 (all callers use 8); angles use 4096 units per turn
+/// with a truncated integer step, so counts not dividing 4096 leave a gap.
+/// Local and transformed components narrow to signed 16 bits before projection.
+///
+/// Requires initialized scratch storage, view matrices, ordering table and packet
+/// arena. Queues one Gouraud quad and additive blend command per segment, fading
+/// grey `20 + (rsin(animFrame * 1024) >> 11)` to black. Sorts at the last corner's
+/// camera Z / 4 without clipping or testing projection flags.
+static void _dryfieldWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing, s16 segmentCount)
 {
-    EffectQuadCornersScratch* blk;
+    enum {
+        DRYFIELD_WAREHOUSE_BEAM_PULSE_PHASE_SHIFT = 10,
+        DRYFIELD_WAREHOUSE_BEAM_PULSE_TRIG_SHIFT  = 11,
+        DRYFIELD_WAREHOUSE_BEAM_BRIGHTNESS_BASE   = 20,
+    };
+
+    EffectQuadCornersScratch* block;
     POLY_G4*                  prim;
-    s16                       level;
-    s16                       step;
-    s16                       start;
+    s16                       brightness;
+    s16                       angleStep;
+    s16                       startAngle;
     s32                       angle;
-    s32                       next;
+    s32                       nextAngle;
 
-    level = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
+    brightness = (rsin(gDisplayState.animFrame << DRYFIELD_WAREHOUSE_BEAM_PULSE_PHASE_SHIFT) >> DRYFIELD_WAREHOUSE_BEAM_PULSE_TRIG_SHIFT) + DRYFIELD_WAREHOUSE_BEAM_BRIGHTNESS_BASE;
     SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
-    blk   = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
-    start = gDisplayState.animFrame & 0xFFF;
-    step  = 0x1000 / arg2;
+    block      = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
+    startAngle = gDisplayState.animFrame & (GLOW_FULL_TURN - 1);
+    angleStep  = GLOW_FULL_TURN / segmentCount;
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (angle = start; angle < start + step * arg2; angle = next) {
-        blk->vertices[0].vx = gGlowPrismCorners[arg1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
-        blk->vertices[0].vy = gGlowPrismCorners[arg1].vy;
-        blk->vertices[0].vz = gGlowPrismCorners[arg1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[0]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[0]);
-        blk->vertices[0].vx += coord->workm.t[0];
-        blk->vertices[0].vy += coord->workm.t[1];
-        next                 = angle + step;
-        blk->vertices[0].vz += coord->workm.t[2];
+    // Rotate a scratch corner in place, narrowing its components to signed 16 bits.
+    // Captures coord and block; vertexIndex is repeated and must be a
+    // side-effect-free index 0..3. Use only as statements in braced bodies;
+    // this binding is undefined before return.
+#define DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(vertexIndex) \
+    gte_SetRotMatrix(&coord->workm);                       \
+    gte_ldv0(&block->vertices[(vertexIndex)]);             \
+    gte_rtv0();                                            \
+    gte_stsv(&block->vertices[(vertexIndex)]);
 
-        blk->vertices[1].vx = gGlowPrismCorners[arg1].vx + ((rsin(next) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
-        blk->vertices[1].vy = gGlowPrismCorners[arg1].vy;
-        blk->vertices[1].vz = gGlowPrismCorners[arg1].vz + ((rcos(next) * D_dryfield_warehouse_8017FBAC[arg1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[1]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[1]);
-        blk->vertices[1].vx += coord->workm.t[0];
-        blk->vertices[1].vy += coord->workm.t[1];
-        blk->vertices[1].vz += coord->workm.t[2];
+    // Generate the local XZ ring pair, then place each corner in camera space.
+    for (angle = startAngle; angle < startAngle + angleStep * segmentCount; angle = nextAngle) {
+        block->vertices[0].vx = gGlowPrismCorners[firstRing].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[0].vy = gGlowPrismCorners[firstRing].vy;
+        block->vertices[0].vz = gGlowPrismCorners[firstRing].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(0);
+        block->vertices[0].vx += coord->workm.t[0];
+        block->vertices[0].vy += coord->workm.t[1];
+        nextAngle              = angle + angleStep;
+        block->vertices[0].vz += coord->workm.t[2];
 
-        blk->vertices[2].vx = gGlowPrismCorners[arg1 + 1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
-        blk->vertices[2].vy = gGlowPrismCorners[arg1 + 1].vy;
-        blk->vertices[2].vz = gGlowPrismCorners[arg1 + 1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[2]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[2]);
-        blk->vertices[2].vx += coord->workm.t[0];
-        blk->vertices[2].vy += coord->workm.t[1];
-        blk->vertices[2].vz += coord->workm.t[2];
+        block->vertices[1].vx = gGlowPrismCorners[firstRing].vx + ((rsin(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[1].vy = gGlowPrismCorners[firstRing].vy;
+        block->vertices[1].vz = gGlowPrismCorners[firstRing].vz + ((rcos(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(1);
+        block->vertices[1].vx += coord->workm.t[0];
+        block->vertices[1].vy += coord->workm.t[1];
+        block->vertices[1].vz += coord->workm.t[2];
 
-        blk->vertices[3].vx = gGlowPrismCorners[arg1 + 1].vx + ((rsin(next) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
-        blk->vertices[3].vy = gGlowPrismCorners[arg1 + 1].vy;
-        blk->vertices[3].vz = gGlowPrismCorners[arg1 + 1].vz + ((rcos(next) * D_dryfield_warehouse_8017FBAC[arg1 + 1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[3]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[3]);
-        blk->vertices[3].vx += coord->workm.t[0];
-        blk->vertices[3].vy += coord->workm.t[1];
-        blk->vertices[3].vz += coord->workm.t[2];
+        block->vertices[2].vx = gGlowPrismCorners[firstRing + 1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[2].vy = gGlowPrismCorners[firstRing + 1].vy;
+        block->vertices[2].vz = gGlowPrismCorners[firstRing + 1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(2);
+        block->vertices[2].vx += coord->workm.t[0];
+        block->vertices[2].vy += coord->workm.t[1];
+        block->vertices[2].vz += coord->workm.t[2];
 
+        block->vertices[3].vx = gGlowPrismCorners[firstRing + 1].vx + ((rsin(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[3].vy = gGlowPrismCorners[firstRing + 1].vy;
+        block->vertices[3].vz = gGlowPrismCorners[firstRing + 1].vz + ((rcos(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(3);
+        block->vertices[3].vx += coord->workm.t[0];
+        block->vertices[3].vy += coord->workm.t[1];
+        block->vertices[3].vz += coord->workm.t[2];
+
+        // Project the quad, fading its lit edge to black at the far ring.
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->vertices[0]);
+        gte_ldv0(&block->vertices[0]);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
-        gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
+        gte_ldv3(&block->vertices[1], &block->vertices[2], &block->vertices[3]);
         gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stszotz(&blk->depth);
-        setRGB0(prim, level, level, level);
-        setRGB1(prim, level, level, level);
+        gte_stszotz(&block->depth);
+        setRGB0(prim, brightness, brightness, brightness);
+        setRGB1(prim, brightness, brightness, brightness);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->depth);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
     }
+#undef DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 }
 
-/// Per-frame effect on the room's coordinate task: draws the room geometry for the
-/// current stage visit, then publishes variant 2 as the room's
-/// `gRoomEffectState->roomEffectMode` index. `Task::extra.coordBody->coord` is the
-/// coordinate every draw shares. The stage-visit byte
-/// `gGameSession->location.loc.view` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
-/// pose through `_glowDrawGreyPrism`, bit 2 (`4`) also drives
-/// `func_dryfield_warehouse_8017ED34` to step 0, those same `0x24C` visits also
-/// drive it to step 2, and bits 2, 3, 4 and 6-9 (`0x3DC`) drive it to steps 4
-/// and 6.
-void func_dryfield_warehouse_8017F494(Task* arg0)
+void dryfieldWarehouseDrawGlowsTask(Task* task)
 {
-    s32       mask;
-    s32       poseMask;
-    GfxCoord* coord;
+    enum {
+        DRYFIELD_WAREHOUSE_BEAM_SEGMENTS               = 8,
+        DRYFIELD_WAREHOUSE_FIRST_BEAM_RING             = 0,
+        DRYFIELD_WAREHOUSE_SECOND_BEAM_RING            = 2,
+        DRYFIELD_WAREHOUSE_THIRD_BEAM_RING             = 4,
+        DRYFIELD_WAREHOUSE_FOURTH_BEAM_RING            = 6,
+        DRYFIELD_WAREHOUSE_PRISM_FIRST_CORNER          = 8,
+        DRYFIELD_WAREHOUSE_FIRST_BEAM_VIEWS            = 1 << 2,
+        DRYFIELD_WAREHOUSE_PRISM_AND_SECOND_BEAM_VIEWS = (1 << 2) | (1 << 3) | (1 << 6) | (1 << 9),
+        DRYFIELD_WAREHOUSE_LAST_BEAMS_VIEWS            = (1 << 2) | (1 << 3) | (1 << 4) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9),
+    };
 
-    mask     = 1 << gGameSession->location.loc.view;
-    poseMask = mask & 0x24C;
-    coord    = arg0->extra.coordBody->coord;
-    if (poseMask != 0) {
-        _glowDrawGreyPrism(coord, 8);
+    s32             viewMask;
+    s32             prismAndSecondBeamViews;
+    const GfxCoord* coord;
+
+    viewMask                = 1 << gGameSession->location.loc.view;
+    prismAndSecondBeamViews = viewMask & DRYFIELD_WAREHOUSE_PRISM_AND_SECOND_BEAM_VIEWS;
+    coord                   = task->extra.coordBody->coord;
+    // Select visible lights with the room-local view ID, before camera remapping.
+    if (prismAndSecondBeamViews != 0) {
+        _glowDrawGreyPrism(coord, DRYFIELD_WAREHOUSE_PRISM_FIRST_CORNER);
     }
-    if (mask & 4) {
-        func_dryfield_warehouse_8017ED34(coord, 0, 8);
+    if (viewMask & DRYFIELD_WAREHOUSE_FIRST_BEAM_VIEWS) {
+        _dryfieldWarehouseDrawLightBeam(coord, DRYFIELD_WAREHOUSE_FIRST_BEAM_RING, DRYFIELD_WAREHOUSE_BEAM_SEGMENTS);
     }
-    if (poseMask != 0) {
-        func_dryfield_warehouse_8017ED34(coord, 2, 8);
+    if (prismAndSecondBeamViews != 0) {
+        _dryfieldWarehouseDrawLightBeam(coord, DRYFIELD_WAREHOUSE_SECOND_BEAM_RING, DRYFIELD_WAREHOUSE_BEAM_SEGMENTS);
     }
-    if (mask & 0x3DC) {
-        func_dryfield_warehouse_8017ED34(coord, 4, 8);
-        func_dryfield_warehouse_8017ED34(coord, 6, 8);
+    if (viewMask & DRYFIELD_WAREHOUSE_LAST_BEAMS_VIEWS) {
+        _dryfieldWarehouseDrawLightBeam(coord, DRYFIELD_WAREHOUSE_THIRD_BEAM_RING, DRYFIELD_WAREHOUSE_BEAM_SEGMENTS);
+        _dryfieldWarehouseDrawLightBeam(coord, DRYFIELD_WAREHOUSE_FOURTH_BEAM_RING, DRYFIELD_WAREHOUSE_BEAM_SEGMENTS);
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }
