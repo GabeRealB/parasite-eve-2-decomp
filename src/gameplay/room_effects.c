@@ -676,13 +676,13 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPatioFountainJetTask, { NULL } },                             // 0x087
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFountainSprayTask, { NULL } },                                // 0x088
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadWallLampTask, { NULL } },                           // 0x089
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_roof_garden_8017DE90, { NULL } },                       // 0x08A
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLightGlowTask, { NULL } },                          // 0x08A
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_sanctuary_8017F4E8, { NULL } },                         // 0x08B
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlickerLightTask, { NULL } },                       // 0x08C
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask8D, { NULL } },                                        // 0x08D
     { { { TASK_BODY_COORD, 0x70 } }, func_800FF710, { NULL } },                                             // 0x08E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPatioFountainMistTask, { NULL } },                            // 0x08F
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_roof_garden_8017E29C, { NULL } },                       // 0x090
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenFlareTask, { NULL } },                              // 0x090
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_801124B8 } },                                // 0x091
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTask92, { NULL } },                                          // 0x092
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_801809CC, { NULL } },                // 0x093
@@ -918,7 +918,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandWaterDriftTaskU16FixedCoord, { NULL } },                   // 0x179
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017EF70, { NULL } },                              // 0x17A
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017F3F8, { NULL } },                              // 0x17B
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_roof_garden_8017F10C, { NULL } },                       // 0x17C
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLeafFallTask, { NULL } },                           // 0x17C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sterilization_room_801823D8, { NULL } },               // 0x17D
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017D718, { NULL } },                          // 0x17E
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_pyke_8011D7D4, { NULL } },                                   // 0x17F

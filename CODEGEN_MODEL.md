@@ -584,7 +584,7 @@ dump does not show - you have to walk the order and keep score.
    (`CALLER_SAVE_PROFITABLE`), retry allowing call-clobbered registers. The
    value then lives in a `$t`/`$a`/`$v` register and `caller-save.c` wraps
    **every call it crosses** with `sw`/`lw` to a dedicated stack slot. This is
-   real in this codebase: `func_acropolis_roof_garden_8017E29C` keeps five
+   real in this codebase: `acropolisRoofGardenFlareTask` keeps five
    such values in `$a3 $t0 $t1 $t2 $t4`, saved to `0x30..0x40($sp)` around
    each `jal gpuSetPrimitiveBlendMode`, in both the target and the seed.
 6. Still nothing: if some register holds only local-alloc pseudos whose summed
@@ -657,7 +657,7 @@ Folklore, tested:
   `global_alloc` clears its conflicts, and the saved Replay pin probe allowed
   another live value into the same register. Keep match candidates unpinned.
 
-### 10.7 Historical example: `func_acropolis_roof_garden_8017E29C` at 99.416%
+### 10.7 Historical example: `acropolisRoofGardenFlareTask` at 99.416%
 
 The archived seed (`tools/giveups/.../base_3.c`) rebuilt in a scratch
 directory reproduces the score exactly: `regs=84 reorder=2`, everything else 0.

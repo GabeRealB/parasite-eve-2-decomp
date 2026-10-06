@@ -619,11 +619,11 @@ func_acropolis_promenade_8017F0BC = 0x8017F0BC; // type:func absolute:True owner
 
 func_acropolis_roof_garden_8017DCDC = 0x8017DCDC; // type:func absolute:True owner=acropolis_roof_garden
 
-func_acropolis_roof_garden_8017DE90 = 0x8017DE90; // type:func absolute:True owner=acropolis_roof_garden
+acropolisRoofGardenLightGlowTask = 0x8017DE90; // type:func absolute:True owner=acropolis_roof_garden
 
-func_acropolis_roof_garden_8017E29C = 0x8017E29C; // type:func absolute:True owner=acropolis_roof_garden
+acropolisRoofGardenFlareTask = 0x8017E29C; // type:func absolute:True owner=acropolis_roof_garden
 
-func_acropolis_roof_garden_8017F10C = 0x8017F10C; // type:func absolute:True owner=acropolis_roof_garden
+acropolisRoofGardenLeafFallTask = 0x8017F10C; // type:func absolute:True owner=acropolis_roof_garden
 
 func_acropolis_sanctuary_8017E00C = 0x8017E00C; // type:func absolute:True owner=acropolis_sanctuary
 

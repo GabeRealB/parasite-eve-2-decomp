@@ -22108,20 +22108,20 @@ emitted (and scheduled) first, while the remaining `a + t` still puts `a` in
 ```c
 /* target: lbu v1, 8(a3)   ← display loaded first
            lbu a0, 0x28(s0)
-           addu a0, a0, v1 ← but field_28 is the rs operand */
+           addu a0, a0, v1 ← but period is the rs operand */
 
-/* 99.7%: field_28 loads first (addu a0,a0,v0 is right, order is not) */
-lvl = (u8)mem->field_28 + ((u8)gDisplayState.animFrame & 1) * 0x10;
+/* 99.7%: period loads first (addu a0,a0,v0 is right, order is not) */
+greyLevel = (u8)work->period + ((u8)gDisplayState.animFrame & 1) * 0x10;
 
 /* 99.7%: display loads first, but addu v0,v0,a0 (display is rs) */
-lvl = ((u8)gDisplayState.animFrame & 1) * 0x10 + (u8)mem->field_28;
+greyLevel = ((u8)gDisplayState.animFrame & 1) * 0x10 + (u8)work->period;
 
 /* 100% */
-flicker = ((u8)gDisplayState.animFrame & 1) * 0x10;
-lvl     = (u8)mem->field_28 + flicker;
+flickerLevel = ((u8)gDisplayState.animFrame & 1) * 0x10;
+greyLevel    = (u8)work->period + flickerLevel;
 ```
 
-`func_acropolis_roof_garden_8017DE90` needed this. Same shape as "Jump-table
+`acropolisRoofGardenLightGlowTask` needed this. Same shape as "Jump-table
 mult: load order vs `mult` operand order", but the fix there is keeping a value
 live early rather than hoisting a whole sub-expression.
 
@@ -54335,7 +54335,7 @@ the real assembler produces.
 
 **Ground truth, and why the obvious test is not one.** The tempting check is
 "does the patched assembler score closer to the ROM?" — it does, by 9 branch
-penalties on `func_acropolis_roof_garden_8017E29C` — but that reasoning is
+penalties on `acropolisRoofGardenFlareTask` — but that reasoning is
 circular. The ROM is the *target*; validating a toolchain change by whether it
 improves the match fits the assembler to the answer, and every later function
 is then assembled by a tool that is wrong in a way nothing will catch.
@@ -148083,7 +148083,7 @@ for (partIndex = 2; partIndex < 0x10; partIndex += 8) {
 
 The same change removed an `intensitySi = intensity;` copy the first loop carried inside
 its body: `intensity` used directly gives the same hoisted extension.
-`acropolisSquareBeaconGlowTask` and `func_acropolis_roof_garden_8017E29C`
+`acropolisSquareBeaconGlowTask` and `acropolisRoofGardenFlareTask`
 take the same form.
 
 **Use.** When `.loop` shows a constant hoisted that the target keeps in the

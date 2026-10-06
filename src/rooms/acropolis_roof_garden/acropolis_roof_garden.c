@@ -61,6 +61,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/falling_leaves.h"
 #include "../../shared/actor_contacts.h"
+#include "../../shared/glow_draw.h"
 
 /// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_acropolis_roof_garden_80183BDC[];
@@ -93,6 +94,18 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
+/// Initializes a flare quad's command and colours, with vertex 2 lit and a black rim.
+///
+/// `quad` must be a stable writable POLY_G4 pointer without side effects; it is
+/// evaluated repeatedly. `red` and `green` each evaluate once, after command and
+/// rim writes, and narrow to bytes. No identifiers are captured or retained.
+#define ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, red, green) \
+    ((void)(setPolyG4((quad)),                                  \
+            setRGB0((quad), 0, 0, 0),                           \
+            setRGB1((quad), 0, 0, 0),                           \
+            setRGB2((quad), (red), (green), 0),                 \
+            setRGB3((quad), 0, 0, 0)))
+
 static void func_acropolis_roof_garden_8017DB74(Task* arg0);
 static void func_acropolis_roof_garden_8017DBEC(Task* task);
 
@@ -110,7 +123,7 @@ extern WorldCoordRoomLights   D_acropolis_roof_garden_80186BDC[1];
 extern AnimationPlayRequest     D_acropolis_roof_garden_80184ACC;
 extern AnimationPlayRequest     D_acropolis_roof_garden_80184AE0;
 extern AnimationBankCopyRequest D_acropolis_roof_garden_80184AB0;
-void                            func_acropolis_roof_garden_8017DCCC(void);
+static void                     _acropolisRoofGardenReleaseMaggotCaterpillarEntrance(void);
 
 extern AnimationPlayRequest     D_acropolis_roof_garden_80183C44;
 extern AnimationPlayRequest     D_acropolis_roof_garden_80183CCC;
@@ -131,14 +144,14 @@ static AnimationSet _gAcropolisRoofGardenAnimation04164;
 static AnimationSet _gAcropolisRoofGardenAnimation060FC;
 static AnimationSet _gAcropolisRoofGardenAnimation065F4;
 
-s32  func_acropolis_roof_garden_8017D71C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_roof_garden_8017D798(Task*, s32, s32, s32);
-s32  func_acropolis_roof_garden_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_roof_garden_8017D868(Task*, s32, s32, s32);
-s32  func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, s32);
-void func_acropolis_roof_garden_8017D5D4(Task*);
-void func_acropolis_roof_garden_8017D970(Task*);
-void func_acropolis_roof_garden_8017DA48(Task*);
+s32        func_acropolis_roof_garden_8017D71C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisRoofGardenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_acropolis_roof_garden_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_acropolis_roof_garden_8017D868(Task*, s32, s32, s32);
+s32        func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, s32);
+void       func_acropolis_roof_garden_8017D5D4(Task*);
+void       func_acropolis_roof_garden_8017D970(Task*);
+void       func_acropolis_roof_garden_8017DA48(Task*);
 
 static AnimationPackedPose _gAcropolisRoofGardenAnimation04164Bank1[38] = {
 #include "assets/acropolis_roof_garden_animation_04164_bank1.inc"
@@ -206,11 +219,13 @@ static AnimationSet _gAcropolisRoofGardenAnimation065F4 = {
     { NULL, _gAcropolisRoofGardenAnimation065F4Bank1, NULL, NULL, _gAcropolisRoofGardenAnimation065F4Bank4, NULL, NULL, NULL },
 };
 
+enum { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
 TaskMessageEntry D_acropolis_roof_garden_80183BDC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_roof_garden_8017D71C },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_roof_garden_8017D7A0 },
     { ROOM_MESSAGE_COMMAND, func_acropolis_roof_garden_8017D8AC },
-    { 5105, func_acropolis_roof_garden_8017D798 },
+    { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM, _acropolisRoofGardenRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, func_acropolis_roof_garden_8017D868 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -395,7 +410,7 @@ AnimationPlayRequest D_acropolis_roof_garden_80184AF4 = { { .index = 1 }, 9, ANI
 EvsCommand D_acropolis_roof_garden_80184B08[10] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_roof_garden_80184AB0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80184ACC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_roof_garden_8017DCCC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisRoofGardenReleaseMaggotCaterpillarEntrance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80184AE0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1152,10 +1167,15 @@ s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-/// Room script callback with nothing to do: always answers 0.
-s32 func_acropolis_roof_garden_8017D798(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in the roof garden.
+///
+/// All arguments are ignored. Returning zero selects the inventory's
+/// "No use now" notice without consuming the selected item.
+static s32 _acropolisRoofGardenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { ACROPOLIS_ROOF_GARDEN_KEY_ITEM_USE_REFUSED = 0 };
+
+    return ACROPOLIS_ROOF_GARDEN_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -1309,10 +1329,12 @@ void func_acropolis_roof_garden_8017DC74(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Room script callback: sets `gSceneCombatState.maggotCaterpillarEntranceReady` to 1.
-void func_acropolis_roof_garden_8017DCCC(void)
+/// Releases the Maggot/Caterpillar scripted entrance for the roof garden encounter.
+static void _acropolisRoofGardenReleaseMaggotCaterpillarEntrance(void)
 {
-    gSceneCombatState.maggotCaterpillarEntranceReady = 1;
+    enum { ACROPOLIS_ROOF_GARDEN_ENTRANCE_RELEASED = 1 };
+
+    gSceneCombatState.maggotCaterpillarEntranceReady = ACROPOLIS_ROOF_GARDEN_ENTRANCE_RELEASED;
 }
 
 /// Roof-garden ambient effect task. On its first frame it fires one effect per
@@ -1356,272 +1378,295 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
     }
 }
 
-/// One of the roof garden's ambient sprites. It is only drawn while the scene
-/// is still on `gRoomEffectState->effectControl` 0 or 1 and the current camera view is one
-/// the variant's mask in `D_acropolis_roof_garden_80184C48` allows; otherwise
-/// the frame is skipped entirely.
+/// Sets a light sprite's edges around its projected centre in screen pixels.
 ///
-/// When it does draw, the task's coordinate is refreshed and projected through
-/// `GsWSMATRIX` into a `RoomGlowSpriteScratch` block taken from
-/// the scratch stack, and the projected point becomes the centre of a
-/// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
-/// `scale * 0x27 / otz`, so the sprite shrinks with distance and is dropped
-/// entirely inside `otz` 0x11. `Task::spawnArg1` is unpacked once, on the first
-/// frame: bits 16..27 are the sprite's size (defaulting to 0x280 when zero),
-/// bits 8..9 pick one of three 0x28x0x27 cells across the sheet -- and, through
-/// `getClut`, the matching 16-colour palette -- and only the low nibble is
-/// kept, as the index into the view mask. The grey level is the cell's own
-/// resting level, brightened by 0x10 on odd frames so the sprite flickers.
-void func_acropolis_roof_garden_8017DE90(Task* arg0)
+/// Each edge narrows to signed 16 bits before the paired corner stores.
+static inline void _acropolisRoofGardenSetLightGlowBounds(POLY_FT4* quad, const RoomGlowSpriteScratch* projection)
 {
-    EffectWork*            mem;
+    s16 edge;
+
+    edge     = projection->screenPos.vx - projection->halfExtent;
+    quad->x2 = edge;
+    quad->x0 = edge;
+    edge     = projection->screenPos.vx + projection->halfExtent;
+    quad->x3 = edge;
+    quad->x1 = edge;
+    edge     = projection->screenPos.vy - projection->halfExtent;
+    quad->y1 = edge;
+    quad->y0 = edge;
+    edge     = projection->screenPos.vy + projection->halfExtent;
+    quad->y3 = edge;
+    quad->y2 = edge;
+}
+
+void acropolisRoofGardenLightGlowTask(Task* task)
+{
+    enum {
+        ACROPOLIS_ROOF_GARDEN_LIGHT_INITIALIZE    = 0,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK    = 0xF,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_CELL_SHIFT    = 8,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_CELL_MASK     = 3,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_CELL_COUNT    = 3,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_SCALE_SHIFT   = 16,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_SCALE_MASK    = 0xFFF,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_DEFAULT_SCALE = 640,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_FLICKER_STEP  = 16,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_CLUT_X_STRIDE = 16,
+        ACROPOLIS_ROOF_GARDEN_LIGHT_CLUT_Y        = 270,
+    };
+    EffectWork*            work;
     GfxCoord*              coord;
-    RoomGlowSpriteScratch* blk;
-    POLY_FT4*              prim;
-    s32                    param;
-    s32                    lvl;
-    s32                    flicker;
-    s16                    x;
-    s16                    y;
+    RoomGlowSpriteScratch* projection;
+    POLY_FT4*              quad;
+    s32                    greyLevel;
+    s32                    flickerLevel;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        if ((D_acropolis_roof_garden_80184C48[arg0->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1) {
+        if ((D_acropolis_roof_garden_80184C48[task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
             actorRenderComposeCoord(coord);
-            blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-            if (arg0->state == 0) {
+            projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+            if (task->state == ACROPOLIS_ROOF_GARDEN_LIGHT_INITIALIZE) {
                 // Resting grey of each sheet cell; the room only spawns cells 0..2.
-                u8 levels[3] = { 0x40, 0x60, 0x10 };
+                u8 restingLevels[ACROPOLIS_ROOF_GARDEN_LIGHT_CELL_COUNT] = { 0x40, 0x60, 0x10 };
 
-                param                 = arg0->spawnArg1.value;
-                mem->scale            = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-                mem->angle            = (arg0->spawnArg1.value >> 8) & 3;
-                arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
-                mem->period           = levels[mem->angle];
-                arg0->state++;
+                // Decode once, retaining only the view-mask index in the spawn argument.
+                if (task->spawnArg1.value & (ACROPOLIS_ROOF_GARDEN_LIGHT_SCALE_MASK << ACROPOLIS_ROOF_GARDEN_LIGHT_SCALE_SHIFT)) {
+                    work->scale = (task->spawnArg1.value >> ACROPOLIS_ROOF_GARDEN_LIGHT_SCALE_SHIFT) & ACROPOLIS_ROOF_GARDEN_LIGHT_SCALE_MASK;
+                } else {
+                    work->scale = ACROPOLIS_ROOF_GARDEN_LIGHT_DEFAULT_SCALE;
+                }
+                work->angle           = (task->spawnArg1.value >> ACROPOLIS_ROOF_GARDEN_LIGHT_CELL_SHIFT) & ACROPOLIS_ROOF_GARDEN_LIGHT_CELL_MASK;
+                task->spawnArg1.value = task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK;
+                work->period          = restingLevels[work->angle];
+                task->state++;
             }
-            blk->worldPos.vx = coord->workm.t[0];
-            blk->worldPos.vy = coord->workm.t[1];
-            blk->worldPos.vz = coord->workm.t[2];
+            // Rejected projections still consume one frame-arena quad.
+            projection->worldPos.vx = coord->workm.t[0];
+            projection->worldPos.vy = coord->workm.t[1];
+            projection->worldPos.vz = coord->workm.t[2];
             gte_SetTransMatrix(&GsWSMATRIX);
             gte_SetRotMatrix(&GsWSMATRIX);
-            gte_ldv0(&blk->worldPos);
+            gte_ldv0(&projection->worldPos);
             gte_rtps();
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            gte_stsxy(&blk->screenPos);
-            gte_stszotz(&blk->otz);
-            if (blk->otz >= 0x11) {
-                flicker     = ((u8)gDisplayState.animFrame & 1) * 0x10;
-                lvl         = (u8)mem->period + flicker;
-                prim->tpage = 0x2B;
-                setRGB0(prim, lvl, lvl, lvl);
-                prim->code |= 2;
-                prim->clut  = getClut(mem->angle * 0x10, 0x10E);
-                prim->u0    = mem->angle * 0x28;
-                prim->v0    = 0;
-                prim->u1    = mem->angle * 0x28 + 0x27;
-                prim->v1    = 0;
-                prim->u2    = mem->angle * 0x28;
-                prim->v2    = 0x27;
-                prim->u3    = mem->angle * 0x28 + 0x27;
-                prim->v3    = 0x27;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            gte_stsxy(&projection->screenPos);
+            gte_stszotz(&projection->otz);
+            if (projection->otz >= GLOW_MIN_DEPTH) {
+                flickerLevel = ((u8)gDisplayState.animFrame & 1) * ACROPOLIS_ROOF_GARDEN_LIGHT_FLICKER_STEP;
+                greyLevel    = (u8)work->period + flickerLevel;
+                quad->tpage  = GLOW_FLARE_TEXTURE_PAGE;
+                setRGB0(quad, greyLevel, greyLevel, greyLevel);
+                setSemiTrans(quad, true);
+                quad->clut = getClut(work->angle * ACROPOLIS_ROOF_GARDEN_LIGHT_CLUT_X_STRIDE, ACROPOLIS_ROOF_GARDEN_LIGHT_CLUT_Y);
+                quad->u0   = work->angle * GLOW_FLARE_CELL_STRIDE;
+                quad->v0   = 0;
+                quad->u1   = work->angle * GLOW_FLARE_CELL_STRIDE + GLOW_FLARE_CELL_LAST_TEXEL;
+                quad->v1   = 0;
+                quad->u2   = work->angle * GLOW_FLARE_CELL_STRIDE;
+                quad->v2   = GLOW_FLARE_CELL_LAST_TEXEL;
+                quad->u3   = work->angle * GLOW_FLARE_CELL_STRIDE + GLOW_FLARE_CELL_LAST_TEXEL;
+                quad->v3   = GLOW_FLARE_CELL_LAST_TEXEL;
 
-                blk->halfExtent = (mem->scale * 0x27) / blk->otz;
-                x               = blk->screenPos.vx - blk->halfExtent;
-                prim->x2        = x;
-                prim->x0        = x;
-                x               = blk->screenPos.vx + blk->halfExtent;
-                prim->x3        = x;
-                prim->x1        = x;
-                y               = blk->screenPos.vy - blk->halfExtent;
-                prim->y1        = y;
-                prim->y0        = y;
-                y               = blk->screenPos.vy + blk->halfExtent;
-                prim->y3        = y;
-                prim->y2        = y;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
+                projection->halfExtent = (work->scale * GLOW_FLARE_CELL_LAST_TEXEL) / projection->otz;
+                _acropolisRoofGardenSetLightGlowBounds(quad, projection);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        quad);
             }
             SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
         }
     }
 }
 
-/// Pulsating roof-garden flare, projected into scratch memory and drawn with
-/// Gouraud polygons and optional rays.
-void func_acropolis_roof_garden_8017E29C(Task* arg0)
+/// Initializes a flare streak with a red/green centre and black endpoints.
+///
+/// Borrows writable LINE_G3 frame-arena storage; colours narrow to bytes.
+static inline void _acropolisRoofGardenInitFlareStreak(LINE_G3* streak, u8 red, u8 green)
 {
-    GfxCoord*             coord;
-    void*                 mem;
-    RoomGlowRadiiScratch* blk;
-    POLY_G4*              prim;
-    LINE_G3*              line;
-    s32                   i;
-    s32                   pulse;
-    s32                   level;
-    s32                   h;
-    s16                   lvl;
-    s16                   flip;
-    s16                   half;
+    setLineG3(streak);
+    setRGB0(streak, 0, 0, 0);
+    setRGB1(streak, red, green, 0);
+    setRGB2(streak, 0, 0, 0);
+}
 
-    coord = arg0->extra.coordBody->coord;
-    mem   = arg0->spawnArg2.pointer;
+/// Queues a flare packet and prepends its additive draw mode at the same depth.
+///
+/// Borrows an initialized frame-arena quad or line and a separate readable Z/4
+/// depth word, at least GLOW_MIN_DEPTH. Depth wraps to ordering-table tag 0..1023.
+/// Requires arena space for a DR_TPAGE; packets stay live until GPU completion.
+static inline void _acropolisRoofGardenQueueFlare(void* primitive, const s32* sortingDepth)
+{
+    enum { ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_BYTE_OFFSET_SHIFT = 2 };
+
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                ((((u32)*sortingDepth << gDisplayState.otDepthShift) >> ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            primitive);
+    // Prepending the draw mode after the primitive makes the GPU apply it first.
+    gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, *sortingDepth);
+}
+
+void acropolisRoofGardenFlareTask(Task* task)
+{
+    enum {
+        ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_RATE_MASK      = 0xFF,
+        ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT         = 8,
+        ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_MASK          = 0xFF,
+        ACROPOLIS_ROOF_GARDEN_FLARE_GREEN_SHIFT          = 16,
+        ACROPOLIS_ROOF_GARDEN_FLARE_STREAKS              = 0x10000000,
+        ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_FALLING        = 0x80,
+        ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_LEVEL_MASK     = 0x7F,
+        ACROPOLIS_ROOF_GARDEN_FLARE_OUTER_RADIUS_SHIFT   = 10,
+        ACROPOLIS_ROOF_GARDEN_FLARE_INNER_RADIUS_SHIFT   = 7,
+        ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_RADIUS_SHIFT = 9,
+        ACROPOLIS_ROOF_GARDEN_FLARE_CIRCLE_STEPS         = 16,
+        ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_TAG_SHIFT   = 4,
+        ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TAG_MASK       = GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt),
+    };
+    GfxCoord*             coord;
+    EffectWork*           work;
+    RoomGlowRadiiScratch* projection;
+    POLY_G4*              quad;
+    LINE_G3*              streak;
+    s32                   partIndex;
+    s32                   pulsePhase;
+    s32                   pulseOrOptions; // Folded pulse level, then packed spawn options.
+    s32                   radiusScale;
+    s16                   intensity;
+    s16                   green;
+    s16                   halfIntensity;
+
+    coord = task->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    // Draw one projected frame before retiring the counted work and task.
     actorRenderComposeCoord(coord);
-    blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
-    blk->worldPos.vx = coord->workm.t[0];
-    blk->worldPos.vy = coord->workm.t[1];
-    blk->worldPos.vz = coord->workm.t[2];
+    projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
+    projection->worldPos.vx = coord->workm.t[0];
+    projection->worldPos.vy = coord->workm.t[1];
+    projection->worldPos.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->worldPos);
+    gte_ldv0(&projection->worldPos);
     gte_rtps();
-    gte_stsxy(&blk->screenPos);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
-        pulse  = gDisplayState.animFrame;
-        pulse *= arg0->spawnArg1.value & 0xFF;
-        flip   = (arg0->spawnArg1.value >> 16) & 1;
-        if (pulse & 0x80) {
-            level = ~pulse & 0x7F;
+    gte_stsxy(&projection->screenPos);
+    gte_stszotz(&projection->otz);
+    if (projection->otz >= GLOW_MIN_DEPTH) {
+        // Fold the phase into a 0..127 triangle wave, then select red or green.
+        pulsePhase  = gDisplayState.animFrame;
+        pulsePhase *= task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_RATE_MASK;
+        green       = (task->spawnArg1.value >> ACROPOLIS_ROOF_GARDEN_FLARE_GREEN_SHIFT) & 1;
+        if (pulsePhase & ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_FALLING) {
+            pulseOrOptions = ~pulsePhase & ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_LEVEL_MASK;
         } else {
-            level = pulse & 0x7F;
+            pulseOrOptions = pulsePhase & ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_LEVEL_MASK;
         }
-        lvl   = level * 2;
-        level = arg0->spawnArg1.value;
-        if (level < 0) {
-            h                = (level >> 8) & 0xFF;
-            blk->outerRadius = (h << 10) / blk->otz;
-            blk->innerRadius = (h << 7) / blk->otz;
-            for (i = 0; i < 0x10; i += 2) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, (lvl * (flip ^ 1)) >> 1, (flip * lvl) >> 1, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 12);
-                prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i]) >> 12);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 5]) >> 12);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 1]) >> 12);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 6]) >> 12);
-                prim->y3 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 2]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+        intensity      = pulseOrOptions * 2;
+        pulseOrOptions = task->spawnArg1.value;
+        if (pulseOrOptions < 0) {
+            // Layer two concentric wedge fans and four half-bright rays.
+            radiusScale             = (pulseOrOptions >> ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) & ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_MASK;
+            projection->outerRadius = (radiusScale << ACROPOLIS_ROOF_GARDEN_FLARE_OUTER_RADIUS_SHIFT) / projection->otz;
+            projection->innerRadius = (radiusScale << ACROPOLIS_ROOF_GARDEN_FLARE_INNER_RADIUS_SHIFT) / projection->otz;
+            for (partIndex = 0; partIndex < ACROPOLIS_ROOF_GARDEN_FLARE_CIRCLE_STEPS; partIndex += 2) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, (intensity * (green ^ 1)) >> 1, (green * intensity) >> 1);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 5]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 1]) >> GLOW_TRIG_SHIFT);
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 6]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 2]) >> GLOW_TRIG_SHIFT);
+                _acropolisRoofGardenQueueFlare(quad, &projection->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, lvl * (flip ^ 1), flip * lvl, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 13);
-                prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i]) >> 13);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 5]) >> 13);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 1]) >> 13);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 6]) >> 13);
-                prim->y3 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 2]) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, intensity * (green ^ 1), green * intensity);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
+                _acropolisRoofGardenQueueFlare(quad, &projection->otz);
             }
-            half = lvl >> 1;
-            for (i = 2; i < 0x10; i += 8) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, half * (flip ^ 1), flip * half, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i]) >> 12);
-                prim->y0 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i - 4]) >> 12);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 11);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i]) >> 11);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i + 8]) >> 12);
-                prim->y3 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            // The first ray retains a Y-sample lookup at index -2.
+            halfIntensity = intensity >> 1;
+            for (partIndex = 2; partIndex < ACROPOLIS_ROOF_GARDEN_FLARE_CIRCLE_STEPS; partIndex += 8) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, halfIntensity * (green ^ 1), green * halfIntensity);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex - 4]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                _acropolisRoofGardenQueueFlare(quad, &projection->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, half * (flip ^ 1), flip * half, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 13);
-                prim->y0 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i]) >> 13);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 8]) >> 12);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_roof_garden_80184C5C[i + 4]) >> 12);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i + 12]) >> 13);
-                prim->y3 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_roof_garden_80184C5C[i + 8]) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, halfIntensity * (green ^ 1), green * halfIntensity);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 12]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_roof_garden_80184C5C[partIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
+                _acropolisRoofGardenQueueFlare(quad, &projection->otz);
             }
         } else {
-            blk->outerRadius = (((level >> 8) & 0xFF) << 9) / blk->otz;
-            for (i = 0; i < 2; i++) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, lvl * (flip ^ 1), flip * lvl, 0);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx - blk->outerRadius;
-                prim->x1 = prim->x2 = blk->screenPos.vx;
-                prim->x3            = blk->screenPos.vx + blk->outerRadius;
-                prim->y0 = prim->y2 = prim->y3 = blk->screenPos.vy;
-                prim->y1                       = (blk->screenPos.vy - blk->outerRadius) + blk->outerRadius * (i + i);
-                addPrim((&gGpuCurrentOt[((u32)blk->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            projection->outerRadius = (((pulseOrOptions >> ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) & ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_MASK) << ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
+            for (partIndex = 0; partIndex < 2; partIndex++) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, intensity * (green ^ 1), green * intensity);
+                quad->x0 = projection->screenPos.vx - projection->outerRadius;
+                quad->x1 = quad->x2 = projection->screenPos.vx;
+                quad->x3            = projection->screenPos.vx + projection->outerRadius;
+                quad->y0 = quad->y2 = quad->y3 = projection->screenPos.vy;
+                quad->y1                       = (projection->screenPos.vy - projection->outerRadius) + projection->outerRadius * (partIndex + partIndex);
+                addPrim((&gGpuCurrentOt[((u32)projection->otz << gDisplayState.otDepthShift) >> ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_TAG_SHIFT & ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TAG_MASK]),
+                        quad);
+                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz);
             }
-            if (arg0->spawnArg1.value & 0x10000000) {
-                for (i = 0; i < 2; i++) {
-                    line           = gGpuPrimCursor;
-                    gGpuPrimCursor = line + 1;
-                    setLineG3(line);
-                    setRGB0(line, 0, 0, 0);
-                    setRGB1(line, lvl * (flip ^ 1), flip * lvl, 0);
-                    setRGB2(line, 0, 0, 0);
-                    line->x0 = blk->screenPos.vx + blk->outerRadius * (i * 3 - 1);
-                    line->y0 = blk->screenPos.vy - blk->outerRadius * (i + 1);
-                    line->x1 = blk->screenPos.vx;
-                    line->y1 = blk->screenPos.vy;
-                    line->x2 = blk->screenPos.vx - blk->outerRadius * (i * 3 - 1);
-                    line->y2 = blk->screenPos.vy + blk->outerRadius * (i + 1);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            line);
-                    gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, blk->otz);
+            // Optional streaks cross at the diamond centre.
+            if (task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_FLARE_STREAKS) {
+                for (partIndex = 0; partIndex < 2; partIndex++) {
+                    streak         = gGpuPrimCursor;
+                    gGpuPrimCursor = streak + 1;
+                    _acropolisRoofGardenInitFlareStreak(streak, intensity * (green ^ 1), green * intensity);
+                    streak->x0 = projection->screenPos.vx + projection->outerRadius * (partIndex * 3 - 1);
+                    streak->y0 = projection->screenPos.vy - projection->outerRadius * (partIndex + 1);
+                    streak->x1 = projection->screenPos.vx;
+                    streak->y1 = projection->screenPos.vy;
+                    streak->x2 = projection->screenPos.vx - projection->outerRadius * (partIndex * 3 - 1);
+                    streak->y2 = projection->screenPos.vy + projection->outerRadius * (partIndex + 1);
+                    _acropolisRoofGardenQueueFlare(streak, &projection->otz);
                 }
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowRadiiScratch);
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
+
+#undef ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD
 
 #include "../../shared/falling_leaves_task.inc.c"
 
-/// The room's falling-leaf task, named by gameplay's effect table.
-void func_acropolis_roof_garden_8017F10C(Task* task)
+void acropolisRoofGardenLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
