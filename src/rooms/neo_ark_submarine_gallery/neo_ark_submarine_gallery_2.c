@@ -1021,16 +1021,24 @@ void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 #define GLOW_DRAW_DISC_PULL 0x40
 #include "../../shared/glow_draw_disc.inc.c"
 
-/// Projects a prepared prism quad and records its final visibility flags.
+/// Projects one face of the gallery's light prism into screen pixels.
 ///
-/// Borrows a live, word-aligned `EffectQuadScratch` with all corner XYZ values
-/// initialized in `GsWSMATRIX`'s input space. Its translation and the GTE
-/// projection must already be loaded. Writes all screen corners and the RTPT
-/// FLAG, discarding the first corner's RTPS FLAG. Leaves corner 3's SZ3 in the
-/// GTE for the caller's depth read; changes GTE state and retains no pointer.
+/// `quadScratch` borrows a live, writable, word-aligned `EffectQuadScratch`.
+/// Initialize all four vertices' XYZ components as signed 16-bit positions
+/// in `GsWSMATRIX`'s input space, in GPU quad strip order. Loads that matrix's
+/// Q12 rotation; its translation and the GTE projection settings must already
+/// be loaded.
+///
+/// Writes all four `screenCorners` and the final RTPT `projectionFlags`, even
+/// when projection fails. Corner 0's RTPS flags are discarded; the caller
+/// rejects a negative final FLAG. Leaves `vertices` and `depth` untouched,
+/// with corner 3's depth in GTE SZ3 for reading before another depth-changing
+/// GTE command. GTE state is not restored. Reserves no storage and retains no
+/// pointer.
 static inline void _neoArkSubmarineGalleryProjectPrismQuad(EffectQuadScratch* quadScratch)
 {
     gte_SetRotMatrix(&GsWSMATRIX);
+    // Save corner 0 before the triple transform replaces the screen FIFO.
     gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
     gte_stsxy(&quadScratch->screenCorners[0]);
