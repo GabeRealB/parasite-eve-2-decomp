@@ -2135,6 +2135,18 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
 
 #include "../../shared/desert_chaser_hit_effect.inc.c"
 
+/// Starts the sound script `script` for this enemy's placement at the actor's
+/// position.
+static inline void Actor00100_PlaySound(Task* task, Enemy* enemy, s32 script)
+{
+    s32 sound;
+    s32 pan;
+
+    sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | script;
+    pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+}
+
 static void Actor00100_Fn0375C(Task* arg0)
 {
     PlayerStatus*              config = &gPlayerStatus;
@@ -2155,17 +2167,10 @@ static void Actor00100_Fn0375C(Task* arg0)
     s16                        nextState;
     s16                        wrapped;
     s32                        yaw;
-    s32                        deathSound;
-    s32                        hurtSound;
-    s32                        hitSound;
     s32                        distance;
     s32                        dx;
     s32                        dy;
     s32                        dz;
-    s32                        soundBase;
-    s32                        deathPan;
-    s32                        hurtPan;
-    s32                        hitPan;
     u16                        totalDamage;
     u32                        tickDamage;
     u32                        doubleDamage;
@@ -2328,33 +2333,24 @@ static void Actor00100_Fn0375C(Task* arg0)
                 } else {
                     deathState = work->state;
                     if ((deathState == 0x21) || (deathState == 0x11) || (deathState == 0xB) || (deathState == 7) || (deathState == 4)) {
-                        soundBase       = 0x40010008;
                         work->state     = 7;
                         work->prevState = -1;
-                        goto playHitSound;
+                        Actor00100_PlaySound(arg0, ctx, 0x40010008);
+                    } else {
+                        Actor00100_PlaySound(arg0, ctx, 0x40010008);
+                        work->state = 0x14;
                     }
-                    deathSound = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
-                    deathPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    sndEvtRequestScriptStart(deathSound, (s32)deathPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-                    work->state = 0x14;
                 }
             } else if ((s16)totalDamage >= 0x47) {
                 hurtState = work->state;
                 if ((hurtState != 4) && (hurtState != 0x14) && (hurtState != 7) && (hurtState != 0xB) && (hurtState != 0x11)) {
-                    hurtSound = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
-                    hurtPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    sndEvtRequestScriptStart(hurtSound, (s32)hurtPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    Actor00100_PlaySound(arg0, ctx, 0x40010008);
                     work->state = 0x14;
                 } else {
-                    goto normalHitSound;
+                    Actor00100_PlaySound(arg0, ctx, 0x40010007);
                 }
             } else {
-            normalHitSound:
-                soundBase = 0x40010007;
-            playHitSound:
-                hitSound = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
-                hitPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                sndEvtRequestScriptStart(hitSound, (s32)hitPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                Actor00100_PlaySound(arg0, ctx, 0x40010007);
             }
         }
         if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
