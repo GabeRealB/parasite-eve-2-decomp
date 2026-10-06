@@ -35,11 +35,11 @@ static inline void screenNegativeCaptureTask(Task* task)
                     }
                 }
                 gDisplayState.skipDraw = 1;
-                goto advance;
+                task->state++;
+                break;
             case 1:
                 DrawSync(0);
                 screenNegativeFilter();
-            advance:
                 task->state++;
                 break;
             case 2:
