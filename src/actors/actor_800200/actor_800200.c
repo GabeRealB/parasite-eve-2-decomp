@@ -881,41 +881,6 @@ static void func_actor_800200_80163F5C(Task* arg0);
 static void func_actor_800200_80164180(Task* arg0);
 static void func_actor_800200_8016436C(Task* arg0);
 static void func_actor_800200_80164598(Task* arg0);
-/// Starts the wait of `func_actor_800200_801647A8`: with a lockable target in
-/// a battle, a random delay that grows with the distance to it; otherwise one
-/// that shrinks with the distance to the player, no shorter than 0x60 frames.
-static inline void _actor800200StartWait(Task* task, GameActor* actor, GfxCoord* coord, VECTOR3* vec)
-{
-    WorldTargetNode* node;
-    s32              dist;
-    s32              value;
-
-    if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        node              = Gp_FindLockNode(task);
-        actor->targetNode = node;
-        if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            Gp_GetLockPos(node, vec);
-            dist = playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec);
-            dist = dist / 640;
-            if (dist >= 8) {
-                dist = 7;
-            }
-            actor->stateTimer = (rand() & 0x7F) + (dist << 5);
-            return;
-        }
-    }
-    dist = companionGetPlayerPlanarDistance(coord);
-    dist = dist / 640;
-    if (dist >= 8) {
-        dist = 7;
-    }
-    value             = (rand() & 0x1FF) - (dist * 0x30);
-    actor->stateTimer = value;
-    if (value < 0x60) {
-        actor->stateTimer = 0x60;
-    }
-}
-
 static void func_actor_800200_801647A8(Task* arg0);
 static void func_actor_800200_801649D8(Task* arg0);
 static void func_actor_800200_80164C54(Task* arg0);
@@ -2217,6 +2182,41 @@ static void func_actor_800200_80164598(Task* arg0)
             break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
+}
+
+/// Starts the wait of `func_actor_800200_801647A8`: with a lockable target in
+/// a battle, a random delay that grows with the distance to it; otherwise one
+/// that shrinks with the distance to the player, no shorter than 0x60 frames.
+static inline void _actor800200StartWait(Task* task, GameActor* actor, GfxCoord* coord, VECTOR3* vec)
+{
+    WorldTargetNode* node;
+    s32              dist;
+    s32              value;
+
+    if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+        node              = Gp_FindLockNode(task);
+        actor->targetNode = node;
+        if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+            Gp_GetLockPos(node, vec);
+            dist = playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec);
+            dist = dist / 640;
+            if (dist >= 8) {
+                dist = 7;
+            }
+            actor->stateTimer = (rand() & 0x7F) + (dist << 5);
+            return;
+        }
+    }
+    dist = companionGetPlayerPlanarDistance(coord);
+    dist = dist / 640;
+    if (dist >= 8) {
+        dist = 7;
+    }
+    value             = (rand() & 0x1FF) - (dist * 0x30);
+    actor->stateTimer = value;
+    if (value < 0x60) {
+        actor->stateTimer = 0x60;
+    }
 }
 
 static void func_actor_800200_801647A8(Task* arg0)
