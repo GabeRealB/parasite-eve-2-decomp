@@ -2483,17 +2483,9 @@ void func_800FAA14(Task* arg0)
                                            ((u16)(Gp_StateC08.attachId % 10U) - 1U)];
     }
     actorRenderComposeCoord(coord);
-    if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        goto kill;
-    }
-    if (Gp_StateC08.duration == 0) {
-        goto kill;
-    }
-    if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-        goto kill;
-    }
-    if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY) {
-    kill:
+    if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.duration == 0 ||
+        Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+        (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && (u16)(Gp_StateC08.attachId / 10U) != ATTACHMENT_ID_HEALING_FAMILY)) {
         if (arg0->spawnArg1.value != 0) {
             sndEvtRequestScriptStop(arg0->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
@@ -3088,7 +3080,9 @@ void Gp_EffCtlTaskAC(Task* arg0)
         if (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto kill;
+        sndEvtRequestScriptStop(SOUND_ANTIBODY_AURA_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        effectKillTask(mem, arg0);
+        return;
     }
 
     mem->age++;
@@ -3117,20 +3111,12 @@ void Gp_EffCtlTaskAC(Task* arg0)
     effectDrawGouraudDisc(coord, mem->period, rgb);
     effectDrawGouraudDisc(coord, (s16)(mem->period << 1), rgb);
 
-    if (Gp_StateC08.antibodyTicks == 0) {
-        goto kill;
+    if (Gp_StateC08.antibodyTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ANTIBODY_AURA) ||
+        gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
+        sndEvtRequestScriptStop(SOUND_ANTIBODY_AURA_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        effectKillTask(mem, arg0);
+        return;
     }
-    if (!(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ANTIBODY_AURA)) {
-        goto kill;
-    }
-    if (gRoomEffectState->battleState == ROOM_EFFECT_BATTLE_ENGAGED) {
-        goto continue_fx;
-    }
-kill:
-    sndEvtRequestScriptStop(SOUND_ANTIBODY_AURA_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    effectKillTask(mem, arg0);
-    return;
-continue_fx:
     saved = mem->step;
     if (gPlayerStatus.hp < saved) {
         if (!(gPlayerStatus.statusFlags & (PLAYER_STATUS_BERSERKER | PLAYER_STATUS_POISON)) && (mem->angle < 0xA0)) {
