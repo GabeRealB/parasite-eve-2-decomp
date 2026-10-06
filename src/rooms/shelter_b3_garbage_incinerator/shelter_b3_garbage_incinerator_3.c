@@ -1896,19 +1896,29 @@ ScreenWaveGridOscillator gScreenWaveRows[30];
 
 POLY_FT4 gScreenWaveGrid[2][30][8];
 
-/// Draws one warning lamp and the adjacent pair of grey lamps at their room points.
+/// Draws the layered warning glow and two grey lamp discs beside it.
 ///
-/// Borrows live effect work; `scale` supplies the warning's packed colour.
-/// Requires the same composed view, scratch and packet state as the light task.
-static inline void _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(const EffectWork* work)
+/// `warningColor` packs RGB nibbles in bits 8..11, 4..7 and 0..3; a nonzero
+/// high nibble selects the odd-frame intensity shift, while zero selects a
+/// sine pulse at 128 angle units per animation frame (4096 per turn).
+/// All three glows use radius scale 512: the disc/outer glow radius is
+/// `512 * 64 / depth` pixels, where depth is camera Z / 4.
+/// Requires composed view matrices, initialized scratch and a current packet
+/// arena/ordering table. Each accepted point must have nonzero projected depth;
+/// queued additive packets live in the frame arena until GPU completion.
+static inline void _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(u16 warningColor)
 {
     enum {
-        SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE = 0x80,
-        SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP         = 0x3444,
+        SHELTER_B3_GARBAGE_INCINERATOR_WARNING_LAMP_POINT     = 0,
+        SHELTER_B3_GARBAGE_INCINERATOR_FIRST_GREY_LAMP_POINT  = 9,
+        SHELTER_B3_GARBAGE_INCINERATOR_SECOND_GREY_LAMP_POINT = 10,
+        SHELTER_B3_GARBAGE_INCINERATOR_LAMP_RADIUS_SCALE      = 512,
+        SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE      = 0x80,
+        SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP              = 0x3444,
     };
-    _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE);
-    glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[9], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
-    glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[10], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
+    _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[SHELTER_B3_GARBAGE_INCINERATOR_WARNING_LAMP_POINT], SHELTER_B3_GARBAGE_INCINERATOR_LAMP_RADIUS_SCALE, warningColor, SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE);
+    glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[SHELTER_B3_GARBAGE_INCINERATOR_FIRST_GREY_LAMP_POINT], SHELTER_B3_GARBAGE_INCINERATOR_LAMP_RADIUS_SCALE, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
+    glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[SHELTER_B3_GARBAGE_INCINERATOR_SECOND_GREY_LAMP_POINT], SHELTER_B3_GARBAGE_INCINERATOR_LAMP_RADIUS_SCALE, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
 }
 
 void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
@@ -2034,7 +2044,7 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
         case 0x06:
         case 0x1A:
         case 0x23:
-            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work);
+            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work->scale);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[19], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
@@ -2059,7 +2069,7 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
         case 0x07:
         case 0x1B:
         case 0x24:
-            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work);
+            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work->scale);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
@@ -2129,7 +2139,7 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
             /* fallthrough */
         case 0x1E:
         case 0x26:
-            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work);
+            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work->scale);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
             break;
         case 0x0B:
@@ -2155,7 +2165,7 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
             _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[51], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x0E:
-            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work);
+            _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work->scale);
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
             break;
         case 0x0F:
@@ -2585,22 +2595,26 @@ static void _shelterB3GarbageIncineratorSetVariant2Walls(void)
 #undef SHELTER_B3_GARBAGE_INCINERATOR_INIT_WALL_FACE
 }
 
-/// Initializes one exit wall face to four vertices, its normal and surface class 1.
+/// Links one exit collision quad to its consecutive vertices and normal.
 ///
-/// Borrows a writable face pool containing `faceIndex` (0..5). The matching
-/// vertex and normal pools must contain four vertices and one normal per wall.
-static inline void _shelterB3GarbageIncineratorInitExitWallFace(WorldCollisionGridFace* faces, s16 faceIndex)
+/// Borrows one writable face. `faceIndex` is the wall's grid slot (0..5): its
+/// vertices are `4 * faceIndex` through `4 * faceIndex + 3`, and its normal
+/// index is `faceIndex`. The caller initializes those vertices and the unit
+/// normal separately in the room's live grid. Surface class 1 passes probes,
+/// ignores weapon impacts and applies pushback. Leaves vertex/normal pools and
+/// cell lists untouched.
+static inline void _shelterB3GarbageIncineratorInitExitWallFace(WorldCollisionGridFace* face, s16 faceIndex)
 {
     enum {
         SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT         = 4,
         SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS = 1,
     };
-    faces[faceIndex].vertexIndices[1] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1;
-    faces[faceIndex].vertexIndices[0] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT;
-    faces[faceIndex].vertexIndices[2] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2;
-    faces[faceIndex].vertexIndices[3] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3;
-    faces[faceIndex].surfaceClass     = SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS;
-    faces[faceIndex].normalIndex      = faceIndex;
+    face->vertexIndices[1] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1;
+    face->vertexIndices[0] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT;
+    face->vertexIndices[2] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2;
+    face->vertexIndices[3] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3;
+    face->surfaceClass     = SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS;
+    face->normalIndex      = faceIndex;
 }
 
 void shelterB3GarbageIncineratorSetExitCollisionWalls(void)
@@ -2633,7 +2647,7 @@ void shelterB3GarbageIncineratorSetExitCollisionWalls(void)
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vz = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3].vz = D_shelter_b3_garbage_incinerator_8018FBCC[faceIndex][3];
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT].vy                                                                                    -= SHELTER_B3_GARBAGE_INCINERATOR_LOW_WALL_HEIGHT;
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vy                                                                                -= SHELTER_B3_GARBAGE_INCINERATOR_LOW_WALL_HEIGHT;
-        _shelterB3GarbageIncineratorInitExitWallFace(faces, faceIndex);
+        _shelterB3GarbageIncineratorInitExitWallFace(&faces[faceIndex], faceIndex);
         normal.vx = D_shelter_b3_garbage_incinerator_8018FBCC[faceIndex][3] - D_shelter_b3_garbage_incinerator_8018FBCC[faceIndex][1];
         normal.vy = 0;
         normal.vz = D_shelter_b3_garbage_incinerator_8018FBCC[faceIndex][0] - D_shelter_b3_garbage_incinerator_8018FBCC[faceIndex][2];
@@ -2643,22 +2657,26 @@ void shelterB3GarbageIncineratorSetExitCollisionWalls(void)
     } while (faceIndex < (s32)ARRAY_SIZE(D_shelter_b3_garbage_incinerator_8018FBCC));
 }
 
-/// Initializes one lift wall face to four vertices, its normal and surface class 1.
+/// Links one lift collision quad to its consecutive vertices and normal.
 ///
-/// Borrows a writable face pool containing `faceIndex` (0..5). The matching
-/// vertex and normal pools must contain four vertices and one normal per wall.
-static inline void _shelterB3GarbageIncineratorInitLiftWallFace(WorldCollisionGridFace* faces, s16 faceIndex)
+/// Borrows one writable face for either the low or arrival-height lift layout.
+/// `faceIndex` is the wall's grid slot (0..5): its vertices are `4 * faceIndex`
+/// through `4 * faceIndex + 3`, and its normal index is `faceIndex`. The caller
+/// initializes those vertices and the unit normal separately in the live grid.
+/// Surface class 1 passes probes, ignores weapon impacts and applies pushback.
+/// Leaves vertex/normal pools and cell lists untouched.
+static inline void _shelterB3GarbageIncineratorInitLiftWallFace(WorldCollisionGridFace* face, s16 faceIndex)
 {
     enum {
         SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT         = 4,
         SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS = 1,
     };
-    faces[faceIndex].vertexIndices[1] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1;
-    faces[faceIndex].vertexIndices[0] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT;
-    faces[faceIndex].vertexIndices[2] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2;
-    faces[faceIndex].vertexIndices[3] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3;
-    faces[faceIndex].normalIndex      = faceIndex;
-    faces[faceIndex].surfaceClass     = SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS;
+    face->vertexIndices[1] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1;
+    face->vertexIndices[0] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT;
+    face->vertexIndices[2] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2;
+    face->vertexIndices[3] = faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3;
+    face->normalIndex      = faceIndex;
+    face->surfaceClass     = SHELTER_B3_GARBAGE_INCINERATOR_PASS_PROBES_SURFACE_CLASS;
 }
 
 void shelterB3GarbageIncineratorSetLiftCollisionWalls(void)
@@ -2691,7 +2709,7 @@ void shelterB3GarbageIncineratorSetLiftCollisionWalls(void)
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vz = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3].vz = D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][3];
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT].vy                                                                                    -= SHELTER_B3_GARBAGE_INCINERATOR_LOW_WALL_HEIGHT;
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vy                                                                                -= SHELTER_B3_GARBAGE_INCINERATOR_LOW_WALL_HEIGHT;
-        _shelterB3GarbageIncineratorInitLiftWallFace(faces, faceIndex);
+        _shelterB3GarbageIncineratorInitLiftWallFace(&faces[faceIndex], faceIndex);
         normal.vx = D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][3] - D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][1];
         normal.vy = 0;
         normal.vz = D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][0] - D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][2];
@@ -2732,7 +2750,7 @@ void shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls(void)
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 1].vy                                                                                += SHELTER_B3_GARBAGE_INCINERATOR_ARRIVAL_WALL_Y0;
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2].vy                                                                                += SHELTER_B3_GARBAGE_INCINERATOR_ARRIVAL_WALL_Y1;
         vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 3].vy                                                                                += SHELTER_B3_GARBAGE_INCINERATOR_ARRIVAL_WALL_Y1;
-        _shelterB3GarbageIncineratorInitLiftWallFace(faces, faceIndex);
+        _shelterB3GarbageIncineratorInitLiftWallFace(&faces[faceIndex], faceIndex);
         normal.vx = D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][3] - D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][1];
         normal.vy = 0;
         normal.vz = D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][0] - D_shelter_b3_garbage_incinerator_8018FBFC[faceIndex][2];
