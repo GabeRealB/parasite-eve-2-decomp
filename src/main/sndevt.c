@@ -1440,7 +1440,8 @@ static void Midi_DriveTrack(_MidiSong* song, _MidiTrack* track)
                 track->eventCursor    = Midi_EventFns[1](track->runningChannel | 0x90, track->eventCursor - 1, song, track);
             }
             if (track->ended != false) {
-                goto end;
+                track->ticksUntilEvent -= ticks;
+                return;
             }
             if (track->eventCursor == NULL) {
                 track->nrpnMsb      = MIDI_TRACK_NRPN_IDLE;
@@ -1452,7 +1453,6 @@ static void Midi_DriveTrack(_MidiSong* song, _MidiTrack* track)
             track->eventCursor    += len;
         } while (track->ticksUntilEvent == 0);
     }
-end:
     track->ticksUntilEvent -= ticks;
 }
 
