@@ -150670,3 +150670,62 @@ value computed before the preceding test is the one thing it leaves alone.
 The earlier attempts all kept the compare inside the `if` because the existing
 body had it there; the m2c seed has it there too, so this came from the
 allocation measurement (`.greg` order, refs / live length), not from the seed.
+
+## Unresolved, with the fence and the register both pinned to their passes: a counter's `lw/addiu/sw` above a call's argument moves (func_actor_450900_8013207C, 2026-10-06)
+
+Dated note on the 2026-10-05 entry "Unresolved, with the mechanism measured:
+three actor barriers": its two findings stand, and this adds the numbers, a
+third fence, and what the target forces on the source. The `SCHED_BARRIER()`
+was left in place.
+
+Target, in the `rem == 0x46` arm: `lui v0,%hi(D)` / `lw v1` / `nop` /
+`addiu v1,v1,1` / `sw v1` / `move a0,s2` / `li a1,0x3F1` / `move a2,zero` /
+`jal` / `move a3,zero`. Of the 26 `lw/addiu ±1/sw` sites on a `%lo` global in
+the split assembly this is the only one with the value in `$v1` and the `%hi` in
+`$v0`, and its load delay is an unfilled `nop` although three independent
+moves follow.
+
+**The order (traced with `tools/trace_gcc.py`).** `priority()` in `sched.c` is
+the longest latency-weighted path from the *start* of the block through
+`LOG_LINKS`. The load costs 2, so `addiu` and `sw` have priority 2; an argument
+move has no predecessor and has priority 1. Scheduling backward, `sw` and
+`addiu` are taken first and land beside the call, the moves go above the load.
+Three consequences:
+
+- The same priorities are recomputed in **sched2**, so a source that only fixes
+  sched1 (a multi-set variable that is not launched by `birthing_insn_p`) still
+  loses the order after reload. The fence has to survive reload.
+- The store's priority drops to 1 only if the load is not in its block, and the
+  moves cannot rise to 2 (nothing they read or write is touched earlier in the
+  block). So the target's block held either a fence or a block boundary.
+- `volatile` on the global is **not** a fence: `mem/v` only orders volatile
+  references against each other (`sched.c:824`). Built: identical to plain.
+
+Fences that emit nothing: an `asm`, a loop note (`do { } while (0)`, the
+permuter's hit was the loop around `value++` alone), and a third one measured
+here: **a conditional whose two arms are identical.** jump1 does not
+cross-jump, so `if (++D != 0) { call; } else { call; }` keeps a real block
+boundary through sched1 and sched2; jump2 merges the arms and deletes the
+branch, and a branch against zero (`beqz/bnez/bltz/bgez/blez/bgtz`) leaves no
+compare behind. Built: order exact, only the register pair wrong. No natural
+reading of such an `if` was found here, so it was not used - but it is a
+mechanism to remember when a target block refuses to be scheduled and the
+source has `if/else` arms that could have been equal in this build.
+
+**The registers.** `D++`, `D += 1`, `D += state` (cse folds the switch
+variable to 1 along the `case 1` path) and `n = D + 1` all load into a
+compiler temporary that is local to the block, has 2 refs over one insn and
+outranks the `%hi` (3 refs over three), so it takes `$v0` - also when the sum
+is made global by a three-way test on it (`.greg`: the sum then gets `$v0`
+because the local load left `$v1` to the `%hi`). `$v1` needs the *load itself*
+to target a pseudo that global-alloc places after local-alloc gave the `%hi`
+`$v0`: three statements `x = D; x++; D = x;` on a variable that lives in more
+than one block. In the tree that is the `switch` variable. The sibling
+`func_actor_450900_80131E38` stores its own switch variable into a flag
+(`sb s1`) after a join where cse no longer knows its value, so that
+programmer did keep using the state local inside `case 1`; that makes the
+three-statement form on the same local a defensible reading, not a proof.
+
+Not found: a fence that is ordinary C. Do not retry `volatile`, a
+`for (i = 0; i < 1; i++)` around the call (leaves the counter and its
+branch), or any single-statement spelling of the increment.
