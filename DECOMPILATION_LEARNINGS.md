@@ -148422,6 +148422,8 @@ source.
   output. Publishing the three masks through an inline with a `u32` third
   parameter gives the right three priorities (1400 / 1372 / 1358) but moves
   the released mask's extension before the first call.
+  *2026-10-07: resolved without a pin, by live length (246). See "A register
+  that has to rank lower with nothing to remove" at the end of this file.*
 - **Gp_UiBoostAttach**, `row` pinned to `$s1`. All of block 33's call-crossing
   values are local quantities: the string address 6250, the width 2000, `x`
   1714 (it is tied to its `lh`), the `1` 1612, `row` 714 (3 refs over 42
@@ -151858,3 +151860,64 @@ instructions later in what looks like the same block, means combine did not
 see copy and use in one block. Look for a vanished block boundary before
 ranking quantities. Correction to "Measured and left (2026-10-05)": the pin
 on `Shop_QuantityTask` is gone.
+
+### A register that has to rank lower with nothing to remove: instructions that exist until jump2 and leave no code (Gp_UpdatePadInput, 2026-10-07)
+
+**Symptom.** Pin-free, the whole diff is `$s2`/`$s3` swapped: `actor` in
+`$s2`, the pressed mask and `%hi(gGameSession)` in `$s3`. Global order was
+`%hi(Gp_PadSuppressMask)` 7 refs / 102 = 1372, `actor` 11 / 243 = 1358,
+`%hi(gGameSession)` 7 / 104 = 1346; the image needs `actor` third. The pin on
+`pressedButtons` did not change the order - it made `$s2` a conflict for
+`actor`.
+
+**What cannot move.** Every one of `actor`'s 11 references is an instruction
+of the image, and `REG_N_REFS` is flow's count (combine never lowers it for a
+register set once), so 10 is out of reach. Both `%hi` lengths are exact too
+(51 and 52 insns, doubled by `REG_EQUIV` because cse puts a `REG_EQUAL` note
+on every `high`), and nothing inside them can leave except by crossing a
+call. An extra insn inside the publish block costs the `%hi`s two each and
+makes it worse. So the only free quantity is `actor`'s live length, and it
+needs 246: **three more insns somewhere between `actor = work->work` and the
+first `Gp_RemapButtons` call that are present at local-alloc and absent from
+the output.**
+
+**What such insns can be.** sched1 recomputes `REG_LIVE_LENGTH` by counting
+the insns of each block a register is live in, after combine, so anything
+combine merged is already gone. Left are: `(use)` insns (combine leaves one
+when it merges `lh` out of an `lhu` that stays live - always beside a visible
+`lh`/`lhu` pair), pseudo copies that get one hard register, and code jump2
+removes after reload. Tried and counted:
+
+| form | `actor` length | code |
+|---|---|---|
+| `s16 stickX` / `stickY` locals | 243 | same |
+| raw-value locals copied to the masks (before or after the join) | 243 | same (cse folds the copies) |
+| the three publishes as an inline with a `keep` mask (`~0`, `~0x10`) | 243 | same |
+| the lock arms as an inlined copy of `func_800E9BDC(1 / 0, 0x900)` | 243 | same |
+| X test as an inline returning the mask | 248, right order | different |
+| stick block as an inline, or a work variable copied at the arm's end | 244 | different |
+| `do { } while (0)` around the timer block | - | different (the three extensions outrank `actor` too) |
+
+**Fix (fitted).** A third arm at the run-release test:
+`if (layout == 1) mask &= 0xFF7F; else if (layout == 0) mask &= 0xFFDF; else
+mask &= 0xFFDF;`. At local-alloc the extra arm is a branch, an `and` and a
+jump; jump2 cross-jumps the two equal arms and deletes the branch, leaving the
+image's single test. Length 246, priority 1341, order mask / session /
+`actor`, no pin. There are three layouts and 0 and 2 do share the bit
+(`Gp_BtnMap0`/`Gp_BtnMap2` both send pad bit 5 to output bit 6), which is why
+this spot was chosen, but the image does not say where the original's extra
+insns were or what the vanished test compared (`== 2` matches as well).
+
+The same third arm also matches at the `else if (moveMode == 1)` site written
+`if (layout != 1) { if (layout == 0) A; else A; } else B;`, and at both sites
+together (249). It does not match at the first site (`moveMode == 0`): its
+arms cross-jump with the last site's and the block order changes. A real
+`switch` with `case 0/1/2` keeps a range test; `case 1` / `case 0` /
+`default` keeps the `== 0` test.
+
+**Use.** When a register only has to rank a few points lower and its
+references are all visible, compute the live length it needs and ask what can
+be live at local-alloc and gone at output. Insns inside the competitor's own
+range do not help. Print `;; N regs to allocate` and the three
+`used/across` lines first; the pin's comment had the cause right but the pin
+worked through a conflict, not through the order.

@@ -128,7 +128,7 @@ void Gp_UpdatePadInput(void)
     Task*         work;
     GameActor*    actor;
     u16           mask;
-    register u16  pressedButtons asm("s2"); // pinned: global-alloc otherwise ranks `actor` just above %hi(gGameSession) and gives it $s2
+    u16           pressedButtons;
     u16           releasedButtons;
 
     pad  = &gPadStates[0];
@@ -193,8 +193,18 @@ void Gp_UpdatePadInput(void)
                             mask |= 0x80;
                         }
                     } else {
+                        /* Layouts 0 and 2 both remap pad bit 5 to output bit 6
+                           (Gp_BtnMap0, Gp_BtnMap2); layout 1 remaps bit 7 there.
+                           The image tests the layout against 1 only. The third
+                           arm leaves no code (jump2 merges it into the second),
+                           but its three insns lengthen `actor`'s life enough for
+                           global-alloc to rank it below %hi(gGameSession). That
+                           the original's extra insns were here, or tested 0, is
+                           not known. */
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == 1) {
                             mask &= 0xFF7F;
+                        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == 0) {
+                            mask &= 0xFFDF;
                         } else {
                             mask &= 0xFFDF;
                         }
