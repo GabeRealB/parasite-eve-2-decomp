@@ -227,7 +227,7 @@ void func_antibody_8012EF34(Task* arg0)
                 s16                   count;
 
                 if (mem->scale < 0x11) {
-                    goto release;
+                    break;
                 }
                 mem->scale          = mem->scale - 0x10;
                 rgb[0]              = (u8)mem->scale;
@@ -264,10 +264,10 @@ void func_antibody_8012EF34(Task* arg0)
                 actorRenderComposeCoord(coord);
                 return;
             }
+            default:
+                return;
         }
-        return;
     }
-release:
     effectKillTask(mem, arg0);
 }
 
