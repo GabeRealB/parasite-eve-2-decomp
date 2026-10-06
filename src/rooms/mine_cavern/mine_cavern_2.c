@@ -2999,6 +2999,27 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     arg1->state++;
 }
 
+/// The first of the leading `count` contact records whose kind is 0x20000:
+/// copies its point to `pos` and returns its key, or returns 0 when none is
+/// found before an empty record or the end.
+static inline s32 _mineCavernTargetFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+{
+    s16 i;
+
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key.value;
+        }
+    }
+    return 0;
+}
+
 /// Second state handler of `D_mine_cavern_8017D7F8`: the cavern enemy's
 /// per-frame hit check. Unless gameplay is suspended, it marks the enemy
 /// lockable only while the player is within 0x1770 on the XZ plane and in place
@@ -3015,10 +3036,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     _MineCavernTargetHitScratch* top;
     _MineCavernTargetHitScratch* blk;
     GfxCoord*                    coords;
-    WorldCollisionContact*       contacts;
     SVECTOR*                     d;
-    SVECTOR*                     dst;
-    s16                          i;
     s16                          angle;
     u32                          key;
     s32                          id;
@@ -3062,22 +3080,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     worldCoordSetModelLighting(arg1->extra.tmd, &blk->vec, 0, 3);
     arg1->extra.tmd->flags = 0;
 
-    dst      = &blk->offset;
-    contacts = work->bodyContacts;
-    for (i = 0; i < ARRAY_SIZE(work->bodyContacts); i++) {
-        if (contacts[i].key.value == 0) {
-            break;
-        }
-        if ((contacts[i].key.value & 0xFFFF0000) == 0x20000) {
-            dst->vx = contacts[i].point.vx;
-            dst->vy = contacts[i].point.vy;
-            dst->vz = contacts[i].point.vz;
-            key     = contacts[i].key.value;
-            goto found;
-        }
-    }
-    key = 0;
-found:
+    key         = _mineCavernTargetFindHit(&blk->offset, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     blk->hitKey = key;
     if (key & 0x8000) {
         blk->hitKey = 0;
@@ -3092,27 +3095,14 @@ found:
         blk->offset.vz -= arg1->extra.tmd->coords->workm.t[2];
         angle = blk->hitBearing = ratan2(blk->offset.vx, blk->offset.vz) - ratan2(-arg1->extra.tmd->coords->workm.m[2][0],
                                                                                   arg1->extra.tmd->coords->workm.m[2][2]);
-        if (angle < 0) {
-        neg:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto neg;
-            }
-        } else {
-        pos:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto pos;
-            }
-        }
-        blk->hitBearing     = angle;
-        blk->vec.vx         = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
-        blk->vec.vy         = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
-        blk->vec.vz         = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
-        blk->playerDistance = SquareRoot0(blk->vec.vx * blk->vec.vx + blk->vec.vy * blk->vec.vy + blk->vec.vz * blk->vec.vz);
-        blk->damage         = Gp_ComputeDamage(blk->hitKey, blk->playerDistance, 0, 0);
-        blk->damage         = D_mine_cavern_8018EAF4[blk->hitKey & 0x7F];
-        arg0->hp           -= blk->damage;
+        blk->hitBearing         = overlayWrapAngle(angle);
+        blk->vec.vx             = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
+        blk->vec.vy             = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
+        blk->vec.vz             = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
+        blk->playerDistance     = SquareRoot0(blk->vec.vx * blk->vec.vx + blk->vec.vy * blk->vec.vy + blk->vec.vz * blk->vec.vz);
+        blk->damage             = Gp_ComputeDamage(blk->hitKey, blk->playerDistance, 0, 0);
+        blk->damage             = D_mine_cavern_8018EAF4[blk->hitKey & 0x7F];
+        arg0->hp               -= blk->damage;
         func_800DA6E8(&arg0->node, blk->damage, 0);
         if (arg0->hp <= 0) {
             blk->destroyedTargets = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
