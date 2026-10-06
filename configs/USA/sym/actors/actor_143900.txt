@@ -205,3 +205,4 @@ walkerDrawShadowShaded = 0x8013242C; // type:func
 scriptedWalkPlace = 0x801326FC; // type:func
 _scriptedWalkTickSecondAnim = 0x80133068; // type:func
 _scriptedWalkResetSecondAnim = 0x801330B4; // type:func
+_actorRenderDrawSecondWalkerGroundShadow = 0x80132f14; // type:func

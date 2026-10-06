@@ -198,3 +198,4 @@ _footstepWalkPlayAnimation = 0x801327BC; // type:func
 pairWalkSpawn = 0x80132B58; // type:func
 _pairWalkTo = 0x80133334; // type:func
 pairWalkExit = 0x80132FF8; // type:func
+_actorRenderDrawSecondWalkerGroundShadow = 0x80133020; // type:func

@@ -126916,7 +126916,7 @@ sibling callees:
 
     USA/actors/actor_160700  0x84  jal ActorsShared8014c874, ActorsShared80132378
     USA/actors/actor_215100  0x84    (same two names - one text class)
-    USA/actors/actor_451100  0x84  jal func_actor_451100_80132A1C, func_actor_451100_80132CD4
+    USA/actors/actor_451100  0x84  jal func_actor_451100_80132A1C, _actorRenderDrawSecondWalkerGroundShadow
     USA/actors/actor_535700  0x84    (same two auto-names - the other class)
 
 The two classes are the same instructions: only the jal *encodings* differ, and

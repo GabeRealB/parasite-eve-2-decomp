@@ -188,7 +188,7 @@ static void func_actor_450800_801327E4(Enemy* enemy, Task* task);
 static void func_actor_450800_80132868(Task* task);
 static void func_actor_450800_80132AE0(Task* task);
 static void func_actor_450800_801332B8(Enemy* enemy, Task* task);
-static void func_actor_450800_80133364(Task* task);
+static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor450800Body;
 static TmdSource _gActor450800KyleMadiganBody;
@@ -3166,7 +3166,7 @@ void func_actor_450800_80133264(Task* task)
 
 #define walkerFrame      func_actor_450800_801332B8
 #define walkerUpdate     _pairWalkUpdate
-#define walkerDrawShadow func_actor_450800_80133364
+#define walkerDrawShadow _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -3180,10 +3180,13 @@ void pairWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-/// A further copy of the shadow, under this file's own name.
-#define walkerDrawShadowShaded func_actor_450800_80133364
-#include "../../shared/walker_shadow_shaded.inc.c"
-#undef walkerDrawShadowShaded
+/// Selects this overlay's private second-walker ground-shadow drawer.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// following fragment defines it. This identifier alias lasts one inclusion.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 #include "../../shared/pair_walk_tick_anim.inc.c"
 

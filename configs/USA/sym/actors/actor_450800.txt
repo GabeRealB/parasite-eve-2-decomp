@@ -483,3 +483,4 @@ _pairWalkUpdate = 0x801330AC; // type:func
 pairWalkSpawn = 0x80132E9C; // type:func
 _pairWalkTo = 0x80133678; // type:func
 pairWalkExit = 0x8013333C; // type:func
+_actorRenderDrawSecondWalkerGroundShadow = 0x80133364; // type:func

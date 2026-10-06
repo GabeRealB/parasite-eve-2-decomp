@@ -268,3 +268,4 @@ _pairWalkPlace = 0x80132F68; // type:func
 _footstepWalkQuietUpdate = 0x80131F84; // type:func
 _footstepWalkQuietResetAnim = 0x80132428; // type:func
 _footstepWalkQuietBlendAnim = 0x801324B8; // type:func
+_actorRenderDrawSecondWalkerGroundShadow = 0x80132cd4; // type:func

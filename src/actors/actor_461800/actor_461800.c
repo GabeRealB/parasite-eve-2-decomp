@@ -108,7 +108,7 @@ extern s16 gFootstepWalkMode;
 static void func_actor_461800_80132A0C(Enemy* enemy, Task* task);
 static void func_actor_461800_80132A90(Task* task);
 static void func_actor_461800_801335B0(Enemy* enemy, Task* task);
-static void func_actor_461800_80133B98(Task* task);
+static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
 s32  func_actor_461800_80132E14(Task*, s32, s32, s32);
@@ -1280,7 +1280,7 @@ void func_actor_461800_80133554(Task* task)
 
 #define walkerFrame      func_actor_461800_801335B0
 #define walkerUpdate     _footstepWalkUpdate
-#define walkerDrawShadow func_actor_461800_80133B98
+#define walkerDrawShadow _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -1348,7 +1348,10 @@ s32 func_actor_461800_801339EC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 
 #include "../../shared/footstep_walk_to.inc.c"
 
-/// A further copy of the shadow, under this file's own name.
-#define walkerDrawShadowShaded func_actor_461800_80133B98
-#include "../../shared/walker_shadow_shaded.inc.c"
-#undef walkerDrawShadowShaded
+/// Selects this overlay's private second-walker ground-shadow drawer.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// following fragment defines it. This identifier alias lasts one inclusion.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW

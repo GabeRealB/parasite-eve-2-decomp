@@ -120,7 +120,7 @@ static void func_actor_143900_80132404(Task* task);
 static void func_actor_143900_80132A9C(Task* task);
 static void func_actor_143900_80132E48(Enemy* enemy, Task* task);
 static void func_actor_143900_80132ECC(Task* task);
-static void func_actor_143900_80132F14(Task* task);
+static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 static void _scriptedWalkTickSecondAnim(void);
 static void _scriptedWalkResetSecondAnim(void);
 static void func_actor_143900_80133144(void);
@@ -1459,7 +1459,7 @@ void func_actor_143900_80132DEC(Task* task)
 
 #define walkerFrame      func_actor_143900_80132E48
 #define walkerUpdate     func_actor_143900_80132A9C
-#define walkerDrawShadow func_actor_143900_80132F14
+#define walkerDrawShadow _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -1477,10 +1477,13 @@ static void func_actor_143900_80132ECC(Task* task)
     taskKill(work->attachment2);
 }
 
-/// A further copy of the shadow, under this file's own name.
-#define walkerDrawShadowShaded func_actor_143900_80132F14
-#include "../../shared/walker_shadow_shaded.inc.c"
-#undef walkerDrawShadowShaded
+/// Selects this overlay's private second-walker ground-shadow drawer.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// following fragment defines it. This identifier alias lasts one inclusion.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// Attachment-task handler of the second variant: state 0 hangs the task's own
 /// coordinate frame off part `spawnArg1` of the second variant's model and
