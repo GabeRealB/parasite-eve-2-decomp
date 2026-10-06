@@ -1583,30 +1583,18 @@ static void Actor01500_Fn01838(Task* arg0)
         }
     } else {
         step = work->turnRate;
-        if (diff > 0) {
-            if (step >= 0x1000 - diff) {
-                goto snap;
+        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+            work->yaw = work->targetYaw;
+        } else {
+            wrapStep = work->turnRate;
+            cur      = work->yaw;
+            if (diff > 0) {
+                work->yaw = cur - wrapStep;
             } else {
-                goto turn;
+                work->yaw = cur + wrapStep;
             }
-        } else if (step >= 0x1000 + diff) {
-            goto snap;
-        } else {
-            goto turn;
-        }
-    snap:
-        work->yaw = work->targetYaw;
-        goto done;
-    turn:
-        wrapStep = work->turnRate;
-        cur      = work->yaw;
-        if (diff > 0) {
-            work->yaw = cur - wrapStep;
-        } else {
-            work->yaw = cur + wrapStep;
         }
     }
-done:
     sc->rot.vx = 0;
     sc->rot.vy = work->yaw;
     sc->rot.vz = 0;
