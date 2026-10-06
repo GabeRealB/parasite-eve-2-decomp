@@ -836,7 +836,7 @@ def _unit_of(root: str, where: str) -> str:
     return where
 
 
-def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict):
+def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=None):
     """Join pending items of one file or library into steps, by kind.
 
     Two steps that declare items in the same file never run in the same round,
@@ -860,15 +860,47 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict):
     rank = {g: i for i, g in enumerate(order)}
     pending = [g for g in order if any(u not in done for u in g)]
     pset = set(pending)
-    waits = {g: set() for g in pending}
-    users = collections.defaultdict(set)
+    # In a run restricted to some kinds, a pending item of another kind is not
+    # going to be worked first, so it does not make its users unready: it passes
+    # on what it waits for itself (as `_step_numbers` does for the wait column).
+    # Counting it split a file's functions into several small steps, one group
+    # behind each pending constant or table.
+    def waited(h):
+        return kinds is None or any(_node_kind(u) in kinds for u in h if u not in done)
+    direct = {}
     for g in pending:
+        ds = set()
         for u in g:
             for d in edges.get(u, ()):
                 if d in nodes:
                     h = comp.get(d, (d,))
                     if h is not g and h in pset:
-                        waits[g].add(h)
+                        ds.add(h)
+        direct[g] = ds
+    through = {}
+    def effective(g):
+        """What `g` really waits for: waited items, reached through unwaited ones."""
+        stack = [(g, iter(direct[g]))]; onpath = {g}; acc = {g: set()}
+        while stack:
+            node, it = stack[-1]
+            for h in it:
+                if waited(h):
+                    acc[node].add(h)
+                elif h in through:
+                    acc[node] |= through[h]
+                elif h not in onpath:
+                    onpath.add(h); acc[h] = set(); stack.append((h, iter(direct[h])))
+                    break
+            else:
+                stack.pop(); onpath.discard(node)
+                if node is not g:
+                    through[node] = acc[node]
+                    acc[stack[-1][0]] |= acc[node]
+        return acc[g] - {g}
+    waits = {}
+    users = collections.defaultdict(set)
+    for g in pending:
+        waits[g] = direct[g] if kinds is None else (effective(g) if waited(g) else direct[g])
         for h in waits[g]:
             users[h].add(g)
     left = {g: len(waits[g]) for g in pending}
@@ -1007,7 +1039,7 @@ def worklist(root: str, version: str, nodes, edges, comp, done, out_path: str, l
     asm_names = assembly_names(root, version)
     vendor = name_index.vendored_names(root)
     order = topo_order(nodes, edges, comp, vendor)
-    order = batch_ready(root, order, nodes, edges, comp, done, limits or {})
+    order = batch_ready(root, order, nodes, edges, comp, done, limits or {}, run_kinds(root))
 
     # who refers to each item, for the visibility guess
     referrers = collections.defaultdict(set)
