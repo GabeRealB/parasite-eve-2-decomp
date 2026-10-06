@@ -342,11 +342,26 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-/// Draws the two vertically separated capsule glows used by views 4, 5 and 8.
-static inline void _shelterB3IncineratorControlRoomDrawStackedGlows(s32 radiusScale, s32 packedColor)
+/// Draws the fixed pair of vertically stacked capsule glows shared by views 4, 5 and 8.
+///
+/// Both capsules use the signed low halfword of `radiusScale`; each endpoint's
+/// pixel radius is that scale times 64 divided by camera Z / 4. `rgbNibbles`
+/// packs red, green and blue in bits 8..11, 4..7 and 0..3, scaled by 16;
+/// odd animation frames add 8 to each channel. Negative projection flags
+/// reject a capsule; accepted endpoint depths must be nonzero.
+///
+/// Requires a composed view matrix, an initialized scratch stack and the current
+/// frame's ordering table and packet arena. Queues the lower capsule before the
+/// upper one; additive packets remain in that arena until GPU completion.
+static inline void _shelterB3IncineratorControlRoomDrawStackedGlows(s32 radiusScale, s32 rgbNibbles)
 {
-    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], radiusScale, packedColor);
-    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], radiusScale, packedColor);
+    enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_LOWER_PAIR_START = 0,
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_UPPER_PAIR_START = 4,
+    };
+
+    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_LOWER_PAIR_START], radiusScale, rgbNibbles);
+    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_UPPER_PAIR_START], radiusScale, rgbNibbles);
 }
 
 void shelterB3IncineratorControlRoomDrawViewGlowsTask(Task* task)
