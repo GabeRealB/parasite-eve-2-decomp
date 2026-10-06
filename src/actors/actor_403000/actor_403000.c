@@ -3997,21 +3997,9 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t1->vz                              = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
         rot                                 = arg0->extra.tmd->coords;
         angle                               = ratan2(t1->vx, t1->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto loop_neg;
-            }
-        } else {
-        loop_pos:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos;
-            }
-        }
-        scratch->turn  = angle;
-        scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
+        angle                               = actorWrapAngle(angle);
+        scratch->turn                       = angle;
+        scratch->turn                      += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         t2                                    = &scratch->offset;
@@ -4062,26 +4050,14 @@ static void func_actor_403000_80138DB0(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &D_actor_403000_80158DB0.push, 0);
     }
     if (work->stateFrame < 6) {
-        t3     = &scratch->offset;
-        pos2   = arg0->extra.tmd->coords;
-        t3->vx = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
-        t3->vy = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
-        t3->vz = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
-        rot    = arg0->extra.tmd->coords;
-        angle  = ratan2(t3->vx, t3->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg2:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto loop_neg2;
-            }
-        } else {
-        loop_pos2:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos2;
-            }
-        }
+        t3             = &scratch->offset;
+        pos2           = arg0->extra.tmd->coords;
+        t3->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
+        t3->vy         = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
+        t3->vz         = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
+        rot            = arg0->extra.tmd->coords;
+        angle          = ratan2(t3->vx, t3->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+        angle          = actorWrapAngle(angle);
         scratch->turn  = angle;
         scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
@@ -4126,34 +4102,10 @@ static void func_actor_403000_80138DB0(Task* arg0)
         cell                = Actor403000_Cell(arg0->extra.tmd->coords);
         scratch->cell       = cell;
         diff                = (s8)cell - scratch->playerCell;
-        if (diff < -5) {
-            goto neg;
-        }
-        if (diff < 0) {
-            goto pos;
-        }
-        if (diff < 5) {
-        neg:
-            sign = -1;
-        } else {
-        pos:
-            sign = 1;
-        }
-        work->watchRingDir = sign;
-        diff               = scratch->cell - scratch->playerCell;
-        if (diff < -5) {
-            goto neg2;
-        }
-        if (diff < 0) {
-            goto pos2;
-        }
-        if (diff < 5) {
-        neg2:
-            sign2 = -1;
-        } else {
-        pos2:
-            sign2 = 1;
-        }
+        sign                = _actor403000RingSide(diff);
+        work->watchRingDir  = sign;
+        diff                = scratch->cell - scratch->playerCell;
+        sign2               = _actor403000RingSide(diff);
         work->turnRingDir = work->watchRingDir = -sign2;
         work->state                            = ACTOR_403000_STATE_TURN;
     }
