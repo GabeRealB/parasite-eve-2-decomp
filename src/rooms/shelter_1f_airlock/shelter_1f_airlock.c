@@ -416,8 +416,8 @@ s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 
 /// Ignores `ROOM_MESSAGE_COMMAND` and returns zero without changing room state.
 ///
-/// Both payload words are unread. CAP and direction senders give them their
-/// own meanings, so no command ID, mode or pointer is interpreted here.
+/// Both integer payload words are unread; the command selector and optional
+/// mode neither affect room state nor survive the call.
 static s32 _shelter1fAirlockIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     return 0;

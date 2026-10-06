@@ -46,8 +46,9 @@ void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0);
 ///
 /// Requires a composed coordinate body and a counted, zero-initialized
 /// `EffectWork` owned through `spawnArg2.pointer`. `spawnArg1.pointer` borrows
-/// a composed target `GfxCoord` until the first active tick. That tick derives
-/// a step of 204/4096 of the initial separation, with signed 16-bit intermediate
+/// a target `GfxCoord` until the first active tick, when both cached matrices
+/// must be current in the same view space. That tick derives a parent-space
+/// step of 204/4096 of the initial separation, with signed 16-bit intermediate
 /// components; later ticks move by that step without resampling the target.
 /// Drawing occurs on odd ages after initialization, and age 20 releases the
 /// work and task. A live `gRoomEffectState` pauses at nonzero effect control
