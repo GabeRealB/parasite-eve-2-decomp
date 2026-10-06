@@ -3,7 +3,22 @@
 
 #include "main/task_types.h"
 
-void func_tonfa_baton_8011D1EC(Task* task);
+/// Records the tonfa baton's swing and draws its fading additive ribbon.
+///
+/// Requires the tonfa baton overlay loaded, a live single-coordinate task
+/// body, and its owned, counted `EffectWork` in `spawnArg2.pointer`. The work's
+/// borrowed parent is the weapon coordinate and must remain live. State 0
+/// seeds both eight-frame histories without drawing; state 1 records and draws
+/// seven ribbon segments. `spawnArg1.value` selects blue at zero, cyan otherwise.
+/// The histories and selected tint belong to the overlay and are shared by
+/// simultaneous instances. Translation uses game coordinate units.
+/// Only running room effects advance age or draw; other control values below
+/// cancellation retain the task. Age 31 or cancellation releases its work and
+/// kills the task under `effectKillTask`'s lifetime rules. Keep the overlay and
+/// parent loaded through dispatch and teardown. Requires a current view,
+/// frame-arena room for seven quads and blend commands, and an initialized
+/// scratch stack with 48 free bytes, released before return.
+void tonfaBatonSwingTrailTask(Task* task);
 
 /// Dispatches the attached tonfa baton model's lifecycle and pose update.
 ///

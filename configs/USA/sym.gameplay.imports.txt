@@ -1995,7 +1995,7 @@ func_m4a1_pyke_8011D1F8 = 0x8011D1F8; // type:func absolute:True owner=m4a1_pyke
 
 m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_javelin shared=weapons
 
-func_tonfa_baton_8011D1EC = 0x8011D1EC; // type:func absolute:True owner=tonfa_baton shared=weapons
+tonfaBatonSwingTrailTask = 0x8011D1EC; // type:func absolute:True owner=tonfa_baton shared=weapons
 
 m4a1BayonetTrailTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_bayonet shared=weapons
 

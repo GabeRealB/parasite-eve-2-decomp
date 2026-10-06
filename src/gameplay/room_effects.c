@@ -596,7 +596,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37, { &D_8011231C } },                                                // 0x037
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubstationDrawLightGlowsTask, { NULL } },                                     // 0x038
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingDrawGlowsTask, { NULL } },                                               // 0x039
-    { { { TASK_BODY_COORD, 0x70 } }, func_tonfa_baton_8011D1EC, { NULL } },                                              // 0x03A
+    { { { TASK_BODY_COORD, 0x70 } }, tonfaBatonSwingTrailTask, { NULL } },                                               // 0x03A
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask3B, { NULL } },                                                        // 0x03B
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_80181264, { NULL } },                                       // 0x03C
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyDebrisTask, { NULL } },                                    // 0x03D

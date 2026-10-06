@@ -79,94 +79,112 @@ enum {
 static void _tonfaBatonKillModelTask(Task* task);
 void        func_tonfa_baton_8011DBFC(Task* arg0);
 
-void func_tonfa_baton_8011D1EC(Task* task)
+/// Stores a composed endpoint as a world-space trail pose independent of the baton.
+///
+/// Copies the endpoint's complete view-space cache and removes the current
+/// orthonormal view transform into the history node's local matrix. The
+/// persistent view parent lets later composition follow the camera without
+/// following the weapon or retaining the temporary endpoint. Rotation uses
+/// 4096 units per 1.0; translation is in signed 32-bit game coordinates.
+/// Both nodes and the view must be live, word-aligned and disjoint. Leaves
+/// the history node's stamp and parameters untouched; mark it dirty before
+/// recomposing. Requires the initialized scratch stack with 48 free bytes
+/// disjoint from the nodes, released before return. Changes GTE state.
+static inline void _tonfaBatonStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* composedEndpoint)
 {
-    GfxCoord    local;
-    GfxCoord*   coord;
-    GfxCoord*   dst;
-    EffectWork* work;
-    SVECTOR*    vec;
-    s32         i;
-    s32         flags;
+    historyFrame->parent = &gGfxViewCoord;
+    historyFrame->workm  = composedEndpoint->workm;
+    gte_SetRotMatrix(&composedEndpoint->workm);
+    gte_SetTransMatrix(&composedEndpoint->workm);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
+}
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
+void tonfaBatonSwingTrailTask(Task* task)
+{
+    enum {
+        TONFA_BATON_TRAIL_SEED           = 0,
+        TONFA_BATON_TRAIL_RECORD         = 1,
+        TONFA_BATON_TRAIL_LIFETIME_TICKS = 31,
+        TONFA_BATON_TRAIL_TINT_BLUE      = 0x001, // RGB multipliers (0, 0, 1)
+        TONFA_BATON_TRAIL_TINT_CYAN      = 0x013  // RGB multipliers (0, 1, 3)
+    };
+    GfxCoord       tipEndpoint;
+    GfxCoord*      baseCoord;
+    GfxCoord*      historyFrame;
+    EffectWork*    effectWork;
+    const SVECTOR* tipOffset;
+    s32            historyIndex;
+    s32            packedTint;
+
+    effectWork = task->spawnArg2.pointer;
+    baseCoord  = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(work, task);
+            effectKillTask(effectWork, task);
         }
     } else {
-        work->age++;
+        effectWork->age++;
         switch (task->state) {
-            case 0:
-                coord->parent       = work->parent;
-                coord->coord.t[0]   = D_tonfa_baton_8011E0F0[0].vx;
-                coord->coord.t[1]   = D_tonfa_baton_8011E0F0[0].vy;
-                coord->coord.t[2]   = D_tonfa_baton_8011E0F0[0].vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                task->state        = 1;
-                vec                = &D_tonfa_baton_8011E0F0[1];
-                local.parent       = coord;
-                local.coord.t[0]   = vec->vx;
-                local.coord.t[1]   = vec->vy;
-                local.coord.t[2]   = vec->vz;
-                local.composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(&local);
-                for (i = 0; i < 8; i++) {
-                    dst         = &gBladeTrailBase[i];
-                    dst->parent = &gGfxViewCoord;
-                    dst->workm  = coord->workm;
-                    gte_SetRotMatrix(&coord->workm);
-                    gte_SetTransMatrix(&coord->workm);
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                    dst         = &gBladeTrailTip[i];
-                    dst->parent = &gGfxViewCoord;
-                    dst->workm  = local.workm;
-                    gte_SetRotMatrix(&local.workm);
-                    gte_SetTransMatrix(&local.workm);
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
+            case TONFA_BATON_TRAIL_SEED:
+                baseCoord->parent       = effectWork->parent;
+                baseCoord->coord.t[0]   = D_tonfa_baton_8011E0F0[0].vx;
+                baseCoord->coord.t[1]   = D_tonfa_baton_8011E0F0[0].vy;
+                baseCoord->coord.t[2]   = D_tonfa_baton_8011E0F0[0].vz;
+                baseCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(baseCoord);
+                task->state = TONFA_BATON_TRAIL_RECORD;
+
+                // The seed chains the tip below the base; later samples use the weapon parent.
+                // Only translations feed the ribbon; the temporary rotation is left uninitialized.
+                tipOffset                = &D_tonfa_baton_8011E0F0[1];
+                tipEndpoint.parent       = baseCoord;
+                tipEndpoint.coord.t[0]   = tipOffset->vx;
+                tipEndpoint.coord.t[1]   = tipOffset->vy;
+                tipEndpoint.coord.t[2]   = tipOffset->vz;
+                tipEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(&tipEndpoint);
+
+                // Seed every slot with the same pose, detached from the moving baton.
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
+                    historyFrame = &gBladeTrailBase[historyIndex];
+                    _tonfaBatonStoreTrailFrame(historyFrame, baseCoord);
+                    historyFrame = &gBladeTrailTip[historyIndex];
+                    _tonfaBatonStoreTrailFrame(historyFrame, &tipEndpoint);
                 }
-                flags = 0x13;
+                packedTint = TONFA_BATON_TRAIL_TINT_CYAN;
                 if (task->spawnArg1.value == 0) {
-                    flags = 1;
+                    packedTint = TONFA_BATON_TRAIL_TINT_BLUE;
                 }
-                D_tonfa_baton_8012C0EC = flags;
+                D_tonfa_baton_8012C0EC = packedTint;
                 break;
-            case 1:
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                local.parent       = work->parent;
-                local.coord.t[0]   = D_tonfa_baton_8011E0F8.vx;
-                local.coord.t[1]   = D_tonfa_baton_8011E0F8.vy;
-                local.coord.t[2]   = D_tonfa_baton_8011E0F8.vz;
-                local.composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(&local);
-                dst         = &gBladeTrailBase[work->age & 7];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = coord->workm;
-                gte_SetRotMatrix(&coord->workm);
-                gte_SetTransMatrix(&coord->workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                dst         = &gBladeTrailTip[work->age & 7];
-                dst->parent = &gGfxViewCoord;
-                dst->workm  = local.workm;
-                gte_SetRotMatrix(&local.workm);
-                gte_SetTransMatrix(&local.workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &dst->workm, &dst->coord);
-                for (i = 0; i < 8; i++) {
-                    dst               = &gBladeTrailBase[i];
-                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(dst);
-                    dst               = &gBladeTrailTip[i];
-                    dst->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(dst);
+            case TONFA_BATON_TRAIL_RECORD:
+                baseCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(baseCoord);
+                tipEndpoint.parent       = effectWork->parent;
+                tipEndpoint.coord.t[0]   = D_tonfa_baton_8011E0F8.vx;
+                tipEndpoint.coord.t[1]   = D_tonfa_baton_8011E0F8.vy;
+                tipEndpoint.coord.t[2]   = D_tonfa_baton_8011E0F8.vz;
+                tipEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(&tipEndpoint);
+                historyFrame = &gBladeTrailBase[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
+                _tonfaBatonStoreTrailFrame(historyFrame, baseCoord);
+                historyFrame = &gBladeTrailTip[effectWork->age & (ARRAY_SIZE(gBladeTrailTip) - 1)];
+                _tonfaBatonStoreTrailFrame(historyFrame, &tipEndpoint);
+
+                // Recompose retained world poses against the current camera before drawing.
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
+                    historyFrame               = &gBladeTrailBase[historyIndex];
+                    historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(historyFrame);
+                    historyFrame               = &gBladeTrailTip[historyIndex];
+                    historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(historyFrame);
                 }
-                _bladeTrailDraw(work->age & 7, D_tonfa_baton_8012C0EC);
+                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), D_tonfa_baton_8012C0EC);
                 break;
         }
-        if (work->age >= 0x1F) {
-            effectKillTask(work, task);
+        if (effectWork->age >= TONFA_BATON_TRAIL_LIFETIME_TICKS) {
+            effectKillTask(effectWork, task);
         }
     }
 }

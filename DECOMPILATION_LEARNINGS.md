@@ -56307,7 +56307,7 @@ stores and every value in one register.
 ## The duplicated tail is also worth an extra *reference* to the argument
 
 The companion of "A shared `keep` flag and a duplicated tail cross-jump the
-same": in `func_tonfa_baton_8011D1EC` the two spellings differ not in the
+same": in `tonfaBatonSwingTrailTask` the two spellings differ not in the
 schedule but in whether the `Task*` parameter gets a register at all. The flag
 form gives it 7 RTL references, the duplicated form 8, and the allocation
 priority in `global.c` is a step function of that count:

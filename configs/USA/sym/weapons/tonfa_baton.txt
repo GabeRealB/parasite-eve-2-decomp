@@ -3,7 +3,7 @@ D_tonfa_baton_8012C0EC = 0x8012C0EC; // type:s16 size:0x2
 D_tonfa_baton_8011E460 = 0x8011E460; // model named by a task descriptor
 D_tonfa_baton_8011E5EC = 0x8011E5EC; // model named by a task descriptor
 
-func_tonfa_baton_8011D1EC = 0x8011D1EC; // type:func
+tonfaBatonSwingTrailTask = 0x8011D1EC; // type:func
 _bladeTrailDraw = 0x8011D6B0; // type:func
 _tonfaBatonKillModelTask = 0x8011db78; // type:func
 _tonfaBatonInitModelTask = 0x8011da48; // type:func
