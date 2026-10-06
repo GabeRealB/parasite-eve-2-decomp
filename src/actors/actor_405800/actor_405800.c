@@ -1614,11 +1614,12 @@ static void func_actor_405800_8013315C(Task* arg0)
                         work->cloakTimer = 0;
                         work->cloakPhase++;
                     }
-                    goto block_32;
+                    modelLightingSetLayerMaterials(work->cloakLevel);
+                    break;
                 case 1:
                     work->cloakTimer++;
                     if (work->hideHoldFrames < work->cloakTimer) {
-                        goto block_28;
+                        work->cloakPhase++;
                     }
                     break;
                 case 2:
@@ -1632,7 +1633,8 @@ static void func_actor_405800_8013315C(Task* arg0)
                         work->shadowShade  = 0;
                         work->cloakRequest = 0;
                     }
-                    goto block_26;
+                    model->shading.colorBlend = work->colorBlend;
+                    break;
             }
         } else {
             // Show: fade the body and its shadows in, hold, then drop the cloak.
@@ -1650,13 +1652,11 @@ static void func_actor_405800_8013315C(Task* arg0)
                         work->cloakTimer  = 0;
                         work->cloakPhase++;
                     }
-                block_26:
                     model->shading.colorBlend = work->colorBlend;
                     break;
                 case 1:
                     work->cloakTimer++;
                     if (work->cloakTimer >= 0x11) {
-                    block_28:
                         work->cloakPhase++;
                     }
                     break;
@@ -1670,7 +1670,6 @@ static void func_actor_405800_8013315C(Task* arg0)
                             work->hideCooldown = work->hideCooldownReset;
                         }
                     }
-                block_32:
                     modelLightingSetLayerMaterials(work->cloakLevel);
                     break;
             }
