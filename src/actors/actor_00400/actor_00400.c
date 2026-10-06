@@ -4095,23 +4095,19 @@ static inline s32 Actor00400_ConsumeStateRequest(_Actor00400Work* work)
         return 0;
     }
     req = work->hitReaction;
-    if (req == ACTOR_00400_HIT_REACTION_LIGHT)
-        goto set;
-    if (req == ACTOR_00400_HIT_REACTION_HEAVY)
-        goto set;
-    if (req == ACTOR_00400_HIT_REACTION_STATUS)
-        goto set;
-    if (req != ACTOR_00400_HIT_REACTION_BLAST)
-        goto other;
-set:
-    /* The do/while(0) is load-bearing: flow.c weights REG_N_REFS by loop
-       depth, and the two extra references it buys `work` are what let the
-       pointer outrank `req` in global.c's allocation order. */
-    do {
+    if (req == ACTOR_00400_HIT_REACTION_LIGHT) {
         work->state    = state;
         work->subState = 0;
-    } while (0);
-other:
+    } else if (req == ACTOR_00400_HIT_REACTION_HEAVY) {
+        work->state    = state;
+        work->subState = 0;
+    } else if (req == ACTOR_00400_HIT_REACTION_STATUS) {
+        work->state    = state;
+        work->subState = 0;
+    } else if (req == ACTOR_00400_HIT_REACTION_BLAST) {
+        work->state    = state;
+        work->subState = 0;
+    }
     work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
     return 1;
 }
