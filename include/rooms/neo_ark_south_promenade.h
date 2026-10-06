@@ -30,13 +30,32 @@ extern SpriteView D_neo_ark_south_promenade_801803E4[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_south_promenade_801809AC[];
 
-void func_neo_ark_south_promenade_8017E184(Task* task);
+/// Records two offset endpoints of a moving anchor and draws their fading beam.
+///
+/// Requires a coordinate body, initialized room-effect state and an owned
+/// `EffectWork` in `spawnArg2.pointer`; its borrowed parent must outlive the task.
+/// `spawnArg1.value` is a lifetime compared with the wrapping signed 16-bit age
+/// after initialization (0 disables timed teardown). Two eight-entry histories
+/// belong to `Task::work` and are freed with the task. Control values below 2
+/// advance the beam; higher values suspend it without cancelling it.
+void neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_neo_ark_south_promenade_8017EA6C(Task* task);
 
-void func_neo_ark_south_promenade_8017D6D0(Task* arg0);
+/// Registers this room's golem scream flash, sword trail and projectile burst once.
+///
+/// State 0 publishes the effect IDs and advances to state 1, which does no work.
+/// Keep this room overlay loaded while the registered effect tasks can run.
+void neoArkSouthPromenadeRegisterGolemEffectsTask(Task* task);
 
-void func_neo_ark_south_promenade_8017D720(Task* task);
+/// Runs the room's golem scream flash through charging, screen tint and star fade.
+///
+/// Requires a coordinate body, initialized room-effect state and an owned
+/// `EffectWork` in `spawnArg2.pointer`. `spawnArg1.value` must start as a positive
+/// charge duration in active ticks and is consumed as a countdown. Nonzero room
+/// effect control pauses it; values >= 4 cancel it. State 3 releases the effect
+/// and task on the next running tick.
+void neoArkSouthPromenadeRoomVisualEffectsFlashTask(Task* task);
 
 void func_neo_ark_south_promenade_8017D678(Task* task);
 

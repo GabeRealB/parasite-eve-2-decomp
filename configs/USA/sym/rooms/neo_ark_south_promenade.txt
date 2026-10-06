@@ -47,14 +47,18 @@ D_map_neo_ark_8017BE40 = 0x8017BE40; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017BE70 = 0x8017BE70; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x8017F6DC; // size:0x10 defined:True
 
-func_neo_ark_south_promenade_8017E184 = 0x8017E184; // type:func
+neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask = 0x8017E184; // type:func
 
 func_neo_ark_south_promenade_8017EA6C = 0x8017EA6C; // type:func
 
-func_neo_ark_south_promenade_8017D6D0 = 0x8017D6D0; // type:func
+neoArkSouthPromenadeRegisterGolemEffectsTask = 0x8017D6D0; // type:func
 
-func_neo_ark_south_promenade_8017D720 = 0x8017D720; // type:func
+neoArkSouthPromenadeRoomVisualEffectsFlashTask = 0x8017D720; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017D9C4; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017DDF0; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017E674; // type:func
 _roomVisualEffectsDrawBurstStar = 0x8017ECF4; // type:func
+_neoArkSouthPromenadeRejectKeyItemMessage = 0x8017d5d0; // type:func
+_neoArkSouthPromenadeIgnoreCommandMessage = 0x8017d61c; // type:func
+_neoArkSouthPromenadeIgnoreActionMessage = 0x8017d624; // type:func
+_neoArkSouthPromenadeIdleRoomTask = 0x8017d670; // type:func

@@ -932,7 +932,7 @@ neoArkShrineRoomVisualEffectsFlashTask = 0x8017FEA0; // type:func absolute:True 
 
 neoArkShrineRoomVisualEffectsTwinTrailTask = 0x80180904; // type:func absolute:True owner=neo_ark_shrine
 
-func_neo_ark_south_promenade_8017E184 = 0x8017E184; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
+neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask = 0x8017E184; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 
 func_neo_ark_south_promenade_8017EA6C = 0x8017EA6C; // type:func absolute:True owner=neo_ark_south_promenade
 
@@ -1907,7 +1907,7 @@ func_neo_ark_power_plant_2_8017D8AC = 0x8017D8AC; // type:func absolute:True own
 
 func_neo_ark_power_plant_1_8017DA18 = 0x8017DA18; // type:func absolute:True owner=neo_ark_power_plant_1 shared=rooms
 
-func_neo_ark_south_promenade_8017D6D0 = 0x8017D6D0; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
+neoArkSouthPromenadeRegisterGolemEffectsTask = 0x8017D6D0; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 
 neoArkAltarEffectNoopTask = 0x8017EF84; // type:func absolute:True owner=neo_ark_altar
 
@@ -1933,7 +1933,7 @@ dryfieldR08LampGlowTask = 0x8017D5F8; // type:func absolute:True owner=dryfield_
 
 neoArkPyramidConfigureEffectsTask = 0x8017DBF0; // type:func absolute:True owner=neo_ark_pyramid shared=rooms
 
-func_neo_ark_south_promenade_8017D720 = 0x8017D720; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
+neoArkSouthPromenadeRoomVisualEffectsFlashTask = 0x8017D720; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 
 func_shelter_b1_elevator_hall_80182064 = 0x80182064; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 

@@ -51,18 +51,21 @@ extern TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[];
 /// `[1]` under its own name, which the per-frame path reads directly.
 
 static void func_neo_ark_south_promenade_8017D62C(Task* task);
-static void func_neo_ark_south_promenade_8017D670(Task* task);
+static void _neoArkSouthPromenadeIdleRoomTask(Task* task);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, idle, then kill the task.
 static const TaskFuncTable3 D_neo_ark_south_promenade_8017D5C4 = {
-    { func_neo_ark_south_promenade_8017D62C, func_neo_ark_south_promenade_8017D670, taskKill },
+    { func_neo_ark_south_promenade_8017D62C, _neoArkSouthPromenadeIdleRoomTask, taskKill },
 };
 
-s32 func_neo_ark_south_promenade_8017D5D0(Task*, s32, s32, s32);
-s32 func_neo_ark_south_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_south_promenade_8017D61C(Task*, s32, s32, s32);
-s32 func_neo_ark_south_promenade_8017D624(Task*, s32, s32, s32);
+static s32 _neoArkSouthPromenadeRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_neo_ark_south_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkSouthPromenadeIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+/// Requests use of the selected key item; the room replies with zero to refuse it.
+enum { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid     D_neo_ark_south_promenade_8017FD8C[1];
 extern WorldCollisionOccluder D_neo_ark_south_promenade_8018094C[1];
@@ -72,9 +75,9 @@ extern WorldCoordRoomLights   D_neo_ark_south_promenade_801804D0[1];
 
 TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_south_promenade_8017D5D8 },
-    { 5105, func_neo_ark_south_promenade_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_south_promenade_8017D624 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_south_promenade_8017D61C },
+    { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM, _neoArkSouthPromenadeRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSouthPromenadeIgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, _neoArkSouthPromenadeIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -342,11 +345,14 @@ WorldCollisionSurfaceProperties* D_neo_ark_south_promenade_801809AC[8] = {
     D_neo_ark_south_promenade_80180994,
 };
 
-/// Message handler the room's message table names for one of its entries:
-/// accepts the message and does nothing.
-s32 func_neo_ark_south_promenade_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in this room, returning zero to the item menu.
+///
+/// `itemId` is the selected inventory item; all arguments are ignored.
+static s32 _neoArkSouthPromenadeRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { KEY_ITEM_REFUSED = 0 };
+
+    return KEY_ITEM_REFUSED;
 }
 
 /// Message handler the room's message table names for one of its entries:
@@ -359,16 +365,18 @@ s32 func_neo_ark_south_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in
     return 1;
 }
 
-/// Message handler the room's message table names for one of its entries:
-/// accepts the message and does nothing.
-s32 func_neo_ark_south_promenade_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from CAP and facing triggers, returning zero.
+///
+/// The command selector and its argument are unused in this room.
+static s32 _neoArkSouthPromenadeIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// Message handler the room's message table names for one of its entries:
-/// accepts the message and does nothing.
-s32 func_neo_ark_south_promenade_8017D624(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room actions from direction triggers, returning zero.
+///
+/// `request` is borrowed for synchronous dispatch and is neither read nor retained.
+static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -383,8 +391,8 @@ static void func_neo_ark_south_promenade_8017D62C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room's message-driven task: idles until the task is killed.
-static void func_neo_ark_south_promenade_8017D670(Task* task)
+/// Keeps the room task idle in state 1 while its message table remains available.
+static void _neoArkSouthPromenadeIdleRoomTask(Task* task)
 {
 }
 
@@ -398,13 +406,16 @@ void func_neo_ark_south_promenade_8017D678(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_neo_ark_south_promenade_8017D6D0(Task* arg0)
+void neoArkSouthPromenadeRegisterGolemEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { REGISTER_EFFECTS,
+           EFFECTS_REGISTERED };
+
+    if (task->state == REGISTER_EFFECTS) {
         gRoomEffectFlashId      = EFFECT_NEO_ARK_SOUTH_PROMENADE_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_SOUTH_PROMENADE_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_NEO_ARK_SOUTH_PROMENADE_SPARK_BURST;
-        arg0->state             = 1;
+        task->state             = EFFECTS_REGISTERED;
     }
 }
 
@@ -412,14 +423,14 @@ void func_neo_ark_south_promenade_8017D6D0(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_south_promenade_8017D720(Task* arg0)
+void neoArkSouthPromenadeRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_south_promenade_8017E184(Task* task)
+void neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
