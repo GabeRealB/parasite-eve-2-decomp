@@ -262,44 +262,26 @@ s32 func_mine_cavern_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
 
 s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    u8  temp;
-    s32 flag;
-    s32 cmd;
+    u8 temp;
 
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
             return 0;
         }
-        if (gSceneCombatState.signals.bytes.battlePhase == arg2) {
-            temp = gGameSession->location.loc.variant;
-            if (temp == arg2 || temp == 4) {
-                cmd = 0xA;
-                goto cap_only;
-            }
+        if (gSceneCombatState.signals.bytes.battlePhase == arg2 && (gGameSession->location.loc.variant == arg2 || gGameSession->location.loc.variant == 4)) {
+            Gp_RunCapCmd1(0xA);
+        } else if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) == 1) {
+            Gp_RunCapCmd1(0x11);
+        } else if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) == 3) {
+            Gp_RunCapCmd1(0x12);
+            taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
+        } else if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) != 2) {
+            Gp_RunCapCmd1(5);
+            taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
+        } else {
+            Gp_RunCapCmd1(5);
         }
-        flag = gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE);
-        if (flag == 1) {
-            cmd = 0x11;
-            goto cap_only;
-        }
-        flag = gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE);
-        if (flag == 3) {
-            cmd = 0x12;
-            goto spawn;
-        }
-        flag = gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE);
-        cmd  = 5;
-        if (flag == 2) {
-            goto cap_only;
-        }
-    spawn:
-        Gp_RunCapCmd1(cmd);
-        taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
-        goto rest;
-    cap_only:
-        Gp_RunCapCmd1(cmd);
     }
-rest:
     temp = gGameSession->location.loc.variant;
     if (temp == 1 || temp == 4) {
         switch (arg2) {
