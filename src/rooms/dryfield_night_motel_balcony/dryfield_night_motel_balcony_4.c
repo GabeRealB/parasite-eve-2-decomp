@@ -3663,7 +3663,8 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
     switch (task->state) {
         case 0:
@@ -3736,7 +3737,6 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
             task->state = 10;
             break;
         case 10:
-        release:
             effectKillTask(work, task);
             break;
     }
