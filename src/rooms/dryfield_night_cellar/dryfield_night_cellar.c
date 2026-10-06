@@ -917,21 +917,23 @@ void func_dryfield_night_cellar_8017D748(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Draws the nighttime cellar's two world-point flares in array order.
+/// Draws the nighttime cellar's pair of flickering textured flares in array order.
 ///
-/// Borrows two consecutive positions in integer world units for this call.
-/// Texture column 1 and scale 640 give a pixel half-extent of
-/// `640 * 39 / (camera Z / 4)`. Drawing uses the current view, scratch stack,
-/// ordering table and packet arena; accepted points require nonzero depth.
-static inline void _dryfieldNightCellarDrawGlowPair(const SVECTOR worldPoints[2])
+/// Borrows `worldPoints`, a complete two-position array in integer world units,
+/// for this call. Texture column 1 and scale 640 give a pixel half-extent of
+/// `640 * 39 / (camera Z / 4)`. Each point with nonnegative GTE flags queues
+/// one semitransparent quad; rejected points reserve no packet. Accepted depths
+/// must be nonzero. The current view transform, scratch stack, ordering table
+/// and packet arena must be ready; queued packets live until GPU completion.
+static inline void _dryfieldNightCellarDrawGlowPair(const SVECTOR (*worldPoints)[2])
 {
     enum {
         DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE      = 1,
         DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE = 640,
     };
 
-    _glowDrawFlare(&worldPoints[0], DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE, DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE);
-    _glowDrawFlare(&worldPoints[1], DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE, DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE);
+    _glowDrawFlare(&(*worldPoints)[0], DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE, DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE);
+    _glowDrawFlare(&(*worldPoints)[1], DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE, DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE);
 }
 
 void dryfieldNightCellarDrawGlowsTask(Task* unused)
@@ -947,9 +949,9 @@ void dryfieldNightCellarDrawGlowsTask(Task* unused)
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_NIGHT_CELLAR_GLOW_SWITCH_ON) {
         viewId = gGameSession->location.loc.view;
         if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_2) {
-            _dryfieldNightCellarDrawGlowPair(D_dryfield_night_cellar_8017DAD0);
+            _dryfieldNightCellarDrawGlowPair(&D_dryfield_night_cellar_8017DAD0);
         } else if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_3) {
-            _dryfieldNightCellarDrawGlowPair(D_dryfield_night_cellar_8017DAE0);
+            _dryfieldNightCellarDrawGlowPair(&D_dryfield_night_cellar_8017DAE0);
         }
     }
 }
