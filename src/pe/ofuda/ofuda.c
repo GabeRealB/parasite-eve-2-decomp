@@ -46,7 +46,8 @@ void ofudaEffectTask(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         sndEvtRequestScriptStop(SOUND_OFUDA_USE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        goto kill;
+        effectKillTask(mem, arg0);
+        return;
     }
 
     mem->age++;
@@ -83,21 +84,19 @@ void ofudaEffectTask(Task* arg0)
             }
             return;
         case 2:
-            if (mem->scale < 9) {
-                goto kill;
+            if (mem->scale >= 9) {
+                rgb[0] = mem->scale;
+                rgb[1] = mem->scale >> 2;
+                rgb[2] = mem->scale >> 1;
+                effectDrawGouraudDisc(coord, mem->angle, rgb);
+                effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
+                mem->scale -= 8;
+                mem->angle -= 0x30;
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
+                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
+                return;
             }
-            rgb[0] = mem->scale;
-            rgb[1] = mem->scale >> 2;
-            rgb[2] = mem->scale >> 1;
-            effectDrawGouraudDisc(coord, mem->angle, rgb);
-            effectDrawGouraudDisc(coord, (s16)(mem->angle << 1), rgb);
-            mem->scale -= 8;
-            mem->angle -= 0x30;
-            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
+            effectKillTask(mem, arg0);
             return;
     }
-    return;
-kill:
-    effectKillTask(mem, arg0);
 }
