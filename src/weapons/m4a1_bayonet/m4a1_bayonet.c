@@ -39,19 +39,30 @@ static SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
 /// arithmetic, so it is an object of its own rather than element 1.
 static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 
-/// Captures an endpoint's world pose independently of the moving weapon.
+/// Stores a composed endpoint as a world-space trail pose independent of the weapon.
 ///
-/// Endpoint and view caches must be current, with an orthonormal view rotation.
-/// The distinct, word-aligned coordinates remain caller-owned. Leaves the
-/// destination stamp and parameters untouched; mark it dirty before recomposing.
-/// Retains only the persistent view parent. Changes GTE matrix registers and
-/// requires 48 free scratch-stack bytes, released before return.
-static inline void _m4a1BayonetStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* endpoint)
+/// `composedEndpoint->workm.t` must be a current view-space position, and
+/// `gGfxViewCoord.workm` the current world-to-view transform. Copies the
+/// complete endpoint cache into `historyFrame->workm` and removes the view
+/// transform into `historyFrame->coord`, with the persistent view node as
+/// parent. Later composition follows camera movement without following the
+/// weapon. Rotation is copied and rebased too; the ribbon uses only translation.
+/// Rotation elements use ONE (4096) for 1.0; translations are signed 32-bit
+/// game coordinates.
+///
+/// The view rotation must be orthonormal. The caller-owned nodes must be
+/// word-aligned and disjoint; the destination must also be disjoint from the
+/// view node. Reads only the source's composed cache and retains no pointer to
+/// it. Leaves the destination's composition stamp and parameters untouched;
+/// the caller must mark it dirty before recomposing. Requires an initialized
+/// scratch stack with 48 free bytes disjoint from both arguments, released
+/// before return. Changes GTE rotation, translation and arithmetic state.
+static inline void _m4a1BayonetStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* composedEndpoint)
 {
     historyFrame->parent = &gGfxViewCoord;
-    historyFrame->workm  = endpoint->workm;
-    gte_SetRotMatrix(&endpoint->workm);
-    gte_SetTransMatrix(&endpoint->workm);
+    historyFrame->workm  = composedEndpoint->workm;
+    gte_SetRotMatrix(&composedEndpoint->workm);
+    gte_SetTransMatrix(&composedEndpoint->workm);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
 }
 
