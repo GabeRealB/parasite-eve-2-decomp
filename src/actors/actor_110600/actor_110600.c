@@ -1289,35 +1289,35 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
             case 2:
                 work->animId            = 0x23;
                 D_actor_110600_80148598 = &gActor210600Animation11F5C;
-                goto state_11;
+                break;
             case 3:
                 work->animId            = 0x24;
                 D_actor_110600_8014859C = &gActor210600Animation11F5C;
-                goto state_11;
+                break;
             case 5:
                 work->animId            = 0x22;
                 D_actor_110600_80148594 = &gActor210600Animation12B30;
-                goto state_11;
+                break;
             case 6:
                 work->animId            = 0x23;
                 D_actor_110600_80148598 = &gActor210600Animation134C8;
-                goto state_11;
+                break;
             case 4:
             case 7:
                 work->animId            = 0x25;
                 D_actor_110600_801485A0 = &gActor210600Animation12244;
-                goto state_11;
+                break;
             case 8:
                 work->state     = ACTOR_110600_STATE_DEATH_BURN;
                 work->prevState = -1;
                 return 1;
             case 9:
                 work->animId = 0x11;
-            state_11:
-                work->state     = ACTOR_110600_STATE_SCRIPTED;
-                work->prevState = -1;
-                return 1;
+                break;
         }
+        work->state     = ACTOR_110600_STATE_SCRIPTED;
+        work->prevState = -1;
+        return 1;
     }
     return 0;
 }
