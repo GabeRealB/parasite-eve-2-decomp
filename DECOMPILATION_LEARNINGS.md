@@ -40577,7 +40577,7 @@ itself a shift, CSE1 folds the two together and then has to re-materialise the
 unshifted value for the remainder:
 
 ```c
-work->field_24 = ((u32)gRandomLcgState >> 16) % 90 + 0x1E;
+work->scale = ((u32)gRandomLcgState >> 16) % 90 + 0x1E;
 ```
 
 ```
@@ -40598,10 +40598,10 @@ Routing the dividend through a `u16` temp gives CSE an equivalence
 drops the `andi` because `nonzero_bits` already proves the high half is zero:
 
 ```c
-u16 rnd;
+u16 randomBits;
 
-rnd            = (u32)gRandomLcgState >> 16;
-work->field_24 = (u32)rnd % 90 + 0x1E;   /* srl; srl, no re-materialised srl */
+randomBits  = (u32)gRandomLcgState >> 16;
+work->scale = (u32)randomBits % 90 + 0x1E;   /* srl; srl, no re-materialised srl */
 ```
 
 The `(u32)` cast on the use is required: `(u16)` promotes to `int`, which turns
@@ -55200,7 +55200,7 @@ any unrelated store nearby lands. Both are decided by which of the three
 statements an unrelated store is written between.
 
 `acropolisPromenadeGroundGlowTask` reserves 0x24 bytes and also copies
-`task->spawnArg1` into `work->age`. The target is
+`task->spawnArg1.value` into `work->age`. The target is
 
 ```
 lw    v0, 0(a0)      # head
