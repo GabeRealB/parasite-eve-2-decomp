@@ -148889,10 +148889,10 @@ none needed a hack. The forms, by what the `goto` was standing for:
   /* fallthrough */ case 1: ... }` with `break` for the early exits.
 - **`if (r > 0) goto draw; <asm statements>; if (r < 0) { draw: ... }`** (the
   two-triangle facing test of the TMD quad streams) is `if (r > 0 ||
-  secondHalf(...))` with a `static inline` that runs the statements and returns
+  secondTriangle(...))` with a `static inline` that runs the statements and returns
   `workspace->gteResult < 0`. A one-expression inline returning a comparison
   folds into the branch; 11 of 11 sites matched first try
-  (`_tmdSecondHalfFacesViewer` in `model_lighting.c`, two in `actor_403600.c`).
+  (`_modelLightingQuadSecondTriangleFacesViewer` in `model_lighting.c`, two in `actor_403600.c`).
   An inline with *several* returns of 0/1 does not fold in a large caller
   (`tmdDrawStreamPrimGt4EnvLayer`: `li v0,1; beqz v0` survives).
 - **`goto skip` to the increment at the bottom of `if (n-- > 0) { p = &ws->x;

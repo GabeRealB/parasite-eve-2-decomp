@@ -275,15 +275,21 @@ u32 D_80114BAC = 0x10FF2220;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
-/// Tests the quad's second triangle once the first has failed the facing test.
+/// Tests whether a quad's second triangle faces the viewer.
 ///
-/// The GTE screen FIFO must hold corners 1, 2 and 3. Stores their NCLIP result
-/// through `gteResultDestination`, which must address `workspace->gteResult`,
-/// and returns nonzero when it is negative.
-static inline s32 _tmdSecondHalfFacesViewer(const TmdStreamWorkspace* workspace, s32* gteResultDestination)
+/// Call after the first triangle fails its positive-sign test and corner 3
+/// has been projected, leaving corners 1, 2, 3 in the GTE screen FIFO. The quad's
+/// corner order makes a negative result front-facing for this triangle;
+/// zero is rejected. The caller must have checked both projections for errors.
+///
+/// `workspace` borrows writable, word-aligned draw scratch; `signedArea` must
+/// address `workspace->gteResult`. Stores MAC0's 32-bit result (twice the signed
+/// screen area in squared pixels) there and returns true exactly when negative.
+/// Changes GTE MAC0/FLAG and the workspace result; no pointer is retained.
+static inline bool _modelLightingQuadSecondTriangleFacesViewer(TmdStreamWorkspace* workspace, s32* signedArea)
 {
     gte_nclip();
-    gte_stopz(gteResultDestination);
+    gte_stopz(signedArea);
     return workspace->gteResult < 0;
 }
 
@@ -1405,7 +1411,7 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
                     // Draw if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0.
-                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                    if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&packetPair[0].x3);
                         gte_stsxy2(&packetPair[1].x3);
                         gte_avsz4();
@@ -1695,7 +1701,7 @@ u32* tmdDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* workspace, s32 objectFlag
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
                     // Draw if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0.
-                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                    if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
                         _modelLightingLightGt4CornerNormals(quad, workspace, (const _ModelLightingGt4GeometryRefs*)elementHalfwords);
@@ -1790,7 +1796,7 @@ u32* tmdDrawStreamPrimFt4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* e
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
                     // The FIFO now holds corners 1,2,3; either half may face forward.
-                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                    if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_OPAQUE_COMMAND);
                     }
                 }
@@ -1835,7 +1841,7 @@ u32* tmdDrawStreamPrimGt4Unlit(TmdStreamWorkspace* workspace, s32 objectFlags, u
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                    if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
                         gte_stotz(gteResultDestination);
@@ -1883,7 +1889,7 @@ u32* tmdDrawStreamPrimF4(TmdStreamWorkspace* workspace, s32 objectFlags, u32* el
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                    if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
                         setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
@@ -2015,7 +2021,7 @@ u32* tmdDrawStreamPrimFt4SemiTrans(TmdStreamWorkspace* workspace, s32 objectFlag
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                    if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         TMD_LINK_PROJECTED_RAW_FT4(quad, workspace, gteResultDestination, displayState, TMD_FT4_RAW_SEMI_TRANS_COMMAND);
                     }
                 }
@@ -2149,7 +2155,7 @@ u32* tmdDrawStreamPrimG4CornerColors(TmdStreamWorkspace* workspace, s32 objectFl
                 gte_rtps();
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                    if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&quad->x3);
                         gte_avsz4();
                         TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
@@ -2205,7 +2211,7 @@ u32* tmdDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* workspace, s32
                     gte_rtps();
                     gte_stflg(gteFlagDestination);
                     if ((workspace->gteFlag & projectionErrorMask) == 0) {
-                        if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
+                        if (workspace->gteResult > 0 || _modelLightingQuadSecondTriangleFacesViewer(workspace, gteResultDestination)) {
                             gte_stsxy2(&quad->x3);
                             gte_avsz4();
                             TMD_LIGHT_STREAM_CORNER(elements + TMD_CORNER_COLOR_WORD_INDEX, (const u8*)workspace->normals + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), &quad->r0);
