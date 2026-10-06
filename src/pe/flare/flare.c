@@ -31,17 +31,18 @@
 #include "main/tmd_types.h"
 #include "../../shared/sprite_quad.h"
 
-/// Copies the nine rotation coefficients without changing the spark's translation.
+/// Gives a spark the player's local rotation while preserving its spawn translation.
 ///
-/// Both matrices must be live and word-aligned. Four word accesses and one
-/// halfword access cover 18 bytes, leaving the alignment halfword untouched.
+/// Both matrices must be live and word-aligned, with `sparkMatrix` writable and
+/// `playerMatrix`'s nine signed, 12-fractional-bit coefficients initialized.
+/// Writes exactly the 18 coefficient bytes, preserving the two alignment bytes
+/// and all translation values. The caller must invalidate the spark coordinate's
+/// composition cache before using it. Retains no pointers and changes no GTE state.
 static inline void _flareCopySparkRotation(MATRIX* sparkMatrix, const MATRIX* playerMatrix)
 {
-    GfxRotationWords*       sparkRotation;
-    const GfxRotationWords* playerRotation;
+    GfxRotationWords*       sparkRotation  = (GfxRotationWords*)sparkMatrix;
+    const GfxRotationWords* playerRotation = (const GfxRotationWords*)playerMatrix;
 
-    sparkRotation         = (GfxRotationWords*)sparkMatrix;
-    playerRotation        = (const GfxRotationWords*)playerMatrix;
     sparkRotation->m00M01 = playerRotation->m00M01;
     sparkRotation->m02M10 = playerRotation->m02M10;
     sparkRotation->m11M12 = playerRotation->m11M12;
