@@ -625,76 +625,92 @@ WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[8] = {
     D_shelter_b1_storeroom_80186DDC,
 };
 
-void func_shelter_b1_storeroom_8017D7EC(Task* arg0)
+/// Selects this loaded room's copies of the effects spawned by actors.
+static inline void _shelterB1StoreroomBindEffectIds(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectMoteId         = EFFECT_SHELTER_B1_STOREROOM_MOTE;
-        gRoomEffectHaloId         = EFFECT_SHELTER_B1_STOREROOM_HALO;
-        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST;
-        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_STOREROOM_SPARK_EMITTER;
-        gRoomEffectFlashId        = EFFECT_SHELTER_B1_STOREROOM_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_STOREROOM_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_STOREROOM_SPARK_BURST;
-        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_STOREROOM_GLOW_DISC;
-        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_STOREROOM_FLYING_SPARK;
-        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST_2;
-        arg0->state               = 1;
+    gRoomEffectMoteId         = EFFECT_SHELTER_B1_STOREROOM_MOTE;
+    gRoomEffectHaloId         = EFFECT_SHELTER_B1_STOREROOM_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_STOREROOM_SPARK_EMITTER;
+    gRoomEffectFlashId        = EFFECT_SHELTER_B1_STOREROOM_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_STOREROOM_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_STOREROOM_SPARK_BURST;
+    gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_STOREROOM_GLOW_DISC;
+    gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_STOREROOM_FLYING_SPARK;
+    gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_STOREROOM_ORANGE_BURST_2;
+}
+
+void shelterB1StoreroomDrawGlowsTask(Task* task)
+{
+    enum {
+        GLOWS_INITIALIZE,
+        GLOWS_DRAW,
+        LAMP_GLOW_RADIUS     = 0x100,
+        LAMP_GLOW_DIM_RGB    = 0x222,
+        LAMP_GLOW_MEDIUM_RGB = 0x333,
+        LAMP_GLOW_BRIGHT_RGB = 0x444
+    };
+
+    if (task->state == GLOWS_INITIALIZE) {
+        _shelterB1StoreroomBindEffectIds();
+        task->state = GLOWS_DRAW;
     }
 
+    // Select visible tube endpoints and point lights; RGB channels use packed nibbles.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[0], 0x100, 0x222);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[2], 0x100, 0x222);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[8], 0x100, 0x222);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[10], 0x100, 0x222);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[16], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[18], 0x100, 0x444);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[26], 0x100, 0x222);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[27], 0x100, 0x222);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[28], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[0], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[2], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[8], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[10], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[16], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[18], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[26], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[27], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[28], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[2], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[4], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[6], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[10], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[12], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[14], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[20], 0x100, 0x222);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[22], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[2], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[4], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[6], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[10], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[12], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[14], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[20], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[22], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[16], 0x100, 0x333);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[18], 0x100, 0x333);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[27], 0x100, 0x222);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[28], 0x100, 0x222);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[29], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[16], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[18], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[27], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[28], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[29], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[2], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[4], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[6], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[8], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[10], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[12], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], 0x100, 0x222);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[2], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[4], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[6], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[10], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[12], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[2], 0x100, 0x444);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[4], 0x100, 0x222);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[5], 0x100, 0x222);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[6], 0x100, 0x222);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[2], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[4], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[5], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[6], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[0], 0x100, 0x333);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[2], 0x100, 0x333);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[0], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[2], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
             break;
     }
 }
@@ -705,21 +721,21 @@ void func_shelter_b1_storeroom_8017D7EC(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b1_storeroom_8017E7A8(Task* task)
+void shelterB1StoreroomRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b1_storeroom_8017F4F0(Task* arg0)
+void shelterB1StoreroomRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b1_storeroom_8017F888(Task* arg0)
+void shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -732,14 +748,14 @@ void func_shelter_b1_storeroom_80180C98(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_storeroom_80180DCC(Task* arg0)
+void shelterB1StoreroomRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_storeroom_80181830(Task* task)
+void shelterB1StoreroomRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -759,16 +775,16 @@ void func_shelter_b1_storeroom_80182D60(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b1_storeroom_801832B8(Task* task)
+void shelterB1StoreroomRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b1_storeroom_80183F18(Task* arg0)
+void shelterB1StoreroomRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

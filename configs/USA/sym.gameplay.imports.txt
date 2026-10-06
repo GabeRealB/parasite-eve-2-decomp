@@ -1079,25 +1079,25 @@ func_shelter_b1_sterilization_room_8018188C = 0x8018188C; // type:func absolute:
 
 shelterB1SterilizationRoomPuffTask = 0x801823D8; // type:func absolute:True owner=shelter_b1_sterilization_room
 
-func_shelter_b1_storeroom_8017E7A8 = 0x8017E7A8; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
+shelterB1StoreroomRoomVisualEffectsMoteTask = 0x8017E7A8; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
 
-func_shelter_b1_storeroom_8017F4F0 = 0x8017F4F0; // type:func absolute:True owner=shelter_b1_storeroom
+shelterB1StoreroomRoomVisualEffectsHaloTask = 0x8017F4F0; // type:func absolute:True owner=shelter_b1_storeroom
 
-func_shelter_b1_storeroom_8017F888 = 0x8017F888; // type:func absolute:True owner=shelter_b1_storeroom
+shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask = 0x8017F888; // type:func absolute:True owner=shelter_b1_storeroom
 
 func_shelter_b1_storeroom_80180C98 = 0x80180C98; // type:func absolute:True owner=shelter_b1_storeroom
 
-func_shelter_b1_storeroom_80180DCC = 0x80180DCC; // type:func absolute:True owner=shelter_b1_storeroom
+shelterB1StoreroomRoomVisualEffectsFlashTask = 0x80180DCC; // type:func absolute:True owner=shelter_b1_storeroom
 
-func_shelter_b1_storeroom_80181830 = 0x80181830; // type:func absolute:True owner=shelter_b1_storeroom
+shelterB1StoreroomRoomVisualEffectsTwinTrailTask = 0x80181830; // type:func absolute:True owner=shelter_b1_storeroom
 
 func_shelter_b1_storeroom_80182118 = 0x80182118; // type:func absolute:True owner=shelter_b1_storeroom
 
 func_shelter_b1_storeroom_80182D60 = 0x80182D60; // type:func absolute:True owner=shelter_b1_storeroom
 
-func_shelter_b1_storeroom_801832B8 = 0x801832B8; // type:func absolute:True owner=shelter_b1_storeroom
+shelterB1StoreroomRoomVisualEffectsFlyingSparkTask = 0x801832B8; // type:func absolute:True owner=shelter_b1_storeroom
 
-func_shelter_b1_storeroom_80183F18 = 0x80183F18; // type:func absolute:True owner=shelter_b1_storeroom
+shelterB1StoreroomRoomVisualEffectsFlyingOrangeBurstTask = 0x80183F18; // type:func absolute:True owner=shelter_b1_storeroom
 
 func_shelter_b1_transfer_tunnel_8017E308 = 0x8017E308; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 
@@ -1859,7 +1859,7 @@ shelterB1ElevatorHallDrawGlowsTask = 0x8017DC80; // type:func absolute:True owne
 
 shelterB1SouthMaintenanceWalkwayDrawGlowsTask = 0x8017DA8C; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 
-func_shelter_b1_storeroom_8017D7EC = 0x8017D7EC; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
+shelterB1StoreroomDrawGlowsTask = 0x8017D7EC; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
 
 shelterB1NorthMaintenanceWalkwayDrawGlowsTask = 0x8017DBC8; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway shared=rooms
 
