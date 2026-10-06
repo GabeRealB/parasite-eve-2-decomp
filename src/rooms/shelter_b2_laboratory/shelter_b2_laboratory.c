@@ -165,9 +165,9 @@ extern Task* D_shelter_b2_laboratory_80182A68;
 /// `func_shelter_b2_laboratory_8017FEB8`.
 extern s8 D_shelter_b2_laboratory_80182A90[];
 
-/// Glow positions `func_shelter_b2_laboratory_80180548` draws per view:
+/// Glow positions `shelterB2LaboratoryGlowTask` draws per view:
 /// `_glowDrawCapsule` takes the pair `pt[n]`, `pt[n + 1]`;
-/// `func_shelter_b2_laboratory_801812F8` and
+/// `_shelterB2LaboratoryDrawGlowDiamond` and
 /// `_glowDrawPulsingDisc` a single point.
 extern SVECTOR D_shelter_b2_laboratory_80182AA0[45];
 
@@ -193,21 +193,27 @@ extern RoomCutsceneRecStorage D_shelter_b2_laboratory_801864BC;
 /// World position the looping sound is panned and attenuated from.
 extern GfxCoord D_shelter_b2_laboratory_801864DC;
 
-/// Non-zero makes the view glows of `func_shelter_b2_laboratory_80180548`
-/// pulse faster. Written through `func_shelter_b2_laboratory_801820F4`; the
+/// Non-zero makes the view glows of `shelterB2LaboratoryGlowTask`
+/// pulse faster. Written through `_shelterB2LaboratorySetFastGlowPulse`; the
 /// glow task clears it when it starts.
 extern u16 D_shelter_b2_laboratory_80186540;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xFA\xA9"
 #include "../../shared/telephone.h"
 
+static s32  _shelterB2LaboratoryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static void func_shelter_b2_laboratory_80180450(Task* task);
-static void func_shelter_b2_laboratory_80180494(Task* task);
-static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_laboratory_801820F4(s16 arg0);
+static void _shelterB2LaboratoryIdleMessageTask(Task* task);
+static void _shelterB2LaboratoryDrawGlowDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
+static void _shelterB2LaboratorySetFastGlowPulse(s16 enabled);
+
+/// Values used by room events to select the cyan glow's pulse rate.
+enum {
+    SHELTER_B2_LABORATORY_GLOW_PULSE_SLOW = 0,
+    SHELTER_B2_LABORATORY_GLOW_PULSE_FAST = 1,
+};
 
 s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, s32);
-s32  func_shelter_b2_laboratory_801800F4(Task*, s32, s32, s32);
 s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32);
 s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, s32);
@@ -261,9 +267,12 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
+/// Key-item menu request handled by this room's message task.
+enum { SHELTER_B2_LABORATORY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
 TaskMessageEntry D_shelter_b2_laboratory_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
-    { 5105, func_shelter_b2_laboratory_801800F4 },
+    { SHELTER_B2_LABORATORY_MESSAGE_USE_KEY_ITEM, _shelterB2LaboratoryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_laboratory_801801D0 },
     { ROOM_MESSAGE_COMMAND, func_shelter_b2_laboratory_8017FD18 },
     { ROOM_MESSAGE_SOUND, func_shelter_b2_laboratory_8018025C },
@@ -1077,7 +1086,7 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3
     if (arg2 == 4) {
         D_shelter_b2_laboratory_801864B8 = 0;
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
-            func_shelter_b2_laboratory_801820F4(0);
+            _shelterB2LaboratorySetFastGlowPulse(SHELTER_B2_LABORATORY_GLOW_PULSE_SLOW);
             gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 3);
             gameFlagSetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_LABORATORY, 0);
@@ -1121,7 +1130,7 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3
 static const TaskFuncTable3 D_shelter_b2_laboratory_8017D6BC = {
     {
         func_shelter_b2_laboratory_80180450,
-        func_shelter_b2_laboratory_80180494,
+        _shelterB2LaboratoryIdleMessageTask,
         taskKill,
     },
 };
@@ -1173,9 +1182,15 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_shelter_b2_laboratory_801800F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in the laboratory without consuming the item.
+///
+/// Handles message 0x13F1. All arguments are ignored; zero selects the
+/// item menu's refusal notice and leaves the room and inventory unchanged.
+static s32 _shelterB2LaboratoryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    return 0;
+    enum { SHELTER_B2_LABORATORY_KEY_ITEM_REFUSED = 0 };
+
+    return SHELTER_B2_LABORATORY_KEY_ITEM_REFUSED;
 }
 
 s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -1288,11 +1303,14 @@ static void func_shelter_b2_laboratory_80180450(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Idle state of the room's message task: does nothing. The unused local
-/// reproduces the original's stack frame.
-static void func_shelter_b2_laboratory_80180494(Task* task)
+/// Keeps the laboratory's room-message task idle between messages.
+///
+/// Ignores the receiver and leaves its state unchanged; message dispatch is
+/// independent of this per-frame callback.
+static void _shelterB2LaboratoryIdleMessageTask(Task* task)
 {
-    char pad[0x10];
+    // Preserve the callback's stack reservation.
+    char unusedStack[0x10];
 }
 
 /// Runs the handler for the task's current state, from a local copy of
@@ -1309,128 +1327,146 @@ void func_shelter_b2_laboratory_801804FC(void)
 {
     if (D_shelter_b2_laboratory_801864B8 == 0) {
         D_shelter_b2_laboratory_801864B8 = 1;
-        func_shelter_b2_laboratory_801820F4(1);
+        _shelterB2LaboratorySetFastGlowPulse(SHELTER_B2_LABORATORY_GLOW_PULSE_FAST);
         taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 1, 0, 0);
     }
 }
 
-void func_shelter_b2_laboratory_80180548(Task* task)
+void shelterB2LaboratoryGlowTask(Task* task)
 {
-    if (task->state == 0) {
-        D_shelter_b2_laboratory_80186540 = 0;
-        task->state                      = 1;
+    enum {
+        SHELTER_B2_LABORATORY_GLOW_INITIALIZE                = 0,
+        SHELTER_B2_LABORATORY_GLOW_DRAW                      = 1,
+        SHELTER_B2_LABORATORY_GLOW_SLOW_PULSE_RATE           = 0x60,
+        SHELTER_B2_LABORATORY_GLOW_FAST_PULSE_RATE           = 0x180,
+        SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE        = 0x80,
+        SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE      = 0x180,
+        SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE = 0x200,
+        SHELTER_B2_LABORATORY_GLOW_DIM_GREY                  = 0x222,
+        SHELTER_B2_LABORATORY_GLOW_GREY                      = 0x333,
+        SHELTER_B2_LABORATORY_GLOW_BRIGHT_GREY               = 0x444,
+        SHELTER_B2_LABORATORY_GLOW_GREEN                     = 0x241,
+        SHELTER_B2_LABORATORY_GLOW_BLUE                      = 0x124,
+    };
+
+    // Start with slow cyan pulsing; room events select the faster rate.
+    if (task->state == SHELTER_B2_LABORATORY_GLOW_INITIALIZE) {
+        D_shelter_b2_laboratory_80186540 = SHELTER_B2_LABORATORY_GLOW_PULSE_SLOW;
+        task->state                      = SHELTER_B2_LABORATORY_GLOW_DRAW;
     }
 
+    // Capsule colours are packed RGB nibbles; points 0..43 form pairs.
+    // Point 44 supplies the cyan glow, drawn as a disc in view 13.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREEN);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BRIGHT_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BRIGHT_GREY);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BRIGHT_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREEN);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[0], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[8], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[10], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREEN);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_FAST_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             } else {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_SLOW_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             }
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[20], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[22], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[20], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[22], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[24], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             break;
         case 8:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], 0x200, 0x124);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[16], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[18], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[36], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[38], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[40], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             break;
         case 9:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             break;
         case 10:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], 0x200, 0x241);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[2], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[4], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[6], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[28], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREEN);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_FAST_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             } else {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_SLOW_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             }
             break;
         case 12:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[12], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[14], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_FAST_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             } else {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_SLOW_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             }
             break;
         case 13:
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                _glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+                _glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_FAST_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             } else {
-                _glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
+                _glowDrawPulsingDisc(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_SLOW_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             }
             break;
         case 15:
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
-            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[26], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_GREEN);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[30], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[32], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[34], SHELTER_B2_LABORATORY_GLOW_WIDE_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
+            _glowDrawCapsule(&D_shelter_b2_laboratory_80182AA0[42], SHELTER_B2_LABORATORY_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B2_LABORATORY_GLOW_BLUE);
             if (D_shelter_b2_laboratory_80186540 != 0) {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_FAST_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             } else {
-                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x60, 0x80);
+                _shelterB2LaboratoryDrawGlowDiamond(&D_shelter_b2_laboratory_80182AA0[44], SHELTER_B2_LABORATORY_GLOW_SLOW_PULSE_RATE, SHELTER_B2_LABORATORY_GLOW_POINT_RADIUS_SCALE);
             }
             break;
     }
@@ -1438,103 +1474,131 @@ void func_shelter_b2_laboratory_80180548(Task* task)
 
 #include "../../shared/glow_draw_capsule.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
-/// gouraud `LINE_G3` diagonals around the projected centre, with an on-screen
-/// radius of `(s16)arg2 * 32 / otz`. The lit vertex pulses on green and blue at
-/// `rsin(animFrame * (s16)arg1) / 34 + 0x78`.
-static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Prepares a Gouraud diamond half with a cyan centre and a black rim.
+///
+/// Borrows a writable packet and sets its command, length and four vertex
+/// colours. The low byte of `cyanIntensity` supplies green and blue at vertex
+/// 2; red and the rim vertices are zero. Coordinates, ordering-table linkage
+/// and blend mode are supplied by the drawer.
+static inline void _shelterB2LaboratoryInitGlowDiamondHalf(POLY_G4* diamondHalf, s32 cyanIntensity)
 {
-    u8*                                     head;
+    setPolyG4(diamondHalf);
+    setRGB0(diamondHalf, 0, 0, 0);
+    setRGB1(diamondHalf, 0, 0, 0);
+    setRGB2(diamondHalf, 0, cyanIntensity, cyanIntensity);
+    setRGB3(diamondHalf, 0, 0, 0);
+}
+
+/// Prepares a three-vertex glow diagonal with a cyan centre and black ends.
+///
+/// Borrows a writable packet and sets its command, length and three vertex
+/// colours. The low byte of `cyanIntensity` supplies green and blue at vertex
+/// 1; red and the end vertices are zero. Coordinates, ordering-table linkage
+/// and blend mode are supplied by the drawer.
+static inline void _shelterB2LaboratoryInitGlowDiagonal(LINE_G3* diagonal, s32 cyanIntensity)
+{
+    setLineG3(diagonal);
+    setRGB0(diagonal, 0, 0, 0);
+    setRGB1(diagonal, 0, cyanIntensity, cyanIntensity);
+    setRGB2(diagonal, 0, 0, 0);
+}
+
+/// Draws a pulsing cyan diamond and two diagonals around a world point.
+///
+/// Borrows `worldPoint` during the call. The signed low halfword of `pulseRate`
+/// is in 4096 angle units per animation frame; green and blue intensity is
+/// `rsin(animFrame * pulseRate) / 34 + 120`. The signed low halfword of
+/// `radiusScale` gives a pixel half-extent of `radiusScale * 32 / depth`,
+/// where depth is camera Z / 4 and must be nonzero. Negative GTE flags reject
+/// the point. The second diagonal extends twice as far as the diamond.
+///
+/// Requires composed view matrices, 24 free scratch-stack bytes, the frame's
+/// 1024-entry depth table and space for four additive packets plus blend
+/// commands. Releases the scratch block before returning; queued packets
+/// borrow the frame's primitive arena until GPU completion.
+static void _shelterB2LaboratoryDrawGlowDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale)
+{
     _ShelterB2LaboratoryGlowDiamondScratch* block;
     POLY_G4*                                prim;
     LINE_G3*                                line;
-    s32                                     sine;
-    s32                                     pulse;
-    s32                                     radius;
-    s32                                     i;
-    s32                                     t1;
-    s32                                     t2;
-    s32                                     twice;
-    u16                                     sx;
-    u16                                     sy;
+    s32                                     pulseSine;
+    s32                                     intensity;
+    s32                                     screenRadius;
+    s32                                     partIndex;
+    s32                                     xRadiusMultiple;
+    s32                                     yRadiusMultiple;
+    s32                                     verticalSide;
+    u16                                     screenX;
+    u16                                     screenY;
 
-    {
-        void** scratch;
-        u8*    tmp;
+    block = SCRATCH_STACK_RESERVE_BLOCK(_ShelterB2LaboratoryGlowDiamondScratch);
 
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - sizeof(_ShelterB2LaboratoryGlowDiamondScratch));
-        block   = (_ShelterB2LaboratoryGlowDiamondScratch*)tmp;
-    }
-
+    // Project the centre before deriving screen radius and sorting depth.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((_ShelterB2LaboratoryGlowDiamondScratch*)head)[-1].sx);
-    gte_stflg(&((_ShelterB2LaboratoryGlowDiamondScratch*)head)[-1].flag);
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / ((_ShelterB2LaboratoryGlowDiamondScratch*)head)[-1].otz;
-        i             = 0;
-        pulse         = sine / 34 + 0x78;
-        block->radius = radius;
+        pulseSine     = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        screenRadius  = ((s16)radiusScale * GLOW_DIAMOND_RADIUS_SCALE) / block->otz;
+        partIndex     = 0;
+        intensity     = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+        block->radius = screenRadius;
+        // Two Gouraud halves fill the diamond.
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, pulse, pulse);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->radius;
-            sx       = block->sx;
-            prim->x2 = sx;
-            prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->radius;
-            sy       = block->sy;
-            prim->y3 = sy;
-            prim->y2 = sy;
-            prim->y0 = sy;
-            twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
+            _shelterB2LaboratoryInitGlowDiamondHalf(prim, intensity);
+            prim->x0     = block->sx - (u16)block->radius;
+            screenX      = block->sx;
+            prim->x2     = screenX;
+            prim->x1     = screenX;
+            prim->x3     = block->sx + (u16)block->radius;
+            screenY      = block->sy;
+            prim->y3     = screenY;
+            prim->y2     = screenY;
+            prim->y0     = screenY;
+            verticalSide = partIndex * 2;
+            prim->y1     = (block->sy - (u16)block->radius) + (block->radius * verticalSide);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-            i++;
-        } while (i < 2);
+            partIndex++;
+        } while (partIndex < 2);
 
-        i = 0;
+        // Overlay the centre-lit diagonals at the same sorting depth.
+        partIndex = 0;
         do {
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, 0, pulse, pulse);
-            setRGB2(line, 0, 0, 0);
-            t1       = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->sx + (block->radius * t1);
-            line->y0 = block->sy - (block->radius * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->radius * t1);
-            line->y2 = block->sy + (block->radius * t2);
-            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
+            _shelterB2LaboratoryInitGlowDiagonal(line, intensity);
+            xRadiusMultiple = partIndex * 3 - 1;
+            yRadiusMultiple = partIndex + 1;
+            line->x0        = block->sx + (block->radius * xRadiusMultiple);
+            line->y0        = block->sy - (block->radius * yRadiusMultiple);
+            line->x1        = block->sx;
+            line->y1        = block->sy;
+            line->x2        = block->sx - (block->radius * xRadiusMultiple);
+            line->y2        = block->sy + (block->radius * yRadiusMultiple);
+            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)]),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
-            i = t2;
-        } while (i < 2);
+            partIndex = yRadiusMultiple;
+        } while (partIndex < 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB2LaboratoryGlowDiamondScratch);
 }
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-static void func_shelter_b2_laboratory_801820F4(s16 arg0)
+/// Selects slow (zero) or fast (nonzero) pulsing for the laboratory's cyan glow.
+///
+/// Stores all 16 argument bits without normalization. The glow task resets the
+/// selection when it starts; callers toggle it as room events start and finish.
+static void _shelterB2LaboratorySetFastGlowPulse(s16 enabled)
 {
-    D_shelter_b2_laboratory_80186540 = arg0;
+    D_shelter_b2_laboratory_80186540 = enabled;
 }

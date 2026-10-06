@@ -42525,7 +42525,7 @@ per state) and goes 79.6% -> 100% with nothing else changed.
 
 ## Room view dispatchers: index the global array, do not cache the base in a local
 
-`func_shelter_b2_laboratory_80180548` is the room family's per-view line-overlay
+`shelterB2LaboratoryGlowTask` is the room family's per-view line-overlay
 dispatcher: `switch (viewGetMappedIndex() & 0xFF)` with one case per camera view,
 each case a run of `func_..._80180AB4(&points[n], size, color)` calls. Writing
 the obvious `seg = D_..._80182AA0;` at the head of each case and then `&seg[n]`

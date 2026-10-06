@@ -854,7 +854,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_south_maintenance_walkway_8017DCC4, { NULL } },        // 0x13B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_operating_room_8017DDB8, { NULL } },                   // 0x13C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_north_maintenance_walkway_8017DDE8, { NULL } },        // 0x13D
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_laboratory_80180548, { NULL } },                       // 0x13E
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2LaboratoryGlowTask, { NULL } },                               // 0x13E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_breeding_room_8017D898, { NULL } },                    // 0x13F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_main_corridor_8017EC34, { NULL } },                    // 0x140
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_8017EB7C, { NULL } },                      // 0x141

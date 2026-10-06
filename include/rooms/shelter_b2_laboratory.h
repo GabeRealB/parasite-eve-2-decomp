@@ -50,7 +50,15 @@ void func_shelter_b2_laboratory_801804A4(Task* task);
 // Called by the actor overlay's event scripts while this room is loaded.
 void func_shelter_b2_laboratory_801804FC(void);
 
-void func_shelter_b2_laboratory_80180548(Task* task);
+/// Draws the laboratory's light glows for the current mapped camera view.
+///
+/// Bank-6 effect 0x13E resets its fast-pulse selection on the initial tick,
+/// then draws the view's tinted capsules and pulsing cyan glow each frame.
+/// Views 5, 10, 12 and 15 use a diamond; view 13 uses a layered disc.
+/// Requires this room overlay, composed view matrices, a current depth table,
+/// primitive arena and initialized scratch stack. Emits no packets for views
+/// absent from the dispatch and releases temporary scratch storage each call.
+void shelterB2LaboratoryGlowTask(Task* task);
 
 void func_shelter_b2_laboratory_8017EAB4(Task* task);
 

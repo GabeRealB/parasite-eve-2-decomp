@@ -110,7 +110,7 @@ D_shelter_b2_laboratory_801864DC = 0x801864DC; // size:0x50 defined:True
 gRoomEventReq = 0x8018652C; // size:0x14 defined:True
 D_shelter_b2_laboratory_80186540 = 0x80186540; // size:0x2 defined:True
 
-func_shelter_b2_laboratory_80180548 = 0x80180548; // type:func
+shelterB2LaboratoryGlowTask = 0x80180548; // type:func
 
 func_shelter_b2_laboratory_8017EAB4 = 0x8017EAB4; // type:func
 Telephone_DrawPlayDataRow = 0x8017D71C; // type:func
@@ -138,3 +138,7 @@ roomEventGate = 0x8017FA44; // type:func
 roomEventTask = 0x8017FBA8; // type:func
 roomCutsceneTask = 0x8017F4D8; // type:func
 roomCutsceneSoundTask = 0x80180064; // type:func
+_shelterB2LaboratoryRejectKeyItemUse = 0x801800f4; // type:func
+_shelterB2LaboratoryIdleMessageTask = 0x80180494; // type:func
+_shelterB2LaboratoryDrawGlowDiamond = 0x801812f8; // type:func
+_shelterB2LaboratorySetFastGlowPulse = 0x801820f4; // type:func
