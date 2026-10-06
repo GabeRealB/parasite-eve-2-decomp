@@ -143,9 +143,9 @@ extern RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5];
 /// that it can tell the reference count was non-zero before the frame began.
 extern s16 gRoamerPrevBattleRefs;
 
-s32 func_neo_ark_woodland_path_80181474(Task*, s32, s32, s32);
-s32 func_neo_ark_woodland_path_8018154C(Task*, s32, s32, s32);
-s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
+s32        func_neo_ark_woodland_path_8018154C(Task*, s32, s32, s32);
+s32        func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
 void func_neo_ark_woodland_path_801815D4(Task*);
@@ -217,7 +217,7 @@ s16 gRoamerReleasePending = 0;
 TaskMessageEntry gRoamerMsgTableA[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, roamerLatchRequest },
     { ROOM_MESSAGE_ACTOR_EVENT, roamerBankRetreat },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_woodland_path_80181474 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _neoArkWoodlandPathIgnoreRoamerCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -264,9 +264,9 @@ ActorCommand gRoamerCommand = { { .loc = { 0, 0 } }, 0 };
 
 u16 gRoamerReserveHp[5];
 
-static void func_neo_ark_woodland_path_801814D4(Task* arg0);
+static void _neoArkWoodlandPathAdvanceRoamerPoolAState(Task* task);
 
-static void func_neo_ark_woodland_path_801815C0(Task* arg0);
+static void _neoArkWoodlandPathAdvanceRoamerPoolBState(Task* task);
 
 static void func_neo_ark_woodland_path_80180DDC(Task* task);
 
@@ -332,8 +332,7 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
 
 #include "../../shared/falling_leaves_task.inc.c"
 
-/// The room's falling-leaf task, named by gameplay's effect table.
-void func_neo_ark_woodland_path_8017ED00(Task* task)
+void neoArkWoodlandPathLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
@@ -342,7 +341,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_neo_ark_woodland_path_8017F4A0(Task* task)
+void neoArkWoodlandPathWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -351,7 +350,7 @@ void func_neo_ark_woodland_path_8017F4A0(Task* task)
 
 #include "../../shared/water_drift_task_u16.inc.c"
 
-void func_neo_ark_woodland_path_8017F928(Task* task)
+void neoArkWoodlandPathWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
@@ -370,7 +369,7 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
 /// `func_neo_ark_woodland_path_801814E8`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
     { roamerArmPoolA, roamerTickPoolA,
-      func_neo_ark_woodland_path_801814D4, taskKill }
+      _neoArkWoodlandPathAdvanceRoamerPoolAState, taskKill }
 };
 
 #include "../../shared/roaming_enemies_ambush_msg.inc.c"
@@ -518,19 +517,28 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
 /// `func_neo_ark_woodland_path_801815D4`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
     { roamerArmPoolB, func_neo_ark_woodland_path_80180DDC,
-      func_neo_ark_woodland_path_801815C0, taskKill }
+      _neoArkWoodlandPathAdvanceRoamerPoolBState, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores actor commands delivered to the pool-A controller and returns zero.
+///
+/// Serves `ACTOR_COMMAND_MESSAGE_APPLY` in `gRoamerMsgTableA`. All arguments
+/// are unused: the command is neither read, modified nor retained, and the
+/// controller's task state is unchanged.
+static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)
 {
     return 0;
 }
 
 #include "../../shared/roaming_enemies_latch_request.inc.c"
 
-static void func_neo_ark_woodland_path_801814D4(Task* arg0)
+/// Advances the live pool-A controller from its pre-kill state 2 to state 3.
+///
+/// The following controller tick runs `taskKill`; this tick only increments
+/// the state and leaves the task and its message table live.
+static void _neoArkWoodlandPathAdvanceRoamerPoolAState(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state++;
 }
 
 /// Entry task of the first arming sequence: runs the state handler
@@ -555,9 +563,13 @@ s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, s32 arg2, s32 arg
 #include "../../shared/roaming_enemies_latch_request.inc.c"
 #undef roamerLatchRequest
 
-static void func_neo_ark_woodland_path_801815C0(Task* arg0)
+/// Advances the live pool-B controller from its pre-kill state 2 to state 3.
+///
+/// The following controller tick runs `taskKill`; this tick only increments
+/// the state and leaves the task and its message table live.
+static void _neoArkWoodlandPathAdvanceRoamerPoolBState(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state++;
 }
 
 /// Entry task of the second arming sequence: runs the state handler

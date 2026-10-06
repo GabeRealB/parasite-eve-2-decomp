@@ -626,7 +626,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask55, { NULL } },                                          // 0x055
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeScreenDripTask, { NULL } },                            // 0x056
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGroundGlowTask, { NULL } },                            // 0x057
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017F4A0, { NULL } },                         // 0x058
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathWaterRippleTask, { NULL } },                           // 0x058
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask59, { NULL } },                                // 0x059
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_8017FA30, { NULL } },              // 0x05A
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_801802E0, { NULL } },              // 0x05B
@@ -929,7 +929,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_8013482C, { NULL } },                                  // 0x184
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801346D4, { NULL } },                                  // 0x185
     { { { TASK_BODY_COORD, 0x70 } }, func_gunblade_8011D1E4, { NULL } },                                      // 0x186
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017F928, { NULL } },                         // 0x187
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathWaterDriftTaskU16, { NULL } },                         // 0x187
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseTwinTrailTask, { NULL } },                       // 0x188
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E4C4, { NULL } },                                   // 0x189
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017EC18, { NULL } },                                   // 0x18A
@@ -987,7 +987,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_service_gantry_8017E880, { NULL } },                 // 0x1BE
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteRiseTask, { NULL } },                      // 0x1BF
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomLightBeamTask, { NULL } },                             // 0x1C0
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017ED00, { NULL } },                         // 0x1C1
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathLeafFallTask, { NULL } },                              // 0x1C1
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017E38C, { NULL } },                            // 0x1C2
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017EDF0, { NULL } },                            // 0x1C3
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017F6D8, { NULL } },                            // 0x1C4

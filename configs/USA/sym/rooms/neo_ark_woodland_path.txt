@@ -79,13 +79,13 @@ D_neo_ark_woodland_path_80184A44 = 0x80184A44; // size:0x18 defined:True
 gRoamerCommand = 0x80184A5C; // size:0x4 defined:True
 gRoamerReserveHp = 0x80184A60; // size:0xA defined:True
 
-func_neo_ark_woodland_path_8017F4A0 = 0x8017F4A0; // type:func
+neoArkWoodlandPathWaterRippleTask = 0x8017F4A0; // type:func
 
 func_neo_ark_woodland_path_8017EA08 = 0x8017EA08; // type:func
 
-func_neo_ark_woodland_path_8017F928 = 0x8017F928; // type:func
+neoArkWoodlandPathWaterDriftTaskU16 = 0x8017F928; // type:func
 
-func_neo_ark_woodland_path_8017ED00 = 0x8017ED00; // type:func
+neoArkWoodlandPathLeafFallTask = 0x8017ED00; // type:func
 _waterDrawSplash = 0x8017F5F4; // type:func
 waterDistortBandTask = 0x8017E2E8; // type:func
 waterRefractionTask = 0x8017D694; // type:func
@@ -98,3 +98,6 @@ roamerTickPoolA = 0x801806D8; // type:func
 roamerAmbushMsg = 0x80180B18; // type:func
 roamerArmPoolB = 0x80180C6C; // type:func
 roamerLatchRequest = 0x8018147C; // type:func
+_neoArkWoodlandPathIgnoreRoamerCommand = 0x80181474; // type:func
+_neoArkWoodlandPathAdvanceRoamerPoolAState = 0x801814d4; // type:func
+_neoArkWoodlandPathAdvanceRoamerPoolBState = 0x801815c0; // type:func

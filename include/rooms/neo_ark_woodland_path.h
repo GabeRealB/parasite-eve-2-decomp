@@ -41,13 +41,45 @@ extern WorldCollisionOccluder D_neo_ark_woodland_path_801847D4[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[];
 
-void func_neo_ark_woodland_path_8017F4A0(Task* task);
+/// Advances and draws an expanding, fading water-surface ripple.
+///
+/// Requires a counted effect task with a coordinate body, initial state 0
+/// and a cleared, owned primary-heap `EffectWork` in `spawnArg2.pointer`.
+/// `spawnArg1` bits 0..11 give the initial half-side in coordinate units;
+/// higher bits are ignored. Each running update grows it by 32 and dims the
+/// brightness by 2, from 64. Suspended updates redraw the retained ripple.
+/// Cancellation draws once before retirement; cancellation or the end of
+/// the fade releases the work, coordinate body and task.
+void neoArkWoodlandPathWaterRippleTask(Task* task);
 
 void func_neo_ark_woodland_path_8017EA08(Task* task);
 
-void func_neo_ark_woodland_path_8017F928(Task* task);
+/// Advances and draws an eight-cell water-spray particle with unsigned cell indices.
+///
+/// Requires a counted effect task with a coordinate body, initial state 0
+/// and a cleared, owned primary-heap `EffectWork` in `spawnArg2.pointer`.
+/// `spawnArg1` bits 0..11 give perspective size, bits 12..15 updates per
+/// cell (0 selects 1), and bits 16..23 launch speed in parent-coordinate
+/// units per running update (0 selects 64). Bits 24..27 select the launch:
+/// 0 stationary, 1 upward burst, 2 all-axis spray, 3 narrow upward jet,
+/// 5 the copied spawn-offset direction; other kinds retain a zero direction.
+/// Nonzero bits 28..31 select upright drawing instead of a random fixed spin.
+/// A supplied nonzero `EffectWork::move` bypasses launch generation and scaling.
+/// The first running update initializes; later updates draw cells 0..7,
+/// move in parent space and apply gravity unless stationary. Suspended
+/// updates redraw; cancellation or finishing cell 7 releases the work,
+/// coordinate body and task. No work pointer remains live after retirement.
+void neoArkWoodlandPathWaterDriftTaskU16(Task* task);
 
-void func_neo_ark_woodland_path_8017ED00(Task* task);
+/// Advances and draws a tumbling leaf through its fall, hold and fade.
+///
+/// Requires a counted effect task with a coordinate body, initial state 0
+/// and a cleared, owned primary-heap `EffectWork` in `spawnArg2.pointer`.
+/// Motion uses parent-coordinate units per tick and 4096-unit-turn angles.
+/// The leaf has half-side 32 and stops moving once parent-space Y is positive.
+/// Updates continue through room-effect suspension. The final fade releases
+/// the work, coordinate body and task, ending their lifetimes.
+void neoArkWoodlandPathLeafFallTask(Task* task);
 
 void func_neo_ark_woodland_path_8017E9B0(Task* task);
 

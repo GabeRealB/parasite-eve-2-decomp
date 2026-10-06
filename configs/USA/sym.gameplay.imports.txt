@@ -950,9 +950,9 @@ neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask = 0x80180694; // typ
 
 func_neo_ark_woodland_path_8017EA08 = 0x8017EA08; // type:func absolute:True owner=neo_ark_woodland_path
 
-func_neo_ark_woodland_path_8017F4A0 = 0x8017F4A0; // type:func absolute:True owner=neo_ark_woodland_path
+neoArkWoodlandPathWaterRippleTask = 0x8017F4A0; // type:func absolute:True owner=neo_ark_woodland_path
 
-func_neo_ark_woodland_path_8017F928 = 0x8017F928; // type:func absolute:True owner=neo_ark_woodland_path
+neoArkWoodlandPathWaterDriftTaskU16 = 0x8017F928; // type:func absolute:True owner=neo_ark_woodland_path
 
 func_shelter_1f_bulwark_8017E38C = 0x8017E38C; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
 
@@ -1961,7 +1961,7 @@ shelterB2PodBottomEnergyRingTask = 0x8017F448; // type:func absolute:True owner=
 
 mistShootingGalleryTracerTask = 0x80182064; // type:func absolute:True owner=mist_shooting_gallery shared=rooms
 
-func_neo_ark_woodland_path_8017ED00 = 0x8017ED00; // type:func absolute:True owner=neo_ark_woodland_path shared=rooms
+neoArkWoodlandPathLeafFallTask = 0x8017ED00; // type:func absolute:True owner=neo_ark_woodland_path shared=rooms
 
 func_mist_parking_8018345C = 0x8018345C; // type:func absolute:True owner=mist_parking
 
