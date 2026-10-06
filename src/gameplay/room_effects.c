@@ -711,7 +711,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirBurstSpriteTask, { NULL } },                           // 0x0AA
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012EF48, { NULL } },                                     // 0x0AB
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskAC, { NULL } },                                             // 0x0AC
-    { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012F9A8, { NULL } },                                     // 0x0AD
+    { { { TASK_BODY_COORD, 0x70 } }, lifedrainRisingSparkTask, { NULL } },                                    // 0x0AD
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTaskAE, { NULL } },                                         // 0x0AE
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012FAF8, { NULL } },                                     // 0x0AF
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_8017F868, { NULL } },                              // 0x0B0
@@ -772,7 +772,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017F914, { NULL } },                      // 0x0E7
     { { { TASK_BODY_COORD, 0x70 } }, _effectDarknessScreenDimTaskE8, { NULL } },                              // 0x0E8
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017F230, { NULL } },                                     // 0x0E9
-    { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_801308C0, { NULL } },                                     // 0x0EA
+    { { { TASK_BODY_COORD, 0x70 } }, lifedrainExpandingGlowBandTask, { NULL } },                              // 0x0EA
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017FC94, { NULL } },                                     // 0x0EB
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8018057C, { NULL } },                                     // 0x0EC
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017FEB0, { NULL } },                        // 0x0ED

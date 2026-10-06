@@ -56,7 +56,7 @@ typedef struct {
 } _LifedrainLevelTuning;
 STATIC_ASSERT_SIZEOF(_LifedrainLevelTuning, 0xA);
 
-static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void _lifedrainDrawMoteBillboards(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor);
 
 /// Per-level tuning for the life drain, one row per PE level 1-3, weakest
 /// first.
@@ -339,9 +339,7 @@ void func_lifedrain_8012EF48(Task* arg0)
 
 #include "../../shared/rising_spark_task.inc.c"
 
-/// Life Drain's spark billboard (see rising_spark.h), spawned through
-/// gameplay's effect table.
-void func_lifedrain_8012F9A8(Task* task)
+void lifedrainRisingSparkTask(Task* task)
 {
     _risingSparkTask(task);
 }
@@ -358,7 +356,7 @@ void func_lifedrain_8012F9A8(Task* task)
 /// `radiusLimit` of `D_lifedrain_80130AB4`, `period` trailing it by `0x100`.
 ///
 /// State 1 walks the coordinate by that drift and, every other tick, draws a
-/// wedge through `func_lifedrain_801301AC` and one time in four parents a
+/// pair of billboards through `_lifedrainDrawMoteBillboards` and one time in four parents a
 /// `0x600AD` spark. On tick 0xF it aims: the player's part-1 translation minus
 /// its own, rotated into the mote's frame by `workm` and by `coord`, becomes
 /// the unit heading in `pos`, scaled by GPF with `0x1200 / (0x1E - tick)`
@@ -403,7 +401,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 actorRenderComposeCoord(coord);
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
-                    func_lifedrain_801301AC(coord, mem->index, mem->period);
+                    _lifedrainDrawMoteBillboards(coord, mem->index, mem->period);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 3) == 0) {
                         spawned = Gp_SpawnEff(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(mem->angle), NULL);
@@ -450,7 +448,7 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 }
                 if (mem->age & 1) {
                     mem->index = (mem->index + 1) & 3;
-                    func_lifedrain_801301AC(coord, mem->index, mem->period);
+                    _lifedrainDrawMoteBillboards(coord, mem->index, mem->period);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 3) == 0) {
                         spawned = Gp_SpawnEff(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(mem->angle), NULL);
@@ -483,150 +481,190 @@ void func_lifedrain_8012FAF8(Task* arg0)
     effectKillTask(mem, arg0);
 }
 
-/// Links two axis-aligned `POLY_FT4`s at `arg0`'s world position: the position
-/// is projected through `GsWSMATRIX` by a single `RTPS` and both quads are
-/// dropped when that sets a negative `gte_stflg`. The inner sprite is one of
-/// four 0x18-wide frames on tpage 0x2A (CLUT 0x42C5) picked by `arg1 & 3`, sized
-/// `arg2 * 23 / depth`. The outer sprite is the 0x38-wide cell on tpage 0x29 whose
-/// CLUT is `0x4310 + (arg1 & 1)`, sized `((arg2 * 2) / 3) * 55 / depth`. Same
-/// 0x18-byte scratch and axis-aligned corners as gameplay `effectSpriteTask8D`.
-static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
+/// Sets a mote billboard's corners around its projected centre.
+///
+/// Borrows a live scratch block and writable quad. Centre and extent are
+/// reduced to their low 16-bit encodings before corner arithmetic; packet
+/// stores retain the low 16 bits. Only the eight XY halfwords change.
+static inline void _lifedrainSetMoteBillboardBounds(POLY_FT4* quad, const EffectCentreScratch* scratch)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    s32                  u0;
-    s32                  u1;
-    s16                  x;
-    s16                  y;
-    u16                  vz;
+    s16 edgeX;
+    s16 edgeY;
 
-    head                                                                        = SCRATCH_STACK_CURSOR(u8);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
-    vz                                                                          = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    edgeX    = scratch->screenX - (u16)scratch->screenExtent;
+    quad->x2 = edgeX;
+    quad->x0 = edgeX;
+    edgeX    = scratch->screenX + (u16)scratch->screenExtent;
+    quad->x3 = edgeX;
+    quad->x1 = edgeX;
+    edgeY    = scratch->screenY - (u16)scratch->screenExtent;
+    quad->y1 = edgeY;
+    quad->y0 = edgeY;
+    edgeY    = scratch->screenY + (u16)scratch->screenExtent;
+    quad->y3 = edgeY;
+    quad->y2 = edgeY;
+}
+
+/// Queues the animated core and alternating-palette halo of a Life Drain mote.
+///
+/// Borrows `coord`'s composed translation in the input space of `GsWSMATRIX`,
+/// narrowing each component to signed 16 bits. Both quads stay aligned to the
+/// screen axes and use additive, unmodulated texture colours. The low two
+/// bits of `animationFrame` select a 24-by-24 core cell; its low bit selects
+/// one of two palettes for the fixed 56-by-56 halo cell.
+///
+/// `sizeFactor` is a signed perspective-sizing numerator, not a pixel radius:
+/// the core's screen half-extent is sizeFactor * 23 / depth, and the halo's is
+/// (s16)(sizeFactor * 2 / 3) * 55 / depth, truncated toward zero. Depth is
+/// SZ3 / 4 + 1, shared by sizing and ordering. Negative GTE FLAG rejects both.
+/// Requires initialized projection settings, room for one `EffectCentreScratch`
+/// on the word-aligned scratch stack and two `POLY_FT4`s in the frame arena.
+/// Scratch is released on both paths; queued packets remain live until drawing.
+static void _lifedrainDrawMoteBillboards(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor)
+{
+    enum {
+        LIFEDRAIN_MOTE_CORE_FRAME_COUNT      = 4,
+        LIFEDRAIN_MOTE_CORE_CELL_WIDTH       = 24,
+        LIFEDRAIN_MOTE_CORE_UV_SPAN          = LIFEDRAIN_MOTE_CORE_CELL_WIDTH - 1,
+        LIFEDRAIN_MOTE_CORE_TPAGE            = getTPage(0, GPU_BLEND_ADD, 640, 0),
+        LIFEDRAIN_MOTE_CORE_CLUT             = getClut(80, 267),
+        LIFEDRAIN_MOTE_HALO_TPAGE            = getTPage(0, GPU_BLEND_ADD, 576, 0),
+        LIFEDRAIN_MOTE_HALO_PALETTE_COUNT    = 2,
+        LIFEDRAIN_MOTE_HALO_PALETTE_X        = 256,
+        LIFEDRAIN_MOTE_HALO_PALETTE_X_STRIDE = 16,
+        LIFEDRAIN_MOTE_HALO_CLUT_ROW         = getClut(0, 268),
+        LIFEDRAIN_MOTE_HALO_LEFT_U           = 56,
+        LIFEDRAIN_MOTE_HALO_TOP_V            = 200,
+        LIFEDRAIN_MOTE_HALO_UV_SPAN          = 55,
+        LIFEDRAIN_MOTE_DEPTH_BIAS            = 1,
+    };
+    EffectCentreScratch* scratchEnd;
+    EffectCentreScratch* scratch;
+    POLY_FT4*            quad;
+    SVECTOR*             worldPoint;
+    s32                  leftU;
+    s32                  rightU;
+    u16                  worldZBits;
+
+    // Stage the composed centre before reserving the block; both sprites share one projection.
+    scratchEnd                                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    scratchEnd[-1].worldPoint.vx              = (u16)coord->workm.t[0];
+    scratch                                   = scratchEnd - 1;
+    scratch->worldPoint.vy                    = (u16)coord->workm.t[1];
+    worldZBits                                = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch) = scratch;
+    scratch->worldPoint.vz                    = worldZBits;
+    worldPoint                                = &scratch->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        prim->tpage    = 0x2A;
-        prim->clut     = 0x42C5;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        u0                  = (arg1 & 3) * 0x18;
-        u1                  = u0 + 0x17;
-        prim->u1            = u1;
-        prim->u0            = u0;
-        prim->u2            = u0;
-        prim->u3            = u1;
-        prim->v2            = 0x17;
-        prim->v3            = 0x17;
-        prim->v0            = 0;
-        prim->v1            = 0;
-        block->screenExtent = (arg2 * 0x17) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        prim->tpage    = 0x29;
-        prim->clut     = ((u32)(((arg1 & 1) * 0x10) + 0x100) >> 4) | 0x4300;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->u0            = 0x38;
-        prim->v0            = 0xC8;
-        prim->u1            = 0x6F;
-        prim->v1            = 0xC8;
-        prim->v2            = 0xFF;
-        prim->v3            = 0xFF;
-        prim->u2            = 0x38;
-        prim->u3            = 0x6F;
-        block->screenExtent = ((s16)((arg2 * 2) / 3) * 0x37) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&scratchEnd[-1].screenX);
+    gte_stflg(&scratchEnd[-1].projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratchEnd[-1].depth);
+        scratch->depth += LIFEDRAIN_MOTE_DEPTH_BIAS;
+        quad            = gGpuPrimCursor;
+        gGpuPrimCursor  = quad + 1;
+        quad->tpage     = LIFEDRAIN_MOTE_CORE_TPAGE;
+        quad->clut      = LIFEDRAIN_MOTE_CORE_CLUT;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setShadeTex(quad, 1);
+        leftU                 = (animationFrame & (LIFEDRAIN_MOTE_CORE_FRAME_COUNT - 1)) * LIFEDRAIN_MOTE_CORE_CELL_WIDTH;
+        rightU                = leftU + LIFEDRAIN_MOTE_CORE_UV_SPAN;
+        quad->u1              = rightU;
+        quad->u0              = leftU;
+        quad->u2              = leftU;
+        quad->u3              = rightU;
+        quad->v2              = LIFEDRAIN_MOTE_CORE_UV_SPAN;
+        quad->v3              = LIFEDRAIN_MOTE_CORE_UV_SPAN;
+        quad->v0              = 0;
+        quad->v1              = 0;
+        scratch->screenExtent = (sizeFactor * LIFEDRAIN_MOTE_CORE_UV_SPAN) / scratch->depth;
+        _lifedrainSetMoteBillboardBounds(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
+
+        // The halo alternates palettes while retaining a fixed texture cell.
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        quad->tpage    = LIFEDRAIN_MOTE_HALO_TPAGE;
+        quad->clut     = ((u32)(((animationFrame & (LIFEDRAIN_MOTE_HALO_PALETTE_COUNT - 1)) * LIFEDRAIN_MOTE_HALO_PALETTE_X_STRIDE) + LIFEDRAIN_MOTE_HALO_PALETTE_X) >> 4) | LIFEDRAIN_MOTE_HALO_CLUT_ROW;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setShadeTex(quad, 1);
+        quad->u0              = LIFEDRAIN_MOTE_HALO_LEFT_U;
+        quad->v0              = LIFEDRAIN_MOTE_HALO_TOP_V;
+        quad->u1              = LIFEDRAIN_MOTE_HALO_LEFT_U + LIFEDRAIN_MOTE_HALO_UV_SPAN;
+        quad->v1              = LIFEDRAIN_MOTE_HALO_TOP_V;
+        quad->v2              = LIFEDRAIN_MOTE_HALO_TOP_V + LIFEDRAIN_MOTE_HALO_UV_SPAN;
+        quad->v3              = LIFEDRAIN_MOTE_HALO_TOP_V + LIFEDRAIN_MOTE_HALO_UV_SPAN;
+        quad->u2              = LIFEDRAIN_MOTE_HALO_LEFT_U;
+        quad->u3              = LIFEDRAIN_MOTE_HALO_LEFT_U + LIFEDRAIN_MOTE_HALO_UV_SPAN;
+        scratch->screenExtent = ((s16)((sizeFactor * 2) / 3) * LIFEDRAIN_MOTE_HALO_UV_SPAN) / scratch->depth;
+        _lifedrainSetMoteBillboardBounds(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 #include "../../shared/glow_draw_wedge.inc.c"
 
-void func_lifedrain_801308C0(Task* arg0)
+void lifedrainExpandingGlowBandTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        LIFEDRAIN_BAND_STATE_INITIALIZE   = 0,
+        LIFEDRAIN_BAND_STATE_EXPAND       = 1,
+        LIFEDRAIN_BAND_ROTATION_MASK      = 0xFFF,
+        LIFEDRAIN_BAND_INITIAL_RADIUS     = 128,
+        LIFEDRAIN_BAND_FADE_STEP          = 8,
+        LIFEDRAIN_BAND_RELEASE_BRIGHTNESS = LIFEDRAIN_BAND_FADE_STEP + 1,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
-    s16         kind;
+    s16         effectControl;
+    s16         levelIndex;
     u8          rgb[3];
-    s32         scale;
+    s32         fadedBrightness;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->peEffectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->peEffectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(work, task);
         }
         return;
     }
 
-    if (arg0->state == 0) {
-        gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, GRAPHICS_ROTATION_COMPOSE);
+    // Tilt each band's local XZ plane and capture its PE level on the first running tick.
+    if (task->state == LIFEDRAIN_BAND_STATE_INITIALIZE) {
+        gfxRotMatrixZ(&coord->coord, task->spawnArg1.value & LIFEDRAIN_BAND_ROTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        kind                = (Gp_StateC08.attachId % 10U) - 1;
-        mem->index          = kind;
-        mem->scale          = D_lifedrain_80130AB4[kind].brightness;
-        mem->angle          = 0x80;
-        mem->period         = D_lifedrain_80130AB4[mem->index].outerOffset;
-        arg0->state         = 1;
+        levelIndex          = (Gp_StateC08.attachId % 10U) - 1;
+        work->index         = levelIndex;
+        work->scale         = D_lifedrain_80130AB4[levelIndex].brightness;
+        work->angle         = LIFEDRAIN_BAND_INITIAL_RADIUS;
+        work->period        = D_lifedrain_80130AB4[work->index].outerOffset;
+        task->state         = LIFEDRAIN_BAND_STATE_EXPAND;
     }
 
     actorRenderComposeCoord(coord);
-    mem->angle  = mem->angle + (D_lifedrain_80130AB4[mem->index].brightness / 3);
-    mem->period = mem->period + (D_lifedrain_80130AB4[mem->index].brightness >> 1);
-    rgb[0]      = mem->scale >> 1;
-    rgb[1]      = mem->scale >> 1;
-    rgb[2]      = (u8)mem->scale;
-    effectDrawInnerGlowBand(coord, mem->angle, mem->period, rgb);
+    // angle and period hold the inner radius and width; scale is the fading blue channel.
+    work->angle  = work->angle + (D_lifedrain_80130AB4[work->index].brightness / 3);
+    work->period = work->period + (D_lifedrain_80130AB4[work->index].brightness >> 1);
+    rgb[0]       = work->scale >> 1;
+    rgb[1]       = work->scale >> 1;
+    rgb[2]       = (u8)work->scale;
+    effectDrawInnerGlowBand(coord, work->angle, work->period, rgb);
 
-    scale      = (u16)mem->scale;
-    scale     -= 8;
-    mem->scale = scale;
-    if ((s16)scale < 9) {
-        effectKillTask(mem, arg0);
+    // Draw before fading, retaining the halfword wrap and signed release test.
+    fadedBrightness  = (u16)work->scale;
+    fadedBrightness -= LIFEDRAIN_BAND_FADE_STEP;
+    work->scale      = fadedBrightness;
+    if ((s16)fadedBrightness < LIFEDRAIN_BAND_RELEASE_BRIGHTNESS) {
+        effectKillTask(work, task);
     }
 }

@@ -2021,7 +2021,7 @@ func_pyrokinesis_80130C54 = 0x80130C54; // type:func absolute:True owner=pyrokin
 
 combustionEmberTask = 0x8012F888; // type:func absolute:True owner=combustion
 
-func_lifedrain_8012F9A8 = 0x8012F9A8; // type:func absolute:True owner=lifedrain
+lifedrainRisingSparkTask = 0x8012F9A8; // type:func absolute:True owner=lifedrain
 
 func_inferno_8012EF88 = 0x8012EF88; // type:func absolute:True owner=inferno
 
@@ -2031,7 +2031,7 @@ infernoFlameFanTask = 0x8012F530; // type:func absolute:True owner=inferno
 
 energyshotRisingBillboardTask = 0x8012FFB8; // type:func absolute:True owner=energyshot
 
-func_lifedrain_801308C0 = 0x801308C0; // type:func absolute:True owner=lifedrain
+lifedrainExpandingGlowBandTask = 0x801308C0; // type:func absolute:True owner=lifedrain
 
 antibodyMoteTask = 0x8012F734; // type:func absolute:True owner=antibody
 
