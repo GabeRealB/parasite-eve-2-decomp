@@ -380,45 +380,33 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
             case 1:
                 fileId = (req[1] * 100) + req[0];
                 len    = Fs_FileTableCat1Len;
-                i      = 0;
-                if ((u32)sector < (u32)len) {
-                    do {
-                        if (Fs_FileTableCat1[i].idInCategory == fileId) {
-                            sector = Fs_FileTableCat1[i].sectorOffset + Fs_StageCdfSectors[0];
-                            goto setup_and_load;
-                        }
-                        i++;
-                    } while (i < (u32)len);
+                for (i = 0; i < (u32)len; i++) {
+                    if (Fs_FileTableCat1[i].idInCategory == fileId) {
+                        sector = Fs_FileTableCat1[i].sectorOffset + Fs_StageCdfSectors[0];
+                        break;
+                    }
                 }
                 break;
 
             case 2:
                 fileId = (req[1] * 100) + req[0];
                 len    = Fs_FileTableCat2Len;
-                i      = 0;
-                if ((u32)sector < (u32)len) {
-                    do {
-                        if (Fs_FileTableCat2[i].idInCategory == fileId) {
-                            sector = Fs_FileTableCat2[i].sectorOffset + Fs_StageCdfSectors[0];
-                            goto setup_and_load;
-                        }
-                        i++;
-                    } while (i < (u32)len);
+                for (i = 0; i < (u32)len; i++) {
+                    if (Fs_FileTableCat2[i].idInCategory == fileId) {
+                        sector = Fs_FileTableCat2[i].sectorOffset + Fs_StageCdfSectors[0];
+                        break;
+                    }
                 }
                 break;
 
             case 3:
                 fileId = (req[1] * 100) + req[0];
                 len    = Fs_FileTableCat3Len;
-                i      = 0;
-                if ((u32)sector < (u32)len) {
-                    do {
-                        if (Fs_FileTableCat3[i].idInCategory == fileId) {
-                            sector = Fs_FileTableCat3[i].sectorOffset + Fs_StageCdfSectors[0];
-                            goto setup_and_load;
-                        }
-                        i++;
-                    } while (i < (u32)len);
+                for (i = 0; i < (u32)len; i++) {
+                    if (Fs_FileTableCat3[i].idInCategory == fileId) {
+                        sector = Fs_FileTableCat3[i].sectorOffset + Fs_StageCdfSectors[0];
+                        break;
+                    }
                 }
                 break;
 
@@ -427,17 +415,12 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 if (req[1] == 1) {
                     fileId = req[1] * 100 + req[0];
                     len    = Fs_FileTableCat4Len;
-                    i      = 0;
-                    if ((u32)sector < (u32)len) {
-                        do {
-                            if (Fs_FileTableCat4[i].idInCategory == fileId) {
-                                sector = Fs_FileTableCat4[i].sectorOffset + Fs_StageCdfSectors[0];
-                                goto after4;
-                            }
-                            i++;
-                        } while (i < (u32)len);
+                    for (i = 0; i < (u32)len; i++) {
+                        if (Fs_FileTableCat4[i].idInCategory == fileId) {
+                            sector = Fs_FileTableCat4[i].sectorOffset + Fs_StageCdfSectors[0];
+                            break;
+                        }
                     }
-                after4:
                     if (sector == 0) {
                         return 0;
                     }
