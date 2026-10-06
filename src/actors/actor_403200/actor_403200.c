@@ -4277,6 +4277,27 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
 #include "../../shared/glutton_hit_groups1to2.inc.c"
 
+/// The first of the leading `count` contact records whose kind is 0x20000:
+/// copies its point to `pos` and returns its key, or returns 0 when none is
+/// found before an empty record or the end.
+static inline s32 _gluttonFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+{
+    s16 i;
+
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key.value;
+        }
+    }
+    return 0;
+}
+
 /// The hit handler for collision groups 3, 4 and 5 -- `gluttonHitGroups1To2`
 /// done three times over the parts it does not cover, each group only scanned
 /// when the previous one landed nothing and the part it hit reported no attack
@@ -4302,53 +4323,28 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 /// value for the same reason.
 static void func_actor_403200_8013A4A0(Task* arg0)
 {
-    GluttonHitScratch*     sc;
-    GluttonWork*           work;
-    Enemy*                 host;
-    PlayerStatus*          cfg;
-    WorldCollisionContact* recs;
-    WorldCollisionContact* recs2;
-    WorldCollisionContact* recs3;
-    SVECTOR*               pos;
-    SVECTOR*               pos2;
-    SVECTOR*               pos3;
-    s32                    id;
-    s32                    dx2;
-    s32                    dy2;
-    s32                    dz2;
-    u32                    dmg;
-    s16                    angle;
-    s16                    state;
-    s16                    i;
-    s16                    i2;
-    s16                    i3;
-    s16                    param;
-    u16                    hp;
-    Enemy*                 esc3;
-    Enemy*                 esc0;
-    Enemy*                 esc1;
+    GluttonHitScratch* sc;
+    GluttonWork*       work;
+    Enemy*             host;
+    PlayerStatus*      cfg;
+    s32                id;
+    s32                dx2;
+    s32                dy2;
+    s32                dz2;
+    u32                dmg;
+    s16                angle;
+    s16                state;
+    s16                param;
+    u16                hp;
+    Enemy*             esc3;
+    Enemy*             esc0;
+    Enemy*             esc1;
 
-    cfg  = &gPlayerStatus;
-    host = (Enemy*)arg0->spawnArg2.pointer;
-    work = arg0->work;
-    sc   = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
-    pos  = &sc->contactPoint;
-    recs = work->hits[3].contacts;
-    for (i = 0; i < ARRAY_SIZE(work->hits[3].contacts); i++) {
-        if (recs[i].key.value == 0) {
-            goto missed1;
-        }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = recs[i].point.vx;
-            pos->vy = recs[i].point.vy;
-            pos->vz = recs[i].point.vz;
-            id      = recs[i].key.value;
-            goto found1;
-        }
-    }
-missed1:
-    id = 0;
-found1:
+    cfg           = &gPlayerStatus;
+    host          = (Enemy*)arg0->spawnArg2.pointer;
+    work          = arg0->work;
+    sc            = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
+    id            = _gluttonFindHit(&sc->contactPoint, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts));
     sc->attackKey = id;
     if (id != 0) {
         gluttonHitEffect(work->hits[3].body.coord, id);
@@ -4357,23 +4353,7 @@ found1:
         }
     }
 
-    pos2  = &sc->contactPoint;
-    recs2 = work->hits[4].contacts;
-    for (i2 = 0; i2 < ARRAY_SIZE(work->hits[4].contacts); i2++) {
-        if (recs2[i2].key.value == 0) {
-            goto missed2;
-        }
-        if ((recs2[i2].key.value & 0xFFFF0000) == 0x20000) {
-            pos2->vx = recs2[i2].point.vx;
-            pos2->vy = recs2[i2].point.vy;
-            pos2->vz = recs2[i2].point.vz;
-            id       = recs2[i2].key.value;
-            goto found2;
-        }
-    }
-missed2:
-    id = 0;
-found2:
+    id            = _gluttonFindHit(&sc->contactPoint, work->hits[4].contacts, ARRAY_SIZE(work->hits[4].contacts));
     sc->attackKey = id;
     if (id != 0) {
         gluttonHitEffect(work->hits[4].body.coord, id);
@@ -4382,23 +4362,7 @@ found2:
         }
     }
 
-    pos3  = &sc->contactPoint;
-    recs3 = work->hits[5].contacts;
-    for (i3 = 0; i3 < ARRAY_SIZE(work->hits[5].contacts); i3++) {
-        if (recs3[i3].key.value == 0) {
-            goto missed3;
-        }
-        if ((recs3[i3].key.value & 0xFFFF0000) == 0x20000) {
-            pos3->vx = recs3[i3].point.vx;
-            pos3->vy = recs3[i3].point.vy;
-            pos3->vz = recs3[i3].point.vz;
-            id       = recs3[i3].key.value;
-            goto found3;
-        }
-    }
-missed3:
-    id = 0;
-found3:
+    id            = _gluttonFindHit(&sc->contactPoint, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts));
     sc->attackKey = id;
     if (id == 0) {
         goto out;
@@ -4437,14 +4401,14 @@ body:
 
     dmg = sc->damage / 6;
     if (dmg == 0) {
-        dmg = 1;
         if (sc->damage == 0) {
             sc->damage = 0;
-            goto stored;
+        } else {
+            sc->damage = 1;
         }
+    } else {
+        sc->damage = dmg;
     }
-    sc->damage = dmg;
-stored:
     func_800E2C78(host, sc->attackKey, sc->damage, 0);
     host->hp             -= sc->damage;
     esc3                  = work->escorts[3];
@@ -4474,23 +4438,8 @@ stored:
     angle         = ratan2(sc->offset.vx, sc->offset.vz) -
             ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
                    arg0->extra.tmd->coords->workm.m[2][2]);
-    do {
-        sc->contactYaw = angle;
-        if (angle < 0) {
-        wrapUp:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto wrapUp;
-            }
-        } else {
-        wrapDown:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto wrapDown;
-            }
-        }
-    } while (0);
     sc->contactYaw = angle;
+    sc->contactYaw = actorWrapAngle(angle);
 
     work->neckYaw       = 0;
     work->neckYawTarget = 0;
