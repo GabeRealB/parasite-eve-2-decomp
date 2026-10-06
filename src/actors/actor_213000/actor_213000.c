@@ -66,6 +66,7 @@ extern AnimationSet*  D_actor_213000_80157DB0[11];
 extern AnimationSet** D_actor_213000_80157DDC[1];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
+static void _modelPlacementMirrorParentDrawFlagsTask(Task* childTask);
 static void func_actor_213000_8014A158(Task* task);
 static void func_actor_213000_8014A5D0(Task* task);
 static void func_actor_213000_8014A6AC(Task* task);
@@ -495,7 +496,6 @@ TaskMessageEntry D_actor_213000_80157E1C[5] = {
 
 static void func_actor_213000_80149E54(Task* task);
 static void func_actor_213000_8014A35C(Task* task);
-static void func_actor_213000_8014A488(Task* task);
 
 /// countdown, hides the model, then spawns the four children of the spawn
 /// table -- entries 1 and 2 attached to part 8 and kept in `heldModelTasks`,
@@ -685,16 +685,18 @@ static void func_actor_213000_8014A35C(Task* task)
     task->state += 1;
 }
 
-/// A second copy, under this file's own name.
-#define modelPlacementMirrorParent func_actor_213000_8014A488
+/// Selects the private flag-mirroring tick for the three-root attached model.
+///
+/// The value is the `static void(Task*)` callback declared in this carrier's
+/// prologue. The following fragment consumes and undefines the binding.
+#define MODEL_PLACEMENT_MIRROR_PARENT_TASK _modelPlacementMirrorParentDrawFlagsTask
 #include "../../shared/model_placement_mirror_parent.inc.c"
-#undef modelPlacementMirrorParent
 
 /// State table of the child spawned from table entry 3: setup, tick, kill.
 static const TaskFuncTable3 D_actor_213000_80149E3C = {
     {
         func_actor_213000_8014A35C,
-        func_actor_213000_8014A488,
+        _modelPlacementMirrorParentDrawFlagsTask,
         taskKill,
     },
 };
