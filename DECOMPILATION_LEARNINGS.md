@@ -40606,7 +40606,7 @@ work->field_24 = (u32)rnd % 90 + 0x1E;   /* srl; srl, no re-materialised srl */
 
 The `(u32)` cast on the use is required: `(u16)` promotes to `int`, which turns
 the divide into the signed `mult 0x5B05B05B` sequence.
-`func_acropolis_promenade_8017E394` is the example (94.6% -> 99.6%). This is
+`acropolisPromenadeScreenDripTask` is the example (94.6% -> 99.6%). This is
 the same family as "Split an unsigned `%` across two statements to tie the
 remainder to the dividend", but that one only controls which register the
 remainder lands in; this one controls whether the dividend survives at all.
@@ -55199,8 +55199,8 @@ whether that pseudo needs a copy into the long-lived block register and where
 any unrelated store nearby lands. Both are decided by which of the three
 statements an unrelated store is written between.
 
-`func_acropolis_promenade_8017ED44` reserves 0x24 bytes and also copies
-`task->spawnArg1` into `work->field_22`. The target is
+`acropolisPromenadeGroundGlowTask` reserves 0x24 bytes and also copies
+`task->spawnArg1` into `work->age`. The target is
 
 ```
 lw    v0, 0(a0)      # head
@@ -55208,20 +55208,20 @@ addiu v0, v0, -0x24
 move  t1, v0         # blk
 lhu   v0, 0x34(s1)
 move  a1, t1
-sh    v0, 0x22(s2)   # work->field_22, *before* the publish
+sh    v0, 0x22(s2)   # work->age, *before* the publish
 sw    t1, 0(a0)
 ```
 
-Putting the `work->field_22` store after both pointer statements drops the
+Putting the `work->age` store after both pointer statements drops the
 `move` entirely (the `addiu` writes `$t1` directly, 97.69%, `insert`/`delete`
 non-zero); putting it after the publish but before the block pointer keeps the
 `move` but emits `sw` before `sh` (99.73%, `reorder=1`). Only
 
 ```c
 head           = *scratch;
-work->field_22 = task->spawnArg1;
+work->age      = task->spawnArg1.value;
 *scratch       = head - 0x24;
-blk            = (ApmGlowScratch*)(head - 0x24);
+quadScratch    = (EffectQuadCornersScratch*)(head - 0x24);
 ```
 
 gives both. The rule of thumb: the statement that reads the head last is the one
@@ -55256,7 +55256,7 @@ prim->clut = clut;                                      /* lw 0x34(s1) */
 The tell is a one-instruction `lw` vs `lhu` (or `lb`/`lbu`) diff on a field the
 same function loads at full width elsewhere: the narrow load is the assignment
 target's width leaking backwards, not a wrong field type. The same rule
-explains the reverse case — `work->field_22 = task->spawnArg1;` legitimately
+explains the reverse case — `work->age = task->spawnArg1.value;` legitimately
 emits `lhu` because there is no operator in between.
 
 ## A stack array initializer is rodata, so a later code unit needs a `rodata` cut
@@ -59064,7 +59064,7 @@ using the *temp*. The temp lives and dies inside one basic block, so `local_allo
 grabs a call-clobbered register for it before `global_alloc` ever sees that it is
 tied to the variable, and the copy survives. Whether that happens is sensitive to
 unrelated pressure elsewhere in the function — the same tail matched in
-`func_acropolis_promenade_8017E394`, and deleting an `if`/`else` diamond earlier in
+`acropolisPromenadeScreenDripTask`, and deleting an `if`/`else` diamond earlier in
 this function made it match too.
 
 The fix is to stop the variable from being read a second time: spell the second

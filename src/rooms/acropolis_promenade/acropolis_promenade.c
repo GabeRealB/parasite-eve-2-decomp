@@ -103,11 +103,11 @@ extern u16 D_acropolis_promenade_80181B76;
 extern u16 D_acropolis_promenade_80181B78[];
 
 static void func_acropolis_promenade_8017D9E0(Task* arg0);
-static void func_acropolis_promenade_8017DB48(Task* task);
+static void _acropolisPromenadeUpdateBridgeVisibility(Task* task);
 
-void func_acropolis_promenade_8017DB9C(Task*);
-void func_acropolis_promenade_8017DF74(Task*);
-void func_acropolis_promenade_8017DFD4(Task*);
+void        func_acropolis_promenade_8017DB9C(Task*);
+void        func_acropolis_promenade_8017DF74(Task*);
+static void _acropolisPromenadeSceneFadeInTask(Task* task);
 
 extern WorldCollisionGrid    D_acropolis_promenade_801823DC[1];
 extern WorldCollisionGrid    D_acropolis_promenade_80182BD0[1];
@@ -138,11 +138,14 @@ extern SpriteSource D_acropolis_promenade_8018526C[32];
 extern SpriteSource D_acropolis_promenade_8018552C[46];
 extern SpriteSource D_acropolis_promenade_8018590C[78];
 s32                 func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                 func_acropolis_promenade_8017D8D8(Task*, s32, s32, s32);
+static s32          _acropolisPromenadeRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, s32);
 s32                 func_acropolis_promenade_8017D938(Task*, s32, s32, s32);
-s32                 func_acropolis_promenade_8017D930(Task*, s32, s32, s32);
+static s32          _acropolisPromenadeIgnoreRoomAction(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 void                func_acropolis_promenade_8017D988(Task*);
+
+/// Room-local binding of the key-item-use request; the first payload is an item ID.
+enum { ACROPOLIS_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static TmdBone _gAcropolisPromenadeAcropolisBridgeModel0AD9CSkeleton[1] = {
 #include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
@@ -175,8 +178,8 @@ static TmdSource _gAcropolisPromenadeAcropolisBridgeModel0AD9C = {
 TaskMessageEntry D_acropolis_promenade_80180E74[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_promenade_8017D70C },
     { ROOM_MESSAGE_COMMAND, func_acropolis_promenade_8017D8E0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_promenade_8017D930 },
-    { 5105, func_acropolis_promenade_8017D8D8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisPromenadeIgnoreRoomAction },
+    { ACROPOLIS_PROMENADE_MESSAGE_USE_KEY_ITEM, _acropolisPromenadeRefuseKeyItem },
     { ROOM_MESSAGE_SOUND, func_acropolis_promenade_8017D938 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -232,7 +235,7 @@ TaskDesc D_acropolis_promenade_80181148[5] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DB9C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DF74, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_promenade_8017DFD4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPromenadeSceneFadeInTask, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_promenade_80181184[300] = {
@@ -1897,11 +1900,14 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return 1;
 }
 
-/// Handler for message 0x13F1 in the room's message table: does nothing and
-/// returns 0.
-s32 func_acropolis_promenade_8017D8D8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request in the promenade.
+///
+/// The first payload is the selected inventory item ID; the second is unused.
+/// Ignores all arguments and returns zero, selecting the item's refusal text.
+static s32 _acropolisPromenadeRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    enum { ACROPOLIS_PROMENADE_KEY_ITEM_REFUSED = 0 };
+    return ACROPOLIS_PROMENADE_KEY_ITEM_REFUSED;
 }
 
 s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -1916,12 +1922,12 @@ s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// The room's `DIRECTION_MESSAGE_ROOM_ACTION` handler: the promenade has no
-/// room actions, so it ignores the request.
+/// Ignores the promenade's room-action request.
 ///
-/// It leaves the result unset. The message's sender discards the result, so
-/// nothing reads the indeterminate value the dispatcher forwards.
-s32 func_acropolis_promenade_8017D930(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
+/// The first payload transports a borrowed `DirectionActionRequest` address;
+/// the second is zero. Neither is read, so the unused payloads remain words.
+/// Leaves the result unset; callers must discard the dispatch result.
+static s32 _acropolisPromenadeIgnoreRoomAction(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
 }
 
@@ -1945,11 +1951,11 @@ static const TaskFuncTable3 D_acropolis_promenade_8017D5C4 = {
 
 /// State table of the prop task, run by `func_acropolis_promenade_8017D988`.
 static const TaskFuncTable3 D_acropolis_promenade_8017D5D0 = {
-    { bridgeModelSetup, func_acropolis_promenade_8017DB48, taskKill },
+    { bridgeModelSetup, _acropolisPromenadeUpdateBridgeVisibility, taskKill },
 };
 
 /// Runs the prop task's current state (`bridgeModelSetup`,
-/// `func_acropolis_promenade_8017DB48`, then `taskKill`) through a copy of its
+/// `_acropolisPromenadeUpdateBridgeVisibility`, then `taskKill`) through a copy of its
 /// handler table on the stack.
 void func_acropolis_promenade_8017D988(Task* task)
 {
@@ -1981,17 +1987,22 @@ void func_acropolis_promenade_8017DA4C(Task* task)
 
 #include "../../shared/bridge_model_setup.inc.c"
 
-static void func_acropolis_promenade_8017DB48(Task* task)
+/// Hides the bridge model in promenade view 5 and enables it in the other views.
+///
+/// Requires the model task's initialized TMD body. Replaces its draw flags and
+/// marks the first coordinate dirty so the next draw recomposes its transform.
+static void _acropolisPromenadeUpdateBridgeVisibility(Task* task)
 {
-    TmdObject* obj;
+    enum { ACROPOLIS_PROMENADE_BRIDGE_HIDDEN_VIEW = 5 };
+    TmdObject* bridge;
     GfxCoord*  coord;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (viewGetMappedIndex() == 5) {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    bridge = task->extra.tmd;
+    coord  = bridge->coords;
+    if (viewGetMappedIndex() == ACROPOLIS_PROMENADE_BRIDGE_HIDDEN_VIEW) {
+        bridge->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        obj->flags = 0;
+        bridge->flags = 0;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -2114,19 +2125,26 @@ void func_acropolis_promenade_8017DF74(Task* arg0)
     }
 }
 
-/// Entry 4 of the room's task table: the reverse ramp of entry 3, drawing the
-/// overlay at `~killCountdown`, and killing itself outright at the end.
-void func_acropolis_promenade_8017DFD4(Task* arg0)
+/// Reveals the scene after a movie skip by reducing a subtractive black overlay.
+///
+/// Requires a bodyless task with `killCountdown` initially zero. Draws grey
+/// levels 255, 223, ... 31 on successive frames, advancing the signed counter
+/// by 32 after each draw and releasing the task when it reaches 256.
+static void _acropolisPromenadeSceneFadeInTask(Task* task)
 {
-    u8  fade;
-    s16 temp_v0;
+    enum {
+        ACROPOLIS_PROMENADE_FADE_STEP = 32,
+        ACROPOLIS_PROMENADE_FADE_END  = 256
+    };
+    u8  darkness;
+    s16 nextFadeCounter;
 
-    fade = ~(u8)arg0->killCountdown;
-    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-    temp_v0             = (u16)arg0->killCountdown + 0x20;
-    arg0->killCountdown = temp_v0;
-    if (temp_v0 >= 0x100) {
-        taskKill(arg0);
+    darkness = ~(u8)task->killCountdown;
+    fadeDrawOverlay(darkness, darkness, darkness, GPU_BLEND_SUBTRACT);
+    nextFadeCounter     = (u16)task->killCountdown + ACROPOLIS_PROMENADE_FADE_STEP;
+    task->killCountdown = nextFadeCounter;
+    if (nextFadeCounter >= ACROPOLIS_PROMENADE_FADE_END) {
+        taskKill(task);
     }
 }
 
@@ -2198,21 +2216,52 @@ void func_acropolis_promenade_8017E03C(Task* task)
     work->scale = view;
 }
 
-/// One falling water drip on the promenade, drawn as a `DR_MOVE` that smears a
-/// one-pixel-tall strip of the frame buffer down by a pixel. The first frame
-/// rolls the whole drip out of `gRandomLcgState`: `move.vx` is the column
-/// (0..0xEF), `move.vy` the row it starts on (0xB0..0xEF), `scale` the
-/// lifetime in frames, `angle` the width and `period` the number of frames
-/// each row of fall takes. `gDisplayState.drawBuffer` picks the buffer half, and
-/// the OT slot is the row scaled into the 0x500-deep range so a drip sorts
-/// against the room behind it. The task releases itself once the camera turns
-/// away, the lifetime runs out, or the drip falls off the bottom of the screen.
-void func_acropolis_promenade_8017E394(Task* task)
+/// Seeds one drip's pixel position, lifetime, width and frames per row.
+///
+/// Borrows the live task and its writable effect work. Consumes five shared
+/// LCG draws in position/lifetime/width/period order, retaining unsigned
+/// lifetime reduction, then advances the task state. Retains no pointer.
+static __inline__ void _acropolisPromenadeInitializeScreenDrip(Task* task, EffectWork* work)
 {
+    enum {
+        ACROPOLIS_PROMENADE_DRIP_COLUMN_COUNT          = 240,
+        ACROPOLIS_PROMENADE_DRIP_FIRST_ROW             = 176,
+        ACROPOLIS_PROMENADE_DRIP_ROW_RANGE             = 64,
+        ACROPOLIS_PROMENADE_DRIP_MIN_LIFETIME_FRAMES   = 30,
+        ACROPOLIS_PROMENADE_DRIP_LIFETIME_RANGE_FRAMES = 90,
+        ACROPOLIS_PROMENADE_DRIP_MIN_WIDTH_PIXELS      = 16,
+        ACROPOLIS_PROMENADE_DRIP_WIDTH_RANGE_PIXELS    = 64,
+        ACROPOLIS_PROMENADE_DRIP_MAX_FRAMES_PER_ROW    = 4
+    };
+    u16 randomBits;
+
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx   = (gRandomLcgState >> 16) % ACROPOLIS_PROMENADE_DRIP_COLUMN_COUNT;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = ((gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_DRIP_ROW_RANGE - 1)) + ACROPOLIS_PROMENADE_DRIP_FIRST_ROW;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomBits      = gRandomLcgState >> 16;
+    work->scale     = (u32)randomBits % ACROPOLIS_PROMENADE_DRIP_LIFETIME_RANGE_FRAMES + ACROPOLIS_PROMENADE_DRIP_MIN_LIFETIME_FRAMES;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->angle     = ((gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_DRIP_WIDTH_RANGE_PIXELS - 1)) + ACROPOLIS_PROMENADE_DRIP_MIN_WIDTH_PIXELS;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->period    = ((gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_DRIP_MAX_FRAMES_PER_ROW - 1)) + 1;
+    task->state++;
+}
+
+void acropolisPromenadeScreenDripTask(Task* task)
+{
+    enum {
+        ACROPOLIS_PROMENADE_DRAW_BUFFER_STRIDE_PIXELS = 272,
+        ACROPOLIS_PROMENADE_DRIP_DEPTH_FIRST_ROW      = 176,
+        ACROPOLIS_PROMENADE_DRIP_LAST_SOURCE_ROW      = 239,
+        ACROPOLIS_PROMENADE_DRIP_START_DEPTH          = 0x500,
+        ACROPOLIS_PROMENADE_DRIP_DEPTH_PER_ROW        = 10,
+        ACROPOLIS_PROMENADE_DRIP_OT_DEPTH_SHIFT       = 4
+    };
     EffectWork* work;
-    RECT        rect;
-    DR_MOVE*    mv;
-    u16         rnd;
+    RECT        sourceStrip;
+    DR_MOVE*    movePacket;
     s32         bufferY;
     s32         x;
     s32         y;
@@ -2220,35 +2269,26 @@ void func_acropolis_promenade_8017E394(Task* task)
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * 0x110;
+    bufferY = gDisplayState.drawBuffer * ACROPOLIS_PROMENADE_DRAW_BUFFER_STRIDE_PIXELS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
+        // The work fields hold pixels and frame counts for this screen-space effect.
         if (work->age == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = (gRandomLcgState >> 16) % 240;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = ((gRandomLcgState >> 16) & 0x3F) + 0xB0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->scale     = (u32)rnd % 90 + 0x1E;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
-            task->state++;
+            _acropolisPromenadeInitializeScreenDrip(task, work);
         }
         y        = work->move.vy + work->age / work->period;
         x        = work->move.vx;
-        depth    = 0x500 - (y - 0xB0) * 10;
-        onScreen = y < 0xEF;
+        depth    = ACROPOLIS_PROMENADE_DRIP_START_DEPTH - (y - ACROPOLIS_PROMENADE_DRIP_DEPTH_FIRST_ROW) * ACROPOLIS_PROMENADE_DRIP_DEPTH_PER_ROW;
+        onScreen = y < ACROPOLIS_PROMENADE_DRIP_LAST_SOURCE_ROW;
+        // Copy one row down within the current buffer, sorting by its screen row.
         if (onScreen) {
-            rect.x         = x;
-            rect.y         = y + bufferY;
-            rect.w         = work->angle;
-            rect.h         = 1;
-            mv             = gGpuPrimCursor;
-            gGpuPrimCursor = mv + 1;
-            SetDrawMove(mv, &rect, x, y + bufferY + 1);
-            addPrim(gGpuCurrentOt + (depth >> 4), mv);
+            sourceStrip.x  = x;
+            sourceStrip.y  = y + bufferY;
+            sourceStrip.w  = work->angle;
+            sourceStrip.h  = 1;
+            movePacket     = gGpuPrimCursor;
+            gGpuPrimCursor = movePacket + 1;
+            SetDrawMove(movePacket, &sourceStrip, x, y + bufferY + 1);
+            addPrim(gGpuCurrentOt + (depth >> ACROPOLIS_PROMENADE_DRIP_OT_DEPTH_SHIFT), movePacket);
         }
         work->age++;
         if (work->age <= work->scale && onScreen) {
@@ -2273,87 +2313,104 @@ void func_acropolis_promenade_8017E394(Task* task)
 #define GLOW_STAR_STORE_HALF_HEIGHT 1
 #include "../../shared/acropolis_glows_star.inc.c"
 
-/// Draws one frame of the promenade's ground glow: a semi-transparent textured
-/// quad lying flat under the task's coordinate frame. The four corner signs in
-/// `D_acropolis_promenade_80181AE4` are scaled to +/-0x300 in `vx` / `vz` (with
-/// `vy` left at zero, so the quad is horizontal), rotated by the task's own
-/// `workm`, offset by that matrix's translation and then projected through
-/// `GsWSMATRIX` into an `EffectQuadCornersScratch` block taken from the
-/// scratch stack. The first corner goes through `rtps` and the other three
-/// through `rtpt`, the same split the sanctuary's mosaic tiles use.
+/// Places one corner of the ground glow in the task's composed coordinate space.
 ///
-/// The depth is biased by 0x20 before the near-plane test, so the glow survives
-/// a little closer to the camera than the 0x11 cutoff alone would allow. Its
-/// colour is a fresh random grey (0..0xF, equal on all three channels) every
-/// frame, which is what makes it flicker; the quad is drawn semi-transparent
-/// (`code |= 2`) from the 0x27x0x27 patch at v = 0x10 on tpage 0x2B.
-///
-/// The task is one-shot: the work block is released as soon as the quad has
-/// been queued, so the room respawns it each frame it wants the glow.
-void func_acropolis_promenade_8017ED44(Task* task)
+/// `cornerIndex` is 0..3 in GPU strip order; the local XZ half-side is 768
+/// coordinate units. Borrows a live scratch block and composed coordinate.
+/// Products and translations narrow to signed 16 bits; rotation stores GTE IR
+/// results. Leaves the vector's fourth halfword untouched, loads GTE rotation
+/// and V0, and retains no pointer.
+static __inline__ void _acropolisPromenadeTransformGroundGlowCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, const GfxCoord* coord)
 {
+    enum { ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE = 768 };
+    SVECTOR* corner;
+    quadScratch->vertices[cornerIndex].vx = D_acropolis_promenade_80181AE4[cornerIndex].axis0Sign * ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
+    // This aliases vertices[cornerIndex]; the byte view preserves separate store/GTE addresses.
+    corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
+    corner->vy = 0;
+    corner->vz = D_acropolis_promenade_80181AE4[cornerIndex].axis1Sign * ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&quadScratch->vertices[cornerIndex]);
+    gte_rtv0();
+    gte_stsv(&quadScratch->vertices[cornerIndex]);
+    quadScratch->vertices[cornerIndex].vx += coord->workm.t[0];
+    corner->vy                            += coord->workm.t[1];
+    corner->vz                            += coord->workm.t[2];
+}
+
+/// Reserves and initializes one ground-glow quad in the current frame's packet arena.
+///
+/// Requires aligned space for a `POLY_FT4` at `gGpuPrimCursor`. Advances the
+/// cursor and returns the packet with its DMA length and textured-quad code
+/// set. The caller fills and links it; storage must live until GPU completion.
+static __inline__ POLY_FT4* _acropolisPromenadeReserveGroundGlowQuad(void)
+{
+    POLY_FT4* quad;
+
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    return quad;
+}
+
+void acropolisPromenadeGroundGlowTask(Task* task)
+{
+    enum {
+        ACROPOLIS_PROMENADE_GROUND_GLOW_DEPTH_BIAS       = 32,
+        ACROPOLIS_PROMENADE_GROUND_GLOW_MIN_DEPTH        = 17,
+        ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V        = 16,
+        ACROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL       = 39,
+        ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_PAGE     = getTPage(0, GPU_BLEND_ADD, 704, 0),
+        ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_CLUT     = getClut(16, 270),
+        ACROPOLIS_PROMENADE_GROUND_GLOW_GREY_LEVEL_COUNT = 16
+    };
     GfxCoord*                 coord;
     EffectWork*               work;
-    EffectQuadCornersScratch* blk;
-    POLY_FT4*                 prim;
-    SVECTOR*                  sv;
-    s32                       i;
+    EffectQuadCornersScratch* quadScratch;
+    POLY_FT4*                 quad;
+    s32                       cornerIndex;
     s32                       grey;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
-    work->age = task->spawnArg1.value;
-    blk       = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
-    for (i = 0; i < ARRAY_SIZE(D_acropolis_promenade_80181AE4); i++) {
-        blk->vertices[i].vx = D_acropolis_promenade_80181AE4[i].axis0Sign * 0x300;
-        // Spelled as an offset rather than `&blk->vertices[i]` so it stays a separate
-        // pointer from the one the GTE macros below take; writing both the same
-        // way lets CSE fold them into one register and the loop stops matching.
-        sv     = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
-        sv->vy = 0;
-        sv->vz = D_acropolis_promenade_80181AE4[i].axis1Sign * 0x300;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[i]);
-        blk->vertices[i].vx += coord->workm.t[0];
-        sv->vy              += coord->workm.t[1];
-        sv->vz              += coord->workm.t[2];
+    work->age   = task->spawnArg1.value;
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
+    // Rotate the local XZ square, then translate its signed 16-bit corners.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_acropolis_promenade_80181AE4); cornerIndex++) {
+        _acropolisPromenadeTransformGroundGlowCorner(quadScratch, cornerIndex, coord);
     }
+    // Project into the packet; a rejected quad still consumes packet space.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->vertices[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
+    quad = _acropolisPromenadeReserveGroundGlowQuad();
+    gte_stsxy(&quad->x0);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    prim->u0 = 0;
-    prim->v0 = 0x10;
-    prim->u1 = 0x27;
-    prim->v1 = 0x10;
-    prim->u2 = 0;
-    prim->v2 = 0x37;
-    prim->u3 = 0x27;
-    prim->v3 = 0x37;
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->depth);
-    blk->depth += 0x20;
-    if (blk->depth >= 0x11) {
-        prim->tpage     = 0x2B;
-        prim->clut      = 0x4381;
+    quad->u0 = 0;
+    quad->v0 = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V;
+    quad->u1 = ACROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
+    quad->v1 = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V;
+    quad->u2 = 0;
+    quad->v2 = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V + ACROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
+    quad->u3 = ACROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
+    quad->v3 = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V + ACROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
+    gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
+    gte_stszotz(&quadScratch->depth);
+    quadScratch->depth += ACROPOLIS_PROMENADE_GROUND_GLOW_DEPTH_BIAS;
+    if (quadScratch->depth >= ACROPOLIS_PROMENADE_GROUND_GLOW_MIN_DEPTH) {
+        quad->tpage     = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_PAGE;
+        quad->clut      = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_CLUT;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        grey            = (gRandomLcgState >> 16) & 0xF;
-        prim->r0        = grey;
-        prim->g0        = grey;
-        prim->b0        = grey;
-        prim->code     |= 2;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        grey            = (gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_GROUND_GLOW_GREY_LEVEL_COUNT - 1);
+        quad->r0        = grey;
+        quad->g0        = grey;
+        quad->b0        = grey;
+        setSemiTrans(quad, 1);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
     effectKillTask(work, task);

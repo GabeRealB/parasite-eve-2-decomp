@@ -609,11 +609,11 @@ func_acropolis_plaza_8018251C = 0x8018251C; // type:func absolute:True owner=acr
 
 func_acropolis_promenade_8017E03C = 0x8017E03C; // type:func absolute:True owner=acropolis_promenade
 
-func_acropolis_promenade_8017E394 = 0x8017E394; // type:func absolute:True owner=acropolis_promenade shared=rooms
+acropolisPromenadeScreenDripTask = 0x8017E394; // type:func absolute:True owner=acropolis_promenade shared=rooms
 
 acropolisPromenadeGlowStarTask = 0x8017E634; // type:func absolute:True owner=acropolis_promenade
 
-func_acropolis_promenade_8017ED44 = 0x8017ED44; // type:func absolute:True owner=acropolis_promenade
+acropolisPromenadeGroundGlowTask = 0x8017ED44; // type:func absolute:True owner=acropolis_promenade
 
 func_acropolis_promenade_8017F0BC = 0x8017F0BC; // type:func absolute:True owner=acropolis_promenade
 
@@ -1773,7 +1773,7 @@ func_dryfield_general_store_8017E150 = 0x8017E150; // type:func absolute:True ow
 
 func_dryfield_back_street_8017D970 = 0x8017D970; // type:func absolute:True owner=dryfield_back_street shared=rooms
 
-func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func absolute:True owner=dryfield_souvenir_shop shared=rooms
+func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func absolute:True owner=dryfield_souvenir_shop
 
 func_dryfield_motel_room_1_8017E0A0 = 0x8017E0A0; // type:func absolute:True owner=dryfield_motel_room_1
 

@@ -45,9 +45,31 @@ void func_acropolis_promenade_8017E03C(Task* task);
 /// and task before returning; queued packets remain live until GPU completion.
 void acropolisPromenadeGlowStarTask(Task* task);
 
-void func_acropolis_promenade_8017E394(Task* task);
+/// Smears a one-pixel framebuffer row down each frame to draw one screen drip.
+///
+/// Requires a live counted effect with owned, initially zeroed `EffectWork` in
+/// `spawnArg2.pointer`; `spawnArg1.value` is the mapped camera view to retain.
+/// Seeds X in 0..239, initial Y in 176..239, lifetime in 30..119 frames,
+/// width in 16..79 pixels and fall speed in 1..4 frames per row. `move` holds
+/// the initial pixel position, `scale` the lifetime, `angle` the width and
+/// `period` the frames per row. Copies only source rows below 239 within the
+/// current draw buffer, into a row-derived ordering-table slot (41..80).
+/// Requires one `DR_MOVE` packet per visible frame; packets live until GPU
+/// completion. Releases work and task on a view change, expiry or bottom edge.
+void acropolisPromenadeScreenDripTask(Task* task);
 
-void func_acropolis_promenade_8017ED44(Task* task);
+/// Draws a flickering additive square in the coordinate body's local XZ plane.
+///
+/// Requires a live counted effect with a single-coordinate body and owned
+/// `EffectWork` in `spawnArg2.pointer`. Composes the coordinate and transforms
+/// the 768-unit half-side through its world matrix, narrowing corners to s16.
+/// Copies the spawn phase to `age`, but it does not affect this one-frame draw.
+/// Uses the 40-by-40 texture cell at (0, 16), with random grey in 0..15; draws
+/// when the last corner's SZ3 / 4 plus 32 is at least 17. Requires initialized
+/// GTE, 36 scratch-stack bytes and one `POLY_FT4` in the current frame arena,
+/// consumed even when clipped. Releases scratch, work and task on return;
+/// queued packets remain live until GPU completion.
+void acropolisPromenadeGroundGlowTask(Task* task);
 
 void func_acropolis_promenade_8017F0BC(Task* task);
 

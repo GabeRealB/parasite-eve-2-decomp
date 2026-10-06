@@ -104,10 +104,14 @@ func_acropolis_promenade_8017E03C = 0x8017E03C; // type:func
 
 acropolisPromenadeGlowStarTask = 0x8017E634; // type:func
 
-func_acropolis_promenade_8017E394 = 0x8017E394; // type:func
+acropolisPromenadeScreenDripTask = 0x8017E394; // type:func
 
-func_acropolis_promenade_8017ED44 = 0x8017ED44; // type:func
+acropolisPromenadeGroundGlowTask = 0x8017ED44; // type:func
 
 func_acropolis_promenade_8017F0BC = 0x8017F0BC; // type:func
 glowDrawTintedDiscNoBias = 0x8017F434; // type:func
 bridgeModelSetup = 0x8017DAA4; // type:func
+_acropolisPromenadeRefuseKeyItem = 0x8017d8d8; // type:func
+_acropolisPromenadeIgnoreRoomAction = 0x8017d930; // type:func
+_acropolisPromenadeUpdateBridgeVisibility = 0x8017db48; // type:func
+_acropolisPromenadeSceneFadeInTask = 0x8017dfd4; // type:func

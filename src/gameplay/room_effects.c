@@ -624,8 +624,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask53, { NULL } },                                        // 0x053
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask54, { NULL } },                                           // 0x054
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask55, { NULL } },                                        // 0x055
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017E394, { NULL } },                         // 0x056
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017ED44, { NULL } },                         // 0x057
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeScreenDripTask, { NULL } },                          // 0x056
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGroundGlowTask, { NULL } },                          // 0x057
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017F4A0, { NULL } },                       // 0x058
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80133C84, { NULL } },                                // 0x059
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_8017FA30, { NULL } },            // 0x05A
