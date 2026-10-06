@@ -3985,18 +3985,14 @@ static void func_actor_403100_8013335C(Task* arg0)
                     effectKind   = 2;
                     scaledDamage = scaledDamage * 2;
                 }
-                kind = effectKind;
-                if (kind == 1)
-                    goto effect1;
-                if (kind == 2)
-                    goto effect2;
-                goto effect_end;
-            effect1:
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 0, 0);
-                goto effect_end;
-            effect2:
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 3, 0);
-            effect_end:
+                switch (effectKind) {
+                    case 1:
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 0, 0);
+                        break;
+                    case 2:
+                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[4], 3, 0);
+                        break;
+                }
                 func_800E2C78(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, scaledDamage, 0);
                 func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
                 do {
