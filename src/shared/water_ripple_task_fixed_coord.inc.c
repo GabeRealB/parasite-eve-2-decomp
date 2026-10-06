@@ -9,24 +9,36 @@
 #error "Define WATER_RIPPLE_CACHED_COORD_TASK to the package's declared void (Task*) callback"
 #endif
 
-/// Initializes a ripple's half-side, brightness and local yaw, retaining its draw cache.
+/// Seeds a water ripple's half-side, brightness and yaw without rebuilding its draw matrix.
 ///
-/// Borrows a live task, writable effect work and coordinate. Spawn bits 0..11
-/// supply a half-side in local coordinate units (0..4095). Brightness 64 is
-/// half of neutral texture modulation. Consumes one LCG draw for a yaw in
-/// 4096 units per turn, replaces local rotation without changing translation,
-/// and marks the cache dirty for a later composition pass. No pointer is retained.
+/// `task` is borrowed read-only; bits 0..11 of `spawnArg1` supply the initial
+/// half-side in local game coordinate units (0..4095), with higher bits ignored.
+/// `rippleWork` and `surfaceCoord` must be live, writable objects. Stores the
+/// half-side in `EffectWork::angle` and RGB brightness 64 in `EffectWork::scale`;
+/// 128 is neutral texture modulation. Other work fields and task state stay intact.
+///
+/// Advances `gRandomLcgState` once with unsigned 32-bit wraparound and selects
+/// a yaw in 0..4095, at 4096 units per turn. Replaces the local-to-parent
+/// rotation with a pure Y rotation, preserving translation, parent and stored
+/// Euler angles. Marks the coordinate dirty but leaves `workm` intact for the
+/// current draw; the caller must arrange a later composition to apply the yaw.
+///
+/// Requires an initialized, word-aligned scratch stack with 0x24 free bytes,
+/// reserved only until the rotation helper returns. Caller objects must be
+/// disjoint from that reservation. Ownership is unchanged; no pointer is retained.
 static inline void _waterInitializeCachedRipple(const Task* task, EffectWork* rippleWork, GfxCoord* surfaceCoord)
 {
     enum {
         WATER_RIPPLE_INITIAL_BRIGHTNESS = 0x40,
         WATER_RIPPLE_SPAWN_SIZE_MASK    = 0xFFF,
     };
+    u32 surfaceYaw;
 
     rippleWork->scale = WATER_RIPPLE_INITIAL_BRIGHTNESS;
     rippleWork->angle = task->spawnArg1.halves.low & WATER_RIPPLE_SPAWN_SIZE_MASK;
     gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixY(&surfaceCoord->coord, (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
+    surfaceYaw        = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+    gfxRotMatrixY(&surfaceCoord->coord, surfaceYaw, GRAPHICS_ROTATION_REPLACE);
     surfaceCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
