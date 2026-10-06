@@ -25,18 +25,19 @@ void maggotCaterpillarPuffTick(Enemy* arg0, Task* arg1)
         case SCENE_COMBAT_ACTORS_PAUSED:
             maggotCaterpillarDrawPuff(arg1, work->age);
             return;
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-        default_case:
             contact = work->contacts[0].key.value;
             if (contact != 0) {
                 if ((contact & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {
                     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     worldCollisionClearContacts(work->contacts);
-                    goto block_7;
+                } else {
+                    worldCollisionUnlinkBody(&work->body);
+                    arg1->state = 2;
+                    return;
                 }
-                goto block_11;
             }
-        block_7:
             if (!(work->age & 3)) {
                 flags = work->body.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
@@ -51,7 +52,6 @@ void maggotCaterpillarPuffTick(Enemy* arg0, Task* arg1)
             maggotCaterpillarDrawPuff(arg1, work->age);
             work->age++;
             if (work->age >= 0xF) {
-            block_11:
                 worldCollisionUnlinkBody(&work->body);
                 arg1->state = 2;
                 return;
@@ -63,8 +63,6 @@ void maggotCaterpillarPuffTick(Enemy* arg0, Task* arg1)
                 work->forwardSpeed = 0;
             }
             return;
-        case SCENE_COMBAT_ACTORS_RUNNING:
-            goto default_case;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             return;
     }
