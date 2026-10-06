@@ -1108,6 +1108,19 @@ fresh objdiff report, an audit the naming pass runs once over what it landed;
 it restores the normal matching configuration. Preserve established prototype
 exceptions without introducing new ones or implicit declarations.
 
+**Never add a matching hack to keep a cleanup.** A pinned register
+(`register T x asm("reg")`), an `asm` statement, or a steering macro from
+`include/decomp/common.h` (`TOUCH_REG`, `USE_REG`, `SOFT_BARRIER`, ...) must not
+be introduced by a naming step, and the verification fails a step that adds one
+(`tools/check_hack_sites.py`). If a change you would like - an explicit `return`,
+a separate local, a literal in place of a variable, a deleted macro - stops the
+function matching, the code was written the other way: put that part back
+exactly as it matched, say so in a comment if the shape is surprising (a handler
+declared to return a value that has no `return` statement falls off its end in
+the binary too), and record the cleanup as a `rematching` follow-up. The same
+goes for a fake `do { } while (0)`, a dead store or a constant local added only
+to steer the compiler.
+
 Each step writes the structured JSON review requested in its brief: current name,
 meaning, evidence, changes and unresolved issues for every assigned item. A
 `complete` review has no remaining required work; `followup` records a specific

@@ -385,6 +385,12 @@ $(venv/bin/python3 tools/refactor/name_review.py context "${names[@]}")
 
 ## Finishing
 
+Do not add a pinned register, an \`asm\` statement or a steering macro
+(\`TOUCH_REG\`, \`USE_REG\`, \`SOFT_BARRIER\`, ...) to keep a cleanup matching: the
+worker's verification fails a step that adds one. If a change stops a function
+matching, put that part back as it matched and record it as a \`rematching\`
+follow-up (NAMING.md, "Naming-pass acceptance and follow-ups").
+
 Run \`./tools/build-and-verify.sh\` until it passes: it rebuilds what you
 changed, checks every image's checksum and that the symbol maps name every C
 function. Do not run \`tools/refactor/verify_name_pass.py\` yourself; the

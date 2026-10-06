@@ -86,10 +86,14 @@ def verify(root, logs, jobs, objdiff=False):
     # symbol where several did, and the reference that named one of them with
     # `shared=` is then simply that image's. The owner does not change, so the
     # annotation is brought up to date here rather than failing the step.
+    # A cleanup that changes what a function compiles to can be forced back
+    # into matching with a pinned register or an asm barrier, and every other
+    # check here would pass. Three steps did that before this was checked.
+    run([python, "tools/check_hack_sites.py", "--against", "HEAD"], "hacks.log")
     run([python, "tools/check_symbols.py", "--drop-stale-shared"], "symbols-settle.log")
     run([python, "tools/check_symbols.py", "--strict"], "symbols.log")
     if not objdiff:
-        print("Naming verification passed (build, declarations, symbols)", flush=True)
+        print("Naming verification passed (build, declarations, hack sites, symbols)", flush=True)
         return
 
     require(build.is_dir(), "matching build is missing")
