@@ -29,7 +29,6 @@ void oddStrangerTakeHit(Task* arg0)
     s16 animState;
 #endif
     s16 effect;
-    s16 timer;
     u32 damage;
 
     enemy = arg0->spawnArg2.pointer;
@@ -300,15 +299,12 @@ void oddStrangerTakeHit(Task* arg0)
                     }
                     break;
             }
-            timer = 5;
-        } else if (work->recentDamageTimer > 0) {
-            timer = (u16)work->recentDamageTimer - 1;
-        } else {
+            work->recentDamageTimer = 5;
+        } else if (work->recentDamageTimer <= 0) {
             work->recentDamage = 0;
-            goto block_bec;
+        } else {
+            work->recentDamageTimer = (u16)work->recentDamageTimer - 1;
         }
-        work->recentDamageTimer = timer;
-    block_bec:
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             s->damage = Gp_TickObjFlag4(enemy);
             if (Gp_ObjFlag4Expired(enemy) != 0) {
