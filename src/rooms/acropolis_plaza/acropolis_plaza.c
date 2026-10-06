@@ -4653,14 +4653,14 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                     work->eventTask =
                         taskSpawnFromTable(D_acropolis_plaza_80183824, 4, 0, work);
                     work->step = work->step + 1;
-                    goto running;
+                    break;
                 } else if ((s8)evtKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
                         taskSpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION;
                 }
             }
-            return 0;
+            break;
         case ACROPOLIS_PLAZA_STEP_RUN_FIRST_SCENE:
             if (Task_PollKill(work->eventTask, &killed0) != 0) {
                 work->sceneArg.skipStreamReset = 1;
@@ -4670,7 +4670,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991F0);
                 work->step = work->step + 1;
             }
-            return 0;
+            break;
         case ACROPOLIS_PLAZA_STEP_AWAIT_EVENT:
             if (ready != 0) {
                 work->eventControl    = evtId;
@@ -4682,12 +4682,12 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                     work->eventTask =
                         taskSpawnFromTable(D_acropolis_plaza_80183824, 2, 0, work);
                     work->step = work->step + 1;
-                    goto running;
+                    break;
                 } else if (kind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
                     work->eventTask =
                         taskSpawnFromTable(D_acropolis_plaza_80183824, 3, 0, work);
                     work->step = work->step + 1;
-                    goto running;
+                    break;
                 } else if (kind == ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE) {
                     if (work->repeatVariant == 0) {
                         work->eventTask =
@@ -4708,7 +4708,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_CAPTION;
                 }
             }
-            return 0;
+            break;
         case ACROPOLIS_PLAZA_STEP_RUN_SCENE:
             if (Task_PollKill(work->eventTask, &killed1) != 0) {
                 /* The kind byte is tested as an unsigned short, so it is
@@ -4730,7 +4730,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->sceneTask =
                     taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
             }
-            return 0;
+            break;
         case ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE:
         case ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION:
         case ACROPOLIS_PLAZA_STEP_RUN_CAPTION:
@@ -4751,9 +4751,8 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                     work->step = ACROPOLIS_PLAZA_STEP_AWAIT_EVENT;
                 }
             }
-            return 0;
+            break;
     }
-running:
     return 0;
 }
 
