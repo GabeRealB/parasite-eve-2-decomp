@@ -25,112 +25,93 @@ void ratDeath(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     state = gSceneCombatState.actorControl;
     coord = obj->coords;
-    if (state == 1) {
-        goto case1;
+    switch (state) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            vec.vx = coord->workm.t[0];
+            vec.vy = coord->workm.t[1];
+            vec.vz = coord->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            return;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+        default:
+            break;
     }
-    if (state < 2) {
-        goto default_body;
-    }
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case1:
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    return;
-case2:
-    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    return;
-default_body:
     st = work->step;
-    if (st == 1) {
-        goto dying;
+    switch (st) {
+        case 0:
+            work->animId       = RAT_ANIM_COLLAPSE;
+            work->timer        = 0;
+            work->squashScale  = 0x1000;
+            work->savedRootMtx = coord->coord;
+            arg0->recs         = 0;
+            worldTargetUnlinkNode(&arg0->node);
+            worldCollisionUnlinkBody(&work->sensorBody);
+            worldCollisionUnlinkBody(&work->hitBody);
+            worldCollisionUnlinkBody(&work->gridBody);
+            worldCollisionUnlinkBody(&work->attackBody);
+            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            Gp_ReleaseStateF0Add(arg1, 7);
+            work->step = 1;
+            work2      = arg1->work;
+            if (work2->animId != work2->appliedAnimId) {
+                work2->appliedAnimId = work2->animId;
+                work2->animFrame     = 0;
+                val                  = gRatAnimBlend[work2->animId];
+                for (i = 1; i < 7; i++) {
+                    animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
+                }
+            } else {
+                work2->animFrame++;
+                for (i = 1; i < 7; i++) {
+                    animationTickSlot(&work2->rig.anim, i);
+                }
+            }
+            c      = arg1->extra.tmd->coords;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070005;
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            return;
+        case 1:
+            ratSquash(arg1);
+            work->timer++;
+            if (work->timer == 10) {
+                obj->flags = TMD_OBJECT_SEMI_TRANS;
+            }
+            if (work->timer == 15) {
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
+            }
+            if (work->timer >= 0x3C) {
+                work->step = 2;
+            }
+            work2 = arg1->work;
+            if (work2->animId != work2->appliedAnimId) {
+                work2->appliedAnimId = work2->animId;
+                work2->animFrame     = 0;
+                val                  = gRatAnimBlend[work2->animId];
+                for (i = 1; i < 7; i++) {
+                    animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
+                }
+            } else {
+                work2->animFrame++;
+                for (i = 1; i < 7; i++) {
+                    animationTickSlot(&work2->rig.anim, i);
+                }
+            }
+            c      = arg1->extra.tmd->coords;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            return;
+        case 2:
+            enemyDestroy(arg0, arg1);
+            return;
     }
-    if (st >= 2) {
-        goto ge2;
-    }
-    if (st == 0) {
-        goto death;
-    }
-    return;
-ge2:
-    if (st == 2) {
-        goto destroy;
-    }
-    return;
-death:
-    work->animId       = RAT_ANIM_COLLAPSE;
-    work->timer        = 0;
-    work->squashScale  = 0x1000;
-    work->savedRootMtx = coord->coord;
-    arg0->recs         = 0;
-    worldTargetUnlinkNode(&arg0->node);
-    worldCollisionUnlinkBody(&work->sensorBody);
-    worldCollisionUnlinkBody(&work->hitBody);
-    worldCollisionUnlinkBody(&work->gridBody);
-    worldCollisionUnlinkBody(&work->attackBody);
-    Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
-    Gp_ReleaseStateF0Add(arg1, 7);
-    work->step = 1;
-    work2      = arg1->work;
-    if (work2->animId != work2->appliedAnimId) {
-        work2->appliedAnimId = work2->animId;
-        work2->animFrame     = 0;
-        val                  = gRatAnimBlend[work2->animId];
-        for (i = 1; i < 7; i++) {
-            animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
-        }
-    } else {
-        work2->animFrame++;
-        for (i = 1; i < 7; i++) {
-            animationTickSlot(&work2->rig.anim, i);
-        }
-    }
-    c      = arg1->extra.tmd->coords;
-    vec.vx = c->workm.t[0];
-    vec.vy = c->workm.t[1];
-    vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070005;
-    pan = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-    return;
-dying:
-    ratSquash(arg1);
-    work->timer++;
-    if (work->timer == 10) {
-        obj->flags = TMD_OBJECT_SEMI_TRANS;
-    }
-    if (work->timer == 15) {
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
-    }
-    if (work->timer >= 0x3C) {
-        work->step = 2;
-    }
-    work2 = arg1->work;
-    if (work2->animId != work2->appliedAnimId) {
-        work2->appliedAnimId = work2->animId;
-        work2->animFrame     = 0;
-        val                  = gRatAnimBlend[work2->animId];
-        for (i = 1; i < 7; i++) {
-            animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
-        }
-    } else {
-        work2->animFrame++;
-        for (i = 1; i < 7; i++) {
-            animationTickSlot(&work2->rig.anim, i);
-        }
-    }
-    c      = arg1->extra.tmd->coords;
-    vec.vx = c->workm.t[0];
-    vec.vy = c->workm.t[1];
-    vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    return;
-destroy:
-    enemyDestroy(arg0, arg1);
-    return;
 }
