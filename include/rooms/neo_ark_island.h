@@ -50,7 +50,26 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_island_80183FE8[];
 /// loaded while the task or the effects selected by these IDs are live.
 void neoArkIslandInstallRoomEffectIdsTask(Task* task);
 
-void neoArkIslandWaterRippleTaskFixedCoord(Task* task);
+/// Advances an expanding, fading island water ripple using its cached draw transform.
+///
+/// Requires a live counted effect with owned `EffectWork` in `spawnArg2.pointer`,
+/// one coordinate body with a composed `workm`, initial state 0 and age 0,
+/// as `Gp_SpawnEff` supplies. Spawn bits 0..11 give the initial local half-side
+/// (0..4095 coordinate units); higher bits are ignored. Half-side is stored in
+/// `EffectWork::angle` and RGB brightness in `EffectWork::scale`.
+///
+/// Each running update ages, grows by 32, draws, then dims by 2. The first sets
+/// brightness 64 and replaces local rotation with one random Y rotation,
+/// preserving translation. The task never composes: its first draw uses the
+/// cache before that yaw, and model draw passes refresh the linked coordinate.
+/// A fresh ripple lasts 32 running updates, drawing brightness 64..2 and
+/// half-sides from initial size + 32 through initial size + 1024 (32..5119).
+///
+/// Non-running control freezes initialization and aging but still draws;
+/// control 4 or above draws once before cancellation. Completion and cancellation
+/// release the work, counted task and body. Keep the overlay loaded and scratch
+/// and frame packet storage available while live; released pointers must not be retained.
+void neoArkIslandWaterRippleTask(Task* task);
 
 /// Animates one eight-cell island water-spray particle using its cached draw coordinate.
 ///

@@ -73,7 +73,7 @@ gRoomEventLatched = 0x80187A20; // size:0xC defined:True
 
 neoArkPavilionInstallRoomEffectsTask = 0x8017FC10; // type:func
 
-neoArkPavilionWaterRippleTaskFixedCoord = 0x8017EC4C; // type:func
+neoArkPavilionWaterRippleTask = 0x8017EC4C; // type:func
 
 neoArkPavilionWaterSprayTask = 0x8017F0CC; // type:func
 

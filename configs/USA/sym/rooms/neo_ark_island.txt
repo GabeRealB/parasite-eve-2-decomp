@@ -60,7 +60,7 @@ D_neo_ark_island_80181B78 = 0x80181B78; // size:0xC defined:True
 
 neoArkIslandInstallRoomEffectIdsTask = 0x8017FB2C; // type:func
 
-neoArkIslandWaterRippleTaskFixedCoord = 0x8017EB68; // type:func
+neoArkIslandWaterRippleTask = 0x8017EB68; // type:func
 
 neoArkIslandWaterSprayTask = 0x8017EFE8; // type:func
 

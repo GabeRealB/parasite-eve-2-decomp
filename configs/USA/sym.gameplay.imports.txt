@@ -858,7 +858,7 @@ neoArkGardenRoomVisualEffectsFlyingSparkTask = 0x8017FCE8; // type:func absolute
 
 neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask = 0x80180948; // type:func absolute:True owner=neo_ark_garden
 
-neoArkIslandWaterRippleTaskFixedCoord = 0x8017EB68; // type:func absolute:True owner=neo_ark_island
+neoArkIslandWaterRippleTask = 0x8017EB68; // type:func absolute:True owner=neo_ark_island
 
 neoArkIslandWaterSprayTask = 0x8017EFE8; // type:func absolute:True owner=neo_ark_island
 
@@ -886,7 +886,7 @@ func_neo_ark_north_promenade_80181120 = 0x80181120; // type:func absolute:True o
 
 neoArkObservatoryGlowTask = 0x80180124; // type:func absolute:True owner=neo_ark_observatory
 
-neoArkPavilionWaterRippleTaskFixedCoord = 0x8017EC4C; // type:func absolute:True owner=neo_ark_pavilion
+neoArkPavilionWaterRippleTask = 0x8017EC4C; // type:func absolute:True owner=neo_ark_pavilion
 
 neoArkPavilionWaterSprayTask = 0x8017F0CC; // type:func absolute:True owner=neo_ark_pavilion
 

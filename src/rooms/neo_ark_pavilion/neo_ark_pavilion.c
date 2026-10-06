@@ -64,8 +64,10 @@
 /// Binds the shared water-spray definition to this package's public void (Task*)
 /// callback. Define before including its fragment; the room header declares it.
 #define WATER_SPRAY_TASK neoArkPavilionWaterSprayTask
-// Exported instance: another image refers to this package's copy by name.
-#define waterRippleTaskFixedCoord neoArkPavilionWaterRippleTaskFixedCoord
+/// Binds the cached-coordinate ripple fragment to this package's public
+/// void (Task*) callback. Define before its fragment; the room header declares
+/// the export that gameplay's effect table imports. Takes no macro arguments.
+#define WATER_RIPPLE_CACHED_COORD_TASK neoArkPavilionWaterRippleTask
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 

@@ -722,8 +722,8 @@ enum {
     /// drawn from the cached coordinate matrix while local motion and gravity
     /// advance. Published in `gRoomEffectWaterSprayId` for water-contact spawns.
     EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x16B),
-    /// The shelter_b2_septic_tank instance of the room-effect library's _waterRippleTask
-    /// / waterRippleTaskFixedCoord: an expanding, fading flat splash quad
+    /// The shelter_b2_septic_tank instance of the room-effect library's _waterRippleTask:
+    /// an expanding, fading flat splash quad
     /// (_waterDrawSplash) turned to a random yaw; the room stores it in slot gRoomEffectWaterRippleId,
     /// read alongside gRoomEffectWaterSprayId at the water surface (actor_800100, actor_401300,
     /// actor_400600, actor_01100, water-room surface hits with arg 0x40).
@@ -769,19 +769,17 @@ enum {
     /// with gravity (`_waterDriftTask`); stored in gRoomEffectWaterSprayId, which actors
     /// entering/leaving water spawn at the surface (ring of 16-32 on emergence).
     EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x175),
-    /// The neo_ark_pavilion instance of the room-effect library's _waterRippleTask /
-    /// waterRippleTaskFixedCoord: an expanding, fading flat splash quad
-    /// (_waterDrawSplash) turned to a random yaw; the room stores it in slot gRoomEffectWaterRippleId,
-    /// read alongside gRoomEffectWaterSprayId at the water surface (actor_800100, actor_401300,
-    /// actor_400600, actor_01100, water-room surface hits with arg 0x40).
+    /// Pavilion's expanding, fading water ripple (`neoArkPavilionWaterRippleTask`),
+    /// drawn through the cached coordinate matrix; model draw passes compose its
+    /// new local yaw. Installed in `gRoomEffectWaterRippleId` for water-surface spawns.
     EFFECT_NEO_ARK_PAVILION_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x176),
     /// Pavilion's eight-cell water particle (`neoArkPavilionWaterSprayTask`),
     /// drawn from a cached transform while local velocity and gravity advance.
     /// Installed in `gRoomEffectWaterSprayId` for actor and diver-impact spray.
     EFFECT_NEO_ARK_PAVILION_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x177),
-    /// Expanding, fading splash quad (waterRippleTaskFixedCoord, _waterDrawSplash);
-    /// stored in gRoomEffectWaterRippleId, which several actors (actor_800100, 401300, 400600, 01100)
-    /// spawn as water ripples.
+    /// Island's expanding, fading water ripple (`neoArkIslandWaterRippleTask`),
+    /// drawn through the cached coordinate matrix; model draw passes compose its
+    /// new local yaw. Installed in `gRoomEffectWaterRippleId` for water-surface spawns.
     EFFECT_NEO_ARK_ISLAND_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x178),
     /// Island's eight-cell water particle (`neoArkIslandWaterSprayTask`),
     /// drawn from a cached transform while local velocity and gravity advance.

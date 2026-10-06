@@ -10,7 +10,9 @@
  * only the fragments it carries. Some tasks are static inline, with a room
  * entry point that gameplay's room-effect table imports. The water-spray
  * fragment instead defines the package's public callback selected by
- * WATER_SPRAY_TASK; its prototype is in the carrier's room header.
+ * WATER_SPRAY_TASK; the cached-coordinate ripple fragment uses
+ * WATER_RIPPLE_CACHED_COORD_TASK. Each binding selects a public void (Task*)
+ * callback declared in the carrier's room header before the fragment is included.
  *
  * _waterDriftTaskU16 feeds its drawers an unsigned 16-bit sprite index.
  * _waterDrawSpinU16 and _waterDrawTileU16 are those drawers. The flags below
@@ -41,7 +43,5 @@ static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radius
 #endif
 void waterDistortBandTask(Task* task);
 void waterRefractionTask(Task* task);
-
-void waterRippleTaskFixedCoord(Task* task);
 
 #endif /* SRC_SHARED_WATER_EFFECTS_H */
