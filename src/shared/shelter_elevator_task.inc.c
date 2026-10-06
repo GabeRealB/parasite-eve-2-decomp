@@ -14,11 +14,13 @@ void shelterElevatorTask(Task* task)
         case 0:
             Gp_MsgPlayerWeapon(0);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            goto next;
+            task->state++;
+            break;
         case 1:
             if (Gp_CapBusy() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                goto next;
+                task->state++;
+                break;
             }
             break;
         case 2:
@@ -42,13 +44,12 @@ void shelterElevatorTask(Task* task)
                     taskKill(task);
                     break;
             }
-            goto next;
-        case 3:
-            if (SndVoice_HasActiveId(task->spawnArg1.value) != 0) {
-                break;
-            }
-        next:
             task->state++;
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(task->spawnArg1.value) == 0) {
+                task->state++;
+            }
             break;
         case 4:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
