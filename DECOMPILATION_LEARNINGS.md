@@ -53676,10 +53676,10 @@ The fix is to write the CLUT the way the game did, with the Psy-Q macro:
 
 ```c
 /* lhu 0x26(s0); andi 0x3f; ori 0x4380   -- wrong load */
-prim->clut = (mem->field_26 & 0x3F) | 0x4380;
+flameQuad->clut = (flameWork->angle & 0x3F) | 0x4380;
 
 /* lh  0x26(s0); andi 0x3f; ori 0x4380   -- matches */
-prim->clut = getClut(mem->field_26 * 0x10, 0x10E);
+flameQuad->clut = getClut(flameWork->angle * 0x10, 0x10E);
 ```
 
 `getClut(x, y)` is `((y) << 6) | (((x) >> 4) & 0x3f)`, so a CLUT x of
@@ -53694,7 +53694,7 @@ constant `0x4382` for the same page) says the original wrote.
 
 Generally: when a mask on a 16-bit field flips `lh` to `lhu` and the value is a
 packed hardware field, look for the Psy-Q packing macro (`getClut`, `getTPage`)
-before reaching for a cast. `func_acropolis_sanctuary_8017F4E8` is the example.
+before reaching for a cast. `acropolisSanctuaryFlameTask` is the example.
 
 ## Two loop pointers to the same address need two different C spellings
 

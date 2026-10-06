@@ -217,7 +217,36 @@ extern EvsCommand    D_acropolis_sanctuary_801821C8[];
 static void func_acropolis_sanctuary_8017D5E0(Task* task);
 static void func_acropolis_sanctuary_8017D930(Task* arg0);
 static void func_acropolis_sanctuary_8017DD78(void);
-static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1);
+static void _acropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 viewId);
+
+/// Key-item use message handled by this room's task.
+enum { ACROPOLIS_SANCTUARY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Unsigned byte fields in a script's packed view-sprite selection.
+enum {
+    ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK  = 0xFF,
+    ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT = 8,
+};
+
+/// Places a flame quad around its projected centre, narrowing edges to s16 pixels.
+static inline void _acropolisSanctuarySetFlameQuadBounds(POLY_FT4* flameQuad, const RoomGlowSpriteScratch* flameScratch)
+{
+    s16 screenX;
+    s16 screenY;
+
+    screenX       = flameScratch->screenPos.vx - flameScratch->halfExtent;
+    flameQuad->x2 = screenX;
+    flameQuad->x0 = screenX;
+    screenX       = flameScratch->screenPos.vx + flameScratch->halfExtent;
+    flameQuad->x3 = screenX;
+    flameQuad->x1 = screenX;
+    screenY       = flameScratch->screenPos.vy - flameScratch->halfExtent;
+    flameQuad->y1 = screenY;
+    flameQuad->y0 = screenY;
+    screenY       = flameScratch->screenPos.vy + flameScratch->halfExtent;
+    flameQuad->y3 = screenY;
+    flameQuad->y2 = screenY;
+}
 
 /// State handlers of the room task: set-up, the per-frame entry fixup and
 /// `taskKill`.
@@ -274,13 +303,13 @@ extern ActorTransform           D_acropolis_sanctuary_8018088C;
 extern ActorTransform           D_acropolis_sanctuary_801808A4;
 extern ActorTransform           D_acropolis_sanctuary_801808D4;
 extern ActorTransform           D_acropolis_sanctuary_801808EC;
-void                            func_acropolis_sanctuary_8017D8A0(u32);
+static void                     _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection);
 void                            func_acropolis_sanctuary_8017D8CC(void);
 
-s32 func_acropolis_sanctuary_8017D73C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_sanctuary_8017D808(Task*, s32, s32, s32);
-s32 func_acropolis_sanctuary_8017D810(Task*, s32, s32, s32);
-s32 func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_acropolis_sanctuary_8017D73C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisSanctuaryRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_acropolis_sanctuary_8017D810(Task*, s32, s32, s32);
+s32        func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 static AnimationPackedPose _gAcropolisSanctuaryAnimation03234Bank1[8] = {
 #include "assets/acropolis_sanctuary_animation_03234_bank1.inc"
@@ -307,7 +336,7 @@ static AnimationSet _gAcropolisSanctuaryAnimation03234 = {
 TaskMessageEntry D_acropolis_sanctuary_8018081C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_sanctuary_8017D73C },
     { ROOM_MESSAGE_COMMAND, func_acropolis_sanctuary_8017D810 },
-    { 5105, func_acropolis_sanctuary_8017D808 },
+    { ACROPOLIS_SANCTUARY_MESSAGE_USE_KEY_ITEM, _acropolisSanctuaryRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_sanctuary_8017D848 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -403,8 +432,8 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A70 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A20 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_80180844 } }, { .value = 0 } },
@@ -432,12 +461,12 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A5C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_8018085C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180944 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 272 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = (1 << ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT) | 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_acropolis_sanctuary_8017D8A0 }, { .value = 268 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _acropolisSanctuaryApplyScriptSpriteSelection }, { .value = (1 << ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT) | 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = 3101 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1815,10 +1844,16 @@ s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return 1;
 }
 
-/// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_acropolis_sanctuary_8017D808(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the sanctuary, returning 0 without side effects.
+///
+/// Receives `ACROPOLIS_SANCTUARY_MESSAGE_USE_KEY_ITEM` with an item ID in the
+/// first payload word; all parameters are unused. The item menu treats the
+/// result as "cannot use now" and retains the item.
+static s32 _acropolisSanctuaryRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    enum { ACROPOLIS_SANCTUARY_KEY_ITEM_REFUSED = 0 };
+
+    return ACROPOLIS_SANCTUARY_KEY_ITEM_REFUSED;
 }
 
 s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -1842,9 +1877,16 @@ s32 func_acropolis_sanctuary_8017D848(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return 0;
 }
 
-void func_acropolis_sanctuary_8017D8A0(u32 arg0)
+/// Applies an event script's packed view-sprite batch selection.
+///
+/// Bits 0..7 hold a 1-based view ID; bits 8..15 select batch 1 when zero or
+/// batch 2 otherwise. Higher bits are ignored. The sanctuary scripts pass
+/// views 12 and 16, whose live batch lists contain both alternatives.
+static void _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection)
 {
-    func_acropolis_sanctuary_8017DF88((arg0 >> 8) & 0xFF, arg0 & 0xFF);
+    _acropolisSanctuarySelectViewSpriteBatch(
+        (packedSelection >> ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT) & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK,
+        packedSelection & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK);
 }
 
 /// Republishes the player's weapon to slot 3: picks the room's 0x3E8 record by
@@ -2095,18 +2137,21 @@ static void func_acropolis_sanctuary_8017DD78(void)
     }
 }
 
-/// Toggles a pair of sprite commands for view `arg1` of the current room:
-/// `arg0` zero draws the second command and skips the third, non-zero does the
-/// reverse. `spriteLinkViewCachedPackets` reads `field_4` to decide whether to skip
-/// OT-linking each command's prims.
-static void func_acropolis_sanctuary_8017DF88(s32 arg0, s32 arg1)
+/// Selects one of the current room view's two alternative cached-sprite batches.
+///
+/// Only each argument's low byte is used. Zero `useSecondBatch` shows batch 1
+/// and hides batch 2; nonzero reverses them. `viewId` is 1-based and must select
+/// a live view with both records. The current stage and area must be valid and
+/// `spriteVariant` must be 1. Visibility is retained in the room's batch list;
+/// neither sprite sources nor cached packets are reallocated.
+static void _acropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 viewId)
 {
-    GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->location.loc;
+    GameSession*     session  = gGameSession;
+    GameLocationKey* location = &session->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1][(arg1 & 0xFF) - 1].batches;
-    if ((arg0 & 0xFF) == 0) {
+    batches = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][(viewId & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) - 1].batches;
+    if ((useSecondBatch & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) == 0) {
         batches[1].hidden = 0;
         batches[2].hidden = 1;
     } else {
@@ -2538,90 +2583,84 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     mem->age = mem->age + 1;
 }
 
-/// Draws one frame of the sanctuary's flame sprite. The task's coordinate is
-/// refreshed and projected through `GsWSMATRIX` into a `RoomGlowSpriteScratch` block
-/// taken from the scratch stack; the projected point becomes the centre of a
-/// semi-transparent `POLY_FT4` on tpage 0x2B whose half-extent is
-/// `field_24 * 0x27 / otz`, so the flame shrinks with distance and is dropped
-/// entirely inside `otz` 0x11. `Task::spawnArg1` is unpacked once, on the first
-/// frame: bits 16..27 are the sprite's size (defaulting to 0x280 when zero),
-/// bits 8..9 pick one of four 0x28x0x27 cells across the sheet -- and, through
-/// `getClut`, the matching 16-colour palette -- and only the low nibble is kept,
-/// as the index into `D_acropolis_sanctuary_801827D4`, the per-variant mask of
-/// camera views the flame is visible from. The grey level is the variant's base
-/// level plus its flicker amplitude on odd frames.
-void func_acropolis_sanctuary_8017F4E8(Task* arg0)
+void acropolisSanctuaryFlameTask(Task* task)
 {
-    EffectWork*                  mem;
-    GfxCoord*                    coord;
-    RoomGlowSpriteScratch*       blk;
-    POLY_FT4*                    prim;
-    _AcropolisSanctuaryFlameGrey base;
-    _AcropolisSanctuaryFlameGrey step;
-    s32                          param;
-    s32                          lvl;
-    s16                          x;
-    s16                          y;
+    enum {
+        ACROPOLIS_SANCTUARY_FLAME_STATE_INITIAL    = 0,
+        ACROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK   = 0xF,
+        ACROPOLIS_SANCTUARY_FLAME_VARIANT_SHIFT    = 8,
+        ACROPOLIS_SANCTUARY_FLAME_VARIANT_MASK     = 3,
+        ACROPOLIS_SANCTUARY_FLAME_SIZE_SHIFT       = 16,
+        ACROPOLIS_SANCTUARY_FLAME_SIZE_MASK        = 0xFFF,
+        ACROPOLIS_SANCTUARY_FLAME_SIZE_BITS        = ACROPOLIS_SANCTUARY_FLAME_SIZE_MASK << ACROPOLIS_SANCTUARY_FLAME_SIZE_SHIFT,
+        ACROPOLIS_SANCTUARY_FLAME_DEFAULT_SIZE     = 640,
+        ACROPOLIS_SANCTUARY_FLAME_MIN_DEPTH        = 17,
+        ACROPOLIS_SANCTUARY_FLAME_TEXTURE_PAGE     = getTPage(0, GPU_BLEND_ADD, 704, 0),
+        ACROPOLIS_SANCTUARY_FLAME_PALETTE_WORDS    = 16,
+        ACROPOLIS_SANCTUARY_FLAME_PALETTE_Y        = 270,
+        ACROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U = 40,
+        ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT   = 39,
+    };
+    EffectWork*                  flameWork;
+    GfxCoord*                    flameCoord;
+    RoomGlowSpriteScratch*       flameScratch;
+    POLY_FT4*                    flameQuad;
+    _AcropolisSanctuaryFlameGrey baseGrey;
+    _AcropolisSanctuaryFlameGrey flickerGrey;
+    s32                          spawnParams;
+    s32                          greyLevel;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if ((D_acropolis_sanctuary_801827D4[arg0->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1) {
-        actorRenderComposeCoord(coord);
-        blk = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-        if (arg0->state == 0) {
-            // Three bytes each. The variant subscript does not include the padding byte after the table.
-            base                  = D_acropolis_sanctuary_8017D5D8;
-            step                  = D_acropolis_sanctuary_8017D5DC;
-            param                 = arg0->spawnArg1.value;
-            mem->scale            = (param & 0x0FFF0000) ? ((param >> 16) & 0xFFF) : 0x280;
-            mem->angle            = (arg0->spawnArg1.value >> 8) & 3;
-            arg0->spawnArg1.value = arg0->spawnArg1.value & 0xF;
-            mem->period           = base.grey[mem->angle];
-            mem->step             = step.grey[mem->angle];
-            arg0->state++;
+    flameWork  = task->spawnArg2.pointer;
+    flameCoord = task->extra.coordBody->coord;
+    if ((D_acropolis_sanctuary_801827D4[task->spawnArg1.value & ACROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
+        actorRenderComposeCoord(flameCoord);
+        flameScratch = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+        if (task->state == ACROPOLIS_SANCTUARY_FLAME_STATE_INITIAL) {
+            // Initialize on the first visible update, then retain only the placement index.
+            baseGrey              = D_acropolis_sanctuary_8017D5D8;
+            flickerGrey           = D_acropolis_sanctuary_8017D5DC;
+            spawnParams           = task->spawnArg1.value;
+            flameWork->scale      = (spawnParams & ACROPOLIS_SANCTUARY_FLAME_SIZE_BITS)
+                                        ? ((spawnParams >> ACROPOLIS_SANCTUARY_FLAME_SIZE_SHIFT) & ACROPOLIS_SANCTUARY_FLAME_SIZE_MASK)
+                                        : ACROPOLIS_SANCTUARY_FLAME_DEFAULT_SIZE;
+            flameWork->angle      = (task->spawnArg1.value >> ACROPOLIS_SANCTUARY_FLAME_VARIANT_SHIFT) & ACROPOLIS_SANCTUARY_FLAME_VARIANT_MASK;
+            task->spawnArg1.value = task->spawnArg1.value & ACROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK;
+            flameWork->period     = baseGrey.grey[flameWork->angle];
+            flameWork->step       = flickerGrey.grey[flameWork->angle];
+            task->state++;
         }
-        blk->worldPos.vx = coord->workm.t[0];
-        blk->worldPos.vy = coord->workm.t[1];
-        blk->worldPos.vz = coord->workm.t[2];
+        // Project the composed centre after narrowing it to signed 16-bit coordinates.
+        flameScratch->worldPos.vx = flameCoord->workm.t[0];
+        flameScratch->worldPos.vy = flameCoord->workm.t[1];
+        flameScratch->worldPos.vz = flameCoord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->worldPos);
+        gte_ldv0(&flameScratch->worldPos);
         gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        gte_stsxy(&blk->screenPos);
-        gte_stszotz(&blk->otz);
-        if (blk->otz >= 0x11) {
-            lvl         = (u8)mem->period + (gDisplayState.animFrame & 1) * mem->step;
-            prim->tpage = 0x2B;
-            prim->code |= 2;
-            setRGB0(prim, lvl, lvl, lvl);
-            prim->clut      = getClut(mem->angle * 0x10, 0x10E);
-            prim->u0        = mem->angle * 0x28;
-            prim->v0        = 0;
-            prim->u1        = mem->angle * 0x28 + 0x27;
-            prim->v1        = 0;
-            prim->u2        = mem->angle * 0x28;
-            prim->v2        = 0x27;
-            prim->u3        = mem->angle * 0x28 + 0x27;
-            prim->v3        = 0x27;
-            blk->halfExtent = (mem->scale * 0x27) / blk->otz;
-            x               = blk->screenPos.vx - blk->halfExtent;
-            prim->x2        = x;
-            prim->x0        = x;
-            x               = blk->screenPos.vx + blk->halfExtent;
-            prim->x3        = x;
-            prim->x1        = x;
-            y               = blk->screenPos.vy - blk->halfExtent;
-            prim->y1        = y;
-            prim->y0        = y;
-            y               = blk->screenPos.vy + blk->halfExtent;
-            prim->y3        = y;
-            prim->y2        = y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+        // Visible placements consume a packet even when its projected depth rejects it.
+        flameQuad      = gGpuPrimCursor;
+        gGpuPrimCursor = flameQuad + 1;
+        setPolyFT4(flameQuad);
+        gte_stsxy(&flameScratch->screenPos);
+        gte_stszotz(&flameScratch->otz);
+        if (flameScratch->otz >= ACROPOLIS_SANCTUARY_FLAME_MIN_DEPTH) {
+            greyLevel        = (u8)flameWork->period + (gDisplayState.animFrame & 1) * flameWork->step;
+            flameQuad->tpage = ACROPOLIS_SANCTUARY_FLAME_TEXTURE_PAGE;
+            setSemiTrans(flameQuad, 1);
+            setRGB0(flameQuad, greyLevel, greyLevel, greyLevel);
+            flameQuad->clut          = getClut(flameWork->angle * ACROPOLIS_SANCTUARY_FLAME_PALETTE_WORDS, ACROPOLIS_SANCTUARY_FLAME_PALETTE_Y);
+            flameQuad->u0            = flameWork->angle * ACROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U;
+            flameQuad->v0            = 0;
+            flameQuad->u1            = flameWork->angle * ACROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U + ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
+            flameQuad->v1            = 0;
+            flameQuad->u2            = flameWork->angle * ACROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U;
+            flameQuad->v2            = ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
+            flameQuad->u3            = flameWork->angle * ACROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U + ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
+            flameQuad->v3            = ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
+            flameScratch->halfExtent = (flameWork->scale * ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT) / flameScratch->otz;
+            _acropolisSanctuarySetFlameQuadBounds(flameQuad, flameScratch);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)flameScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    flameQuad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
