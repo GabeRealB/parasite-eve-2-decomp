@@ -589,10 +589,6 @@ static void func_actor_120500_801322A0(Task* task)
 /// and spawns the view tasks. The model's part-1 translation goes to
 /// `worldCoordSetModelLighting` last.
 ///
-/// The screen request dispatch is written with gotos: the labels reproduce
-/// retail's block layout, where the three clear sites sit at the end of their
-/// own arms.
-///
 /// The animation request and the translation are locals of two separate
 /// blocks so that they share one stack slot, as the retail frame has them.
 void func_actor_120500_8013241C(Task* arg0)
@@ -648,12 +644,14 @@ void func_actor_120500_8013241C(Task* arg0)
     } while ((u16)i < ARRAY_SIZE(slotsWork->rig.slots));
 
     i = 1;
-loop_slots:
-    if ((slotsWork->rig.slots[(u16)i].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
-        i++;
-        if ((u16)i < ARRAY_SIZE(slotsWork->rig.slots)) {
-            goto loop_slots;
+    while (1) {
+        if ((slotsWork->rig.slots[(u16)i].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
+            i++;
+            if ((u16)i < ARRAY_SIZE(slotsWork->rig.slots)) {
+                continue;
+            }
         }
+        break;
     }
 
     if (work->bodyRequest != ACTOR_120500_BODY_REQUEST_NONE) {
@@ -667,42 +665,31 @@ loop_slots:
 
     screenWork = arg0->work;
     code       = screenWork->screenRequest;
-    if (code != ACTOR_120500_SCREEN_REQUEST_FADE_OUT) {
-        if (code >= ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE) {
-            if (code != ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE) {
-                screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
-                goto screen_request_done;
-            } else {
-                goto screen_request_play_movie;
-            }
-        } else {
-            goto screen_request_clear;
-        }
-    } else {
-        goto screen_request_fade_out;
+    switch (code) {
+        case ACTOR_120500_SCREEN_REQUEST_FADE_OUT:
+            taskSpawnFromTable(D_actor_120500_80138418, 2, 8, 0);
+            break;
+        case ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE:
+            taskMessageDispatch(screenWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            Display_SpawnWithOt(D_actor_120500_80138418, 0, 0, 0);
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
+            Gp_SpawnViewTasks();
+            break;
+        case ACTOR_120500_SCREEN_REQUEST_NONE:
+        default:
+            break;
     }
-screen_request_fade_out:
-    taskSpawnFromTable(D_actor_120500_80138418, 2, 8, 0);
     screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
-    goto screen_request_done;
-screen_request_play_movie:
-    taskMessageDispatch(screenWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-    Display_SpawnWithOt(D_actor_120500_80138418, 0, 0, 0);
-    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
-screen_request_clear:
-    screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
-screen_request_done:
 
-{
-    VECTOR pos;
+    {
+        VECTOR pos;
 
-    mdl    = arg0->extra.tmd;
-    pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
-    pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
-    pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    worldCoordSetModelLighting(mdl, &pos, 0, 3);
-}
+        mdl    = arg0->extra.tmd;
+        pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
+        pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
+        pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
+        worldCoordSetModelLighting(mdl, &pos, 0, 3);
+    }
 }
 
 #include "../../shared/screen_fade_in.inc.c"
