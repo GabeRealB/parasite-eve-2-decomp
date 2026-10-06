@@ -28,15 +28,15 @@ void madChaserTickAnim(Task* arg0)
             }
             start->animBlendFrames = 0;
         }
-        goto advance;
-    }
-    if (work->animRequest == MAD_CHASER_ANIM_REQUEST_RESET) {
+        start->appliedAnim = start->animId;
+        work->animRequest  = MAD_CHASER_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+    } else if (work->animRequest == MAD_CHASER_ANIM_REQUEST_RESET) {
         start = work;
         for (j = 1; j < 9; j++) {
             animationResetSlot(&start->anim, j, start->animId);
             (start->slots)[j].rate = start->animRate;
         }
-    advance:
         start->appliedAnim = start->animId;
         work->animRequest  = MAD_CHASER_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
