@@ -1367,41 +1367,40 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
             enemy->hp = D_actor_421600_8013EF38.hpMax;
             switch (mode) {
                 case 0:
-                    if (D_actor_421600_80151268 < 4) {
-                        goto negstate;
+                    if (D_actor_421600_80151268 >= 4) {
+                        if (work->state != 0) {
+                            break;
+                        }
+                        arg0->extra.tmd->coords->coord.t[0] = 0x1057;
+                        arg0->extra.tmd->coords->coord.t[2] = -0x11A3;
+                        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
+                        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                        actorRenderComposeCoord(arg0->extra.tmd->coords);
+                        work->state     = 0x20;
+                        work->prevState = -1;
+                        break;
                     }
-                    if (work->state != 0) {
-                        goto tail;
-                    }
-                    arg0->extra.tmd->coords->coord.t[0] = 0x1057;
-                    arg0->extra.tmd->coords->coord.t[2] = -0x11A3;
-                    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
-                    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(arg0->extra.tmd->coords);
-                    work->state     = 0x20;
+                    work->state     = 0;
                     work->prevState = -1;
-                    goto tail;
+                    break;
                 case 1:
-                    if (D_actor_421600_80151268 < 5) {
-                        goto negstate;
+                    if (D_actor_421600_80151268 >= 5) {
+                        if (work->state != 0) {
+                            break;
+                        }
+                        arg0->extra.tmd->coords->coord.t[0] = 0x1467;
+                        arg0->extra.tmd->coords->coord.t[2] = 0x4B9;
+                        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7BC, 1);
+                        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                        actorRenderComposeCoord(arg0->extra.tmd->coords);
+                        work->state     = 0x20;
+                        work->prevState = -1;
+                        break;
                     }
-                    if (work->state != 0) {
-                        goto tail;
-                    }
-                    arg0->extra.tmd->coords->coord.t[0] = 0x1467;
-                    arg0->extra.tmd->coords->coord.t[2] = 0x4B9;
-                    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7BC, 1);
-                    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(arg0->extra.tmd->coords);
-                    work->state     = 0x20;
+                    work->state     = 0;
                     work->prevState = -1;
-                    goto tail;
+                    break;
             }
-            goto tail;
-        negstate:
-            work->state     = 0;
-            work->prevState = -1;
-        tail:
             Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
             enemy->reactionFlags = 0;
             enemy->hp            = D_actor_421600_8013EF38.hpMax;
@@ -1411,7 +1410,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
             switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
                 case 0:
                     if (D_actor_421600_80151268 <= 0) {
-                        goto blockDE0;
+                        break;
                     }
                     arg0->extra.tmd->coords->coord.t[0] = -0xD40;
                     arg0->extra.tmd->coords->coord.t[2] = 0x104F;
@@ -1422,10 +1421,10 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     enemy->reactionFlags = 0;
                     enemy->hp            = D_actor_421600_8013EF38.hpMax;
                     work->state          = 6;
-                    goto blockDE0;
+                    break;
                 case 1:
                     if (D_actor_421600_80151268 < 2) {
-                        goto blockDE0;
+                        break;
                     }
                     arg0->extra.tmd->coords->coord.t[0] = 0x138C;
                     arg0->extra.tmd->coords->coord.t[2] = 0x4B2;
@@ -1436,11 +1435,8 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     enemy->reactionFlags = 0;
                     enemy->hp            = D_actor_421600_8013EF38.hpMax;
                     work->state          = 6;
-                    goto blockDE0;
-                default:
-                    goto blockDE0;
+                    break;
             }
-        blockDE0:
             if (D_actor_421600_80151268 == 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             }
