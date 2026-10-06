@@ -112,12 +112,11 @@ void oddStrangerDrive(Task* arg0)
         if ((targetAngle - currentAngle) >= 0x101) {
             work->lookYaw = currentAngleBits + 0x100;
         } else {
-            goto atTargetAngle;
+            work->lookYaw = targetAngleBits;
         }
     } else if ((currentAngle - targetAngle) >= 0x101) {
         work->lookYaw = currentAngleBits - 0x100;
     } else {
-    atTargetAngle:
         work->lookYaw = targetAngleBits;
     }
     angle        = (s16)work->lookYaw;
