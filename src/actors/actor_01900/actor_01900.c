@@ -1061,6 +1061,65 @@ static s32 Actor01900_Fn01A7C(_Actor01900Work* work)
     return 0;
 }
 
+/// Cross-fades every slot into `animId` unless it is already applied.
+static inline void _actor01900BlendToRequestedAnim(Task* arg0)
+{
+    _Actor01900Work* work;
+    s32              i;
+
+    work = arg0->work;
+    if (work->appliedAnim != work->animId) {
+        for (i = 1; i < 0x13; i++) {
+            work->rig.slots[i].rate = work->animRate;
+            animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0,
+                                       (s32)Actor01900_D16988[work->appliedAnim][work->animId]);
+        }
+        work->appliedAnim = (s16)(u16)work->animId;
+    }
+}
+
+/// Restarts every slot on `animId`.
+static inline void _actor01900ResetToRequestedAnim(Task* arg0)
+{
+    _Actor01900Work* work;
+    s32              i;
+
+    work = arg0->work;
+    for (i = 1; i < 0x13; i++) {
+        work->rig.slots[i].rate = work->animRate;
+        animationResetSlot(&work->rig.anim, i, work->animId);
+    }
+    work->appliedAnim = (s16)(u16)work->animId;
+}
+
+/// Restarts the blend animation on `blendAnimId` at full weight.
+static inline void _actor01900ResetBlendAnim(Task* arg0)
+{
+    _Actor01900Work* work;
+    s32              i;
+
+    work              = arg0->work;
+    work->blendRate   = 0x30;
+    work->blendWeight = 0x800;
+    for (i = 1; i < 0x13; i++) {
+        work->rig.slots[i].rate = work->blendRate;
+        animationResetSlot(&work->blend.anim, i, work->blendAnimId);
+    }
+}
+
+/// Advances every slot of the body animation at `animRate`.
+static inline void _actor01900TickAnimSlots(Task* arg0)
+{
+    _Actor01900Work* work;
+    s32              i;
+
+    work = arg0->work;
+    for (i = 1; i < 0x13; i++) {
+        work->rig.slots[i].rate = work->animRate;
+        animationTickSlot(&work->rig.anim, i);
+    }
+}
+
 /// Per-frame animation driver: services a pending clip change, advances the
 /// body and blend animations, eases the head toward its target yaw and emits
 /// whatever sound event the current clip has reached.
@@ -1072,18 +1131,11 @@ static s32 Actor01900_Fn01A7C(_Actor01900Work* work)
 static void Actor01900_Fn01C94(Task* arg0)
 {
     _Actor01900Work* work;
-    _Actor01900Work* w1;
-    _Actor01900Work* w2;
-    _Actor01900Work* w3;
     Enemy*           enemy;
     s16              cur;
     s16              dst;
     s16              raw;
     s32              clamped;
-    s32              i;
-    s32              i2;
-    s32              i3;
-    s32              i4;
     s32              snd;
     s32              id;
     s32              pan;
@@ -1093,54 +1145,23 @@ static void Actor01900_Fn01C94(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->animRequest == ACTOR_01900_ANIM_REQUEST_BLEND) {
-        w1 = work;
-        if (work->appliedAnim != work->animId) {
-            for (i = 1; i < 0x13; i++) {
-                w1->rig.slots[i].rate = w1->animRate;
-                animationSeekSlotWithBlend(&w1->rig.anim, i, w1->animId, 0,
-                                           (s32)Actor01900_D16988[w1->appliedAnim][w1->animId]);
-            }
-            /* Keeps this store from being merged with the identical one the
-               `RESET` path makes just below. */
-            w1->appliedAnim = (s16)(u16)w1->animId;
-        }
+        _actor01900BlendToRequestedAnim(arg0);
         work->animRequest  = ACTOR_01900_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
     } else if (work->animRequest == ACTOR_01900_ANIM_REQUEST_RESET) {
-        w2 = work;
-        i2 = 1;
-        do {
-            w2->rig.slots[i2].rate = w2->animRate;
-            animationResetSlot(&w2->rig.anim, i2, w2->animId);
-            i2++;
-        } while (i2 < 0x13);
-        w2->appliedAnim    = (s16)(u16)w2->animId;
+        _actor01900ResetToRequestedAnim(arg0);
         work->animRequest  = ACTOR_01900_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
     }
     if (work->blendRequest == ACTOR_01900_ANIM_REQUEST_RESET) {
-        i3              = 1;
-        w1              = arg0->work;
-        w1->blendRate   = 0x30;
-        w1->blendWeight = 0x800;
-        do {
-            w1->rig.slots[i3].rate = w1->blendRate;
-            animationResetSlot(&w1->blend.anim, i3, w1->blendAnimId);
-            i3++;
-        } while (i3 < 0x13);
+        _actor01900ResetBlendAnim(arg0);
         work->blendRequest = ACTOR_01900_ANIM_REQUEST_PLAYING;
     }
     work->animFrames = (u16)(work->animFrames + 1);
     if (work->blendActive == 0) {
-        w3 = arg0->work;
-        i4 = 1;
-        do {
-            w3->rig.slots[i4].rate = w3->animRate;
-            animationTickSlot(&w3->rig.anim, i4);
-            i4++;
-        } while (i4 < 0x13);
+        _actor01900TickAnimSlots(arg0);
     } else {
         Actor01900_Fn01950(arg0);
         if (work->blend.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
