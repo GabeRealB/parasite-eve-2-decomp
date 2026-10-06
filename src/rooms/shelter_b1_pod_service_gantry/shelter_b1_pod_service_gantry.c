@@ -1551,7 +1551,8 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             param2[2] = 0;
             param2[3] = 0;
             cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-            goto next;
+            work->step++;
+            break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_SECOND_SCENE:
             if (CdCmd_IsIdle() == 0) {
                 break;
@@ -1573,7 +1574,6 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_PAUSE:
-        next:
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LEAVING:
