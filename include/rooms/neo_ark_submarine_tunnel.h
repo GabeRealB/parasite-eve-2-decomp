@@ -42,11 +42,34 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_tunnel_801878EC[];
 
 void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0);
 
-void func_neo_ark_submarine_tunnel_8017FA34(Task* task);
+/// Runs the tunnel's animated spark along a step fixed from a target's initial position.
+///
+/// Requires a composed coordinate body and a counted, zero-initialized
+/// `EffectWork` owned through `spawnArg2.pointer`. `spawnArg1.pointer` borrows
+/// a composed target `GfxCoord` until the first active tick. That tick derives
+/// a step of 204/4096 of the initial separation, with signed 16-bit intermediate
+/// components; later ticks move by that step without resampling the target.
+/// Drawing occurs on odd ages after initialization, and age 20 releases the
+/// work and task. A live `gRoomEffectState` pauses at nonzero effect control
+/// and cancels at four or above. The tunnel overlay must remain loaded.
+void neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_neo_ark_submarine_tunnel_80180694(Task* arg0);
+/// Runs the tunnel's expanding orange disc, layered glow and fading outer ring.
+///
+/// Requires a coordinate body, a live `gRoomEffectState` and a counted,
+/// zero-initialized `EffectWork` owned through `spawnArg2.pointer`. Active ticks
+/// grow the glow half-extent by 16 world units and refresh a transient orange
+/// light. The ring fades first, then the central brightness falls until the
+/// work and task are released. Nonzero effect control pauses the task; four
+/// or above cancels it. The tunnel overlay must remain loaded.
+void neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
-void func_neo_ark_submarine_tunnel_8017F48C(Task* arg0);
+/// Selects the tunnel's glow-disc, flying-spark and projectile-burst effects once.
+///
+/// Bank-6 slot 0x152 installs the three room effect IDs in state 0 and advances
+/// to state 1. Later ticks leave them unchanged and keep the task alive. The
+/// tunnel overlay must stay loaded while its selected effects can spawn or run.
+void neoArkSubmarineTunnelConfigureEffectsTask(Task* task);
 
 void func_neo_ark_submarine_tunnel_8017F434(Task* task);
 

@@ -876,7 +876,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkEveAccessTunnelDrawViewGlowsTask, { NULL } },                      // 0x14F
     { { { TASK_BODY_COORD, 0x70 } }, neoArkEveElevatorIdleEffectTask, { NULL } },                             // 0x150
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeBindRoomEffectsTask, { NULL } },                     // 0x151
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_8017F48C, { NULL } },                      // 0x152
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineTunnelConfigureEffectsTask, { NULL } },                   // 0x152
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionInstallRoomEffectsTask, { NULL } },                        // 0x153
     { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandInstallRoomEffectIdsTask, { NULL } },                        // 0x154
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017EA9C, { NULL } },                                // 0x155
@@ -1178,8 +1178,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_breeding_room_8017ECCC, { NULL } },                      // 0x27D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_breeding_room_8017F92C, { NULL } },                      // 0x27E
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_8017F4DC, { NULL } },                      // 0x27F
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_8017FA34, { NULL } },                      // 0x280
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_80180694, { NULL } },                      // 0x281
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask, { NULL } },       // 0x280
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask, { NULL } }, // 0x281
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsMoteTask, { NULL } },               // 0x282
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsHaloTask, { NULL } },               // 0x283
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask, { NULL } },    // 0x284

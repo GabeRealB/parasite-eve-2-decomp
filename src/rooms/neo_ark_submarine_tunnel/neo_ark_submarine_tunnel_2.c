@@ -1266,16 +1266,18 @@ ScreenWaveOscillator gScreenWaveColumns[13];
 
 ScreenWaveOscillator gScreenWaveRows[32];
 
-ScreenWaveCtx gScreenWaveSpawnCtx; /// Task that, on its first tick, stores the ids 0x6027F, 0x60280 and 0x60281
-/// into `gRoomEffectGlowDiscId`, `gRoomEffectFlyingSparkId` and `gRoomEffectOrangeBurst2Id` and then idles; the burst
-/// task below spawns its effects from `gRoomEffectFlyingSparkId`.
-void func_neo_ark_submarine_tunnel_8017F48C(Task* arg0)
+ScreenWaveCtx gScreenWaveSpawnCtx;
+
+void neoArkSubmarineTunnelConfigureEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { EFFECTS_UNREGISTERED,
+           EFFECTS_REGISTERED };
+
+    if (task->state == EFFECTS_UNREGISTERED) {
         gRoomEffectGlowDiscId     = EFFECT_NEO_ARK_SUBMARINE_TUNNEL_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_NEO_ARK_SUBMARINE_TUNNEL_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_NEO_ARK_SUBMARINE_TUNNEL_ORANGE_BURST_2;
-        arg0->state               = 1;
+        task->state               = EFFECTS_REGISTERED;
     }
 }
 
@@ -1288,16 +1290,16 @@ void func_neo_ark_submarine_tunnel_8017F4DC(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_neo_ark_submarine_tunnel_8017FA34(Task* task)
+void neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_neo_ark_submarine_tunnel_80180694(Task* arg0)
+void neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

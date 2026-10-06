@@ -944,9 +944,9 @@ neoArkSubmarineGalleryWaterDriftTaskU16 = 0x8017F710; // type:func absolute:True
 
 func_neo_ark_submarine_tunnel_8017F4DC = 0x8017F4DC; // type:func absolute:True owner=neo_ark_submarine_tunnel
 
-func_neo_ark_submarine_tunnel_8017FA34 = 0x8017FA34; // type:func absolute:True owner=neo_ark_submarine_tunnel
+neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask = 0x8017FA34; // type:func absolute:True owner=neo_ark_submarine_tunnel
 
-func_neo_ark_submarine_tunnel_80180694 = 0x80180694; // type:func absolute:True owner=neo_ark_submarine_tunnel
+neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask = 0x80180694; // type:func absolute:True owner=neo_ark_submarine_tunnel
 
 func_neo_ark_woodland_path_8017EA08 = 0x8017EA08; // type:func absolute:True owner=neo_ark_woodland_path
 
@@ -1901,7 +1901,7 @@ neoArkEveElevatorIdleEffectTask = 0x8017D71C; // type:func absolute:True owner=n
 
 neoArkNorthPromenadeBindRoomEffectsTask = 0x8017D720; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 
-func_neo_ark_submarine_tunnel_8017F48C = 0x8017F48C; // type:func absolute:True owner=neo_ark_submarine_tunnel shared=rooms
+neoArkSubmarineTunnelConfigureEffectsTask = 0x8017F48C; // type:func absolute:True owner=neo_ark_submarine_tunnel shared=rooms
 
 func_neo_ark_power_plant_2_8017D8AC = 0x8017D8AC; // type:func absolute:True owner=neo_ark_power_plant_2 shared=rooms
 
