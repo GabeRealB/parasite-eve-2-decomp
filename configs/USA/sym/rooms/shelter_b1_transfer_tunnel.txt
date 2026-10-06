@@ -37,21 +37,21 @@ D_actor_202300_8015FAB8 = 0x8015FAB8; // absolute:True owner=actor_202300
 D_actor_200300_80160110 = 0x80160110; // absolute:True owner=actor_200300 shared=actors
 RoomFx_TrailOffsets = 0x80182944; // size:0x10 defined:True
 
-func_shelter_b1_transfer_tunnel_8018092C = 0x8018092C; // type:func
+shelterB1TransferTunnelRoomVisualEffectsFlashTask = 0x8018092C; // type:func
 
-func_shelter_b1_transfer_tunnel_80181390 = 0x80181390; // type:func
+shelterB1TransferTunnelRoomVisualEffectsTwinTrailTask = 0x80181390; // type:func
 
 func_shelter_b1_transfer_tunnel_80181C78 = 0x80181C78; // type:func
 
-func_shelter_b1_transfer_tunnel_8017E308 = 0x8017E308; // type:func
+shelterB1TransferTunnelRoomVisualEffectsMoteTask = 0x8017E308; // type:func
 
-func_shelter_b1_transfer_tunnel_8017F050 = 0x8017F050; // type:func
+shelterB1TransferTunnelRoomVisualEffectsHaloTask = 0x8017F050; // type:func
 
-func_shelter_b1_transfer_tunnel_8017F3E8 = 0x8017F3E8; // type:func
+shelterB1TransferTunnelRoomVisualEffectsHaloOrangeBurstTask = 0x8017F3E8; // type:func
 
 func_shelter_b1_transfer_tunnel_801807F8 = 0x801807F8; // type:func
 
-func_shelter_b1_transfer_tunnel_8017D6D0 = 0x8017D6D0; // type:func
+shelterB1TransferTunnelDrawGlowsTask = 0x8017D6D0; // type:func
 _roomVisualEffectsDrawMote = 0x8017E5D4; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017E898; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017ECBC; // type:func
@@ -64,3 +64,7 @@ _roomVisualEffectsDrawTwinTrail = 0x80181880; // type:func
 _roomVisualEffectsDrawBurstStar = 0x80181F00; // type:func
 glowDrawDimGreyCapsule = 0x8017D830; // type:func
 glowDrawRedDisc = 0x8017DFAC; // type:func
+_shelterB1TransferTunnelRejectKeyItemUse = 0x8017d5d0; // type:func
+_shelterB1TransferTunnelIgnoreRoomCommand = 0x8017d61c; // type:func
+_shelterB1TransferTunnelIgnoreRoomAction = 0x8017d624; // type:func
+_shelterB1TransferTunnelIdle = 0x8017d670; // type:func

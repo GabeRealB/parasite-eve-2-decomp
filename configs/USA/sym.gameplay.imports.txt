@@ -1099,17 +1099,17 @@ shelterB1StoreroomRoomVisualEffectsFlyingSparkTask = 0x801832B8; // type:func ab
 
 shelterB1StoreroomRoomVisualEffectsFlyingOrangeBurstTask = 0x80183F18; // type:func absolute:True owner=shelter_b1_storeroom
 
-func_shelter_b1_transfer_tunnel_8017E308 = 0x8017E308; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
+shelterB1TransferTunnelRoomVisualEffectsMoteTask = 0x8017E308; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 
-func_shelter_b1_transfer_tunnel_8017F050 = 0x8017F050; // type:func absolute:True owner=shelter_b1_transfer_tunnel
+shelterB1TransferTunnelRoomVisualEffectsHaloTask = 0x8017F050; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
-func_shelter_b1_transfer_tunnel_8017F3E8 = 0x8017F3E8; // type:func absolute:True owner=shelter_b1_transfer_tunnel
+shelterB1TransferTunnelRoomVisualEffectsHaloOrangeBurstTask = 0x8017F3E8; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
 func_shelter_b1_transfer_tunnel_801807F8 = 0x801807F8; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
-func_shelter_b1_transfer_tunnel_8018092C = 0x8018092C; // type:func absolute:True owner=shelter_b1_transfer_tunnel
+shelterB1TransferTunnelRoomVisualEffectsFlashTask = 0x8018092C; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
-func_shelter_b1_transfer_tunnel_80181390 = 0x80181390; // type:func absolute:True owner=shelter_b1_transfer_tunnel
+shelterB1TransferTunnelRoomVisualEffectsTwinTrailTask = 0x80181390; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
 func_shelter_b1_transfer_tunnel_80181C78 = 0x80181C78; // type:func absolute:True owner=shelter_b1_transfer_tunnel
 
@@ -1873,7 +1873,7 @@ func_shelter_b1_golem_freezer_1_8017DA7C = 0x8017DA7C; // type:func absolute:Tru
 
 shelterB2PodBottomShadowTask = 0x8017D760; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
-func_shelter_b1_transfer_tunnel_8017D6D0 = 0x8017D6D0; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
+shelterB1TransferTunnelDrawGlowsTask = 0x8017D6D0; // type:func absolute:True owner=shelter_b1_transfer_tunnel shared=rooms
 
 func_shelter_b2_elevator_8017DB70 = 0x8017DB70; // type:func absolute:True owner=shelter_b2_elevator shared=rooms
 

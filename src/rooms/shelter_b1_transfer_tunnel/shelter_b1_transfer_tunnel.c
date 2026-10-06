@@ -57,8 +57,8 @@
 /// `func_shelter_b1_transfer_tunnel_8017D62C`.
 extern TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[];
 
-/// Anchor points of the cones and discs drawn from
-/// `func_shelter_b1_transfer_tunnel_8017D6D0`, chosen by camera view.
+/// World-space points for the capsules and red disc drawn by
+/// `shelterB1TransferTunnelDrawGlowsTask`, chosen by camera view.
 extern SVECTOR D_shelter_b1_transfer_tunnel_801828E8[];
 extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
 
@@ -70,25 +70,27 @@ extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
 /// under its own name.
 
 static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task);
-static void func_shelter_b1_transfer_tunnel_8017D670(Task* task);
+static void _shelterB1TransferTunnelIdle(Task* task);
 
 /// State handlers of the task `func_shelter_b1_transfer_tunnel_8017D678`
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
-    { func_shelter_b1_transfer_tunnel_8017D62C, func_shelter_b1_transfer_tunnel_8017D670, taskKill }
+    { func_shelter_b1_transfer_tunnel_8017D62C, _shelterB1TransferTunnelIdle, taskKill }
 };
 
-s32 func_shelter_b1_transfer_tunnel_8017D5D0(Task*, s32, s32, s32);
-s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_transfer_tunnel_8017D61C(Task*, s32, s32, s32);
-s32 func_shelter_b1_transfer_tunnel_8017D624(Task*, s32, s32, s32);
+static s32 _shelterB1TransferTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_shelter_b1_transfer_tunnel_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1TransferTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterB1TransferTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+enum { SHELTER_B1_TRANSFER_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_transfer_tunnel_8017D5D8 },
-    { 5105, func_shelter_b1_transfer_tunnel_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_transfer_tunnel_8017D624 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_transfer_tunnel_8017D61C },
+    { SHELTER_B1_TRANSFER_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1TransferTunnelRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1TransferTunnelIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1TransferTunnelIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -297,7 +299,10 @@ WorldCollisionSurfaceProperties* D_shelter_b1_transfer_tunnel_80183184[8] = {
     D_shelter_b1_transfer_tunnel_80183174,
 };
 
-s32 func_shelter_b1_transfer_tunnel_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key item without changing the room, returning zero to the item menu.
+///
+/// `itemId` is a collected item ID; neither payload word is read or retained.
+static s32 _shelterB1TransferTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
@@ -311,12 +316,18 @@ s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg*
     return 1;
 }
 
-s32 func_shelter_b1_transfer_tunnel_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from CAP and direction triggers, returning zero.
+///
+/// `commandId` and `commandArg` are receiver-specific integers; neither is read.
+static s32 _shelterB1TransferTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_transfer_tunnel_8017D624(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room action requests from direction triggers, returning zero.
+///
+/// The borrowed request is neither dereferenced nor retained.
+static s32 _shelterB1TransferTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -330,8 +341,8 @@ static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room's task: does nothing until the task is killed.
-static void func_shelter_b1_transfer_tunnel_8017D670(Task* task)
+/// Keeps the initialized room task available for messages without advancing its state.
+static void _shelterB1TransferTunnelIdle(Task* task)
 {
 }
 
@@ -345,40 +356,48 @@ void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// On its first tick stores seven effect ids in gameplay's `D_801157xx`
-/// slots; every tick then draws the room's gouraud cones and discs for
-/// the current camera view (views 2, 3 and 4).
-void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
+/// Selects this loaded room's visual-effect exports for actor effect requests.
+static inline void _shelterB1TransferTunnelBindEffects(void)
 {
-    u8 view;
+    gRoomEffectMoteId         = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_MOTE;
+    gRoomEffectHaloId         = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_SPARK_EMITTER;
+    gRoomEffectFlashId        = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_SPARK_BURST;
+}
 
-    if (arg0->state == 0) {
-        gRoomEffectMoteId         = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_MOTE;
-        gRoomEffectHaloId         = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_HALO;
-        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_ORANGE_BURST;
-        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_SPARK_EMITTER;
-        gRoomEffectFlashId        = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_TRANSFER_TUNNEL_SPARK_BURST;
-        arg0->state               = 1;
+void shelterB1TransferTunnelDrawGlowsTask(Task* task)
+{
+    enum { GLOWS_INITIALIZE,
+           GLOWS_DRAW,
+           GLOWS_RADIUS_SCALE = 512 };
+
+    u8 viewIndex;
+
+    if (task->state == GLOWS_INITIALIZE) {
+        _shelterB1TransferTunnelBindEffects();
+        task->state = GLOWS_DRAW;
     }
-    view = viewGetMappedIndex();
-    switch (view) {
+    // The mapped view selects which fixed world-space light glows are visible.
+    viewIndex = viewGetMappedIndex();
+    switch (viewIndex) {
         case 2: {
-            SVECTOR* p = D_shelter_b1_transfer_tunnel_801828E8;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
-            glowDrawRedDisc(&p[8], 0x200);
+            const SVECTOR* glowPoints = D_shelter_b1_transfer_tunnel_801828E8;
+            glowDrawDimGreyCapsule(&glowPoints[0], GLOWS_RADIUS_SCALE, 0);
+            glowDrawRedDisc(&glowPoints[8], GLOWS_RADIUS_SCALE);
         } break;
         case 3: {
-            SVECTOR* p = D_shelter_b1_transfer_tunnel_801828E8;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[4], 0x200, 0x800);
-            glowDrawRedDisc(&p[8], 0x200);
+            const SVECTOR* glowPoints = D_shelter_b1_transfer_tunnel_801828E8;
+            glowDrawDimGreyCapsule(&glowPoints[0], GLOWS_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[4], GLOWS_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawRedDisc(&glowPoints[8], GLOWS_RADIUS_SCALE);
         } break;
         case 4: {
-            SVECTOR* p = D_shelter_b1_transfer_tunnel_801828F8;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[4], 0x200, 0x800);
+            const SVECTOR* glowPoints = D_shelter_b1_transfer_tunnel_801828F8;
+            glowDrawDimGreyCapsule(&glowPoints[0], GLOWS_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[4], GLOWS_RADIUS_SCALE, GLOW_HALF_TURN);
         } break;
     }
 }
@@ -389,21 +408,21 @@ void func_shelter_b1_transfer_tunnel_8017D6D0(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b1_transfer_tunnel_8017E308(Task* task)
+void shelterB1TransferTunnelRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b1_transfer_tunnel_8017F050(Task* arg0)
+void shelterB1TransferTunnelRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b1_transfer_tunnel_8017F3E8(Task* arg0)
+void shelterB1TransferTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -416,14 +435,14 @@ void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_transfer_tunnel_8018092C(Task* arg0)
+void shelterB1TransferTunnelRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_transfer_tunnel_80181390(Task* task)
+void shelterB1TransferTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
