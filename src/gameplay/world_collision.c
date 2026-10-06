@@ -745,32 +745,26 @@ done:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionGridSphereScratch));
 }
 
-void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
+/// Tests the moving sphere of `arg0` against every face listed for its grid
+/// cell and records or deepens a contact for each face it touches; stops when
+/// the contact slots run out.
+static inline void _worldCollisionCollideMovingSphereCell(WorldCollisionBody* arg0, _WorldCollisionGridSphereScratch* scratch,
+                                                          WorldCollisionMotionContext* motionContext)
 {
-    u8*                               head;
-    _WorldCollisionGridSphereScratch* scratch;
-    WorldCollisionGridFace*           face;
-    WorldCollisionContact*            slot;
-    WorldCollisionMotionContext*      motionContext;
-    s16*                              cell;
-    s32                               id;
-    s32                               i;
-    s32                               n;
-    s32                               outside;
-    s32                               val;
-    s32                               faceDot;
-    s32                               edgeDot;
-    u16                               dist;
-    s32                               extra;
-    s32                               faceKind;
-    u16                               flags;
-
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
-    scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
-    motionContext              = arg0->context.motion;
-    worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
-    Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
+    WorldCollisionGridFace* face;
+    WorldCollisionContact*  slot;
+    s16*                    cell;
+    s32                     id;
+    s32                     i;
+    s32                     n;
+    s32                     outside;
+    s32                     val;
+    s32                     faceDot;
+    s32                     edgeDot;
+    u16                     dist;
+    s32                     extra;
+    s32                     faceKind;
+    u16                     flags;
 
     if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
         cell = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
@@ -778,7 +772,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
             for (;;) {
                 id = *cell;
                 if (id == WORLD_COLLISION_GRID_CELL_END) {
-                    goto done;
+                    return;
                 }
                 face = &Gp_GridParams->faces[id];
                 if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
@@ -817,16 +811,11 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                          scratch->geometry.faceNormal.vz * scratch->centre.vz) >>
                         12) -
                        faceDot;
-                if (arg0->radius >= ABS((s16)dist)) {
-                    goto edges;
+                if (arg0->radius < ABS((s16)dist)) {
+                    cell++;
+                    continue;
                 }
-                goto next_face;
 
-            mark_outside:
-                outside = 1;
-                goto edges_done;
-
-            edges:
                 n = (face->vertexIndices[3] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 4 : 3;
                 for (i = 1; i < n; i++) {
                     gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
@@ -863,59 +852,69 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
                                 edgeDot);
                     if (val - arg0->radius > 0) {
                         outside = 1;
-                        goto edges_done;
+                        break;
                     }
                     if (val > 0) {
                         if ((s16)dist < 0) {
-                            goto mark_outside;
+                            outside = 1;
+                            break;
                         }
                         extra = WORLD_COLLISION_CONTACT_GRID_EDGE;
                     }
                 }
-            edges_done:
-                if (outside) {
-                    cell++;
-                    continue;
-                }
-
-                slot = arg0->context.motion->contacts;
-                for (;;) {
-                    flags = slot->flags;
-                    if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                        if ((slot->key.value & -0x100) == (extra | WORLD_COLLISION_CONTACT_GRID)) {
-                            if (slot->response.direction.vx == Gp_GridParams->normals[face->normalIndex].vx &&
-                                slot->response.direction.vy == Gp_GridParams->normals[face->normalIndex].vy &&
-                                slot->response.direction.vz == Gp_GridParams->normals[face->normalIndex].vz) {
-                                if (slot->distance < (s32)arg0->radius - (s16)dist) {
-                                    slot->distance = arg0->radius - dist;
+                if (!outside) {
+                    slot = arg0->context.motion->contacts;
+                    for (;;) {
+                        flags = slot->flags;
+                        if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                            if ((slot->key.value & -0x100) == (extra | WORLD_COLLISION_CONTACT_GRID)) {
+                                if (slot->response.direction.vx == Gp_GridParams->normals[face->normalIndex].vx &&
+                                    slot->response.direction.vy == Gp_GridParams->normals[face->normalIndex].vy &&
+                                    slot->response.direction.vz == Gp_GridParams->normals[face->normalIndex].vz) {
+                                    if (slot->distance < (s32)arg0->radius - (s16)dist) {
+                                        slot->distance = arg0->radius - dist;
+                                    }
+                                    break;
                                 }
-                                goto next_face;
                             }
+                        } else {
+                            slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                            slot->distance           = arg0->radius - dist;
+                            faceKind                 = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                            slot->key.value          = extra | faceKind;
+                            slot->point.vx           = 0;
+                            slot->point.vy           = 0;
+                            slot->point.vz           = 0;
+                            slot->response.direction = Gp_GridParams->normals[face->normalIndex];
+                            break;
                         }
-                    } else {
-                        slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                        slot->distance           = arg0->radius - dist;
-                        faceKind                 = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                        slot->key.value          = extra | faceKind;
-                        slot->point.vx           = 0;
-                        slot->point.vy           = 0;
-                        slot->point.vz           = 0;
-                        slot->response.direction = Gp_GridParams->normals[face->normalIndex];
-                        goto next_face;
+                        if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
+                            return;
+                        }
+                        slot++;
                     }
-                    if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
-                        goto done;
-                    }
-                    slot++;
                 }
-
-            next_face:
                 cell++;
             }
         }
     }
+}
 
-done:
+void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
+{
+    u8*                               head;
+    _WorldCollisionGridSphereScratch* scratch;
+    WorldCollisionMotionContext*      motionContext;
+
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
+    scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
+    motionContext              = arg0->context.motion;
+    worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
+    Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
+
+    _worldCollisionCollideMovingSphereCell(arg0, scratch, motionContext);
+
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionGridSphereScratch));
 }
 
