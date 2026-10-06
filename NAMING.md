@@ -638,6 +638,14 @@ task, `scriptedWalkUpdate` and `scriptedWalkTo`, declare it as
 `SCRIPTED_WALK_WORK_T`, which each carrier binds to the type its walker
 allocates.
 
+`pacedWalk` owns the included twenty-part cutscene NPC walk whose work block
+is kept at `Task::work`, and the animation-slot tick, reset, blend and placement
+fragments other walkers reuse. Its implementation interface is
+`src/shared/paced_walk.h`. `PACED_WALK_WORK_T` selects the walker's allocated
+work type; `PACED_WALK_TICK_ANIM` binds the tick definition and its update
+callers to the same function instance when a package carries several walkers.
+Private instances keep the `pacedWalk` prefix and the `_` marker.
+
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by
 `actor_161500` and by the second walker of `actor_460200`. Its implementation

@@ -147115,9 +147115,10 @@ collides at link time.
 copy's own, only for the names that fragment uses:
 
 ```c
-#define pacedWalkTickAnim func_actor_460200_80133B3C
+#undef PACED_WALK_TICK_ANIM
+#define PACED_WALK_TICK_ANIM _pacedWalkTickSoldierCAnim
 #include "../../shared/paced_walk_tick_anim.inc.c"
-#undef pacedWalkTickAnim
+#undef PACED_WALK_TICK_ANIM
 ```
 
 An update body that calls the helpers gets the helpers' names defined too, so

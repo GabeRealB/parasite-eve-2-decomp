@@ -397,3 +397,5 @@ strideWalkSetVisibility = 0x80133474; // type:func
 strideWalkTo = 0x80133580; // type:func
 strideWalkSubModelTask = 0x8013364C; // type:func
 strideWalkExit = 0x8013322C; // type:func
+_pacedWalkTickSoldierBAnim = 0x801332E0; // type:func
+_pacedWalkTickSoldierCAnim = 0x80133B3C; // type:func

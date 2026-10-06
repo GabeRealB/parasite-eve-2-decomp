@@ -24,7 +24,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "actors/actor.h"
 
@@ -69,8 +69,21 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #define PACED_WALK_WORK_T PacedWalkWork
 #endif
 
+#ifndef PACED_WALK_TICK_ANIM
+/// Function identifier for this walker's animation-slot tick.
+///
+/// The default is `pacedWalkTickAnim`. Bind to a function with signature
+/// `void (Task* task)` before this header or around a further fragment copy.
+/// Bind the update fragment and tick definition to the same identifier;
+/// `PACED_WALK_WORK_T` selects the allocated work type for the tick definition.
+/// The binding is an object-like alias: it evaluates no arguments, and a
+/// preceding static prototype gives a further copy internal C linkage.
+/// Undefine an existing binding before selecting another walker.
+#define PACED_WALK_TICK_ANIM pacedWalkTickAnim
+#endif
+
 void pacedWalkUpdate(Task* task);
-void pacedWalkTickAnim(Task* task);
+void PACED_WALK_TICK_ANIM(Task* task);
 void pacedWalkResetAnim(Task* task);
 void pacedWalkBlendAnim(Task* task);
 s32  pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);

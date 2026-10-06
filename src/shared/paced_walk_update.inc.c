@@ -34,7 +34,7 @@ void pacedWalkUpdate(Task* task)
                 work->st.animId   = 1;
             }
         }
-        pacedWalkTickAnim(task);
+        PACED_WALK_TICK_ANIM(task);
         return;
     }
 }
