@@ -149896,3 +149896,49 @@ attempts; left as it was.
 - A scoped `build-and-verify.sh --only` prints no per-image line on success.
   `sha256sum -c build/USA/out/checksum.scoped.sha` lists the images the last
   scoped build actually checked.
+
+### Goto removal, batch 21: a call site shared by two scans, constant locals behind a switch ladder (2026-10-06)
+
+- **Two scans that `goto` one shared call (`coord = hits[6].coord; goto hit;`
+  ... `coord = hits[7].coord; hit: effect(coord, id);`)** in
+  `gluttonHitGroups6To8` did not convert, and the reason is layout, not the
+  call. Each scan is an inlined `for` whose match arm leaves the loop, and
+  loop.c parks such an arm after the nearest barrier in front of it: the
+  image has all three arms behind the first group's `j hit`. Three forms were
+  built:
+  - the `||` of three `scan && landed` pairs the group 3-5 handler uses has
+    no jump there, so the arms land at the end of the function and the two
+    calls are not merged (2 insns longer);
+  - a `static inline` holding the pair (`if (scan(a)) coord = a; else if
+    (scan(b)) coord = b; else return 0; effect(coord, id); return key != 0;`)
+    gets the barrier, but the `return 0` is a store to the result and a jump
+    to the caller's test of it (`move v0,zero; j`), and with the groups as
+    pointer parameters both group addresses take registers;
+  - the same with `if (key != 0) return 1; return 0;` is folded back to
+    `sltu` and changes nothing.
+  A value-returning inline folds into its caller's branch only when every
+  path computes the value the same way (`_gluttonHitLanded`), or the miss
+  path skips the call altogether (`scan && landed`). What is left is the
+  `goto hit` and the `goto body` after it; the other eleven went.
+- **The same scan through one more inline level changes registers in the
+  second copy only.** With `id = _gluttonScanGroup(sc, &work->hits[7])`
+  (which calls `_gluttonFindHit`, stores the key and returns it) group 7's
+  scan put the record pointer in `$v1` and the point in `$a1` where the image
+  has `$a1` / `$a2`; group 6's scan, written the same way, matched. Calling
+  `_gluttonFindHit` directly and storing the key in the caller
+  (`id = _gluttonFindHit(...); sc->attackKey = id;`) matches both: the extra
+  copy of the result is one more pseudo competing in that block.
+- **`one = 1; if (state == one) goto case1; if (state >= 2) goto ge2; if
+  (state == 0) goto case0;`** (`ratIdle`, `ratStagger`; `ratHurt` used
+  `state` itself as the constant) is `switch (state) { case 0: case 1:
+  case 2: }`, and the constant local goes with the ladder: the switch's own
+  `li v1,1` compare operand is what cse reuses for the `= 1` stores, so they
+  are written as plain constants (`work->animId = RAT_ANIM_IDLE`).
+- `gluttonEscortState`: a hand-expanded wrap whose input is `ratan2(x, z) -
+  ratan2(-m[2][0], m[2][2])` is `actorYawTo(coord, x, z)` whole; the `angle`
+  local goes.
+- `func_actor_800300_801628D0`: `if (a < d) goto in_range; if (p == 2) goto
+  reset; in_range: if (d < b) break; if (p != 1) break; reset:` is one
+  condition, `(a >= d && p == 2) || (d >= b && p == 1)`. Its third jump goes
+  from the follow states back into state 0's `else` arm and then falls
+  through into the follow states again; that is a re-dispatch and was left.
