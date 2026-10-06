@@ -3621,35 +3621,34 @@ static void func_acropolis_plaza_8017DE24(s32 arg0)
                 s32 pair = q->sceneFrame - 1;
                 view     = tbl[pair] - q->movieFrameSubstep;
             }
-            break;
+            viewApplyCamera(view);
+            return;
         case 4:
             tbl = D_acropolis_plaza_8018A938;
-            goto common;
+            break;
         case 5:
             tbl = D_acropolis_plaza_8018CAFC;
-            goto common;
+            break;
         case 6:
             tbl = D_acropolis_plaza_8018F530;
-            goto common;
+            break;
         case 7:
             tbl = D_acropolis_plaza_8018F9B4;
-        default:
-        common:
-            if (q->movieReady == 0) {
-                s32 pair = q->sceneFrame - 1;
-                view     = tbl[pair];
-            } else {
-                if (q->reverseSceneFrames == 0) {
-                    idx = ((q->sceneFrame - 1) * 2) + q->movieFrameSubstep + 1;
-                } else {
-                    idx = ((q->sceneFrame - 1) * 2) - q->movieFrameSubstep - 1;
-                    if (idx < 0) {
-                        idx = 0;
-                    }
-                }
-                view = *tbl + idx;
-            }
             break;
+    }
+    if (q->movieReady == 0) {
+        s32 pair = q->sceneFrame - 1;
+        view     = tbl[pair];
+    } else {
+        if (q->reverseSceneFrames == 0) {
+            idx = ((q->sceneFrame - 1) * 2) + q->movieFrameSubstep + 1;
+        } else {
+            idx = ((q->sceneFrame - 1) * 2) - q->movieFrameSubstep - 1;
+            if (idx < 0) {
+                idx = 0;
+            }
+        }
+        view = *tbl + idx;
     }
     viewApplyCamera(view);
 }
