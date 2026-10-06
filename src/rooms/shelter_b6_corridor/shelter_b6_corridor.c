@@ -734,10 +734,10 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            return;
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(mem, task);
         }
-        goto release;
+        return;
     }
     mem->age++;
     if (task->state == 0) {
@@ -748,7 +748,8 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
         task->spawnArg1.value = D_shelter_b6_corridor_801851B8;
     }
     if (task->spawnArg1.value != D_shelter_b6_corridor_801851B8) {
-        goto release;
+        effectKillTask(mem, task);
+        return;
     }
     rgb[0]      = mem->scale;
     rgb[1]      = mem->scale;
@@ -761,7 +762,6 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
     }
     mem->scale -= 0x18;
     if (mem->scale < 0x18) {
-    release:
         effectKillTask(mem, task);
     }
 }
