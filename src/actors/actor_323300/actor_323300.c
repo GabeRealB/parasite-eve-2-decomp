@@ -894,7 +894,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
 /// Per-frame runner of the Lesser Stranger, which carries its transformation
 /// one step on: it ticks the 18 slots once a clip has been applied, turns
 /// `_Actor323300StrangerWork::transformCountdown` into the 0..0xFFF ramp
-/// `modelMorphBlend` deforms the model's vertices by, and stores that ramp in
+/// `_modelMorphBlend` deforms the model's vertices by, and stores that ramp in
 /// `TmdObject::shading.colorBlend`, the colour weight with 12 fractional bits
 /// used by the shading handlers. Once the countdown is below
 /// `ACTOR_323300_TRANSFORM_TURN` the turn angle handed to
@@ -936,7 +936,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
         blend = 0;
     }
 
-    modelMorphBlend(arg0, &D_dryfield_toilet_801865D0, blend);
+    _modelMorphBlend(arg0, &D_dryfield_toilet_801865D0, blend);
     extra->shading.colorBlend = blend;
 
     if (work->transformCountdown < ACTOR_323300_TRANSFORM_TURN) {

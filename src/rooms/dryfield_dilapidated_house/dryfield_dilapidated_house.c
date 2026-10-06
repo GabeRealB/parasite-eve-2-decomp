@@ -3649,8 +3649,8 @@ static void _dryfieldDilapidatedHouseMorphExit(Task* task)
 }
 
 /// Steps the task's 0..0x1000 ramp by 0x44, saturating at 0x1000, and feeds the
-/// distance still to run (`0x1000 - ramp`) to the room record's matrix/vertex
-/// interpolator. Returns the ramp value, which the caller stores into each level
+/// distance still to run (`0x1000 - ramp`) to the room's vertex morph.
+/// Returns the ramp value, which the caller stores into each level
 /// of its `_DryfieldDilapidatedHouseMorphWork`.
 static s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
 {
@@ -3661,7 +3661,7 @@ static s32 func_dryfield_dilapidated_house_80180FD8(Task* task)
         ramp = 0x1000;
     }
     task->killCountdown = ramp;
-    modelMorphBlend(task, &D_dryfield_dilapidated_house_8018669C, 0x1000 - ramp);
+    _modelMorphBlend(task, &D_dryfield_dilapidated_house_8018669C, 0x1000 - ramp);
     return ramp;
 }
 

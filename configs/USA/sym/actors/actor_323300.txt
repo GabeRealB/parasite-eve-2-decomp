@@ -59,4 +59,4 @@ D_dryfield_toilet_801865D0 = 0x801865D0; // absolute:True owner=dryfield_toilet
 actorMotionPlayAnim19 = 0x801628B8; // type:func
 actorMsgPlaceEuler = 0x801629F0; // type:func
 _actorMsgPlaceEuler = 0x8016369C; // type:func
-modelMorphBlend = 0x80162A6C; // type:func
+_modelMorphBlend = 0x80162A6C; // type:func

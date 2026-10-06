@@ -1,74 +1,83 @@
 /* Part of the model morph library; see model_morph.h. */
 
-/// Morphs the task's model by `ramp` (0..0x1000): restores the snapshot's
-/// `deltaCount` vertices from `firstVertex` into the model, adds each one's
-/// `vertexDeltas` entry scaled by the ramp with `gteMIMefunc`, and, when the
-/// morph has `targetNormals`, interpolates each normal from its saved value
-/// toward them.
-static void modelMorphBlend(Task* task, ModelMorph* morph, s32 ramp)
+/// Applies a vertex morph and an optional normal blend to the task's TMD model.
+///
+/// `ramp` is an unclamped Q12 weight in 0..`ONE`: zero restores the saved
+/// position, and `ONE` adds the full vertex delta and selects the target normal.
+/// Only XYZ components change; the fourth halfword of each vector stays intact.
+/// Normals use the GTE's weighted blend without renormalization.
+///
+/// The rest snapshot must be initialized from this model. `deltaCount` must be
+/// positive, `firstVertex` nonnegative, and their sum must not exceed
+/// `savedVertexCount` or the model's vertex extent. `vertexDeltas` supplies
+/// `deltaCount` entries. When `targetNormals` is present, `normalCount` must be
+/// nonnegative and the model, saved and target normal arrays must each provide
+/// that many entries, starting at zero regardless of
+/// `firstVertex`. All storage is borrowed and must stay live during the call;
+/// input arrays must be separate from the model arrays modified in place.
+static void _modelMorphBlend(Task* task, const ModelMorph* morph, s32 ramp)
 {
-    s32        i;
-    s32        count;
-    s32        first;
-    TmdSource* src;
-    u16*       dst;
-    u16*       from;
-    u16*       dstMid;
-    u16*       fromMid;
-    SVECTOR*   nrm;
-    SVECTOR*   nrmA;
-    SVECTOR*   nrmB;
-    SVECTOR*   nrmDst;
-    s32        blend;
-    s32        inv;
-    u16        vx;
-    u16        vz;
+    s32            elementIndex;
+    s32            elementCount;
+    s32            firstVertex;
+    TmdSource*     modelSource;
+    SVECTOR*       vertices;
+    const SVECTOR* savedVertices;
+    s16*           vertexZ;
+    const s16*     savedVertexZ;
+    SVECTOR*       normals;
+    const SVECTOR* targetNormals;
+    const SVECTOR* savedNormals;
+    SVECTOR*       normal;
+    s32            targetWeight;
+    s32            savedWeight;
 
-    i     = 0;
-    count = morph->deltaCount;
-    src   = task->extra.tmd->source;
-    first = morph->firstVertex;
-    from  = (u16*)&morph->savedVertices[first];
-    nrm   = src->normals;
-    dst   = (u16*)&src->verts[first];
-    if (count > 0) {
-        fromMid = from + 2;
-        dstMid  = dst + 2;
+    // Restore the rest position so repeated calls do not accumulate displacement.
+    elementIndex  = 0;
+    elementCount  = morph->deltaCount;
+    modelSource   = task->extra.tmd->source;
+    firstVertex   = morph->firstVertex;
+    savedVertices = &morph->savedVertices[firstVertex];
+    normals       = modelSource->normals;
+    vertices      = &modelSource->verts[firstVertex];
+    if (elementCount > 0) {
+        // Y/Z cursors stride over whole vectors, leaving each fourth halfword intact.
+        savedVertexZ = &savedVertices->vz;
+        vertexZ      = &vertices->vz;
         do {
-            vx         = *from;
-            from      += 4;
-            i         += 1;
-            *dst       = vx;
-            dst       += 4;
-            dstMid[-1] = fromMid[-1];
-            vz         = fromMid[0];
-            fromMid   += 4;
-            dstMid[0]  = vz;
-            dstMid    += 4;
-        } while (i < count);
+            vertices->vx = savedVertices->vx;
+            savedVertices++;
+            elementIndex++;
+            vertices++;
+            vertexZ[-1]   = savedVertexZ[-1];
+            vertexZ[0]    = savedVertexZ[0];
+            savedVertexZ += sizeof(SVECTOR) / sizeof(*savedVertexZ);
+            vertexZ      += sizeof(SVECTOR) / sizeof(*vertexZ);
+        } while (elementIndex < elementCount);
     }
-    blend = ramp;
-    inv   = 0x1000 - blend;
-    gteMIMefunc(src->verts + morph->firstVertex, morph->vertexDeltas, morph->deltaCount, blend);
-    nrmA = morph->targetNormals;
-    if (nrmA != NULL) {
-        count = morph->normalCount;
-        nrmB  = morph->savedNormals;
-        i     = 0;
-        if (count > 0) {
+    // Apply displacement to the restored vertices; normals blend independently from index zero.
+    targetWeight = ramp;
+    savedWeight  = ONE - targetWeight;
+    gteMIMefunc(modelSource->verts + morph->firstVertex, morph->vertexDeltas, morph->deltaCount, targetWeight);
+    targetNormals = morph->targetNormals;
+    if (targetNormals != NULL) {
+        elementCount = morph->normalCount;
+        savedNormals = morph->savedNormals;
+        elementIndex = 0;
+        if (elementCount > 0) {
             do {
-                gte_lddp(blend);
-                gte_ldsv(nrmA);
+                gte_lddp(targetWeight);
+                gte_ldsv(targetNormals);
                 gte_gpf12();
-                nrmDst = nrm + i;
-                gte_lddp(inv);
-                gte_ldsv(nrmB);
+                normal = normals + elementIndex;
+                gte_lddp(savedWeight);
+                gte_ldsv(savedNormals);
                 gte_gpl12();
-                nrmB++;
-                i++;
-                nrmA++;
-                gte_stsv(nrmDst);
-            } while (i < count);
+                savedNormals++;
+                elementIndex++;
+                targetNormals++;
+                gte_stsv(normal);
+            } while (elementIndex < elementCount);
         }
     }
 }
