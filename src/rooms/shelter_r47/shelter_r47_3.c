@@ -2150,11 +2150,23 @@ static void func_shelter_r47_8018580C(Task* task)
 #include "../../shared/action_prompt_reset.inc.c"
 #undef actionPromptReset
 
-/// Draws the disc pair shared by three room views, borrowing the two world points.
-static inline void _shelterR47DrawViewGlowPair(const SVECTOR* worldPoints)
+/// Queues the additive, flickering cool-grey disc pair used by this room's view glows.
+///
+/// Borrows two adjacent world-space centres for the call: element 0 uses the
+/// large radius scale, then element 1 uses the medium scale. Requires composed
+/// view matrices, an initialized scratch stack and a current ordering table and
+/// packet arena with space for eight Gouraud quads plus blend commands. A centre
+/// whose projection passes the GTE flag check must have nonzero camera Z / 4,
+/// as required by `glowDrawDisc`.
+static inline void _shelterR47DrawViewGlowPair(const SVECTOR discCenters[2])
 {
-    glowDrawDisc(&worldPoints[0], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_COOL_GREY);
-    glowDrawDisc(&worldPoints[1], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_MEDIUM, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+    enum {
+        SHELTER_R47_GLOW_PAIR_LARGE_CENTER  = 0,
+        SHELTER_R47_GLOW_PAIR_MEDIUM_CENTER = 1,
+    };
+
+    glowDrawDisc(&discCenters[SHELTER_R47_GLOW_PAIR_LARGE_CENTER], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+    glowDrawDisc(&discCenters[SHELTER_R47_GLOW_PAIR_MEDIUM_CENTER], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_MEDIUM, SHELTER_R47_GLOW_COLOR_COOL_GREY);
 }
 
 void shelterR47DrawViewGlowsTask(Task* unusedTask)
