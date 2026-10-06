@@ -95,14 +95,26 @@ SVECTOR D_shelter_b1_sleeping_quarters_8018060C[8] = {
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
-/// Draws two adjacent beams with the same scale, screen angle and colour.
+/// Draws two flickering additive beams with a shared radius scale, screen angle and tint.
 ///
-/// Borrows four world points as two consecutive endpoint pairs. The arguments
-/// use the fixed-angle beam drawer's radius, 4096-unit turn and colour-factor units.
-static inline void _shelterB1SleepingQuartersDrawBeamPair(const SVECTOR lightPoints[4], s32 radiusScale, s32 startAngle, s32 packedColor)
+/// `beamEndpoints` supplies four word-aligned world-space points, borrowed for
+/// the call: points 0..1 form the first beam and points 2..3 form the second.
+/// Each beam is skipped if its second end's depth is below 17; its first end's
+/// depth is clamped to 16. Depth is camera Z / 4, and each end's pixel radius
+/// is `radiusScale * 64 / depth`. `screenAngle` sets the cap and side orientation
+/// in screen space, in 4096 units per turn with zero pointing down.
+/// `colorFactors` packs a signed red multiplier in bits 8..15 and one-bit green
+/// and blue multipliers in bits 4 and 0; the other bits are ignored. These
+/// multiply an intensity of 32 or 40 on alternating frames; colour bytes wrap.
+///
+/// Requires the current view matrix, an initialized scratch stack with room for
+/// one `GlowPointPairScratch`, and a current ordering table and packet arena.
+/// Each accepted beam queues six Gouraud quads plus additive blend commands;
+/// queued packet storage must remain live until GPU completion.
+static inline void _shelterB1SleepingQuartersDrawBeamPair(const SVECTOR beamEndpoints[4], s16 radiusScale, s16 screenAngle, u16 colorFactors)
 {
-    _glowDrawBeam(&lightPoints[0], radiusScale, startAngle, packedColor);
-    _glowDrawBeam(&lightPoints[2], radiusScale, startAngle, packedColor);
+    _glowDrawBeam(&beamEndpoints[0], radiusScale, screenAngle, colorFactors);
+    _glowDrawBeam(&beamEndpoints[2], radiusScale, screenAngle, colorFactors);
 }
 
 void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
