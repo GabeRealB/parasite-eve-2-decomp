@@ -122250,13 +122250,13 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/func_dryfield_back_street_8017D5D0-vacuum`.
 
-## A small initialised local array whose target has `li` + `sh` stores wants the element stores, not an initializer (func_neo_ark_pyramid_8017D7F4, 2026-09-17)
+## A small initialised local array whose target has `li` + `sh` stores wants the element stores, not an initializer (_neoArkPyramidDrawRotationPuzzleQuad, 2026-09-17)
 
-`func_neo_ark_pyramid_8017D7F4` rotates a constant `±0x57` square of four
+`_neoArkPyramidDrawRotationPuzzleQuad` rotates a constant `±0x57` square of four
 corners through four `rcos`/`rsin` pairs. Written as an aggregate initializer,
 
 ```c
-s16 src[4][2] = { { -0x57, -0x57 }, { 0x57, -0x57 }, { -0x57, 0x57 }, { 0x57, 0x57 } };
+DVECTOR sourceCorners[4] = { { -0x57, -0x57 }, { 0x57, -0x57 }, { -0x57, 0x57 }, { 0x57, 0x57 } };
 ```
 
 the object comes out 9 instructions long: `lui`/`addiu` of a `.rodata`
@@ -122271,8 +122271,8 @@ registers is the *element-store* form, so the initializer has to be written out
 as the eight assignments:
 
 ```c
-src[0][0] = -0x57;
-src[0][1] = -0x57;
+sourceCorners[0].vx = -0x57;
+sourceCorners[0].vy = -0x57;
 ...
 ```
 

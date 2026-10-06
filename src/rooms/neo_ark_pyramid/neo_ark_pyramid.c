@@ -72,11 +72,14 @@ static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
     { func_neo_ark_pyramid_8017DB18, func_neo_ark_pyramid_8017DB5C, taskKill }
 };
 
-void func_neo_ark_pyramid_8017D600(Task*);
-s32  func_neo_ark_pyramid_8017D9F0(Task*, s32, s32, s32);
-s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, s32, s32);
-s32  func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+void       func_neo_ark_pyramid_8017D600(Task*);
+static s32 _neoArkPyramidRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkPyramidIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
+s32        func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+
+/// Room message carrying the integer item ID selected in the key-item menu.
+enum { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid     D_neo_ark_pyramid_801802C4[1];
 extern WorldCollisionOccluder D_neo_ark_pyramid_80181790[3];
@@ -86,9 +89,9 @@ extern WorldCoordRoomLights   D_neo_ark_pyramid_80181298[1];
 
 TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
-    { 5105, func_neo_ark_pyramid_8017D9F0 },
+    { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM, _neoArkPyramidRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pyramid_8017DA44 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_pyramid_8017DA3C },
+    { ROOM_MESSAGE_COMMAND, _neoArkPyramidIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -487,7 +490,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_pyramid_80181884[8] = {
 
 s32 D_neo_ark_pyramid_801818A4 = 0;
 
-static void func_neo_ark_pyramid_8017D7F4(s32 arg0);
+static void _neoArkPyramidDrawRotationPuzzleQuad(s32 angle);
 
 /// Event task that turns the room's rotating quad one step. It hides the HUD
 /// and runs capture command 1; unless that ends on event key 0xC it plays a
@@ -562,54 +565,75 @@ void func_neo_ark_pyramid_8017D600(Task* task)
     }
 }
 
-/// Queues the room's rotating quad: a 0xAE-pixel textured `POLY_FT4` centred
-/// on the screen origin, rotated by `arg0` (0x1000 a full turn).
-static void func_neo_ark_pyramid_8017D7F4(s32 arg0)
+/// Draws the rotation puzzle's 174-pixel square about the screen origin.
+///
+/// `angle` uses 4096 units per turn; sine and cosine have twelve fractional bits.
+/// Requires the puzzle's 8-bit texture at VRAM (896, 0), palette at (0, 255),
+/// ordering-table entry 12 and room for one `POLY_FT4` in the frame arena.
+/// Raw texture colour is used without shading or semitransparency.
+static void _neoArkPyramidDrawRotationPuzzleQuad(s32 angle)
 {
-    POLY_FT4* prim;
-    s16       src[4][2];
-    s16       dst[4][2];
-    s32       i;
+    enum { NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT        = 87,
+           NEO_ARK_PYRAMID_PUZZLE_TRIG_FRACTION_BITS = 12,
+           NEO_ARK_PYRAMID_PUZZLE_UV_MIN             = 1,
+           NEO_ARK_PYRAMID_PUZZLE_UV_MAX             = NEO_ARK_PYRAMID_PUZZLE_UV_MIN + 2 * NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT,
+           NEO_ARK_PYRAMID_PUZZLE_TEXTURE_8_BIT      = 1,
+           NEO_ARK_PYRAMID_PUZZLE_OT_INDEX           = 12 };
 
-    src[0][0] = -0x57;
-    src[0][1] = -0x57;
-    src[1][0] = 0x57;
-    src[1][1] = -0x57;
-    src[2][0] = -0x57;
-    src[2][1] = 0x57;
-    src[3][0] = 0x57;
-    src[3][1] = 0x57;
-    for (i = 0; i < 4; i++) {
-        dst[i][0] = (src[i][0] * rcos(arg0) - src[i][1] * rsin(arg0)) >> 12;
-        dst[i][1] = (src[i][0] * rsin(arg0) + src[i][1] * rcos(arg0)) >> 12;
+    POLY_FT4* quad;
+    DVECTOR   sourceCorners[4];
+    DVECTOR   rotatedCorners[4];
+    s32       cornerIndex;
+
+    // One loop statement capturing sourceCorners, rotatedCorners, angle and cornerIndex.
+    // Writes four rotated pixel pairs and leaves cornerIndex at the source array's end.
+#define NEO_ARK_PYRAMID_ROTATE_PUZZLE_CORNERS()                                                                                                                                    \
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(sourceCorners); cornerIndex++) {                                                                                                \
+        rotatedCorners[cornerIndex].vx = (sourceCorners[cornerIndex].vx * rcos(angle) - sourceCorners[cornerIndex].vy * rsin(angle)) >> NEO_ARK_PYRAMID_PUZZLE_TRIG_FRACTION_BITS; \
+        rotatedCorners[cornerIndex].vy = (sourceCorners[cornerIndex].vx * rsin(angle) + sourceCorners[cornerIndex].vy * rcos(angle)) >> NEO_ARK_PYRAMID_PUZZLE_TRIG_FRACTION_BITS; \
     }
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-    prim->x0    = dst[0][0];
-    prim->y0    = dst[0][1];
-    prim->x1    = dst[1][0];
-    prim->y1    = dst[1][1];
-    prim->x2    = dst[2][0];
-    prim->y2    = dst[2][1];
-    prim->x3    = dst[3][0];
-    prim->y3    = dst[3][1];
-    prim->u0    = 1;
-    prim->v0    = 1;
-    prim->u1    = 0xAF;
-    prim->v1    = 1;
-    prim->u2    = 1;
-    prim->v2    = 0xAF;
-    prim->u3    = 0xAF;
-    prim->v3    = 0xAF;
-    prim->clut  = 0x3FC0;
-    prim->tpage = 0x8E;
-    addPrim(gGpuCurrentOt + 0xC, prim);
+
+    // Rotate screen-space corners, narrowing the Q12 result to signed pixels.
+    sourceCorners[0].vx = -NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    sourceCorners[0].vy = -NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    sourceCorners[1].vx = NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    sourceCorners[1].vy = -NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    sourceCorners[2].vx = -NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    sourceCorners[2].vy = NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    sourceCorners[3].vx = NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    sourceCorners[3].vy = NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
+    NEO_ARK_PYRAMID_ROTATE_PUZZLE_CORNERS();
+#undef NEO_ARK_PYRAMID_ROTATE_PUZZLE_CORNERS
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    setShadeTex(quad, true);
+    quad->x0    = rotatedCorners[0].vx;
+    quad->y0    = rotatedCorners[0].vy;
+    quad->x1    = rotatedCorners[1].vx;
+    quad->y1    = rotatedCorners[1].vy;
+    quad->x2    = rotatedCorners[2].vx;
+    quad->y2    = rotatedCorners[2].vy;
+    quad->x3    = rotatedCorners[3].vx;
+    quad->y3    = rotatedCorners[3].vy;
+    quad->u0    = NEO_ARK_PYRAMID_PUZZLE_UV_MIN;
+    quad->v0    = NEO_ARK_PYRAMID_PUZZLE_UV_MIN;
+    quad->u1    = NEO_ARK_PYRAMID_PUZZLE_UV_MAX;
+    quad->v1    = NEO_ARK_PYRAMID_PUZZLE_UV_MIN;
+    quad->u2    = NEO_ARK_PYRAMID_PUZZLE_UV_MIN;
+    quad->v2    = NEO_ARK_PYRAMID_PUZZLE_UV_MAX;
+    quad->u3    = NEO_ARK_PYRAMID_PUZZLE_UV_MAX;
+    quad->v3    = NEO_ARK_PYRAMID_PUZZLE_UV_MAX;
+    quad->clut  = getClut(0, 255);
+    quad->tpage = getTPage(NEO_ARK_PYRAMID_PUZZLE_TEXTURE_8_BIT, GPU_BLEND_AVERAGE, 896, 0);
+    addPrim(gGpuCurrentOt + NEO_ARK_PYRAMID_PUZZLE_OT_INDEX, quad);
 }
 
-/// Handler for message 0x13F1 in the room's message table; does nothing.
-s32 func_neo_ark_pyramid_8017D9F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the pyramid, leaving the item and room unchanged.
+///
+/// Handles message 0x13F1 with an integer `itemId`; both payload words are ignored.
+/// Returns zero so the item menu displays its unavailable-use response.
+static s32 _neoArkPyramidRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
@@ -624,8 +648,10 @@ s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
     return 1;
 }
 
-/// Handler for message 0x13F0 in the room's message table; does nothing.
-s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores CAP room commands and returns zero without changing the pyramid.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`; the integer command and second word are ignored.
+static s32 _neoArkPyramidIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg)
 {
     return 0;
 }
@@ -672,7 +698,7 @@ static void func_neo_ark_pyramid_8017DB18(Task* task)
 static void func_neo_ark_pyramid_8017DB5C(Task* task)
 {
     if (gGameSession->location.loc.view == 8) {
-        func_neo_ark_pyramid_8017D7F4(D_neo_ark_pyramid_801818A4);
+        _neoArkPyramidDrawRotationPuzzleQuad(D_neo_ark_pyramid_801818A4);
     }
 }
 
@@ -686,16 +712,17 @@ void func_neo_ark_pyramid_8017DB98(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// One-shot task: on its first tick stores 0x601E2, 0x601FE and 0x6021A into
-/// three gameplay globals and enables `gRoomEffectState->roomEffectMode`.
-void func_neo_ark_pyramid_8017DBF0(Task* arg0)
+void neoArkPyramidConfigureEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { NEO_ARK_PYRAMID_EFFECTS_INITIALIZE,
+           NEO_ARK_PYRAMID_EFFECTS_CONFIGURED };
+
+    if (task->state == NEO_ARK_PYRAMID_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId               = EFFECT_NEO_ARK_PYRAMID_FLASH;
         gRoomEffectTwinTrailId           = EFFECT_NEO_ARK_PYRAMID_TWIN_TRAIL;
         gRoomEffectSparkBurstId          = EFFECT_NEO_ARK_PYRAMID_SPARK_BURST;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                      = 1;
+        task->state                      = NEO_ARK_PYRAMID_EFFECTS_CONFIGURED;
     }
 }
 
@@ -703,14 +730,14 @@ void func_neo_ark_pyramid_8017DBF0(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_pyramid_8017DC50(Task* arg0)
+void neoArkPyramidRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_pyramid_8017E6B4(Task* task)
+void neoArkPyramidRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

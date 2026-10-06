@@ -61,14 +61,17 @@ D_map_neo_ark_8017C720 = 0x8017C720; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C760 = 0x8017C760; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x8017FC18; // size:0x10 defined:True
 
-func_neo_ark_pyramid_8017DC50 = 0x8017DC50; // type:func
+neoArkPyramidRoomVisualEffectsFlashTask = 0x8017DC50; // type:func
 
-func_neo_ark_pyramid_8017E6B4 = 0x8017E6B4; // type:func
+neoArkPyramidRoomVisualEffectsTwinTrailTask = 0x8017E6B4; // type:func
 
 func_neo_ark_pyramid_8017EF9C = 0x8017EF9C; // type:func
 
-func_neo_ark_pyramid_8017DBF0 = 0x8017DBF0; // type:func
+neoArkPyramidConfigureEffectsTask = 0x8017DBF0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017DEF4; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017E320; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017EBA4; // type:func
 _roomVisualEffectsDrawBurstStar = 0x8017F224; // type:func
+_neoArkPyramidDrawRotationPuzzleQuad = 0x8017d7f4; // type:func
+_neoArkPyramidRejectKeyItemUse = 0x8017d9f0; // type:func
+_neoArkPyramidIgnoreRoomCommand = 0x8017da3c; // type:func
