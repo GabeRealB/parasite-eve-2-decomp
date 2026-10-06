@@ -9,12 +9,12 @@ void capDialogueLoopTask(Task* task)
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(task->spawnArg1.value);
-            goto advance;
+            task->state += 1;
+            break;
         case 1:
             if (Gp_CapBusy() != 0) {
                 break;
             }
-        advance:
             task->state += 1;
             break;
         case 2:
