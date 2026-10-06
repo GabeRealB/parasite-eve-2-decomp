@@ -2619,6 +2619,22 @@ static void func_acropolis_security_room_8017EA5C(Task* task)
     task->state = 4;
 }
 
+/// Records which of the five screen detents `screenLevel` is in
+/// `GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA`; a level that is none of them
+/// records the first.
+static inline void _acropolisSecurityRoomSaveScreenLevel(s32 screenLevel)
+{
+    s32 index;
+
+    for (index = 0; index < 5; index++) {
+        if (screenLevel == D_acropolis_security_room_801826B4[index]) {
+            gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, index);
+            return;
+        }
+    }
+    gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, 0);
+}
+
 /// Leaves the security monitor: records the current wash detent as
 /// `GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA` (its index among the first five
 /// table entries, or 0 when it is not one of them), restores the room's normal
@@ -2626,27 +2642,10 @@ static void func_acropolis_security_room_8017EA5C(Task* task)
 static void func_acropolis_security_room_8017EADC(Task* task)
 {
     _AcropolisSecurityRoomMonitorWork* work;
-    s16*                               level;
-    s32                                index;
-    s32                                screenLevel;
 
-    index       = 0;
-    level       = D_acropolis_security_room_801826B4;
-    work        = (_AcropolisSecurityRoomMonitorWork*)task->work;
-    D_80114D08  = 0xA;
-    screenLevel = (s16)work->screenLevel;
-loop:
-    if (screenLevel != *level) {
-        index += 1;
-        level += 1;
-        if (index >= 5) {
-            gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, 0);
-            goto done;
-        }
-        goto loop;
-    }
-    gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, index);
-done:
+    work       = (_AcropolisSecurityRoomMonitorWork*)task->work;
+    D_80114D08 = 0xA;
+    _acropolisSecurityRoomSaveScreenLevel((s16)work->screenLevel);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     displayReleaseMenuHold();
     gGameSession->cutsceneHold = 0;
