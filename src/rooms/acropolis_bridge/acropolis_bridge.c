@@ -3047,45 +3047,33 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            queue->movieFrame = 1;
+            slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            task->state = task->state + 1;
+            break;
         case 1:
-            goto L_case1;
+            if (queue->movieReady == 0) {
+                break;
+            }
+            taskReparent(task, Gp_SpawnScript18(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
+            task->state = task->state + 1;
+            break;
         case 2:
-            goto L_case2;
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                break;
+            }
+            task->state = task->state + 1;
+            break;
         case 3:
-            goto L_case3;
+            count               = task->killCountdown + 1;
+            task->killCountdown = count;
+            if (count >= 0x1F) {
+                Task_RequestKill(task, 0);
+                return;
+            }
+            break;
     }
-    goto tail;
-
-L_case0:
-    queue->movieFrame = 1;
-    slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case1:
-    if (queue->movieReady == 0) {
-        goto tail;
-    }
-    taskReparent(task, Gp_SpawnScript18(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
-    goto advance;
-
-L_case2:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        goto tail;
-    }
-advance:
-    task->state = task->state + 1;
-    goto tail;
-
-L_case3:
-    count               = task->killCountdown + 1;
-    task->killCountdown = count;
-    if (count >= 0x1F) {
-        Task_RequestKill(task, 0);
-        return;
-    }
-tail:
     D_acropolis_bridge_801917A4[0] = queue->movieFrame;
 }
 
