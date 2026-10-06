@@ -85,22 +85,23 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #endif
 
 #ifndef PACED_WALK_RESET_ANIM
-/// Function identifier shared by a walker's slot reset and update calls.
+/// Function identifier shared by a walker's private clip restart and update calls.
 ///
-/// Bind to a function with signature `void (Task* task)` before this header
-/// or around a further fragment copy; the default is `pacedWalkResetAnim`.
-/// Declare additional private copies `static` in the carrier's prologue.
-/// The update call and reset definition must select the same identifier;
-/// bind `PACED_WALK_WORK_T` to the allocated work type at the definition.
-/// Undefine the binding before selecting another walker, since the header
-/// guard selects the default only once. This object-like alias evaluates no
-/// arguments and captures no local identifiers.
-#define PACED_WALK_RESET_ANIM pacedWalkResetAnim
+/// The default is `_pacedWalkResetAnim`, with signature `void (Task* task)`.
+/// Bind before this header or around another reset fragment's inclusion.
+/// The header and fragment declare the selected instance `static`; declare
+/// further instances `static` in the carrier's prologue before their callers.
+/// Select the same identifier at the reset definition and its update calls,
+/// with `PACED_WALK_WORK_T` bound to that walker's allocated type at the
+/// definition. Undefine before rebinding: the header guard selects the default
+/// only on the first inclusion. This object-like alias evaluates no arguments,
+/// captures no local identifiers and requires no token pasting or stringification.
+#define PACED_WALK_RESET_ANIM _pacedWalkResetAnim
 #endif
 
 void        pacedWalkUpdate(Task* task);
 static void PACED_WALK_TICK_ANIM(Task* task);
-void        PACED_WALK_RESET_ANIM(Task* task);
+static void PACED_WALK_RESET_ANIM(Task* task);
 void        pacedWalkBlendAnim(Task* task);
 s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 

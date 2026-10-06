@@ -1,16 +1,18 @@
 /* Part of the paced walk library; see paced_walk.h. */
 
-/// Restarts the walker's slots 1 through 19 on the requested clip without blending.
+/// Restarts the requested clip on the walker's non-root model parts without blending.
 ///
-/// `task->work` must hold a live `PACED_WALK_WORK_T` whose rig context is
-/// bound to its twenty slots and the model's same-numbered coordinates.
-/// `st.animId` must select a loaded clip with tracks for those parts; bounds
-/// and borrowed-data lifetimes follow `animationResetSlot`. No bounds are
-/// checked here. Each reset installs normal rate (`ANIMATION_RATE_ONE`) and
-/// primes the track for the next tick; no pose is applied or captured here.
-/// Slot 0 is untouched. Records the clip in `st.appliedAnimId`; the caller
-/// advances `st.state` after the reset.
-void PACED_WALK_RESET_ANIM(Task* task)
+/// `task->work` holds a live `PACED_WALK_WORK_T`, with `rig.anim` bound to
+/// `rig.slots` and the model coordinates. `st.animId` selects a loaded clip
+/// with valid tracks for parts 1 through 19. The context's borrowed set table,
+/// clip data and coordinates must remain live while those slots play; bounds
+/// follow `animationResetSlot` and are not checked here.
+///
+/// Each slot is primed at its track start with normal rate (`ANIMATION_RATE_ONE`)
+/// and cleared boundary state. The next animation tick applies the pose.
+/// Slot 0 and `st.state` are unchanged; `st.appliedAnimId` records the clip
+/// installed on the other slots.
+static void PACED_WALK_RESET_ANIM(Task* task)
 {
     // Preliminary rate in sixteenths of a frame, overwritten by the slot reset.
     enum { PACED_WALK_RESET_PRESET_RATE = 1 };

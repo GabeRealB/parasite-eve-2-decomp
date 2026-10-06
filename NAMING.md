@@ -684,9 +684,10 @@ fragments other walkers reuse. Its implementation interface is
 `src/shared/paced_walk.h`. `PACED_WALK_WORK_T` selects the walker's allocated
 work type; `PACED_WALK_TICK_ANIM` binds the tick definition and its update
 callers to the same function instance when a package carries several walkers.
-`PACED_WALK_RESET_ANIM` likewise binds a walker's reset definition and update
-callers, defaulting to `pacedWalkResetAnim`; additional private copies are
-declared `static` in the carrier's prologue.
+`PACED_WALK_RESET_ANIM` likewise binds a walker's private clip-restart definition
+and update callers, defaulting to `_pacedWalkResetAnim`. Its header and fragment
+declare each instance `static`; further instances are declared `static` in the
+carrier's prologue before their callers.
 Private instances keep the `pacedWalk` prefix and the `_` marker.
 
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
