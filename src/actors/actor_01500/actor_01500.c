@@ -1783,8 +1783,12 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
         case SCENE_COMBAT_ACTORS_RUNNING:
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            sub = &coord[1];
-            goto update;
+            sub    = &coord[1];
+            pos.vx = sub->workm.t[0];
+            pos.vy = sub->workm.t[1];
+            pos.vz = sub->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -1854,9 +1858,8 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             }
             break;
     }
-    sub = arg1->extra.tmd->coords;
-    sub = &sub[1];
-update:
+    sub    = arg1->extra.tmd->coords;
+    sub    = &sub[1];
     pos.vx = sub->workm.t[0];
     pos.vy = sub->workm.t[1];
     pos.vz = sub->workm.t[2];
