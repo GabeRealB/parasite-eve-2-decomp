@@ -73,12 +73,13 @@ void shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 /// Requires a counted effect task with owned `EffectWork` in `spawnArg2.pointer`,
 /// a coordinate body, initial state zero, and zero work age and animation index.
 /// `spawnArg1.pointer` borrows a `GfxCoord` through the first running update;
-/// both world matrices must be composed then. That update narrows the initial
-/// displacement to signed 16-bit local components and fixes a parent-space
-/// step scaled by 204/4096. Later updates move by that step and draw on odd
-/// ages; the target is not sampled again. At age 20 the work is released and
-/// the task torn down. Room effect control 0 runs; other values below 4 pause
-/// without drawing, and values 4 or above cancel and release the effect.
+/// both cached matrices must be composed into the same view space then.
+/// That update narrows the initial displacement to signed 16-bit local
+/// components and fixes a parent-space step scaled by 204/4096. Later updates
+/// move by that step and draw on odd ages; the target is not sampled again.
+/// At age 20 the work is released and the task torn down. Room effect control
+/// 0 runs; other values below 4 pause without drawing, and values 4 or above
+/// cancel and release the effect.
 /// The sleeping-quarters overlay must remain loaded while the task is live.
 void shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask(Task* task);
 

@@ -85,7 +85,8 @@ void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0);
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
 /// `Gp_SpawnEff`. `spawnArg1.pointer` borrows a target `GfxCoord` whose cached
-/// transform, like the spark's, must be composed on the first active tick.
+/// transform, like the spark's, must be composed into the same view space
+/// on the first active tick.
 /// That tick fixes the step at 204/4096 of the initial displacement in parent
 /// axes, narrowing components to s16; the target is never sampled again.
 /// Later active ticks move by that step and draw on odd ages; age 20 releases

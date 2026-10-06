@@ -47,17 +47,18 @@ void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task);
 /// The work's parent coordinate must stay live; the endpoint offsets are local
 /// to it, while history snapshots retain world positions. `spawnArg1.value`
 /// is compared with the signed 16-bit active age after initialization; zero
-/// disables that lifetime check. Control values below three advance the trail;
-/// three or above leave it untouched until it resumes or is killed externally.
+/// disables that lifetime check. Control values below two advance the trail;
+/// two or above leave it untouched until it resumes or is killed externally.
 void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task);
 
 /// Runs an animated spark along a fixed step toward an initially sampled target.
 ///
 /// Bank-6 slot 0x21B owns the `EffectWork` in `spawnArg2`. Its coordinate body
-/// and the borrowed target `GfxCoord` in `spawnArg1.pointer` need composed
-/// matrices on the first active tick. It samples the displacement once, stores
-/// a 204/4096 step with signed-16-bit narrowing, and releases the effect at
-/// active age 20. Room effect control pauses at nonzero and cancels at four or above.
+/// and the borrowed target `GfxCoord` in `spawnArg1.pointer` need matrices
+/// composed into the same view space on the first active tick. It samples the
+/// displacement once, stores a 204/4096 step with signed-16-bit narrowing,
+/// and releases the effect at active age 20. Room effect control pauses at
+/// nonzero and cancels at four or above.
 void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task);
 
 void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0);
