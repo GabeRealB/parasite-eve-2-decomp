@@ -228,24 +228,31 @@ enum {
     ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT = 8,
 };
 
-/// Places a flame quad around its projected centre, narrowing edges to s16 pixels.
+/// Sets a flame billboard's square screen bounds around its projected centre.
+///
+/// Borrows a writable `flameQuad` and read-only `flameScratch` for this call.
+/// Initialize `screenPos` and a nonnegative `halfExtent` in pixels; their sums
+/// and differences must fit signed 32-bit arithmetic. Each edge narrows to a
+/// signed 16-bit coordinate before its paired stores. Vertex indices 0..3 are
+/// top-left, top-right, bottom-left and bottom-right. Writes only X/Y coordinates.
 static inline void _acropolisSanctuarySetFlameQuadBounds(POLY_FT4* flameQuad, const RoomGlowSpriteScratch* flameScratch)
 {
-    s16 screenX;
-    s16 screenY;
+    s16 left;
+    s16 right;
+    s16 top;
+    s16 bottom;
 
-    screenX       = flameScratch->screenPos.vx - flameScratch->halfExtent;
-    flameQuad->x2 = screenX;
-    flameQuad->x0 = screenX;
-    screenX       = flameScratch->screenPos.vx + flameScratch->halfExtent;
-    flameQuad->x3 = screenX;
-    flameQuad->x1 = screenX;
-    screenY       = flameScratch->screenPos.vy - flameScratch->halfExtent;
-    flameQuad->y1 = screenY;
-    flameQuad->y0 = screenY;
-    screenY       = flameScratch->screenPos.vy + flameScratch->halfExtent;
-    flameQuad->y3 = screenY;
-    flameQuad->y2 = screenY;
+    left          = flameScratch->screenPos.vx - flameScratch->halfExtent;
+    flameQuad->x0 = flameQuad->x2 = left;
+
+    right         = flameScratch->screenPos.vx + flameScratch->halfExtent;
+    flameQuad->x1 = flameQuad->x3 = right;
+
+    top           = flameScratch->screenPos.vy - flameScratch->halfExtent;
+    flameQuad->y0 = flameQuad->y1 = top;
+
+    bottom        = flameScratch->screenPos.vy + flameScratch->halfExtent;
+    flameQuad->y2 = flameQuad->y3 = bottom;
 }
 
 /// State handlers of the room task: set-up, the per-frame entry fixup and
