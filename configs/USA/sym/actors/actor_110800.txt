@@ -50,3 +50,4 @@ viewFigureReseedAnim = 0x801324AC; // type:func
 viewFigurePlayMessage = 0x80132524; // type:func
 _viewFigureExit = 0x8013232C; // type:func
 _viewFigureTickAnim = 0x801323DC; // type:func
+_actor110800AttachModelTask = 0x801322fc; // type:func

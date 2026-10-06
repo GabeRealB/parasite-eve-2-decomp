@@ -30,7 +30,7 @@ extern ViewFigureWork* gViewFigureWork;
 
 /// The actor's own task, stored by the step-0 handler. The message handlers
 /// drive the step dispatcher and the model through it, and
-/// `func_actor_110800_801322FC` parents a coordinate to one of its model's
+/// `_actor110800AttachModelTask` parents a coordinate to one of its model's
 /// nodes.
 extern Task* gActorSelfTask;
 
@@ -55,7 +55,7 @@ extern TaskMessageEntry gViewFigureMessages[];
 static TmdSource _gActor110800SwatMember2Body;
 static TmdSource _gActor110800Model060A0;
 void             func_actor_110800_801322A0(Task*);
-void             func_actor_110800_801322FC(Task*);
+static void      _actor110800AttachModelTask(Task* task);
 
 static TmdBone _gActor110800SwatMember2BodySkeleton[20] = {
 #include "assets/swat_member_2_body_skeleton.inc"
@@ -239,7 +239,7 @@ TaskMessageEntry gViewFigureMessages[3] = {
 
 TaskDesc gViewFigureTasks[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_110800_801322A0, { .model = &_gActor110800SwatMember2Body } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_110800_801322FC, { .model = &_gActor110800Model060A0 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor110800AttachModelTask, { .model = &_gActor110800Model060A0 } },
 };
 
 u8 gViewFigureAnimSets[28] = {
@@ -380,18 +380,28 @@ void func_actor_110800_801322A0(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Parents the given task's model root to node 8 of the actor's model, offset
-/// -50 on x.
-void func_actor_110800_801322FC(Task* arg0)
+/// Attaches the helper model's root to body part 8 with a -50-unit local x translation.
+///
+/// `task` must be the live slot-1 model task, and `gActorSelfTask` must own
+/// the live twenty-part body model. Each call replaces the root's local x
+/// translation in parent-coordinate units, preserving its rotation and y/z
+/// translation, and invalidates its composed transform. The parent coordinate
+/// is borrowed until helper teardown, which precedes body teardown.
+static void _actor110800AttachModelTask(Task* task)
 {
-    GfxCoord* parent;
-    GfxCoord* coord;
+    enum {
+        ACTOR_110800_HELPER_PARENT_PART = 8,
+        ACTOR_110800_HELPER_X_OFFSET    = -50
+    };
 
-    parent              = gActorSelfTask->extra.tmd->coords;
-    coord               = arg0->extra.tmd->coords;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[0]   = -50;
-    coord->parent       = parent + 8;
+    GfxCoord* bodyCoords;
+    GfxCoord* helperRoot;
+
+    bodyCoords               = gActorSelfTask->extra.tmd->coords;
+    helperRoot               = task->extra.tmd->coords;
+    helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    helperRoot->coord.t[0]   = ACTOR_110800_HELPER_X_OFFSET;
+    helperRoot->parent       = &bodyCoords[ACTOR_110800_HELPER_PARENT_PART];
 }
 
 #include "../../shared/view_figure_exit.inc.c"
