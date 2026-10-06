@@ -854,9 +854,9 @@ func_neo_ark_garden_8017EA9C = 0x8017EA9C; // type:func absolute:True owner=neo_
 
 func_neo_ark_garden_8017F790 = 0x8017F790; // type:func absolute:True owner=neo_ark_garden
 
-func_neo_ark_garden_8017FCE8 = 0x8017FCE8; // type:func absolute:True owner=neo_ark_garden shared=rooms
+neoArkGardenRoomVisualEffectsFlyingSparkTask = 0x8017FCE8; // type:func absolute:True owner=neo_ark_garden shared=rooms
 
-func_neo_ark_garden_80180948 = 0x80180948; // type:func absolute:True owner=neo_ark_garden
+neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask = 0x80180948; // type:func absolute:True owner=neo_ark_garden
 
 neoArkIslandWaterRippleTaskFixedCoord = 0x8017EB68; // type:func absolute:True owner=neo_ark_island
 

@@ -1101,7 +1101,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirRoomVisualEffectsFlyingSparkTask, { NULL } },          // 0x230
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_80180F34, { NULL } },                       // 0x231
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_8018219C, { NULL } },                              // 0x232
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017FCE8, { NULL } },                                // 0x233
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkGardenRoomVisualEffectsFlyingSparkTask, { NULL } },                // 0x233
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80183F18, { NULL } },                          // 0x234
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80184028, { NULL } },          // 0x235
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sleeping_quarters_8017F894, { NULL } },                  // 0x236
@@ -1112,7 +1112,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },    // 0x23B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_80181B94, { NULL } },                       // 0x23C
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80182DFC, { NULL } },                              // 0x23D
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_80180948, { NULL } },                                // 0x23E
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },          // 0x23E
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsHaloOrangeBurstTask, { NULL } },              // 0x23F
     { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask, { NULL } },       // 0x240
     { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsHaloTask, { NULL } },                  // 0x241

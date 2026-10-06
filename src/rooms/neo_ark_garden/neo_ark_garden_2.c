@@ -47,7 +47,7 @@
 
 extern SVECTOR D_neo_ark_garden_801813D8;
 
-static void func_neo_ark_garden_8017F42C(SVECTOR* arg0);
+static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre);
 
 extern WorldCollisionGrid    D_neo_ark_garden_801816C4[1];
 extern WorldCollisionTrigger D_neo_ark_garden_8018270C[6];
@@ -399,8 +399,8 @@ WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
 /// once through `sndEvtRequestScriptStart` and moves `state` to 2. Views 2 and 4
 /// additionally roll two 1-in-4 chances per tick, while no event is running,
 /// to spawn effect 0x60070 at the first two points of
-/// `D_neo_ark_garden_801813E0`; view 4 also updates the last two points, and
-/// view 3 draws the marker at `D_neo_ark_garden_801813D8`.
+/// `D_neo_ark_garden_801813E0`; view 4 also draws rotating squares at the last
+/// two points, and view 3 draws the marker at `D_neo_ark_garden_801813D8`.
 void func_neo_ark_garden_8017EA9C(Task* task)
 {
     EffectWork* work;
@@ -470,8 +470,8 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             } else {
                 work->scale--;
             }
-            func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[2]);
-            func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[3]);
+            _neoArkGardenDrawRotatingSquare(&D_neo_ark_garden_801813E0[2]);
+            _neoArkGardenDrawRotatingSquare(&D_neo_ark_garden_801813E0[3]);
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rnd;
@@ -524,33 +524,9 @@ void func_neo_ark_garden_8017EA9C(Task* task)
 
 #include "../../shared/glow_draw_pulsing_star.inc.c"
 
-/// Queues one textured quad (tpage 0xAC, clut 0x43C0, 64x64 texels). The
-/// unit corners are scaled by 250 in the y/z plane, rotated by the matrix
-/// `gfxRotMatrixX` builds from `gDisplayState.animFrame << 7`, moved to `arg0`, and
-/// projected through `gGfxViewCoord.workm`. Nothing is queued when the GTE flag
-/// word is negative.
-static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
+/// Projects four world corners through the current view, retaining the last FLAG word.
+static inline void _neoArkGardenProjectSquareCorners(EffectQuadScratch* quadScratch)
 {
-    MATRIX             m;
-    EffectQuadScratch* quadScratch;
-    s32                i;
-    POLY_FT4*          prim;
-
-    gfxRotMatrixX(&m, gDisplayState.animFrame << 7, GRAPHICS_ROTATION_REPLACE);
-    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        quadScratch->vertices[i].vx = 0;
-        quadScratch->vertices[i].vy = D_80111E38[i].axis0Sign * 250;
-        quadScratch->vertices[i].vz = D_80111E38[i].axis1Sign * 250;
-        gte_SetRotMatrix(&m);
-        gte_ldv0(&quadScratch->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[i]);
-        quadScratch->vertices[i].vx += arg0->vx;
-        quadScratch->vertices[i].vy += arg0->vy;
-        quadScratch->vertices[i].vz += arg0->vz;
-    }
-
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(&quadScratch->vertices[0]);
@@ -560,32 +536,68 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
     gte_rtpt();
     gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
     gte_stflg(&quadScratch->projectionFlags);
+}
+
+/// Draws a 500-world-unit textured square rotating about the world X axis.
+///
+/// `centre` supplies three signed 16-bit world coordinates, borrowed for this
+/// call. The square lies in the YZ plane and turns once per 32 animation frames.
+/// Rotated, translated corners narrow to signed 16-bit coordinates before
+/// projection. Only the final three-corner projection's negative FLAG rejects
+/// drawing; the last corner's SZ3 / 4 selects the ordering-table depth.
+/// The current view, texture and frame primitive arena must be ready. One
+/// opaque, unmodulated 64-by-64-texel quad is queued; scratch is released and
+/// no pointer to `centre` is retained.
+static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre)
+{
+    enum {
+        NEO_ARK_GARDEN_ROTATING_SQUARE_HALF_EXTENT       = 250,
+        NEO_ARK_GARDEN_ROTATING_SQUARE_FRAME_ANGLE_SHIFT = 7, // 128 of 4096 angle units per frame.
+        NEO_ARK_GARDEN_ROTATING_SQUARE_RAW_QUAD          = 0x2D,
+        NEO_ARK_GARDEN_ROTATING_SQUARE_TEXTURE_PAGE      = getTPage(1, GPU_BLEND_ADD, 768, 0),
+        NEO_ARK_GARDEN_ROTATING_SQUARE_PALETTE           = getClut(0, 271),
+        NEO_ARK_GARDEN_ROTATING_SQUARE_TEXTURE_SIZE      = 64
+    };
+
+    MATRIX             rotation;
+    EffectQuadScratch* quadScratch;
+    s32                cornerIndex;
+    POLY_FT4*          quad;
+
+    gfxRotMatrixX(&rotation, gDisplayState.animFrame << NEO_ARK_GARDEN_ROTATING_SQUARE_FRAME_ANGLE_SHIFT, GRAPHICS_ROTATION_REPLACE);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+
+    // Rotate the square in its world YZ plane, then place it at the centre.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = 0;
+        quadScratch->vertices[cornerIndex].vy = D_80111E38[cornerIndex].axis0Sign * NEO_ARK_GARDEN_ROTATING_SQUARE_HALF_EXTENT;
+        quadScratch->vertices[cornerIndex].vz = D_80111E38[cornerIndex].axis1Sign * NEO_ARK_GARDEN_ROTATING_SQUARE_HALF_EXTENT;
+        gte_SetRotMatrix(&rotation);
+        gte_ldv0(&quadScratch->vertices[cornerIndex]);
+        gte_rtv0();
+        gte_stsv(&quadScratch->vertices[cornerIndex]);
+        quadScratch->vertices[cornerIndex].vx += centre->vx;
+        quadScratch->vertices[cornerIndex].vy += centre->vy;
+        quadScratch->vertices[cornerIndex].vz += centre->vz;
+    }
+
+    _neoArkGardenProjectSquareCorners(quadScratch);
     if (quadScratch->projectionFlags >= 0) {
         gte_stszotz(&quadScratch->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2D);
-        prim->tpage = 0xAC;
-        prim->clut  = 0x43C0;
-        prim->u0    = 0;
-        prim->v0    = 0;
-        prim->u1    = 0x3F;
-        prim->v1    = 0;
-        prim->u2    = 0;
-        prim->v2    = 0x3F;
-        prim->u3    = 0x3F;
-        prim->v3    = 0x3F;
-        prim->x0    = quadScratch->screenCorners[0].vx;
-        prim->y0    = quadScratch->screenCorners[0].vy;
-        prim->x1    = quadScratch->screenCorners[1].vx;
-        prim->y1    = quadScratch->screenCorners[1].vy;
-        prim->x2    = quadScratch->screenCorners[2].vx;
-        prim->y2    = quadScratch->screenCorners[2].vy;
-        prim->x3    = quadScratch->screenCorners[3].vx;
-        prim->y3    = quadScratch->screenCorners[3].vy;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+        setcode(quad, NEO_ARK_GARDEN_ROTATING_SQUARE_RAW_QUAD);
+        quad->tpage = NEO_ARK_GARDEN_ROTATING_SQUARE_TEXTURE_PAGE;
+        quad->clut  = NEO_ARK_GARDEN_ROTATING_SQUARE_PALETTE;
+        setUVWH(quad, 0, 0, NEO_ARK_GARDEN_ROTATING_SQUARE_TEXTURE_SIZE - 1, NEO_ARK_GARDEN_ROTATING_SQUARE_TEXTURE_SIZE - 1);
+        setXY4(quad,
+               quadScratch->screenCorners[0].vx, quadScratch->screenCorners[0].vy,
+               quadScratch->screenCorners[1].vx, quadScratch->screenCorners[1].vy,
+               quadScratch->screenCorners[2].vx, quadScratch->screenCorners[2].vy,
+               quadScratch->screenCorners[3].vx, quadScratch->screenCorners[3].vy);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
@@ -599,16 +611,16 @@ void func_neo_ark_garden_8017F790(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_neo_ark_garden_8017FCE8(Task* task)
+void neoArkGardenRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_neo_ark_garden_80180948(Task* arg0)
+void neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

@@ -34,11 +34,29 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[];
 
 void func_neo_ark_garden_8017EA9C(Task* task);
 
-void func_neo_ark_garden_8017FCE8(Task* task);
+/// Runs the garden's animated spark along a fixed step toward its initial target.
+///
+/// Requires a counted effect task with a coordinate body, owned `EffectWork`
+/// in `spawnArg2.pointer`, state zero and age/frame index zero. `spawnArg1.pointer`
+/// borrows a target `GfxCoord` through the first running update, when both world
+/// matrices must be composed. That update fixes a parent-space step at 204/4096
+/// of the initial displacement, with intermediate signed 16-bit narrowing.
+/// Later running updates move by that step and draw on odd ages; at age 20 the
+/// work and task are released. Non-running room control pauses without drawing;
+/// cancellation releases the effect. The target is not sampled again.
+void neoArkGardenRoomVisualEffectsFlyingSparkTask(Task* task);
 
 void func_neo_ark_garden_8017F790(Task* arg0);
 
-void func_neo_ark_garden_80180948(Task* arg0);
+/// Runs the garden's orange burst with a growing disc, glow and fading ring.
+///
+/// Requires a counted effect task with a coordinate body, owned `EffectWork`
+/// in `spawnArg2.pointer` and initial state zero; `spawnArg1` is ignored. Running
+/// updates compose the coordinate and expand the glow, fading the ring before
+/// the central disc. The glow also refreshes an orange transient point light.
+/// Non-running room control pauses without drawing. Cancellation or completed
+/// fading releases the work and task; callers must not retain released pointers.
+void neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
 void func_neo_ark_garden_8017EA44(Task* task);
 

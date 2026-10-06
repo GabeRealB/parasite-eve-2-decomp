@@ -53,11 +53,11 @@ D_neo_ark_garden_801813B0 = 0x801813B0; // size:0x28 defined:True
 
 func_neo_ark_garden_8017EA9C = 0x8017EA9C; // type:func
 
-func_neo_ark_garden_8017FCE8 = 0x8017FCE8; // type:func
+neoArkGardenRoomVisualEffectsFlyingSparkTask = 0x8017FCE8; // type:func
 
 func_neo_ark_garden_8017F790 = 0x8017F790; // type:func
 
-func_neo_ark_garden_80180948 = 0x80180948; // type:func
+neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask = 0x80180948; // type:func
 _roomVisualEffectsDrawFlyingSpark = 0x8017FF0C; // type:func
 _roomVisualEffectsDrawFlyingRing = 0x80180190; // type:func
 _roomVisualEffectsDrawFlyingDisc = 0x801805B4; // type:func
@@ -66,3 +66,4 @@ _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80181020; // type:func
 waterDistortBandTask = 0x8017E2A0; // type:func
 waterRefractionTask = 0x8017D64C; // type:func
 glowDrawPulsingStar = 0x8017EFB8; // type:func
+_neoArkGardenDrawRotatingSquare = 0x8017f42c; // type:func
