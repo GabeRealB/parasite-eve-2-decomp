@@ -465,13 +465,27 @@ void func_shelter_1f_airlock_8017D678(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws two adjacent disc glows with the same scale and packed colour factors.
+/// Draws two independently projected additive disc glows with one scale and tint.
 ///
-/// Borrows both world points during drawing and queues their packets in order.
-static inline void _shelter1fAirlockDrawDiscPair(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor)
+/// Borrows the first two word-aligned, readable `SVECTOR`s in `worldPoints`.
+/// Each point is a world-space disc centre; its GTE camera Z / 4 is the depth.
+/// Depths below 17 skip that disc; projection flags are not tested. The signed
+/// low halfword of `radiusScale` gives its pixel radius as
+/// `radiusScale * 64 / depth`.
+///
+/// `packedRgbFactors` bits 8..15 hold a signed red factor, bits 4..5 the green
+/// factor and bits 0..1 the blue factor. Factors multiply 32 on even frames
+/// and 40 on odd frames; the resulting colour bytes wrap.
+///
+/// Requires composed view matrices, an initialized scratch stack with room for
+/// one `GlowCentreRadiusScratch`, a current depth ordering table and word-aligned
+/// packet space. Emits at most eight `POLY_G4` wedges and eight additive blend
+/// commands. Their frame-arena storage must remain live until GPU drawing
+/// completes; no point is retained.
+static inline void _shelter1fAirlockDrawDiscPair(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedRgbFactors)
 {
-    _glowDrawFactorDisc(&worldPoints[0], radiusScale, packedColor);
-    _glowDrawFactorDisc(&worldPoints[1], radiusScale, packedColor);
+    _glowDrawFactorDisc(&worldPoints[0], radiusScale, packedRgbFactors);
+    _glowDrawFactorDisc(&worldPoints[1], radiusScale, packedRgbFactors);
 }
 
 void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
