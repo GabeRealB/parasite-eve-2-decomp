@@ -859,19 +859,21 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
     }
 }
 
-/// Queues a fire-escape glow quad and prepends its additive draw-mode packet.
+/// Queues an initialized fire-escape glow quad with additive blending.
 ///
-/// `quad` borrows a writable initialized packet in the frame arena.
-/// `sortingDepth` borrows a signed camera-Z/4 word (at least GLOW_MIN_DEPTH),
-/// optionally already biased. The depth maps to a wrapped tag in 0..1023.
-/// Requires the current ordering table and arena space for one DR_TPAGE.
-/// Neither argument is retained; both packets stay live until GPU completion.
+/// `quad` is a word-aligned frame-arena packet; its DMA link and
+/// semitransparency bit are updated. `sortingDepth` points to a stable signed
+/// camera-Z/4 word, after any bias, already clipped to at least `GLOW_MIN_DEPTH`.
+/// Unsigned depth scaling by `gDisplayState.otDepthShift` (0..3) selects a
+/// wrapped tag in 0..1023. The current table must contain all 1024 depth tags,
+/// and the frame arena must have `sizeof(DR_TPAGE)` bytes available.
+/// The depth pointer is not retained. The quad and the added draw-mode packet
+/// must remain live until GPU completion; the draw mode persists until replaced.
 static inline void _acropolisFireEscapeQueueGlow(POLY_G4* quad, const s32* sortingDepth)
 {
-    enum { ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT = 2 };
+    enum { ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_INDEX_SHIFT = 4 };
 
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)*sortingDepth << gDisplayState.otDepthShift) >> ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(&gGpuCurrentOt[((u32)*sortingDepth << gDisplayState.otDepthShift) >> ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))],
             quad);
     // Prepending the draw mode after the quad makes the GPU apply it first.
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, *sortingDepth);
@@ -1015,8 +1017,6 @@ void acropolisFireEscapeFlareTask(Task* task)
         ACROPOLIS_FIRE_ESCAPE_FLARE_INNER_RADIUS_SHIFT   = 7,
         ACROPOLIS_FIRE_ESCAPE_FLARE_DIAMOND_RADIUS_SHIFT = 9,
         ACROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS          = 16,
-        ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_SHIFT    = 4,
-        ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TAG_MASK        = GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt),
     };
 
     RoomGlowRadiiScratch* projection;
@@ -1131,8 +1131,7 @@ void acropolisFireEscapeFlareTask(Task* task)
                 quad->x3            = projection->screenPos.vx + projection->outerRadius;
                 quad->y0 = quad->y2 = quad->y3 = projection->screenPos.vy;
                 quad->y1                       = (projection->screenPos.vy - projection->innerRadius) + projection->innerRadius * (partIndex + partIndex);
-                addPrim((&gGpuCurrentOt[((u32)projection->otz << gDisplayState.otDepthShift) >> ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_SHIFT & ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TAG_MASK]), quad);
-                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz);
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
             // Retained packet reuse: the lines are initialized but the last quad is linked again.
             if (task->spawnArg1.value & ACROPOLIS_FIRE_ESCAPE_FLARE_STREAK_PACKETS) {
