@@ -315,67 +315,56 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
 
     p     = &gCdCmdQueue;
     state = D_8006AC28;
-    if (state != 1) {
-        if (state < 2) {
-            if (state == 0) {
-                goto case0;
+    switch (state) {
+        case 0:
+            if (D_8006AC1E != 0) {
+                rect.x = 0x2C0;
+                rect.y = 0;
+                rect.w = 0xA0;
+                rect.h = 0x100;
+                MoveImage2(&rect, 0x140, 0);
+                rect.x = 0x360;
+                rect.y = 0;
+                rect.w = 0xA0;
+                rect.h = 0x100;
+                MoveImage2(&rect, 0x140, 0x100);
             }
-            goto ret_zero;
-        }
-        if (state == 2) {
-            goto ret_one;
-        }
-        goto ret_zero;
-    case0:
-        if (D_8006AC1E != 0) {
-            rect.x = 0x2C0;
-            rect.y = 0;
-            rect.w = 0xA0;
-            rect.h = 0x100;
-            MoveImage2(&rect, 0x140, 0);
-            rect.x = 0x360;
-            rect.y = 0;
-            rect.w = 0xA0;
-            rect.h = 0x100;
-            MoveImage2(&rect, 0x140, 0x100);
-        }
-        memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-        if ((arg0 & 0xFFFF) == 1) {
-            memSelectAuxHeapRegion(true);
-        }
-        tmdResetAuxHeapAndRestoreBuffers();
-        if (gDisplayState.videoMode == DISPLAY_VIDEO_STREAMING) {
-            cdCmdPrepareViewMovie();
-            CdCmd_SelectMdecBuffer();
-        }
-        D_8006AC28 = D_8006AC28 + 1;
-        if (arg1 & 0xFFFF) {
-            g         = gGameSession;
-            f7        = g->location.loc.stage;
-            param1[3] = f7;
-            f6        = g->location.loc.area;
-            param1[0] = 0;
-            param1[2] = f6;
-            f74       = g->spriteVariant;
-            param2[1] = 5;
-            param2[2] = 0;
-            param2[3] = 0;
-            param2[0] = f74;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-            goto ret_zero;
-        }
-        goto ret_one;
+            memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+            if ((arg0 & 0xFFFF) == 1) {
+                memSelectAuxHeapRegion(true);
+            }
+            tmdResetAuxHeapAndRestoreBuffers();
+            if (gDisplayState.videoMode == DISPLAY_VIDEO_STREAMING) {
+                cdCmdPrepareViewMovie();
+                CdCmd_SelectMdecBuffer();
+            }
+            D_8006AC28 = D_8006AC28 + 1;
+            if (arg1 & 0xFFFF) {
+                g         = gGameSession;
+                f7        = g->location.loc.stage;
+                param1[3] = f7;
+                f6        = g->location.loc.area;
+                param1[0] = 0;
+                param1[2] = f6;
+                f74       = g->spriteVariant;
+                param2[1] = 5;
+                param2[2] = 0;
+                param2[3] = 0;
+                param2[0] = f74;
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                break;
+            }
+            return 1;
+        case 1:
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                p->blockGamePause = 0;
+                D_8006AC28        = D_8006AC28 + 1;
+                return 1;
+            }
+            break;
+        case 2:
+            return 1;
     }
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        p->blockGamePause = 0;
-        D_8006AC28        = D_8006AC28 + 1;
-        return 1;
-    }
-    goto ret_zero;
-
-ret_one:
-    return 1;
-ret_zero:
     return 0;
 }
 
