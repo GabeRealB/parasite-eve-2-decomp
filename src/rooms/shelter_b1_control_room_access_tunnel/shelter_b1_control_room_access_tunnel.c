@@ -145,7 +145,13 @@ void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task)
 
 #include "../../shared/glow_draw_red_disc.inc.c"
 
-/// Selects this room's exported tasks for effects spawned by its actors.
+/// Binds the six actor-effect selectors to this room's effect-task instances.
+///
+/// Installs packed bank/type IDs for the flash, twin trail, spark burst, glow
+/// disc, flying spark and orange burst. Call after room-effect controller
+/// initialization and before spawning these effects. The selectors retain
+/// these IDs until reset or rebound; this room overlay must remain loaded
+/// while any selected task runs.
 static inline void _shelterB1ControlRoomAccessTunnelBindEffects(void)
 {
     gRoomEffectFlashId        = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLASH;
