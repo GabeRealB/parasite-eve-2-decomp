@@ -2031,7 +2031,6 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
     GfxCoord*        c;
     VECTOR           vec;
     s32              state;
-    s16              st;
     s16              phase;
     s16              anim;
     s32              snd;
@@ -2041,123 +2040,96 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     state = gSceneCombatState.actorControl;
     coord = work->rootCoord;
-    if (state == 1) {
-        goto case1;
+    switch (state) {
+        case 1:
+            vec.vx = coord->workm.t[0];
+            vec.vy = coord->workm.t[1];
+            vec.vz = coord->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            return;
+        case 2:
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        case 0:
+        default:
+            break;
     }
-    if (state < 2) {
-        goto default_body;
+    switch (work->actionStep) {
+        case 0:
+            if (work->deathAnimChosen == 0) {
+                anim = ACTOR_03800_ANIM_STAND;
+                if (work->overturned != 0) {
+                    anim = ACTOR_03800_ANIM_DIE_OVERTURNED;
+                }
+                work->anim = anim;
+            }
+            work->timer        = 0;
+            work->deathScaleY  = 0x1000;
+            work->savedRootMtx = coord->coord;
+            arg0->recs         = 0;
+            worldTargetUnlinkNode(&arg0->node);
+            worldCollisionUnlinkBody(&work->hitBody);
+            worldCollisionUnlinkBody(&work->gridBody);
+            worldCollisionUnlinkBody(&work->attackBody);
+            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            Gp_ReleaseStateF0Add(arg1, 0x26);
+            work->actionStep = 1;
+            if (work->burstStage != 0) {
+                obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->actionStep = 3;
+            }
+            _actor03800TickAnim(arg1);
+            c      = ((_Actor03800Work*)arg1->work)->rootCoord;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260004;
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            return;
+        case 1:
+            Actor03800_Fn037E0(arg1);
+            phase       = work->timer + 1;
+            work->timer = phase;
+            if (phase == 10) {
+                obj->flags = TMD_OBJECT_SEMI_TRANS;
+            }
+            if (work->timer == 15) {
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
+            }
+            if (work->timer >= 0x3C) {
+                work->actionStep = 2;
+                obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            }
+            _actor03800TickAnim(arg1);
+            c      = ((_Actor03800Work*)arg1->work)->rootCoord;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            return;
+        case 2:
+            enemyDestroy(arg0, arg1);
+            return;
+        case 3:
+            if (work->burstStage != 0) {
+                if (work->burstStage >= 2) {
+                    work->burstStage = 0;
+                    tmdFreePrimitiveBuffer(obj);
+                    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                    Actor03800_Fn02E50(arg1);
+                } else {
+                    work->burstStage++;
+                }
+            }
+            phase       = work->timer + 1;
+            work->timer = phase;
+            if (phase >= 0x3C) {
+                work->actionStep = 2;
+            }
+            return;
     }
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case1:
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    return;
-case2:
-    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    return;
-default_body:
-    st = work->actionStep;
-    if (st == 1) {
-        goto dying;
-    }
-    if (st >= 2) {
-        goto ge2;
-    }
-    if (st == 0) {
-        goto death;
-    }
-    return;
-ge2:
-    if (st == 2) {
-        goto destroy;
-    }
-    if (st == 3) {
-        goto case3;
-    }
-    return;
-death:
-    if (work->deathAnimChosen == 0) {
-        anim = ACTOR_03800_ANIM_STAND;
-        if (work->overturned != 0) {
-            anim = ACTOR_03800_ANIM_DIE_OVERTURNED;
-        }
-        work->anim = anim;
-    }
-    work->timer        = 0;
-    work->deathScaleY  = 0x1000;
-    work->savedRootMtx = coord->coord;
-    arg0->recs         = 0;
-    worldTargetUnlinkNode(&arg0->node);
-    worldCollisionUnlinkBody(&work->hitBody);
-    worldCollisionUnlinkBody(&work->gridBody);
-    worldCollisionUnlinkBody(&work->attackBody);
-    Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
-    Gp_ReleaseStateF0Add(arg1, 0x26);
-    work->actionStep = 1;
-    if (work->burstStage != 0) {
-        obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->actionStep = 3;
-    }
-    _actor03800TickAnim(arg1);
-    c      = ((_Actor03800Work*)arg1->work)->rootCoord;
-    vec.vx = c->workm.t[0];
-    vec.vy = c->workm.t[1];
-    vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260004;
-    pan = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-    return;
-dying:
-    Actor03800_Fn037E0(arg1);
-    phase       = work->timer + 1;
-    work->timer = phase;
-    if (phase == 10) {
-        obj->flags = TMD_OBJECT_SEMI_TRANS;
-    }
-    if (work->timer == 15) {
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
-    }
-    if (work->timer >= 0x3C) {
-        work->actionStep = 2;
-        obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    _actor03800TickAnim(arg1);
-    c      = ((_Actor03800Work*)arg1->work)->rootCoord;
-    vec.vx = c->workm.t[0];
-    vec.vy = c->workm.t[1];
-    vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    return;
-destroy:
-    enemyDestroy(arg0, arg1);
-    return;
-case3:
-    if (work->burstStage == 0) {
-        goto timer;
-    }
-    if (work->burstStage < 2) {
-        goto inc368;
-    }
-    work->burstStage = 0;
-    tmdFreePrimitiveBuffer(obj);
-    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    Actor03800_Fn02E50(arg1);
-    goto timer;
-inc368:
-    work->burstStage++;
-timer:
-    phase       = work->timer + 1;
-    work->timer = phase;
-    if (phase < 0x3C) {
-        return;
-    }
-    work->actionStep = 2;
 }
 
 static void Actor03800_Fn02E50(Task* actor)
