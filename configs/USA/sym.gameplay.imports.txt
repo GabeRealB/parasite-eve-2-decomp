@@ -813,11 +813,11 @@ func_mine_cavern_80181730 = 0x80181730; // type:func absolute:True owner=mine_ca
 
 
 
-func_mine_mesa_8017ED08 = 0x8017ED08; // type:func absolute:True owner=mine_mesa
+mineMesaDrawViewFlaresTask = 0x8017ED08; // type:func absolute:True owner=mine_mesa
 
-func_mine_mesa_8017F230 = 0x8017F230; // type:func absolute:True owner=mine_mesa
+mineMesaRoomVisualEffectsFlashTask = 0x8017F230; // type:func absolute:True owner=mine_mesa
 
-func_mine_mesa_8017FC94 = 0x8017FC94; // type:func absolute:True owner=mine_mesa
+mineMesaRoomVisualEffectsTwinTrailTask = 0x8017FC94; // type:func absolute:True owner=mine_mesa
 
 func_mine_mesa_8018057C = 0x8018057C; // type:func absolute:True owner=mine_mesa
 

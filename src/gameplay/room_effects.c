@@ -771,9 +771,9 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask, { NULL } },         // 0x0E6
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017F914, { NULL } },                      // 0x0E7
     { { { TASK_BODY_COORD, 0x70 } }, _effectDarknessScreenDimTaskE8, { NULL } },                              // 0x0E8
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017F230, { NULL } },                                     // 0x0E9
+    { { { TASK_BODY_COORD, 0x70 } }, mineMesaRoomVisualEffectsFlashTask, { NULL } },                          // 0x0E9
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainExpandingGlowBandTask, { NULL } },                              // 0x0EA
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017FC94, { NULL } },                                     // 0x0EB
+    { { { TASK_BODY_COORD, 0x70 } }, mineMesaRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x0EB
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8018057C, { NULL } },                                     // 0x0EC
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017FEB0, { NULL } },                        // 0x0ED
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_80180914, { NULL } },                        // 0x0EE
@@ -826,7 +826,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightCellarDrawGlowsTask, { NULL } },                            // 0x11D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightUnderpassDrawFlaresTask, { NULL } },                        // 0x11E
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterDriftTaskU16, { NULL } },                     // 0x11F
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017ED08, { NULL } },                                     // 0x120
+    { { { TASK_BODY_COORD, 0x70 } }, mineMesaDrawViewFlaresTask, { NULL } },                                  // 0x120
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_8017E474, { NULL } },                                   // 0x121
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_tunnel_entrance_8017D720, { NULL } },                          // 0x122
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_tunnel_8017D7D4, { NULL } },                                   // 0x123

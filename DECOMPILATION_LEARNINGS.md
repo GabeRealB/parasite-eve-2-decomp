@@ -119052,13 +119052,13 @@ of which the truncating temp provides. With no verified biv, `loop_iv_list` is
 empty and loop.c returns before recording a single giv, so no preheader
 computation can come from it - which is the state this function is left in.
 
-## A truncating assignment narrows the load, and a halfword sign test re-extends with `sll 16` (func_mine_mesa_8017E3E0, 2026-09-17)
+## A truncating assignment narrows the load, and a halfword sign test re-extends with `sll 16` (_mineMesaFadeFromBlackTask, 2026-09-17)
 
 One `s16 killCountdown` at `Task::0x2A` is read and written three different ways
 in one function, and all three are the *source's* doing, not a mis-typed field:
 
 ```
-lbu  s2,0x2A(a0)      /* u8 r,g,b = task->killCountdown;            */
+lbu  s2,0x2A(a0)      /* u8 red,green,blue = task->killCountdown;            */
 sh   v1,0x2A(a0)      /* task->killCountdown = 0xFF;  (v1 = 0xFF)   */
 lhu  v0,0x2A(a0)      /* task->killCountdown -= 8;                  */
 addiu v0,v0,-0x8
@@ -119082,7 +119082,7 @@ stored with a truncating `sh`, and the comparison that follows holds on the
 but it is not what the compiler produces, so a target `bgez` fed by `sll 16` is
 not an unsigned-field bug.
 
-Worked example: `func_mine_mesa_8017E3E0` matched at 100% with no pins and one
+Worked example: `_mineMesaFadeFromBlackTask` matched at 100% with no pins and one
 scratch build. It is `func_actor_503500_80132990` (`src/actors/actor_503500/`
 `actor_503500_2.c`, the `similar` hit the brief lists in three classes at once)
 minus that function's `D_801153F4` gate and minus the `gGameSession->evtSkipped`
@@ -119093,7 +119093,7 @@ rather than as a hint to re-derive got the function in one attempt.
 Inputs: `base_1.c` SHA256
 `f83cf91342fed7abcaae2a10a6ff2769fcaef05db2777560012423b2f48f0001`; `target.s` SHA256
 `1d65775104896e8bc9c3ace0c8778138212e70ed05639dda3a81c9c86e4872dc`. Scratch
-`nonmatchings/func_mine_mesa_8017E3E0-vacuum`.
+`nonmatchings/_mineMesaFadeFromBlackTask-vacuum`.
 ## A union that only names a view costs `in_struct`: `lhu` from a truncated `s16` needs no union (func_neo_ark_woodland_path_80180C6C, 2026-09-17)
 
 The room's arming count `D_neo_ark_woodland_path_80184990` is read two ways:

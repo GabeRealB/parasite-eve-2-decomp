@@ -209,13 +209,13 @@ RoomFx_TrailOffsets = 0x80186528; // size:0x10 defined:True
 
 func_mine_mesa_801811C4 = 0x801811C4; // type:func
 
-func_mine_mesa_8017F230 = 0x8017F230; // type:func
+mineMesaRoomVisualEffectsFlashTask = 0x8017F230; // type:func
 
-func_mine_mesa_8017FC94 = 0x8017FC94; // type:func
+mineMesaRoomVisualEffectsTwinTrailTask = 0x8017FC94; // type:func
 
 func_mine_mesa_8018057C = 0x8018057C; // type:func
 
-func_mine_mesa_8017ED08 = 0x8017ED08; // type:func
+mineMesaDrawViewFlaresTask = 0x8017ED08; // type:func
 
 func_mine_mesa_8017E15C = 0x8017E15C; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017F4D4; // type:func
@@ -225,3 +225,9 @@ _roomVisualEffectsDrawBurstStar = 0x80180804; // type:func
 roomEventStagedTask = 0x8017D670; // type:func
 _glowDrawFlare = 0x8017EFA8; // type:func
 streamedScenePlay = 0x8017DE38; // type:func
+_mineMesaRejectKeyItemUse = 0x8017d8f0; // type:func
+_mineMesaHoldBlackScreenTask = 0x8017dfc4; // type:func
+_mineMesaFadeFromBlackTask = 0x8017e3e0; // type:func
+_mineMesaRunSoundCuesTask = 0x8017e978; // type:func
+_mineMesaRequestViewRefresh = 0x8017eaac; // type:func
+_mineMesaFinishEnemyWaveState = 0x80181880; // type:func

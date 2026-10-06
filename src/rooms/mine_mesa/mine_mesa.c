@@ -160,10 +160,6 @@ extern SVECTOR D_mine_mesa_801864D8[];
 extern SVECTOR D_mine_mesa_801864F0[];
 extern SVECTOR D_mine_mesa_80186508[];
 
-/// The two offsets `func_mine_mesa_8017FC94` places its trail origins at, from
-/// the task's parent coordinate. `RoomFx_TrailOffsets[1]` is the second entry
-/// under its own name: the per-frame path addresses it directly.
-
 extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
 extern TaskMessageEntry    D_mine_mesa_80189B1C[2];
@@ -192,8 +188,8 @@ static AnimationSet _gMineMesaAnimation065FC;
 static AnimationSet _gMineMesaAnimation068E4;
 static AnimationSet _gMineMesaAnimation06B9C;
 
-void func_mine_mesa_8017DFC4(Task*);
-void func_mine_mesa_8017E024(Task*);
+static void _mineMesaHoldBlackScreenTask(Task* task);
+void        func_mine_mesa_8017E024(Task*);
 
 extern AnimationPlayRequest      D_mine_mesa_80184360;
 extern AnimationPlayRequest      D_mine_mesa_80184374;
@@ -232,7 +228,7 @@ void                             func_mine_mesa_8017E93C(u8);
 void                             func_mine_mesa_8017E948(void);
 void                             func_mine_mesa_8017EA24(void);
 void                             func_mine_mesa_8017EA78(void);
-void                             func_mine_mesa_8017EAAC(void);
+static void                      _mineMesaRequestViewRefresh(void);
 void                             func_mine_mesa_8017EB54(s32);
 
 extern AnimationPlayRequest     D_mine_mesa_80184360;
@@ -276,7 +272,10 @@ extern WorldCoordSpotLight  D_mine_mesa_80188AC8[1];
 s32                         func_mine_mesa_80181800(Task*, s32, s32, s32);
 void                        func_mine_mesa_80181894(Task*);
 
-s32 func_mine_mesa_8017D8F0(Task*, s32, s32, s32);
+static s32 _mineMesaRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+
+/// The room's key-item request; zero replies leave the item unused.
+enum { MINE_MESA_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 s32 func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_mesa_8017DA7C(Task*, s32, s32, s32);
 s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, const void* firstArg, s32);
@@ -286,7 +285,7 @@ TaskDesc D_mine_mesa_801818F8 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTas
 
 TaskMessageEntry D_mine_mesa_80181904[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_mesa_8017D8F8 },
-    { 5105, func_mine_mesa_8017D8F0 },
+    { MINE_MESA_MESSAGE_USE_KEY_ITEM, _mineMesaRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_mesa_8017DABC },
     { ROOM_MESSAGE_COMMAND, func_mine_mesa_8017DA7C },
     { ROOM_MESSAGE_ACTOR_EVENT, func_mine_mesa_8017DBC4 },
@@ -317,7 +316,7 @@ TaskDesc D_mine_mesa_80181990[2] = {
     { { { TASK_BODY_NONE, 192 } }, streamedScenePlay, { .value = 0 } },
 };
 
-TaskDesc D_mine_mesa_801819A8 = { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017DFC4, { .value = 0 } };
+TaskDesc D_mine_mesa_801819A8 = { { { TASK_BODY_NONE, 192 } }, _mineMesaHoldBlackScreenTask, { .value = 0 } };
 
 static AnimationPackedPose _gMineMesaAnimation046D0Bank1[6] = {
 #include "assets/mine_mesa_animation_046D0_bank1.inc"
@@ -589,19 +588,19 @@ SVECTOR D_mine_mesa_80184184[46] = {
     { 7770, 0, 2000, 0 },
 };
 
-void func_mine_mesa_8017E074(Task*);
-void func_mine_mesa_8017E2A4(Task*);
-void func_mine_mesa_8017E3E0(Task*);
-void func_mine_mesa_8017E7B0(Task*);
-void func_mine_mesa_8017E978(Task*);
+void        func_mine_mesa_8017E074(Task*);
+void        func_mine_mesa_8017E2A4(Task*);
+static void _mineMesaFadeFromBlackTask(Task* task);
+void        func_mine_mesa_8017E7B0(Task*);
+static void _mineMesaRunSoundCuesTask(Task* task);
 
 TaskDesc D_mine_mesa_801842F4[6] = {
     { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E074, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E15C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E2A4, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E7B0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E3E0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mine_mesa_8017E978, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineMesaFadeFromBlackTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineMesaRunSoundCuesTask, { .value = 0 } },
 };
 
 AnimationSet* D_mine_mesa_8018433C[2] = {
@@ -846,7 +845,7 @@ EvsCommand D_mine_mesa_8018515C[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_mine_mesa_80184650 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017EAAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaRequestViewRefresh }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_mesa_8017E5C0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2572,7 +2571,7 @@ static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
 static void           func_mine_mesa_8017DC80(Task* arg0);
 static void           func_mine_mesa_80181358(Task* arg0);
 static void           func_mine_mesa_80181848(Task* arg0);
-static void           func_mine_mesa_80181880(Task* arg0);
+static void           _mineMesaFinishEnemyWaveState(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
@@ -2600,7 +2599,11 @@ static void func_mine_mesa_8017D808(Task* task)
     }
 }
 
-s32 func_mine_mesa_8017D8F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item request without changing the room or consuming the item.
+///
+/// The key-item menu interprets the zero reply as unavailable; all arguments
+/// are ignored, including the requested inventory item ID.
+static s32 _mineMesaRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
     return 0;
 }
@@ -2763,15 +2766,23 @@ void func_mine_mesa_8017DDF0(void)
 
 #include "../../shared/streamed_scene_play.inc.c"
 
-void func_mine_mesa_8017DFC4(Task* arg0)
+/// Keeps the screen black until its signed halfword timer reaches 256.
+///
+/// Advances the timer by four per tick (64 ticks from zero), drawing on the
+/// final tick before releasing the task. This task needs no body or work.
+static void _mineMesaHoldBlackScreenTask(Task* task)
 {
-    u16 temp_v0;
+    enum { BLACK_LEVEL       = 255,
+           BLACK_TIMER_STEP  = 4,
+           BLACK_TIMER_LIMIT = 256 };
 
-    fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-    temp_v0             = arg0->killCountdown + 4;
-    arg0->killCountdown = temp_v0;
-    if ((s16)temp_v0 >= 0x100) {
-        taskKill(arg0);
+    u16 timerBits;
+
+    fadeDrawOverlay(BLACK_LEVEL, BLACK_LEVEL, BLACK_LEVEL, GPU_BLEND_SUBTRACT);
+    timerBits           = task->killCountdown + BLACK_TIMER_STEP;
+    task->killCountdown = timerBits;
+    if ((s16)timerBits >= BLACK_TIMER_LIMIT) {
+        taskKill(task);
     }
 }
 
@@ -2928,45 +2939,15 @@ void func_mine_mesa_8017E2A4(Task* arg0)
     }
 }
 
-/// State machine of the mesa's flare: a full-screen semi-transparent tile
-/// whose colour is `Task::killCountdown`, dimmed 8 a frame from state 2 until
-/// it goes negative and the task kills itself; the other states are the run-in
-/// (0 seeds the countdown at 0xFF, 1 waits out `Task::spawnArg1`) and anything
-/// else kills the task outright. The tile and a `DR_TPAGE` for it are carved
-/// off `gGpuPrimCursor` and linked into `gGpuCurrentOt[3]` every frame,
-/// including the frames the switch kills the task on -- only the colours differ
-/// there, since `r`/`g`/`b` are read before the switch.
+/// Queues a centred 320x240 subtractive tile and its blend command at OT slot 3.
 ///
-/// This is `func_actor_503500_80132990` minus its `gSceneCombatState.actorControl` gate and minus
-/// the `gGameSession->evtSkipped != 0` term of its state-1 test; the tile packet
-/// itself is built byte-for-byte the same way.
-void func_mine_mesa_8017E3E0(Task* arg0)
+/// The channels are byte intensities. Both packets borrow the current frame arena
+/// through GPU drawing; the arena must have room for a TILE and a DR_TPAGE.
+static inline void _mineMesaDrawBlackOverlay(u8 red, u8 green, u8 blue)
 {
     TILE*     tile;
-    DR_TPAGE* dr;
-    u8        r, g, b;
+    DR_TPAGE* drawMode;
 
-    r = g = b = arg0->killCountdown;
-    switch (arg0->state) {
-        case 0:
-            arg0->killCountdown = 0xFF;
-            arg0->state++;
-            break;
-        case 1:
-            if (--arg0->spawnArg1.value < 0) {
-                arg0->state++;
-            }
-            break;
-        case 2:
-            arg0->killCountdown -= 8;
-            if (arg0->killCountdown < 0) {
-                taskKill(arg0);
-            }
-            break;
-        default:
-            taskKill(arg0);
-            break;
-    }
     tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     setTile(tile);
@@ -2975,12 +2956,54 @@ void func_mine_mesa_8017E3E0(Task* arg0)
     tile->y0 = -120;
     tile->w  = 320;
     tile->h  = 240;
-    setRGB0(tile, r, g, b);
+    setRGB0(tile, red, green, blue);
     addPrim(gGpuCurrentOt + 3, tile);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, 320, 0));
-    addPrim(gGpuCurrentOt + 3, dr);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, 320, 0));
+    addPrim(gGpuCurrentOt + 3, drawMode);
+}
+
+/// Holds a black screen for the spawn delay, then reveals it eight shade levels per tick.
+///
+/// State 0 seeds the shade to 255; state 1 consumes `spawnArg1.value` until
+/// it is negative; state 2 reduces the signed halfword shade and kills the
+/// task when it becomes negative. Other states cancel it. Every tick queues
+/// the shade sampled before the state update, including initialization and
+/// teardown ticks. Requires the current frame arena and OT slot 3.
+static void _mineMesaFadeFromBlackTask(Task* task)
+{
+    enum { FADE_INITIALIZE,
+           FADE_HOLD,
+           FADE_REVEAL,
+           FADE_BLACK_LEVEL = 255,
+           FADE_SHADE_STEP  = 8 };
+
+    u8 red, green, blue;
+
+    // Sample before updating: the final decrement still draws the preceding shade.
+    red = green = blue = task->killCountdown;
+    switch (task->state) {
+        case FADE_INITIALIZE:
+            task->killCountdown = FADE_BLACK_LEVEL;
+            task->state++;
+            break;
+        case FADE_HOLD:
+            if (--task->spawnArg1.value < 0) {
+                task->state++;
+            }
+            break;
+        case FADE_REVEAL:
+            task->killCountdown -= FADE_SHADE_STEP;
+            if (task->killCountdown < 0) {
+                taskKill(task);
+            }
+            break;
+        default:
+            taskKill(task);
+            break;
+    }
+    _mineMesaDrawBlackOverlay(red, green, blue);
 }
 
 void func_mine_mesa_8017E5A0(void)
@@ -3128,22 +3151,32 @@ void func_mine_mesa_8017E948(void)
     taskSpawnFromTable(D_mine_mesa_801842F4, 5, 0, 0);
 }
 
-void func_mine_mesa_8017E978(Task* arg0)
+/// Plays the run scene's two sound cues on ticks 47 and 57, then releases the task.
+///
+/// `killCountdown` starts at zero and advances as a signed halfword timer.
+/// Ending the scripted event releases the task early, after that tick's cue
+/// check. Requests use the loaded type-1 sound bank with no pan or attenuation.
+static void _mineMesaRunSoundCuesTask(Task* task)
 {
-    u16 temp_v0;
+    enum { RUN_FIRST_CUE_TICK = 47,
+           RUN_LAST_CUE_TICK  = 57,
+           RUN_FIRST_SOUND_ID = 0x10000039,
+           RUN_LAST_SOUND_ID  = 0x1000003A };
 
-    temp_v0             = arg0->killCountdown + 1;
-    arg0->killCountdown = temp_v0;
-    switch ((s16)temp_v0) {
-        case 0x2F:
-            sndEvtRequestScriptStart(0x10000039, 0, 0);
+    u16 elapsedTickBits;
+
+    elapsedTickBits     = task->killCountdown + 1;
+    task->killCountdown = elapsedTickBits;
+    switch ((s16)elapsedTickBits) {
+        case RUN_FIRST_CUE_TICK:
+            sndEvtRequestScriptStart(RUN_FIRST_SOUND_ID, 0, 0);
             break;
-        case 0x39:
-            sndEvtRequestScriptStart(0x1000003A, 0, 0);
+        case RUN_LAST_CUE_TICK:
+            sndEvtRequestScriptStart(RUN_LAST_SOUND_ID, 0, 0);
             break;
     }
-    if ((gGameSession->eventState == 0) || ((s16)arg0->killCountdown >= 0x39)) {
-        taskKill(arg0);
+    if ((gGameSession->eventState == 0) || ((s16)task->killCountdown >= RUN_LAST_CUE_TICK)) {
+        taskKill(task);
     }
 }
 
@@ -3164,7 +3197,8 @@ void func_mine_mesa_8017EA78(void)
     Gp_PulseState1C();
 }
 
-void func_mine_mesa_8017EAAC(void)
+/// Requests a deferred respawn of view tasks using the saved camera view.
+static void _mineMesaRequestViewRefresh(void)
 {
     gGameSession->viewDirty = 1;
 }
@@ -3228,84 +3262,88 @@ void func_mine_mesa_8017EB54(s32 arg0)
     }
 }
 
-/// Publishes the mesa's three effect ids as `gRoomEffectState->roomEffectMode` variant `2`
-/// on the task's first tick, then draws every emitter the current camera view
-/// shows: one `_glowDrawFlare` quad per position, texture column 1
-/// and half-extent 0x200, except the column-0, 0x300 positions of views 2 and
-/// 5.
-void func_mine_mesa_8017ED08(Task* arg0)
+void mineMesaDrawViewFlaresTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { FLARES_INITIALIZE,
+           FLARES_DRAW,
+           FLARE_LARGE_TEXTURE_COLUMN = 0,
+           FLARE_SMALL_TEXTURE_COLUMN = 1,
+           FLARE_LARGE_RADIUS_SCALE   = 0x300,
+           FLARE_SMALL_RADIUS_SCALE   = 0x200 };
+
+    // Install this loaded room's callbacks before actors can spawn their effects.
+    if (task->state == FLARES_INITIALIZE) {
         gRoomEffectFlashId               = EFFECT_MINE_MESA_FLASH;
         gRoomEffectTwinTrailId           = EFFECT_MINE_MESA_TWIN_TRAIL;
         gRoomEffectSparkBurstId          = EFFECT_MINE_MESA_SPARK_BURST;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                      = 1;
+        task->state                      = FLARES_DRAW;
     }
 
+    // Camera subsets share overlapping runs through the consecutive position records.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
-            SVECTOR* p = D_mine_mesa_801864D0;
-            _glowDrawFlare(&p[0], 0, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x200);
-            _glowDrawFlare(&p[2], 1, 0x200);
-            _glowDrawFlare(&p[3], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_801864D0;
+            _glowDrawFlare(&positions[0], FLARE_LARGE_TEXTURE_COLUMN, FLARE_LARGE_RADIUS_SCALE);
+            _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[3], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 4: {
-            SVECTOR* p = D_mine_mesa_801864F0;
-            _glowDrawFlare(&p[0], 1, 0x200);
-            _glowDrawFlare(&p[1], 1, 0x200);
-            _glowDrawFlare(&p[2], 1, 0x200);
-            _glowDrawFlare(&p[3], 1, 0x200);
-            _glowDrawFlare(&p[6], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_801864F0;
+            _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[3], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[6], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 5: {
-            SVECTOR* p = D_mine_mesa_801864C8;
-            _glowDrawFlare(&p[0], 0, 0x300);
-            _glowDrawFlare(&p[1], 0, 0x300);
-            _glowDrawFlare(&p[5], 1, 0x200);
-            _glowDrawFlare(&p[6], 1, 0x200);
-            _glowDrawFlare(&p[8], 1, 0x200);
-            _glowDrawFlare(&p[9], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_801864C8;
+            _glowDrawFlare(&positions[0], FLARE_LARGE_TEXTURE_COLUMN, FLARE_LARGE_RADIUS_SCALE);
+            _glowDrawFlare(&positions[1], FLARE_LARGE_TEXTURE_COLUMN, FLARE_LARGE_RADIUS_SCALE);
+            _glowDrawFlare(&positions[5], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[6], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[8], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[9], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 6: {
-            SVECTOR* p = D_mine_mesa_801864F0;
-            _glowDrawFlare(&p[0], 1, 0x200);
-            _glowDrawFlare(&p[1], 1, 0x200);
-            _glowDrawFlare(&p[4], 1, 0x200);
-            _glowDrawFlare(&p[5], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_801864F0;
+            _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[4], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[5], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 8: {
-            SVECTOR* p = D_mine_mesa_801864F0;
-            _glowDrawFlare(&p[0], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_801864F0;
+            _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 9: {
-            SVECTOR* p = D_mine_mesa_80186508;
-            _glowDrawFlare(&p[0], 1, 0x200);
-            _glowDrawFlare(&p[1], 1, 0x200);
-            _glowDrawFlare(&p[2], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_80186508;
+            _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 10: {
-            SVECTOR* p = D_mine_mesa_801864D8;
-            _glowDrawFlare(&p[0], 1, 0x200);
-            _glowDrawFlare(&p[2], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_801864D8;
+            _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
         case 11: {
-            SVECTOR* p = D_mine_mesa_801864F0;
-            _glowDrawFlare(&p[0], 1, 0x200);
-            _glowDrawFlare(&p[1], 1, 0x200);
-            _glowDrawFlare(&p[2], 1, 0x200);
-            _glowDrawFlare(&p[3], 1, 0x200);
-            _glowDrawFlare(&p[4], 1, 0x200);
-            _glowDrawFlare(&p[5], 1, 0x200);
-            _glowDrawFlare(&p[6], 1, 0x200);
+            const SVECTOR* positions = D_mine_mesa_801864F0;
+            _glowDrawFlare(&positions[0], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[1], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[2], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[3], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[4], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[5], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
+            _glowDrawFlare(&positions[6], FLARE_SMALL_TEXTURE_COLUMN, FLARE_SMALL_RADIUS_SCALE);
             break;
         }
     }
@@ -3317,14 +3355,14 @@ void func_mine_mesa_8017ED08(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_mine_mesa_8017F230(Task* arg0)
+void mineMesaRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_mine_mesa_8017FC94(Task* task)
+void mineMesaRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -3527,15 +3565,19 @@ static void func_mine_mesa_80181848(Task* arg0)
     arg0->state++;
 }
 
-static void func_mine_mesa_80181880(Task* arg0)
+/// Advances the completed enemy wave to its teardown state on the following tick.
+///
+/// Called in state 2 after the spawner has released the battle hold; state 3
+/// kills the controller. This intervening tick preserves that teardown delay.
+static void _mineMesaFinishEnemyWaveState(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// State handlers of the enemy-wave task `func_mine_mesa_80181894` drives: the
 /// set-up tick, the spawner, a step past the wave and `taskKill`.
 static const TaskFuncTable4 D_mine_mesa_8017D660 = {
-    { func_mine_mesa_80181848, func_mine_mesa_80181358, func_mine_mesa_80181880, taskKill },
+    { func_mine_mesa_80181848, func_mine_mesa_80181358, _mineMesaFinishEnemyWaveState, taskKill },
 };
 
 void func_mine_mesa_80181894(Task* task)
