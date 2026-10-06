@@ -3834,11 +3834,9 @@ static void func_actor_403000_801386E8(Task* arg0)
     SVECTOR*                  dir;
     Task*                     task;
     s16                       step;
-    s16                       angle;
     s32                       dist;
     s32                       mag;
     SVECTOR*                  t;
-    GfxCoord*                 coord2;
     GfxCoord*                 coord3;
     GameActor*                pw;
 
@@ -3887,10 +3885,7 @@ static void func_actor_403000_801386E8(Task* arg0)
         t->vx         = gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0];
         t->vy         = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
         t->vz         = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-        coord2        = arg0->extra.tmd->coords;
-        angle         = ratan2(t->vx, t->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-        angle         = actorWrapAngle(angle);
-        scratch->turn = mag = angle;
+        scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
         if (scratch->turn > 0x40) {
             scratch->turn = 0x40;
         } else if (scratch->turn < -0x40) {
