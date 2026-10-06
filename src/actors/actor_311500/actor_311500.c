@@ -412,37 +412,38 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
     }
 }
 
-static s16 func_actor_311500_80162DDC(Task* arg0)
+/// The first of the leading `count` contact records whose kind is 0x20000:
+/// copies its point to `pos` and returns its key, or returns 0 when none is
+/// found before an empty record or the end.
+static inline s32 _actor311500FindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
 {
-    _Actor311500Work*      work = arg0->work;
-    Enemy*                 enemy;
-    WorldCollisionContact* recs;
-    SVECTOR                pos;
-    SVECTOR*               pp;
-    s32                    v;
-    s32                    damage;
-    s16                    i;
+    s16 i;
 
-    enemy = arg0->spawnArg2.pointer;
-    pp    = &pos;
-    recs  = work->hitContacts;
-    for (i = 0; i < 1; i++) {
-        if (recs[i].key.value == 0) {
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
             break;
         }
-        if ((recs[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
-            pp->vx = recs[i].point.vx;
-            pp->vy = recs[i].point.vy;
-            pp->vz = recs[i].point.vz;
-            v      = recs[i].key.value;
-            goto done;
+        if ((records[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key.value;
         }
     }
-    v = 0;
-done:
-    work->hitKey = v;
+    return 0;
+}
+
+static s16 func_actor_311500_80162DDC(Task* arg0)
+{
+    _Actor311500Work* work = arg0->work;
+    Enemy*            enemy;
+    SVECTOR           pos;
+    s32               damage;
+
+    enemy        = arg0->spawnArg2.pointer;
+    work->hitKey = _actor311500FindHit(&pos, work->hitContacts, 1);
     if (work->hitKey != 0) {
-        work->lastHitKey = v;
+        work->lastHitKey = work->hitKey;
         damage           = Gp_ComputeDamage(work->hitKey, 0, 0, 0x1000);
         if (Gp_RollEnemyChance(enemy, work->hitKey, 0) != 0) {
             damage *= 5;
