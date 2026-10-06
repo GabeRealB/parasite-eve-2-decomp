@@ -2057,7 +2057,6 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
     _Actor105100Work*            parentWork;
     GfxCoord*                    coord;
     _Actor105100FireballScratch* scratch;
-    s32                          state;
     u32                          rng;
     u32                          hi;
     s32                          val;
@@ -2066,18 +2065,16 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
     work       = arg1->work;
     coord      = arg1->extra.tmd->coords;
     parentWork = (arg1->parent)->work;
-    state      = gSceneCombatState.actorControl;
-    if (state == 1) {
-        fireballDrawGlow(coord, work->glowSize);
-        return;
+    switch (gSceneCombatState.actorControl) {
+        case 1:
+            fireballDrawGlow(coord, work->glowSize);
+            return;
+        case 2:
+            return;
+        case 0:
+        default:
+            break;
     }
-    if (state < 2) {
-        goto body;
-    }
-    if (state == 2) {
-        return;
-    }
-body:
     SCRATCH_STACK_RESERVE_BLOCK(_Actor105100FireballScratch);
     scratch = SCRATCH_STACK_CURSOR(_Actor105100FireballScratch);
     switch (work->step) {
@@ -2130,7 +2127,10 @@ body:
                     work->timer = 0;
                 }
             }
-            goto update;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(coord);
+            fireballDrawGlow(coord, work->glowSize);
+            break;
         case ACTOR_105100_FIREBALL_LAUNCH:
             // Turn the coordinate about its own X: its rotation times the
             // tick's turn, a column at a time.
@@ -2159,7 +2159,10 @@ body:
                 work->step  = ACTOR_105100_FIREBALL_AIM;
                 work->timer = 0;
             }
-            goto update;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(coord);
+            fireballDrawGlow(coord, work->glowSize);
+            break;
         case ACTOR_105100_FIREBALL_AIM:
             if (++work->timer >= 3) {
                 scratch->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -2170,8 +2173,6 @@ body:
                 work->timer = 0;
                 work->speed = 1;
             }
-            goto update;
-        update:
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             fireballDrawGlow(coord, work->glowSize);
