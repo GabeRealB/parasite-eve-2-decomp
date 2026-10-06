@@ -30,7 +30,14 @@ extern SpriteView D_dryfield_night_saloon_g_r_80187FC8[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_saloon_g_r_80188F84[];
 
-void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0);
+/// Draws the night saloon's view-gated flares and light beams each frame.
+///
+/// Bank 6 type 0x10E requires a live single-coordinate task body. Composes its
+/// transform for the local-space beams; the flare positions are world-space.
+/// The loaded area's current logical view is 1..13. Requires the active view
+/// matrices, scratch stack and frame packet arena; emitted packets live until
+/// GPU completion. Does not advance task state or allocate persistent storage.
+void dryfieldNightSaloonGRDrawGlowsTask(Task* task);
 
 void func_dryfield_night_saloon_g_r_8017E050(Task* task);
 

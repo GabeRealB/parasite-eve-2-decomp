@@ -243,7 +243,7 @@ gRoomEventMsg = 0x80188FAC; // size:0x8 defined:True
 gRoomEventActive = 0x80188FB4; // size:0x4 defined:True
 gRoomEventReq = 0x80188FB8; // size:0x14 defined:True
 
-func_dryfield_night_saloon_g_r_8017E6C8 = 0x8017E6C8; // type:func
+dryfieldNightSaloonGRDrawGlowsTask = 0x8017E6C8; // type:func
 roomEventGate = 0x8017D8A0; // type:func
 roomEventTask = 0x8017DA04; // type:func
 _glowDrawFlare = 0x8017E8B0; // type:func
@@ -251,3 +251,7 @@ jukeboxDrawRow = 0x8017E0C0; // type:func
 jukeboxHostTask = 0x8017E564; // type:func
 roomVariantSaloonMsg = 0x8017DCA4; // type:func
 _glowDrawTwinShafts = 0x8017EB38; // type:func
+_dryfieldNightSaloonGRDrawTaperedBeam = 0x8017f0a4; // type:func
+_dryfieldNightSaloonGRRejectKeyItemUse = 0x8017dd7c; // type:func
+_dryfieldNightSaloonGRIdleState = 0x8017e040; // type:func
+_dryfieldNightSaloonGRSetRoom = 0x8017e0a8; // type:func

@@ -769,7 +769,7 @@ func_dryfield_night_r08_8017F014 = 0x8017F014; // type:func absolute:True owner=
 
 func_dryfield_night_r08_8017F8FC = 0x8017F8FC; // type:func absolute:True owner=dryfield_night_r08
 
-func_dryfield_night_saloon_g_r_8017E6C8 = 0x8017E6C8; // type:func absolute:True owner=dryfield_night_saloon_g_r shared=rooms
+dryfieldNightSaloonGRDrawGlowsTask = 0x8017E6C8; // type:func absolute:True owner=dryfield_night_saloon_g_r shared=rooms
 
 func_dryfield_night_souvenir_shop_8017DFF4 = 0x8017DFF4; // type:func absolute:True owner=dryfield_night_souvenir_shop
 

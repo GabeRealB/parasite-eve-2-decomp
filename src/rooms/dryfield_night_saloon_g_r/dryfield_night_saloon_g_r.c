@@ -123,7 +123,7 @@ extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
 /// The room's effect positions in the model's local space. The frame hook
 /// draws a quad at each of 0-10 and 20-27; 12 and 13 are the two ends
-/// `func_dryfield_night_saloon_g_r_8017F0A4` is handed; 14-19 are the two
+/// `_dryfieldNightSaloonGRDrawTaperedBeam` is handed; 14-19 are the two
 /// light shafts of `_glowDrawTwinShafts`.
 
 /// One view bitmask per effect, tested against `1 << view`. Entries 0-10 gate
@@ -132,9 +132,9 @@ extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 extern s16 D_dryfield_night_saloon_g_r_80185154[];
 
 static void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
-static void func_dryfield_night_saloon_g_r_8017E040(Task* task);
+static void _dryfieldNightSaloonGRIdleState(Task* task);
 static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
-static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
+static void _dryfieldNightSaloonGRDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
 
 // Indexed views below share one contiguous table.
 void func_dryfield_night_saloon_g_r_8017E28C(Task*);
@@ -213,18 +213,23 @@ extern const char               D_dryfield_night_saloon_g_r_8017D81C[27];
 extern const char               D_dryfield_night_saloon_g_r_8017D838[18];
 extern const char               D_dryfield_night_saloon_g_r_8017D84C[16];
 extern const char               D_dryfield_night_saloon_g_r_8017D85C[20];
-void                            func_dryfield_night_saloon_g_r_8017E0A8(u8);
+static void                     _dryfieldNightSaloonGRSetRoom(u8 roomId);
 
-s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, s32, s32);
-s32  func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
-s32  func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void func_dryfield_night_saloon_g_r_8017DB74(Task*);
+static s32 _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+s32        func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
+s32        func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+void       func_dryfield_night_saloon_g_r_8017DB74(Task*);
+
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE  = 2,
+};
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
-    { 5105, func_dryfield_night_saloon_g_r_8017DD7C },
+    { DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldNightSaloonGRRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_saloon_g_r_8017DE68 },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_saloon_g_r_8017DD84 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -832,7 +837,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_dryfield_night_saloon_g_r_8017E0A8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldNightSaloonGRSetRoom }, { .value = DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -845,7 +850,7 @@ EvsCommand D_dryfield_night_saloon_g_r_801847A4[13] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B64 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_dryfield_night_saloon_g_r_8017E0A8 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldNightSaloonGRSetRoom }, { .value = DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1823,9 +1828,9 @@ RoomEventReq gRoomEventReq;
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_night_saloon_g_r_8017E050`: the entry tick
 /// `func_dryfield_night_saloon_g_r_8017DF90`, the idle state
-/// `func_dryfield_night_saloon_g_r_8017E040`, then `taskKill`.
+/// `_dryfieldNightSaloonGRIdleState`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
-    { func_dryfield_night_saloon_g_r_8017DF90, func_dryfield_night_saloon_g_r_8017E040, taskKill },
+    { func_dryfield_night_saloon_g_r_8017DF90, _dryfieldNightSaloonGRIdleState, taskKill },
 };
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
@@ -1936,11 +1941,15 @@ static const JukeboxTrackLists _gJukeboxTrackLists = {
 static const char D_dryfield_night_saloon_g_r_8017D898[8] = "SELECT\0\x0D";
 #include "../../shared/room_variants_saloon.inc.c"
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_night_saloon_g_r_8017DD7C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the night saloon.
+///
+/// Handles message 0x13F1 without consuming the item or changing room state.
+/// All arguments are ignored; the zero result selects the menu's refusal notice.
+static s32 _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    return 0;
+    enum { DRYFIELD_NIGHT_SALOON_G_R_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_NIGHT_SALOON_G_R_KEY_ITEM_REFUSED;
 }
 
 s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32 arg3)
@@ -2019,11 +2028,10 @@ static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
     task->state = task->state + 1;
 }
 
-/// The room task's idle state, entry 1 of its three-state table: does nothing.
-/// The 0x10-byte local is never used, but the original reserved the frame.
-static void func_dryfield_night_saloon_g_r_8017E040(Task* task)
+/// Keeps the room task alive between messages without advancing its idle state.
+static void _dryfieldNightSaloonGRIdleState(Task* task)
 {
-    char pad[0x10];
+    char unusedFrame[0x10]; // Retains the original stack reservation; no bytes are accessed.
 }
 
 /// The room task: copies the three-state table
@@ -2038,12 +2046,14 @@ void func_dryfield_night_saloon_g_r_8017E050(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Cutscene script callback: stores `arg0` as the session's room and in the
-/// main-executable byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
-void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
+/// Selects the saloon room in both the live session and the live save record.
+///
+/// `roomId` is a valid 1-based room selector within the loaded area; no range
+/// check or area reload occurs. The normal and skipped cutscene paths select 2.
+static void _dryfieldNightSaloonGRSetRoom(u8 roomId)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
-    gGameSession->location.loc.room                            = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
+    gGameSession->location.loc.room                            = roomId;
 }
 
 #include "../../shared/jukebox_row.inc.c"
@@ -2163,45 +2173,55 @@ static s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
     return 1;
 }
 
-/// Per-frame effect on the room's coordinate task: recomputes the task's composed
-/// matrix, then draws every effect whose view mask includes the current view
-/// `gGameSession->location.loc.view`. Positions 0-5 and 20-22 are drawn with UV
-/// column 0 and half-extent 0x200, 6-10 with column 1 and 0x1C0, and 23-27
-/// with column 0 and 0x300; the two helpers in between take the task's coord.
-void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
+void dryfieldNightSaloonGRDrawGlowsTask(Task* task)
 {
-    GfxCoord* coord;
-    s32       mask;
-    s32       i;
+    enum {
+        DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_STANDARD  = 0x200,
+        DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_ALTERNATE = 0x1C0,
+        DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_LARGE     = 0x300,
+        DRYFIELD_NIGHT_SALOON_G_R_BEAM_RADIUS_SCALE      = 0x100,
+        DRYFIELD_NIGHT_SALOON_G_R_BEAM_VIEW_MASK_INDEX   = 11,
+        DRYFIELD_NIGHT_SALOON_G_R_SHAFT_VIEW_MASK_INDEX  = 12,
+        DRYFIELD_NIGHT_SALOON_G_R_BEAM_START_POINT       = 13,
+        DRYFIELD_NIGHT_SALOON_G_R_BEAM_END_POINT         = 12,
+        DRYFIELD_NIGHT_SALOON_G_R_FINAL_FLARE_MASK_BIAS  = 7,
+    };
 
-    coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->location.loc.view;
+    GfxCoord* coord;
+    s32       viewMask;
+    s32       pointIndex;
+
+    coord    = task->extra.coordBody->coord;
+    viewMask = 1 << gGameSession->location.loc.view;
     actorRenderComposeCoord(coord);
-    for (i = 0; i < 6; i++) {
-        if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            _glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
+    // The first eleven flare centres are world positions.
+    for (pointIndex = 0; pointIndex < 6; pointIndex++) {
+        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex]) {
+            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_STANDARD);
         }
     }
-    for (i = 6; i < 11; i++) {
-        if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            _glowDrawFlare(&gSaloonLightPoints[i], 1, 0x1C0);
+    for (pointIndex = 6; pointIndex < 11; pointIndex++) {
+        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex]) {
+            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 1, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_ALTERNATE);
         }
     }
-    if (mask & D_dryfield_night_saloon_g_r_80185154[12]) {
+    // Beam endpoints use the task transform rather than the flare world frame.
+    if (viewMask & D_dryfield_night_saloon_g_r_80185154[DRYFIELD_NIGHT_SALOON_G_R_SHAFT_VIEW_MASK_INDEX]) {
         _glowDrawTwinShafts(coord);
     }
-    if (mask & D_dryfield_night_saloon_g_r_80185154[11]) {
-        func_dryfield_night_saloon_g_r_8017F0A4(coord, &gSaloonLightPoints[13],
-                                                &gSaloonLightPoints[12], 0x100);
+    if (viewMask & D_dryfield_night_saloon_g_r_80185154[DRYFIELD_NIGHT_SALOON_G_R_BEAM_VIEW_MASK_INDEX]) {
+        _dryfieldNightSaloonGRDrawTaperedBeam(coord, &gSaloonLightPoints[DRYFIELD_NIGHT_SALOON_G_R_BEAM_START_POINT],
+                                              &gSaloonLightPoints[DRYFIELD_NIGHT_SALOON_G_R_BEAM_END_POINT], DRYFIELD_NIGHT_SALOON_G_R_BEAM_RADIUS_SCALE);
     }
-    for (i = 20; i < 23; i++) {
-        if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            _glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
+    // Six shaft vertices occupy points 14..19 but just one view-mask entry.
+    for (pointIndex = 20; pointIndex < 23; pointIndex++) {
+        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex - DRYFIELD_NIGHT_SALOON_G_R_FINAL_FLARE_MASK_BIAS]) {
+            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_STANDARD);
         }
     }
-    for (i = 23; i < 28; i++) {
-        if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            _glowDrawFlare(&gSaloonLightPoints[i], 0, 0x300);
+    for (pointIndex = 23; pointIndex < (s32)ARRAY_SIZE(gSaloonLightPoints); pointIndex++) {
+        if (viewMask & D_dryfield_night_saloon_g_r_80185154[pointIndex - DRYFIELD_NIGHT_SALOON_G_R_FINAL_FLARE_MASK_BIAS]) {
+            _glowDrawFlare(&gSaloonLightPoints[pointIndex], 0, DRYFIELD_NIGHT_SALOON_G_R_FLARE_RADIUS_LARGE);
         }
     }
 }
@@ -2210,33 +2230,47 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 
 #include "../../shared/glow_draw_twin_shafts.inc.c"
 
-/// Draws a tapered beam between two points of `coord`'s local space. `arg1`
-/// and `arg2` are rotated by `coord->workm` and offset by its translation,
-/// then projected through `GsWSMATRIX`; nothing is drawn unless the far end's
-/// `otz` is at least 0x11; the near end's `otz` is not clamped. The two ends
-/// get screen radii `(s16)arg3 * 64 / otz`.
+/// Initializes a beam-cap quad with a grey centre at vertex 2 and a black rim.
 ///
-/// Each quarter-turn step of an angle running 0..0x800 queues three
-/// `POLY_G4`s: a wedge around the near end, a quad joining the two ends, and a
-/// wedge around the far end walked backwards from 0x1000. The centre vertices
-/// take a grey of 0x20 or 0x30 depending on the parity of
-/// `gDisplayState.animFrame`, the rim vertices are black. Each primitive goes
-/// into the OT bucket of its own end's `otz` with a `gpuSetPrimitiveBlendMode` tpage.
-static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+/// Borrows one writable packet; the caller supplies coordinates, ordering-table
+/// links and the additive blend command. `centreIntensity` is an RGB byte.
+static inline void _dryfieldNightSaloonGRInitBeamCap(POLY_G4* prim, u8 centreIntensity)
+{
+    setPolyG4(prim);
+    setRGB0(prim, 0, 0, 0);
+    setRGB1(prim, 0, 0, 0);
+    setRGB2(prim, centreIntensity, centreIntensity, centreIntensity);
+    setRGB3(prim, 0, 0, 0);
+}
+
+/// Draws an additive grey beam between two saloon-local endpoints.
+///
+/// Borrows `coord`, `startPoint` and `endPoint`; the composed `coord->workm`
+/// maps them into world space, narrowing transformed components to s16.
+/// Projection through `GsWSMATRIX` accepts the second endpoint at camera Z / 4
+/// depth >= 17. The first depth must be nonzero: it is used without a clamp.
+/// Projection flags are not tested. Each pixel radius is the signed low
+/// halfword of `radiusScale` times 64 divided by the endpoint's depth.
+///
+/// Opposing half-disc caps and joining bands fade grey 32/48 to a black rim
+/// on alternating frames. Queues six quads and additive blend commands in the
+/// current frame arena; both joining bands sort at the first endpoint's depth.
+static void _dryfieldNightSaloonGRDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale)
 {
     GlowWorldPointPairScratch* block;
     POLY_G4*                   prim;
-    s32                        ang;
-    s32                        t;
-    s32                        t2;
-    s32                        rgb;
-    s32                        extent;
+    s32                        angle;
+    s32                        rimAngle;
+    s32                        nextAngle;
+    s32                        brightness;
+    s32                        scaledRadius;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(GlowWorldPointPairScratch);
 
+    // Transform and narrow both endpoints before applying the view matrix.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(arg1);
+    gte_ldv0(startPoint);
     gte_rtv0();
     gte_stsv(&block->worldPoint0);
     block->worldPoint0.vx += coord->workm.t[0];
@@ -2244,7 +2278,7 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
     block->worldPoint0.vz += coord->workm.t[2];
 
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(arg2);
+    gte_ldv0(endPoint);
     gte_rtv0();
     gte_stsv(&block->worldPoint1);
     block->worldPoint1.vx += coord->workm.t[0];
@@ -2260,30 +2294,27 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
     gte_rtps();
     gte_stsxy(&block->sx1);
     gte_stszotz(&block->otz1);
-    if (block->otz1 >= 0x11) {
-        extent         = (s16)arg3 * 64;
-        ang            = 0;
-        rgb            = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
-        block->radius0 = extent / block->otz0;
-        block->radius1 = extent / block->otz1;
+    if (block->otz1 >= GLOW_MIN_DEPTH) {
+        scaledRadius   = (s16)radiusScale * GLOW_RADIUS_SCALE;
+        angle          = 0;
+        brightness     = (((u8)gDisplayState.animFrame & 1) * (1 << GLOW_BRIGHT_FLICKER_SHIFT)) | GLOW_FLICKER_BASE_INTENSITY;
+        block->radius0 = scaledRadius / block->otz0;
+        block->radius1 = scaledRadius / block->otz1;
+        // Join the opposing half-disc caps with two bands.
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx0 + ((block->radius0 * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy0 + ((block->radius0 * rcos(ang)) >> 12);
-            prim->x1 = block->sx0 + ((block->radius0 * rsin(t)) >> 12);
-            prim->y1 = block->sy0 + ((block->radius0 * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->radius0 * rsin(t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->radius0 * rcos(t2)) >> 12);
+            _dryfieldNightSaloonGRInitBeamCap(prim, brightness);
+            prim->x0  = block->sx0 + ((block->radius0 * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            rimAngle  = angle + GLOW_EIGHTH_TURN;
+            prim->y0  = block->sy0 + ((block->radius0 * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            prim->x1  = block->sx0 + ((block->radius0 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y1  = block->sy0 + ((block->radius0 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle = angle + GLOW_QUARTER_TURN;
+            prim->x2  = block->sx0;
+            prim->y2  = block->sy0;
+            prim->x3  = block->sx0 + ((block->radius0 * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y3  = block->sy0 + ((block->radius0 * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
@@ -2293,12 +2324,12 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->radius0 * rsin(ang * 2)) >> 12);
-            prim->y0 = block->sy0 + ((block->radius0 * rcos(ang * 2)) >> 12);
-            prim->x1 = block->sx1 + ((block->radius1 * rsin(ang * 2)) >> 12);
-            prim->y1 = block->sy1 + ((block->radius1 * rcos(ang * 2)) >> 12);
+            setRGB2(prim, brightness, brightness, brightness);
+            setRGB3(prim, brightness, brightness, brightness);
+            prim->x0 = block->sx0 + ((block->radius0 * rsin(angle * 2)) >> GLOW_TRIG_SHIFT);
+            prim->y0 = block->sy0 + ((block->radius0 * rcos(angle * 2)) >> GLOW_TRIG_SHIFT);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin(angle * 2)) >> GLOW_TRIG_SHIFT);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos(angle * 2)) >> GLOW_TRIG_SHIFT);
             prim->x2 = block->sx0;
             prim->y2 = block->sy0;
             prim->x3 = block->sx1;
@@ -2309,24 +2340,20 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->radius1 * rsin(0x1000 - ang)) >> 12);
-            prim->y0 = block->sy1 + ((block->radius1 * rcos(0x1000 - ang)) >> 12);
-            prim->x1 = block->sx1 + ((block->radius1 * rsin(0xE00 - ang)) >> 12);
-            prim->y1 = block->sy1 + ((block->radius1 * rcos(0xE00 - ang)) >> 12);
+            _dryfieldNightSaloonGRInitBeamCap(prim, brightness);
+            prim->x0 = block->sx1 + ((block->radius1 * rsin(GLOW_FULL_TURN - angle)) >> GLOW_TRIG_SHIFT);
+            prim->y0 = block->sy1 + ((block->radius1 * rcos(GLOW_FULL_TURN - angle)) >> GLOW_TRIG_SHIFT);
+            prim->x1 = block->sx1 + ((block->radius1 * rsin((GLOW_FULL_TURN - GLOW_EIGHTH_TURN) - angle)) >> GLOW_TRIG_SHIFT);
+            prim->y1 = block->sy1 + ((block->radius1 * rcos((GLOW_FULL_TURN - GLOW_EIGHTH_TURN) - angle)) >> GLOW_TRIG_SHIFT);
             prim->x2 = block->sx1;
             prim->y2 = block->sy1;
-            prim->x3 = block->sx1 + ((block->radius1 * rsin(0xC00 - ang)) >> 12);
-            prim->y3 = block->sy1 + ((block->radius1 * rcos(0xC00 - ang)) >> 12);
-            ang      = t2;
+            prim->x3 = block->sx1 + ((block->radius1 * rsin((GLOW_FULL_TURN - GLOW_QUARTER_TURN) - angle)) >> GLOW_TRIG_SHIFT);
+            prim->y3 = block->sy1 + ((block->radius1 * rcos((GLOW_FULL_TURN - GLOW_QUARTER_TURN) - angle)) >> GLOW_TRIG_SHIFT);
+            angle    = nextAngle;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
-        } while (ang < 0x800);
+        } while (angle < GLOW_HALF_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowWorldPointPairScratch);
 }
