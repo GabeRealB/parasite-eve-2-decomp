@@ -354,31 +354,31 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                     rowDst = work->swapPartnerRow;
                 }
                 dst    = &Gp_MoveScanDst;
-                recDst = Gp_GetScanSlot(dst, rowDst, 0);
+                recDst = inventoryGetRow(dst, rowDst, 0);
                 qtyDst = recDst->qty;
                 idDst  = recDst->itemId;
                 inventoryRemoveItemRow(dst, recDst, qtyDst);
                 src    = dst - 1;
-                recSrc = Gp_GetScanSlot(src, rowSrc, 0);
+                recSrc = inventoryGetRow(src, rowSrc, 0);
                 qtySrc = recSrc->qty;
                 idSrc  = recSrc->itemId;
                 inventoryRemoveItemRow(src, recSrc, qtySrc);
                 Gp_SetScanItem(dst, rowDst, idSrc, qtySrc);
                 Gp_SetScanItem(src, rowSrc, idDst, qtyDst);
                 if ((u8)(recDst->itemId + 0x80) < 0x20) {
-                    Gp_ClearEquipSlot(recDst->itemId);
+                    equipmentClearRemovableLoads(recDst->itemId);
                 }
             } else {
                 rowA = work->swapRow;
                 rowB = work->swapPartnerRow;
                 if (rowA != rowB) {
                     scan            = &Gp_MoveScanSrc + work->swapPane;
-                    recA            = Gp_GetScanSlot(scan, rowA, 0);
+                    recA            = inventoryGetRow(scan, rowA, 0);
                     qtyA            = recA->qty;
                     idA             = recA->itemId;
                     attachmentSlotA = recA->attachSlot;
                     inventoryRemoveItemRow(scan, recA, qtyA);
-                    recB            = Gp_GetScanSlot(scan, rowB, 0);
+                    recB            = inventoryGetRow(scan, rowB, 0);
                     qtyB            = recB->qty;
                     idB             = recB->itemId;
                     attachmentSlotB = recB->attachSlot;
@@ -503,7 +503,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     s32               idx;
     UiObject*         spawned;
 
-    rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1.value, arg0->currentItemIndex, 0);
+    rec  = inventoryGetRow(&Gp_MoveScanSrc + arg1->owner->spawnArg1.value, arg0->currentItemIndex, 0);
     item = rec->itemId;
     if (arg0->rowInputEnabled != USER_INTERFACE_LIST_ROW_ACTIVE) {
         if ((arg1->owner->state != 1) && (arg0->currentItemIndex == Gp_ItemMoveWork->swapRow) &&
@@ -546,7 +546,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             idx   = arg1->owner->spawnArg1.value;
-            item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0)->itemId;
+            item2 = inventoryGetRow(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0)->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             item = -1;
             if (Gp_ItemMoveWork->swapPane != arg1->owner->spawnArg1.value) {
@@ -729,7 +729,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
         prompt    = -1;
         chooseQty = 0;
         idx       = arg1->owner->spawnArg1.value;
-        rec       = Gp_GetScanSlot((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].selectedItemIndex, 0);
+        rec       = inventoryGetRow((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].selectedItemIndex, 0);
         item      = rec->itemId;
         qty       = rec->qty;
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -759,7 +759,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
             } else if ((u32)(item - 0x80) < 0x20U) {
                 if ((arg1->owner->spawnArg1.value != 1) || (item != (gPlayerStatus.weapon + 0x7F))) {
                     if (prompt == -1) {
-                        Gp_ClearEquipSlot(item);
+                        equipmentClearRemovableLoads(item);
                     }
                 } else {
                     prompt = 7;
@@ -812,7 +812,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
     if (selected == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             idx  = arg1->owner->spawnArg1.value;
-            rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0);
+            rec  = inventoryGetRow(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0);
             item = rec->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
 
@@ -858,7 +858,7 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
     owner = arg1->owner;
     idx   = owner->spawnArg1.value;
     scan  = &Gp_MoveScanSrc + idx;
-    rec   = Gp_GetScanSlot(scan, Gp_InvLists[idx].selectedItemIndex, 0);
+    rec   = inventoryGetRow(scan, Gp_InvLists[idx].selectedItemIndex, 0);
     item  = 0;
     if (rec != NULL) {
         item = rec->itemId;

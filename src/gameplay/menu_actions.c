@@ -2144,7 +2144,7 @@ void Gp_DiscardWarnTask(Task* arg0)
 
                     slot = equipmentGetWeaponLoad(id);
                     cfg  = &gPlayerStatus;
-                    Gp_ClearEquipSlot(id);
+                    equipmentClearRemovableLoads(id);
                     slot->field_4 = 0;
                     if (cfg->weapon == (id - 0x7F)) {
                         cfg->weapon = PLAYER_STATUS_EQUIPMENT_NONE;

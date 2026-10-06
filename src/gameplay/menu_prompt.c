@@ -1266,8 +1266,8 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             InventoryItemRange* scan2;
             scan2 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            idx1  = Gp_ScanIndexOf(scan2, Gp_SelItemRec);
-            idx2  = Gp_ScanIndexOf(scan2, sel);
+            idx1  = inventoryIndexOfRow(scan2, Gp_SelItemRec);
+            idx2  = inventoryIndexOfRow(scan2, sel);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             if (idx1 >= 0) {
                 if (idx2 >= 0) {

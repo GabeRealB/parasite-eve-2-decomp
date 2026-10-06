@@ -1823,8 +1823,8 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
 
 /// Message gate for the sanctuary's second hotspot: copies the incoming record
 /// to the outgoing one, then answers message 0xB. The first time the message is
-/// seen for real (`queryOnly` == 0) it latches nibble 7 to 2 and raises the room's
-/// 0x13 bit-2 flag; the answer written back into `room` is 1 while nibble 2
+/// seen for real (`queryOnly` == 0) it latches nibble 7 to 2 and stores saved
+/// object state 2 at slot 0x13; the answer written back into `room` is 1 while nibble 2
 /// is still clear and 2 once it is set.
 s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -1835,7 +1835,7 @@ s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
                 gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
-                Gp_SetCurBit2Flag(0x13, 2);
+                areaSetCurrentObjectState(0x13, 2);
             }
         }
         if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE && in->queryOnly == ROOM_EVENT_EXECUTE) {

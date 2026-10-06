@@ -111,10 +111,10 @@ void Gp_InitStarterInv(void)
             rec++;
         } while (i < scan->rowCount);
     }
-    Gp_ClearScanItems(scan);
+    inventoryClearItems(scan);
     scans = Gp_ScanPtrs;
-    Gp_ClearScanItems(scans[1]);
-    Gp_ClearScanItems(scans[2]);
+    inventoryClearItems(scans[1]);
+    inventoryClearItems(scans[2]);
     slots = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems;
     for (j = 0; j < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems); j++) {
         slots->primaryItemId   = INVENTORY_ITEM_NONE;
@@ -152,7 +152,7 @@ void Gp_InitStarterInv(void)
     cfg2->mp         = mp;
     hadArmoryCardkey = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ARMORY_CARDKEY);
     hadMendelJournal = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_MENDEL_JOURNAL);
-    Gp_ClearCollectedBits();
+    inventoryClearCollectedBits();
     if (hadArmoryCardkey != 0) {
         inventorySetCollectedBit(INVENTORY_COLLECTION_ID_ARMORY_CARDKEY);
     }

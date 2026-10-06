@@ -865,7 +865,7 @@ ItemDesc Gp_KeyItemDescs[] = {
  * and gives the initial supplies and their attachment slots. */
 #define _gpInitStartingItems(scan, cfg)                      \
     do {                                                     \
-        Gp_ClearScanItems(scan);                             \
+        inventoryClearItems(scan);                           \
         inventoryGiveItem(scan, 0x60, 1);                    \
         Gp_EquipMod(0x60);                                   \
         (cfg)->hp = (cfg)->hpMax;                            \
@@ -921,7 +921,7 @@ void func_800B8014(void)
         }
         i++;
     } while (i < 0x180);
-    Gp_ClearCollectedBits();
+    inventoryClearCollectedBits();
     slots = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems;
     for (j = 0; j < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems); j++) {
         slots->primaryItemId   = INVENTORY_ITEM_NONE;
@@ -959,24 +959,24 @@ void func_800B8014(void)
     inventoryGiveItem(scan, 2, 1)->attachSlot = 3;
     scans                                     = Gp_ScanPtrs;
     scan                                      = scans[1];
-    Gp_ClearScanItems(scan);
+    inventoryClearItems(scan);
     inventoryGiveItem(scan, 1, 1);
     inventoryGiveItem(scan, 1, 1);
     inventoryGiveItem(scan, 4, 1);
     scan = scans[2];
-    Gp_ClearScanItems(scan);
+    inventoryClearItems(scan);
     inventoryGiveItem(scan, 1, 1);
     inventoryGiveItem(scan, 1, 1);
-    Gp_ClearScanItems(scans[3]);
+    inventoryClearItems(scans[3]);
     scan = scans[4];
-    Gp_ClearScanItems(scan);
+    inventoryClearItems(scan);
     inventoryGiveItem(scan, 0xA0, INVENTORY_GIVE_ONE_PACK);
     inventoryGiveItem(scan, 4, 1);
     inventoryGiveItem(scan, 4, 1);
-    Gp_ClearScanItems(scans[6]);
-    Gp_ClearScanItems(scans[5]);
+    inventoryClearItems(scans[6]);
+    inventoryClearItems(scans[5]);
     scan = scans[8];
-    Gp_ClearScanItems(scan);
+    inventoryClearItems(scan);
     inventoryGiveItem(scan, 0xAC, 0x14);
     inventoryGiveItem(scan, 0xA9, 8);
     inventorySetCollectedBit(INVENTORY_COLLECTION_ID_MIST_BADGE);

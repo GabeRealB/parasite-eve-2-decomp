@@ -624,7 +624,7 @@ static void Gp_InitStageVisit(GameLocationKey* arg0)
         bank                  = banks[arg0->stage];
         bank->visitedAreas[0] = 0;
         bank->visitedAreas[1] = 0;
-        Gp_ApplyBit2Bank(arg0->stage);
+        areaSeedStageObjectStates(arg0->stage);
         if (gDisplayState.debugMode != 0) {
             func_80724748(arg0);
         }

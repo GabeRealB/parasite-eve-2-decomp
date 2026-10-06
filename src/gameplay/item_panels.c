@@ -1827,7 +1827,7 @@ void Gp_PickupResultTask(Task* arg0)
                 case 1:
                     if (obj->resultValue == 0x33) {
                         if (areaGetCurrentObjectState((u8)enemy->placeKey) != 3) {
-                            Gp_SetCurBit2Flag((u8)enemy->placeKey, 2);
+                            areaSetCurrentObjectState((u8)enemy->placeKey, 2);
                         }
                     }
                     break;

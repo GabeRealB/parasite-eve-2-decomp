@@ -842,7 +842,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(obj)->panel, Gp_StrKeyItem);
     if (arg0->state == 0) {
-        menu->visibleRowCount.unsignedValue = menu->itemCount = Gp_CountCollectedBits();
+        menu->visibleRowCount.unsignedValue = menu->itemCount = inventoryCountCollectedBits();
         if (menu->itemCount < menu->selectedItemIndex) {
             menu->selectedItemIndex = menu->itemCount;
         }
@@ -856,7 +856,7 @@ void Gp_KeyItemMenuTask(Task* arg0)
         menu->firstVisibleItemIndex.unsignedValue = 0;
         arg0->state                               = arg0->state + 1;
     } else {
-        menu->visibleRowCount.unsignedValue = menu->itemCount = Gp_CountCollectedBits();
+        menu->visibleRowCount.unsignedValue = menu->itemCount = inventoryCountCollectedBits();
         if (menu->itemCount < menu->selectedItemIndex) {
             menu->selectedItemIndex = menu->itemCount;
         }

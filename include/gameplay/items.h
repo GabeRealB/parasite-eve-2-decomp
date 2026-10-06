@@ -52,7 +52,7 @@ enum {
 InventoryItemRow* inventoryGiveItem(const InventoryItemRange* range, s32 itemId, s32 quantity);
 
 /// Unequips `gPlayerStatus.weapon` (ids 1..32 use the same slot clear as
-/// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
+/// `equipmentClearRemovableLoads`), resets the `Gp_DefaultScan` item table, copies that scan
 /// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, adds one of item 0x6C, heals current HP/MP
 /// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.activeIndex`
 /// / `wheelIndex`.
@@ -66,9 +66,22 @@ void Gp_ResetInventory(void);
 /// clears `Gp_StateC08.activeIndex` / `wheelIndex`.
 void Gp_ClearInventory(void);
 
-void Gp_SetCurBit2Flag(s32 arg0, u8 arg1);
+/// Stores one packed two-bit object state in the live save's current stage.
+///
+/// `objectId` must be 0..63, `state` 0..3, and the saved stage 1..5; none
+/// is checked. Higher state bits are not masked and would affect adjacent
+/// slots. A packed enemy place key must first be narrowed to its low byte.
+/// Night Dryfield shares daytime Dryfield's words. Stage selection follows
+/// the live save, independently of the session used by `areaGetCurrentObjectState`.
+void areaSetCurrentObjectState(s32 objectId, u8 state);
 
-void Gp_ClearScanItems(InventoryItemRange* arg0);
+/// Empties every row in a range by clearing its item id, attachment and quantity.
+///
+/// The descriptor must be readable and select rows within writable backing
+/// storage. Zero rows performs no writes. The descriptor, weapon loads and
+/// player equipment selections are left intact. Borrowed row addresses stay
+/// valid while their table remains available, but their contents become empty.
+void inventoryClearItems(const InventoryItemRange* range);
 
 s32 Gp_CountScanItems(InventoryItemRange* arg0);
 
@@ -87,7 +100,7 @@ s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1);
 /// checked. A packed enemy place key must first be narrowed to its low byte.
 /// The result is 0..3; ordinary pickup completion stores 2 unless it is 3.
 /// Night Dryfield shares daytime Dryfield's words. Stage selection follows
-/// the current session, whereas `Gp_SetCurBit2Flag` follows the live save.
+/// the current session, whereas `areaSetCurrentObjectState` follows the live save.
 s32 areaGetCurrentObjectState(s32 objectId);
 
 /// Returns 1 if a live-save collection bit is set, otherwise 0.

@@ -816,13 +816,13 @@ void func_mist_parking_80182A44(Task* task)
                         flag = i + 0x125;
                         if (gameFlagGetNibble(flag) == 2 && inventoryGiveItem(Gp_ScanPtrs[3], D_mist_parking_8018FBFC[i], D_mist_parking_8018FC10[i]) != 0) {
                             gameFlagSetNibble(flag, 3);
-                            Gp_SetCurBit2Flag(i + 0x20, 2);
+                            areaSetCurrentObjectState(i + 0x20, 2);
                         }
                     }
                     if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE) == 2 && func_800B7420(0x6C) == 0) {
                         if (inventoryGiveItem(D_8010D55C, 0x6C, 1) != 0) {
                             gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE, 3);
-                            Gp_SetCurBit2Flag(0x24, 2);
+                            areaSetCurrentObjectState(0x24, 2);
                         }
                     }
                     func_800E8614(D_mist_parking_8018F9A4, 1);

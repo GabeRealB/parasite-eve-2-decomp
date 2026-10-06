@@ -894,7 +894,7 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
     }
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
         func_800E8634(D_dryfield_night_trailer_coach_80189080, 0, D_dryfield_night_trailer_coach_801892C0);
-        Gp_SetCurBit2Flag(0x22, 1);
+        areaSetCurrentObjectState(0x22, 1);
     }
     if (func_800E3FCC(0xA2) == 0x25) {
         func_800E3FAC(0xA2, 0x26);

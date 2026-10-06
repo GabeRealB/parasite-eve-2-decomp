@@ -16,6 +16,7 @@
 #include "items.h"
 #include "scene_runtime.h"
 
+#include "main/areas.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/pad.h"
@@ -29,6 +30,16 @@ enum {
     INVENTORY_COLLECTION_ID_MASK       = 0x7F,
     INVENTORY_COLLECTION_BITS_PER_WORD = 32,
     INVENTORY_COLLECTED_ICE_BAG_BIT    = INVENTORY_COLLECTION_ID_ICE_BAG & INVENTORY_COLLECTION_ID_MASK
+};
+
+/// Number of saved rows selected when resetting the carried range.
+enum { INVENTORY_INITIAL_CARRIED_ROWS = 20 };
+
+/// Layout of the packed saved object states addressed by an object id.
+enum {
+    AREA_OBJECT_STATE_BITS       = 2,
+    AREA_OBJECT_STATE_INDEX_MASK = 0xF,
+    AREA_OBJECT_STATE_WORD_SHIFT = 4
 };
 
 /// Catalogue ids tested for armour attachment effects in this translation unit.
@@ -49,19 +60,9 @@ extern u8 Gp_StrAttachAvail[];
 
 extern UiObjectDesc Gp_BoostPanelDesc;
 
-static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
+static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan);
 
 static inline void _gpClearEquipSlot(s32 item);
-
-static inline void _gpClearScanItems(InventoryItemRange* scan);
-
-static inline void _gpRecalcMaxHp(void);
-
-static inline void _gpSetPlayerScan(s32 count);
-
-static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest);
-
-static s32 Gp_GetScanItemId(InventoryItemRange* arg0, s32 arg1);
 
 u8           Gp_StrMore[]        = "More ";
 u8           Gp_StrAttachAvail[] = "attachments available.";
@@ -83,7 +84,7 @@ UiObjectDesc Gp_BoostPanelDesc   = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20,
  * and gives the initial supplies and their attachment slots. */
 #define _gpInitStartingItems(scan, cfg)                      \
     do {                                                     \
-        Gp_ClearScanItems(scan);                             \
+        inventoryClearItems(scan);                           \
         inventoryGiveItem(scan, 0x60, 1);                    \
         Gp_EquipMod(0x60);                                   \
         (cfg)->hp = (cfg)->hpMax;                            \
@@ -95,7 +96,7 @@ UiObjectDesc Gp_BoostPanelDesc   = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20,
 
 /* Item table a scan window lies in. */
 
-static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
+static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan)
 {
     InventoryItemRow* table;
 
@@ -142,7 +143,9 @@ static inline void _gpClearEquipSlot(s32 item)
         slot->secondaryQty = 0;
     }
 }
-/// Frees a writable inventory row by clearing its id, quantity and attachment.
+/// Marks a writable inventory row empty and resets its quantity and attachment.
+///
+/// Weapon loads and player equipment selections are left intact.
 static inline void _inventoryClearItemRow(InventoryItemRow* row)
 {
     row->itemId     = INVENTORY_ITEM_NONE;
@@ -278,89 +281,97 @@ static __inline__ s32 _inventoryHasAttachedItem(s32 itemId)
     }
     return hasAttachedItem;
 }
-static inline void _gpClearScanItems(InventoryItemRange* scan)
+/// Clears each row's item, attachment and quantity in a writable range.
+///
+/// The descriptor is unchanged and must select rows within its backing table.
+/// Weapon loads and player equipment selections are left intact.
+static inline void _inventoryClearItems(const InventoryItemRange* range)
 {
     InventoryItemRow* table;
-    s32               i;
-    s32               row;
+    s32               clearedRowCount;
+    s32               tableRowIndex;
 
-    switch (scan->tableId) {
-        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            table = Gp_ItemTable2;
-            break;
-        case INVENTORY_ITEM_TABLE_INDIRECT:
-            table = Gp_ItemTable1;
-            break;
-        default:
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-            break;
-    }
-    for (i = 0, row = scan->firstRow; i < scan->rowCount; i++, row++) {
-        table[row].itemId     = INVENTORY_ITEM_NONE;
-        table[row].attachSlot = INVENTORY_ATTACHMENT_NONE;
-        table[row].qty        = 0;
+    table = _gpScanTable(range);
+    for (clearedRowCount = 0, tableRowIndex = range->firstRow; clearedRowCount < range->rowCount; clearedRowCount++, tableRowIndex++) {
+        table[tableRowIndex].itemId     = INVENTORY_ITEM_NONE;
+        table[tableRowIndex].attachSlot = INVENTORY_ATTACHMENT_NONE;
+        table[tableRowIndex].qty        = 0;
     }
 }
-static inline void _gpRecalcMaxHp(void)
+/// Recomputes maximum HP from the mode, permanent bonus and equipped armour.
+///
+/// The save mode must index the base-stat table and armour must be 0..32.
+/// Each addend narrows through the unsigned 16-bit accumulator before the
+/// signed maximum is capped at 250. Current HP is reduced only if above it.
+static inline void _equipmentRecalculateMaxHp(void)
 {
-    PlayerStatus*        cfg;
-    McSaveData*          save;
-    PlayerModeBaseStats* table;
-    u16                  val;
+    PlayerStatus*              status;
+    const McSaveData*          save;
+    const PlayerModeBaseStats* modeStats;
+    u16                        maximumHp;
 
-    cfg        = &gPlayerStatus;
-    table      = Gp_StatRows;
-    save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val        = table[save->state.gameMode].baseHp.hp;
-    cfg->hpMax = val;
-    val       += save->state.hpBonus;
-    cfg->hpMax = val;
-    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
-        cfg->hpMax = val;
+    status        = &gPlayerStatus;
+    modeStats     = Gp_StatRows;
+    save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    maximumHp     = modeStats[save->state.gameMode].baseHp.hp;
+    status->hpMax = maximumHp;
+    maximumHp    += save->state.hpBonus;
+    status->hpMax = maximumHp;
+    if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+        maximumHp    += Gp_ModStatAttrs[status->armor - 1].hpBonus;
+        status->hpMax = maximumHp;
     }
-    if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
-        cfg->hpMax = PLAYER_STATUS_STAT_MAX;
+    if (status->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+        status->hpMax = PLAYER_STATUS_STAT_MAX;
     }
-    if (cfg->hp > cfg->hpMax) {
-        cfg->hp = cfg->hpMax;
+    if (status->hp > status->hpMax) {
+        status->hp = status->hpMax;
     }
 }
-static inline void _gpSetPlayerScan(s32 count)
+/// Sets the live carried range to saved rows starting at zero.
+///
+/// The row count is stored as a byte; callers supply 0..255. The range's
+/// unproven fourth byte and the rows themselves are left intact.
+static inline void _inventorySetCarriedRange(s32 rowCount)
 {
-    McSaveData* p;
+    McSaveData* save;
 
-    p                              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    p->state.carriedItems.firstRow = 0;
-    p->state.carriedItems.rowCount = count;
-    p->state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
+    save                              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    save->state.carriedItems.firstRow = 0;
+    save->state.carriedItems.rowCount = rowCount;
+    save->state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
 }
-static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest)
+/// Seeds listed object slots from the low two bits of each placement's state.
+///
+/// NULL rooms or place lists are skipped. Non-NULL room and placement tables
+/// require their respective end markers. Every listed index must fit the
+/// writable state words; slots absent from the lists keep their saved values.
+static inline void _areaSeedObjectStates(const AreaObjectRoom* rooms, u32* objectStates)
 {
-    AreaObjectPlace* rec;
-    u32*             p;
-    u32              mask;
+    const AreaObjectPlace* place;
+    u32*                   stateWord;
+    u32                    stateMask;
 
-    if (table == NULL) {
+    if (rooms == NULL) {
         return;
     }
-    rec = table->places.list;
-    if (table->places.sentinel == AREA_OBJECT_ROOM_END) {
+    place = rooms->places.list;
+    if (rooms->places.sentinel == AREA_OBJECT_ROOM_END) {
         return;
     }
     do {
-        if (rec != NULL) {
-            for (; rec->flagIndex != AREA_OBJECT_PLACE_END; rec++) {
-                mask = AREA_OBJECT_PLACE_STATE_MASK << ((rec->flagIndex & 0xF) * 2);
-                p    = &dest[rec->flagIndex >> 4];
-                *p  &= ~mask;
-                mask = (rec->state & AREA_OBJECT_PLACE_STATE_MASK) << ((rec->flagIndex & 0xF) * 2);
-                *p  |= mask;
+        if (place != NULL) {
+            for (; place->flagIndex != AREA_OBJECT_PLACE_END; place++) {
+                stateMask   = AREA_OBJECT_PLACE_STATE_MASK << ((place->flagIndex & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS);
+                stateWord   = &objectStates[place->flagIndex >> AREA_OBJECT_STATE_WORD_SHIFT];
+                *stateWord &= ~stateMask;
+                stateMask   = (place->state & AREA_OBJECT_PLACE_STATE_MASK) << ((place->flagIndex & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS);
+                *stateWord |= stateMask;
             }
         }
-        table++;
-        rec = table->places.list;
-    } while (table->places.sentinel != AREA_OBJECT_ROOM_END);
+        rooms++;
+        place = rooms->places.list;
+    } while (rooms->places.sentinel != AREA_OBJECT_ROOM_END);
 }
 void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 {
@@ -619,7 +630,7 @@ void Gp_ResetInventory(void)
         status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
     }
 
-    _gpClearScanItems(&Gp_DefaultScan);
+    _inventoryClearItems(&Gp_DefaultScan);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems = Gp_DefaultScan;
     inventoryAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x6C, 1);
     Gp_EquipMod(0x6C);
@@ -652,15 +663,15 @@ void Gp_ClearInventory(void)
         status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
     }
 
-    _gpClearScanItems(&Gp_DefaultScan);
-    _gpSetPlayerScan(0x14);
+    _inventoryClearItems(&Gp_DefaultScan);
+    _inventorySetCarriedRange(INVENTORY_INITIAL_CARRIED_ROWS);
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
 
     rec = &_gpScanTable(scan)[scan->firstRow];
     for (i = 0; i < scan->rowCount; i++, rec++) {
         if (rec->attachSlot == INVENTORY_ATTACHMENT_EQUIPPED_ARMOR && (u32)(rec->itemId - 0x60) < 0x20) {
             status->armor = rec->itemId - 0x5F;
-            _gpRecalcMaxHp();
+            _equipmentRecalculateMaxHp();
             Gp_RecalcMaxMp();
             break;
         }
@@ -734,38 +745,39 @@ void Gp_InitModeEquip(void)
     }
 }
 
-void Gp_ApplyBit2Bank(s32 arg0)
+void areaSeedStageObjectStates(s32 stageId)
 {
-    AreaObjectRoom* table;
-    u32*            dest;
+    const AreaObjectRoom* rooms;
+    u32*                  objectStates;
 
-    table = Gp_Bit2Banks[arg0].rooms;
-    dest  = Gp_Bit2Banks[arg0].objectStates;
-    if (arg0 == 3) {
+    rooms        = Gp_Bit2Banks[stageId].rooms;
+    objectStates = Gp_Bit2Banks[stageId].objectStates;
+    // Night Dryfield shares the daytime words, so its first visit must keep them.
+    if (stageId == GAME_STAGE_DRYFIELD_NIGHT) {
         return;
     }
-    _gpApplyBit2List(table, dest);
+    _areaSeedObjectStates(rooms, objectStates);
 }
 
-void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
+void areaSetCurrentObjectState(s32 objectId, u8 state)
 {
-    s32  shift;
-    u32  mask;
-    u32* p;
-    s32  stage;
+    s32  stateShift;
+    u32  stateMask;
+    u32* stateWord;
+    s32  stageId;
 
-    shift = (arg0 & 0xF) * 2;
-    mask  = 3 << shift;
-    stage = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    p     = &Gp_Bit2Banks[stage].objectStates[arg0 >> 4];
-    *p   &= ~mask;
-    mask  = arg1 << shift;
-    *p   |= mask;
+    stateShift  = (objectId & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS;
+    stateMask   = AREA_OBJECT_PLACE_STATE_MASK << stateShift;
+    stageId     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
+    stateWord   = &Gp_Bit2Banks[stageId].objectStates[objectId >> AREA_OBJECT_STATE_WORD_SHIFT];
+    *stateWord &= ~stateMask;
+    stateMask   = state << stateShift;
+    *stateWord |= stateMask;
 }
 
-void Gp_ClearScanItems(InventoryItemRange* scan)
+void inventoryClearItems(const InventoryItemRange* range)
 {
-    _gpClearScanItems(scan);
+    _inventoryClearItems(range);
 }
 
 InventoryItemRow* inventoryGiveItem(const InventoryItemRange* range, s32 itemId, s32 quantity)
@@ -779,14 +791,14 @@ s32 inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32
     return 0;
 }
 
-void Gp_ClearCollectedBits(void)
+void inventoryClearCollectedBits(void)
 {
-    s32  i;
-    s32* p;
+    s32  wordIndex;
+    s32* collectionWord;
 
-    p = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
-    for (i = 3; i >= 0; i--) {
-        *p++ = 0;
+    collectionWord = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
+    for (wordIndex = ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits) - 1; wordIndex >= 0; wordIndex--) {
+        *collectionWord++ = 0;
     }
 }
 
@@ -817,30 +829,30 @@ void inventoryClearCollectedBit(s32 collectionId)
     *word        &= ~(1 << collectionId);
 }
 
-s32 Gp_CountCollectedBits(void)
+s32 inventoryCountCollectedBits(void)
 {
-    s32  count;
-    s32* p;
-    s32  i;
-    s32  bit;
-    s32  word;
-    s32  one;
+    s32        collectedCount;
+    const s32* collectionWord;
+    s32        wordIndex;
+    s32        bitIndex;
+    s32        packedBits;
+    s32        bitMaskBase;
 
-    p     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
-    count = 0;
-    one   = 1;
-    for (i = 3; i >= 0; i--) {
-        bit  = 0;
-        word = *p;
+    collectionWord = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
+    collectedCount = 0;
+    bitMaskBase    = 1;
+    for (wordIndex = ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits) - 1; wordIndex >= 0; wordIndex--) {
+        bitIndex   = 0;
+        packedBits = *collectionWord;
         do {
-            if (word & (one << bit)) {
-                count++;
+            if (packedBits & (bitMaskBase << bitIndex)) {
+                collectedCount++;
             }
-            bit++;
-        } while (bit < 32);
-        p++;
+            bitIndex++;
+        } while (bitIndex < INVENTORY_COLLECTION_BITS_PER_WORD);
+        collectionWord++;
     }
-    return count;
+    return collectedCount;
 }
 
 s32 Gp_CountScanItems(InventoryItemRange* arg0)
@@ -923,34 +935,35 @@ s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
     return count;
 }
 
-void Gp_ClearEquipSlot(s32 arg0)
+void equipmentClearRemovableLoads(s32 weaponItemId)
 {
-    EquipmentWeaponLoad* slot;
-    s32                  found = 0;
-    s32                  i;
+    EquipmentWeaponLoad* load;
+    s32                  hasBuiltInSupply = 0;
+    s32                  supplyIndex;
 
-    if ((u32)(arg0 - 0x80) >= 0x20) {
+    if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) {
         return;
     }
 
-    slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
-        if (arg0 == Gp_ItemMaps[i].weaponItemId) {
-            found = 1;
+    load = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    for (supplyIndex = 0; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
+        if (weaponItemId == Gp_ItemMaps[supplyIndex].weaponItemId) {
+            hasBuiltInSupply = 1;
             break;
         }
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
-        slot->primaryItemId = INVENTORY_ITEM_NONE;
-        slot->primaryQty    = 0;
+    // A built-in supply keeps both its selection and its remaining charge.
+    if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
+        load->primaryItemId = INVENTORY_ITEM_NONE;
+        load->primaryQty    = 0;
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
-        if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-            slot->secondaryItemId = INVENTORY_ITEM_NONE;
+    if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
+        if (load->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            load->secondaryItemId = INVENTORY_ITEM_NONE;
         }
-        slot->secondaryQty = 0;
+        load->secondaryQty = 0;
     }
 }
 
@@ -1082,59 +1095,43 @@ InventoryItemRow* inventoryGetRangeTable(const InventoryItemRange* range)
     }
 }
 
-s32 Gp_ScanIndexOf(InventoryItemRange* arg0, InventoryItemRow* arg1)
+s32 inventoryIndexOfRow(const InventoryItemRange* range, const InventoryItemRow* row)
 {
-    InventoryItemRow* table;
-    s32               i;
-    s32               ret;
+    const InventoryItemRow* rangeRow;
+    s32                     rowIndex;
+    s32                     foundIndex;
 
-    table  = _gpScanTable(arg0);
-    ret    = -1;
-    table += arg0->firstRow;
-    for (i = 0; i < arg0->rowCount; i++) {
-        if (table == arg1) {
-            ret = i;
+    rangeRow   = _gpScanTable(range);
+    foundIndex = INVENTORY_ROW_NOT_FOUND;
+    rangeRow  += range->firstRow;
+    for (rowIndex = 0; rowIndex < range->rowCount; rowIndex++) {
+        if (rangeRow == row) {
+            foundIndex = rowIndex;
             break;
         }
-        table++;
+        rangeRow++;
     }
-    return ret;
+    return foundIndex;
 }
 
-InventoryItemRow* Gp_GetScanSlot(InventoryItemRange* arg0, s32 arg1, s32 arg2)
+InventoryItemRow* inventoryGetRow(const InventoryItemRange* range, s32 rowIndex, s32 unused)
 {
     InventoryItemRow* table;
 
-    switch (arg0->tableId) {
-        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            table = Gp_ItemTable2;
-            break;
-        case INVENTORY_ITEM_TABLE_INDIRECT:
-            table = Gp_ItemTable1;
-            break;
-        default:
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-            break;
-    }
-    return &table[arg0->firstRow + arg1];
+    table = _gpScanTable(range);
+    return &table[range->firstRow + rowIndex];
 }
 
-static s32 Gp_GetScanItemId(InventoryItemRange* arg0, s32 arg1)
+/// Returns the one-byte item id at a zero-based row position in a range.
+///
+/// Zero denotes a free row. The descriptor and selected table are borrowed;
+/// the position must be within the range, which must fit readable storage.
+static s32 _inventoryGetRowItemId(const InventoryItemRange* range, s32 rowIndex)
 {
-    InventoryItemRow* table;
-    InventoryItemRow* rec;
+    const InventoryItemRow* table;
+    const InventoryItemRow* row;
 
-    switch (arg0->tableId) {
-        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            table = Gp_ItemTable2;
-            break;
-        case INVENTORY_ITEM_TABLE_INDIRECT:
-            table = Gp_ItemTable1;
-            break;
-        default:
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-            break;
-    }
-    rec = &table[arg0->firstRow + arg1];
-    return rec->itemId;
+    table = _gpScanTable(range);
+    row   = &table[range->firstRow + rowIndex];
+    return row->itemId;
 }

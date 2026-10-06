@@ -24253,7 +24253,7 @@ default:
 }
 ```
 
-`Gp_GetScanSlot` is the pure example.
+`inventoryGetRow` is the pure example.
 
 ## Second pointer so `addu` dest is `$v0`, not the table reg
 
@@ -24264,11 +24264,11 @@ the dest to `$v1` (`addu v1, v1, v0` / `lbu v0, 0(v1)`). A *second*
 pointer keeps dest `$v0` and base-first operands:
 
 ```c
-rec = &table[arg0->firstRow + arg1]; /* addu v0, v1, v0 */
-return rec->itemId;                /* lbu  v0, 0(v0) */
+row = &table[range->firstRow + rowIndex]; /* addu v0, v1, v0 */
+return row->itemId;                      /* lbu  v0, 0(v0) */
 ```
 
-`Gp_GetScanItemId` is the load-from-row companion of `Gp_GetScanSlot`.
+`_inventoryGetRowItemId` is the load-from-row companion of `inventoryGetRow`.
 
 ## Split `&=` / `|=` so the formal stays in `$a0`
 
@@ -25093,7 +25093,7 @@ p = Gp_Bit2Banks[temp].objectStates;
 p += arg0 >> 4;
 ```
 
-`Gp_SetCurBit2Flag` is the example.
+`areaSetCurrentObjectState` is the example.
 
 ## Do not hoist the jump-table index object before the struct copy
 
@@ -25407,7 +25407,7 @@ default:
 addiu v1, v0, %lo(D_default)
 ```
 
-That is the same coloring as the sibling leaf (`Gp_GetScanSlot`) that
+That is the same coloring as the sibling leaf (`inventoryGetRow`) that
 has no extra locals. Adding a loop index and a `-1` return value
 steals `$a2` for the table and `$v1` for the index — the instruction
 stream stays identical, only those two registers swap (~98%).
@@ -25445,7 +25445,7 @@ for (i = 0; i < scan->rowCount; i++) {
 }
 ```
 
-`Gp_ScanIndexOf` is the example.
+`inventoryIndexOfRow` is the example.
 
 ## Named u16 local pins an lhu for a later mixed-width compare
 
@@ -25611,7 +25611,7 @@ for (i = 3; i >= 0; i--) {
 
 `bit = 0` before `word = *p` matches the target's `move v1, zero` / `lw`
 order. This is the loop counterpart of the single-bit `p += i/32; i %= 32;
-val = *p & (1 << i)` form (`inventoryHasCollectedBit`). `Gp_CountCollectedBits` is the example.
+val = *p & (1 << i)` form (`inventoryHasCollectedBit`). `inventoryCountCollectedBits` is the example.
 
 ## Init `ret = NULL` so a table pointer stays in `$a1`
 
@@ -26317,7 +26317,7 @@ Keep the loop index live after the empty-count path (`asm volatile("" ::
 "r"(i))`) so `i = 0` stays at the switch join (`move a1, zero` in the
 case-1 delay) instead of sinking into the `field_1 != 0` arm. Pair with
 `off + (s32)table` and `register s32 off asm("v0")` for `addu v1, v0, v1`
-(see the `off + base` entry). `Gp_ClearScanItems` is the example.
+(see the `off + base` entry). `inventoryClearItems` is the example.
 
 ## Copy the scan count into a limit so `$v1` can become the walk pointer
 
@@ -26337,7 +26337,7 @@ addu  v1, v0, a3  /* rec = off + table */
 (or `$t0`). Assign `limit = count` *after* `if (count != 0)` so the copy
 frees `$v1` for the walk, and keep `off + (s32)table` so dest is a new `rec`.
 Pin the base with `register GpItemRec* table asm("a3")` via the same
-tmp/switch as `Gp_ClearScanItems`. `ret = i` (or `ret = 0` after `i = 0`) fills
+tmp/switch as `inventoryClearItems`. `ret = i` (or `ret = 0` after `i = 0`) fills
 the `beqz` delay with `move a2, a1`. `Gp_CountScanItems` is the example.
 
 ## `jalr` with the iterator left in `$a1` is a 2-arg callback
@@ -27975,7 +27975,7 @@ Two sentinels are required: CSE of a single `0xFFFF` becomes
 pinning them made the first `lw` use `$a0` instead of `$a3`. Assign
 `tmp = -1` at the outer tail so the compare rematerializes instead of
 CSE into `$t4`. `Gp_ApplyBit2List` is the example (sibling
-`Gp_ApplyBit2Bank` is the same walk with a bank lookup in front).
+`areaSeedStageObjectStates` is the same walk with a bank lookup in front).
 
 ## Put `&Table` in `$v0` before overwriting it with the compare constant
 
@@ -28013,7 +28013,7 @@ if (arg0 == tmp) {
 table = (AreaObjectRoom*)val; /* delay-slot move a3, a1 */
 ```
 
-`Gp_ApplyBit2Bank` is the example. `bank = &Gp_Bit2Banks[index]; tmp = 3`
+`areaSeedStageObjectStates` is the example. `bank = &Gp_Bit2Banks[index]; tmp = 3`
 stuck at 90–94.5% with only that prologue different. This is the
 inverse of the `mask = 1` before `ptr->arr[i]` rule: here `$v0` must
 hold the *address* first so `3` cannot be reused as the shift.
@@ -28621,7 +28621,7 @@ found = 0;
 slot  = &((EquipmentWeaponLoad*)((s32)gMcSaveData[0].state.weaponItems - 0x400))[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
 ```
 
-`Gp_ClearEquipSlot` is the example. Pinning `slot` to `$a2` stuck at 99.6%
+`equipmentClearRemovableLoads` is the example. Pinning `slot` to `$a2` stuck at 99.6%
 with only those three address instructions different.
 
 ## Reuse the mask temp so the second `pad & MASK` writes `$v0`
@@ -30732,13 +30732,13 @@ is the example.
 
 ## Dummy `0` on an overlay helper so the `jal` delay slot is `move a2, zero`
 
-A two-argument overlay helper (`Gp_GetScanSlot(scan, idx)`) can still
+A two-argument overlay helper (`inventoryGetRow(scan, idx)`) can still
 need a literal third `0` at one call site so the compiler emits:
 
 ```
 addu  a0, a2, a0
 lw    a1, 0x10(v0)
-jal   Gp_GetScanSlot
+jal   inventoryGetRow
  move  a2, zero
 ```
 
@@ -31578,7 +31578,7 @@ asm volatile("" ::"r"(i));
 item = rec->itemId;
 ```
 
-Same barrier already used in `Gp_ClearScanItems`. A later copy of the same
+Same barrier already used in `inventoryClearItems`. A later copy of the same
 setup can skip it when another independent move (`rec2 = rec`) is
 available to fill that delay. `inventoryGetNthWeaponForConsumable` is the example.
 
@@ -32797,7 +32797,7 @@ ret  = equipmentGetWeaponLoad(id);
 a0id = id;
 slot = ret;
 cfg  = &gPlayerStatus;
-Gp_ClearEquipSlot(a0id);
+equipmentClearRemovableLoads(a0id);
 ```
 
 Pinning `cfg` here, or writing `slot = equipmentGetWeaponLoad(id)` directly,
@@ -35009,7 +35009,7 @@ tooFar = (u32)sq < (u32)lum;
 
 ## `three = 3` hoists into `$v1` and steals the `lhu` id; idx/off coalesce
 
-A merged `areaGetCurrentObjectState` + `Gp_SetCurBit2Flag` body wants:
+A merged `areaGetCurrentObjectState` + `areaSetCurrentObjectState` body wants:
 
 ```
 lhu    v1, 0(s1)          # id
@@ -143529,7 +143529,7 @@ macro around the pair. Its loop notes fence sched1, so the store stays ahead
 of the next call's argument setup.
 
 **Follow-up (2026-09-27): a shared initialization tail removes the last barrier.**
-Calling `Gp_ClearScanItems(scan)` in both arms of the clear-count test creates a
+Calling `inventoryClearItems(scan)` in both arms of the clear-count test creates a
 join that stops cse2 from reusing the save base at the final location check.
 In the controlled scratch comparison, removing the barrier alone made `save`
 live across 244 instructions and 28 calls (96.170%); duplicating the clear call
@@ -146251,7 +146251,7 @@ order. A named `s32` local (`flag = 1; a = flag; b = flag;`), the same shape
 sibling actors use for their `1` flags, gives one `SImode` pseudo that CSE
 folds onto `s2` for both stores.
 
-## A flag initialised above an early-return guard ranks lower in `global_alloc` (Gp_ClearEquipSlot, 2026-09-27)
+## A flag initialised above an early-return guard ranks lower in `global_alloc` (equipmentClearRemovableLoads, 2026-09-27)
 
 A search flag (`found = 0; for (...) if (hit) { found = 1; break; }`) and a
 slot pointer, both live across the loop, came out with their argument registers

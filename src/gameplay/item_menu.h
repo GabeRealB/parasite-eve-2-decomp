@@ -615,7 +615,7 @@ extern InventoryItemRange Gp_MoveScanSrc;
 extern InventoryItemRange Gp_MoveScanDst;
 
 /// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
-/// `field_10` is the selected row passed to `Gp_GetScanSlot`.
+/// `selectedItemIndex` is the range-relative row passed to `inventoryGetRow`.
 extern UiList Gp_InvLists[];
 
 /// Action-button callbacks for `Gp_ItemActionList`, filled by `Gp_FillItemActions`.

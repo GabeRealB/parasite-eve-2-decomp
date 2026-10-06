@@ -61,7 +61,7 @@ UiListRowCallback Gp_ItemActionFns[3] = {
  * and gives the initial supplies and their attachment slots. */
 #define _gpInitStartingItems(scan, cfg)                      \
     do {                                                     \
-        Gp_ClearScanItems(scan);                             \
+        inventoryClearItems(scan);                           \
         inventoryGiveItem(scan, 0x60, 1);                    \
         Gp_EquipMod(0x60);                                   \
         (cfg)->hp = (cfg)->hpMax;                            \

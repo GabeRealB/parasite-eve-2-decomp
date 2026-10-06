@@ -93,7 +93,7 @@ void Gp_AreaEnterTask(Task* arg0)
                     }
                 }
                 scan = &D_8010CA2C;
-                Gp_ClearScanItems(scan);
+                inventoryClearItems(scan);
                 arg0->status = Gp_GrantLocationItems(scan);
                 if (arg0->status != 0) {
                     uiSpawnObject(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2.pointer);

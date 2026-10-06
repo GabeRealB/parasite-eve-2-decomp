@@ -1155,14 +1155,14 @@ void func_acropolis_roof_garden_8017D5D4(Task* task)
 /// the outgoing one, then runs the message's one-shot side effect.
 ///
 /// Message 0xC, when not a "report only" query (`queryOnly == 0`) and its nibble
-/// is still clear, advances nibble 7 to 2 and sets collection bit 0x13 to 2.
+/// is still clear, advances nibble 7 to 2 and stores saved object state 2 at slot 0x13.
 /// The copy itself is unedited, so the answer is always "allowed".
 s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
     if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
-        Gp_SetCurBit2Flag(0x13, 2);
+        areaSetCurrentObjectState(0x13, 2);
     }
     return 1;
 }

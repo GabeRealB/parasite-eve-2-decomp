@@ -1030,7 +1030,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             ammo       = row->acceptedItemIds[0];
             *weaponIdx = item - 0x7F;
             Gp_ResetScanDefault();
-            Gp_ClearScanItems(scan);
+            inventoryClearItems(scan);
             inventoryGiveItem(scan, item, 1);
             inventoryGiveItem(scan, 0x6C, 1);
             Gp_EquipMod(0x6C);

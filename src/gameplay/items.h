@@ -88,13 +88,29 @@ enum {
 /// query also accepts attached GPS. Returns 0 or 1 without modifying state.
 s32 equipmentHasEffect(s32 effectSelector);
 
-void Gp_ApplyBit2Bank(s32 arg0);
+/// Seeds a stage's saved object states from its room placement lists.
+///
+/// Stage ids 0..5 select the stage table without a bounds check; stage 0
+/// has no lists and changes nothing. Night Dryfield is skipped because it
+/// shares daytime Dryfield's state words. Listed slots receive their initial
+/// two-bit states; every unlisted slot keeps its existing value. The stage's
+/// map tables must be loaded, terminated and fit the saved 64-slot bank.
+void areaSeedStageObjectStates(s32 stageId);
 
-s32 Gp_CountCollectedBits(void);
+/// Counts all set bits in the live save's 128-bit collection set (0..128).
+///
+/// Counts item-related event bits as well as key-item possession bits.
+s32 inventoryCountCollectedBits(void);
 
 s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1);
 
-void Gp_ClearEquipSlot(s32 arg0);
+/// Clears removable weapon loads while preserving any built-in Battery or Fuel.
+///
+/// Weapon ids outside 0x80..0x9F are ignored. Cleared loads lose their item id
+/// and quantity; an unavailable secondary slot keeps its marker. Built-in
+/// supply selection and charge, inventory quantities and the saved record's
+/// unproven word are left intact. Records remain owned by the live save.
+void equipmentClearRemovableLoads(s32 weaponItemId);
 
 /// Which weapon loads `equipmentClearSelectedRemovableLoads` clears.
 enum {
@@ -124,14 +140,32 @@ s32 Gp_FillRelated(s32 arg0, s32 arg1);
 
 s32 Gp_UnequipRelated(s32 arg0, s32 arg1);
 
-s32 Gp_ScanIndexOf(InventoryItemRange* arg0, InventoryItemRow* arg1);
+/// Result of a row-address lookup that finds no row within its range.
+enum { INVENTORY_ROW_NOT_FOUND = -1 };
 
-/// `arg2` is unused; some callers pass 0 so the `jal` delay slot is `move a2, zero`.
-InventoryItemRow* Gp_GetScanSlot(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+/// Returns a row's zero-based position in a range, or INVENTORY_ROW_NOT_FOUND.
+///
+/// Compares addresses, including free rows, without inspecting their contents.
+/// The range must fit its backing table. NULL or a row outside the range is
+/// absent; a row with the same item elsewhere is not a match. Neither input
+/// is modified or retained.
+s32 inventoryIndexOfRow(const InventoryItemRange* range, const InventoryItemRow* row);
+
+/// Borrows the writable row at a zero-based position within a range.
+///
+/// The position must be nonnegative and less than rowCount, and the range must
+/// fit its backing table; no bounds check is performed. The descriptor is
+/// unchanged. The row lasts with its table, but sorting or transfers may replace
+/// its item. `unused` is ignored and is retained for the caller's argument setup.
+InventoryItemRow* inventoryGetRow(const InventoryItemRange* range, s32 rowIndex, s32 unused);
 
 void Gp_InitModeEquip(void);
 
-void Gp_ClearCollectedBits(void);
+/// Clears all 128 collection bits in the live save.
+///
+/// Key-item possession and item-related event bits are reset together. The
+/// separate Ice Bag play-time marker and inventory rows are left intact.
+void inventoryClearCollectedBits(void);
 
 /// `arg1` is unused; some callers pass 0 so the `jal` delay slot is `move a1, zero`.
 s32 Gp_NthCollectedId(s32 arg0, s32 arg1);

@@ -1011,7 +1011,7 @@ static void func_actor_548100_80132684(Task* task)
                         work->pickupObject = 5;
                         kind               = 5;
                     }
-                    Gp_SetCurBit2Flag(work->pickupObject, 1);
+                    areaSetCurrentObjectState(work->pickupObject, 1);
                     Gp_StartCapSlot(6, 0, kind);
                     task->state = 7;
                     return;
