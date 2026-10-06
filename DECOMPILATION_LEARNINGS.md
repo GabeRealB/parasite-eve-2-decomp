@@ -48492,12 +48492,12 @@ the overlay id at `0x80161E20` and `ActorsShared80135df4Table` at `0x80161E30`:
 INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", D_actor_311900_80161E20);
 
 const EnemyTaskFuncTable3 D_actor_311900_80161E24 = {
-    func_actor_311900_8016228C,
-    func_actor_311900_801623B0,
+    _actor311900InitRupert,
+    _actor311900UpdateRupert,
     enemyDestroy,
 };
 
-void func_actor_311900_8016222C(Task* task) { ... }
+static void _actor311900RupertTask(Task* task) { ... }
 
 INCLUDE_RODATA("actors/nonmatchings/actor_311900/actor_311900", ActorsShared80135df4Table);
 ```
@@ -48574,7 +48574,7 @@ scheduling one: do not reach for a scheduler barrier or a `do {} while (0)`
 wrapper. Both forms are in the tree, and the sibling whose disassembly has the
 load in the right place tells you which one to write - `enemyTeardownDelayTask`,
 `Actor00300_Fn04770` and `func_actor_310600_80162A7C` take the inline form,
-`Actor00400_Fn0793C` and `func_actor_311900_8016222C` the local. Matching the
+`Actor00400_Fn0793C` and `_actor311900RupertTask` the local. Matching the
 wrong sibling costs exactly the reorder and the missing `nop` (90.8% with
 `reorder=2 delete=1`, `regs=0`).
 
@@ -49244,7 +49244,7 @@ The element type is `EnemyTaskFunc` — `void (*)(Enemy*, Task*)` — so a
 handler m2c renders as a single `void *value` is really
 `(Enemy* enemy, Task* task)`. The *unused* leading `Enemy*` is what leaves
 the live pointer in `$a1`, and the body then copies `$a1` into `$a0` for its own
-calls — a copy the one-argument form cannot express. `func_actor_311900_801625F0`
+calls — a copy the one-argument form cannot express. `_actor311900UpdateSwat`
 is the worked example: the m2c seed scored 95.73% with `move s0,a0` against the
 target's `move s0,a1`, plus the branch-offset and `delete` penalties that follow
 from the body being one instruction short; restoring the dropped parameter
@@ -92389,7 +92389,7 @@ Inputs: `base.c` 100.000%, `base_1.c` (struct-typed port, temp kept) 100.000%,
 both zero penalties. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
-## The port out of `M2C_FIELD` carries the *load width* too, not just the value (func_actor_311900_801623B0, 2026-09-16)
+## The port out of `M2C_FIELD` carries the *load width* too, not just the value (_actor311900UpdateRupert, 2026-09-16)
 
 The same situation as the entry above - `base.c` an exact m2c seed (100.000%,
 zero penalties, first build) and only the port into struct style left - but the
@@ -101408,7 +101408,7 @@ target SHA256 `a4d80ef5810e91ce123de56640f474d60b649ba6756bef63efbcbc9d596ba43f`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_135600_80132C80-vacuum` (session `282d171ed39045cd99475934f00bb371`).
 
-## A dead identity splat is still written, and the tail it is overwritten by keeps off the pointer register (func_actor_311900_8016278C, 2026-09-16)
+## A dead identity splat is still written, and the tail it is overwritten by keeps off the pointer register (_actor311900InitRupertLighting, 2026-09-16)
 
 The target materialises an identity light / colour `MATRIX` pair with the usual
 five-store word splat (`sw`/`sw`/`sw`/`sw`/`sh`, see "A `MATRIX` identity splat
@@ -101422,16 +101422,12 @@ The two passes are reached differently, and that is what fixes the base
 registers. The splat's first store comes out on the outer pointer with the full
 displacement (`sw $v0,0x484($v1)`), the other four on a local pointer's register
 with small displacements (`sw $zero,4($a0)`), and *all nine* of the overwriting
-halfwords stay on the outer pointer (`sh $v0,0x4A4($v1)`). That is one local
-word-view pointer for the splat plus direct member writes for the overwrite:
+halfwords stay on the outer pointer (`sh $v0,0x4A4($v1)`). That is a local
+word-view pointer inside `gfxSetRotIdentity` for each splat, plus direct member
+writes for the overwrite:
 
 ```c
-    light = (GfxMatrix*)&work->light;   /* union: MATRIX + four words and a halfword */
-    light->rotationWords.m00M01 = 0x1000;                /* first store: 0x484($v1) */
-    light->rotationWords.m02M10 = 0;
-    light->rotationWords.m11M12 = 0x1000;
-    light->rotationWords.m20M21 = 0;
-    light->rotationWords.m22     = 0x1000;
+    gfxSetRotIdentity(&work->light);   /* four word stores and one halfword */
     /* ...the colour matrix, then the republish... */
     work->color.m[0][0] = 0x1000;                 /* 0x4A4($v1): no pointer involved */
 ```
@@ -101457,7 +101453,7 @@ is not a `_StageMusicSelection`: the spawn state `memCalloc`s it (0x4CC here) in
 onto `TmdObject::lightMtx` / `colorMtx` - the pair `_worldCoordInitPlayerLighting` otherwise
 points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `func_actor_317000_80162744` and
 `func_actor_350700_801624B4` are the same republish in their own overlays.
-`func_actor_311900_8016281C`, the very next unmatched function in this unit, is
+`_actor311900InitSwatLighting`, the very next unmatched function in this unit, is
 this body with a different light matrix: `m[0][0]` is `-0x1000` and the two
 entries this one zeroes are `0x1000`.
 
@@ -101470,15 +101466,16 @@ sibling in the same unit has already been written up, the sibling's *source* is
 the seed, not its m2c dump: the remaining work is the constant diff and nothing
 else.
 
-Evidence: scratch `nonmatchings/func_actor_311900_8016278C-vacuum/`. `base.c`
+Evidence: scratch `nonmatchings/_actor311900InitRupertLighting-vacuum/`. `base.c`
 `8e2bf86f…` (m2c seed, 87.78%, object `90bf4dd9…`), `base_1.c` `c94933f6…`
 (two store widths retyped, 100.000%), `base_2.c` `57f4a3af…` (typed port, same
 object `3bbd323f…` as `base_1.c`, `build.sh` reports it as a repeat). Compiler
 `60d886cd…` throughout. `_Actor311900Work` is declared in
-`src/actors/actor_311900/actor_311900.c`; `GfxMatrix` is declared in
+`src/actors/actor_311900/actor_311900.c`; `gfxSetRotIdentity` is declared in
+`include/main/gfx.h` and its packed `GfxRotationWords` view in
 `include/main/gfx_types.h`.
 
-## `regs` counts every operand field, so an immediate mismatch is a types bug, not allocation (func_actor_311900_801624F8, 2026-09-16)
+## `regs` counts every operand field, so an immediate mismatch is a types bug, not allocation (_actor311900InitSwat, 2026-09-16)
 
 `dist.py` - the scorer `build.sh` prints - is decomp-permuter's, and it charges
 a `regs` penalty for **any** differing comma-separated operand field on an
@@ -101526,23 +101523,23 @@ count by filling the gap, and re-check it against the assert:** `0x334 - 0x14
 `actor_503500` carry. Getting that wrong fails `STATIC_ASSERT_SIZEOF` on both
 the prefix and the work struct, which is the cheap place to find out.
 
-**Prediction, not yet run:** `func_actor_311900_8016228C` (the unit's other
+**Prediction, not yet run:** `_actor311900InitRupert` (the unit's other
 spawn, still `INCLUDE_ASM`) is this body with `gameFlagGetNibble(0xA) & 2`
-for `gameFlagGetNibble(1) >= 3`, `func_actor_311900_8016278C` for
-`func_actor_311900_8016281C`, `D_actor_311900_8016EBE8` for
+for `gameFlagGetNibble(1) >= 3`, `_actor311900InitRupertLighting` for
+`_actor311900InitSwatLighting`, `D_actor_311900_8016EBE8` for
 `D_actor_311900_8016EBF4`, plus two extra stores (`advanceFrames` / `advancing`
-to 0) and a view-dependent `obj->field_C` seed before the closing
-`func_actor_311900_80162100`. Its asm is the same shape up to those six
+to 0) and a view-dependent `model->flags` seed before the closing
+`_actor311900UpdateAnimation`. Its asm is the same shape up to those six
 edits, so porting this source with them should land it.
 
-Evidence: scratch `nonmatchings/func_actor_311900_801624F8-vacuum/`. `base.c`
+Evidence: scratch `nonmatchings/_actor311900InitSwat-vacuum/`. `base.c`
 `d2ab9a49…` (m2c seed, 99.839%, `regs=2`), `base_1.c` `d6212210…` (byte-offset
 casts, 100.000%), `base_2.c` `db5edc54…` (typed port, same object `bec5e572…`
 as `base_1.c`). Compiler `60d886cd…` throughout.
 
 ## A short-circuit `||` guard is what places a shared teardown block inline
 
-`func_actor_311900_8016228C` is the sibling of `func_actor_311900_801624F8` above,
+`_actor311900InitRupert` is the sibling of `_actor311900InitSwat` above,
 and the prediction at the end of that entry held: the port with the six named
 edits compiled to the target on the first build, 100.000%, all penalties zero.
 What the port needed beyond those edits was the shape of its first statement.
@@ -101589,14 +101586,14 @@ The compound condition's true label is a *forward* branch to the then-arm, and
 that arm is emitted where the condition ends - after the allocation sequence,
 before the main body - so the teardown lands inline; the last test then spells
 its false edge as a forward branch over it (`bnez s0, main`), and the main body
-falls through to the shared epilogue. The same TU's `func_actor_311900_801624F8`
+falls through to the shared epilogue. The same TU's `_actor311900InitSwat`
 is written this way and matches, so prefer the idiom over the m2c inversion
 whenever a teardown is shared between a guard and a failing allocation. This is
 the emission-point counterpart of the `&&`/`||` entry above: there the guard
 defeated a `jump.c` range swap, here it decides where a shared block is
 emitted, and in both the drop-through label is the thing to reach for.
 
-Evidence: scratch `nonmatchings/func_actor_311900_8016228C-vacuum/`. `base.c`
+Evidence: scratch `nonmatchings/_actor311900InitRupert-vacuum/`. `base.c`
 `4bccef77…` (m2c seed, 90.521%), `base_1.c` `5939d5da…` (preprocessed
 `6f10329a…`, 100.000%, object `b6b63c49…`). Compiler `60d886cd…`, unchanged
 from the sibling's session.
@@ -125587,7 +125584,7 @@ object to share - land it in the overlay `ASM:` names and leave the twin alone.
 
 ## A narrow parameter signs its extension on the incoming `$aN`; widening it plus a cast signs the promoted copy instead
 
-`func_actor_311900_80162658` reads its step twice: as a 16-bit test and return
+`_actorMovementStepForwardNonzero` reads its step twice: as a 16-bit test and return
 value, and as the raw word `gte_lddp` loads into `IR0` *after* two calls that
 would have clobbered `$a1`. The ROM spends two registers on it:
 
@@ -125608,7 +125605,7 @@ Declaring the parameter `s16 value` splits them, because the narrow parameter is
 not itself call-crossing — only the promoted copy the asm operand needs is:
 
 ```c
-s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)   /* 100% */
+s32 _actorMovementStepForwardNonzero(GfxCoord* coord, s16 stepDistance)   /* 100% */
 ```
 
 The pre-reload RTL already differs. With `s16` the extension is
@@ -125635,42 +125632,42 @@ Inputs: `base_3.i` (100.000%)
 The "step forward" idiom every actor family carries — scratch vector off
 `SCRATCH_STACK_CURSOR_SLOT`, `gfxReadMatrixZAxis` + `VectorNormalSS`, `gpf 12`, store back,
 add into `coord.t` — is one variable in the inline copies
-(`Actor201200_StepForward` and friends). `func_actor_311900_80162658` is the
+(`Actor201200_StepForward` and friends). `_actorMovementStepForwardNonzero` is the
 standalone version and keeps the pointer in *two* registers, `$s0` for the
 frame update and `$s3` for the GTE round trip, joined by a copy at the
 definition:
 
 ```
-lw    s4,0(s2)        /* head */
-addiu s0,s4,-8        /* vec = head - 1 */
+lw    s4,0(s2)        /* scratchEnd */
+addiu s0,s4,-8        /* displacement = scratchEnd - 1 */
 move  s3,s0           /* the second name */
 ```
 
-`SOFT_TOUCH_REG(vec)` does not produce it — its `.lreg` entry is a self-set,
+`SOFT_TOUCH_REG(displacement)` does not produce it — its `.lreg` entry is a self-set,
 `(set (reg/v:SI 83) (asm_operands ("") ("=r") 0 [(reg/v:SI 83)] ...))` — and no
 `"+r"` operand can: `expand_asm_operands` copies `output_rtx[j]` straight into
 the argvec, so input and output are one rtx and there is nothing to copy. What
 does produce it is writing the address expression a second time:
 
 ```c
-head                       = *(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT;
-vec                        = head - 1;
-gte                        = head - 1;   /* cse -> move s3,s0 */
-*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT = vec;
+scratchEnd                    = SCRATCH_STACK_CURSOR(SVECTOR);
+displacement                  = scratchEnd - 1;
+gteDisplacement               = scratchEnd - 1;   /* cse -> move s3,s0 */
+SCRATCH_STACK_CURSOR(SVECTOR) = displacement;
 ```
 
 Both definitions are `(set (reg) (plus (reg 82) (const_int -8)))` in the
 initial RTL; by the `.addressof` dump the second has become
 `(set (reg/v:SI 84) (reg/v:SI 83))`, and the register allocator keeps it
 because the first value is still live (the store and both call arguments use
-`vec`). The GTE operands then read the copy. Same lever as "A CSE copy names
+`displacement`). The GTE operands then read the copy. Same lever as "A CSE copy names
 the *second* read": the second read is what gets the copy, so put the name the
 GTE round trip uses *second*.
 
 Inputs: `base_2.i` (99.935%)
 `6a79fd929317a1e0f3b8a9eaf621f04447f11b675ba08d4f5a10c289b4ce34d9`.
 
-## cse2 re-canonicalises a pointer's equivalence class by *last use*, so which alias a strength-reduced walk names is decided after loop.c (func_actor_311900_80162100, 2026-09-17)
+## cse2 re-canonicalises a pointer's equivalence class by *last use*, so which alias a strength-reduced walk names is decided after loop.c (_actor311900UpdateAnimation, 2026-09-17)
 
 Three animation steps over one work block, each walking `slots[1..0x13]` at a
 0x28 stride, and the only mismatch left after the obvious source is the **base
@@ -125678,7 +125675,7 @@ register** of the slot walk's induction pointer:
 
 ```
 addiu s2,s3,0x28     /* target: built from `work`, the alias the step word uses */
-addiu s2,s1,0x28     /* ours:   built from `start`, the alias the fields use */
+addiu s2,s1,0x28     /* ours:   built from `reseedWork`, the alias the fields use */
 ```
 
 Two instructions, `99.867%`, `regs=2`. Everything else - the frame, the saved
@@ -125686,7 +125683,7 @@ Two instructions, `99.867%`, `regs=2`. Everything else - the frame, the saved
 one decision, not a shape problem.
 
 Both aliases hold `task->work`, so cse1 turns the second read into
-`(set start work)` and loop.c builds the giv on the pseudo the *address* names,
+`(set reseedWork work)` and loop.c builds the giv on the pseudo the *address* names,
 i.e. `work` (pseudo 81) - what the target has. `./insn.py 274` shows the next
 pass undoing it:
 
@@ -125699,7 +125696,7 @@ cse2 folds the two registers into one equivalence class and rewrites the class's
 members to its canonical. `make_regs_eqv` in `cse.c` picks that canonical as the
 member whose **last use is latest** - "if NEW will live longer than any other reg
 of the same qty ... make it the new canonical" - and in the obvious source
-`start` is the one that lives on, because step 3 re-reads `task->work` into it.
+`reseedWork` is the one that lives on, because step 3 re-reads `task->work` into it.
 
 So the lever is the *relative last-use order of the two aliases*, not the
 expression the walk is written with. Indexing the array through `work`
@@ -125710,14 +125707,16 @@ own -
 ```c
     if (work->animState == ACTOR_ENEMY_ANIM_TICK) {
         work->animFrames++;
-        tick = task->work;                        /* was: start = ... */
-        for (k = 1; k < ARRAY_SIZE(tick->rig.slots); k++) { animationTickSlot(&tick->rig.anim, k); }
+        playbackWork = task->work;                  /* was: reseedWork = ... */
+        for (tickSlot = 1; tickSlot < ARRAY_SIZE(playbackWork->rig.slots); tickSlot++) {
+            animationTickSlot(&playbackWork->rig.anim, tickSlot);
+        }
     }
 ```
 
-- ends `start` at the shared advance, leaves `work` with the later last use, and
-  100.000% with nothing else moved. `tick` is still allocated `$s1`, the register
-  `start` frees, so the step-3 loop is untouched. The three-alias shape is the
+- ends `reseedWork` at the shared advance, leaves `work` with the later last use, and
+  100.000% with nothing else moved. `playbackWork` is still allocated `$s1`, the register
+  `reseedWork` frees, so the step-3 loop is untouched. The three-alias shape is the
   one this family already writes (`func_acropolis_bridge_8018581C`'s
   `start`/`reset`/`tick`, `actor_110300`'s step machine), and the reason to keep
   it is this allocation, not style.
@@ -125729,7 +125728,7 @@ operand. Retargeting the walk's C expression does not move it; shortening the
 other alias's live range does. Two pointers holding the same value are only free
 while their live ranges do not decide an equivalence class.
 
-Inputs: scratch `nonmatchings/func_actor_311900_80162100-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor311900UpdateAnimation-vacuum`, `base.c`
 81.920% (`branch=6 regs=38 reorder=1 insert=3 delete=8`), `base_1.c` 99.867%
 (`regs=2`), `base_2.c` 99.867%, `base_3.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -127889,7 +127888,7 @@ Two things about the same function worth carrying forward. The 0x886 rate
 `u16` / `u8` union. It is a plain halfword: the reads are assignments to the
 `s8` `AnimationSlot.rate`, and GCC narrows a halfword load whose value is only
 stored to a byte into `lbu` by itself. And the body is one of a family
-(`func_actor_311900_80162100`, `func_acropolis_bridge_8018581C`) whose C is
+(`_actor311900UpdateAnimation`, `func_acropolis_bridge_8018581C`) whose C is
 written out: `work` plus a per-branch `start`/`reset`/`tick` alias, each
 re-loading `task->work`, the `for (i = 1; i < N; i++)` seeding loop, and the
 `advance:` label sitting *inside* the second branch. Copying that shape rather
@@ -129658,7 +129657,7 @@ no `sign_extend` equivalence, so the reload survives.
 `if ((work->field << 0x10) <= 0)`. A `timer = (u16)field - 1` temp also keeps the
 reload but loads `lhu` in a separate block below the `beqz`.
 
-### Re-read the element in each channel extract instead of caching it in a `u16` local (func_actor_311900_80161E3C, 2026-09-17)
+### Re-read the element in each channel extract instead of caching it in a `u16` local (_actor311900TickPaletteGreying, 2026-09-17)
 
 **Problem.** A 15-bit colour grey-fade loop splits `D[row][i]` into r/g/b. With
 `u16 c = D[row][i]; r = c & 0x1F; g = (c >> 5) & 0x1F; ...` the extracts land one
@@ -129668,7 +129667,7 @@ slot, stuck at ~95%.
 **Fix.** Write `r = D[row][i] & 0x1F; g = (D[row][i] >> 5) & 0x1F; ...`; cse
 merges the three reads into one `lhu` but the zero-extension then reuses the
 read's own register, as the target does (`andi v0,v0,0xffff`). Separately, an
-`s16 arg2` parameter (instead of `s32` with `(s16)arg2` casts) is what produced
+`s16 firstPaletteRow` parameter (instead of `s32` with `(s16)firstPaletteRow` casts) is what produced
 the target's entry copy of the argument into a call-clobbered register
 (`move t3,a2`), freeing `$a2` for a loop variable.
 

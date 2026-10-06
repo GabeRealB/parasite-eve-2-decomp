@@ -43,6 +43,16 @@ enum {
 /// task moves on to its teardown.
 enum { ACTOR_311900_ADVANCE_FRAMES = 0x5A };
 
+/// Mapped camera indices and the seen bit for the security-monitor figures.
+enum {
+    ACTOR_311900_RUPERT_VIEW = 0xA,
+    ACTOR_311900_SWAT_VIEW   = 0xB,
+    ACTOR_311900_RUPERT_SEEN = 1 << 1,
+};
+
+/// Both figures play the only populated entry of their animation set tables.
+enum { ACTOR_311900_ANIMATION_SET = 1 };
+
 /// Work block of either figure the package shows, allocated zeroed at its full
 /// size by the figure's spawn state and kept at `Task::work` for the task's
 /// life.
@@ -84,21 +94,23 @@ extern u8 D_actor_311900_8016EBE8[];
 /// The animation data the second setup path builds its clip context from.
 extern u8 D_actor_311900_8016EBF4[];
 
-/// The palette rows `func_actor_311900_80161E3C` reads back, greys and uploads.
+/// The palette rows `_actor311900TickPaletteGreying` reads back, greys and uploads.
 extern u16 D_actor_311900_8016EC18[][0x100];
 
-static void func_actor_311900_8016228C(Enemy* enemy, Task* task);
-static void func_actor_311900_801623B0(Enemy* enemy, Task* task);
-static void func_actor_311900_801624F8(Enemy* enemy, Task* task);
-static void func_actor_311900_801625F0(Enemy* enemy, Task* task);
-static s32  func_actor_311900_80162658(GfxCoord* arg0, s16 arg1);
-static void func_actor_311900_8016278C(Task* task);
-static void func_actor_311900_8016281C(Task* task);
+static void _actor311900InitRupert(Enemy* enemy, Task* task);
+static void _actor311900UpdateRupert(Enemy* enemy, Task* task);
+static void _actor311900InitSwat(Enemy* enemy, Task* task);
+static void _actor311900UpdateSwat(Enemy* enemy, Task* task);
+static s32  _actorMovementStepForwardNonzero(GfxCoord* coord, s16 stepDistance);
+static void _actor311900InitRupertLighting(Task* task);
+static void _actor311900InitSwatLighting(Task* task);
+static void _actor311900TickPaletteGreying(Task* task, s32 clutRowOffset, s16 firstPaletteRow);
+static void _actor311900UpdateAnimation(Task* task);
 
 static TmdSource _gActor311900RupertBroderickBody1;
 static TmdSource _gActor311900SwatMember2Body;
-void             func_actor_311900_8016222C(Task*);
-void             func_actor_311900_8016249C(Task*);
+static void      _actor311900RupertTask(Task* task);
+static void      _actor311900SwatTask(Task* task);
 
 static TmdBone _gActor311900RupertBroderickBody1Skeleton[20] = {
 #include "assets/rupert_broderick_body_1_skeleton.inc"
@@ -238,481 +250,466 @@ u8 D_actor_311900_8016EBF4[12] = {
     0,
 };
 
-TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016249C, { .model = &_gActor311900SwatMember2Body } };
+TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, _actor311900SwatTask, { .model = &_gActor311900SwatMember2Body } };
 
-TaskDesc D_actor_311900_8016EC0C = { { { TASK_BODY_TMD, 96 } }, func_actor_311900_8016222C, { .model = &_gActor311900RupertBroderickBody1 } };
+TaskDesc D_actor_311900_8016EC0C = { { { TASK_BODY_TMD, 96 } }, _actor311900RupertTask, { .model = &_gActor311900RupertBroderickBody1 } };
 
 u16 D_actor_311900_8016EC18[4][256];
 
-static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2);
-static void func_actor_311900_80162100(Task* task);
-
-/// Fades the two 256-entry CLUT rows `arg2` / `arg2 + 1` of the palette table
-/// to grey, one step of `_Actor311900Work::clutGreyStep` per call:
-/// `ACTOR_311900_CLUT_GREY_READ` reads the VRAM rows `arg1 + 0xF5` /
-/// `arg1 + 0xF6` back into the table, `ACTOR_311900_CLUT_GREY_CONVERT` sets each
-/// entry's three 5-bit channels to their maximum (keeping the STP bit set), and
-/// `ACTOR_311900_CLUT_GREY_UPLOAD` uploads the rows again, leaving
-/// `ACTOR_311900_CLUT_GREY_DONE`.
-static void func_actor_311900_80161E3C(Task* task, s32 arg1, s16 arg2)
+/// Greys a figure's two adjacent texture palettes over three calls.
+///
+/// `task->work` must hold a live `_Actor311900Work`. `clutRowOffset` selects
+/// VRAM rows 245 + offset and 246 + offset, each 256 RGB555 entries at X = 0.
+/// `firstPaletteRow` selects two rows of `D_actor_311900_8016EC18`: 0 for
+/// Rupert (offset 2), or 2 for the SWAT figure (offset 4). Keep that pair
+/// unchanged through read-back, conversion and upload; later calls do nothing.
+/// Conversion raises all channels to their maximum and forces the STP bit on.
+static void _actor311900TickPaletteGreying(Task* task, s32 clutRowOffset, s16 firstPaletteRow)
 {
+    enum {
+        ACTOR_311900_CLUT_BASE_Y       = 0xF5,
+        ACTOR_311900_CLUT_CHANNEL_MASK = 0x1F,
+        ACTOR_311900_CLUT_GREEN_SHIFT  = 5,
+        ACTOR_311900_CLUT_BLUE_SHIFT   = 10,
+        ACTOR_311900_CLUT_STP          = 0x8000,
+    };
     RECT              rect;
     _Actor311900Work* work;
-    s32               i;
-    u16               r;
-    u16               g;
-    u16               b;
+    s32               entryIndex;
+
+    /// Raises one RGB555 palette entry's channels to their maximum and sets STP.
+    ///
+    /// `entry` must be a writable u16 lvalue without side effects: it is evaluated
+    /// four times. Uses this function's `ACTOR_311900_CLUT_*` format constants;
+    /// the entry expression must not refer to the temporary names red, green or blue.
+#define ACTOR_311900_GREY_CLUT_ENTRY(entry)                                                                                        \
+    do {                                                                                                                           \
+        u16 red;                                                                                                                   \
+        u16 green;                                                                                                                 \
+        u16 blue;                                                                                                                  \
+        red   = (entry) & ACTOR_311900_CLUT_CHANNEL_MASK;                                                                          \
+        green = ((entry) >> ACTOR_311900_CLUT_GREEN_SHIFT) & ACTOR_311900_CLUT_CHANNEL_MASK;                                       \
+        blue  = ((entry) >> ACTOR_311900_CLUT_BLUE_SHIFT) & ACTOR_311900_CLUT_CHANNEL_MASK;                                        \
+        if (red < green) {                                                                                                         \
+            red = green;                                                                                                           \
+        } else {                                                                                                                   \
+            green = red;                                                                                                           \
+        }                                                                                                                          \
+        if (green < blue) {                                                                                                        \
+            green = blue;                                                                                                          \
+        } else {                                                                                                                   \
+            blue = green;                                                                                                          \
+        }                                                                                                                          \
+        if (blue < red) {                                                                                                          \
+            blue = red;                                                                                                            \
+        } else {                                                                                                                   \
+            red = blue;                                                                                                            \
+        }                                                                                                                          \
+        (entry) = red | (green << ACTOR_311900_CLUT_GREEN_SHIFT) | (blue << ACTOR_311900_CLUT_BLUE_SHIFT) | ACTOR_311900_CLUT_STP; \
+    } while (0)
 
     work = task->work;
+    // Separate GPU read-back, CPU conversion and upload across successive ticks.
     if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_READ) {
         rect.x = 0;
-        rect.y = arg1 + 0xF5;
-        rect.w = 0x100;
+        rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y;
+        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
         rect.h = 1;
-        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2]);
+        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow]);
         rect.x = 0;
-        rect.y = arg1 + 0xF6;
-        rect.w = 0x100;
+        rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y + 1;
+        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
         rect.h = 1;
-        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2 + 1]);
+        StoreImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow + 1]);
         work->clutGreyStep = ACTOR_311900_CLUT_GREY_CONVERT;
     } else if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_CONVERT) {
-        for (i = 0; i < 0x100; i++) {
-            r = D_actor_311900_8016EC18[arg2][i] & 0x1F;
-            g = (D_actor_311900_8016EC18[arg2][i] >> 5) & 0x1F;
-            b = (D_actor_311900_8016EC18[arg2][i] >> 10) & 0x1F;
-            if (r < g) {
-                r = g;
-            } else {
-                g = r;
-            }
-            if (g < b) {
-                g = b;
-            } else {
-                b = g;
-            }
-            if (b < r) {
-                b = r;
-            } else {
-                r = b;
-            }
-            D_actor_311900_8016EC18[arg2][i] = r | (g << 5) | (b << 10) | 0x8000;
+        for (entryIndex = 0; entryIndex < ARRAY_SIZE(D_actor_311900_8016EC18[0]); entryIndex++) {
+            ACTOR_311900_GREY_CLUT_ENTRY(D_actor_311900_8016EC18[firstPaletteRow][entryIndex]);
         }
-        for (i = 0; i < 0x100; i++) {
-            r = D_actor_311900_8016EC18[arg2 + 1][i] & 0x1F;
-            g = (D_actor_311900_8016EC18[arg2 + 1][i] >> 5) & 0x1F;
-            b = (D_actor_311900_8016EC18[arg2 + 1][i] >> 10) & 0x1F;
-            if (r < g) {
-                r = g;
-            } else {
-                g = r;
-            }
-            if (g < b) {
-                g = b;
-            } else {
-                b = g;
-            }
-            if (b < r) {
-                b = r;
-            } else {
-                r = b;
-            }
-            D_actor_311900_8016EC18[arg2 + 1][i] = r | (g << 5) | (b << 10) | 0x8000;
+        for (entryIndex = 0; entryIndex < ARRAY_SIZE(D_actor_311900_8016EC18[0]); entryIndex++) {
+            ACTOR_311900_GREY_CLUT_ENTRY(D_actor_311900_8016EC18[firstPaletteRow + 1][entryIndex]);
         }
+#undef ACTOR_311900_GREY_CLUT_ENTRY
         work->clutGreyStep = ACTOR_311900_CLUT_GREY_UPLOAD;
     } else if (work->clutGreyStep == ACTOR_311900_CLUT_GREY_UPLOAD) {
         rect.x = 0;
-        rect.y = arg1 + 0xF5;
-        rect.w = 0x100;
+        rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y;
+        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
         rect.h = 1;
-        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2]);
+        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow]);
         rect.x = 0;
-        rect.y = arg1 + 0xF6;
-        rect.w = 0x100;
+        rect.y = clutRowOffset + ACTOR_311900_CLUT_BASE_Y + 1;
+        rect.w = ARRAY_SIZE(D_actor_311900_8016EC18[0]);
         rect.h = 1;
-        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[arg2 + 1]);
+        LoadImage2(&rect, (u_long*)D_actor_311900_8016EC18[firstPaletteRow + 1]);
         work->clutGreyStep = ACTOR_311900_CLUT_GREY_DONE;
     }
 }
 
-/// Serves the animation request in `_Actor311900Work::animState` on slots 1..19
-/// of the work block's rig. `ACTOR_ENEMY_ANIM_BLEND` seeks every slot to the
-/// clip `animId` through `animationSeekSlotWithBlend`, `ACTOR_ENEMY_ANIM_RESET`
-/// resets them to it; each first gives the slot the rate in `animRate`, and
-/// both then record that clip in `appliedAnimId`, settle on
-/// `ACTOR_ENEMY_ANIM_TICK` and clear `animFrames`. That step only ticks the slots
-/// and counts frames.
+/// Records a reseeded clip and starts playback with a fresh update count.
 ///
-/// The two advances are one block in the ROM: jump.c cross-jumps them because
-/// both branches name the same local. The tick step reads the block again into an alias
-/// of its own -- keeping `start` dead before `work` there is what leaves the
-/// slot walk on the `work` register cse2 picks for it.
-static void func_actor_311900_80162100(Task* task)
+/// Both pointers must name the same live figure work block.
+static __inline__ void _actor311900CommitAnimationRequest(_Actor311900Work* work, _Actor311900Work* reseedWork)
+{
+    reseedWork->appliedAnimId = reseedWork->animId;
+    work->animState           = ACTOR_ENEMY_ANIM_TICK;
+    work->animFrames          = 0;
+}
+
+/// Applies an animation request or advances the figure's nineteen animated parts.
+///
+/// The live work block must have its context bound to the twenty-part model,
+/// matching slots, pose buffers and loaded set table. Slot 0 is the root and
+/// is left alone. Reset and blend requests select `animId`, record it in
+/// `appliedAnimId`, clear the update count and enter `ACTOR_ENEMY_ANIM_TICK`.
+/// Blend starts at the track's first record with zero transition frames.
+/// Tick increments the wrapping 16-bit count and advances slots 1 through 19;
+/// it does not end the task when a track reaches its end.
+/// Other request states leave the work block untouched.
+static void _actor311900UpdateAnimation(Task* task)
 {
     _Actor311900Work* work;
-    _Actor311900Work* start;
-    _Actor311900Work* tick;
-    s32               i;
-    s32               j;
-    s32               k;
+    _Actor311900Work* reseedWork;
+    _Actor311900Work* playbackWork;
+    s32               blendSlot;
+    s32               resetSlot;
+    s32               tickSlot;
 
     work = task->work;
+    // Reseeding leaves the root untouched and schedules playback for the next update.
     if (work->animState == ACTOR_ENEMY_ANIM_BLEND) {
-        start = task->work;
-        for (i = 1; i < ARRAY_SIZE(start->rig.slots); i++) {
-            start->rig.slots[i].rate = start->animRate;
-            animationSeekSlotWithBlend(&start->rig.anim, i, start->animId, 0, 0);
+        reseedWork = task->work;
+        for (blendSlot = 1; blendSlot < ARRAY_SIZE(reseedWork->rig.slots); blendSlot++) {
+            reseedWork->rig.slots[blendSlot].rate = reseedWork->animRate;
+            animationSeekSlotWithBlend(&reseedWork->rig.anim, blendSlot, reseedWork->animId, 0, 0);
         }
-        start->appliedAnimId = start->animId;
-        work->animState      = ACTOR_ENEMY_ANIM_TICK;
-        work->animFrames     = 0;
+        _actor311900CommitAnimationRequest(work, reseedWork);
         return;
     }
     if (work->animState == ACTOR_ENEMY_ANIM_RESET) {
-        start = task->work;
-        for (j = 1; j < ARRAY_SIZE(start->rig.slots); j++) {
-            start->rig.slots[j].rate = start->animRate;
-            animationResetSlot(&start->rig.anim, j, start->animId);
+        reseedWork = task->work;
+        for (resetSlot = 1; resetSlot < ARRAY_SIZE(reseedWork->rig.slots); resetSlot++) {
+            reseedWork->rig.slots[resetSlot].rate = reseedWork->animRate;
+            animationResetSlot(&reseedWork->rig.anim, resetSlot, reseedWork->animId);
         }
-        start->appliedAnimId = start->animId;
-        work->animState      = ACTOR_ENEMY_ANIM_TICK;
-        work->animFrames     = 0;
+        _actor311900CommitAnimationRequest(work, reseedWork);
         return;
     }
     if (work->animState == ACTOR_ENEMY_ANIM_TICK) {
         work->animFrames++;
-        tick = task->work;
-        for (k = 1; k < ARRAY_SIZE(tick->rig.slots); k++) {
-            animationTickSlot(&tick->rig.anim, k);
+        playbackWork = task->work;
+        for (tickSlot = 1; tickSlot < ARRAY_SIZE(playbackWork->rig.slots); tickSlot++) {
+            animationTickSlot(&playbackWork->rig.anim, tickSlot);
         }
     }
 }
 
-/// The actor's first state table - `func_actor_311900_8016228C`'s setup,
-/// `func_actor_311900_801623B0`'s tick and teardown - dispatched through by
-/// `func_actor_311900_8016222C`.
+/// The actor's first state table - `_actor311900InitRupert`'s setup,
+/// `_actor311900UpdateRupert`'s tick and teardown - dispatched through by
+/// `_actor311900RupertTask`.
 static const EnemyTaskFuncTable3 D_actor_311900_80161E24 = {
-    func_actor_311900_8016228C,
-    func_actor_311900_801623B0,
+    _actor311900InitRupert,
+    _actor311900UpdateRupert,
     enemyDestroy,
 };
 
-/// The actor's second state table - `func_actor_311900_801624F8`'s setup,
-/// `func_actor_311900_801625F0`'s tick and teardown - dispatched through by
-/// `func_actor_311900_8016249C`.
+/// The actor's second state table - `_actor311900InitSwat`'s setup,
+/// `_actor311900UpdateSwat`'s tick and teardown - dispatched through by
+/// `_actor311900SwatTask`.
 static const EnemyTaskFuncTable3 D_actor_311900_80161E30 = {
-    func_actor_311900_801624F8,
-    func_actor_311900_801625F0,
+    _actor311900InitSwat,
+    _actor311900UpdateSwat,
     enemyDestroy,
 };
 
-/// Runs the actor's state handler that `Task::state` selects. Copies the
-/// table onto the stack first, the same local jump table `enemyTeardownDelayTask`
-/// builds for the shared `Gp_EnemyWaitFuncs`, so the call goes through the
-/// stack copy rather than the overlay's own `.rodata`.
-void func_actor_311900_8016222C(Task* task)
+/// Dispatches Rupert's security-monitor task through initialization, playback and teardown.
+///
+/// `task->state` must be 0, 1 or 2, with a live owned `Enemy` in
+/// `spawnArg2.pointer`. Initialization allocates the task's work; playback
+/// requires that allocation. The selected handler may release both objects.
+static void _actor311900RupertTask(Task* task)
 {
     Enemy*              enemy;
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    enemy = task->spawnArg2.pointer;
-    sp    = D_actor_311900_80161E24;
-    sp.funcs[task->state](enemy, task);
+    enemy         = task->spawnArg2.pointer;
+    stateHandlers = D_actor_311900_80161E24;
+    stateHandlers.funcs[task->state](enemy, task);
 }
 
-/// The actor's first setup path, reached through `D_actor_311900_80161E24`. It
-/// tears the enemy down instead while game flag 0xA's nibble 2 -- the bit
-/// `func_actor_311900_801623B0` raises once the view reaches 0xA -- is already
-/// up, or when the `_Actor311900Work` block cannot be allocated into
-/// `Task::work`.
+/// Initializes Rupert's animated model for his one-shot security-monitor scene.
 ///
-/// Otherwise it splats the light / colour pair `func_actor_311900_8016278C`
-/// writes onto the model root's `field_1C` / `field_20` slots, points
-/// `Enemy::field_4` at the root coordinate's matrix, re-parents that root to
-/// `gGfxViewCoord`, builds the animation context `animationInitContext` over the
-/// block's slot array and packed-pose run, requests clip 1 from its start
-/// (`animState` / `animId`), zeroes `advanceFrames` and `advancing`, and publishes
-/// the view-dependent light level exactly as the tick does.
-static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
+/// `enemy` and its owning TMD `task` must be live, with the twenty-part model
+/// loaded. An already-seen scene or failed work allocation destroys them.
+/// Otherwise the model borrows lighting and animation storage from the zeroed
+/// work block until task teardown, and its root is parented to the view frame.
+/// Playback starts on set 1; only Rupert's mapped camera draws the figure.
+static void _actor311900InitRupert(Enemy* enemy, Task* task)
 {
     _Actor311900Work* work;
-    GfxCoord*         coord;
-    TmdObject*        obj;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if ((gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 2) ||
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    if ((gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & ACTOR_311900_RUPERT_SEEN) ||
         (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
     }
-    func_actor_311900_8016278C(task);
-    enemy->field_4  = &coord->coord;
+    _actor311900InitRupertLighting(task);
+    enemy->field_4  = &rootCoord->coord;
     enemy->field_48 = 0;
-    obj->flags      = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBE8, obj, work->rig.poses,
+    model->flags    = 0;
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBE8, model, work->rig.poses,
                          work->rig.slots);
-    coord->parent       = &gGfxViewCoord;
+    rootCoord->parent   = &gGfxViewCoord;
     work->animState     = ACTOR_ENEMY_ANIM_RESET;
-    work->animId        = 1;
+    work->animId        = ACTOR_311900_ANIMATION_SET;
     work->advanceFrames = 0;
     work->advancing     = 0;
-    if ((viewGetMappedIndex() & 0xFF) == 0xA) {
-        obj->flags = 0;
+    if ((viewGetMappedIndex() & 0xFF) == ACTOR_311900_RUPERT_VIEW) {
+        model->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    func_actor_311900_80162100(task);
+    _actor311900UpdateAnimation(task);
     task->state += 1;
 }
 
-/// The actor's per-frame tick. Publishes the view-dependent light level into
-/// `TmdObject::flags` (0 at view 0xA, 0x80 otherwise), and while the work
-/// block's `advancing` latch is up, counts frames in `advanceFrames` and nudges the
-/// model along the coordinate part `func_actor_311900_80162658` walks. The
-/// counter reaching `ACTOR_311900_ADVANCE_FRAMES` raises game flag 0x102 and
-/// advances the state.
-static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
+/// Advances Rupert's security-monitor scene and completes it after ninety walking updates.
+///
+/// Requires the initialized task and its live work and model. Viewing Rupert
+/// records the seen bit and permanently starts his forward walk; later camera
+/// changes hide the model without stopping playback or the walk counter.
+/// Each walking tick requests 36 parent-coordinate units along local Z.
+/// Actor freezing suppresses displacement, but the counter still advances.
+/// Completion records the scene-done flag and selects teardown for the next call.
+static void _actor311900UpdateRupert(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_311900_RUPERT_ADVANCE_DISTANCE = 0x24, // Parent-coordinate units per tick
+        ACTOR_311900_RUPERT_CLUT_ROW_OFFSET  = 2,
+        ACTOR_311900_RUPERT_PALETTE_ROW      = 0,
+    };
     _Actor311900Work* work;
-    GfxCoord*         coord;
-    TmdObject*        obj;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
 
-    obj   = task->extra.tmd;
-    work  = task->work;
-    coord = obj->coords;
-    func_actor_311900_80161E3C(task, 2, 0);
-    if ((viewGetMappedIndex() & 0xFF) == 0xA) {
-        gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 2);
-        obj->flags      = 0;
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
+    _actor311900TickPaletteGreying(task, ACTOR_311900_RUPERT_CLUT_ROW_OFFSET, ACTOR_311900_RUPERT_PALETTE_ROW);
+    if ((viewGetMappedIndex() & 0xFF) == ACTOR_311900_RUPERT_VIEW) {
+        gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | ACTOR_311900_RUPERT_SEEN);
+        model->flags    = 0;
         work->advancing = 1;
     } else {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
+    // Once seen, the walk continues even while another camera hides the model.
     if (work->advancing == 1) {
         work->advanceFrames++;
-        func_actor_311900_80162658(coord, 0x24);
+        _actorMovementStepForwardNonzero(rootCoord, ACTOR_311900_RUPERT_ADVANCE_DISTANCE);
     }
-    func_actor_311900_80162100(task);
+    _actor311900UpdateAnimation(task);
     if (work->advanceFrames >= ACTOR_311900_ADVANCE_FRAMES) {
         gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE, 1);
         task->state++;
     }
 }
 
-/// Runs the actor's second state table - `func_actor_311900_801624F8`'s setup,
-/// `func_actor_311900_801625F0`'s tick and `enemyDestroy` - at the handler
-/// `Task::state` selects. The table is copied onto the stack before the call,
-/// the same shape as `func_actor_311900_8016222C` for the first table.
-void func_actor_311900_8016249C(Task* task)
+/// Dispatches the SWAT figure's security-monitor task through initialization, playback and teardown.
+///
+/// `task->state` must be 0, 1 or 2, with a live owned `Enemy` in
+/// `spawnArg2.pointer`. Playback requires initialization's work allocation.
+/// The selected handler may release both objects; playback stays in state 1.
+static void _actor311900SwatTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = D_actor_311900_80161E30;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    stateHandlers = D_actor_311900_80161E30;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// The `D_actor_311900_80161E30` spawn handler -- the actor's second setup
-/// path, reached through the three-entry table whose tick is
-/// `func_actor_311900_801625F0`. It is the same setup `func_actor_311900_8016228C`
-/// performs for the first table, under different conditions: the enemy is torn
-/// down instead while game flag 1 has already reached nibble 3, and the work
-/// block gets the light / colour pair `func_actor_311900_8016281C` splats
-/// (rather than `func_actor_311900_8016278C`'s) from a different animation run
-/// (`D_actor_311900_8016EBF4`, not `D_actor_311900_8016EBE8`).
+/// Initializes the stationary SWAT figure shown on its security-monitor camera.
 ///
-/// The `_Actor311900Work` block goes into `Task::work`. `Enemy::field_4` takes the
-/// model's root coordinate's
-/// matrix, the root's `parent` is re-parented to `gGfxViewCoord`, the animation
-/// context is built over the block's slot array and packed-pose run, and the
-/// `animState` / `animId` request clip 1 from its start. Note this handler,
-/// unlike `func_actor_311900_8016228C`, does not touch `advanceFrames` / `advancing`
-/// or the model's `field_C`.
-static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
+/// `enemy` and its owning TMD `task` must be live, with the twenty-part model
+/// loaded. Route progress at or beyond 3, or a failed work allocation, destroys
+/// them. Otherwise the model borrows the zeroed work block's lighting and
+/// animation storage until teardown. Its root is parented to the view frame,
+/// and set 1 begins playback; camera visibility is applied on the next tick.
+static void _actor311900InitSwat(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_311900_SWAT_ROUTE_LIMIT = 3 };
     _Actor311900Work* work;
-    GfxCoord*         coord;
-    TmdObject*        obj;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) >= 3 ||
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) >= ACTOR_311900_SWAT_ROUTE_LIMIT ||
         (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
     }
-    func_actor_311900_8016281C(task);
-    enemy->field_4  = &coord->coord;
+    _actor311900InitSwatLighting(task);
+    enemy->field_4  = &rootCoord->coord;
     enemy->field_48 = 0;
-    obj->flags      = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBF4, obj, work->rig.poses,
+    model->flags    = 0;
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBF4, model, work->rig.poses,
                          work->rig.slots);
-    coord->parent   = &gGfxViewCoord;
-    work->animState = ACTOR_ENEMY_ANIM_RESET;
-    work->animId    = 1;
-    func_actor_311900_80162100(task);
+    rootCoord->parent = &gGfxViewCoord;
+    work->animState   = ACTOR_ENEMY_ANIM_RESET;
+    work->animId      = ACTOR_311900_ANIMATION_SET;
+    _actor311900UpdateAnimation(task);
     task->state += 1;
 }
 
-static void func_actor_311900_801625F0(Enemy* enemy, Task* task)
+/// Greys and animates the stationary SWAT figure, drawing it only on its mapped camera.
+///
+/// Requires the initialized task and its live work and model. Palette processing
+/// and animation continue on other views. This handler does not advance task state.
+static void _actor311900UpdateSwat(Enemy* enemy, Task* task)
 {
-    TmdObject* obj;
+    enum {
+        ACTOR_311900_SWAT_CLUT_ROW_OFFSET = 4,
+        ACTOR_311900_SWAT_PALETTE_ROW     = 2,
+    };
+    TmdObject* model;
 
-    obj = task->extra.tmd;
-    func_actor_311900_80161E3C(task, 4, 2);
-    if ((viewGetMappedIndex() & 0xFF) == 0xB) {
-        obj->flags = 0;
+    model = task->extra.tmd;
+    _actor311900TickPaletteGreying(task, ACTOR_311900_SWAT_CLUT_ROW_OFFSET, ACTOR_311900_SWAT_PALETTE_ROW);
+    if ((viewGetMappedIndex() & 0xFF) == ACTOR_311900_SWAT_VIEW) {
+        model->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    func_actor_311900_80162100(task);
+    _actor311900UpdateAnimation(task);
 }
 
-/// Takes `arg1` as a signed 16-bit step, builds a direction vector from
-/// `arg0->coord`'s rotation with `gfxReadMatrixZAxis`, normalizes it with
-/// `VectorNormalSS`, scales it by the step on the GTE, adds it to
-/// `arg0->coord.t` and clears `arg0->composeStamp`. Returns the step, or 0 having
-/// touched nothing while the game is paused (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1`) or when the
-/// step is zero. `arg0` is the per-part `GfxCoord` the caller takes from
-/// `TmdObject::coords`.
+/// Translates a coordinate along its normalized local Z axis for a nonzero signed step.
 ///
-/// The scratch-pad vector is carved out under two names: `vec`, which the
-/// frame update stores and the calls normalize, and `gte`, which the GTE round
-/// trip reads and writes back. The object keeps them apart, and that is what
-/// the copy ahead of the `if` is.
-static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
+/// `coord` must be live and writable. `stepDistance` is in parent-coordinate
+/// units; negative steps move backward. Normalization removes matrix scale,
+/// then GTE fixed-point scaling narrows the displacement to signed halfwords.
+/// The initialized scratch stack must have room for one aligned `SVECTOR`.
+/// It is released before return; GTE state is overwritten and no pointer retained.
+/// Returns the requested step, or 0 when live `actorsFrozen` equals 1.
+/// A zero step reserves and releases scratch without dirtying the coordinate.
+static s32 _actorMovementStepForwardNonzero(GfxCoord* coord, s16 stepDistance)
 {
-    SVECTOR* head;
-    SVECTOR* vec;
-    SVECTOR* gte;
+    enum { ACTOR_MOVEMENT_FROZEN = 1 };
+    SVECTOR* scratchEnd;
+    SVECTOR* displacement;
+    SVECTOR* gteDisplacement;
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == ACTOR_MOVEMENT_FROZEN) {
         return 0;
     }
-    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-    vec                           = head - 1;
-    gte                           = head - 1;
-    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-    if (arg1 != 0) {
-        gfxReadMatrixZAxis(&arg0->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(arg1);
-        gte_ldsv(gte);
+    scratchEnd                    = SCRATCH_STACK_CURSOR(SVECTOR);
+    displacement                  = scratchEnd - 1;
+    gteDisplacement               = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(SVECTOR) = displacement;
+    if (stepDistance != 0) {
+        // The local axis and translation share the coordinate's parent space.
+        gfxReadMatrixZAxis(&coord->coord, displacement);
+        VectorNormalSS(displacement, displacement);
+        gte_lddp(stepDistance);
+        gte_ldsv(gteDisplacement);
         gte_gpf12();
-        gte_stsv(gte);
-        arg0->coord.t[0]  += head[-1].vx;
-        arg0->coord.t[1]  += vec->vy;
-        arg0->coord.t[2]  += vec->vz;
-        arg0->composeStamp = GRAPHICS_COORD_DIRTY;
+        gte_stsv(gteDisplacement);
+        coord->coord.t[0]  += scratchEnd[-1].vx;
+        coord->coord.t[1]  += displacement->vy;
+        coord->coord.t[2]  += displacement->vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-    return arg1;
+    return stepDistance;
 }
 
-/// Splats an identity light / colour matrix pair into the work block the spawn
-/// state carved out of `Task::work`, republishes both onto the
-/// `TmdObject::lightMtx` / `colorMtx` slots that the renderer otherwise reads
-/// from `Gp_DefaultMtx` / `Gp_DefaultMtx2`, and then overwrites each 3x3 with
-/// the values the actor lights its model with -- the light matrix flat except
-/// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
-static void func_actor_311900_8016278C(Task* task)
+/// Installs Rupert's fixed monochrome lighting matrices on his monitor model.
+///
+/// The task must own a live zeroed work block and TMD model. All three colour
+/// rows sum the light channels with unit coefficients. The direction matrix
+/// has unit coefficients except zero at [1][0] and [2][2]. The renderer borrows
+/// both matrices until work release; their zero translations give no background colour.
+static void _actor311900InitRupertLighting(Task* task)
 {
-    GfxMatrix*        color;
-    GfxMatrix*        light;
-    TmdObject*        ext;
+    TmdObject*        model;
     _Actor311900Work* work;
 
     work  = task->work;
-    ext   = task->extra.tmd;
-    light = (GfxMatrix*)&work->light;
-    color = (GfxMatrix*)&work->color;
+    model = task->extra.tmd;
 
-    light->rotationWords.m00M01 = ONE;
-    light->rotationWords.m02M10 = 0;
-    light->rotationWords.m11M12 = ONE;
-    light->rotationWords.m20M21 = 0;
-    light->rotationWords.m22    = ONE;
+    // Seed through the packed view, then install the figure's coefficients.
+    gfxSetRotIdentity(&work->light);
+    gfxSetRotIdentity(&work->color);
 
-    color->rotationWords.m00M01 = ONE;
-    color->rotationWords.m02M10 = 0;
-    color->rotationWords.m11M12 = ONE;
-    color->rotationWords.m20M21 = 0;
-    color->rotationWords.m22    = ONE;
+    model->lightMtx = &work->light;
 
-    ext->lightMtx = &work->light;
+    work->color.m[0][0] = ONE;
+    work->color.m[0][1] = ONE;
+    work->color.m[0][2] = ONE;
+    work->color.m[1][0] = ONE;
+    work->color.m[1][1] = ONE;
+    work->color.m[1][2] = ONE;
+    work->color.m[2][0] = ONE;
+    work->color.m[2][1] = ONE;
+    work->color.m[2][2] = ONE;
 
-    work->color.m[0][0] = 0x1000;
-    work->color.m[0][1] = 0x1000;
-    work->color.m[0][2] = 0x1000;
-    work->color.m[1][0] = 0x1000;
-    work->color.m[1][1] = 0x1000;
-    work->color.m[1][2] = 0x1000;
-    work->color.m[2][0] = 0x1000;
-    work->color.m[2][1] = 0x1000;
-    work->color.m[2][2] = 0x1000;
-
-    work->light.m[0][0] = 0x1000;
-    work->light.m[0][1] = 0x1000;
-    work->light.m[0][2] = 0x1000;
+    work->light.m[0][0] = ONE;
+    work->light.m[0][1] = ONE;
+    work->light.m[0][2] = ONE;
     work->light.m[1][0] = 0;
-    work->light.m[1][1] = 0x1000;
-    work->light.m[1][2] = 0x1000;
-    work->light.m[2][0] = 0x1000;
-    work->light.m[2][1] = 0x1000;
+    work->light.m[1][1] = ONE;
+    work->light.m[1][2] = ONE;
+    work->light.m[2][0] = ONE;
+    work->light.m[2][1] = ONE;
     work->light.m[2][2] = 0;
 
-    ext->colorMtx = &work->color;
+    model->colorMtx = &work->color;
 }
 
-/// Same splat as `func_actor_311900_8016278C`, republishing the light / colour
-/// pair onto `TmdObject::lightMtx` / `colorMtx` between the identity seed and
-/// the per-actor values: the colour matrix goes fully pass-through, the light
-/// matrix flat except for a negated `m[0][0]`.
-static void func_actor_311900_8016281C(Task* task)
+/// Installs the SWAT figure's fixed monochrome lighting matrices on its monitor model.
+///
+/// The task must own a live zeroed work block and TMD model. All three colour
+/// rows sum the light channels with unit coefficients. The direction matrix
+/// is all unit coefficients except negative unity at [0][0]. The renderer
+/// borrows both matrices until work release; their translations stay zero.
+static void _actor311900InitSwatLighting(Task* task)
 {
-    GfxMatrix*        color;
-    GfxMatrix*        light;
-    TmdObject*        ext;
+    TmdObject*        model;
     _Actor311900Work* work;
 
     work  = task->work;
-    ext   = task->extra.tmd;
-    light = (GfxMatrix*)&work->light;
-    color = (GfxMatrix*)&work->color;
+    model = task->extra.tmd;
 
-    light->rotationWords.m00M01 = ONE;
-    light->rotationWords.m02M10 = 0;
-    light->rotationWords.m11M12 = ONE;
-    light->rotationWords.m20M21 = 0;
-    light->rotationWords.m22    = ONE;
+    // Seed through the packed view, then install the figure's coefficients.
+    gfxSetRotIdentity(&work->light);
+    gfxSetRotIdentity(&work->color);
 
-    color->rotationWords.m00M01 = ONE;
-    color->rotationWords.m02M10 = 0;
-    color->rotationWords.m11M12 = ONE;
-    color->rotationWords.m20M21 = 0;
-    color->rotationWords.m22    = ONE;
+    model->lightMtx = &work->light;
 
-    ext->lightMtx = &work->light;
+    work->color.m[0][0] = ONE;
+    work->color.m[0][1] = ONE;
+    work->color.m[0][2] = ONE;
+    work->color.m[1][0] = ONE;
+    work->color.m[1][1] = ONE;
+    work->color.m[1][2] = ONE;
+    work->color.m[2][0] = ONE;
+    work->color.m[2][1] = ONE;
+    work->color.m[2][2] = ONE;
 
-    work->color.m[0][0] = 0x1000;
-    work->color.m[0][1] = 0x1000;
-    work->color.m[0][2] = 0x1000;
-    work->color.m[1][0] = 0x1000;
-    work->color.m[1][1] = 0x1000;
-    work->color.m[1][2] = 0x1000;
-    work->color.m[2][0] = 0x1000;
-    work->color.m[2][1] = 0x1000;
-    work->color.m[2][2] = 0x1000;
+    work->light.m[0][0] = -ONE;
+    work->light.m[0][1] = ONE;
+    work->light.m[0][2] = ONE;
+    work->light.m[1][0] = ONE;
+    work->light.m[1][1] = ONE;
+    work->light.m[1][2] = ONE;
+    work->light.m[2][0] = ONE;
+    work->light.m[2][1] = ONE;
+    work->light.m[2][2] = ONE;
 
-    work->light.m[0][0] = -0x1000;
-    work->light.m[0][1] = 0x1000;
-    work->light.m[0][2] = 0x1000;
-    work->light.m[1][0] = 0x1000;
-    work->light.m[1][1] = 0x1000;
-    work->light.m[1][2] = 0x1000;
-    work->light.m[2][0] = 0x1000;
-    work->light.m[2][1] = 0x1000;
-    work->light.m[2][2] = 0x1000;
-
-    ext->colorMtx = &work->color;
+    model->colorMtx = &work->color;
 }
