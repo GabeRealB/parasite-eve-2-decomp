@@ -201,6 +201,7 @@ void Gp_EndingTask(Task* arg0)
         sndEvtRequestScriptStart(SOUND_AREA_EXIT, 0, 0);
         Gp_SpawnScript18(D_80114A24, D_80114A34);
         Gp_SetCurAreaFlag4();
+        arg0->state++;
     } else if (arg0->state == 1) {
         session = gGameSession;
         if (!(session->flowFlags & GAME_SESSION_FLOW_SKIP_ENDING_MUSIC)) {
@@ -214,11 +215,8 @@ void Gp_EndingTask(Task* arg0)
         } else {
             gStageMusicLoadState = 0xFF;
         }
-    } else {
-        goto countdown;
+        arg0->state++;
     }
-    arg0->state++;
-countdown:
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
         if (gStageMusicLoadState == 0xFF) {
