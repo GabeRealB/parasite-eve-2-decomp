@@ -181,7 +181,8 @@ void func_inferno_8012EF88(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        goto release;
+        effectKillTask(mem, arg0);
+        return;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
@@ -270,7 +271,6 @@ void func_inferno_8012EF88(Task* arg0)
         default:
             return;
     }
-release:
     effectKillTask(mem, arg0);
 }
 
