@@ -268,11 +268,17 @@ void func_combustion_8012F2BC(Task* arg0)
     }
 }
 
-/// Sets the opposite corner pairs of a square billboard around its projected centre.
+/// Writes the screen corners of an axis-aligned square billboard.
 ///
-/// `quad` is writable and `scratch` has an initialized centre and half-extent.
-/// Both borrow live storage. The centre and signed half-extent are narrowed
-/// modulo 65536 for the GPU's signed 16-bit coordinates.
+/// Borrows a writable `quad` and read-only `scratch` with initialized
+/// `screenX`, `screenY` and `screenExtent`. The extent is the signed pixel
+/// half-size, already perspective-scaled by the caller. Only the packet's
+/// X/Y fields change: vertices 0/1 form the minus-Y pair, 2/3 the plus-Y pair,
+/// with even vertices on minus-X and odd vertices on plus-X.
+///
+/// Centre/extent arithmetic keeps the low 16 bits, interpreted as signed GPU
+/// pixel coordinates; a negative extent reverses the corner pairs. Neither
+/// pointer is retained, and ownership stays with the caller.
 static inline void _combustionSetBillboardCorners(POLY_FT4* quad, const EffectCentreScratch* scratch)
 {
     s16 cornerX;
@@ -363,10 +369,16 @@ static void _combustionDrawSmallFlame(const GfxCoord* coord, s16 animationFrame,
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Advances an ember along its coordinate's Y axis and recomposes its world transform.
+/// Moves an ember in parent-space Y and refreshes its composed transform.
 ///
-/// `riseStep` is the signed displacement per tick in the parent frame's units;
-/// Combustion initializes it in -383..0. The coordinate remains owned by its task.
+/// `riseStep` is a signed displacement in game coordinate units per task tick,
+/// added to the local-to-parent translation, independently of the ember's
+/// own rotation. Combustion chooses -randomByte - 64 * levelIndex, with
+/// `levelIndex` in 0..2, giving -383..0. The translation sum must fit s32.
+///
+/// Borrows a writable task-owned `coord` and its live, acyclic parent chain.
+/// Clears the composition stamp before recomposing, so the cached transform
+/// is ready for drawing on return. Ownership stays with the task.
 static inline void _combustionRiseEmber(GfxCoord* coord, s16 riseStep)
 {
     s32 nextY;
