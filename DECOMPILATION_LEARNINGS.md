@@ -148610,7 +148610,7 @@ set in the same block as the compare and after the `lh`, yet unknown to cse2.
 
 **2026-10-06, `Gp_BuildAttachList` resolved, and `Gp_CountAmmoRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
 
-**2026-10-07, `Gp_DrawAmmoRow` resolved without pins or barriers.** The table row above compared the wrong pair: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
+**2026-10-07, `Gp_DrawAmmoRow` resolved without pins or barriers.** The table row above is right about the list pointer but treats it as a two-way contest, and the inlined colour pseudo (937) has to rank below both: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
 ## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
 
 **Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
