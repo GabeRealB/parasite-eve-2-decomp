@@ -47112,16 +47112,16 @@ the load itself, while the dependent store stays put (and still fills the
 `jal` delay slot):
 
 ```c
-parent            = mem->field_8;   /* lw v0,8(s0) — now first */
-coord->coord.t[0] = 0;
-coord->coord.t[1] = 0;
-coord->coord.t[2] = 0;
-coord->composeStamp        = 0;
-coord->parent        = parent;         /* sw v0,0x4c(s1) — still in the delay slot */
-actorRenderComposeCoord(coord);
+parent            = work->parent;   /* lw v0,8(s0) — now first */
+impactCoord->coord.t[0] = 0;
+impactCoord->coord.t[1] = 0;
+impactCoord->coord.t[2] = 0;
+impactCoord->composeStamp        = 0;
+impactCoord->parent        = parent;         /* sw v0,0x4c(s1) — still in the delay slot */
+actorRenderComposeCoord(impactCoord);
 ```
 
-`func_m4a1_hammer_8011DD08` is the example; it was the only diff at 99.3%.
+`m4a1HammerImpactFlashTask` is the example; it was the only diff at 99.3%.
 
 ## Which room work block a helper belongs to: follow the caller, not the offsets
 
@@ -56729,14 +56729,14 @@ by hand does not just move code, it changes what combine is allowed to fold.
 
 ## Name a loop's `i + K` index in a local to break a local-alloc tie
 
-`func_m4a1_hammer_8011D1E0` reached "every one of 457 instructions identical,
+`m4a1HammerGlowTask` reached "every one of 457 instructions identical,
 two registers permuted": in the spark loop, two chained LCG draws
 
 ```c
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-D_m4a1_hammer_8012D630[i] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+D_m4a1_hammer_8012D630[sparkIndex] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-D_m4a1_hammer_8012D630[i + 8] += (gRandomLcgState >> 16) & 0xFF;
+D_m4a1_hammer_8012D630[sparkIndex + 8] += (gRandomLcgState >> 16) & 0xFF;
 ```
 
 put the first draw in `$a1` and the second in `$a2`, where the target has them
@@ -56748,7 +56748,7 @@ is allocated first and takes the lower register.
 What did *not* work, and is worth not repeating: every semantically valid
 permutation of the four statements, hoisting either draw into an explicit
 `u32` temporary, moving either `gRandomLcgState` store earlier or later,
-reordering the declarations, hoisting `(SVECTOR*)&work->field_18` out of the
+reordering the declarations, hoisting `&work->pos` out of the
 loop, rewriting the `for` as a `do`/`while`, and `SOFT_USE_REG` /
 `SOFT_TOUCH_REG` on the second draw. All of them re-normalise to the same RTL
 and score identically, because `sched1` reschedules the block into the same
@@ -56758,19 +56758,19 @@ order before `local_alloc` measures the ranges. Two rounds of decomp-permuter
 What worked was giving the *index* a name:
 
 ```c
-for (i = 0; i < 8; i++) {
-    j = i + 8;
+for (sparkIndex = 0; sparkIndex < 8; sparkIndex++) {
+    heightIndex = sparkIndex + 8;
     gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-    D_m4a1_hammer_8012D630[i] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+    D_m4a1_hammer_8012D630[sparkIndex] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
     gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-    D_m4a1_hammer_8012D630[j] += (gRandomLcgState >> 16) & 0xFF;
+    D_m4a1_hammer_8012D630[heightIndex] += (gRandomLcgState >> 16) & 0xFF;
     ...
-    work->field_1A = D_m4a1_hammer_8012D630[j];
+    work->pos.vy = D_m4a1_hammer_8012D630[heightIndex];
 }
 ```
 
-`j` becomes its own induction variable, so `loop` strength-reduces it
-separately and the `&arr[i + 8]` address is live from the top of the body
+`heightIndex` becomes its own induction variable, so `loop` strength-reduces it
+separately and the `&arr[sparkIndex + 8]` address is live from the top of the body
 rather than being rebuilt where it is used. That shifts `sched1`'s order by a
 couple of slots, which is enough to move the two draws' live ranges across the
 priority crossover — 99.83% to 100.00%, with the emitted instruction sequence

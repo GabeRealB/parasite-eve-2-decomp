@@ -579,7 +579,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fountain_8017E014, { NULL } },                            // 0x026
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_observatory_8017E6F8, { NULL } },                         // 0x027
     { { { TASK_BODY_COORD, 0x70 } }, acropolisObservatoryAmbientGlowTask, { NULL } },                         // 0x028
-    { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_hammer_8011D1E0, { NULL } },                                   // 0x029
+    { { { TASK_BODY_COORD, 0x70 } }, m4a1HammerGlowTask, { NULL } },                                          // 0x029
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_pyke_8011D1F8, { NULL } },                                     // 0x02A
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask2B, { NULL } },                                             // 0x02B
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                     // 0x02C
@@ -924,7 +924,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_pyke_8011D7D4, { NULL } },                                     // 0x17F
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_80161F20, { NULL } },                                  // 0x180
     { { { TASK_BODY_COORD, 0x70 } }, actor800100PykeFlameTask, { NULL } },                                    // 0x181
-    { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_hammer_8011DD08, { NULL } },                                   // 0x182
+    { { { TASK_BODY_COORD, 0x70 } }, m4a1HammerImpactFlashTask, { NULL } },                                   // 0x182
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinContactFlashTask, { NULL } },                                 // 0x183
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_8013482C, { NULL } },                                  // 0x184
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801346D4, { NULL } },                                  // 0x185

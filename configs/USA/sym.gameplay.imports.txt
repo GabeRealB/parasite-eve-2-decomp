@@ -2051,7 +2051,7 @@ func_actor_800100_80161F20 = 0x80161F20; // type:func absolute:True owner=actor_
 
 actor800100PykeFlameTask = 0x801624F0; // type:func absolute:True owner=actor_800100
 
-func_m4a1_hammer_8011DD08 = 0x8011DD08; // type:func absolute:True owner=m4a1_hammer
+m4a1HammerImpactFlashTask = 0x8011DD08; // type:func absolute:True owner=m4a1_hammer
 
 m4a1JavelinContactFlashTask = 0x8011F4E8; // type:func absolute:True owner=m4a1_javelin
 
@@ -2089,6 +2089,6 @@ ofudaEffectTask = 0x8012EF34; // type:func absolute:True owner=ofuda shared=pe
 
 flareEffectTask = 0x8012EF34; // type:func absolute:True owner=flare shared=pe
 
-func_m4a1_hammer_8011D1E0 = 0x8011D1E0; // type:func absolute:True owner=m4a1_hammer shared=weapons
+m4a1HammerGlowTask = 0x8011D1E0; // type:func absolute:True owner=m4a1_hammer shared=weapons
 
 func_lifedrain_8012FAF8 = 0x8012FAF8; // type:func absolute:True owner=lifedrain shared=pe

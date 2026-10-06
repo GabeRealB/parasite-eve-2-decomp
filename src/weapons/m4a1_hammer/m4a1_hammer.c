@@ -25,7 +25,6 @@
 #include "main/display_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -45,168 +44,177 @@
 /// 4096 units per turn.
 static void spriteQuadDrawCharge(const long* pos, u16 frame, u16 size, s16 angle);
 
+/// Signed perspective-sizing numerator for the attachment and contact beams.
+enum { M4A1_HAMMER_BEAM_WIDTH_SCALE = 0x280 };
+
 /// Fixed offset from the parent coordinate that the hammer effect starts at.
 static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
-/// Per-frame task for the hammer's charge flare. `Task::spawnArg2` is the
-/// `EffectWork`, `Task::extra` reaches the coordinate the flare
-/// hangs on, and `Task::spawnArg1` is the charge phase the firing code drives.
-/// Hidden effects (`gRoomEffectState->effectControl` >=
-/// `ROOM_EFFECT_CONTROL_HIDDEN`), and the player being in the state flagged by
-/// `TmdObject::flags & 0x80`, freeze the task outright.
+/// Rotates a spark offset and adds the cached attachment origin modulo 16 bits.
 ///
-/// - State 0 hangs the coordinate off `EffectWork::parent` at the fixed offset
-///   `D_m4a1_hammer_8011EB60` with an identity rotation, publishes the task as
-///   `D_m4a1_hammer_8012D660` and moves to state 1.
-/// - State 1 first republishes the flare's world position as
-///   `D_m4a1_hammer_8012D668`, then dispatches on the charge phase. Phase 1
-///   idles the flare: it re-rolls the spin angle every 16 frames and the radius
-///   every frame, draws it on even frames and refreshes transient light slot 1 as a
-///   narrow (`0x80` / `0x400`) light. Phase 2 charges: on the first frame it
-///   seeds the eight sparks in `D_m4a1_hammer_8012D630`, and on every even
-///   frame it walks each spark, rotates its offset through the flare's frame
-///   and draws it, then widens the light to `0x400` / `0x4000`; five charge
-///   frames drop back to phase 1. Phase 3 tears the flare down. A room fade
-///   winds `age` back down and redraws instead of advancing.
-void func_m4a1_hammer_8011D1E0(Task* task)
+/// `work->pos` is a writable, word-aligned `SVECTOR`; the coordinate's cached
+/// rotation and the published attachment origin must already be valid.
+/// The result is in the coordinate's composition-root space (`GsWSMATRIX` input).
+/// GTE rotation saturates the offset before the unsigned-origin addition narrows
+/// back to signed halfwords. Replaces GTE rotation/vector/arithmetic state.
+static __inline__ void _m4a1HammerComposeSparkPosition(const GfxCoord* glowCoord, EffectWork* work)
 {
-    EffectWork*                    work;
-    GfxCoord*                      coord;
-    GfxCoord*                      light;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    GfxRotationWords*              dstm;
-    s32                            i;
-    s32                            j;
+    gte_SetRotMatrix(&glowCoord->workm);
+    gte_ldv0(&work->pos);
+    gte_rtv0();
+    gte_stsv(&work->pos);
+    work->pos.vx = work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
+    work->pos.vy = work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
+    work->pos.vz = work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
+}
 
-    work      = task->spawnArg2.pointer;
-    coord     = task->extra.coordBody->coord;
-    lightSlot = &gWorldCoordTransientPointLights[1];
-    light     = &lightSlot->light.head.transform.coord;
-    slot      = &lightSlot->light;
+void m4a1HammerGlowTask(Task* task)
+{
+    enum {
+        M4A1_HAMMER_GLOW_TASK_ATTACH     = 0,
+        M4A1_HAMMER_GLOW_TASK_UPDATE     = 1,
+        M4A1_HAMMER_LIGHT_SLOT           = 1,
+        M4A1_HAMMER_LIGHT_REFRESH_FRAMES = 4,
+        M4A1_HAMMER_SPARK_COUNT          = 8,
+        M4A1_HAMMER_SPARK_HEIGHT_BASE    = M4A1_HAMMER_SPARK_COUNT,
+        M4A1_HAMMER_SPARK_RADIUS_BASE    = M4A1_HAMMER_SPARK_COUNT * 2,
+        M4A1_HAMMER_CHARGED_TICKS        = 5,
+        M4A1_HAMMER_ANGLE_MASK           = 0xFFF, // 4096 angle units per turn
+        M4A1_HAMMER_TRIG_SHIFT           = 12,    // rsin/rcos: 4096 represents 1.0
+        M4A1_HAMMER_SPIN_TICK_MASK       = 15,
+        M4A1_HAMMER_IDLE_LIGHT_INNER     = 0x80,
+        M4A1_HAMMER_IDLE_LIGHT_OUTER     = 0x400,
+        M4A1_HAMMER_CHARGED_LIGHT_INNER  = 0x400,
+        M4A1_HAMMER_CHARGED_LIGHT_OUTER  = 0x4000
+    };
+    EffectWork*                    work;
+    GfxCoord*                      glowCoord;
+    GfxCoord*                      lightCoord;
+    WorldCoordTransientPointLight* transientLight;
+    WorldCoordPointLight*          pointLight;
+    s32                            sparkIndex;
+    s32                            heightIndex;
+
+    work           = task->spawnArg2.pointer;
+    glowCoord      = task->extra.coordBody->coord;
+    transientLight = &gWorldCoordTransientPointLights[M4A1_HAMMER_LIGHT_SLOT];
+    lightCoord     = &transientLight->light.head.transform.coord;
+    pointLight     = &transientLight->light;
 
     if (((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
         work->age = work->age + 1;
         switch (task->state) {
-            case 0:
-                dstm                = (GfxRotationWords*)&coord->coord;
-                coord->parent       = work->parent;
-                dstm->m00M01        = ONE;
-                dstm->m11M12        = ONE;
-                dstm->m22           = ONE;
-                dstm->m02M10        = 0;
-                dstm->m20M21        = 0;
-                coord->coord.t[0]   = D_m4a1_hammer_8011EB60.vx;
-                coord->coord.t[1]   = D_m4a1_hammer_8011EB60.vy;
-                coord->coord.t[2]   = D_m4a1_hammer_8011EB60.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            case M4A1_HAMMER_GLOW_TASK_ATTACH:
+                // Keep the flare at the weapon's fixed local offset.
+                glowCoord->parent = work->parent;
+                gfxSetRotIdentity(&glowCoord->coord);
+                glowCoord->coord.t[0]   = D_m4a1_hammer_8011EB60.vx;
+                glowCoord->coord.t[1]   = D_m4a1_hammer_8011EB60.vy;
+                glowCoord->coord.t[2]   = D_m4a1_hammer_8011EB60.vz;
+                glowCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 
                 D_m4a1_hammer_8012D660 = task;
-                actorRenderComposeCoord(coord);
-                task->state = 1;
+                actorRenderComposeCoord(glowCoord);
+                task->state = M4A1_HAMMER_GLOW_TASK_UPDATE;
                 return;
-            case 1:
-                D_m4a1_hammer_8012D668.vx = coord->workm.t[0];
-                D_m4a1_hammer_8012D668.vy = coord->workm.t[1];
-                D_m4a1_hammer_8012D668.vz = coord->workm.t[2];
+            case M4A1_HAMMER_GLOW_TASK_UPDATE:
+                // Publish the existing cache before composition; contact beams share its low halves.
+                D_m4a1_hammer_8012D668.vx = glowCoord->workm.t[0];
+                D_m4a1_hammer_8012D668.vy = glowCoord->workm.t[1];
+                D_m4a1_hammer_8012D668.vz = glowCoord->workm.t[2];
                 switch (task->spawnArg1.value) {
-                    case 0:
+                    case M4A1_HAMMER_GLOW_OFF:
                         break;
-                    case 1:
+                    case M4A1_HAMMER_GLOW_IDLE:
                         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
-                                spriteQuadDrawCharge(coord->workm.t, work->age >> 1, work->period,
+                                spriteQuadDrawCharge(glowCoord->workm.t, work->age >> 1, work->period,
                                                      work->angle);
                             }
                             return;
                         }
-                        actorRenderComposeCoord(coord);
-                        if ((work->age & 0xF) == 0) {
+                        actorRenderComposeCoord(glowCoord);
+                        if ((work->age & M4A1_HAMMER_SPIN_TICK_MASK) == 0) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
+                            work->angle     = (gRandomLcgState >> 16) & M4A1_HAMMER_ANGLE_MASK;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->period    = ((gRandomLcgState >> 16) & 0xFF) + 0xC0;
                         if ((work->age & 1) == 0) {
-                            spriteQuadDrawCharge(coord->workm.t, work->age >> 1, work->period,
+                            spriteQuadDrawCharge(glowCoord->workm.t, work->age >> 1, work->period,
                                                  work->angle);
                         }
-                        lightSlot->framesLeft = 4;
-                        slot->inner           = 0x80;
-                        slot->outer           = 0x400;
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
-                        slot->head.color.r    = (u16)slot->head.color.b >> 1;
-                        slot->head.color.g    = (u16)slot->head.color.b >> 1;
-                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                        light->composeStamp = GRAPHICS_COORD_DIRTY;
-                        work->index         = 0;
+                        transientLight->framesLeft = M4A1_HAMMER_LIGHT_REFRESH_FRAMES;
+                        pointLight->inner          = M4A1_HAMMER_IDLE_LIGHT_INNER;
+                        pointLight->outer          = M4A1_HAMMER_IDLE_LIGHT_OUTER;
+                        gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        pointLight->head.color.b   = ((gRandomLcgState >> 16) & 0x700) + 0x400;
+                        pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
+                        pointLight->head.color.g   = (u16)pointLight->head.color.b >> 1;
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &glowCoord->workm, &lightCoord->coord);
+                        lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                        work->index              = 0;
                         return;
-                    case 2:
+                    case M4A1_HAMMER_GLOW_CHARGED:
                         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                             work->age = work->age - 1;
                             if ((work->age & 1) == 0) {
-                                spriteQuadDraw(coord, work->age >> 1, work->period,
+                                spriteQuadDraw(glowCoord, work->age >> 1, work->period,
                                                work->angle);
                             }
                             return;
                         }
-                        actorRenderComposeCoord(coord);
+                        actorRenderComposeCoord(glowCoord);
                         if (work->index == 0) {
-                            for (i = 0; i < 8; i++) {
-                                gRandomLcgState                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[i]      = (i << 9) + ((gRandomLcgState >> 16) & 0x1FF);
-                                gRandomLcgState                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[i + 8]  = ((gRandomLcgState >> 16) & 0x7FF) + 0x200;
-                                gRandomLcgState                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[i + 16] = (gRandomLcgState >> 16) & 0x3FF;
+                            // Three eight-entry banks hold each spark's angle, height and radius.
+                            for (sparkIndex = 0; sparkIndex < M4A1_HAMMER_SPARK_COUNT; sparkIndex++) {
+                                gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[sparkIndex]                                 = (sparkIndex << 9) + ((gRandomLcgState >> 16) & 0x1FF);
+                                gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE] = ((gRandomLcgState >> 16) & 0x7FF) + 0x200;
+                                gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] = (gRandomLcgState >> 16) & 0x3FF;
                             }
                         }
-                        if ((work->age & 0xF) == 0) {
+                        if ((work->age & M4A1_HAMMER_SPIN_TICK_MASK) == 0) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
+                            work->angle     = (gRandomLcgState >> 16) & M4A1_HAMMER_ANGLE_MASK;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->period    = ((gRandomLcgState >> 16) & 0x3FF) + 0x400;
                         if ((work->age & 1) == 0) {
-                            spriteQuadDraw(coord, work->age >> 1, work->period, work->angle);
-                            for (i = 0; i < 8; i++) {
-                                j                          = i + 8;
-                                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[i] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
-                                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[j] += (gRandomLcgState >> 16) & 0xFF;
+                            spriteQuadDraw(glowCoord, work->age >> 1, work->period, work->angle);
+                            for (sparkIndex = 0; sparkIndex < M4A1_HAMMER_SPARK_COUNT; sparkIndex++) {
+                                heightIndex                          = sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE;
+                                gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[sparkIndex]  -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+                                gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[heightIndex] += (gRandomLcgState >> 16) & 0xFF;
                                 work->pos.vx =
-                                    (D_m4a1_hammer_8012D630[i + 16] * rsin(D_m4a1_hammer_8012D630[i])) >> 12;
+                                    (D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rsin(D_m4a1_hammer_8012D630[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
                                 work->pos.vz =
-                                    (D_m4a1_hammer_8012D630[i + 16] * rcos(D_m4a1_hammer_8012D630[i])) >> 12;
-                                work->pos.vy = D_m4a1_hammer_8012D630[j];
-                                gte_SetRotMatrix(&coord->workm);
-                                gte_ldv0(&work->pos);
-                                gte_rtv0();
-                                gte_stsv(&work->pos);
-                                work->pos.vx = work->pos.vx + (u16)D_m4a1_hammer_8012D668.vx;
-                                work->pos.vy = work->pos.vy + (u16)D_m4a1_hammer_8012D668.vy;
-                                work->pos.vz = work->pos.vz + (u16)D_m4a1_hammer_8012D668.vz;
-                                _beamStripDraw(coord, &work->pos, work->age, 0x280);
+                                    (D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rcos(D_m4a1_hammer_8012D630[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
+                                work->pos.vy = D_m4a1_hammer_8012D630[heightIndex];
+                                _m4a1HammerComposeSparkPosition(glowCoord, work);
+                                _beamStripDraw(glowCoord, &work->pos, work->age, M4A1_HAMMER_BEAM_WIDTH_SCALE);
                             }
                         }
-                        lightSlot->framesLeft = 4;
-                        slot->inner           = 0x400;
-                        slot->outer           = 0x4000;
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-                        slot->head.color.r    = (u16)slot->head.color.b >> 1;
-                        slot->head.color.g    = slot->head.color.b >> 1;
-                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                        light->composeStamp = GRAPHICS_COORD_DIRTY;
-                        work->index         = work->index + 1;
-                        if (work->index >= 5) {
-                            task->spawnArg1.value = 1;
+                        transientLight->framesLeft = M4A1_HAMMER_LIGHT_REFRESH_FRAMES;
+                        pointLight->inner          = M4A1_HAMMER_CHARGED_LIGHT_INNER;
+                        pointLight->outer          = M4A1_HAMMER_CHARGED_LIGHT_OUTER;
+                        gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        pointLight->head.color.b   = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+                        pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
+                        pointLight->head.color.g   = pointLight->head.color.b >> 1;
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &glowCoord->workm, &lightCoord->coord);
+                        lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                        work->index              = work->index + 1;
+                        if (work->index >= M4A1_HAMMER_CHARGED_TICKS) {
+                            task->spawnArg1.value = M4A1_HAMMER_GLOW_IDLE;
                         }
                         return;
-                    case 3:
+                    case M4A1_HAMMER_GLOW_RELEASE:
                         effectKillTask(work, task);
                         return;
                 }
@@ -257,41 +265,50 @@ void func_m4a1_hammer_8011D1E0(Task* task)
 /// Restore signed 16-bit perspective sizing for the six-cell sprite strip.
 #define SPRITE_QUAD_SIZE_T s16
 
-void func_m4a1_hammer_8011DD08(Task* arg0)
+void m4a1HammerImpactFlashTask(Task* task)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
+    enum {
+        M4A1_HAMMER_IMPACT_TASK_ATTACH  = 0,
+        M4A1_HAMMER_IMPACT_TASK_DRAW    = 1,
+        M4A1_HAMMER_IMPACT_SPRITE_SIZE  = 0x400, // Perspective-sizing numerator
+        M4A1_HAMMER_IMPACT_BEAM_END_AGE = 8,
+        M4A1_HAMMER_IMPACT_LIFETIME     = 25,
+        M4A1_HAMMER_IMPACT_ANGLE_MASK   = 0xFFF // 4096 angle units per turn
+    };
+    EffectWork* work;
+    GfxCoord*   impactCoord;
     GfxCoord*   parent;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    mem->age++;
-    switch (arg0->state) {
-        case 0:
-            taskReparent(D_m4a1_hammer_8012D660, arg0);
-            if (arg0->spawnArg1.value != 0) {
-                parent              = mem->parent;
-                coord->coord.t[0]   = 0;
-                coord->coord.t[1]   = 0;
-                coord->coord.t[2]   = 0;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                coord->parent       = parent;
-                actorRenderComposeCoord(coord);
-                arg0->state = 1;
+    work        = task->spawnArg2.pointer;
+    impactCoord = task->extra.coordBody->coord;
+    work->age++;
+    switch (task->state) {
+        case M4A1_HAMMER_IMPACT_TASK_ATTACH:
+            // Teardown follows the attachment glow; the transform follows the contact.
+            taskReparent(D_m4a1_hammer_8012D660, task);
+            if (task->spawnArg1.value != 0) {
+                parent                    = work->parent;
+                impactCoord->coord.t[0]   = 0;
+                impactCoord->coord.t[1]   = 0;
+                impactCoord->coord.t[2]   = 0;
+                impactCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                impactCoord->parent       = parent;
+                actorRenderComposeCoord(impactCoord);
+                task->state = M4A1_HAMMER_IMPACT_TASK_DRAW;
             }
-            mem->scale      = 0x80;
+            work->scale     = 0x80;
             gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+            work->angle     = (gRandomLcgState >> 16) & M4A1_HAMMER_IMPACT_ANGLE_MASK;
             /* fallthrough */
-        case 1:
-            if (mem->age & 1) {
-                spriteQuadDraw(coord, ++mem->index, 0x400, mem->angle);
-                if (mem->age < 8) {
-                    _beamStripDraw(coord, &D_m4a1_hammer_8012D668, mem->index, 0x280);
+        case M4A1_HAMMER_IMPACT_TASK_DRAW:
+            if (work->age & 1) {
+                spriteQuadDraw(impactCoord, ++work->index, M4A1_HAMMER_IMPACT_SPRITE_SIZE, work->angle);
+                if (work->age < M4A1_HAMMER_IMPACT_BEAM_END_AGE) {
+                    _beamStripDraw(impactCoord, &D_m4a1_hammer_8012D668, work->index, M4A1_HAMMER_BEAM_WIDTH_SCALE);
                 }
             }
-            if (mem->age >= 0x19) {
-                effectKillTask(mem, arg0);
+            if (work->age >= M4A1_HAMMER_IMPACT_LIFETIME) {
+                effectKillTask(work, task);
             }
             break;
     }

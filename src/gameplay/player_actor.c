@@ -45,6 +45,8 @@
 
 #include "actors/companion.h"
 
+#include "weapons/m4a1_hammer.h"
+
 #include "main/task_types.h"
 
 /// Number of `PlayerStatus::weapon` indices. 0 is no weapon; 1..32 are the weapons.
@@ -7555,9 +7557,9 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
     } else if (arg1 == 0x19) {
         if (actor->weaponEffectTask != NULL) {
             if (Gp_ConsumeSlotQty(0x98, 0x100) != 0) {
-                actor->weaponEffectTask->spawnArg1.value = 1;
+                actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_IDLE;
             } else {
-                actor->weaponEffectTask->spawnArg1.value = 0;
+                actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_OFF;
             }
         }
     } else if (arg1 == 0x1C) {

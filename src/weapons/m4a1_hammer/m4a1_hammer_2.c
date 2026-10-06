@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#include "weapons/m4a1_hammer.h"
+
 #include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
@@ -100,7 +102,7 @@ void func_m4a1_hammer_8011E710(Task* arg0)
                 func_80106238(arg0, 0, 0);
                 hammer = actor->weaponEffectTask;
                 if (hammer != NULL) {
-                    hammer->spawnArg1.value = 2;
+                    hammer->spawnArg1.value = M4A1_HAMMER_GLOW_CHARGED;
                 }
                 Gp_ConsumeSlotQty(0x98, 0x101);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20190005, 1);
@@ -153,7 +155,7 @@ void func_m4a1_hammer_8011E710(Task* arg0)
             } else if (delay == 0) {
                 actor->statePhase = 6;
                 if (func_80106264(2) == 0) {
-                    actor->weaponEffectTask->spawnArg1.value = 0;
+                    actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_OFF;
                 }
                 flags                                                = actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = flags;
