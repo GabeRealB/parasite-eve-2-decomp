@@ -1207,8 +1207,13 @@ void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
     }
 }
 
-/// Restores the event model's starting translation in its parent's coordinate units.
-static inline void _shelterB4ReservoirResetEventModelCoord(GfxCoord* modelCoord)
+/// Restores the reservoir event model's starting local translation.
+///
+/// Borrows a writable model root coordinate. The translation is (-1000,
+/// -1000, -5000) in parent-coordinate units; rotation and parent stay intact.
+/// Marks the cached composition stale without refreshing `workm`, so the
+/// coordinate must be composed before drawing. Retains no pointer.
+static inline void _shelterB4ReservoirResetEventModelTranslation(GfxCoord* modelCoord)
 {
     modelCoord->coord.t[0]   = -1000;
     modelCoord->coord.t[1]   = -1000;
@@ -1235,11 +1240,11 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
     GfxCoord*  modelCoord = model->coords;
 
     if (task->state == SHELTER_B4_RESERVOIR_MODEL_INITIALIZE) {
-        _shelterB4ReservoirResetEventModelCoord(modelCoord);
+        _shelterB4ReservoirResetEventModelTranslation(modelCoord);
         task->state++;
     }
     if (task->state == SHELTER_B4_RESERVOIR_MODEL_RESTART_MOTION) {
-        _shelterB4ReservoirResetEventModelCoord(modelCoord);
+        _shelterB4ReservoirResetEventModelTranslation(modelCoord);
         task->state++;
     }
     // Restarted motion takes its first step immediately after the reset.
@@ -1848,19 +1853,30 @@ void shelterB4ReservoirWaterDriftTask(Task* task)
 
 #include "../../shared/water_tile.inc.c"
 
-/// Seeds the burst's negative-X direction and scales its Q12 normalization by speed.
+/// Sets a reservoir burst sprite's launch velocity along negative parent X.
 ///
-/// `spriteWork->step` is the speed in parent-coordinate units per update.
-/// Consumes one random draw even though normalization removes its magnitude.
+/// Borrows writable effect work with `step` already set to the launch speed
+/// in parent-coordinate units per update (the caller supplies 1..255).
+/// Consumes one shared random draw to seed a nonzero direction of magnitude
+/// 64..127, then normalizes in Q12 and scales by `step`. SDK approximation
+/// and fixed-point rounding are retained; the result need not equal `-step`.
+/// Only the three `move` components change. The vector's unused halfword and
+/// the other work fields stay intact; GTE state is overwritten. No pointer
+/// is retained.
 static inline void _shelterB4ReservoirInitializeBurstVelocity(EffectWork* spriteWork)
 {
+    enum {
+        SHELTER_B4_RESERVOIR_BURST_DIRECTION_MAGNITUDE_MIN  = 64,
+        SHELTER_B4_RESERVOIR_BURST_DIRECTION_VARIATION_MASK = 63,
+    };
     u32 randomSample;
 
     spriteWork->move.vy = 0;
     spriteWork->move.vz = 0;
     randomSample        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState     = randomSample;
-    spriteWork->move.vx = -((randomSample >> 16) & 0x3F) - 0x40;
+    spriteWork->move.vx = -((randomSample >> 16) & SHELTER_B4_RESERVOIR_BURST_DIRECTION_VARIATION_MASK) -
+                          SHELTER_B4_RESERVOIR_BURST_DIRECTION_MAGNITUDE_MIN;
     VectorNormalSS(&spriteWork->move, &spriteWork->move);
     gte_lddp(spriteWork->step);
     gte_ldsv(&spriteWork->move);
@@ -1938,23 +1954,20 @@ void shelterB4ReservoirBurstSpriteTask(Task* task)
     }
 }
 
-/// Sets a burst quad's four corners around its projected centre with 16-bit wraparound.
+/// Sets a reservoir burst quad's square corners around its projected centre.
+///
+/// Borrows a writable packet and read-only projection with `screenX`,
+/// `screenY` and `screenExtent` initialized. The extent is a pixel half-size;
+/// its low 16 bits and the raw centre encodings determine each edge modulo
+/// 65536, without clipping. With a nonnegative extent before wrapping,
+/// corners 0/1 are the top row and 0/2 the left column.
+/// Writes only the packet's eight XY halfwords and retains neither pointer.
 static inline void _shelterB4ReservoirSetBurstSpriteBounds(POLY_FT4* quad, const EffectCentreScratch* projection)
 {
-    s16 screenEdge;
-
-    screenEdge = projection->screenX - (u16)projection->screenExtent;
-    quad->x2   = screenEdge;
-    quad->x0   = screenEdge;
-    screenEdge = projection->screenX + (u16)projection->screenExtent;
-    quad->x3   = screenEdge;
-    quad->x1   = screenEdge;
-    screenEdge = projection->screenY - (u16)projection->screenExtent;
-    quad->y1   = screenEdge;
-    quad->y0   = screenEdge;
-    screenEdge = projection->screenY + (u16)projection->screenExtent;
-    quad->y3   = screenEdge;
-    quad->y2   = screenEdge;
+    quad->x0 = quad->x2 = projection->screenX - (u16)projection->screenExtent;
+    quad->x1 = quad->x3 = projection->screenX + (u16)projection->screenExtent;
+    quad->y0 = quad->y1 = projection->screenY - (u16)projection->screenExtent;
+    quad->y2 = quad->y3 = projection->screenY + (u16)projection->screenExtent;
 }
 
 /// Draws one raw-texture, semi-transparent cell of the reservoir's six-cell burst strip.
