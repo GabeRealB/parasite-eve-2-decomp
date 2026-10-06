@@ -597,18 +597,12 @@ static s32 func_actor_503500_80133684(Task* arg0)
          ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
         if ((((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED) &&
             (gPlayerStatus.hp > 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL)) {
-            ret = 1;
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
                 work->progressFlags |= 8;
-                /* `ret` has to be dead across the call for GCC to keep it in
-                 * $a1: it is re-set on the way out of both arms. */
-                goto done;
             }
-        } else {
-        done:
-            ret = 1;
         }
+        ret = 1;
     }
     return ret;
 }
