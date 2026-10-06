@@ -630,23 +630,21 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
         case 4:
             if ((s8)D_80082135 == 1) {
                 D_80082135 = 2;
-                arg0       = 0x3D010;
-                goto set_slot;
+            } else {
+                if ((s8)D_80082122 > 0 && (s8)D_80082122 < 3) {
+                    arg0 = Snd_Banks[(s8)D_80082122 + 3].spuAddr +
+                           Snd_Banks[(s8)D_80082122 + 3].waveBytes;
+                    D_80082122 += 1;
+                    D_80082130  = temp_a2 + arg0;
+                    break;
+                }
+                arg0 = 0;
+                if (D_80082122 != 0) {
+                    goto clear_ret;
+                }
             }
-            if ((s8)D_80082122 > 0 && (s8)D_80082122 < 3) {
-                arg0 = Snd_Banks[(s8)D_80082122 + 3].spuAddr +
-                       Snd_Banks[(s8)D_80082122 + 3].waveBytes;
-                D_80082122 += 1;
-                goto store_size;
-            }
-            arg0 = 0;
-            if (D_80082122 != 0) {
-                goto clear_ret;
-            }
-            arg0 = 0x3D010;
-        set_slot:
+            arg0       = 0x3D010;
             D_80082122 = 1;
-        store_size:
             D_80082130 = temp_a2 + arg0;
             break;
         clear_ret:
