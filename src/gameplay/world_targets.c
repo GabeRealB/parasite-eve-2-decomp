@@ -714,14 +714,13 @@ void worldTargetUnlinkNode(WorldTargetNode* node)
         incomingLink = &gWorldTargetListHead;
         while (*incomingLink != node) {
             if (*incomingLink == NULL) {
-                goto clearTrackingState;
+                break;
             }
             incomingLink = &(*incomingLink)->next;
         }
         if (*incomingLink != NULL) {
             *incomingLink = node->next;
         }
-    clearTrackingState:
         node->state.parts.onList   = WORLD_TARGET_OFF_LIST;
         node->state.parts.targeted = WORLD_TARGET_NOT_TARGETED;
     }
