@@ -151174,3 +151174,52 @@ makes the copy. It only happens when no label and no conflicting store lies
 between the two reads in the final insn order, which is why the siblings
 (a structure store `work->turnSpeed = turn` in between) kept their `lw`.
 
+
+## A sum cannot take a call-saved register from its dying operand unless it is the same pseudo (spriteAllocateViewCachedPackets, 2026-10-06)
+
+**Symptom.** `srl s1,s1,1` / `addu s1,s1,v1` / `sw s1,4(v0)` / `sw s1,20(sp)`:
+the byte count (live across `memCalloc`, so in `$s1`) is halved in place and the
+block's address is added to it in the same register; the sum is dead two stores
+later and never crosses a call. A typed `secondBuffer` gives
+`addu v0,v1,s1` / `sw v0,4(a0)` instead, and the function keeps
+`register SpriteDrawModePacket* secondBuffer asm("s1")`.
+
+**Measured (pin-free, one `u32` for count/bytes/half, typed sum).** `.lreg`:
+`(set (reg/v 141) (plus (reg 135) (reg/v 82)))` with `REG_DEAD 82`. Pseudo 82
+is global (`crosses 2 calls`, `$17`); 141 is used in one block and dies once,
+so it is a local-alloc quantity and gets `$2`. With a separate single-set byte
+count the half is a second block-local pseudo and both land in `$2`, and the
+byte count itself moves to `$16` (28 lines).
+
+**Why no spelling changes that.** "The destination takes the register of the
+input that dies in the insn" exists in two places, and neither reaches this
+case:
+
+- `local-alloc.c:combine_regs` ties the set register to the dying one only
+  when the dying one already has a quantity; its first test returns 0 for
+  `reg_qty[ureg] < 0` ("not local to this block or dies more than once").
+  A call-crossing, multi-block value is never a quantity, so operand order
+  at the add (base-first, offset-first through an inline argument) cannot
+  matter. A quantity that crosses no call is only ever given a call-used
+  register.
+- `global.c:expand_preferences` merges *hard-register preference sets*
+  between the dying allocno and the set one. It does not make one pseudo
+  prefer the register another pseudo was given, and nothing prefers `$s1`
+  (no copy to or from a call-saved register exists). What the sum inherits
+  that way is the byte count's preference for `$a0` (its `memCalloc`
+  argument copy), which is the recorded `addu a0,v1,s1` variant.
+
+So a separate pseudo for the sum reaches `$s1` only by needing a call-saved
+register itself, i.e. by being live across `MargePrim` in the fill loop; there
+`$s1` holds the loop's reduced address giv for the source fields, so the sum
+is dead by then. The remaining reading is the one in the 2026-10-05 addendum:
+count, bytes, half and address are one integer pseudo, and the last step is an
+integer add of a pointer. That needs an integer<->pointer conversion, so the
+typed pointer plus pin stays.
+
+**Use.** Before trying spellings for "result in the register of a dying
+call-saved operand", check in `.lreg` whether the dying operand is local
+(`reg_qty >= 0`: single block, one death). If it crosses a call it is not, and
+only two things can put the result there: the result is the same variable, or
+the result crosses a call too and that register is the lowest free call-saved
+one when global reaches it.
