@@ -338,16 +338,17 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         work = memCalloc(sizeof(_ShelterB1ControlRoomMirrorWork), 0);
         cfg  = &work->cfg;
         if (work == NULL) {
-            goto exit;
+            taskCallExit(task);
+            return;
         }
         task->work = work;
         func_shelter_b1_control_room_8017D600(task, cfg);
         if (cfg->disabled == 1) {
-            goto exit;
+            taskCallExit(task);
+            return;
         }
         body = cfg->subject->extra.tmd;
         if (modelObjectAttachTmd(task, body->source) == NULL) {
-        exit:
             taskCallExit(task);
             return;
         }
