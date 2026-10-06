@@ -150483,3 +150483,63 @@ constant).
   test after it puts the third read before the test; written-out tails merge
   into the later copy; either way the comparison constant needs the `none`
   local to stay in `$a2`.
+
+## Goto removal, batch 30: two scans and loop.c's induction variables, a switch with fallthrough, a kill after the switch (2026-10-06)
+
+- **A hand-stepped element pointer beside the index (`p = at(base, i); loop:
+  if (...) goto done; p++; i++; goto loop;`) is the element taken inside a real
+  loop.** `CapCaption_FindKeyedLine` as `for (;;) { if (p->a != END && p->key
+  != id) { p++; arg0++; } else break; }` is unrotated but one insn longer:
+  with `p` a biv of its own, loop.c reduces the two field addresses to a
+  third register (`addiu v1,v0,5`, `lw 3(v1)`, `lbu 0(v1)`). Written
+  `for (;;) { p = Gp_CapEventAt(table, arg0); if (...) arg0++; else break; }`
+  the only biv is the index, `p` is its giv and the reduction *is* the
+  image's `addiu v1,v1,0xC`. The `flag = END`, `id = ...`, `base = ...` locals
+  in front of the goto loop then go too: loop.c hoists the three in the same
+  order.
+- **The converse: `next = i + 1; *out = next; i = next;` keeps an index from
+  being a biv.** `Gp_FindScanQty` recomputes `arg0[i]` with `sll; addu` every
+  iteration. `while (i < n) { if (hit) { ...; break; } i++; *arg2 = i; }`
+  reduces the address to a pointer stepped by 4 (2 insns shorter). With the
+  three statements above in the body it matches: `basic_induction_var`, for
+  `i = <reg>`, looks only at the insn *immediately before* for that
+  register's set, finds the store to `*arg2` instead, and gives up, so `i` is
+  not an induction variable and nothing is reduced. The image's mark is
+  `addiu v0,t0,1; sw v0; move t0,v0`.
+- **`if (x != A) { if (x == B) { extra; goto store; } } else { store: tail; }`**
+  (`Gp_PeListPanelTask`) is `switch (x) { case B: extra; /* fallthrough */
+  case A: tail; break; }`; two nodes are tested lowest first.
+- **`==2; <3 -> out; ==3; ==4; j out` with state 3 running into state 4's
+  code** (`func_800C5F70`) is `case 2: ...; break; case 3: state = 4; /*
+  fallthrough */ case 4: ...; break; case 1: default: break;`. The fourth node
+  below 2 is needed for the `slti 3`; which value it was is not recoverable.
+- **`default: goto kill;` with `state++; return; kill: taskKill(task);` after
+  the switch** (`func_mist_r18_8017D5EC`): `default: taskKill(task); return;`
+  puts the kill before the increment. The kill stays after the switch
+  (`default: break;`), each case ends in `task->state++; return;`, and a case
+  that left early with `break` is nested the other way round (`if (!end) {
+  draw; return; } task->state++; return;`) so the merged increment is the
+  case's last block.
+- **`goto done` from the innermost of three nested `if`s past a second,
+  exclusive test** (`Gp_ConsumeSlotQty`) is `if (a && b && c) { ... } else if
+  (d) { ... }`; with the fields named at their uses the `count` and `save`
+  alias locals of both arms were not needed.
+- `gluttonHitGroups1To2`: both scans are `_gluttonFindHit` with the key stored
+  by the caller (through `_gluttonScanGroup` the second scan trades four
+  registers, as in `gluttonHitGroups6To8`), the shared effect call follows an
+  `if / else` that picks `coord`, and the nothing-landed path releases the
+  scratch block and returns. The `||` of two scan-and-land pairs is 5 insns
+  longer. The dumping-hole build still needs its `do { } while (0)` around the
+  angle wrap for the `sc` / `work` ranking, and with `actorWrapAngle` inside
+  it the first `contactYaw` store moves one insn later, so the two wrap
+  `goto`s stay there.
+- Not converted: `func_800CC41C` (`slot = K; goto store;` over a second
+  computation of `slot`). The image keeps the result in `slot`'s register at
+  the join. An inline with two `return`s puts the result in the return
+  pseudo (`$v0` against `$a0`, with or without assigning `slot` first), a
+  void inline storing at both sites reorders the whole function, and writing
+  the second computation in both arms is folded where `slot` is known to be 2.
+- The parent-chain walk of the stranger's range test (`loop: if (p->parent) {
+  if (p != view) { ...; p = p->parent; goto loop; } store; }`) is `for (;;) {
+  if (p->parent) { if (p != view) { ...; continue; } store; } break; }`;
+  `actorTransformToView` in `include/actors/actor.h` has the same shape.
