@@ -4463,26 +4463,7 @@ static void func_actor_403600_8014161C(Task* arg0)
 
 static void func_actor_403600_8014174C(Task* arg0)
 {
-    Actor403600Work* work;
-
-    work                  = arg0->work;
-    work->animBlendFrames = 8;
-    work->animRate        = 0x10;
-    work->actionDelay     = 0xA;
-    work->defeated        = 0;
-    work->aimMode         = ACTOR_403600_AIM_PLAYER;
-    work->ignorePushOut   = 0;
-    work->ambientBoost    = 0;
-    work->committed       = 0;
-    work->forwardSpeed    = 0;
-    work->action          = ACTOR_403600_ACTION_CHOOSE;
-    work->verticalSpeed   = 0;
-    work->phaseFrame      = 0;
-    work->turnRate        = 0x40;
-    work->roll            = 0;
-    work->diving          = 0;
-    work->repositioning   = 0;
-    work->pauseSoundSent  = 0;
+    _actor403600ResetState(arg0);
 }
 
 static void func_actor_403600_801417A8(Task* arg0, s32 arg1)
