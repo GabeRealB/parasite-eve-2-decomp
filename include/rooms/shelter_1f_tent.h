@@ -39,6 +39,13 @@ void func_shelter_1f_tent_8017FDB8(Task* task);
 
 void func_shelter_1f_tent_8017EA60(Task* task);
 
-void func_shelter_1f_tent_8017FE10(Task* unused);
+/// Draws the tent's fixed world-space glows for the current mapped camera view.
+///
+/// Views 2..7 select capsules, flickering discs and pulsing cyan highlights;
+/// other views emit no packets. `unusedTask` is unused, and no task state changes.
+/// Requires the loaded room's view transform, initialized scratch stack and
+/// current frame's ordering table and packet arena. Queued packets live until
+/// that frame's GPU work completes.
+void shelter1fTentDrawViewGlowsTask(Task* unusedTask);
 
 #endif // INCLUDE_ROOMS_SHELTER_1F_TENT_H

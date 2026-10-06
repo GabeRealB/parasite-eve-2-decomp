@@ -40,7 +40,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
-/// Glow positions `func_shelter_1f_tent_8017FE10` draws per view.
+/// Glow positions `shelter1fTentDrawViewGlowsTask` draws per view.
 extern SVECTOR D_shelter_1f_tent_80181D04[];
 extern SVECTOR D_shelter_1f_tent_80181D0C[];
 extern SVECTOR D_shelter_1f_tent_80181D1C[];
@@ -621,52 +621,68 @@ RoomCutsceneRec D_shelter_1f_tent_801843C4 = { 0 };
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-/// Draws the glows of the current camera view at the room's fixed world
-/// points; views without an entry draw nothing.
-void func_shelter_1f_tent_8017FE10(Task* unused)
-{
-    u8 view;
+enum {
+    SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE       = 0x280,
+    SHELTER_1F_TENT_GLOW_SMALL_DISC_RADIUS_SCALE = 0x180,
+    SHELTER_1F_TENT_GLOW_CAPSULE_RADIUS_SCALE    = 0x200,
+    SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE  = 0x80,
+    SHELTER_1F_TENT_GLOW_PULSE_RATE              = 0x60, // 4096 angle units per turn per animation frame
+    SHELTER_1F_TENT_GLOW_GREEN_RGB444            = 0x040,
+    SHELTER_1F_TENT_GLOW_GREY_RGB444             = 0x444,
+    SHELTER_1F_TENT_GLOW_CYAN_RGB444             = 0x022,
+    SHELTER_1F_TENT_GLOW_CAPSULE_RGB444          = 0x111,
+};
 
-    view = viewGetMappedIndex();
-    switch (view) {
+/// Draws the adjacent grey and smaller cyan flickering discs of one glow pair.
+///
+/// Borrows two consecutive world points for these calls; packets use the
+/// current frame's arena and ordering table.
+static inline void _shelter1fTentDrawDiscPair(const SVECTOR worldPoints[2])
+{
+    glowDrawDisc(&worldPoints[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREY_RGB444);
+    glowDrawDisc(&worldPoints[1], SHELTER_1F_TENT_GLOW_SMALL_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_CYAN_RGB444);
+}
+
+void shelter1fTentDrawViewGlowsTask(Task* unusedTask)
+{
+    u8 mappedView;
+
+    // Select visible world points; the drawers project and queue this frame's glows.
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2: {
-            SVECTOR* p = D_shelter_1f_tent_80181D2C;
-            _glowDrawCapsule(&p[0], 0x200, 0x111);
-            glowDrawDisc(&p[-5], 0x280, 0x40);
-            glowDrawDisc(&p[-4], 0x280, 0x444);
-            glowDrawDisc(&p[-3], 0x180, 0x22);
-            glowDrawDisc(&p[-2], 0x280, 0x444);
-            glowDrawDisc(&p[-1], 0x180, 0x22);
-            _glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
+            const SVECTOR* capsulePoints = D_shelter_1f_tent_80181D2C;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_1F_TENT_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_CAPSULE_RGB444);
+            glowDrawDisc(&capsulePoints[-5], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREEN_RGB444);
+            _shelter1fTentDrawDiscPair(&capsulePoints[-4]);
+            _shelter1fTentDrawDiscPair(&capsulePoints[-2]);
+            _glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], SHELTER_1F_TENT_GLOW_PULSE_RATE, SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE);
             break;
         }
         case 3: {
-            SVECTOR* p = D_shelter_1f_tent_80181D04;
-            glowDrawDisc(&p[0], 0x280, 0x40);
-            glowDrawDisc(&p[1], 0x280, 0x444);
-            glowDrawDisc(&p[2], 0x180, 0x22);
-            _glowDrawWideDiamond(&p[7], 0x60, 0x80);
+            const SVECTOR* greenPoint = D_shelter_1f_tent_80181D04;
+            glowDrawDisc(&greenPoint[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREEN_RGB444);
+            _shelter1fTentDrawDiscPair(&greenPoint[1]);
+            _glowDrawWideDiamond(&greenPoint[7], SHELTER_1F_TENT_GLOW_PULSE_RATE, SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE);
             break;
         }
         case 5: {
-            SVECTOR* p = D_shelter_1f_tent_80181D0C;
-            glowDrawDisc(&p[0], 0x280, 0x444);
-            _glowDrawPulsingDisc(&p[6], 0x60, 0x80);
+            const SVECTOR* discPoints = D_shelter_1f_tent_80181D0C;
+            glowDrawDisc(&discPoints[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREY_RGB444);
+            _glowDrawPulsingDisc(&discPoints[6], SHELTER_1F_TENT_GLOW_PULSE_RATE, SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE);
             break;
         }
         case 4:
         case 6: {
-            SVECTOR* p = D_shelter_1f_tent_80181D1C;
-            glowDrawDisc(&p[0], 0x280, 0x444);
-            glowDrawDisc(&p[1], 0x180, 0x22);
+            const SVECTOR* discPair = D_shelter_1f_tent_80181D1C;
+            _shelter1fTentDrawDiscPair(&discPair[0]);
             break;
         }
         case 7: {
-            SVECTOR* p = D_shelter_1f_tent_80181D04;
-            glowDrawDisc(&p[0], 0x280, 0x40);
-            glowDrawDisc(&p[1], 0x280, 0x444);
-            glowDrawDisc(&p[2], 0x180, 0x22);
-            _glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], 0x60, 0x80);
+            const SVECTOR* greenPoint = D_shelter_1f_tent_80181D04;
+            glowDrawDisc(&greenPoint[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREEN_RGB444);
+            _shelter1fTentDrawDiscPair(&greenPoint[1]);
+            _glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], SHELTER_1F_TENT_GLOW_PULSE_RATE, SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE);
             break;
         }
     }
