@@ -5260,14 +5260,15 @@ GTE macros are fine as-is — `gte_SetRotMatrix`, `gte_ldv0`, `gte_ldsv`,
 `gte_stsv`, `gte_lddp` are plain `lw`/`lwc2`/`mtc2`/`mfc2`/`sh` sequences with no
 COP2 command word, and they matched byte-for-byte. Only the command ops
 (`mvmva`, `gpf`, and by extension `rtps`/`rtv0`/… if hit) need the explicit
-word. Seen on `func_shelter_b1_control_room_access_tunnel_801807C4` (a local
-light-vector transform: `ApplyTransposeMatrixLV` then `SetRotMatrix`+`ldv0`+
+word. Seen on `shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask` (the initial
+displacement transform for the spark: `ApplyTransposeMatrixLV` then `SetRotMatrix`+`ldv0`+
 `mvmva`+`stsv`, then `lddp(0xCC)`+`ldsv`+`gpf12`+`stsv`).
 
 ## A stack byte-descriptor passed by pointer must be one function-scope array
 
-A room draw builds a 3-byte descriptor on the stack and hands its address to
-two drawers (`Room_Draw10` from one field, `Room_Draw07` from another), both
+A room effect builds a 3-byte RGB tint on the stack and hands its address to
+two drawers (`_roomVisualEffectsDrawFlyingDisc` from the central brightness,
+`_roomVisualEffectsDrawFlyingRing` from the ring brightness), both
 reusing the same slot `sp+0x10`. Three ways to write it, only one matches:
 
 - **Three separate scalars** (`u8 b0; u8 b1; u8 b2;`) + `&b0`: `&b0` escapes
@@ -5281,7 +5282,7 @@ reusing the same slot `sp+0x10`. Three ways to write it, only one matches:
   store kept (whole array escapes), and GCC rematerialises `addiu a2,sp,0x10`
   at each call instead of parking it in a saved reg. This is the match.
 
-`func_shelter_b1_control_room_access_tunnel_80181424`. The array-vs-scalars
+`shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingOrangeBurstTask`. The array-vs-scalars
 point generalises: any packed stack struct/descriptor passed by pointer wants a
 single addressable aggregate, not sibling scalars.
 

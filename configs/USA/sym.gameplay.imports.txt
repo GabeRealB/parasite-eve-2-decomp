@@ -992,9 +992,9 @@ func_shelter_b1_control_room_access_tunnel_8017F624 = 0x8017F624; // type:func a
 
 func_shelter_b1_control_room_access_tunnel_8018026C = 0x8018026C; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
-func_shelter_b1_control_room_access_tunnel_801807C4 = 0x801807C4; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
+shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask = 0x801807C4; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
-func_shelter_b1_control_room_access_tunnel_80181424 = 0x80181424; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
+shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingOrangeBurstTask = 0x80181424; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
 func_shelter_b1_elevator_hall_8017E6F4 = 0x8017E6F4; // type:func absolute:True owner=shelter_b1_elevator_hall
 

@@ -1172,8 +1172,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask, { NULL } },           // 0x277
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },     // 0x278
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_8018026C, { NULL } },            // 0x279
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_801807C4, { NULL } },            // 0x27A
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_80181424, { NULL } },            // 0x27B
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask, { NULL } },       // 0x27A
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingOrangeBurstTask, { NULL } }, // 0x27B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_breeding_room_8017E774, { NULL } },                         // 0x27C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_breeding_room_8017ECCC, { NULL } },                         // 0x27D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_breeding_room_8017F92C, { NULL } },                         // 0x27E

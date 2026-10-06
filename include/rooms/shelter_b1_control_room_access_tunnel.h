@@ -73,8 +73,29 @@ void func_shelter_b1_control_room_access_tunnel_8017F624(Task* task);
 
 void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0);
 
-void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task);
+/// Runs the tunnel's animated spark along a fixed step toward its initial target position.
+///
+/// Requires a coordinate body and a counted, owned `EffectWork` in
+/// `spawnArg2.pointer`, initialized by `Gp_SpawnEff`, with task state zero.
+/// `spawnArg1.pointer` borrows a target `GfxCoord`; both world matrices must be
+/// composed on the first active tick. The target is sampled only on that tick.
+/// Initialization transforms the displacement into parent axes, with signed
+/// 16-bit intermediate components, and scales it by 204/4096. Later active ticks
+/// move by this fixed step every tick and draw on odd ages;
+/// age 20 releases the work and task. Nonzero room effect control pauses updates;
+/// control 4 or above cancels and releases them. The room overlay and controller
+/// must remain live while the task runs.
+void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_shelter_b1_control_room_access_tunnel_80181424(Task* task);
+/// Runs the tunnel's expanding orange disc, layered glow and fading ring.
+///
+/// Requires a coordinate body and a counted, owned `EffectWork` in
+/// `spawnArg2.pointer`, initialized by `Gp_SpawnEff`, with task state zero.
+/// `spawnArg1` is unused. Sizes are world units; the ring fades before the disc,
+/// while the glow refreshes a flickering orange point light and a ground glow.
+/// Nonzero room effect control pauses updates; control 4 or above cancels.
+/// Completion and cancellation release the work and task. The room overlay and
+/// controller must remain live while the task runs.
+void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_H
