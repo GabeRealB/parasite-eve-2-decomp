@@ -1787,6 +1787,18 @@ static void func_shelter_r47_801844A0(Task* task)
 /// `labelTargetX` off to the left, clear the quad targets, play the page-switch
 /// sound and move to state 6. Every other path returns to state 2, except an
 /// unknown hotspot id, which leaves the state unchanged.
+static inline void _shelterR47MapTerminalLeavePage(Task* task, ShelterR47MapTerminalWork* st)
+{
+    st->labelTargetX      = SHELTER_R47_MAP_LABEL_X_AWAY;
+    st->mapTargetWidth    = 0;
+    st->mapTargetHeight   = 0;
+    st->panelTargetWidth  = 0;
+    st->panelTargetHeight = 0;
+    task->state           = 6;
+    sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_PAGE_SWITCH, 0, 0);
+    sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+}
+
 static void func_shelter_r47_80184658(Task* task)
 {
     ActionPrompt*              prompt = D_80114D28;
@@ -1828,7 +1840,8 @@ static void func_shelter_r47_80184658(Task* task)
                     task->state            = 2;
                     return;
                 }
-                goto snd;
+                _shelterR47MapTerminalLeavePage(task, st);
+                return;
             case SHELTER_R47_MAP_HOTSPOT_NEXT:
                 if (st->openMode == SHELTER_R47_MAP_MODE_USE && D_shelter_r47_8018A697 == 0) {
                     Gp_StartCapSlot(0x34, 0, 0);
@@ -1836,15 +1849,7 @@ static void func_shelter_r47_80184658(Task* task)
                     task->state            = 2;
                     return;
                 }
-            snd:
-                st->labelTargetX      = SHELTER_R47_MAP_LABEL_X_AWAY;
-                st->mapTargetWidth    = 0;
-                st->mapTargetHeight   = 0;
-                st->panelTargetWidth  = 0;
-                st->panelTargetHeight = 0;
-                task->state           = 6;
-                sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_PAGE_SWITCH, 0, 0);
-                sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                _shelterR47MapTerminalLeavePage(task, st);
                 return;
             case SHELTER_R47_MAP_HOTSPOT_TITLE:
                 switch (st->page) {
