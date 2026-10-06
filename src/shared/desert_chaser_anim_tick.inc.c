@@ -120,12 +120,11 @@ void desertChaserAnimTick(Task* task)
         if ((targetAngle - currentAngle) >= 0x72) {
             work->lookYaw = currentAngleBits + 0x71;
         } else {
-            goto snap;
+            work->lookYaw = targetAngleBits;
         }
     } else if ((currentAngle - targetAngle) >= 0x72) {
         work->lookYaw = currentAngleBits - 0x71;
     } else {
-    snap:
         work->lookYaw = targetAngleBits;
     }
     angle        = work->lookYaw;
