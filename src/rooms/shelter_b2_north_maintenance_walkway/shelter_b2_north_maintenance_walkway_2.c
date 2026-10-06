@@ -127,7 +127,12 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-/// Selects the loaded room's seven shared enemy-effect implementations.
+/// Installs this room's seven task IDs in gameplay's enemy-effect selectors.
+///
+/// Each ID encodes bank 6 and the descriptor index of this room's effect task.
+/// Call after room-effect controller setup clears the selectors and before
+/// enemy effects spawn. The selection persists until reset or overwritten;
+/// keep this room overlay loaded while its selected effect tasks run.
 static inline void _shelterB2NorthMaintenanceWalkwayInstallRoomEffectIds(void)
 {
     gRoomEffectMoteId         = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MOTE;
