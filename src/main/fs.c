@@ -1059,12 +1059,14 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
         _FsCdfFolder* sp = Fs_FolderTable;
         folder           = sp + (i & 0xFFFF);
     }
-loop_files:
-    offset = files.file[j & 0xFFFF].sectorOffset;
-    if (offset != 0) {
-        table[files.file[j & 0xFFFF].fileId] = offset + folder->sectorOffset;
-        j                                   += 1;
-        goto loop_files;
+    for (;;) {
+        offset = files.file[j & 0xFFFF].sectorOffset;
+        if (offset != 0) {
+            table[files.file[j & 0xFFFF].fileId] = offset + folder->sectorOffset;
+            j                                   += 1;
+        } else {
+            break;
+        }
     }
 
     // Resolve the stream folder independently of the file-load folder.
@@ -1088,12 +1090,14 @@ loop_files:
     }
     // Publish complete descriptors with absolute CD sectors.
     destinationStreams = Stream_Slots;
-loop_streams:
-    if (sourceStreams[j & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
-        sourceStreams[j & 0xFFFF].startSector += files.folder->sectorOffset + *table;
-        Fs_CopyStreamSlot(&destinationStreams[j & 0xFFFF], &sourceStreams[j & 0xFFFF]);
-        j += 1;
-        goto loop_streams;
+    for (;;) {
+        if (sourceStreams[j & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
+            sourceStreams[j & 0xFFFF].startSector += files.folder->sectorOffset + *table;
+            Fs_CopyStreamSlot(&destinationStreams[j & 0xFFFF], &sourceStreams[j & 0xFFFF]);
+            j += 1;
+        } else {
+            break;
+        }
     }
 }
 
