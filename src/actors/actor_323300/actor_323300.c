@@ -987,18 +987,17 @@ static void func_actor_323300_80162DF0(Task* arg0)
 /// joint and refreshes it.
 static void func_actor_323300_80163188(GfxCoord* coord, s16 angle)
 {
-    MATRIX*   rotation;
-    GfxCoord* out;
+    MATRIX* rotation;
 
     SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(angle, rotation);
     RotMatrixX(angle / 2, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(out);
+    _actorRenderLocalizeRotation(coord, rotation);
+    memcpy(coord->coord.m, rotation->m, sizeof(coord->coord.m));
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 

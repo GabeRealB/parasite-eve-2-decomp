@@ -1044,40 +1044,50 @@ static __inline__ s32 actorAccumulateRotation(GfxCoord* joint, MATRIX* out, GfxC
     }
 }
 
-/// Turns the world-space `rotation` into one relative to `joint`'s parent:
-/// accumulates the chain above the parent up to the view coordinate,
-/// transposes it and pre-multiplies. Nothing happens when the parent is the
-/// view coordinate. Returns `joint`, which callers store through.
-static __inline__ GfxCoord* actorLocalizeRotation(GfxCoord* joint, MATRIX* rotation)
+/// Converts a world-space rotation in place into the frame of a joint's parent.
+///
+/// Coefficients have 12 fractional bits (`ONE` is 1.0). The parent-to-world
+/// rotation includes `joint->parent` and excludes `gGfxViewCoord`; its transpose
+/// pre-multiplies `worldRotation`. Each additional ancestor product is normalized;
+/// a parent directly beneath the view is used as stored.
+///
+/// `joint` must have a non-NULL parent and a live, acyclic ancestor chain.
+/// `worldRotation` must hold an initialized rotation in a writable `MATRIX`.
+/// It is unchanged if the parent is the view or the chain never reaches the
+/// view. Its translation stays intact; the SDK multiply also writes the
+/// alignment bytes after the 3x3 rotation. The caller installs the result and
+/// refreshes the coordinate's cache. Both inputs are borrowed for this call;
+/// GTE working registers may change.
+static __inline__ void _actorRenderLocalizeRotation(const GfxCoord* joint, MATRIX* worldRotation)
 {
-    MATRIX    matrix;
-    MATRIX    normal;
-    MATRIX    transposed;
-    GfxCoord* coord;
-    GfxCoord* view;
+    MATRIX          parentWorldRotation;
+    MATRIX          normalizedParentRotation;
+    MATRIX          transposedParentRotation;
+    const GfxCoord* ancestor;
+    const GfxCoord* viewCoord;
 
-    coord = joint->parent;
-    if (coord != &gGfxViewCoord) {
-        view   = &gGfxViewCoord;
-        matrix = coord->coord;
+    ancestor = joint->parent;
+    if (ancestor != &gGfxViewCoord) {
+        viewCoord           = &gGfxViewCoord;
+        parentWorldRotation = ancestor->coord;
+        // Exclude the view transform so the transpose converts from world space.
         while (1) {
-            coord = coord->parent;
-            if (coord == NULL) {
+            ancestor = ancestor->parent;
+            if (ancestor == NULL) {
                 break;
             }
-            if (coord == view) {
-                gte_TransposeMatrix(&matrix, &transposed);
-                gte_SetRotMatrix(&transposed);
-                MulRotMatrix(rotation);
+            if (ancestor == viewCoord) {
+                gte_TransposeMatrix(&parentWorldRotation, &transposedParentRotation);
+                gte_SetRotMatrix(&transposedParentRotation);
+                MulRotMatrix(worldRotation);
                 break;
             }
-            gte_SetRotMatrix(&coord->coord);
-            MulRotMatrix(&matrix);
-            MatrixNormal(&matrix, &normal);
-            matrix = normal;
+            gte_SetRotMatrix(&ancestor->coord);
+            MulRotMatrix(&parentWorldRotation);
+            MatrixNormal(&parentWorldRotation, &normalizedParentRotation);
+            parentWorldRotation = normalizedParentRotation;
         }
     }
-    return joint;
 }
 
 /// Carries `out` from the frame of `p` up the parent chain to the view

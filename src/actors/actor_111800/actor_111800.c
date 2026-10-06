@@ -506,7 +506,7 @@ void func_actor_111800_8013251C(Task* task)
     part   = coords + 5;
     Actor111800_Accumulate(part, &mtx, &coords[5].coord);
     RotMatrixX((s32)(s16)angle, &mtx);
-    actorLocalizeRotation(part, &mtx);
+    _actorRenderLocalizeRotation(part, &mtx);
     memCopyBytes(mtx.m, part->coord.m, sizeof(mtx.m));
     part->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(part);
