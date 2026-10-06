@@ -1077,15 +1077,19 @@ WorldCollisionSurfaceProperties* D_mine_gorge_80183644[8] = {
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-/// Draws two consecutive fixed gorge flares.
+/// Draws two consecutive fixed world-point flares with the gorge's texture and size.
 ///
-/// Borrows two readable world positions for the calls, using texture column 1
-/// and a radius scale of 768. Requires the view, scratch and frame arena already
-/// prepared for flare drawing.
-static inline void _mineGorgeDrawFlarePair(const SVECTOR* flarePositions)
+/// `worldPoints` must contain two word-aligned, readable eight-byte `SVECTOR`s,
+/// borrowed only during this call and projected in array order. Each point with
+/// nonnegative projection flags queues one flickering semitransparent quad and
+/// must have nonzero camera Z / 4. Texture column 1 uses a pixel half-extent of
+/// 768 * 39 / (camera Z / 4). Requires composed view matrices, space for one
+/// `GlowCentreScratch` on the initialized scratch stack, and a current ordering
+/// table and frame packet arena with room for up to two quads.
+static inline void _mineGorgeDrawFlarePair(const SVECTOR worldPoints[2])
 {
-    _glowDrawFlare(&flarePositions[0], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
-    _glowDrawFlare(&flarePositions[1], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+    _glowDrawFlare(&worldPoints[0], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+    _glowDrawFlare(&worldPoints[1], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
 }
 
 void mineGorgeDrawViewFlaresTask(Task* unusedTask)
