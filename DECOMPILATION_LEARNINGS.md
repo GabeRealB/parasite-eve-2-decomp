@@ -149213,3 +149213,33 @@ Two forms each got one half: a `do`/`while` keeps `(subId & 0xFFFF)` in the
 loop but jump.c rotates the body around the match block; a `for` has the
 image's layout but hoists `subId & 0xFFFF` as well (one insn longer). Six
 attempts; left as it was.
+
+### Goto removal, batch 05: one inline behind two goto shapes, a tail after the switch, a fold that keeps `one` (2026-10-06)
+
+- **The same inline was spelled with two different goto shapes.**
+  `func_mist_shooting_gallery_8017F6C8` had `case 3: bp = 0; goto store;` past
+  a clamp after the switch; `func_mist_shooting_gallery_8017EC58` had
+  `case 2: q = raw / 100; goto clamp;` into the default case with `val = 0;
+  break;` for case 3. Both are `_mistShootingGalleryScaleReward(raw)`: a
+  `static inline` with `case 3: return 0;`, the three divisions with `break`,
+  and the clamp after the switch. Four sites, first try. Differing goto
+  layouts of one computation in two functions point to an inline.
+- **A `release:` label on the kill in the last case** (`func_necrosis_8012EF34`,
+  five gotos from three cases) is the kill written once *after* the switch:
+  killing paths `break`, every other path `return`s, `default: return;`.
+  Writing `effectKillTask(mem, arg0); return;` at each site kept the length but
+  swapped `$s3/$s4` (`work`/`mem`): five more mentions of `mem` reorder the
+  allocation.
+- **`goto end;` out of a `for` to the code behind `if (remaining > 0) return;`**
+  is `break` when the jump's own condition (`remaining == 0`) makes that test
+  false; jump threading removes the second test (`func_mine_mesa_80181358`).
+- **`(mask & (1 << idx)) == 0` is folded to `((mask >> idx) & 1) == 0`** (`srav;
+  andi`), so the `one = 1` local of `func_replay_bonus_80117484` stays; a
+  `static inline` returning `1 << tier` keeps the `sllv` but emits the mask load
+  one insn early. Its two `do { L: ...; goto L; } while (0)` scans are plain
+  `for` loops with `break`; the second needs `i = 0;` written before the clamp
+  that precedes the loop (`for (; i < 0xD; i++)`), or `save` and `i` trade
+  registers.
+- Not converted: `func_mp5a5_8011DDA4`'s `goto fire` from state 6 back into
+  state 2. An inline for state 3's body called from both places is not merged
+  back (12 insns longer, the copy's if/else arms laid out the other way round).
