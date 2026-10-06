@@ -20,28 +20,33 @@ void factoryWhiteoutScene(Task* task)
     switch (task->state) {
         case 0:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) != 0) {
-                goto kill;
+                taskKill(task);
+                return;
             }
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
             Gp_RunCapCmd1(task->spawnArg1.value);
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 2:
             if (Gp_GetCapEventKey() == 1) {
                 task->killCountdown = 0;
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0C), 0, 0);
                 }
-                goto advance;
+                task->state = task->state + 1;
+                return;
             }
             task->state = -1;
             return;
         case 3:
             task->killCountdown = task->killCountdown + 1;
-            if (task->killCountdown < 0x1E) {
-                goto draw;
+            if (task->killCountdown >= 0x1E) {
+                task->state = task->state + 1;
             }
-            goto bump;
+            fade = (task->killCountdown * 255) / 30;
+            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            return;
         case 4:
             gGameSession->viewDirty = 1;
             gameFlagSetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED, 1);
@@ -50,32 +55,29 @@ void factoryWhiteoutScene(Task* task)
                 Gp_EnqueueStageSnd6(SOUND_FACTORY_WHITEOUT, 0, 0);
             }
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 5:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
             gGameSession->location.loc.room                            = 2;
             gGameSession->roomObjsDirty                                = 1;
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 1:
-        advance:
             task->state = task->state + 1;
             return;
         case 6:
             task->killCountdown = task->killCountdown - 1;
-            if (task->killCountdown > 0) {
-                goto draw;
+            if (task->killCountdown <= 0) {
+                task->state = task->state + 1;
             }
-        bump:
-            task->state = task->state + 1;
-        draw:
             fade = (task->killCountdown * 255) / 30;
             fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             return;
         default:
             Gp_MsgPlayerWeapon(1);
             Gp_MsgAllyWeapon(1);
-        kill:
             taskKill(task);
             return;
     }
