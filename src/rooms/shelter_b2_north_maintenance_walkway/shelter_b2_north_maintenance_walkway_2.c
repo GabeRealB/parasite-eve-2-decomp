@@ -127,86 +127,100 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-/// The room's per-frame glow task. Its first tick sets the gameplay effect ids
-/// the room's effects use; every tick then draws the flares, discs and stars
-/// visible from the current camera view. One star turns from red to blue once
-/// flag 0xA8, the one the event gate writes for message 0x1D, is set.
-void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
+/// Selects the loaded room's seven shared enemy-effect implementations.
+static inline void _shelterB2NorthMaintenanceWalkwayInstallRoomEffectIds(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectMoteId         = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MOTE;
-        gRoomEffectHaloId         = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_HALO;
-        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST;
-        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER;
-        gRoomEffectFlashId        = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST;
-        arg0->state               = 1;
+    gRoomEffectMoteId         = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MOTE;
+    gRoomEffectHaloId         = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_EMITTER;
+    gRoomEffectFlashId        = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SPARK_BURST;
+}
+
+void shelterB2NorthMaintenanceWalkwayGlowTask(Task* task)
+{
+    enum {
+        INITIALIZE_ROOM_EFFECTS,
+        DRAW_VIEW_GLOWS,
+        LAMP_RADIUS_SCALE   = 0x200,
+        DOOR_RADIUS_SCALE   = 0x100,
+        LOCKED_DOOR_COLOR   = 0x5C40, // RGB nibbles C:4:0; odd frames add 1 << 5
+        UNLOCKED_DOOR_COLOR = 0x504C  // RGB nibbles 0:4:C; odd frames add 1 << 5
+    };
+
+    // Select this room's implementations for enemy-spawned effects.
+    if (task->state == INITIALIZE_ROOM_EFFECTS) {
+        _shelterB2NorthMaintenanceWalkwayInstallRoomEffectIds();
+        task->state = DRAW_VIEW_GLOWS;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Only queue glows visible from this mapped camera.
+    // Capsule indexing relies on the adjacent anchor tables' storage order.
+    switch ((u8)viewGetMappedIndex()) {
         case 2: {
-            SVECTOR* p;
+            SVECTOR* glowPoints;
             if (gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, DOOR_RADIUS_SCALE, UNLOCKED_DOOR_COLOR);
             } else {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, DOOR_RADIUS_SCALE, LOCKED_DOOR_COLOR);
             }
-            p = D_shelter_b2_north_maintenance_walkway_80183B90;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[6], 0x200, -0x400);
+            glowPoints = D_shelter_b2_north_maintenance_walkway_80183B90;
+            glowDrawDimGreyCapsule(&glowPoints[0], LAMP_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[6], LAMP_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
         case 3: {
-            SVECTOR* p;
-            p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            glowDrawRedDisc(p, 0x200);
-            glowDrawDimGreyCapsule(&p[-18], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-16], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-12], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[-10], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[-8], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x800);
+            SVECTOR* glowPoints;
+            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&glowPoints[-18], LAMP_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-16], LAMP_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-12], LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-10], LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-8], LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-4], LAMP_RADIUS_SCALE, GLOW_HALF_TURN);
             break;
         }
         case 4: {
-            SVECTOR* p;
-            p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            glowDrawRedDisc(p, 0x200);
-            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-8], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x800);
+            SVECTOR* glowPoints;
+            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-8], LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-4], LAMP_RADIUS_SCALE, GLOW_HALF_TURN);
             break;
         }
         case 5: {
-            SVECTOR* p;
-            p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            glowDrawRedDisc(p, 0x200);
-            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-6], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[-2], 0x200, -0x400);
+            SVECTOR* glowPoints;
+            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-6], LAMP_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-4], LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-2], LAMP_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
         case 6: {
-            SVECTOR* p;
-            p = D_shelter_b2_north_maintenance_walkway_80183C20;
-            glowDrawRedDisc(p, 0x200);
-            glowDrawDimGreyCapsule(&p[-14], 0x200, 0);
-            glowDrawDimGreyCapsule(&p[-4], 0x200, 0x800);
-            glowDrawDimGreyCapsule(&p[-2], 0x200, 0);
+            SVECTOR* glowPoints;
+            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&glowPoints[-4], LAMP_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[-2], LAMP_RADIUS_SCALE, 0);
             break;
         }
         case 7:
             if (gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, 0x100, 0x504C);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, DOOR_RADIUS_SCALE, UNLOCKED_DOOR_COLOR);
             } else {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, 0x100, 0x5C40);
+                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, DOOR_RADIUS_SCALE, LOCKED_DOOR_COLOR);
             }
             break;
         case 8:
-            glowDrawDimGreyCapsule(D_shelter_b2_north_maintenance_walkway_80183BB0, 0x200, 0x400);
+            glowDrawDimGreyCapsule(D_shelter_b2_north_maintenance_walkway_80183BB0, LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
     }
 }
@@ -219,21 +233,21 @@ void func_shelter_b2_north_maintenance_walkway_8017DDE8(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b2_north_maintenance_walkway_8017F590(Task* task)
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b2_north_maintenance_walkway_801802D8(Task* arg0)
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b2_north_maintenance_walkway_80180670(Task* arg0)
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -246,14 +260,14 @@ void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b2_north_maintenance_walkway_80181BB4(Task* arg0)
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b2_north_maintenance_walkway_80182618(Task* task)
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

@@ -72,21 +72,21 @@ D_shelter_b2_north_maintenance_walkway_80183B48 = 0x80183B48; // size:0xC define
 gRoomEventTaskDesc = 0x80183B54; // size:0xC defined:True
 D_shelter_b2_north_maintenance_walkway_80183B60 = 0x80183B60; // size:0x30 defined:True
 
-func_shelter_b2_north_maintenance_walkway_80181BB4 = 0x80181BB4; // type:func
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80181BB4; // type:func
 
-func_shelter_b2_north_maintenance_walkway_80182618 = 0x80182618; // type:func
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x80182618; // type:func
 
 func_shelter_b2_north_maintenance_walkway_80182F00 = 0x80182F00; // type:func
 
-func_shelter_b2_north_maintenance_walkway_8017F590 = 0x8017F590; // type:func
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsMoteTask = 0x8017F590; // type:func
 
-func_shelter_b2_north_maintenance_walkway_801802D8 = 0x801802D8; // type:func
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloTask = 0x801802D8; // type:func
 
-func_shelter_b2_north_maintenance_walkway_80180670 = 0x80180670; // type:func
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask = 0x80180670; // type:func
 
 func_shelter_b2_north_maintenance_walkway_80181A80 = 0x80181A80; // type:func
 
-func_shelter_b2_north_maintenance_walkway_8017DDE8 = 0x8017DDE8; // type:func
+shelterB2NorthMaintenanceWalkwayGlowTask = 0x8017DDE8; // type:func
 _roomVisualEffectsDrawMote = 0x8017F85C; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017FB20; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017FF44; // type:func

@@ -1145,17 +1145,17 @@ shelterB2MainCorridorRoomVisualEffectsTwinTrailTask = 0x801813B0; // type:func a
 
 func_shelter_b2_main_corridor_80181C98 = 0x80181C98; // type:func absolute:True owner=shelter_b2_main_corridor
 
-func_shelter_b2_north_maintenance_walkway_8017F590 = 0x8017F590; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsMoteTask = 0x8017F590; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
-func_shelter_b2_north_maintenance_walkway_801802D8 = 0x801802D8; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloTask = 0x801802D8; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
 
-func_shelter_b2_north_maintenance_walkway_80180670 = 0x80180670; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask = 0x80180670; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
 func_shelter_b2_north_maintenance_walkway_80181A80 = 0x80181A80; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
-func_shelter_b2_north_maintenance_walkway_80181BB4 = 0x80181BB4; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80181BB4; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
 
-func_shelter_b2_north_maintenance_walkway_80182618 = 0x80182618; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x80182618; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
 func_shelter_b2_north_maintenance_walkway_80182F00 = 0x80182F00; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
@@ -1879,7 +1879,7 @@ shelterB2ElevatorEffectNoopTask = 0x8017DB70; // type:func absolute:True owner=s
 
 shelterB2ElevatorHallDrawGlowsTask = 0x8017DD60; // type:func absolute:True owner=shelter_b2_elevator_hall shared=rooms
 
-func_shelter_b2_north_maintenance_walkway_8017DDE8 = 0x8017DDE8; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
+shelterB2NorthMaintenanceWalkwayGlowTask = 0x8017DDE8; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
 
 shelterB2BreedingRoomDrawGlowsTask = 0x8017D898; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 
