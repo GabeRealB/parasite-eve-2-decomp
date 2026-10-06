@@ -4298,6 +4298,25 @@ static inline s32 _gluttonFindHit(SVECTOR* pos, WorldCollisionContact* records, 
     return 0;
 }
 
+/// Scans a hit group's contacts for an attack and records its key and point
+/// in `sc`. Returns the key, or 0 when nothing landed.
+static inline s32 _gluttonScanGroup(GluttonHitScratch* sc, GluttonHitGroup* group)
+{
+    s32 id;
+
+    id            = _gluttonFindHit(&sc->contactPoint, group->contacts, ARRAY_SIZE(group->contacts));
+    sc->attackKey = id;
+    return id;
+}
+
+/// Spawns the impact effect for the attack recorded in `sc` on the group's
+/// part. Returns whether the attack key is still set afterwards.
+static inline s32 _gluttonHitLanded(GluttonHitScratch* sc, GluttonHitGroup* group)
+{
+    gluttonHitEffect(group->body.coord, sc->attackKey);
+    return sc->attackKey != 0;
+}
+
 /// The hit handler for collision groups 3, 4 and 5 -- `gluttonHitGroups1To2`
 /// done three times over the parts it does not cover, each group only scanned
 /// when the previous one landed nothing and the part it hit reported no attack
@@ -4314,9 +4333,8 @@ static inline s32 _gluttonFindHit(SVECTOR* pos, WorldCollisionContact* records, 
 /// one of the seven states that ignore hits, while the player hold is armed, or
 /// unless `gSceneCombatState.battleRefs` is 1.
 ///
-/// `pos` / `pos2` / `pos3` are all `&sc->contactPoint`, and are not spare: each group's
-/// scan writes the contact point through its own pointer, which is what keeps
-/// the three `sh` pairs in `a3` then `a2` twice. `esc3` / `esc0` / `esc1` and
+/// Each group's scan is `_gluttonScanGroup`, and the effect with the re-read of
+/// the key `_gluttonHitLanded`. `esc3` / `esc0` / `esc1` and
 /// the `hp` load are the sibling's arrangement, but evaluated before
 /// `func_800DA6E8` so `host->field_40` is still in a register and the three
 /// stores reuse it; the pool subtraction after them carries the same `field_40`
@@ -4340,110 +4358,85 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     Enemy*             esc0;
     Enemy*             esc1;
 
-    cfg           = &gPlayerStatus;
-    host          = (Enemy*)arg0->spawnArg2.pointer;
-    work          = arg0->work;
-    sc            = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
-    id            = _gluttonFindHit(&sc->contactPoint, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts));
-    sc->attackKey = id;
-    if (id != 0) {
-        gluttonHitEffect(work->hits[3].body.coord, id);
-        if (sc->attackKey != 0) {
-            goto body;
+    cfg  = &gPlayerStatus;
+    host = (Enemy*)arg0->spawnArg2.pointer;
+    work = arg0->work;
+    sc   = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
+    if ((_gluttonScanGroup(sc, &work->hits[3]) != 0 && _gluttonHitLanded(sc, &work->hits[3])) ||
+        (_gluttonScanGroup(sc, &work->hits[4]) != 0 && _gluttonHitLanded(sc, &work->hits[4])) ||
+        (_gluttonScanGroup(sc, &work->hits[5]) != 0 && _gluttonHitLanded(sc, &work->hits[5]))) {
+        param                    = Gp_GetIdParam2(sc->attackKey);
+        work->groups6To8Cooldown = param;
+        work->groups3To5Cooldown = param;
+        work->group0Cooldown     = param;
+        work->groups1To2Cooldown = param;
+        Gp_GetIdParam0(sc->attackKey);
+
+        sc->toPlayer.vx    = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) + 0x51F;
+        dx2                = sc->toPlayer.vx * sc->toPlayer.vx;
+        sc->toPlayer.vy    = (cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]) - 0xFA;
+        dy2                = sc->toPlayer.vy * sc->toPlayer.vy;
+        sc->toPlayer.vz    = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
+        dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
+        sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
+        sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
+
+        if (Gp_RollEnemyChance(work->escorts[0], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
+            state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 &&
+            gSceneCombatState.battleRefs == 1) {
+            sc->offset.vy = 0;
+            sc->offset.vx = 0;
+            sc->offset.vz = 0x320;
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
+            sc->damage *= 4;
+            work->state = 0xE;
         }
-    }
 
-    id            = _gluttonFindHit(&sc->contactPoint, work->hits[4].contacts, ARRAY_SIZE(work->hits[4].contacts));
-    sc->attackKey = id;
-    if (id != 0) {
-        gluttonHitEffect(work->hits[4].body.coord, id);
-        if (sc->attackKey != 0) {
-            goto body;
-        }
-    }
-
-    id            = _gluttonFindHit(&sc->contactPoint, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts));
-    sc->attackKey = id;
-    if (id == 0) {
-        goto out;
-    }
-    gluttonHitEffect(work->hits[5].body.coord, id);
-    if (sc->attackKey == 0) {
-        goto out;
-    }
-body:
-    param                    = Gp_GetIdParam2(sc->attackKey);
-    work->groups6To8Cooldown = param;
-    work->groups3To5Cooldown = param;
-    work->group0Cooldown     = param;
-    work->groups1To2Cooldown = param;
-    Gp_GetIdParam0(sc->attackKey);
-
-    sc->toPlayer.vx    = (cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0]) + 0x51F;
-    dx2                = sc->toPlayer.vx * sc->toPlayer.vx;
-    sc->toPlayer.vy    = (cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1]) - 0xFA;
-    dy2                = sc->toPlayer.vy * sc->toPlayer.vy;
-    sc->toPlayer.vz    = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
-    dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
-    sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
-    sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
-
-    if (Gp_RollEnemyChance(work->escorts[0], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
-        state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 &&
-        gSceneCombatState.battleRefs == 1) {
-        sc->offset.vy = 0;
-        sc->offset.vx = 0;
-        sc->offset.vz = 0x320;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
-        sc->damage *= 4;
-        work->state = 0xE;
-    }
-
-    dmg = sc->damage / 6;
-    if (dmg == 0) {
-        if (sc->damage == 0) {
-            sc->damage = 0;
+        dmg = sc->damage / 6;
+        if (dmg == 0) {
+            if (sc->damage == 0) {
+                sc->damage = 0;
+            } else {
+                sc->damage = 1;
+            }
         } else {
-            sc->damage = 1;
+            sc->damage = dmg;
         }
-    } else {
-        sc->damage = dmg;
-    }
-    func_800E2C78(host, sc->attackKey, sc->damage, 0);
-    host->hp             -= sc->damage;
-    esc3                  = work->escorts[3];
-    hp                    = host->hp;
-    esc0                  = work->escorts[0];
-    esc1                  = work->escorts[1];
-    esc3->hp              = hp;
-    esc1->hp              = hp;
-    esc0->hp              = hp;
-    work->groups3To5Pool -= sc->damage;
-    if (work->groups3To5Pool <= 0 && (state = work->state, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
-        state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 && gSceneCombatState.battleRefs == 1) {
-        sc->offset.vy = 0;
-        sc->offset.vx = 0;
-        sc->offset.vz = 0x320;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
-        work->state          = 0xE;
-        work->groups3To5Pool = 0x32;
-    }
+        func_800E2C78(host, sc->attackKey, sc->damage, 0);
+        host->hp             -= sc->damage;
+        esc3                  = work->escorts[3];
+        hp                    = host->hp;
+        esc0                  = work->escorts[0];
+        esc1                  = work->escorts[1];
+        esc3->hp              = hp;
+        esc1->hp              = hp;
+        esc0->hp              = hp;
+        work->groups3To5Pool -= sc->damage;
+        if (work->groups3To5Pool <= 0 && (state = work->state, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
+            state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 && gSceneCombatState.battleRefs == 1) {
+            sc->offset.vy = 0;
+            sc->offset.vx = 0;
+            sc->offset.vz = 0x320;
+            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
+            work->state          = 0xE;
+            work->groups3To5Pool = 0x32;
+        }
 
-    func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
-    work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(work->escorts[0]->task->extra.tmd->coords);
-    sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
-    sc->offset.vy = sc->contactPoint.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
-    sc->offset.vz = sc->contactPoint.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
-    angle         = ratan2(sc->offset.vx, sc->offset.vz) -
-            ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
-                   arg0->extra.tmd->coords->workm.m[2][2]);
-    sc->contactYaw = angle;
-    sc->contactYaw = actorWrapAngle(angle);
+        func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
+        work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(work->escorts[0]->task->extra.tmd->coords);
+        sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
+        sc->offset.vy = sc->contactPoint.vy - work->escorts[0]->task->extra.tmd->coords->workm.t[1];
+        sc->offset.vz = sc->contactPoint.vz - work->escorts[0]->task->extra.tmd->coords->workm.t[2];
+        angle         = ratan2(sc->offset.vx, sc->offset.vz) -
+                ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
+                       arg0->extra.tmd->coords->workm.m[2][2]);
+        sc->contactYaw = angle;
+        sc->contactYaw = actorWrapAngle(angle);
 
-    work->neckYaw       = 0;
-    work->neckYawTarget = 0;
-out:
+        work->neckYaw       = 0;
+        work->neckYawTarget = 0;
+    }
     SCRATCH_STACK_RELEASE_BLOCK(GluttonHitScratch);
 }
 
