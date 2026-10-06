@@ -147,12 +147,12 @@ static inline void RoomFx_SparkEmitterTask(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto kill;
+        effectKillTask(mem, arg0);
+        return;
     } else {
         actorRenderComposeCoord(coord);
         mem->age++;
         if (mem->age >= 0x15) {
-        kill:
             effectKillTask(mem, arg0);
             return;
         }
