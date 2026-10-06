@@ -970,12 +970,24 @@ WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[8] = {
     D_dryfield_night_junk_yard_801844AC,
 };
 
-/// Draws the capsule and two flares shared by junk yard views 5, 7 and 10.
-static inline void _dryfieldNightJunkYardDrawCapsuleAndFlares(const SVECTOR* lightPoints)
+/// Draws the grey capsule and two large flares shared by junk yard views 5, 7 and 10.
+///
+/// Requires four consecutive, word-aligned world-space points, borrowed for
+/// this call: `worldPoints[0..1]` are capsule endpoints and `worldPoints[2..3]`
+/// are flare centres. The capsule starts at screen angle zero (down); both
+/// flares use texture column zero and the room's large perspective radius.
+/// Uses the current view, initialized scratch stack, ordering table and packet
+/// arena; queued primitives remain in that frame's arena until GPU completion.
+static inline void _dryfieldNightJunkYardDrawCapsuleAndFlares(const SVECTOR worldPoints[4])
 {
-    _glowDrawGreyCapsule(&lightPoints[0], DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_RADIUS_SCALE, 0);
-    glowDrawFlareClipped(&lightPoints[2], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
-    glowDrawFlareClipped(&lightPoints[3], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+    enum {
+        DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_DOWN_ANGLE   = 0, // 4096 units per screen-space turn; zero points down
+        DRYFIELD_NIGHT_JUNK_YARD_FLARE_TEXTURE_COLUMN = 0
+    };
+
+    _glowDrawGreyCapsule(&worldPoints[0], DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_RADIUS_SCALE, DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_DOWN_ANGLE);
+    glowDrawFlareClipped(&worldPoints[2], DRYFIELD_NIGHT_JUNK_YARD_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&worldPoints[3], DRYFIELD_NIGHT_JUNK_YARD_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
 }
 
 void dryfieldNightJunkYardDrawGlowsTask(Task* task)
