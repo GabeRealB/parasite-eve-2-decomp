@@ -812,17 +812,12 @@ s32 func_shelter_b1_main_corridor_8017DCFC(Task* task, s32 msgId, s32 arg2, s32 
 
 s32 func_shelter_b1_main_corridor_8017DD04(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    s32 sndId;
-
     if (arg2 != 0xD) {
         if (arg2 == 0xE) {
-            sndId = 0x540F0000 | 0xE;
-            goto play;
+            sndEvtRequestScriptStart(0x540F000E, 0, 0);
         }
     } else {
-        sndId = 0x540F000D;
-    play:
-        sndEvtRequestScriptStart(sndId, 0, 0);
+        sndEvtRequestScriptStart(0x540F000D, 0, 0);
     }
     return 0;
 }
