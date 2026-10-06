@@ -1609,7 +1609,6 @@ void func_actor_403600_80134398(Task* arg0)
     s32                    temp_s0_5;
     s8                     temp_v1_12;
     u16                    temp_v1_3;
-    s32                    var_v0;
     s32                    historyDst, historySrc;
     SVECTOR*               historyOut;
     s32                    direction;
@@ -1749,9 +1748,7 @@ void func_actor_403600_80134398(Task* arg0)
         }
         newWork->life = 0x12C;
         arg0->state   = arg0->state + 1;
-        goto block_22;
     }
-block_22:
     work   = arg0->work;
     target = &player->extra.tmd->coords[1];
     actorRenderComposeCoord(target);
@@ -1793,259 +1790,244 @@ block_22:
             temp_v1_4 = arg0->status;
             if (temp_v1_4 == 2) {
                 taskCallExit(arg0);
+                SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
+                return;
+            }
+            if (temp_v1_4 == 3) {
+                temp_s0_3 = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_LAUNCH, temp_s0_3, (s8)worldCoordGetOriginAudioDepth(coord));
+                arg0->killCountdown = (rand() & 0xF) + 0x10;
+                arg0->status        = 1;
+            } else if (temp_v1_4 == 0) {
+                arg0->killCountdown = 0x7FFF;
+                arg0->status        = 1;
             } else {
-                if (temp_v1_4 == 3) {
-                    temp_s0_3 = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_LAUNCH, temp_s0_3, (s8)worldCoordGetOriginAudioDepth(coord));
-                    var_v0 = (rand() & 0xF) + 0x10;
-                    goto block_34;
+                arg0->killCountdown = (u16)((rand() & 0xF) + 0x10);
+                arg0->status        = (u8)(arg0->status ^ 1);
+            }
+        }
+        if (arg0->status != 2) {
+            steeringPass = 0;
+            temp_s0_4    = &scratch->dir;
+            for (; steeringPass < 2; steeringPass++) {
+                if (arg0->status == 0) {
+                    scratch->dir.vx = (s16)((scratch->target.vx - coord->coord.t[0]) >> 2);
+                    scratch->dir.vy = (s16)((s32)(scratch->target.vy - coord->coord.t[1]) >> 2);
+                    scratch->dir.vz = (s16)((s32)(scratch->target.vz - coord->coord.t[2]) >> 2);
+                    VectorNormalSS(temp_s0_4, temp_s0_4);
+                    direction       = (scratch->dir.vx + work->direction.vx * 7) >> 4;
+                    scratch->dir.vx = direction;
+                    direction       = (scratch->dir.vy + work->direction.vy * 7) >> 4;
+                    scratch->dir.vy = direction;
+                    direction       = (scratch->dir.vz + work->direction.vz * 7) >> 4;
+                    scratch->dir.vz = direction;
+                    VectorNormalSS(temp_s0_4, temp_s0_4);
+                    work->direction.vx = (s16)(u16)scratch->dir.vx;
+                    work->direction.vy = (s16)(u16)scratch->dir.vy;
+                    work->direction.vz = (s16)(u16)scratch->dir.vz;
                 }
-                var_v0 = 0x7FFF;
-                if (temp_v1_4 == 0) {
-                block_34:
-                    arg0->killCountdown = var_v0;
-                    arg0->status        = 1;
+                temp_v1_5 = arg0->status;
+                if (temp_v1_5 < 3U) {
+                    gte_lddp(100);
+                    gteValue2 = &work->direction;
+                    gte_ldsv(gteValue2);
+                    gte_gpf12();
+                    gte_stsv(temp_s0_4);
+                    newShape->ends[1].vx = (s16) - (s16)(u16)scratch->dir.vx;
+                    newShape->ends[1].vy = (s16) - (s16)(u16)scratch->dir.vy;
+                    newShape->ends[1].vz = (s16) - (s16)(u16)scratch->dir.vz;
+                    coord->coord.t[0]    = coord->coord.t[0] + scratch->dir.vx;
+                    coord->coord.t[1]    = coord->coord.t[1] + scratch->dir.vy;
+                    coord->coord.t[2]    = coord->coord.t[2] + scratch->dir.vz;
+                } else if (temp_v1_5 == 3) {
+                    motionParent = arg0->spawnArg2.pointer;
+                    if ((s16)arg0->killCountdown >= 7) {
+                        var_a1_2 = &motionParent->extra.tmd->coords[18];
+                        actorRenderCopyCoordBodyTransform(arg0, var_a1_2, &sp10);
+                        var_s4 = 0;
+                        do {
+                            work->trail[var_s4].vx = (u16)coord->coord.t[0];
+                            work->trail[var_s4].vy = (u16)coord->coord.t[1];
+                            work->trail[var_s4].vz = (u16)coord->coord.t[2];
+                            var_s4                += 1;
+                        } while (var_s4 < ARRAY_SIZE(work->trail));
+                    }
                 } else {
-                    arg0->killCountdown = (u16)((rand() & 0xF) + 0x10);
-                    arg0->status        = (u8)(arg0->status ^ 1);
-                }
-                goto block_36;
-            }
-        } else {
-        block_36:
-            if (arg0->status != 2) {
-                steeringPass = 0;
-                temp_s0_4    = &scratch->dir;
-                do {
-                    if (arg0->status == 0) {
-                        scratch->dir.vx = (s16)((scratch->target.vx - coord->coord.t[0]) >> 2);
-                        scratch->dir.vy = (s16)((s32)(scratch->target.vy - coord->coord.t[1]) >> 2);
-                        scratch->dir.vz = (s16)((s32)(scratch->target.vz - coord->coord.t[2]) >> 2);
-                        VectorNormalSS(temp_s0_4, temp_s0_4);
-                        direction       = (scratch->dir.vx + work->direction.vx * 7) >> 4;
-                        scratch->dir.vx = direction;
-                        direction       = (scratch->dir.vy + work->direction.vy * 7) >> 4;
-                        scratch->dir.vy = direction;
-                        direction       = (scratch->dir.vz + work->direction.vz * 7) >> 4;
-                        scratch->dir.vz = direction;
-                        VectorNormalSS(temp_s0_4, temp_s0_4);
-                        work->direction.vx = (s16)(u16)scratch->dir.vx;
-                        work->direction.vy = (s16)(u16)scratch->dir.vy;
-                        work->direction.vz = (s16)(u16)scratch->dir.vz;
-                    }
-                    temp_v1_5 = arg0->status;
-                    if (temp_v1_5 < 3U) {
-                        gte_lddp(100);
-                        gteValue2 = &work->direction;
-                        gte_ldsv(gteValue2);
-                        gte_gpf12();
-                        gte_stsv(temp_s0_4);
-                        newShape->ends[1].vx = (s16) - (s16)(u16)scratch->dir.vx;
-                        newShape->ends[1].vy = (s16) - (s16)(u16)scratch->dir.vy;
-                        newShape->ends[1].vz = (s16) - (s16)(u16)scratch->dir.vz;
-                        coord->coord.t[0]    = coord->coord.t[0] + scratch->dir.vx;
-                        coord->coord.t[1]    = coord->coord.t[1] + scratch->dir.vy;
-                        coord->coord.t[2]    = coord->coord.t[2] + scratch->dir.vz;
-                        goto block_51;
-                    }
-                    if (temp_v1_5 == 3) {
-                        motionParent = arg0->spawnArg2.pointer;
-                        if ((s16)arg0->killCountdown >= 7) {
-                            var_a1_2 = &motionParent->extra.tmd->coords[18];
-                            actorRenderCopyCoordBodyTransform(arg0, var_a1_2, &sp10);
-                            var_s4 = 0;
-                            do {
-                                work->trail[var_s4].vx = (u16)coord->coord.t[0];
-                                work->trail[var_s4].vy = (u16)coord->coord.t[1];
-                                work->trail[var_s4].vz = (u16)coord->coord.t[2];
-                                var_s4                += 1;
-                            } while (var_s4 < ARRAY_SIZE(work->trail));
-                            steeringPass += 1;
-                        } else {
-                            goto block_51;
-                        }
+                    temp_a0_3 = arg0->spawnArg2.pointer;
+                    if (arg0->spawnArg1.value == 0x1000) {
+                        actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[18], &sp10);
                     } else {
-                        temp_a0_3 = arg0->spawnArg2.pointer;
-                        if (arg0->spawnArg1.value == 0x1000) {
-                            actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[18], &sp10);
-                        } else {
-                            actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[14], &sp10);
-                        }
-                    block_51:
-                        steeringPass += 1;
-                    }
-                } while (steeringPass < 2);
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            work->trail[0].vx  = (u16)coord->coord.t[0];
-            work->trail[0].vy  = (u16)coord->coord.t[1];
-            work->trail[0].vz  = (u16)coord->coord.t[2];
-            work->trail[0].pad = rand();
-            goto block_54;
-        }
-    } else {
-    block_54:
-        if ((arg0->spawnArg1.value < 0x1000) && (worldCollisionFindContactIndex(work->attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
-            temp_s0_5 = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_HIT, temp_s0_5, (s8)worldCoordGetOriginAudioDepth(coord));
-            work->life = -1;
-        }
-        if (work->life < 0) {
-            if (arg0->spawnArg1.value < 0x1000) {
-                worldCollisionClearContacts(work->attackContacts);
-                work->attackBody.flags = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            }
-            work->life          = 0x7FFFFFFF;
-            arg0->status        = 2;
-            arg0->killCountdown = 0x20;
-        }
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        temp_v1_6 = arg0->spawnArg1.value & 0xF;
-        switch (temp_v1_6) {
-            case 0:
-                sp24 = 0x808000;
-                break;
-            case 1:
-                sp24 = 0x808080;
-                break;
-            case 2:
-                sp24 = 0x80;
-                break;
-            default:
-                sp24 = 0x8080;
-                break;
-        }
-        sp28      = 1;
-        temp_v1_7 = arg0->status;
-        var_fp    = 0;
-        if (temp_v1_7 == 2) {
-            var_fp = 0x20 - (s16)arg0->killCountdown;
-        } else if (temp_v1_7 == 3) {
-            sp28 = 4;
-        }
-        var_s4 = var_fp;
-        if (var_s4 < ARRAY_SIZE(work->trail)) {
-            ds = &gDisplayState;
-            /* This loop is at the size limit (261 insns at the loop pass) below
-             * which the `2` the three status tests compare with is still moved
-             * out of it; one more temporary in the body changes the allocation. */
-            do {
-                shared                  = D_actor_403600_8016069C;
-                D_actor_403600_8016069C = (u8*)shared + sizeof(POLY_FT4);
-                point                   = &work->trail[var_s4];
-                gte_ldv0(point);
-                gte_rtps();
-                gteValue3 = &scratch->sxy;
-                gte_stsxy(gteValue3);
-                gteValue4 = &scratch->dp;
-                gte_stdp(gteValue4);
-                gteValue5 = &scratch->flag;
-                gte_stflg(gteValue5);
-                gteValue6 = &scratch->otz;
-                gte_stszotz(gteValue6);
-                if (scratch->flag >= 0) {
-                    if (var_s4 == 0) {
-                        if (arg0->status != 2) {
-                            temp_a0_4 = scratch->otz;
-                            if (temp_a0_4 >= 0) {
-                                scratch->cornerOffset.vx = (u16)((s32)(ds->screenDistance * 0x96) / temp_a0_4);
-                            } else {
-                                scratch->cornerOffset.vx = 0x1000U;
-                            }
-                            temp_v1_8                  = (u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx;
-                            ((POLY_FT4*)shared)->x2    = temp_v1_8;
-                            ((POLY_FT4*)shared)->x0    = temp_v1_8;
-                            temp_v1_9                  = (u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx;
-                            ((POLY_FT4*)shared)->x3    = temp_v1_9;
-                            ((POLY_FT4*)shared)->x1    = temp_v1_9;
-                            temp_v1_10                 = (u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx;
-                            ((POLY_FT4*)shared)->y1    = temp_v1_10;
-                            ((POLY_FT4*)shared)->y0    = temp_v1_10;
-                            temp_v1_11                 = (u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx;
-                            ((POLY_FT4*)shared)->tpage = 0x29;
-                            ((POLY_FT4*)shared)->y3    = temp_v1_11;
-                            ((POLY_FT4*)shared)->y2    = temp_v1_11;
-                            if (arg0->extraState.value != 0) {
-                                ((POLY_FT4*)shared)->u2   = 0x70U;
-                                ((POLY_FT4*)shared)->u0   = 0x70U;
-                                ((POLY_FT4*)shared)->clut = 0x428B;
-                            } else {
-                                ((POLY_FT4*)shared)->u2   = 0xA8U;
-                                ((POLY_FT4*)shared)->u0   = 0xA8U;
-                                ((POLY_FT4*)shared)->clut = 0x428C;
-                            }
-                            ((POLY_FT4*)shared)->v1                          = 0xC9;
-                            ((POLY_FT4*)shared)->v0                          = 0xC9;
-                            ((POLY_FT4*)shared)->v3                          = 0xFF;
-                            ((POLY_FT4*)shared)->v2                          = 0xFF;
-                            GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = sp24;
-                            temp_v1_12                                       = ((POLY_FT4*)shared)->u0 + 0x37;
-                            setlen((POLY_FT4*)shared, 9);
-                            ((POLY_FT4*)shared)->code = 0x2E;
-                            ((POLY_FT4*)shared)->u3   = temp_v1_12;
-                            ((POLY_FT4*)shared)->u1   = temp_v1_12;
-                            addPrim(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
-                                    (POLY_FT4*)shared);
-                        }
-                    } else if (var_s4 >= (var_fp - 4)) {
-                        temp_s0_6                = (u16)point->pad;
-                        scratch->cornerOffset.vx = rsin(temp_s0_6);
-                        scratch->cornerOffset.vy = rcos(temp_s0_6);
-                        scratch->cornerOffset.vz = 0;
-                        if (scratch->otz >= 0) {
-                            var_a0 = (var_s4 * 2) + 0x78;
-                            if ((var_fp >= var_s4) && (arg0->status == 2)) {
-                                var_a0 = (var_s4 * 20) + 0x78;
-                            } else if (arg0->status == 4) {
-                                var_a0 *= 2;
-                            }
-                            gte_lddp((var_a0 * ds->screenDistance) / scratch->otz);
-                            temp_v0_4 = &scratch->cornerOffset;
-                            gte_ldsv(temp_v0_4);
-                            gte_gpf12();
-                            gte_stsv(temp_v0_4);
-                        }
-                        ((POLY_FT4*)shared)->x0    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx);
-                        ((POLY_FT4*)shared)->y0    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vy);
-                        ((POLY_FT4*)shared)->x1    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vy);
-                        ((POLY_FT4*)shared)->y1    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx);
-                        ((POLY_FT4*)shared)->x2    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vy);
-                        ((POLY_FT4*)shared)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx);
-                        ((POLY_FT4*)shared)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx);
-                        ((POLY_FT4*)shared)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vy);
-                        temp_v1_13                 = (u8)point->pad;
-                        temp_v1_13                &= 0x20;
-                        ((POLY_FT4*)shared)->v1    = 0x18;
-                        ((POLY_FT4*)shared)->v0    = 0x18;
-                        ((POLY_FT4*)shared)->v3    = 0x37;
-                        ((POLY_FT4*)shared)->v2    = 0x37;
-                        temp_v0_5                  = temp_v1_13 + 0x60;
-                        temp_v1_13                += 0x7F;
-                        ((POLY_FT4*)shared)->u2    = temp_v0_5;
-                        ((POLY_FT4*)shared)->u0    = temp_v0_5;
-                        ((POLY_FT4*)shared)->u3    = temp_v1_13;
-                        ((POLY_FT4*)shared)->u1    = temp_v1_13;
-                        ((POLY_FT4*)shared)->tpage = 0x2A;
-                        ((POLY_FT4*)shared)->clut  = 0x42CC;
-                        var_a0                     = var_s4;
-                        if (arg0->status == 2) {
-                            if (var_fp >= var_s4) {
-                                var_a0 = var_fp;
-                            }
-                        }
-                        temp_v1_13 = D_actor_403600_80142120[var_a0];
-                        setlen((POLY_FT4*)shared, 9);
-                        GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
-                        ((POLY_FT4*)shared)->code                        = 0x2E;
-                        ACTOR_403600_LINK_PRIMITIVE(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
-                                                    (POLY_FT4*)shared);
+                        actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[14], &sp10);
                     }
                 }
-                var_s4 += sp28;
-            } while (var_s4 < ARRAY_SIZE(work->trail));
+            }
         }
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(coord);
+        work->trail[0].vx  = (u16)coord->coord.t[0];
+        work->trail[0].vy  = (u16)coord->coord.t[1];
+        work->trail[0].vz  = (u16)coord->coord.t[2];
+        work->trail[0].pad = rand();
+    }
+    if ((arg0->spawnArg1.value < 0x1000) && (worldCollisionFindContactIndex(work->attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
+        temp_s0_5 = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_HIT, temp_s0_5, (s8)worldCoordGetOriginAudioDepth(coord));
+        work->life = -1;
+    }
+    if (work->life < 0) {
+        if (arg0->spawnArg1.value < 0x1000) {
+            worldCollisionClearContacts(work->attackContacts);
+            work->attackBody.flags = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        }
+        work->life          = 0x7FFFFFFF;
+        arg0->status        = 2;
+        arg0->killCountdown = 0x20;
+    }
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    temp_v1_6 = arg0->spawnArg1.value & 0xF;
+    switch (temp_v1_6) {
+        case 0:
+            sp24 = 0x808000;
+            break;
+        case 1:
+            sp24 = 0x808080;
+            break;
+        case 2:
+            sp24 = 0x80;
+            break;
+        default:
+            sp24 = 0x8080;
+            break;
+    }
+    sp28      = 1;
+    temp_v1_7 = arg0->status;
+    var_fp    = 0;
+    if (temp_v1_7 == 2) {
+        var_fp = 0x20 - (s16)arg0->killCountdown;
+    } else if (temp_v1_7 == 3) {
+        sp28 = 4;
+    }
+    var_s4 = var_fp;
+    if (var_s4 < ARRAY_SIZE(work->trail)) {
+        ds = &gDisplayState;
+        /* This loop is at the size limit (261 insns at the loop pass) below
+         * which the `2` the three status tests compare with is still moved
+         * out of it; one more temporary in the body changes the allocation. */
+        do {
+            shared                  = D_actor_403600_8016069C;
+            D_actor_403600_8016069C = (u8*)shared + sizeof(POLY_FT4);
+            point                   = &work->trail[var_s4];
+            gte_ldv0(point);
+            gte_rtps();
+            gteValue3 = &scratch->sxy;
+            gte_stsxy(gteValue3);
+            gteValue4 = &scratch->dp;
+            gte_stdp(gteValue4);
+            gteValue5 = &scratch->flag;
+            gte_stflg(gteValue5);
+            gteValue6 = &scratch->otz;
+            gte_stszotz(gteValue6);
+            if (scratch->flag >= 0) {
+                if (var_s4 == 0) {
+                    if (arg0->status != 2) {
+                        temp_a0_4 = scratch->otz;
+                        if (temp_a0_4 >= 0) {
+                            scratch->cornerOffset.vx = (u16)((s32)(ds->screenDistance * 0x96) / temp_a0_4);
+                        } else {
+                            scratch->cornerOffset.vx = 0x1000U;
+                        }
+                        temp_v1_8                  = (u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)shared)->x2    = temp_v1_8;
+                        ((POLY_FT4*)shared)->x0    = temp_v1_8;
+                        temp_v1_9                  = (u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)shared)->x3    = temp_v1_9;
+                        ((POLY_FT4*)shared)->x1    = temp_v1_9;
+                        temp_v1_10                 = (u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)shared)->y1    = temp_v1_10;
+                        ((POLY_FT4*)shared)->y0    = temp_v1_10;
+                        temp_v1_11                 = (u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)shared)->tpage = 0x29;
+                        ((POLY_FT4*)shared)->y3    = temp_v1_11;
+                        ((POLY_FT4*)shared)->y2    = temp_v1_11;
+                        if (arg0->extraState.value != 0) {
+                            ((POLY_FT4*)shared)->u2   = 0x70U;
+                            ((POLY_FT4*)shared)->u0   = 0x70U;
+                            ((POLY_FT4*)shared)->clut = 0x428B;
+                        } else {
+                            ((POLY_FT4*)shared)->u2   = 0xA8U;
+                            ((POLY_FT4*)shared)->u0   = 0xA8U;
+                            ((POLY_FT4*)shared)->clut = 0x428C;
+                        }
+                        ((POLY_FT4*)shared)->v1                          = 0xC9;
+                        ((POLY_FT4*)shared)->v0                          = 0xC9;
+                        ((POLY_FT4*)shared)->v3                          = 0xFF;
+                        ((POLY_FT4*)shared)->v2                          = 0xFF;
+                        GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = sp24;
+                        temp_v1_12                                       = ((POLY_FT4*)shared)->u0 + 0x37;
+                        setlen((POLY_FT4*)shared, 9);
+                        ((POLY_FT4*)shared)->code = 0x2E;
+                        ((POLY_FT4*)shared)->u3   = temp_v1_12;
+                        ((POLY_FT4*)shared)->u1   = temp_v1_12;
+                        addPrim(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
+                                (POLY_FT4*)shared);
+                    }
+                } else if (var_s4 >= (var_fp - 4)) {
+                    temp_s0_6                = (u16)point->pad;
+                    scratch->cornerOffset.vx = rsin(temp_s0_6);
+                    scratch->cornerOffset.vy = rcos(temp_s0_6);
+                    scratch->cornerOffset.vz = 0;
+                    if (scratch->otz >= 0) {
+                        var_a0 = (var_s4 * 2) + 0x78;
+                        if ((var_fp >= var_s4) && (arg0->status == 2)) {
+                            var_a0 = (var_s4 * 20) + 0x78;
+                        } else if (arg0->status == 4) {
+                            var_a0 *= 2;
+                        }
+                        gte_lddp((var_a0 * ds->screenDistance) / scratch->otz);
+                        temp_v0_4 = &scratch->cornerOffset;
+                        gte_ldsv(temp_v0_4);
+                        gte_gpf12();
+                        gte_stsv(temp_v0_4);
+                    }
+                    ((POLY_FT4*)shared)->x0    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)shared)->y0    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vy);
+                    ((POLY_FT4*)shared)->x1    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vy);
+                    ((POLY_FT4*)shared)->y1    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)shared)->x2    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vy);
+                    ((POLY_FT4*)shared)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)shared)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)shared)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vy);
+                    temp_v1_13                 = (u8)point->pad;
+                    temp_v1_13                &= 0x20;
+                    ((POLY_FT4*)shared)->v1    = 0x18;
+                    ((POLY_FT4*)shared)->v0    = 0x18;
+                    ((POLY_FT4*)shared)->v3    = 0x37;
+                    ((POLY_FT4*)shared)->v2    = 0x37;
+                    temp_v0_5                  = temp_v1_13 + 0x60;
+                    temp_v1_13                += 0x7F;
+                    ((POLY_FT4*)shared)->u2    = temp_v0_5;
+                    ((POLY_FT4*)shared)->u0    = temp_v0_5;
+                    ((POLY_FT4*)shared)->u3    = temp_v1_13;
+                    ((POLY_FT4*)shared)->u1    = temp_v1_13;
+                    ((POLY_FT4*)shared)->tpage = 0x2A;
+                    ((POLY_FT4*)shared)->clut  = 0x42CC;
+                    var_a0                     = var_s4;
+                    if (arg0->status == 2) {
+                        if (var_fp >= var_s4) {
+                            var_a0 = var_fp;
+                        }
+                    }
+                    temp_v1_13 = D_actor_403600_80142120[var_a0];
+                    setlen((POLY_FT4*)shared, 9);
+                    GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
+                    ((POLY_FT4*)shared)->code                        = 0x2E;
+                    ACTOR_403600_LINK_PRIMITIVE(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
+                                                (POLY_FT4*)shared);
+                }
+            }
+            var_s4 += sp28;
+        } while (var_s4 < ARRAY_SIZE(work->trail));
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
 }
