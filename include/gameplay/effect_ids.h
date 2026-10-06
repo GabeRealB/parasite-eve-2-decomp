@@ -1031,7 +1031,7 @@ enum {
     /// grenade lands (golemPawnRookBulletFly).
     EFFECT_SHELTER_1F_BULWARK_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x1C4),
     /// Rising eight-cell effectDrawSpinningBillboard sprite with a random CLUT
-    /// (effectSpriteRiseTask); spawned every 128 ticks from part 2 of actor_560800's
+    /// (`shelterB1PodServiceGantryEffectSpriteRiseTask`); spawned every 128 ticks from part 2 of actor_560800's
     /// animated model part in the B1 pod service gantry.
     EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE = EFFECT_ID(EFFECT_TASK_BANK, 0x1C6),
     /// dryfield_night_r08's copy of the shared flash task (_roomVisualEffectsFlashTask): ramps up

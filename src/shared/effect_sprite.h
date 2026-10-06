@@ -30,6 +30,9 @@ void effectSpriteDriftTaskAimed(Task* task);
 void EFFECT_SPRITE_DEBRIS_TASK(Task* task);
 #endif
 
-void effectSpriteRiseTask(Task* task);
+#ifdef EFFECT_SPRITE_RISE_TASK
+// Carrier-bound export; its task contract is in that package's public header.
+void EFFECT_SPRITE_RISE_TASK(Task* task);
+#endif
 
 #endif /* SRC_SHARED_EFFECT_SPRITE_H */

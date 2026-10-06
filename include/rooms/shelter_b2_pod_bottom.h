@@ -98,6 +98,23 @@ void shelterB2PodBottomShockRingTask(Task* task);
 /// coordinates, initialized scratch and packet capacity.
 void shelterB2PodBottomChargeBurstTask(Task* task);
 
+/// Moves and draws the pod bottom's eight-cell rising sprite with a random palette.
+///
+/// Requires a counted coordinate-body task in state 0 with owned, zero-initialized
+/// `EffectWork` in `spawnArg2.pointer` and a live `gRoomEffectState`. Bits 0..11 of
+/// `spawnArg1.value` select the perspective size numerator; bit 16 reverses Y
+/// motion, and other bits are ignored. The first running update chooses speed
+/// 16..79 parent-coordinate units per update and a fixed screen angle in
+/// 4096 units per turn. `move.vy` holds signed velocity, `scale` the angle,
+/// and `angle` the size; these parameters retain signed halfword precision.
+///
+/// Running updates move along parent-space Y before drawing, dirty the transform
+/// cache, and advance the cell every fourth update. Update 32 moves then releases
+/// without drawing. Drawing uses the existing composed cache, requires scratch
+/// and quad-packet capacity, and selects one of six palettes on every draw.
+/// Controls 1..3 freeze initialization, motion and animation but retain drawing
+/// and random consumption; controls >=4 release before drawing. Retirement frees
+/// the work, decrements the effect count and tears down the task and body.
 void shelterB2PodBottomEffectSpriteRiseTask(Task* task);
 
 /// Moves a flickering light beam along local Y for sixteen running updates.

@@ -75,7 +75,7 @@ Choose the owner before composing the name:
   table pointing at a room's effect task - that copy is an export of the
   package and takes its prefix in front of the shared identity:
   `shelterB2PodBottomEffectSpriteRiseTask`. The carrier binds the shared name
-  to it before including the library's header (`#define effectSpriteRiseTask
+  to it before including the library's header (`#define EFFECT_SPRITE_RISE_TASK
   shelterB2PodBottomEffectSpriteRiseTask`), as the paired factory rooms do, so
   the definition and every reference carry one project-unique name and the
   reference's `owner=` (see `tools/check_symbols.py`) can be checked by name. A

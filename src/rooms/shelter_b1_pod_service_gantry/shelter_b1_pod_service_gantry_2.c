@@ -40,8 +40,12 @@
 /// drawer also takes an `s16` angle.
 #define WATER_OWN_U16_DRAWERS
 #include "../../shared/water_effects.h"
-// Exported instance: another image refers to this package's copy by name.
-#define effectSpriteRiseTask shelterB1PodServiceGantryEffectSpriteRiseTask
+/// Binds the gantry's exported `void (Task*)` callback for the rising-sprite instance.
+///
+/// Supply a function identifier before the first inclusion of `effect_sprite.h`.
+/// Keep it defined through `effect_sprite_rise.inc.c`, which undefines it.
+/// Gameplay imports this package's compiled callback for effect slot 0x1C6.
+#define EFFECT_SPRITE_RISE_TASK shelterB1PodServiceGantryEffectSpriteRiseTask
 #include "../../shared/effect_sprite.h"
 
 static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);

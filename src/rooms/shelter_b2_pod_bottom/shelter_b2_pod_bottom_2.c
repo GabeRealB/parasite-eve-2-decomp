@@ -30,8 +30,12 @@
 #include "main/tmd_types.h"
 
 #include "rooms/room.h"
-// Exported instance: another image refers to this package's copy by name.
-#define effectSpriteRiseTask shelterB2PodBottomEffectSpriteRiseTask
+/// Binds the pod bottom's exported `void (Task*)` callback for the rising-sprite instance.
+///
+/// Supply a function identifier before the first inclusion of `effect_sprite.h`.
+/// Keep it defined through `effect_sprite_rise.inc.c`, which undefines it.
+/// Gameplay imports this package's compiled callback for effect slot 0x1BF.
+#define EFFECT_SPRITE_RISE_TASK shelterB2PodBottomEffectSpriteRiseTask
 #include "../../shared/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
