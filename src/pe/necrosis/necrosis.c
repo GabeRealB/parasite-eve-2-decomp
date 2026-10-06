@@ -100,7 +100,13 @@ enum {
 static void _necrosisDrawMistPuff(const GfxCoord* coord, s16 frameAndBlend, s16 size, s16 angle);
 static void _necrosisDrawLargeMistPuff(const GfxCoord* coord, s16 frameAndBlend, s16 size, s16 angle);
 
-/// Applies one puff displacement in parent-coordinate units and refreshes its view-space cache.
+/// Moves a Necrosis mist puff by its stored displacement and refreshes its view-space transform.
+///
+/// `effect->move` contains signed integer game-coordinate units per update in
+/// the space of `coord->parent`; its trigonometric Q12 conversion is complete.
+/// The displacement is added directly to the local translation. The puff's
+/// parent is the view coordinate, and its ancestor chain must remain live
+/// during composition. Both arguments are borrowed; `effect` is read-only.
 static inline void _necrosisAdvanceMistPuff(GfxCoord* coord, const EffectWork* effect)
 {
     coord->coord.t[0]  += effect->move.vx;
@@ -110,22 +116,28 @@ static inline void _necrosisAdvanceMistPuff(GfxCoord* coord, const EffectWork* e
     actorRenderComposeCoord(coord);
 }
 
-/// Places the corners of a rotated 32-texel puff around its projected centre.
+/// Writes the screen corners of a rotated 32-texel Necrosis mist puff.
 ///
-/// Size is in game-coordinate units, angle in 0x1000 units per turn and depth
-/// is SZ3 / 4 + 1. Corners use the inclusive cell span in texels. Signed integer
-/// division and Q12 shifts retain the original rounding and narrowing.
-static inline void _necrosisSetMistPuffCorners(EffectShapeScratch* scratch, POLY_FT4* quad, s16 size, s16 angle)
+/// `scratch` must hold the projected centre and SZ3 / 4 + 1 depth (1..16384).
+/// `size` is 0..4095 game-coordinate units; `size * 31 / depth` is the screen
+/// half-diagonal in pixels. `cornerAngle` is the bearing of corner 0 in 0x1000
+/// units per turn: zero places it above the centre, increasing clockwise.
+/// Signed division truncates before the Q12 trigonometric products are shifted.
+/// Only the quad's XY fields are written, narrowing each result to 16 bits;
+/// `scratch->extent.corner` retains the quarter-turned offset on return.
+/// Both objects are borrowed and must remain writable throughout the call.
+static inline void _necrosisSetMistPuffCorners(EffectShapeScratch* scratch, POLY_FT4* quad, s16 size, s16 cornerAngle)
 {
     s32 perpendicularAngle;
 
-    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rsin(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rcos(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    // Opposite corners share an offset; the other pair lies a quarter turn away.
+    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rsin(cornerAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rcos(cornerAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
     quad->x0                 = scratch->screenX + scratch->extent.corner.x;
     quad->x3                 = scratch->screenX - scratch->extent.corner.x;
     quad->y0                 = scratch->screenY - scratch->extent.corner.y;
     quad->y3                 = scratch->screenY + scratch->extent.corner.y;
-    perpendicularAngle       = angle + NECROSIS_PUFF_QUARTER_TURN;
+    perpendicularAngle       = cornerAngle + NECROSIS_PUFF_QUARTER_TURN;
     scratch->extent.corner.x = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
     scratch->extent.corner.y = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
     quad->x1                 = scratch->screenX + scratch->extent.corner.x;
@@ -134,22 +146,28 @@ static inline void _necrosisSetMistPuffCorners(EffectShapeScratch* scratch, POLY
     quad->y2                 = scratch->screenY + scratch->extent.corner.y;
 }
 
-/// Places the corners of a rotated 40-texel puff around its projected centre.
+/// Writes the screen corners of a rotated 40-texel Necrosis mist puff.
 ///
-/// Size is in game-coordinate units, angle in 0x1000 units per turn and depth
-/// is SZ3 / 4 + 1. Corners use the inclusive cell span in texels. Signed integer
-/// division and Q12 shifts retain the original rounding and narrowing.
-static inline void _necrosisSetLargeMistPuffCorners(EffectShapeScratch* scratch, POLY_FT4* quad, s16 size, s16 angle)
+/// `scratch` must hold the projected centre and SZ3 / 4 + 1 depth (1..16384).
+/// `size` is 0..4095 game-coordinate units; `size * 39 / depth` is the screen
+/// half-diagonal in pixels. `cornerAngle` is the bearing of corner 0 in 0x1000
+/// units per turn: zero places it above the centre, increasing clockwise.
+/// Signed division truncates before the Q12 trigonometric products are shifted.
+/// Only the quad's XY fields are written, narrowing each result to 16 bits;
+/// `scratch->extent.corner` retains the quarter-turned offset on return.
+/// Both objects are borrowed and must remain writable throughout the call.
+static inline void _necrosisSetLargeMistPuffCorners(EffectShapeScratch* scratch, POLY_FT4* quad, s16 size, s16 cornerAngle)
 {
     s32 perpendicularAngle;
 
-    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rsin(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rcos(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    // Opposite corners share an offset; the other pair lies a quarter turn away.
+    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rsin(cornerAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rcos(cornerAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
     quad->x0                 = scratch->screenX + scratch->extent.corner.x;
     quad->x3                 = scratch->screenX - scratch->extent.corner.x;
     quad->y0                 = scratch->screenY - scratch->extent.corner.y;
     quad->y3                 = scratch->screenY + scratch->extent.corner.y;
-    perpendicularAngle       = angle + NECROSIS_PUFF_QUARTER_TURN;
+    perpendicularAngle       = cornerAngle + NECROSIS_PUFF_QUARTER_TURN;
     scratch->extent.corner.x = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
     scratch->extent.corner.y = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
     quad->x1                 = scratch->screenX + scratch->extent.corner.x;
