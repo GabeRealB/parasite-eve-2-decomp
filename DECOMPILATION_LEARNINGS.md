@@ -107347,6 +107347,10 @@ source `base.c`
 
 ## A copy followed by an in-place `addiu` is a combine-blocked copy+modify, not an address computation (func_actor_521100_80133104, 2026-09-16)
 
+*Note 2026-10-06:* wrong for this function. The copy is a memory re-read that
+`reload_cse` turned into a move after register allocation; no barrier is
+needed. See the section at the end of this file with this function's name.
+
 The burn-out body takes an 8th-element coordinate as `Gp_SpawnEff`'s second
 argument, and the ROM does it in two instructions:
 
@@ -136386,6 +136390,9 @@ contains the paired dumps, extent pass walk, baseline trace and verification log
 
 ## Grouped call inputs can put a coordinate increment in the call delay slot without pins
 
+*Note 2026-10-06:* superseded; both touches are gone. See the section at the
+end of this file named for `func_actor_521100_80133104`.
+
 `func_actor_521100_80133104` needed `li a2,12; move a1,s1; move a3,zero; jal Gp_SpawnEff; addiu a1,a1,640`. A single soft coordinate touch preserved the copy and in-place addition, but ordinary argument setup left the a3 clear in the delay slot (98.767%).
 
 Materializing the four arguments through `SOFT_TOUCH_REG4(effect, kind, effectCoord, offset)` makes the increment depend on every input materialization. In base_3, the outputs coalesced into a0/a2/a1/a3, so the hard-register argument copies disappeared and dbr selected the increment. This reached 99.863%, but reload inserted `move a1,s1` immediately before the grouped asm, after the a3 clear. Adding `SOFT_TOUCH_REG(effectCoord)` before `offset = NULL` moved that reload copy to the earlier touch and matched:
@@ -148671,6 +148678,9 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   still only reachable with the touch: `&coord[8]`, an inline taking the
   element, an inline incrementing its parameter, an inline returning the
   element and a re-read of `arg0->extra.tmd->coords` all fold to one `addiu`.
+  *Note 2026-10-06:* now none. The re-read was the right source; it folded
+  only because the scratch store sat before the first read. See the section
+  at the end of this file with this function's name.
 
 ### Unresolved, with the mechanism measured: five gameplay barriers, and how sched1 orders a block (2026-10-05)
 
@@ -151098,3 +151108,69 @@ differing. Nothing else in either function is positional.
 - decomp-permuter found this from the hack-free near-match in 384 iterations
   (`i = 0; i = n;`). When a register copy "cannot be written", run it once on
   the plain source before concluding that an asm is required.
+
+## `move a1,s1` / `addiu a1,a1,C` is a field read twice, with a scalar store between the reads (func_actor_521100_80133104, 2026-10-06)
+
+**Symptom.** The target passes `&coords[8]` as `move a1,s1` ... `jal` /
+`addiu a1,a1,0x280` (the add in the delay slot, after the `a3` clear), where
+`s1` already holds `arg0->extra.tmd->coords`. Every spelling of the address
+folds to `addiu a1,s1,0x280`; two empty-`asm` touches held the pair apart. The
+two sibling functions have `lw v0,0x2c(s0)` / `lw a1,8(v0)` / `addiu a1,a1,0x280`
+at the same place, from `arg0->extra.tmd->coords + 8`.
+
+**Mechanism.** It is the same source as the siblings. The `move` is the second
+`lw`, rewritten after register allocation:
+
+- `reload_cse_regs` (reload1.c) runs after reload. It tracks which hard
+  register holds which memory value, forgets everything at a `CODE_LABEL`, but
+  walks straight through a conditional branch into its fall-through arm. Here
+  `v0` still holds `arg0->extra.tmd` and `s1` holds `->coords`, so
+  `lw v0,0x2c(s0)` becomes a no-op and is deleted and `lw a1,8(v0)` becomes
+  `move a1,s1`. Nothing after reload folds a copy into an add, so the pair
+  stays, and the add (the last insn before the call) fills the delay slot.
+- For that to be left to do, cse1/cse2 must NOT have merged the two reads, or
+  the argument becomes `coord + 640` and combine makes it one `addiu`. cse
+  drops every varying-address `MEM` at any store (`invalidate` in cse.c does
+  not look at `MEM_IN_STRUCT_P`), so one store between the reads is enough.
+- `reload_cse` must still see the value as valid across that store. It asks
+  `anti_dependence`, which says a scalar store at a fixed address cannot alias
+  a structure field at a varying address. So the store has to be a plain
+  scalar store: the scratch reservation `SCRATCH_STACK_CURSOR(SVECTOR) = vec`.
+  sched1 uses the same rule, which is why the store can sit at the very top of
+  the block in the output although it comes after the read in the source.
+
+**Fix.** Statement order only:
+
+```c
+work                          = arg0->work;
+coord                         = arg0->extra.tmd->coords;
+head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+vec                           = head - 1;
+SCRATCH_STACK_CURSOR(SVECTOR) = vec;          /* after the first read */
+clip                          = D_actor_521100_8015F894[work->animationId];
+...
+Gp_SpawnEff(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
+```
+
+The old body had the reservation first, written through
+`ScratchStackCursor->top` (a structure store) to pin the prologue order. With
+the reservation after the `coord` read the plain macro gives the target
+prologue, and the rest of the scaffolding went with it: one `s16 clip` gives
+both the `lh` (first two uses, combined into the load) and the `lhu` kept in
+`$s3`, so the `clipPtr` / `(u16)` second copy and the `(s16)clipId` casts are
+gone, as are `frame2`/`frame3`, `part`, `speed = 0` in both arms and the three
+argument locals.
+
+**Corollary.** A scalar store between a narrow load and its extending use
+blocks combine (`lhu` + `sll`/`sra` instead of `lh`): the first try had the
+reservation after `frame`/`clip` were read and showed exactly that. Keep the
+store before the `s16` loads and after the pointer read.
+
+**Use.** When a target copies a callee-saved pointer and then adjusts the copy
+in place, look at how a sibling computes the same value. If the sibling loads
+it from memory, write the load, and look for a store the source can place
+between the first read and this one: cse then keeps the load and `reload_cse`
+makes the copy. It only happens when no label and no conflicting store lies
+between the two reads in the final insn order, which is why the siblings
+(a structure store `work->turnSpeed = turn` in between) kept their `lw`.
+

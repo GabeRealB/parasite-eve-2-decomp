@@ -2234,91 +2234,68 @@ static void func_actor_521100_80132DE8(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// The scratch head is taken through `ScratchStackCursor` rather than as
-/// `SCRATCH_STACK_CURSOR`, which does not compile the same.
+/// The effect's coordinate is read from the display object again rather than
+/// taken from `coord`: the scratch reservation between the two reads is a
+/// store, so the second one is a load until after register allocation.
 static void func_actor_521100_80133104(Task* arg0)
 {
+    Actor521100Work* work;
     GfxCoord*        coord;
-    SVECTOR*         vec;
     SVECTOR*         head;
-    s16*             clipPtr;
-    s16              frame2;
-    s16              frame3;
-    s16              frame;
+    SVECTOR*         vec;
+    u16*             tbl;
     s16              clip;
     s16              speed;
+    s16              frame;
     s32              snd;
-    s32              pan;
-    GfxCoord*        effectCoord;
-    s32              effect;
-    s32              kind;
-    SVECTOR*         offset;
-    u16*             tbl;
-    u16              clipId;
-    u16              part;
-    u32              rng;
-    Actor521100Work* work;
 
-    head                                                  = ((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top;
-    vec                                                   = head - 1;
-    ((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top = vec;
-    work                                                  = arg0->work;
-    frame                                                 = work->animationFrame;
-    clipPtr                                               = &D_actor_521100_8015F894[work->animationId];
-    clip                                                  = *clipPtr;
-    clipId                                                = (u16)*clipPtr;
-    coord                                                 = arg0->extra.tmd->coords;
-    if (frame == (clip + 0x1A)) {
-        effect      = 0x60188;
-        kind        = 0xC;
-        effectCoord = coord;
-        SOFT_TOUCH_REG(effectCoord);
-        offset = NULL;
-        SOFT_TOUCH_REG4(effect, kind, effectCoord, offset);
-        Gp_SpawnEff(effect, &effectCoord[8], kind, offset);
+    work                          = arg0->work;
+    coord                         = arg0->extra.tmd->coords;
+    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+    vec                           = head - 1;
+    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
+    clip                          = D_actor_521100_8015F894[work->animationId];
+
+    frame = work->animationFrame;
+    if (frame == clip + 0x1A) {
+        Gp_SpawnEff(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
         Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
-    } else if (frame == (clip + 0x1E)) {
+    } else if (frame == clip + 0x1E) {
         vec->vx = -0x320;
         vec->vy = 0x64;
         vec->vz = 0;
         Gp_SpawnEff(EFFECT_CRITICAL_HIT, work->weaponTask->extra.tmd->coords, 0, vec);
     }
-    frame2 = work->animationFrame;
-    if (frame2 == ((s16)clipId + 0x1C)) {
-        work->attackLive          = 1;
-        work->weaponAttack.flags  = (u16)(work->weaponAttack.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->forearmAttack.flags = (u16)(work->forearmAttack.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-        snd                       = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0008;
-        pan                       = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        speed = 0;
-    } else {
-        speed = 0;
-        if (frame2 == ((s16)clipId + 0x28)) {
-            work->attackLanded        = 0;
-            work->weaponAttack.flags  = (u16)(work->weaponAttack.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-            work->forearmAttack.flags = (u16)(work->forearmAttack.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        }
+
+    frame = work->animationFrame;
+    if (frame == clip + 0x1C) {
+        work->attackLive           = 1;
+        work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        snd                        = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0008;
+        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+    } else if (frame == clip + 0x28) {
+        work->attackLanded         = 0;
+        work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    frame3 = work->animationFrame;
-    if (frame3 >= ((s16)clipId + 0x1C)) {
-        if (((s16)clipId + 0x1E) >= frame3) {
-            speed = 0x64;
-        }
+
+    speed = 0;
+    frame = work->animationFrame;
+    if (frame >= clip + 0x1C && frame <= clip + 0x1E) {
+        speed = 0x64;
     }
     work->forwardSpeed = speed;
-    if (work->animationFrame >= ((s16)clipId + 0x7A)) {
+    if (work->animationFrame >= clip + 0x7A) {
         work->animationId  = 1;
-        tbl                = D_actor_521100_8015F5F4;
-        rng                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->state        = ACTOR_521100_STATE_APPROACH;
         work->subState     = 0;
-        part               = tbl[(rng >> 16) & 0xF];
-        gRandomLcgState    = rng;
+        tbl                = D_actor_521100_8015F5F4;
+        gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF];
         work->attackLive   = 0;
-        work->stateCounter = part;
     }
-    SCRATCH_POP_AT(&((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top, SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Runs one frame of the burn-out sequence timed off the clip the slots are
