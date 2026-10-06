@@ -936,12 +936,12 @@ void func_actor_341900_80162EFC(Task* arg0)
             seqWork->doors[0]        = taskSpawnFromTable(D_actor_341900_80164190, 8, 0, arg0);
             seqWork->doors[1]        = taskSpawnFromTable(D_actor_341900_80164190, 9, 0, arg0);
             gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
-            goto next;
+            arg0->state             += 1;
+            return;
         case 1:
             gStageSceneMusicEntry                               = 4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
             func_800E8634(D_actor_341900_80163B48, 0, D_actor_341900_80163FB0);
-        next:
             arg0->state += 1;
             return;
         case 2:
