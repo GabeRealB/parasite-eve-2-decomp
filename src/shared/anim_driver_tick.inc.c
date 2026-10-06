@@ -37,7 +37,20 @@ static __inline__ void _animDriverTickSlots(Task* task)
     }
 }
 
-/// Restarts the requested set and resets the driver's state and counters.
+/// Restarts slots 1 to 5 on the requested set and begins a new counter interval.
+///
+/// `work` must be a live writable `AnimDriverWork` prefix whose rig is bound
+/// to its own slots and pose buffer and a live model with coordinates 1 to 5.
+/// `requestedSet` must be a nonnegative loaded set-table index, excluding
+/// `ANIMATION_SET_BUFFERED_POSE`, with valid track starts for all five indices.
+/// The borrowed set table and clip data must remain live during playback;
+/// set, track and record bounds are not checked.
+///
+/// Records `requestedSet` as `playingSet`, enters `ANIM_DRIVER_STATE_PLAYING`
+/// and clears both counters, even when the selected set is unchanged. Slots
+/// finish at `ANIMATION_RATE_ONE`; the next playing call installs the combined
+/// driver rate and applies the pose. Restart itself writes no pose, leaves
+/// slot 0 untouched and preserves the driver's rate settings.
 static __inline__ void _animDriverRestart(AnimDriverWork* work)
 {
     _animDriverResetSlots(work);
