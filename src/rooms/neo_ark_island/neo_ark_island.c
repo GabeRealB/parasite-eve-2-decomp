@@ -650,19 +650,14 @@ s32 func_neo_ark_island_8017EA2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// with a script still parked on one, is ignored. Always returns 0.
 s32 func_neo_ark_island_8017EA34(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32 id;
-
     switch (arg2) {
         case 3:
-            id = 0x550E0003;
-            goto play;
+            sndEvtRequestScriptStart(0x550E0003, 0, 0);
+            break;
         case 0x65:
-            if (Gp_GetCapEventKey() != 0) {
-                break;
+            if (Gp_GetCapEventKey() == 0) {
+                sndEvtRequestScriptStart(0x550E0004, 0, 0);
             }
-            id = 0x550E0004;
-        play:
-            sndEvtRequestScriptStart(id, 0, 0);
             break;
     }
     return 0;
