@@ -1205,7 +1205,9 @@ static void func_actor_800200_80162990(Task* arg0)
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_80169FF8[3].z;
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
-                goto arrived;
+                companion->routeComplete = COMPANION_ROUTE_COMPLETE;
+                func_actor_800200_801654EC(arg0, 0);
+                return;
             }
         case 1:
             actor->destination.vx = D_actor_800200_80169FF8[companion->waypointIndex].x;
@@ -1213,7 +1215,6 @@ static void func_actor_800200_80162990(Task* arg0)
             actor->destination.vz = D_actor_800200_80169FF8[companion->waypointIndex].z;
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
-                arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
@@ -1270,7 +1271,9 @@ static void func_actor_800200_80162BFC(Task* arg0)
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A020[3].z;
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
-                goto arrived;
+                companion->routeComplete = COMPANION_ROUTE_COMPLETE;
+                func_actor_800200_801654EC(arg0, 0);
+                return;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A020[companion->waypointIndex].x;
@@ -1278,7 +1281,6 @@ static void func_actor_800200_80162BFC(Task* arg0)
             actor->destination.vz = D_actor_800200_8016A020[companion->waypointIndex].z;
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 3) {
-                arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
@@ -1506,7 +1508,9 @@ static void func_actor_800200_8016337C(Task* arg0)
             actor->destination.vy = coord->coord.t[1];
             actor->destination.vz = D_actor_800200_8016A068[2].z;
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
-                goto arrived;
+                companion->routeComplete = COMPANION_ROUTE_COMPLETE;
+                func_actor_800200_801654EC(arg0, 0);
+                return;
             }
         case 1:
             actor->destination.vx = D_actor_800200_8016A068[companion->waypointIndex].x;
@@ -1514,7 +1518,6 @@ static void func_actor_800200_8016337C(Task* arg0)
             actor->destination.vz = D_actor_800200_8016A068[companion->waypointIndex].z;
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
                 if (companion->waypointIndex == 2) {
-                arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                     func_actor_800200_801654EC(arg0, 0);
                     return;
