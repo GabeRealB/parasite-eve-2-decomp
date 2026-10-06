@@ -430,7 +430,7 @@ static AreaObjectSpawn D_map_shelter_8017A888[1] = {
 };
 
 static AreaObjectSpawn D_map_shelter_8017A898[2] = {
-    { 0x20D, { { { TASK_BODY_TMD, 0x62 } }, func_mine_forked_tunnel_8017DBE4, { &gMineForkedTunnelModel01B48 } } },
+    { 0x20D, { { { TASK_BODY_TMD, 0x62 } }, mineForkedTunnelAreaObjectTask, { &gMineForkedTunnelModel01B48 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -530,7 +530,7 @@ TaskDesc D_map_shelter_8017AB30[] = {
     { { { TASK_BODY_NONE, 0x20 } }, func_mine_tunnel_8017D77C, { .value = GP_TASK_LOC_KEY(4, 4, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_mine_gorge_8017D9A0, { .value = GP_TASK_LOC_KEY(4, 5, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_mine_refuge_8017FFBC, { .value = GP_TASK_LOC_KEY(4, 6, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_mine_forked_tunnel_8017E25C, { .value = GP_TASK_LOC_KEY(4, 7, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, mineForkedTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 7, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_mine_secret_passage_8017D970, { .value = GP_TASK_LOC_KEY(4, 8, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_elevator_hall_8017DC28, { .value = GP_TASK_LOC_KEY(4, 9, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b1_south_maintenance_walkway_8017DA34, { .value = GP_TASK_LOC_KEY(4, 10, 0) } },

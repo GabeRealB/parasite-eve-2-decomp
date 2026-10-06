@@ -55,30 +55,30 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/actor_messages.h"
 
-/// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
-/// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
-/// `func_mine_forked_tunnel_8017D8EC` compose into the `ActorTransform` they
-/// hand `actorMsgPlaceEulerZyx` (entry 0 of each) and that
-/// `func_mine_forked_tunnel_8017D724` walks one entry per step of
-/// `Task::killCountdown`, which it clamps at 0x6E. Both are 240 entries - the
+/// The area object's position / rotation path, one `SVECTOR` per step: `pos` and
+/// `rot` are the halves `_mineForkedTunnelInitAreaObject` and
+/// `_mineForkedTunnelApplyAreaObjectCommand` compose into the `ActorTransform` they
+/// use for model placement (entry 0 of each) and that
+/// `_mineForkedTunnelTickAreaObject` walks one entry per step of
+/// `Task::killCountdown`, which holds at 110. Both are 240 entries - the
 /// position table starts where the rotation table ends, and the pitch table
 /// below starts where the position table ends.
 extern SVECTOR D_mine_forked_tunnel_80181244[240];
 extern SVECTOR D_mine_forked_tunnel_80180AC4[240];
 
-/// The placement `func_mine_forked_tunnel_8017D5E8` uses instead when the
+/// The placement `_mineForkedTunnelInitAreaObject` uses instead when the
 /// `0x75` game flag is set: a complete `ActorTransform` sitting in the room's
 /// `.data`, offset (0x8CD, 0x3C4, 0x46B) with a half-turn about Y.
 extern ActorTransform D_mine_forked_tunnel_80181BBC;
 
 /// The `ActorTransform` the tunnel's pitch-animated object adopts: state 0
-/// (`func_mine_forked_tunnel_8017DE54`) copies it onto the task's coordinate
-/// whole, and state 1 (`func_mine_forked_tunnel_8017DAB8`) then keeps its `pos`
+/// (`_mineForkedTunnelAttachAreaObjectChild`) copies it onto the task's coordinate
+/// whole, and state 1 (`_mineForkedTunnelTiltAreaObjectChild`) then keeps its `pos`
 /// while taking the `rot` from the pitch table below. Position
 /// (0xB4, -0xEB, -0x30C), rotation zero.
 extern ActorTransform D_mine_forked_tunnel_80181BA4;
 
-/// The pitch curve `func_mine_forked_tunnel_8017DAB8` walks that object
+/// The pitch curve `_mineForkedTunnelTiltAreaObjectChild` walks that object
 /// through, one `SVECTOR` per step of the counter it runs while
 /// `Task::spawnArg1` is 1: entries 0-15 are zero, then `vx` falls to -8 and
 /// climbs to 175 before settling at 173 (4096 is a full turn), so the object
@@ -86,8 +86,8 @@ extern ActorTransform D_mine_forked_tunnel_80181BA4;
 /// limit, so the last step lands on the settling value.
 extern SVECTOR D_mine_forked_tunnel_801819C4[54];
 
-/// Two-entry `TaskDesc` table `func_mine_forked_tunnel_8017D5E8` spawns the
-/// child enemy from; `taskSpawnFromTable` picks entry 1.
+/// Two-entry `TaskDesc` table `_mineForkedTunnelInitAreaObject` spawns the
+/// child part from; `taskSpawnFromTable` picks entry 1.
 extern TaskDesc D_mine_forked_tunnel_80181B74[];
 
 extern TaskMessageEntry D_mine_forked_tunnel_80181B8C[3];
@@ -121,17 +121,62 @@ extern TaskMessageEntry D_mine_forked_tunnel_80181C80[];
 extern EvsCommand       D_mine_forked_tunnel_801831AC[];
 extern EvsCommand       D_mine_forked_tunnel_801834F4[];
 
-static void func_mine_forked_tunnel_8017D5E8(Task* arg0);
-static void func_mine_forked_tunnel_8017D724(Task* arg0);
-static void func_mine_forked_tunnel_8017DAB8(Task* arg0);
+static void _mineForkedTunnelInitAreaObject(Task* task);
+static void _mineForkedTunnelTickAreaObject(Task* task);
+static s32  _mineForkedTunnelApplyAreaObjectCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused);
+static void _mineForkedTunnelTiltAreaObjectChild(Task* task);
+static void _mineForkedTunnelAreaObjectChildTask(Task* task);
 static void _mineForkedTunnelExitAreaObject(Task* task);
 static void _mineForkedTunnelBindAreaObjectLighting(Task* task);
 static s32  _mineForkedTunnelSetAreaObjectDrawMode(Task* task, s32 messageId, s32 drawMode, s32 unused);
-static void func_mine_forked_tunnel_8017DE54(Task* task);
-static void func_mine_forked_tunnel_8017DF34(s32 arg0);
+static void _mineForkedTunnelAttachAreaObjectChild(Task* task);
+static void _mineForkedTunnelUpdateAreaObjectCollision(s32 switchUsed);
 static void func_mine_forked_tunnel_8017E1E8(Task* arg0);
 static void _mineForkedTunnelIdleRoomTask(Task* unusedTask);
 static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden);
+static s32  _mineForkedTunnelHandleSwitchAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused);
+static void _mineForkedTunnelRestoreAreaObjectSoundMix(void);
+
+/// Script commands accepted by the switch-controlled area object.
+enum {
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_RESET      = 0,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_TILT_CHILD = 1,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_START_PATH = 2,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_PARK       = 3,
+};
+
+/// Motion gates stored in the area object and child's first spawn argument.
+enum {
+    MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_IDLE    = 0,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING = 1,
+};
+
+/// Reserved collision-box prefix, smaller than the complete room grid pools.
+enum {
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_FACE_COUNT   = 3,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_VERTEX_COUNT = 8,
+};
+
+/// Restores the box's faces and XYZ components in the room's reserved prefix.
+///
+/// Grid pointers must be side-effect-free expressions with live, disjoint pools;
+/// they are evaluated repeatedly. The room pools are writable and contain three
+/// normals/faces and eight vertices. Vector fourth words and later entries are
+/// retained. The index argument is a writable s32 cursor, left at eight.
+#define MINE_FORKED_TUNNEL_COPY_AREA_OBJECT_COLLISION_BOX(roomGrid, templateGrid, entryIndex)                          \
+    {                                                                                                                  \
+        for ((entryIndex) = 0; (entryIndex) < MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_FACE_COUNT; (entryIndex)++) {   \
+            (roomGrid)->normals[entryIndex].vx = (templateGrid)->normals[entryIndex].vx;                               \
+            (roomGrid)->normals[entryIndex].vy = (templateGrid)->normals[entryIndex].vy;                               \
+            (roomGrid)->normals[entryIndex].vz = (templateGrid)->normals[entryIndex].vz;                               \
+            (roomGrid)->faces[entryIndex]      = (templateGrid)->faces[entryIndex];                                    \
+        }                                                                                                              \
+        for ((entryIndex) = 0; (entryIndex) < MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_VERTEX_COUNT; (entryIndex)++) { \
+            (roomGrid)->vertices[entryIndex].vx = (templateGrid)->vertices[entryIndex].vx;                             \
+            (roomGrid)->vertices[entryIndex].vy = (templateGrid)->vertices[entryIndex].vy;                             \
+            (roomGrid)->vertices[entryIndex].vz = (templateGrid)->vertices[entryIndex].vz;                             \
+        }                                                                                                              \
+    }
 
 /// Draw modes carried by the area object's ACTOR_MESSAGE_SET_MODEL_DRAW payload.
 enum {
@@ -144,16 +189,16 @@ enum {
 /// Inventory request to use a collected key item in this room.
 enum { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-/// State table of the tunnel's enemy task, indexed by `Task::state`: set-up,
-/// the per-frame path walk, and the exit that releases the enemy.
+/// State table of the tunnel's area-object task, indexed by `Task::state`: set-up,
+/// the per-frame path walk, and the exit that releases the area object.
 static const TaskFuncTable3 D_mine_forked_tunnel_8017D5C4 = {
-    { func_mine_forked_tunnel_8017D5E8, func_mine_forked_tunnel_8017D724, _mineForkedTunnelExitAreaObject },
+    { _mineForkedTunnelInitAreaObject, _mineForkedTunnelTickAreaObject, _mineForkedTunnelExitAreaObject },
 };
 
-/// State table of the enemy's pitch-animated child, indexed by `Task::state`:
-/// attach to the enemy, walk the pitch curve, and `taskKill`.
+/// State table of the area object's pitch-animated child, indexed by `Task::state`:
+/// attach to the area object, walk the pitch curve, and `taskKill`.
 static const TaskFuncTable3 D_mine_forked_tunnel_8017D5D0 = {
-    { func_mine_forked_tunnel_8017DE54, func_mine_forked_tunnel_8017DAB8, taskKill },
+    { _mineForkedTunnelAttachAreaObjectChild, _mineForkedTunnelTiltAreaObjectChild, taskKill },
 };
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
@@ -171,7 +216,6 @@ static u32     _gMineForkedTunnelModel03340Stream[104];
 static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unused);
 s32        func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32        func_mine_forked_tunnel_8017E134(Task*, s32, s32, s32);
-s32        func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
@@ -182,7 +226,6 @@ extern WorldCollisionTrigger      D_mine_forked_tunnel_80184F50[6];
 extern WorldCollisionTrigger      D_mine_forked_tunnel_80185118[6];
 extern WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8];
 extern WorldCoordRoomLights       D_mine_forked_tunnel_80184F38[1];
-void                              func_mine_forked_tunnel_8017E2B4(void);
 
 static TmdBone _gMineForkedTunnelModel01B48Skeleton[1] = {
 #include "assets/mine_forked_tunnel_model_01B48_skeleton.inc"
@@ -791,18 +834,14 @@ SVECTOR D_mine_forked_tunnel_801819C4[54] = {
     { 173, 0, 0, 0 },
 };
 
-void func_mine_forked_tunnel_8017DDE8(Task*);
-
 TaskDesc D_mine_forked_tunnel_80181B74[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DBE4, { .model = &gMineForkedTunnelModel01B48 } },
-    { { { TASK_BODY_TMD, 192 } }, func_mine_forked_tunnel_8017DDE8, { .model = &_gMineForkedTunnelModel03340 } },
+    { { { TASK_BODY_TMD, 192 } }, mineForkedTunnelAreaObjectTask, { .model = &gMineForkedTunnelModel01B48 } },
+    { { { TASK_BODY_TMD, 192 } }, _mineForkedTunnelAreaObjectChildTask, { .model = &_gMineForkedTunnelModel03340 } },
 };
-
-s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 TaskMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _mineForkedTunnelSetAreaObjectDrawMode },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_mine_forked_tunnel_8017D8EC },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _mineForkedTunnelApplyAreaObjectCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -837,7 +876,7 @@ WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, _gMineForkedTunnelCol
 TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
     { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM, _mineForkedTunnelRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_forked_tunnel_8017E19C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mineForkedTunnelHandleSwitchAction },
     { ROOM_MESSAGE_COMMAND, func_mine_forked_tunnel_8017E134 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -932,13 +971,13 @@ AnimationPlayRequest D_mine_forked_tunnel_80183170 = { { .index = 1 }, 50, ANIMA
 
 ActorTransform D_mine_forked_tunnel_80183184 = { { 2251, 0, 9707, 0 }, { 0, 2047, 0, 0 } };
 
-ActorCommand D_mine_forked_tunnel_8018319C = { { .loc = { 4, 7 } }, 0 };
+ActorCommand D_mine_forked_tunnel_8018319C = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_RESET };
 
-ActorCommand D_mine_forked_tunnel_801831A0 = { { .loc = { 4, 7 } }, 1 };
+ActorCommand D_mine_forked_tunnel_801831A0 = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_TILT_CHILD };
 
-ActorCommand D_mine_forked_tunnel_801831A4 = { { .loc = { 4, 7 } }, 2 };
+ActorCommand D_mine_forked_tunnel_801831A4 = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_START_PATH };
 
-ActorCommand D_mine_forked_tunnel_801831A8 = { { .loc = { 4, 7 } }, 3 };
+ActorCommand D_mine_forked_tunnel_801831A8 = { { .loc = { 4, 7 } }, MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_PARK };
 
 EvsCommand D_mine_forked_tunnel_801831AC[35] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -963,7 +1002,7 @@ EvsCommand D_mine_forked_tunnel_801831AC[35] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_forked_tunnel_80183148 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_forked_tunnel_8017E2B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineForkedTunnelRestoreAreaObjectSoundMix }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 59 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54070005 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1456,19 +1495,29 @@ WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[8] = {
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
+/// Initializes the switch-controlled area object and its optional tilting child.
+///
+/// Requires a live TMD body and the area object's enemy allocation in
+/// `spawnArg2`. Owns one zeroed work block; teardown releases it and the child.
+/// Uses the path start while the switch flag is clear, otherwise the parked
+/// placement. Allocation failure starts teardown; child-spawn failure is tolerated.
+static void _mineForkedTunnelInitAreaObject(Task* task)
 {
+    enum {
+        MINE_FORKED_TUNNEL_AREA_OBJECT_BUFFER_RELEASE_IDLE = -1,
+        MINE_FORKED_TUNNEL_AREA_OBJECT_CHILD_DESCRIPTOR    = 1,
+    };
     _MineForkedTunnelAreaObjectWork* work;
     ActorTransform                   placement;
 
     work = memCalloc(sizeof(_MineForkedTunnelAreaObjectWork), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work          = work;
-    work->freeCountdown = -1;
+    task->work          = work;
+    work->freeCountdown = MINE_FORKED_TUNNEL_AREA_OBJECT_BUFFER_RELEASE_IDLE;
 
     if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0) {
         placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
@@ -1477,88 +1526,111 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
         placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
         placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
         placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
-        actorMsgPlaceEulerZyx(arg0, ACTOR_MESSAGE_PLACE, &placement, 0);
+        actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &placement, 0);
     } else {
-        actorMsgPlaceEulerZyx(arg0, ACTOR_MESSAGE_PLACE, &D_mine_forked_tunnel_80181BBC, 0);
+        actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &D_mine_forked_tunnel_80181BBC, 0);
     }
 
-    _mineForkedTunnelSetAreaObjectDrawMode(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO, 0);
-    _mineForkedTunnelBindAreaObjectLighting(arg0);
-    work->child    = taskSpawnFromTable(D_mine_forked_tunnel_80181B74, 1, 0, arg0);
-    arg0->msgTable = D_mine_forked_tunnel_80181B8C;
-    func_mine_forked_tunnel_8017DF34(gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
-    arg0->exitCallback = _mineForkedTunnelExitAreaObject;
-    arg0->state++;
+    _mineForkedTunnelSetAreaObjectDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO, 0);
+    _mineForkedTunnelBindAreaObjectLighting(task);
+    // The child borrows the parent's coordinate and work-owned lighting matrices.
+    work->child    = taskSpawnFromTable(D_mine_forked_tunnel_80181B74, MINE_FORKED_TUNNEL_AREA_OBJECT_CHILD_DESCRIPTOR, 0, task);
+    task->msgTable = D_mine_forked_tunnel_80181B8C;
+    _mineForkedTunnelUpdateAreaObjectCollision(gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
+    task->exitCallback = _mineForkedTunnelExitAreaObject;
+    task->state++;
 }
 
-static void func_mine_forked_tunnel_8017D724(Task* arg0)
-{
-    TmdObject*     ext;
-    ActorTransform placement;
-    VECTOR3        vec;
-
-    ext = arg0->extra.tmd;
-
-    if (arg0->spawnArg1.value == 1 && arg0->killCountdown < 0x6E) {
-        placement.pos.vx = D_mine_forked_tunnel_80181244[arg0->killCountdown].vx;
-        placement.pos.vy = D_mine_forked_tunnel_80181244[arg0->killCountdown].vy;
-        placement.pos.vz = D_mine_forked_tunnel_80181244[arg0->killCountdown].vz;
-        placement.rot.vx = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vx;
-        placement.rot.vy = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vy;
-        placement.rot.vz = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vz;
-
-        actorMsgPlaceEulerZyx(arg0, ACTOR_MESSAGE_PLACE, &placement, 0);
-        arg0->killCountdown++;
-    }
-
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&arg0->extra.tmd->coords->workm), &vec) != 0) {
-            effectDrawGroundShadow(&vec, 0x200, gRoomEffectState->groundShadowShade);
-        }
-        actorRenderComposeCoord(arg0->extra.tmd->coords);
-        worldCoordSetModelLighting(ext, arg0->extra.tmd->coords->workm.t, 0, 3);
-    }
-
-    if (((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown >= 0) {
-        if (((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
-        }
-        ((_MineForkedTunnelAreaObjectWork*)arg0->work)->freeCountdown--;
-    }
-}
-
-/// Message 0x7DB handler for the tunnel's enemy (`D_mine_forked_tunnel_80181B8C`
-/// routes the id here). Command 0 rewinds the enemy and its spawned child
-/// (`spawnArg1` and `killCountdown` cleared on both) and drops it back on the
-/// placement `func_mine_forked_tunnel_8017D5E8` uses while flag 0x75 is clear;
-/// 1 starts only the child's pitch walk, 2 starts the enemy's own, and 3 puts
-/// the enemy on `D_mine_forked_tunnel_80181BBC` - the placement
-/// `func_mine_forked_tunnel_8017D5E8` uses while the flag is set - then
-/// refreshes the flag-dependent state through
-/// `func_mine_forked_tunnel_8017DF34` and rewinds the enemy again. `arg1` is
-/// the message id, which nothing here reads.
+/// Advances the area object's path, shadow, lighting and deferred buffer release.
 ///
-/// The `do { } while (0)` around the last command is an allocator lever, not
-/// logic (the `break` leaves it for the switch's own tail, so the two are
-/// equivalent): `flow` weights each reference by the loop depth, and
-/// local-alloc's quantity rank is built from those counts, so the wrapper -
-/// and only the wrapper - lifts the six placement reads above the placement
-/// pointer and gives `$v0` to the values instead of the address.
-s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Requires initialized work and a live TMD body. `spawnArg1.value` gates motion;
+/// `killCountdown` is a nonnegative path index, advancing through entries 0..109
+/// and holding at 110. The full authored position and rotation tables are longer.
+/// Hidden drawing still permits motion and buffer release. An armed release
+/// frees on zero and decrements to -1, leaving subsequent updates idle.
+static void _mineForkedTunnelTickAreaObject(Task* task)
+{
+    enum {
+        MINE_FORKED_TUNNEL_AREA_OBJECT_PATH_STEPS       = 110,
+        MINE_FORKED_TUNNEL_AREA_OBJECT_SHADOW_HALF_SIZE = 512,
+        MINE_FORKED_TUNNEL_AREA_OBJECT_LIGHT_COUNT      = 3,
+    };
+    TmdObject*     model;
+    ActorTransform placement;
+    VECTOR3        groundPoint;
+
+    model = task->extra.tmd;
+
+    // The signed task counter is a path cursor until task teardown takes it over.
+    if (task->spawnArg1.value == MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING && task->killCountdown < MINE_FORKED_TUNNEL_AREA_OBJECT_PATH_STEPS) {
+        placement.pos.vx = D_mine_forked_tunnel_80181244[task->killCountdown].vx;
+        placement.pos.vy = D_mine_forked_tunnel_80181244[task->killCountdown].vy;
+        placement.pos.vz = D_mine_forked_tunnel_80181244[task->killCountdown].vz;
+        placement.rot.vx = D_mine_forked_tunnel_80180AC4[task->killCountdown].vx;
+        placement.rot.vy = D_mine_forked_tunnel_80180AC4[task->killCountdown].vy;
+        placement.rot.vz = D_mine_forked_tunnel_80180AC4[task->killCountdown].vz;
+
+        actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &placement, 0);
+        task->killCountdown++;
+    }
+
+    // The shadow samples the cached world transform before lighting composes it.
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords->workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, MINE_FORKED_TUNNEL_AREA_OBJECT_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        }
+        actorRenderComposeCoord(task->extra.tmd->coords);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords->workm.t, 0, MINE_FORKED_TUNNEL_AREA_OBJECT_LIGHT_COUNT);
+    }
+
+    if (((_MineForkedTunnelAreaObjectWork*)task->work)->freeCountdown >= 0) {
+        if (((_MineForkedTunnelAreaObjectWork*)task->work)->freeCountdown == 0) {
+            tmdFreePrimitiveBuffer(model);
+        }
+        ((_MineForkedTunnelAreaObjectWork*)task->work)->freeCountdown--;
+    }
+}
+
+/// Copies a placement, rebuilds its ZYX rotation and invalidates composition.
+///
+/// Both pointers must refer to live, disjoint storage for the call. Coordinates
+/// use the destination's parent frame and angles use 4096 units per turn.
+/// The placement is borrowed and unchanged.
+static inline void _mineForkedTunnelApplyAreaObjectPlacement(GfxCoord* coord, const ActorTransform* placement)
+{
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz;
+    coord->param.rot.vx = placement->rot.vx;
+    coord->param.rot.vy = placement->rot.vy;
+    coord->param.rot.vz = placement->rot.vz;
+    RotMatrixZYX(&coord->param.rot, &coord->coord);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Applies a script command to the switch-controlled area object.
+///
+/// Borrows `command` during dispatch and requires an initialized area-object task.
+/// Command 0 stops and rewinds both motion cursors and places the parent at the
+/// path start; 1 starts the child's tilt if present; 2 starts the parent's path;
+/// 3 parks and stops the parent and refreshes collision from the current switch
+/// flag, leaving both cursors and the child unchanged. The command's location,
+/// message ID and final payload are ignored. All commands, including unknown
+/// values with no effect, return zero.
+static s32 _mineForkedTunnelApplyAreaObjectCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused)
 {
     ActorTransform                   placement;
-    ActorTransform*                  place;
-    ActorTransform*                  src;
+    const ActorTransform*            parkedPlacement;
     GfxCoord*                        coord;
     _MineForkedTunnelAreaObjectWork* work;
 
-    switch (msg->command) {
-        case 0:
+    switch (command->command) {
+        case MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_RESET:
             work                  = task->work;
-            task->spawnArg1.value = 0;
+            task->spawnArg1.value = MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_IDLE;
             task->killCountdown   = 0;
             if (work->child != NULL) {
-                work->child->spawnArg1.value = 0;
+                work->child->spawnArg1.value = MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_IDLE;
                 work->child->killCountdown   = 0;
             }
             placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
@@ -1568,86 +1640,64 @@ s32 func_mine_forked_tunnel_8017D8EC(Task* task, s32 arg1, ActorCommand* msg, s3
             placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
             placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
 
-            place               = &placement;
-            coord               = task->extra.tmd->coords;
-            coord->coord.t[0]   = place->pos.vx;
-            coord->coord.t[1]   = place->pos.vy;
-            coord->coord.t[2]   = place->pos.vz;
-            coord->param.rot.vx = place->rot.vx;
-            coord->param.rot.vy = place->rot.vy;
-            coord->param.rot.vz = place->rot.vz;
-            RotMatrixZYX(&coord->param.rot, &coord->coord);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            coord = task->extra.tmd->coords;
+            _mineForkedTunnelApplyAreaObjectPlacement(coord, &placement);
             break;
-        case 1:
+        case MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_TILT_CHILD:
             work = task->work;
             if (work->child != NULL) {
-                work->child->spawnArg1.value = 1;
+                work->child->spawnArg1.value = MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING;
             }
             break;
-        case 2:
-            task->spawnArg1.value = 1;
+        case MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_START_PATH:
+            task->spawnArg1.value = MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING;
             break;
+            // Retained block shape preserves the target's placement loads.
             do {
-                case 3:
-                    src                 = &D_mine_forked_tunnel_80181BBC;
-                    coord               = task->extra.tmd->coords;
-                    coord->coord.t[0]   = src->pos.vx;
-                    coord->coord.t[1]   = src->pos.vy;
-                    coord->coord.t[2]   = src->pos.vz;
-                    coord->param.rot.vx = src->rot.vx;
-                    coord->param.rot.vy = src->rot.vy;
-                    coord->param.rot.vz = src->rot.vz;
-                    RotMatrixZYX(&coord->param.rot, &coord->coord);
-                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                case MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_PARK:
+                    parkedPlacement = &D_mine_forked_tunnel_80181BBC;
+                    coord           = task->extra.tmd->coords;
+                    _mineForkedTunnelApplyAreaObjectPlacement(coord, parkedPlacement);
 
-                    func_mine_forked_tunnel_8017DF34(gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
-                    task->spawnArg1.value = 0;
+                    _mineForkedTunnelUpdateAreaObjectCollision(gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
+                    task->spawnArg1.value = MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_IDLE;
                     break;
             } while (0);
     }
     return 0;
 }
 
-static void func_mine_forked_tunnel_8017DAB8(Task* arg0)
+/// Advances the child's tilt while keeping its translation fixed in the parent frame.
+///
+/// Requires an attached TMD child and a nonnegative `killCountdown` cursor.
+/// Motion runs only for `spawnArg1.value` 1, applies the 54 authored rotations
+/// in order (4096 angle units per turn), and holds once the cursor reaches 54.
+static void _mineForkedTunnelTiltAreaObjectChild(Task* task)
 {
-    ActorTransform  placement;
-    ActorTransform* place;
-    GfxCoord*       coord;
+    ActorTransform placement;
+    GfxCoord*      coord;
 
-    if (arg0->spawnArg1.value == 1 && arg0->killCountdown < 0x36) {
+    if (task->spawnArg1.value == MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING && task->killCountdown < ARRAY_SIZE(D_mine_forked_tunnel_801819C4)) {
         placement.pos.vx = D_mine_forked_tunnel_80181BA4.pos.vx;
         placement.pos.vy = D_mine_forked_tunnel_80181BA4.pos.vy;
         placement.pos.vz = D_mine_forked_tunnel_80181BA4.pos.vz;
-        placement.rot.vx = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vx;
-        placement.rot.vy = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vy;
-        placement.rot.vz = D_mine_forked_tunnel_801819C4[arg0->killCountdown].vz;
+        placement.rot.vx = D_mine_forked_tunnel_801819C4[task->killCountdown].vx;
+        placement.rot.vy = D_mine_forked_tunnel_801819C4[task->killCountdown].vy;
+        placement.rot.vz = D_mine_forked_tunnel_801819C4[task->killCountdown].vz;
 
-        place               = &placement;
-        coord               = arg0->extra.tmd->coords;
-        coord->coord.t[0]   = place->pos.vx;
-        coord->coord.t[1]   = place->pos.vy;
-        coord->coord.t[2]   = place->pos.vz;
-        coord->param.rot.vx = place->rot.vx;
-        coord->param.rot.vy = place->rot.vy;
-        coord->param.rot.vz = place->rot.vz;
-        RotMatrixZYX(&coord->param.rot, &coord->coord);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        coord = task->extra.tmd->coords;
+        _mineForkedTunnelApplyAreaObjectPlacement(coord, &placement);
 
-        arg0->killCountdown++;
+        task->killCountdown++;
     }
 }
 
-/// Dispatches the tunnel's enemy task through its three-state table (set-up,
-/// path walk, exit), copied onto the stack first; nothing runs while
-/// `gSceneCombatState.actorControl` is non-zero.
-void func_mine_forked_tunnel_8017DBE4(Task* task)
+void mineForkedTunnelAreaObjectTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 stateHandlers = D_mine_forked_tunnel_8017D5C4;
 
-    sp = D_mine_forked_tunnel_8017D5C4;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 
@@ -1724,99 +1774,95 @@ static s32 _mineForkedTunnelSetAreaObjectDrawMode(Task* task, s32 messageId, s32
     return result;
 }
 
-/// Dispatches the enemy's pitch-animated child through its three-state table
-/// (attach, pitch walk, `taskKill`), copied onto the stack first; nothing runs
-/// while `gSceneCombatState.actorControl` is non-zero.
-void func_mine_forked_tunnel_8017DDE8(Task* task)
+/// Runs the area-object child's attach, tilt or teardown state while actors run.
+///
+/// Requires `state` in 0..2 and a live TMD body before teardown. State 0 borrows
+/// the parent task passed in `spawnArg2.pointer`; later updates use its attached
+/// coordinate and lighting. The owning room overlay must remain loaded.
+static void _mineForkedTunnelAreaObjectChildTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 stateHandlers = D_mine_forked_tunnel_8017D5D0;
 
-    sp = D_mine_forked_tunnel_8017D5D0;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 
-/// Spawn state 0: adopt the parent task's model lighting - the light and colour
-/// matrix pointers off the parent's `TmdObject` plus its coordinate as the
-/// frame's parent link - then reparent onto that task, drop `field_C` bit 7 and
-/// place the object at this room's `ActorTransform`, rebuilding `coord` with
-/// `RotMatrixZYX`.
-static void func_mine_forked_tunnel_8017DE54(Task* task)
+/// Attaches the tilting child to its area object and sets its local placement.
+///
+/// `spawnArg2.pointer` must supply a live parent task; both tasks need TMD bodies.
+/// The child borrows the parent's coordinate and work-owned lighting matrices
+/// until parent teardown. It becomes visible with an ordering-table offset of
+/// -1, adopts the fixed parent-relative placement, and advances to the tilt state.
+static void _mineForkedTunnelAttachAreaObjectChild(Task* task)
 {
+    enum { MINE_FORKED_TUNNEL_AREA_OBJECT_CHILD_OT_OFFSET = -1 };
+
     Task*      parent;
-    TmdObject* ext;
-    TmdObject* parentExt;
+    TmdObject* model;
+    TmdObject* parentModel;
     GfxCoord*  parentCoord;
     GfxCoord*  coord;
-    GfxCoord*  dst;
+    GfxCoord*  placementCoord;
 
     parent      = task->spawnArg2.pointer;
-    ext         = task->extra.tmd;
-    parentExt   = parent->extra.tmd;
-    coord       = ext->coords;
-    parentCoord = parentExt->coords;
+    model       = task->extra.tmd;
+    parentModel = parent->extra.tmd;
+    coord       = model->coords;
+    parentCoord = parentModel->coords;
 
+    // Share the model frame and lighting before joining the parent's teardown tree.
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->parent       = parentCoord;
-    ext->lightMtx       = parentExt->lightMtx;
-    ext->colorMtx       = parentExt->colorMtx;
-    ext->otOffset       = -1;
+    model->lightMtx     = parentModel->lightMtx;
+    model->colorMtx     = parentModel->colorMtx;
+    model->otOffset     = MINE_FORKED_TUNNEL_AREA_OBJECT_CHILD_OT_OFFSET;
     taskReparent(parent, task);
-    ext->flags = ext->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->flags = model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-    dst               = task->extra.tmd->coords;
-    dst->coord.t[0]   = D_mine_forked_tunnel_80181BA4.pos.vx;
-    dst->coord.t[1]   = D_mine_forked_tunnel_80181BA4.pos.vy;
-    dst->coord.t[2]   = D_mine_forked_tunnel_80181BA4.pos.vz;
-    dst->param.rot.vx = D_mine_forked_tunnel_80181BA4.rot.vx;
-    dst->param.rot.vy = D_mine_forked_tunnel_80181BA4.rot.vy;
-    dst->param.rot.vz = D_mine_forked_tunnel_80181BA4.rot.vz;
-    RotMatrixZYX(&dst->param.rot, &dst->coord);
-    dst->composeStamp = GRAPHICS_COORD_DIRTY;
-    task->state       = task->state + 1;
+    placementCoord = task->extra.tmd->coords;
+    _mineForkedTunnelApplyAreaObjectPlacement(placementCoord, &D_mine_forked_tunnel_80181BA4);
+    task->state = task->state + 1;
 }
 
-/// Restores the room's collision mesh from its template, then offsets its eight
-/// vertices by (0, 0, -0xC8), or by (0, -0xBB8, -0xC8) when `arg0`
-/// is non-zero. The callers pass game-flag nibble 0x75.
-static void func_mine_forked_tunnel_8017DF34(s32 arg0)
+/// Rebuilds the area object's collision box in the reserved prefix of the room grid.
+///
+/// Copies three normals and faces and eight vertices from the box template;
+/// the rest of the room grid and the vectors' fourth words remain intact.
+/// Offsets vertices by (0, 0, -200) world units while `switchUsed` is zero,
+/// or (0, -3000, -200) for any nonzero value, moving the box above the passage.
+/// Both grid pools must be live, writable on the room side, and disjoint.
+static void _mineForkedTunnelUpdateAreaObjectCollision(s32 switchUsed)
 {
-    WorldCollisionGrid* dst;
-    WorldCollisionGrid* src;
-    SVECTOR             d;
-    s32                 i;
+    enum {
+        MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_Z_OFFSET = -200,
+        MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CLEAR_Y  = -3000,
+    };
+    WorldCollisionGrid*       roomGrid;
+    const WorldCollisionGrid* templateGrid;
+    SVECTOR                   offset;
+    s32                       entryIndex;
 
-    dst = &D_mine_forked_tunnel_80183D70;
-    src = &D_mine_forked_tunnel_80181C5C;
+    roomGrid     = &D_mine_forked_tunnel_80183D70;
+    templateGrid = &D_mine_forked_tunnel_80181C5C;
 
-    for (i = 0; i < 3; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
-    }
+    // The room's cell lists already reserve these entries for the movable box.
+    MINE_FORKED_TUNNEL_COPY_AREA_OBJECT_COLLISION_BOX(roomGrid, templateGrid, entryIndex);
 
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
-    }
-
-    if (arg0 == 0) {
-        d.vx = 0;
-        d.vy = 0;
-        d.vz = -0xC8;
+    if (switchUsed == 0) {
+        offset.vx = 0;
+        offset.vy = 0;
+        offset.vz = MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_Z_OFFSET;
     } else {
-        d.vy = -0xBB8;
-        d.vx = 0;
-        d.vz = -0xC8;
+        offset.vy = MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CLEAR_Y;
+        offset.vx = 0;
+        offset.vz = MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_Z_OFFSET;
     }
 
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx += d.vx;
-        dst->vertices[i].vy += d.vy;
-        dst->vertices[i].vz += d.vz;
+    for (entryIndex = 0; entryIndex < MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_VERTEX_COUNT; entryIndex++) {
+        roomGrid->vertices[entryIndex].vx += offset.vx;
+        roomGrid->vertices[entryIndex].vy += offset.vy;
+        roomGrid->vertices[entryIndex].vz += offset.vz;
     }
 }
 
@@ -1851,14 +1897,22 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Message 1 handler: spawn the room's `taskSpawnFromTable` entry when the
-/// tunnel switch flag is still clear.
-s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts the switch interaction when requested and the switch has not been used.
+///
+/// Borrows a live `DirectionActionRequest` during synchronous room dispatch.
+/// Action ID 1 spawns the switch-interaction task while the switch flag is zero;
+/// other IDs and an already-used switch have no effect. Ignores control,
+/// argument, receiving task, message ID and final payload. Returns zero even
+/// when spawning fails; the room task does not retain the request.
+static s32 _mineForkedTunnelHandleSwitchAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum {
+        MINE_FORKED_TUNNEL_ACTION_USE_SWITCH             = 1,
+        MINE_FORKED_TUNNEL_SWITCH_INTERACTION_DESCRIPTOR = 0,
+    };
 
-    if ((request->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0)) {
-        taskSpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);
+    if ((actionRequest->actionId == MINE_FORKED_TUNNEL_ACTION_USE_SWITCH) && (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0)) {
+        taskSpawnFromTable(D_mine_forked_tunnel_80183104, MINE_FORKED_TUNNEL_SWITCH_INTERACTION_DESCRIPTOR, 0, 0);
     }
     return 0;
 }
@@ -1882,17 +1936,18 @@ static void _mineForkedTunnelIdleRoomTask(Task* unusedTask)
     char unusedStackFrame[0x10];
 }
 
-/// Dispatches the room's message-driven task through its three-state table,
-/// copied onto the stack before the call.
-void func_mine_forked_tunnel_8017E25C(Task* task)
+void mineForkedTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 stateHandlers = D_mine_forked_tunnel_8017D5DC;
 
-    sp = D_mine_forked_tunnel_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers.funcs[task->state](task);
 }
 
-void func_mine_forked_tunnel_8017E2B4(void)
+/// Requests centred, unattenuated playback for the area object's movement sound.
+///
+/// The event script has already started the sound with attenuation 32. This
+/// queued mix request changes an existing matching slot; it starts no sound.
+static void _mineForkedTunnelRestoreAreaObjectSoundMix(void)
 {
     sndEvtRequestScriptMix(SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE, 0, 0);
 }

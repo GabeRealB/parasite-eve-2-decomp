@@ -4871,25 +4871,25 @@ that depth difference, not a source `goto`.
 
 ## A `nop` in a `jal`'s delay slot is the tell that the call block is a cross-jump head
 
-`func_mine_forked_tunnel_8017D5E8` picks an `ActorTransform` and hands it to
-`Room_Util18`. m2c's single-call shape - a pointer assigned in each arm, one
+`_mineForkedTunnelInitAreaObject` picks an `ActorTransform` and hands it to
+`actorMsgPlaceEulerZyx`. m2c's single-call shape - a pointer assigned in each arm, one
 call after the join - scores 87.2% with `regs=18 branch=1 reorder=2 insert=3
 delete=5` and *identical* block topology, so the structural diagnostics are
 clean and say nothing. The target instead writes the call out in both arms:
 
 ```c
-if (gameFlagGetNibble(0x75) == 0) {
+if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0) {
     ...fill placement...
-    Room_Util18(arg0, 0x7D4, &placement, 0);
+    actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &placement, 0);
 } else {
-    Room_Util18(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
+    actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &D_mine_forked_tunnel_80181BBC, 0);
 }
 ```
 
 That is 100.00% with all-zero penalties. Two things in the target give it away
 before you look at any dump.
 
-**The `nop`.** The merged `jal Room_Util18` is a *jump target* - the then-arm
+**The `nop`.** The merged `jal actorMsgPlaceEulerZyx` is a *jump target* - the then-arm
 reaches it with a `j` (whose delay slot the store `sh $t0,0x24($sp)` fills) and
 the else-arm falls into it. `dbr_schedule` fills a delay slot only from insns
 preceding the branch *in the same block*, and the `jal` heads its own
@@ -89207,15 +89207,15 @@ variation `base_2.i`
 `a988bc10a8d58748e4bbaa671d5c10bd2cbf4807d58b2d95e5833399d1f0c1d7` (92.0%,
 `insert=1 delete=1`).
 
-## A store written after the other stores to one object is emitted after them: sched2 orders a block by dependency-chain depth (func_mine_forked_tunnel_8017DE54, 2026-09-15)
+## A store written after the other stores to one object is emitted after them: sched2 orders a block by dependency-chain depth (_mineForkedTunnelAttachAreaObjectChild, 2026-09-15)
 
-`func_mine_forked_tunnel_8017DE54` copies two fields out of the parent task's
+`_mineForkedTunnelAttachAreaObjectChild` copies two fields out of the parent task's
 `TmdObject` and stores -1 into a third of its own before reparenting:
 
 ```c
-ext->field_1C = parentExt->field_1C;
-ext->field_20 = parentExt->field_20;
-ext->field_E  = -1;                 /* last in the source */
+model->lightMtx = parentModel->lightMtx;
+model->colorMtx = parentModel->colorMtx;
+model->otOffset = -1;                 /* last in the source */
 taskReparent(parent, task);
 ```
 
@@ -89310,7 +89310,7 @@ Inputs: `base_1.i`
 `regs=9 reorder=1`), `base_2.i`
 `4f421621507de7114422ba5ab782a3c1bd22fabc5d0a3476dff5b0b6e91d79fe` (100%).
 
-## m2c's third argument to a two-argument function was a value living in `$a2` (func_mine_forked_tunnel_8017DE54, 2026-09-15)
+## m2c's third argument to a two-argument function was a value living in `$a2` (_mineForkedTunnelAttachAreaObjectChild, 2026-09-15)
 
 m2c read the target's `lw a2,8(v1)` / `move a1,s1` / `jal` triple as a three
 argument call and emitted `taskReparent(temp_a0, index, temp_a2)`, which compiles
@@ -121080,7 +121080,7 @@ Inputs: `base_2.i` (100.000%) `0b99abadd8c2ccc8`, `base_1.i` (99.624%, same
 loop with the `0x14B4` written in the body and a `DR_TPAGE`-typed cursor)
 `163ec4787dd2231b`.
 
-## A pointer to a stack local used only on the read side: every write stays sp-relative, every read goes through the base register (func_mine_forked_tunnel_8017DAB8, 2026-09-17)
+## A pointer to a stack local used only on the read side: every write stays sp-relative, every read goes through the base register (_mineForkedTunnelTiltAreaObjectChild, 2026-09-17)
 
 The `addiu aN, sp, off` entry above reads the base register off the *stores* -
 the offset-0 store folds back to sp-relative and the rest keep the register.
@@ -121101,7 +121101,7 @@ lhu   v0,0x14(v1)
 All six writes to the local are `0x10(sp)`..`0x24(sp)`, and all five surviving
 reads are off `v1`. The same rule explains both: a direct member write is
 `(mem (plus (reg ap) (const)))` from the start and never sees the pointer, and
-of the reads only `place->pos.vx` (offset 0) is a bare `(mem (reg place))`, the
+of the reads only `placement->pos.vx` (offset 0) is a bare `(mem (reg placement))`, the
 one shape `fold_rtx` may substitute - and here cse had already replaced it with
 the register that loaded the source word, so the base register's first use is
 the `+4` read. Reads base-relative with every write sp-relative therefore means
@@ -121113,8 +121113,9 @@ Found by subtraction: the direct `placement.pos.vy` spelling scored 96.667%
 with the addressing as the *only* difference (`regs=10 insert=1 delete=1`,
 75/75 instructions, structure matching), and `.rtl` after expand showed no
 address pseudo at all - `(mem/s:SI (plus:SI (reg:SI 77 virtual_stack_vars)
-(const_int 20)))` per access. Adding `place = &placement;` and reading the six
-fields through `place->` moved the reads onto `$v1` and scored 100.000% with
+(const_int 20)))` per access. Passing `&placement` to
+`_mineForkedTunnelApplyAreaObjectPlacement` and reading the six fields through
+its `placement->` parameter moved the reads onto `$v1` and scored 100.000% with
 every penalty zero, in one build. The writes stayed direct.
 
 A related trap in the same function: `D_mine_forked_tunnel_80181BA4` is a
@@ -121129,7 +121130,7 @@ Inputs: `base_1.c` SHA256 `e99a82a721484ab5900a917569451863601554f1a74af7535a681
 `a8a2f2b2c3cb3a1e2226ed455bada726b43f2faebfad277f466b6ea538c9a8c4` is the same
 source against the header's `ActorTransform` type, byte-identical object.
 `target.s` SHA256 `0f92b81219939223dbf73c67681009c22f709dda4035d62d368ef067060fa655`.
-Scratch `nonmatchings/func_mine_forked_tunnel_8017DAB8-vacuum`.
+Scratch `nonmatchings/_mineForkedTunnelTiltAreaObjectChild-vacuum`.
 
 ## A delay-slot fill can hinge on the allocation: reorg refuses a trial whose register an earlier insn in the same thread set
 
@@ -121141,7 +121142,7 @@ therefore a delay-slot question, and the allocator two passes earlier is what
 decides it: the same `lui` is stolen or refused depending on the home of the
 quantity it writes.
 
-**Symptom.** `func_mine_forked_tunnel_8017D8EC`'s switch command 3 materialises
+**Symptom.** `_mineForkedTunnelApplyAreaObjectCommand`'s switch command 3 materialises
 `D_mine_forked_tunnel_80181BBC` (`lui`, `addiu`, five loads) in a block that
 opens with the destination pointer's load into `$v0`, and the branch into that
 block is the switch's fourth, so its delay slot is the one in question. At
@@ -121176,7 +121177,7 @@ wrapper re-expanded into normal formatting scores 0 differences.
 Inputs: `base_4.i` SHA256 `f0b9e7eda1392817d7ec48d7a3644c15db0edb150b46e6b5bff00d8369d17771`
 (96.629%), `base_6.i` SHA256 `2aa329fd9d3044830a2a735caf5275e1ffca77258a5ff86a0555b3632becfaae`
 (0 differences); `target.s` SHA256 `51ce14d617120b89c2cc71bb2287ab0c2b5381ccabb7074baa682d1721ad9f7c`.
-Scratch `nonmatchings/func_mine_forked_tunnel_8017D8EC-vacuum`.
+Scratch `nonmatchings/_mineForkedTunnelApplyAreaObjectCommand-vacuum`.
 ## A field re-read keeps `+ 1` a computation only when a store invalidates the tested load (dryfieldR08LampGlowTask, 2026-09-17)
 
 The `x == 0` jump-equivalence fold above (`func_actor_341300_80163A10`) has a

@@ -43,8 +43,20 @@ extern WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[];
 /// Gameplay dispatches this callback from effect slot 0x126; the task is ignored.
 void mineForkedTunnelDrawViewFlaresTask(Task* unusedTask);
 
-void func_mine_forked_tunnel_8017DBE4(Task* task);
+/// Runs the switch-controlled area object's setup, path update or teardown state.
+///
+/// Requires this room overlay loaded, a live TMD task and `state` in 0..2.
+/// State 0 initializes work and a child; state 1 updates motion and drawing;
+/// state 2 releases the area object's enemy allocation and starts task teardown.
+/// No state runs while scene actor control is paused. Teardown may release the task.
+void mineForkedTunnelAreaObjectTask(Task* task);
 
-void func_mine_forked_tunnel_8017E25C(Task* task);
+/// Runs the room controller's setup, idle message-receiving or teardown state.
+///
+/// Requires this room overlay loaded and `state` in 0..2. State 0 installs
+/// room handlers, registers the task in `GAME_TASK_SLOT_ROOM` and initializes
+/// room sprite visibility; state 1 remains idle; state 2 starts task teardown.
+/// This controller continues dispatching while scene actor control is paused.
+void mineForkedTunnelRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_FORKED_TUNNEL_H
