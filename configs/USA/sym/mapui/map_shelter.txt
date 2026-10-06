@@ -308,7 +308,7 @@ D_shelter_b2_operating_room_80183A28 = 0x80183A28; // absolute:True owner=shelte
 D_shelter_b2_operating_room_80183ADC = 0x80183ADC; // absolute:True owner=shelter_b2_operating_room shared=rooms
 D_shelter_b2_operating_room_80184184 = 0x80184184; // absolute:True owner=shelter_b2_operating_room shared=rooms
 D_shelter_b2_operating_room_801841F4 = 0x801841F4; // absolute:True owner=shelter_b2_operating_room
-func_shelter_b2_north_maintenance_walkway_8017DD90 = 0x8017DD90; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
+func_shelter_b2_north_maintenance_walkway_8017DD90 = 0x8017DD90; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 D_shelter_b2_north_maintenance_walkway_80183C5C = 0x80183C5C; // absolute:True owner=shelter_b2_north_maintenance_walkway
 D_shelter_b2_north_maintenance_walkway_80183C60 = 0x80183C60; // absolute:True owner=shelter_b2_north_maintenance_walkway
 D_shelter_b2_north_maintenance_walkway_80183C64 = 0x80183C64; // absolute:True owner=shelter_b2_north_maintenance_walkway
@@ -444,7 +444,7 @@ D_shelter_b3_incinerator_control_room_80182668 = 0x80182668; // absolute:True ow
 D_shelter_b3_incinerator_control_room_801827E4 = 0x801827E4; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 D_shelter_b3_incinerator_control_room_801829AC = 0x801829AC; // absolute:True owner=shelter_b3_incinerator_control_room
 D_shelter_b3_incinerator_control_room_80182A20 = 0x80182A20; // absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
-func_shelter_b3_elevator_hall_8017DE18 = 0x8017DE18; // type:func absolute:True owner=shelter_b3_elevator_hall
+shelterB3ElevatorHallRoomTask = 0x8017DE18; // type:func absolute:True owner=shelter_b3_elevator_hall
 D_shelter_b3_elevator_hall_80182B54 = 0x80182B54; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
 D_shelter_b3_elevator_hall_80182B58 = 0x80182B58; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
 D_shelter_b3_elevator_hall_80182B5C = 0x80182B5C; // absolute:True owner=shelter_b3_elevator_hall shared=rooms

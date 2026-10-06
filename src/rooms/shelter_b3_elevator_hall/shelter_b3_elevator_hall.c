@@ -72,15 +72,17 @@ extern SVECTOR          D_shelter_b3_elevator_hall_80182AF4[];
 /// Per-palette right shifts applied to the halo's level for red, green and
 /// blue, selected by the palette index in the spawn argument.
 
-static void func_shelter_b3_elevator_hall_8017DDCC(Task* task);
-static void func_shelter_b3_elevator_hall_8017DE10(Task* task);
+static void _shelterB3ElevatorHallInitRoomTask(Task* task);
+static void _shelterB3ElevatorHallIdleRoomTask(Task* task);
 
-void func_shelter_b3_elevator_hall_8017DAF0(Task*);
-s32  func_shelter_b3_elevator_hall_8017DC78(Task*, s32, s32, s32);
-s32  func_shelter_b3_elevator_hall_8017DC80(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, s32, s32);
-s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, s32, s32);
-s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, s32);
+void       func_shelter_b3_elevator_hall_8017DAF0(Task*);
+static s32 _shelterB3ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_shelter_b3_elevator_hall_8017DC80(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB3ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterB3ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32 _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
+
+enum { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -90,10 +92,10 @@ TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
 
 TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_elevator_hall_8017DC80 },
-    { 5105, func_shelter_b3_elevator_hall_8017DC78 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b3_elevator_hall_8017DD90 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b3_elevator_hall_8017DD88 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b3_elevator_hall_8017DD98 },
+    { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _shelterB3ElevatorHallRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3ElevatorHallIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB3ElevatorHallIgnoreRoomCommand },
+    { ROOM_MESSAGE_SOUND, _shelterB3ElevatorHallHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -160,8 +162,8 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 /// idle, then kill the task.
 static const TaskFuncTable3 D_shelter_b3_elevator_hall_8017D5F0 = {
     {
-        func_shelter_b3_elevator_hall_8017DDCC,
-        func_shelter_b3_elevator_hall_8017DE10,
+        _shelterB3ElevatorHallInitRoomTask,
+        _shelterB3ElevatorHallIdleRoomTask,
         taskKill,
     },
 };
@@ -220,7 +222,8 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
     }
 }
 
-s32 func_shelter_b3_elevator_hall_8017DC78(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request, returning zero without consuming the item.
+static s32 _shelterB3ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
@@ -253,51 +256,74 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD88(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and both argument words, returning zero.
+static s32 _shelterB3ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD90(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the borrowed room-action request, returning zero without reading it.
+static s32 _shelterB3ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Requests the elevator ride sound for cue 1; every cue returns zero.
+static s32 _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg)
 {
-    if (arg2 == 1) {
-        sndEvtRequestScriptStart(0x542A0000 | 1, 0, 0);
+    enum { ELEVATOR_RIDE_CUE = 1 };
+
+    if (cueId == ELEVATOR_RIDE_CUE) {
+        sndEvtRequestScriptStart(SOUND_SHELTER_B3_ELEVATOR_RIDE, 0, 0);
     }
     return 0;
 }
 
-/// First state of the room's message-driven task: points the task at the
-/// room's message table, publishes it in pointer slot 7 and advances.
-static void func_shelter_b3_elevator_hall_8017DDCC(Task* task)
+/// Installs the room's message handlers and registers its task as the room receiver.
+///
+/// State 0 advances to the idle state; no task work or body is allocated.
+static void _shelterB3ElevatorHallInitRoomTask(Task* task)
 {
     task->msgTable = D_shelter_b3_elevator_hall_80182A38;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
-/// The message-driven task's idle state.
-static void func_shelter_b3_elevator_hall_8017DE10(Task* task)
+/// Keeps the room receiver alive in state 1 while messages perform its work.
+static void _shelterB3ElevatorHallIdleRoomTask(Task* task)
 {
 }
 
-/// Runs the message-driven task's current state through a stack copy of its
-/// state table.
-void func_shelter_b3_elevator_hall_8017DE18(Task* task)
+void shelterB3ElevatorHallRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b3_elevator_hall_8017D5F0;
-    sp.funcs[task->state](task);
+    states = D_shelter_b3_elevator_hall_8017D5F0;
+    states.funcs[task->state](task);
 }
 
-void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
+/// Draws four capsule glows from eight consecutive world-space endpoints.
+///
+/// Borrows the points during the call. Radius is scaled by 64 / (camera Z / 4);
+/// RGB nibbles 2,2,2 give level 32 per channel, with odd-frame flicker added.
+static inline void _shelterB3ElevatorHallDrawGlowStrips(const SVECTOR stripPoints[8])
 {
-    if (arg0->state == 0) {
+    enum { STRIP_RADIUS      = 0x180,
+           STRIP_RGB_NIBBLES = 0x222 };
+
+    _glowDrawCapsule(&stripPoints[0], STRIP_RADIUS, STRIP_RGB_NIBBLES);
+    _glowDrawCapsule(&stripPoints[2], STRIP_RADIUS, STRIP_RGB_NIBBLES);
+    _glowDrawCapsule(&stripPoints[4], STRIP_RADIUS, STRIP_RGB_NIBBLES);
+    _glowDrawCapsule(&stripPoints[6], STRIP_RADIUS, STRIP_RGB_NIBBLES);
+}
+
+void shelterB3ElevatorHallDrawGlowsTask(Task* task)
+{
+    enum { GLOW_INITIALIZE,
+           GLOW_DRAW };
+
+    // Publish this loaded room's effect callbacks before drawing its fixed glows.
+    if (task->state == GLOW_INITIALIZE) {
         gRoomEffectMoteId         = EFFECT_SHELTER_B3_ELEVATOR_HALL_MOTE;
         gRoomEffectHaloId         = EFFECT_SHELTER_B3_ELEVATOR_HALL_HALO;
         gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B3_ELEVATOR_HALL_ORANGE_BURST;
@@ -305,29 +331,20 @@ void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
         gRoomEffectGlowDiscId     = EFFECT_SHELTER_B3_ELEVATOR_HALL_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B3_ELEVATOR_HALL_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B3_ELEVATOR_HALL_ORANGE_BURST_2;
-        arg0->state               = 1;
+        task->state               = GLOW_DRAW;
     }
     switch ((u8)viewGetMappedIndex()) {
         case 3: {
-            SVECTOR* p = D_shelter_b3_elevator_hall_80182A74;
-            _glowDrawCapsule(&p[0], 0x180, 0x222);
-            _glowDrawCapsule(&p[2], 0x180, 0x222);
-            _glowDrawCapsule(&p[4], 0x180, 0x222);
-            _glowDrawCapsule(&p[6], 0x180, 0x222);
+            const SVECTOR* view3StripPoints = D_shelter_b3_elevator_hall_80182A74;
+            _shelterB3ElevatorHallDrawGlowStrips(view3StripPoints);
         } break;
         case 4: {
-            SVECTOR* p = D_shelter_b3_elevator_hall_80182AB4;
-            _glowDrawCapsule(&p[0], 0x180, 0x222);
-            _glowDrawCapsule(&p[2], 0x180, 0x222);
-            _glowDrawCapsule(&p[4], 0x180, 0x222);
-            _glowDrawCapsule(&p[6], 0x180, 0x222);
+            const SVECTOR* view4StripPoints = D_shelter_b3_elevator_hall_80182AB4;
+            _shelterB3ElevatorHallDrawGlowStrips(view4StripPoints);
         } break;
         case 6: {
-            SVECTOR* p = D_shelter_b3_elevator_hall_80182AF4;
-            _glowDrawCapsule(&p[0], 0x180, 0x222);
-            _glowDrawCapsule(&p[2], 0x180, 0x222);
-            _glowDrawCapsule(&p[4], 0x180, 0x222);
-            _glowDrawCapsule(&p[6], 0x180, 0x222);
+            const SVECTOR* view6StripPoints = D_shelter_b3_elevator_hall_80182AF4;
+            _shelterB3ElevatorHallDrawGlowStrips(view6StripPoints);
         } break;
     }
 }
@@ -336,21 +353,21 @@ void func_shelter_b3_elevator_hall_8017DE70(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
+void shelterB3ElevatorHallRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
+void shelterB3ElevatorHallRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
+void shelterB3ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

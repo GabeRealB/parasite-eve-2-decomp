@@ -1227,13 +1227,13 @@ shelterB3DumpingHoleGluttonRainParticleTask = 0x80186218; // type:func absolute:
 
 func_shelter_b3_dumping_hole_80186D4C = 0x80186D4C; // type:func absolute:True owner=shelter_b3_dumping_hole
 
-func_shelter_b3_elevator_hall_8017DE70 = 0x8017DE70; // type:func absolute:True owner=shelter_b3_elevator_hall
+shelterB3ElevatorHallDrawGlowsTask = 0x8017DE70; // type:func absolute:True owner=shelter_b3_elevator_hall
 
-func_shelter_b3_elevator_hall_8017E7F4 = 0x8017E7F4; // type:func absolute:True owner=shelter_b3_elevator_hall
+shelterB3ElevatorHallRoomVisualEffectsMoteTask = 0x8017E7F4; // type:func absolute:True owner=shelter_b3_elevator_hall
 
-func_shelter_b3_elevator_hall_8017F53C = 0x8017F53C; // type:func absolute:True owner=shelter_b3_elevator_hall
+shelterB3ElevatorHallRoomVisualEffectsHaloTask = 0x8017F53C; // type:func absolute:True owner=shelter_b3_elevator_hall
 
-func_shelter_b3_elevator_hall_8017F8D4 = 0x8017F8D4; // type:func absolute:True owner=shelter_b3_elevator_hall
+shelterB3ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F8D4; // type:func absolute:True owner=shelter_b3_elevator_hall
 
 func_shelter_b3_elevator_hall_80180CE4 = 0x80180CE4; // type:func absolute:True owner=shelter_b3_elevator_hall
 

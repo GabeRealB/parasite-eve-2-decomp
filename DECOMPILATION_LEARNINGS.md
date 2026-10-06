@@ -43334,7 +43334,7 @@ using its own block-scoped `p`. The `jump2` pass cross-jumps the identical tails
 back into one copy after reload, so the object has one copy of the calls and
 the same case layout. A single `p` assigned in each case and used after
 `break`, or m2c's `goto` into case 3's body, stays one pseudo and splits
-(func_shelter_b3_elevator_hall_8017DE70: 99.63% -> 100%).
+(shelterB3ElevatorHallDrawGlowsTask: 99.63% -> 100%).
 
 ## `if (x == 0) A; else if (x == 1) B; else C` is the bnez / j-delay-A form
 
