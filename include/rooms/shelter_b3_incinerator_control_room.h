@@ -43,6 +43,13 @@ void func_shelter_b3_incinerator_control_room_8017FCB8(Task* task);
 
 void func_shelter_b3_incinerator_control_room_8017EA64(Task* task);
 
-void func_shelter_b3_incinerator_control_room_8017FD10(Task* unused);
+/// Draws the incinerator control room's fixed light glows for the mapped camera view.
+///
+/// Mapped views 2 through 6 and 8 select capsule glows; views 4 and 8
+/// also draw a pulsing cyan diamond or disc. Other views emit no packets.
+/// `task` is unused. Requires a composed view matrix, an initialized scratch
+/// stack and the current frame's ordering table and packet arena. Queued
+/// additive packets remain in that arena until GPU completion.
+void shelterB3IncineratorControlRoomDrawViewGlowsTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B3_INCINERATOR_CONTROL_ROOM_H

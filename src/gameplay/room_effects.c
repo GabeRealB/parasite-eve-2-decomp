@@ -863,7 +863,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodAccessTunnelDrawLightBeamsTask, { NULL } },                             // 0x142
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleDrawViewGlowsTask, { NULL } },                                  // 0x143
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorDrawLightsTask, { NULL } },                              // 0x144
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_incinerator_control_room_8017FD10, { NULL } },                      // 0x145
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB3IncineratorControlRoomDrawViewGlowsTask, { NULL } },                       // 0x145
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallDrawGlowsTask, { NULL } },                                     // 0x146
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerDrawGlowsTask, { NULL } },                                       // 0x147
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_8017E5F8, { NULL } },                                   // 0x148

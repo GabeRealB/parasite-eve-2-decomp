@@ -85,7 +85,7 @@ D_shelter_b3_incinerator_control_room_80181838 = 0x80181838; // size:0x30 define
 
 func_shelter_b3_incinerator_control_room_8017EA64 = 0x8017EA64; // type:func
 
-func_shelter_b3_incinerator_control_room_8017FD10 = 0x8017FD10; // type:func
+shelterB3IncineratorControlRoomDrawViewGlowsTask = 0x8017FD10; // type:func
 Telephone_DrawPlayDataRow = 0x8017D6CC; // type:func
 Telephone_DrawUsageRow = 0x8017DE98; // type:func
 Telephone_BuildWeaponUsage = 0x8017E294; // type:func

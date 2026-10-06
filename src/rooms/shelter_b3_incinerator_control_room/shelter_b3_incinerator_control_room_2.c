@@ -42,7 +42,7 @@
 
 #define D_shelter_b3_incinerator_control_room_801818E8 (D_shelter_b3_incinerator_control_room_80181888 + 12)
 
-/// Glow positions `func_shelter_b3_incinerator_control_room_8017FD10` draws
+/// Glow positions `shelterB3IncineratorControlRoomDrawViewGlowsTask` draws
 /// per view.
 extern SVECTOR D_shelter_b3_incinerator_control_room_80181868[];
 
@@ -342,43 +342,53 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-/// Draws the glows of the current camera view at the room's fixed world
-/// points; views without an entry draw nothing.
-void func_shelter_b3_incinerator_control_room_8017FD10(Task* unused)
+/// Draws the two vertically separated capsule glows used by views 4, 5 and 8.
+static inline void _shelterB3IncineratorControlRoomDrawStackedGlows(s32 radiusScale, s32 packedColor)
 {
-    u8 view;
+    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], radiusScale, packedColor);
+    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], radiusScale, packedColor);
+}
 
-    view = viewGetMappedIndex();
-    switch (view) {
+void shelterB3IncineratorControlRoomDrawViewGlowsTask(Task* task)
+{
+    enum {
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE = 0x180, // Pixel radius = scale * 64 / (camera Z / 4).
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY             = 0x111, // RGB nibbles; channel intensities 16 before flicker.
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_WARM                 = 0x421, // RGB nibbles; channel intensities 64, 32, 16 before flicker.
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_PULSE_RATE      = 0x60,  // 4096 angle units per turn, per animation frame.
+        SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_RADIUS_SCALE    = 0x80,  // Diamond half-extent uses scale * 32 / depth; disc radius uses scale * 64 / depth.
+    };
+    u8 mappedViewIndex;
+
+    // Select the visible world-point sets while preserving their packet order.
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
         case 3:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[0], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[2], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[0], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[2], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[8], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[10], 0x180, 0x111);
-            _glowDrawDiamond(&D_shelter_b3_incinerator_control_room_80181888[18], 0x60, 0x80);
+            _shelterB3IncineratorControlRoomDrawStackedGlows(SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[8], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[10], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawDiamond(&D_shelter_b3_incinerator_control_room_80181888[18], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_PULSE_RATE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[2], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[6], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[12], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[14], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[16], 0x180, 0x421);
+            _shelterB3IncineratorControlRoomDrawStackedGlows(SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[2], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[6], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[12], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[14], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[16], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_WARM);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[0], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[2], 0x180, 0x111);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[0], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[2], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
             break;
         case 8:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[0], 0x180, 0x111);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[4], 0x180, 0x111);
-            _glowDrawPulsingDisc(&D_shelter_b3_incinerator_control_room_80181888[18], 0x60, 0x80);
+            _shelterB3IncineratorControlRoomDrawStackedGlows(SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawPulsingDisc(&D_shelter_b3_incinerator_control_room_80181888[18], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_PULSE_RATE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_RADIUS_SCALE);
             break;
     }
 }
