@@ -487,15 +487,17 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
 /// `gMcSaveData` and spawns the outgoing task.
 void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
 {
-    s32 var_v0;
-
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(2);
-            goto L_advance;
+            task->state++;
+            return;
         case 1:
-            var_v0 = Gp_CapBusy();
-            goto L_idle;
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            task->state++;
+            return;
         case 2:
             D_80114D08 = 0xA;
             if (Gp_GetCapEventKey() == 0xC) {
@@ -508,12 +510,9 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             sndEvtRequestScriptStart(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR, 0, 0);
             return;
         case 3:
-            var_v0 = SndVoice_HasActiveId(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR);
-        L_idle:
-            if (var_v0 != 0) {
+            if (SndVoice_HasActiveId(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR) != 0) {
                 return;
             }
-        L_advance:
             task->state++;
             return;
         case 4:
