@@ -34084,7 +34084,7 @@ asm volatile("");
 col += row * 20;
 ```
 
-`Gp_ScaleDamage` is the example.
+`damageComputeReceived` is the example.
 
 ## Force unsigned `/ 100` `mfhi` into `$v1` with early `mflo`
 
@@ -34117,7 +34117,7 @@ asm volatile("mfhi %0" : "=r"(col));
 val = (u32)col >> 5;
 ```
 
-`Gp_ScaleDamage` is the example.
+`damageComputeReceived` is the example.
 
 ## Keep a 2D `/3` index from folding, and schedule signed-`/3` magic before the dividend
 
@@ -34654,7 +34654,7 @@ switch (kind) {
 ```
 
 `kind = raw & 0xFFFF` also matches; `s32 raw` without the mask becomes
-`move` and drops the `andi`. `Gp_ApplyObjKind` is the example.
+`move` and drops the `andi`. `_damageApplyEnemyReaction` is the example.
 
 ## Unsigned `>> 16` in the `if (x & 0xF0000)` arm so the delay slot is `srl`
 
@@ -39511,7 +39511,7 @@ block, not after it.
 
 ## Ternary assignment leaves the `move` copies and lets combine drop a later `andi`
 
-`Gp_RollEnemyChance` (gameplay/3A34) picks a distance class from `D_80113864` into a
+`damageRollCriticalHit` (gameplay/3A34) picks a distance class from `D_80113864` into a
 `u16` variable, then uses it as an array index in two later branches. The
 target is:
 
@@ -42194,7 +42194,7 @@ real symbol and violates the struct rule in `CLAUDE.md` at the same time:
 | `D_801153F1`–`F4` | `gSceneCombatState.signals.bytes.endDelayFrames`–`gSceneCombatState.actorControl` |
 | `D_8011541B` | `gSceneCombatState.difficulty` |
 
-Hand-written inline asm is not an excuse to keep one. `Gp_ScaleDamage` had four
+Hand-written inline asm is not an excuse to keep one. `damageComputeReceived` had four
 `%hi`/`%lo` references to `D_8011541B`; the assembler takes an offset
 expression, so `%hi(gSceneCombatState + 0x2B)` assembles to the same relocation and the
 build still matches.
@@ -45446,7 +45446,7 @@ the copy, the call result lands straight in `$s4` and the shift reads `$s4`.
 Declaring the destination `s16` makes the assignment a HImode `subreg` move that
 cse cannot merge with the SImode shift, so both registers survive. Every later
 use of the short then re-extends on its own, which is exactly the target's
-`sll`/`sra` pairs around the `func_800E2C78` / `func_800DA6E8` arguments.
+`sll`/`sra` pairs around the `damageAccumulateLifeDrainHp` / `func_800DA6E8` arguments.
 
 Doubling that short wants `amount += amount;` (or `<<= 1`), one `sll s4,s4,1`.
 `amount * 2` on a `short` compiles to `sll 16` / `srl 15` instead, because GCC
@@ -69340,7 +69340,7 @@ concatenates their dependence chains.
 Same function, earlier iteration. The corpus already records that a *store* to
 a fixed scalar global moves across in-struct references
 (`fixed_scalar_and_varying_struct_p`); the load direction bites the same way and
-looks quite different in the diff. `Gp_PackPair(D_actor_503500_8016E7D4, 0)`
+looks quite different in the diff. `damagePackAttackKey(D_actor_503500_8016E7D4, 0)`
 with
 
 ```c
@@ -96699,7 +96699,7 @@ result when a derived value is computed from it:
 s16 dmg;
 s32 full;
 dmg = (s16)Gp_ComputeDamage(id, 0, 0, 0) >> 1;   /* sra a2; move s0,a2 */
-func_800E2C78(enemy, id, dmg, 0);
+damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
 ...
 full = Gp_ComputeDamage(id, dist, 0, 0);
 dmg  = full;                                     /* move s0,v0 */
@@ -97825,7 +97825,7 @@ The fix came from the matched sibling `func_actor_356100_8016A468`
 BRIEF's "similar matched bodies" list (none above 0.80) surfaces such a sibling,
 because both compare splat's disassembly *text* and these actors carry the idiom
 at different addresses. Grepping `src/` for a distinctive callee chain does —
-here `Gp_GetIdParam1(0x1001)` next to `func_800FDB18`, or `Gp_PackObjPair((GpObj50*)…, 0)`
+here `Gp_GetIdParam1(0x1001)` next to `func_800FDB18`, or `damagePackEnemyAttackKey((GpObj50*)…, 0)`
 with message `0x3FF`. Read that sibling's *source*, not just its asm: it also
 carried the statement order the next paragraph needed.
 
@@ -103439,7 +103439,7 @@ pointer's 1458. Moving a definition **earlier** lengthens its span and lowers
 its priority: the same lever as the `ARRAY_REF` entry above, here between two
 plain loads rather than a base and its index.
 
-Two tempting non-fixes. A local for the `Gp_PackPair` result adds a statement
+Two tempting non-fixes. A local for the `damagePackAttackKey` result adds a statement
 but no RTL insn — cse folds the copy into the store before local-alloc runs, so
 the block stays 49 insns and nothing moves. And reasoning from `.lreg`'s
 `across N` for a parameter gets the sign of the comparison right by accident
@@ -142122,9 +142122,9 @@ source of an add/copy, try the destination's scope first - sweeping which
 locals are shared between sibling blocks is cheap (16 builds for four locals
 here) and one combination matched outright.
 
-## A local holding a table element takes the table's element type (Gp_ScaleDamage)
+## A local holding a table element takes the table's element type (damageComputeReceived)
 
-`Gp_ScaleDamage` reads a column number out of a `u16` table and uses it to index
+`damageComputeReceived` reads a column number out of a `u16` table and uses it to index
 a second table. With the column held in an `s32` local, expand emits one
 `(set (reg:SI) (zero_extend:SI (mem:HI)))` and the following byte load's `%hi`
 is scheduled after the `lhu` into the address register that just died (`$v0`).
@@ -147297,7 +147297,7 @@ an extra induction variable and grew the drawer to 864 bytes.
 
 ## A `((T*)(head - N))->first` cast beside `blk->rest` can be plain `SCRATCH_STACK_RESERVE_BLOCK`
 
-**Problem.** `Gp_RollEnemyChance` keeps the old scratch cursor in `$s1` and the
+**Problem.** `damageRollCriticalHit` keeps the old scratch cursor in `$s1` and the
 new block in `$s0`, and addresses the block's *first* word through the cursor
 while every other member goes through the block:
 

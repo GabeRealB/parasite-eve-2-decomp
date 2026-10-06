@@ -2302,7 +2302,7 @@ static void Actor00100_Fn0375C(Task* arg0)
             desertChaserHitEffect(arg0, scratch->hitYaw, scratch->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;
-            if (Gp_RollEnemyChance(ctx, scratch->hitKey, 0) != 0) {
+            if (damageRollCriticalHit(ctx, scratch->hitKey, 0) != 0) {
                 scratch->criticalEffect = 0;
                 scratch->damage         = scratch->damage * 4;
             }
@@ -2314,7 +2314,7 @@ static void Actor00100_Fn0375C(Task* arg0)
                     scratch->criticalEffect = 3;
                 }
             }
-            func_800E2C78(ctx, scratch->hitKey, scratch->damage, 0);
+            damageAccumulateLifeDrainHp(ctx, scratch->hitKey, scratch->damage, 0);
             effect = scratch->criticalEffect;
             if (effect != -1) {
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, (s32)(effect), NULL);
@@ -3207,7 +3207,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                             for (i = 0; i < 10; i++) {
                                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
                                 playerSlot                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                                if (taskMessageDispatch(playerSlot, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0) == 1)
+                                if (taskMessageDispatch(playerSlot, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 4), 0) == 1)
                                     break;
                             }
                         }

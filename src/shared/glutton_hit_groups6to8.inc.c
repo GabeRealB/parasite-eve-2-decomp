@@ -7,7 +7,7 @@
 /// through `coord`, and `Gp_GetIdParam0` is called and its kind thrown away.
 ///
 /// Damage is the distance-scaled hit -- measured from an offset point rather
-/// than the model origin -- quadrupled when `Gp_RollEnemyChance` fires, then
+/// than the model origin -- quadrupled when `damageRollCriticalHit` fires, then
 /// divided by six (never down to zero unless it already was), and comes off the
 /// host, the two escorts sharing its pool and `groups6To8Pool`. Emptying that pool
 /// spawns the same effect again and refills it to 0x3C. Both effect spawns and
@@ -88,7 +88,7 @@ void gluttonHitGroups6To8(Task* arg0)
         sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
         sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
 
-        if (Gp_RollEnemyChance(work->escorts[1], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
+        if (damageRollCriticalHit(work->escorts[1], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
             state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 &&
             gSceneCombatState.battleRefs == 1) {
@@ -124,7 +124,7 @@ void gluttonHitGroups6To8(Task* arg0)
         } else {
             sc->damage = dmg;
         }
-        func_800E2C78(host, sc->attackKey, sc->damage, 0);
+        damageAccumulateLifeDrainHp(host, sc->attackKey, sc->damage, 0);
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
         func_800DA6E8(&work->escorts[1]->node, sc->damage, 0);
 #endif

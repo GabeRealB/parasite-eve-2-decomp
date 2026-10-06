@@ -115,7 +115,7 @@ void golemKnightBishopSpawn(Enemy* arg0, Task* arg1)
             work->strikeBody.pos.vx           = 0;
             work->strikeBody.pos.vy           = 0;
             work->strikeBody.pos.vz           = 0;
-            work->strikeBody.key              = Gp_PackPair(gGolemKnightBishopAttacks, 1);
+            work->strikeBody.key              = damagePackAttackKey(gGolemKnightBishopAttacks, 1);
             work->strikeBody.radius           = 0x12C;
             work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);

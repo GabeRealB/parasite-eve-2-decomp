@@ -2976,7 +2976,7 @@ static void func_actor_356100_8016A468(Task* arg0)
         msg->animationId  = 2;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
+        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
     }
     if (work->rig.slots[1].status.fields.flags & 2) {
         work->state = ACTOR_356100_STATE_GRAB_RELEASE;

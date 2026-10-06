@@ -82,7 +82,7 @@ void mothSpawn(Enemy* arg0, Task* arg1)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
     work->gridBody.flags              = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->attackBody.key              = Gp_PackPair(&gMothAttack, 0);
+    work->attackBody.key              = damagePackAttackKey(&gMothAttack, 0);
     work->attackBody.radius           = 0x190;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);

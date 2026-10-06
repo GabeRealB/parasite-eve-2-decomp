@@ -5114,7 +5114,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     link2->flags  = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, link2);
     worldCollisionInitContacts(link2->context.contacts, 1, 0);
-    work->attack.key  = Gp_PackObjPair(enemy, 0);
+    work->attack.key  = damagePackEnemyAttackKey(enemy, 0);
     coord->parent     = &gGfxViewCoord;
     work->yaw         = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->animRequest = 2;
@@ -5391,8 +5391,8 @@ static __inline__ s16 _acropolisBridgeAttackLanded(const Task* task)
 }
 
 /// Runs the bridge enemy's spawn state. On the first frame (work block still
-/// live) it tags the link node while `Gp_PackObjPair` rebuilds the enemy's
-/// pair table, sets bit 15 of both behaviour flag words, seeds the walker's
+/// live) it tags the link node and uses `damagePackEnemyAttackKey` to set the
+/// attack body's key, sets bit 15 of both behaviour flag words, seeds the walker's
 /// first patrol step and starts the reset animation. Every frame after that it
 /// counts `sinkDepth` down 0x3C at a time -- raising the
 /// model root by it while it runs -- scales the model up until it reaches full
@@ -5422,7 +5422,7 @@ void func_acropolis_bridge_801861A0(Task* task)
         work->walker.state            = BOSS_STRANGER_WALKER_CHASE;
         work->attack.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->attack.key              = Gp_PackObjPair(enemy, 0);
+        work->attack.key              = damagePackEnemyAttackKey(enemy, 0);
         enemy->node.state.parts.flags = 0;
         work->animRequest             = 2;
         work->animId                  = 2;
@@ -5941,11 +5941,11 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
         work->effectArg.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(attackId) & 0xFFFF, &task->extra.tmd->coords[1],
                       NULL, &work->effectArg);
-        if (Gp_RollEnemyChance(enemy, attackId, 0) != 0) {
+        if (damageRollCriticalHit(enemy, attackId, 0) != 0) {
             damage *= 4;
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[1], 0, NULL);
         }
-        func_800E2C78(enemy, attackId, damage, 0);
+        damageAccumulateLifeDrainHp(enemy, attackId, damage, 0);
         enemy->hp -= damage;
         func_800DA6E8(&enemy->node, damage, 0);
         work->hp -= damage;

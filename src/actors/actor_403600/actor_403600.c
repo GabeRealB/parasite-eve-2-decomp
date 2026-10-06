@@ -1730,7 +1730,7 @@ void func_actor_403600_80134398(Task* arg0)
             obj->pos.vz                       = 0;
             obj->radius                       = 0;
             recs                              = newWork->attackContacts;
-            obj->key                          = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
+            obj->key                          = damagePackAttackKey(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
             obj->flags                        = WORLD_COLLISION_BODY_CAPSULE;
             newShape->contacts                = recs;
             newShape->ends[1].vx              = 0;

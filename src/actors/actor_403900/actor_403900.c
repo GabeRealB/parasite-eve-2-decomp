@@ -95,7 +95,7 @@ extern u16 gGolemKnightBishopApproachRoll[];
 extern s16 gGolemKnightBishopAnimBlend[];
 
 /// The spawn's tables: the task's next handler record, the `DamageAttack`
-/// `Gp_PackPair` packs into the third collision object, the `EnemyParams` whose
+/// `damagePackAttackKey` packs into the third collision object, the `EnemyParams` whose
 /// `hpMax` seeds the enemy's HP, the stage / room box-table index run, the
 /// box tables it selects, the per-stage cue-bank arrays and the animation data.
 // Message-table callbacks use the argument views required by this TU.

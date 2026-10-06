@@ -4499,7 +4499,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 /// this one runs no `Gp_GetIdParam0` switch: the call is made and its kind
 /// thrown away, so every hit is treated alike.
 ///
-/// The damage is the distance-scaled hit quadrupled when `Gp_RollEnemyChance`
+/// The damage is the distance-scaled hit quadrupled when `damageRollCriticalHit`
 /// fires, then divided by six (never down to zero unless it already was), and
 /// comes off the host, the first escort and `groups3To5Pool`. Emptying that pool
 /// spawns the same effect again and refills it from
@@ -4622,7 +4622,7 @@ body:
     sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
     sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
 
-    if (Gp_RollEnemyChance(work->escorts[0], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
+    if (damageRollCriticalHit(work->escorts[0], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
         state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->phase != 0 &&
         work->playerCaught != 1) {
         sc->offset.vz = 0x1F4;
@@ -4646,7 +4646,7 @@ body:
     } else {
         sc->damage = dmg;
     }
-    func_800E2C78(host, sc->attackKey, sc->damage, 0);
+    damageAccumulateLifeDrainHp(host, sc->attackKey, sc->damage, 0);
     host->hp             -= sc->damage;
     work->groups3To5Pool -= sc->damage;
     if (work->groups3To5Pool <= 0 && (state = work->state, state != 0xD) && state != 3 && state != 9 && state != 0xE &&
@@ -5309,7 +5309,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         if (work->animId == 0xF) {
             if (cfg->hp > 0) {
                 target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
+                taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 3), 0);
                 if (cfg->hp <= 0) {
                     ((GameActor*)player->work)->state = 0xA;
                     gGameSession->deathSoundCountdown = 0x1E;
@@ -5580,7 +5580,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
 
     if (_actor444000HasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
         target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        work->swipeDamageReply = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
+        work->swipeDamageReply = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 4), 0);
         if (work->swipeDamageReply == 1) {
             ((GameActor*)player->work)->state = 0xA;
         }

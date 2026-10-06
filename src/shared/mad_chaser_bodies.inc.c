@@ -23,7 +23,7 @@ void madChaserLinkBodies(Task* arg0)
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
-    work->attackBody.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
+    work->attackBody.key              = damagePackEnemyAttackKey(arg0->spawnArg2.pointer, 0);
     work->attackBody.radius           = 0x170;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->attackBody);

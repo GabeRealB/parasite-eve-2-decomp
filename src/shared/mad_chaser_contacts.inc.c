@@ -56,11 +56,11 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     dmg               = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDist, 0, 0);
                     amount            = dmg;
                     work->hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
-                    if (Gp_RollEnemyChance(enemy, work->contacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    func_800E2C78(enemy, work->contacts[i].key.value, amount, 0);
+                    damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {

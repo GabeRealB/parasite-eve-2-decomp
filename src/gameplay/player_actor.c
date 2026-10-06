@@ -7190,7 +7190,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
     actor = arg0->work;
     ret   = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-        ret = Gp_ApplyHpDamage(Gp_ScaleDamage(arg2, 0, &out, 0));
+        ret = Gp_ApplyHpDamage(damageComputeReceived(arg2, 0, &out, 0));
         if (ret != 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
         } else if (actor->companionWork == 0) {

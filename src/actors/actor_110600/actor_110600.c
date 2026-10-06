@@ -2105,11 +2105,11 @@ static void func_actor_110600_80135B84(Task* arg0)
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_BLEND;
         if (((_Actor110600Work*)arg0->work)->enraged != 0) {
-            work->attackBody.key = Gp_PackObjPair(enemy, 0);
+            work->attackBody.key = damagePackEnemyAttackKey(enemy, 0);
             work->animId         = 4;
             work->animRate       = 0x1A;
         } else {
-            work->attackBody.key = Gp_PackObjPair(enemy, 1);
+            work->attackBody.key = damagePackEnemyAttackKey(enemy, 1);
             work->animId         = 5;
             work->animRate       = 0x10;
         }
@@ -2281,7 +2281,7 @@ static void func_actor_110600_80136210(Task* arg0)
         distance                = SquareRoot0((x * x) + (y * y) + (z * z));
         scratch->playerDistance = distance;
         scratch->damage         = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
-        if (Gp_RollEnemyChance(enemy, scratch->hitKey, 0) != 0) {
+        if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
             scratch->damage *= 5;
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, 0, NULL);
         }
@@ -2295,7 +2295,7 @@ static void func_actor_110600_80136210(Task* arg0)
         if (work->enraged == 1) {
             scratch->damage >>= 1;
         }
-        func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
+        damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
         enemy->hp = (u16)enemy->hp - (u16)scratch->damage;
         func_800DA6E8(&enemy->node, scratch->damage, 0);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -1312,7 +1312,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     head->flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, head);
     worldCollisionInitContacts(head->context.contacts, 1, 0);
-    work->attackBody.key = Gp_PackObjPair(enemy, 0);
+    work->attackBody.key = damagePackEnemyAttackKey(enemy, 0);
 
     work->patrolTarget      = 0;
     work->patrolPoints[0].x = actor->extra.tmd->coords->coord.t[0];
@@ -1556,7 +1556,7 @@ static void Actor01900_Fn02A50(Task* arg0)
             s->toPlayer.vz    = dz;
             s->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
             s->damage         = Gp_ComputeDamage(s->hitKey, s->playerDistance, 0, 0);
-            if (Gp_RollEnemyChance(enemy, s->hitKey, 0) != 0) {
+            if (damageRollCriticalHit(enemy, s->hitKey, 0) != 0) {
                 s->critical       = 1;
                 s->criticalEffect = 0;
                 s->damage        *= 4;
@@ -1577,7 +1577,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                     }
                 }
             }
-            func_800E2C78(enemy, s->hitKey, s->damage, 0);
+            damageAccumulateLifeDrainHp(enemy, s->hitKey, s->damage, 0);
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
             work->recentDamage += s->damage;

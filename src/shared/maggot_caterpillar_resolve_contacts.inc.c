@@ -98,13 +98,13 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                         amount = (damage << 16) >> 15;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 1, 3, NULL);
                     }
-                    if (Gp_RollEnemyChance(enemy, (u32)work->bodyContacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
                         amount = (amount << 16) >> 14;
                         if (work->midLeap == 0) {
                             Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 1, 0, NULL);
                         }
                     }
-                    func_800E2C78(enemy, (u32)work->bodyContacts[i].key.value, amount, 0);
+                    damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount, 0);
                 }
                 func_800DA6E8(&enemy->node, amount, 0);
                 enemy->hp -= amount;

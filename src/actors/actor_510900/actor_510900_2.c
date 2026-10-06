@@ -810,7 +810,7 @@ static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1);
 /// Applies this frame's hits from the three `bodyContacts` collision records. A
 /// type-2 id lands only while the `hitCooldown` cooldown is clear: its damage
 /// is halved for 0x8000 ids, otherwise scaled by the player's distance and
-/// doubled/quadrupled by the id's class and `Gp_RollEnemyChance`, and may pick
+/// doubled/quadrupled by the id's class and `damageRollCriticalHit`, and may pick
 /// a flinch (`reaction`) that sets the next handler. Type-5 ids apply the
 /// `Gp_LookupIdField` table damage directly.
 static void func_actor_510900_80135744(Task* arg0)
@@ -860,7 +860,7 @@ static void func_actor_510900_80135744(Task* arg0)
                         reaction = 2;
                     }
                     dmg = (s16)Gp_ComputeDamage(work->bodyContacts[i].key.value, 0, 0, 0) >> 1;
-                    func_800E2C78(arg0->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
+                    damageAccumulateLifeDrainHp(arg0->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
                 } else {
                     d->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                     d->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
@@ -871,7 +871,7 @@ static void func_actor_510900_80135744(Task* arg0)
                         dmg = full * 2;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
-                    if (Gp_RollEnemyChance(enemy, work->bodyContacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
                         dmg *= 4;
                         if ((u16)param != 5) {
                             Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
@@ -1081,7 +1081,7 @@ static void func_actor_510900_80135E90(Task* arg0)
                 work->animationId          = 8;
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 2);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 2);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
             }
@@ -1479,7 +1479,7 @@ static void func_actor_510900_80136B70(Task* arg0)
             if (work->animationFrame == 9) {
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 2);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 2);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
             }
@@ -1598,7 +1598,7 @@ static void func_actor_510900_80137008(Task* arg0)
                                          (s8)worldCoordGetOriginAudioDepth(coord));
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 5);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 5);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
             }
@@ -1625,7 +1625,7 @@ static void func_actor_510900_80137008(Task* arg0)
             if (work->animationFrame == 0x19) {
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 1);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 1);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
                 snd                        = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780007;
@@ -1772,7 +1772,7 @@ static void func_actor_510900_801375D8(Task* arg0)
                 work->animationId          = 0xD;
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 0);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 0);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
             } else {
@@ -1850,7 +1850,7 @@ static void func_actor_510900_80137868(Task* arg0)
                                          (s8)worldCoordGetOriginAudioDepth(coord));
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 5);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 5);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
             }
@@ -1875,7 +1875,7 @@ static void func_actor_510900_80137868(Task* arg0)
                 work->lethalAttackPhase    = 2;
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 3);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 3);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
 
@@ -2604,7 +2604,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
                 work->flameFrames          = 0xF0;
                 work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = Gp_PackPair(&D_actor_510900_80167968, 5);
+                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 5);
                 work->weaponAttack.key     = pair;
                 work->forearmAttack.key    = pair;
                 work->flameSound           = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000D;
@@ -3072,7 +3072,7 @@ static void func_actor_510900_8013A310(Task* task)
                     work->phase = ACTOR_510900_GRENADE_BURST_ENDING;
                     break;
                 }
-                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_510900_80167968, 4), 0);
+                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_510900_80167968, 4), 0);
                 scratch->playerAnim.source.sets          = D_actor_510900_80167B2C;
                 scratch->playerAnim.animationId          = 1;
                 scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;

@@ -76,14 +76,14 @@ void sucklercephContacts(Task* arg0)
             case 0x20000:
                 if (work->hitCooldown == 0) {
                     damage = Gp_ComputeDamage(work->contacts[i].key.value, distance, 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
                         sucklercephKill(arg0, 1);
                         arg0->killCountdown = 5;
                         arg0->state         = 2;
                         work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
                         enemy->hp           = -1;
                     } else {
-                        func_800E2C78(enemy, work->contacts[i].key.value, damage, 0);
+                        damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, damage, 0);
                         sucklercephTakeDamage(arg0, damage);
                         effect = Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF;
                         switch (effect) {

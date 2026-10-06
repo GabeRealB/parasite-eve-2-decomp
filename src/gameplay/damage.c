@@ -26,6 +26,42 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 
+/// Player attack keys select a weapon row or an attachment-level row.
+///
+/// The distance row occupies bits 8..13. Bit 14 chooses the alternate critical
+/// percentage; its other attack behavior is outside this calculation.
+enum {
+    DAMAGE_PLAYER_ATTACK_ROW_MASK           = 0x7F,
+    DAMAGE_PLAYER_ATTACK_ATTACHMENT         = 0x8000,
+    DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_SHIFT = 8,
+    DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_MASK  = 0x3F,
+    DAMAGE_PLAYER_ATTACK_ALTERNATE_CRITICAL = 0x4000,
+    DAMAGE_BUILDUP_UNGRADED_ROW_MASK        = 0x3F,
+    DAMAGE_BUILDUP_UNGRADED_ROW             = 0x31,
+    DAMAGE_LIFE_DRAIN_FIRST_ROW             = 0x19,
+    DAMAGE_LIFE_DRAIN_LEVEL_COUNT           = 3,
+};
+
+/// Weapon/PE reactions handled here; these differ from `DamageAttack.reaction`.
+enum {
+    DAMAGE_PLAYER_REACTION_NONE      = 0,
+    DAMAGE_PLAYER_REACTION_STAGGER   = 1,
+    DAMAGE_PLAYER_REACTION_BUILDUP   = 2,
+    DAMAGE_PLAYER_REACTION_POISON    = 3,
+    DAMAGE_PLAYER_REACTION_EXPLOSION = 6,
+};
+
+/// Chance calculations use twelve fractional bits and a draw in 0..4095.
+enum {
+    DAMAGE_CHANCE_FRACTION_BITS                = 12,
+    DAMAGE_CHANCE_DRAW_MASK                    = (1 << DAMAGE_CHANCE_FRACTION_BITS) - 1,
+    DAMAGE_DISTANCE_BAND_UNITS                 = 1000,
+    DAMAGE_DISTANCE_FARTHEST_CLASS             = 5,
+    DAMAGE_CRITICAL_PERCENT_COLUMN             = 6,
+    DAMAGE_ALTERNATE_CRITICAL_PERCENT_COLUMN   = 7,
+    DAMAGE_ENERGY_SHOT_CRITICAL_PERCENT_COLUMN = 1,
+};
+
 /// Scratch-stack block for measuring how far an enemy's body is from the player.
 ///
 /// `offset` and `world` are one point carried through three spaces. It enters
@@ -53,24 +89,70 @@ extern u16 D_80113568[][8];
 
 /// Column table used for explosions (`WeaponAttackRow::hitReaction` 6), indexed
 /// by the distance class picked from `D_80113864`. Scaled `<< 12` then / 100
-/// by `Gp_RollEnemyChance`.
+/// by `damageRollCriticalHit`.
 extern u16 D_80113858[];
 
 /// Distance/hit class table for `D_80113568`, indexed by `hits / 1000` (or by
-/// `SquareRoot0(distance) / 1000` in `Gp_RollEnemyChance`) when that value is
+/// `SquareRoot0(distance) / 1000` in `damageRollCriticalHit`) when that value is
 /// below 0x10. `Gp_ComputeDamage` only keeps the low byte of the entry.
 extern u16 D_80113864[];
 
-static inline u16 _gpIdParam0(s32 id);
+static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey);
 
-static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1);
-
-static inline u16 _gpIdParam0(s32 id)
+/// Reads the weapon/PE reaction selected by a player attack key.
+///
+/// The low seven bits must select an existing row: 0..46 for weapon attacks,
+/// or 0..54 in `AttachmentLevelTable` with bit 15 set. Category bits are ignored.
+/// Returns the stored reaction halfword unchanged.
+static inline u16 _damageGetPlayerAttackReaction(s32 attackKey)
 {
-    if ((id & 0x8000) == 0) {
-        return Gp_IdParamLo[id & 0x7F].hitReaction;
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+        return Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction;
     }
-    return Gp_IdParamHi.rows[id & 0x7F].column.outcome.hitReaction;
+    return Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
+}
+
+/// Packs one live attack entry without retaining its table address.
+static inline s32 _damagePackAttackEntry(const DamageAttack* attack)
+{
+    s32 attackKey;
+
+    attackKey  = attack->power & DAMAGE_ATTACK_POWER_MASK;
+    attackKey |= (attack->reaction & DAMAGE_ATTACK_REACTION_MASK) << DAMAGE_ATTACK_REACTION_SHIFT;
+    attackKey |= DAMAGE_ATTACK_CATEGORY;
+    return attackKey;
+}
+
+/// Measures the retained body-point interpretation from the player's world origin.
+///
+/// Requires a live player TMD and a reserved scratch block. The GTE reads
+/// low X, high X and low Y as signed halfwords, so body Z does not participate.
+static inline s32 _damageMeasurePlayerDistance(const Enemy* enemy, const Task* playerTask,
+                                               _DamagePlayerDistanceScratch* scratch)
+{
+    GfxCoord* playerCoord;
+
+    actorRenderComposeCoord(enemy->coord);
+    scratch->offset.vx = enemy->bodyPos.vx;
+    scratch->offset.vy = enemy->bodyPos.vy;
+    scratch->offset.vz = enemy->bodyPos.vz;
+
+    gte_SetRotMatrix(&enemy->coord->workm);
+    gte_ldv0(&scratch->offset);
+    gte_rtv0();
+    gte_stlvnl(&scratch->world);
+
+    scratch->world.vx = enemy->coord->workm.t[0] + scratch->world.vx;
+    scratch->world.vy = enemy->coord->workm.t[1] + scratch->world.vy;
+    scratch->world.vz = enemy->coord->workm.t[2] + scratch->world.vz;
+
+    playerCoord        = playerTask->extra.tmd->coords;
+    scratch->offset.vx = scratch->world.vx - playerCoord->workm.t[0];
+    scratch->offset.vy = scratch->world.vy - playerCoord->workm.t[1];
+    scratch->offset.vz = scratch->world.vz - playerCoord->workm.t[2];
+
+    return SquareRoot0(scratch->offset.vx * scratch->offset.vx +
+                       scratch->offset.vy * scratch->offset.vy + scratch->offset.vz * scratch->offset.vz);
 }
 
 u16 D_80113568[47][8] = {
@@ -254,222 +336,196 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
     return dmg;
 }
 
-s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
+s32 damageComputeReceived(s32 attackKey, s32 unused, s32* outReaction, s32 victimIsCompanion)
 {
-    u32 ret;
-    s32 lo;
-    u32 val;
-    s32 extra;
+    enum { DAMAGE_RECEIVED_SCALE_FRACTION_BITS = 8 };
+    u32 damage;
+    s32 power;
+    u32 scale;
+    s32 antibodyCombo;
     s32 hp;
-    u16 col;
+    u16 hpBand;
 
-    if ((arg0 & WORLD_COLLISION_CONTACT_KIND_MASK) != DAMAGE_ATTACK_CATEGORY) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != DAMAGE_ATTACK_CATEGORY) {
         return 0;
     }
 
-    lo = arg0 & DAMAGE_ATTACK_POWER_MASK;
-    if (arg2 != NULL) {
-        *arg2 = ((u32)arg0 >> DAMAGE_ATTACK_REACTION_SHIFT) & DAMAGE_ATTACK_REACTION_MASK;
+    power = attackKey & DAMAGE_ATTACK_POWER_MASK;
+    if (outReaction != NULL) {
+        *outReaction = ((u32)attackKey >> DAMAGE_ATTACK_REACTION_SHIFT) & DAMAGE_ATTACK_REACTION_MASK;
     }
 
-    if (arg3 == 0) {
-        hp    = gPlayerStatus.hp;
-        col   = D_80113F54[hp / 10];
-        val   = Gp_DmgRows[gSceneCombatState.difficulty].playerPercent[col] << 8;
-        extra = Gp_StateC08.antibodyCombo;
-        if (extra != 0) {
-            val = val * D_80113CFC[(extra / 16 - 1) * 2 + (s8)(extra % 16)] / 100;
+    if (victimIsCompanion == 0) {
+        hp            = gPlayerStatus.hp;
+        hpBand        = D_80113F54[hp / 10];
+        scale         = Gp_DmgRows[gSceneCombatState.difficulty].playerPercent[hpBand] << DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
+        antibodyCombo = Gp_StateC08.antibodyCombo;
+        if (antibodyCombo != 0) {
+            scale = scale * D_80113CFC[(antibodyCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(antibodyCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))] / 100;
         }
     } else {
-        hp  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp;
-        col = D_80113F54[hp / 10];
-        val = Gp_DmgRows[gSceneCombatState.difficulty].companionPercent[col] << 8;
+        hp     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp;
+        hpBand = D_80113F54[hp / 10];
+        scale  = Gp_DmgRows[gSceneCombatState.difficulty].companionPercent[hpBand] << DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
     }
 
-    val = val / 100;
-    ret = lo * val >> 8;
-    if (ret == 0) {
-        if (lo != 0) {
-            ret = 1;
-        }
+    // Truncate the Q8 scale before multiplying, but preserve nonzero hit power.
+    scale  = scale / 100;
+    damage = power * scale >> DAMAGE_RECEIVED_SCALE_FRACTION_BITS;
+    if (damage == 0 && power != 0) {
+        damage = 1;
     }
-    return ret;
+    return damage;
 }
 
-s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
+s32 damageRollCriticalHit(const Enemy* enemy, u32 attackKey, s32 chanceMultiplier)
 {
-    Task*                         slot;
-    GfxCoord*                     pcoord;
+    Task*                         playerTask;
     _DamagePlayerDistanceScratch* scratch;
-    s32                           dist;
-    u16                           sel;
-    s32                           kind;
-    s32                           col;
-    s32                           val;
+    s32                           playerDistance;
+    u16                           distanceClass;
+    s32                           distanceRow;
+    s32                           criticalColumn;
+    s32                           distanceScale;
     s32                           chance;
-    u16                           base;
-    s32                           extra;
-    s32                           rand;
+    u16                           baseChance;
+    s32                           energyShotCombo;
+    s32                           roll;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (slot == NULL) {
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (playerTask == NULL) {
         return 0;
     }
-    if ((arg1 & 0x8000) != 0) {
-        return 0;
-    }
-
-    base = (arg0->param->critChance << 12) / 100;
-    if (base == 0) {
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) != 0) {
         return 0;
     }
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_DamagePlayerDistanceScratch);
-    actorRenderComposeCoord(arg0->coord);
+    baseChance = (enemy->param->critChance << DAMAGE_CHANCE_FRACTION_BITS) / 100;
+    if (baseChance == 0) {
+        return 0;
+    }
 
-    // Carry the body point from the enemy's coordinate into world space. The
-    // rotation takes its 32-bit words as an `SVECTOR`; see the block's type.
-    scratch->offset.vx = arg0->bodyPos.vx;
-    scratch->offset.vy = arg0->bodyPos.vy;
-    scratch->offset.vz = arg0->bodyPos.vz;
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(_DamagePlayerDistanceScratch);
+    playerDistance = _damageMeasurePlayerDistance(enemy, playerTask, scratch);
 
-    gte_SetRotMatrix(&arg0->coord->workm);
-    gte_ldv0(&scratch->offset);
-    gte_rtv0();
-    gte_stlvnl(&scratch->world);
+    distanceClass = playerDistance / DAMAGE_DISTANCE_BAND_UNITS;
+    distanceClass = distanceClass < ARRAY_SIZE(D_80113864) ? D_80113864[distanceClass] : DAMAGE_DISTANCE_FARTHEST_CLASS;
 
-    scratch->world.vx = arg0->coord->workm.t[0] + scratch->world.vx;
-    scratch->world.vy = arg0->coord->workm.t[1] + scratch->world.vy;
-    scratch->world.vz = arg0->coord->workm.t[2] + scratch->world.vz;
-
-    // Measure it from the player's world origin.
-    pcoord             = slot->extra.tmd->coords;
-    scratch->offset.vx = scratch->world.vx - pcoord->workm.t[0];
-    scratch->offset.vy = scratch->world.vy - pcoord->workm.t[1];
-    scratch->offset.vz = scratch->world.vz - pcoord->workm.t[2];
-
-    dist = SquareRoot0(scratch->offset.vx * scratch->offset.vx +
-                       scratch->offset.vy * scratch->offset.vy + scratch->offset.vz * scratch->offset.vz);
-
-    sel = dist / 1000;
-    sel = sel < 0x10 ? D_80113864[sel] : 5;
-
-    kind = (arg1 >> 8) & 0x3F;
-    if (Gp_IdParamLo[arg1 & 0x7F].hitReaction == 6) {
-        val = (D_80113858[sel] << 12) / 100;
+    // Distance and the attack's critical column scale the enemy's Q12 base chance.
+    distanceRow = (attackKey >> DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_SHIFT) & DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_MASK;
+    if (Gp_IdParamLo[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].hitReaction == DAMAGE_PLAYER_REACTION_EXPLOSION) {
+        distanceScale = (D_80113858[distanceClass] << DAMAGE_CHANCE_FRACTION_BITS) / 100;
     } else {
-        val = (D_80113568[kind][sel] << 12) / 100;
+        distanceScale = (D_80113568[distanceRow][distanceClass] << DAMAGE_CHANCE_FRACTION_BITS) / 100;
     }
 
-    if ((arg1 & 0x4000) != 0) {
-        col = 7;
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ALTERNATE_CRITICAL) != 0) {
+        criticalColumn = DAMAGE_ALTERNATE_CRITICAL_PERCENT_COLUMN;
     } else {
-        col = 6;
+        criticalColumn = DAMAGE_CRITICAL_PERCENT_COLUMN;
     }
 
-    chance = (((D_80113568[kind][col] << 12) / 100) * base >> 12) * val >> 12;
-    if ((arg0->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
+    chance = (((D_80113568[distanceRow][criticalColumn] << DAMAGE_CHANCE_FRACTION_BITS) / 100) * baseChance >> DAMAGE_CHANCE_FRACTION_BITS) *
+                 distanceScale >>
+             DAMAGE_CHANCE_FRACTION_BITS;
+    if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
         chance <<= 1;
     }
 
-    extra = Gp_StateC08.energyShotCombo;
-    if (extra != 0) {
-        chance = chance * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][1] / 100;
+    energyShotCombo = Gp_StateC08.energyShotCombo;
+    if (energyShotCombo != 0) {
+        chance = chance * D_80113D0C[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))][DAMAGE_ENERGY_SHOT_CRITICAL_PERCENT_COLUMN] / 100;
     }
-    if (arg2 != 0) {
-        chance *= arg2;
+    if (chanceMultiplier != 0) {
+        chance *= chanceMultiplier;
     }
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    rand            = gRandomLcgState >> 16 & 0xFFF;
+    roll            = gRandomLcgState >> 16 & DAMAGE_CHANCE_DRAW_MASK;
     SCRATCH_STACK_RELEASE_BLOCK(_DamagePlayerDistanceScratch);
-    return rand < chance;
+    return roll < chance;
 }
 
-static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1)
+/// Starts the stagger, buildup or poison reaction of a player attack on an enemy.
+///
+/// Requires a live parameter record and a key accepted by
+/// `_damageGetPlayerAttackReaction`. Buildup restarts immediately; poison rolls
+/// the enemy kind's percent chance, then restarts its pulse countdown. Weapon
+/// attacks use grade 0; attachment attacks take the active level digit, except
+/// the low-six-bit row 49 buildup reaction, which also uses grade 0. Other
+/// reactions leave the enemy unchanged.
+static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey)
 {
-    s32 val;
-    s32 limit;
-    s32 rand;
+    s32 poisonPercent;
+    s32 poisonChance;
+    s32 roll;
 
-    switch (_gpIdParam0(arg1)) {
-        case 0:
+    switch (_damageGetPlayerAttackReaction(attackKey)) {
+        case DAMAGE_PLAYER_REACTION_NONE:
             break;
-        case 1:
-            arg0->reactionFlags |= ENEMY_REACTION_STAGGER;
+        case DAMAGE_PLAYER_REACTION_STAGGER:
+            enemy->reactionFlags |= ENEMY_REACTION_STAGGER;
             break;
-        case 2:
-            arg0->buildupStep    = 0;
-            arg0->buildupTimer   = 0;
-            arg0->reactionFlags |= ENEMY_REACTION_BUILDUP;
-            if ((arg1 & 0x8000) == 0) {
-                arg0->buildupGrade = 0;
+        case DAMAGE_PLAYER_REACTION_BUILDUP:
+            enemy->buildupStep    = 0;
+            enemy->buildupTimer   = 0;
+            enemy->reactionFlags |= ENEMY_REACTION_BUILDUP;
+            if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+                enemy->buildupGrade = 0;
                 return;
             }
-            if ((arg1 & 0x3F) == 0x31) {
-                arg0->buildupGrade = 0;
+            if ((attackKey & DAMAGE_BUILDUP_UNGRADED_ROW_MASK) == DAMAGE_BUILDUP_UNGRADED_ROW) {
+                enemy->buildupGrade = 0;
                 return;
             }
-            arg0->buildupGrade = Gp_StateC08.attachId % 10U;
+            enemy->buildupGrade = Gp_StateC08.attachId % 10U;
             break;
-        case 3:
-            val             = arg0->param->damageOverTimeChance;
-            limit           = (val << 12) / 100;
+        case DAMAGE_PLAYER_REACTION_POISON:
+            poisonPercent   = enemy->param->damageOverTimeChance;
+            poisonChance    = (poisonPercent << DAMAGE_CHANCE_FRACTION_BITS) / 100;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rand            = gRandomLcgState >> 16 & 0xFFF;
-            if (rand < limit) {
-                arg0->damageOverTimePulse = 0;
-                arg0->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
-                gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                arg0->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
-                if ((arg1 & 0x8000) == 0) {
-                    arg0->damageOverTimeGrade = 0;
+            roll            = gRandomLcgState >> 16 & DAMAGE_CHANCE_DRAW_MASK;
+            if (roll < poisonChance) {
+                enemy->damageOverTimePulse = 0;
+                enemy->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
+                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                enemy->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+                if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+                    enemy->damageOverTimeGrade = 0;
                     return;
                 }
-                arg0->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
+                enemy->damageOverTimeGrade = Gp_StateC08.attachId % 10U;
             }
             break;
     }
 }
 
-s32 Gp_PackObjPair(Enemy* arg0, s32 arg1)
+s32 damagePackEnemyAttackKey(const Enemy* enemy, s32 attackIndex)
 {
-    DamageAttack* pairs;
-    s32           ret;
-
-    if (arg0->param == NULL) {
+    if (enemy->param == NULL) {
         return 0;
     }
-    pairs = arg0->param->attacks;
-    ret   = pairs[arg1].power & DAMAGE_ATTACK_POWER_MASK;
-    ret  |= (pairs[arg1].reaction & DAMAGE_ATTACK_REACTION_MASK) << DAMAGE_ATTACK_REACTION_SHIFT;
-    ret  |= DAMAGE_ATTACK_CATEGORY;
-    return ret;
+    return _damagePackAttackEntry(&enemy->param->attacks[attackIndex]);
 }
 
-s32 Gp_PackPair(DamageAttack* pairs, s32 index)
+s32 damagePackAttackKey(const DamageAttack* attacks, s32 attackIndex)
 {
-    s32 ret;
-
-    if (pairs == NULL) {
+    if (attacks == NULL) {
         return 0;
     }
-    ret  = pairs[index].power & DAMAGE_ATTACK_POWER_MASK;
-    ret |= (pairs[index].reaction & DAMAGE_ATTACK_REACTION_MASK) << DAMAGE_ATTACK_REACTION_SHIFT;
-    ret |= DAMAGE_ATTACK_CATEGORY;
-    return ret;
+    return _damagePackAttackEntry(&attacks[attackIndex]);
 }
 
-void func_800E2C78(Enemy* arg0, s32 arg1, s32 arg2, s32 arg3)
+void damageAccumulateLifeDrainHp(const Enemy* enemy, s32 attackKey, s32 damage, s32 unused)
 {
-    s32 val;
+    s32 remainingHp;
 
-    if ((u32)((arg1 & 0x7F) - 0x19) < 3U) {
-        val = arg0->hp;
-        if ((u32)val < (u32)arg2) {
-            gSceneCombatState.lifeDrainHp += val;
+    if ((u32)((attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK) - DAMAGE_LIFE_DRAIN_FIRST_ROW) < DAMAGE_LIFE_DRAIN_LEVEL_COUNT) {
+        remainingHp = enemy->hp;
+        if ((u32)remainingHp < (u32)damage) {
+            gSceneCombatState.lifeDrainHp += remainingHp;
             return;
         }
-        gSceneCombatState.lifeDrainHp += arg2;
+        gSceneCombatState.lifeDrainHp += damage;
     }
 }

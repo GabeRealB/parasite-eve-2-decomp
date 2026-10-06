@@ -13,10 +13,11 @@
 /// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C, and
 /// then takes the damage off the host: the player-relative offset to the part
 /// gives the `playerDistance` `Gp_ComputeDamage` scales `damage` by, quadrupled when
-/// `Gp_RollEnemyChance` fires. The contact point is re-read relative to the
+/// `damageRollCriticalHit` fires. The contact point is re-read relative to the
 /// part's world translation and `ratan2` of the pair against the part's facing
-/// gives the yaw `contactYaw`, wrapped to +/-0x800. The damage is doubled, applied
-/// through `func_800E2C78` and `func_800DA6E8`, and the host's remaining HP is
+/// gives the yaw `contactYaw`, wrapped to +/-0x800. The damage is doubled,
+/// credits Life Drain healing through `damageAccumulateLifeDrainHp`, updates
+/// the readout through `func_800DA6E8`, and is taken from the host's HP, which is
 /// mirrored onto the three escorts sharing its pool.
 ///
 /// The second arm runs the same tick when `reactionFlags` has damage over time
@@ -73,7 +74,7 @@ void gluttonHitGroup0(Task* arg0)
         dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
         sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
         sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
-        if (Gp_RollEnemyChance(enemy, sc->attackKey, 0) != 0) {
+        if (damageRollCriticalHit(enemy, sc->attackKey, 0) != 0) {
             sc->damage *= 4;
         }
         if (sc->damage != 0) {
@@ -107,7 +108,7 @@ void gluttonHitGroup0(Task* arg0)
         }
 #endif
         sc->damage *= 2;
-        func_800E2C78(enemy, sc->attackKey, sc->damage, 0);
+        damageAccumulateLifeDrainHp(enemy, sc->attackKey, sc->damage, 0);
         enemy->hp -= sc->damage;
         func_800DA6E8(&enemy->node, sc->damage, 0);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
@@ -128,7 +129,7 @@ void gluttonHitGroup0(Task* arg0)
         }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         if (sc->damage != 0) {
-            func_800E2C78(enemy, sc->attackKey, sc->damage, 0);
+            damageAccumulateLifeDrainHp(enemy, sc->attackKey, sc->damage, 0);
 #endif
             enemy->hp -= sc->damage;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE

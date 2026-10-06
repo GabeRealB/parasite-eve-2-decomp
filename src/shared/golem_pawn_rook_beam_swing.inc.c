@@ -46,7 +46,7 @@ void golemPawnRookBeamSwingState(Task* arg0)
             work->targetYaw = (s16)(ratan2((s32)(s16)delta->vx, (s32)(s16)delta->vz) & 0xFFF);
             if (work->animFrame == (gGolemPawnRookAnimBlendFrames[work->anim] + 0x20)) {
                 work->strikeBody.flags = (u16)(work->strikeBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->strikeBody.key   = Gp_PackPair(gGolemPawnRookAttacks, 0);
+                work->strikeBody.key   = damagePackAttackKey(gGolemPawnRookAttacks, 0);
             }
             if (work->animFrame == (gGolemPawnRookAnimBlendFrames[work->anim] + 0x21)) {
                 sound = gGolemPawnRookSwingCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);

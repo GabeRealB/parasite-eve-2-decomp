@@ -2828,7 +2828,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             scratch->damage     = 400;
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
-            func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
+            damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if (enemy->hp <= 0 && gPlayerStatus.hp <= 0) {
@@ -2932,7 +2932,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             scratch->playerDelta.vz = dz;
             scratch->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
             scratch->damage         = Gp_ComputeDamage(scratch->hitKey, scratch->playerDistance, 0, 0);
-            if (Gp_RollEnemyChance(enemy, scratch->hitKey, 0) != 0) {
+            if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
                 scratch->damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], 0, NULL);
             }
@@ -2945,7 +2945,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             func_actor_403000_80134910(arg0, scratch->hitYaw, scratch->hitKey);
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
-            func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
+            damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if ((work->state == ACTOR_403000_STATE_DROP && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) || work->state == ACTOR_403000_STATE_DROP_CATCH || work->state == ACTOR_403000_STATE_AMBUSH || work->playerCaught == 1) {
@@ -3667,7 +3667,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                         TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
                     }
                     task                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 1), 0);
+                    scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 1), 0);
                     if (scratch->messageResult == 1) {
                         pw                              = (GameActor*)player->work;
                         gGameSession->deathFadeFrames   = 0x28;
@@ -3875,7 +3875,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             D_actor_403000_80158D90.placement.rot.vz = 0;
             TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403000_80158D90.placement, 0);
             task                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
+            scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
             if (scratch->messageResult == 1) {
                 pw                              = (GameActor*)player->work;
                 gGameSession->deathFadeFrames   = 0x1C;
@@ -4725,7 +4725,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
         if (!Actor403000_Outside(&scratch->offset, 1000) && enemy->hp > 0 &&
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
             task                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
+            scratch->messageResult = taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 3), 0);
             if (scratch->messageResult == 1) {
                 pw                              = (GameActor*)player->work;
                 gGameSession->deathFadeFrames   = 0x28;

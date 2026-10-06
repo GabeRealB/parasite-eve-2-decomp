@@ -2392,7 +2392,7 @@ static void func_actor_421600_801354D8(Task* arg0)
             desertChaserHitEffect(arg0, callAngle, scratch->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;
-            if (Gp_RollEnemyChance(enemy, scratch->hitKey, 0) != 0) {
+            if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
                 scratch->criticalEffect = 0;
                 scratch->damage         = scratch->damage * 4;
             }
@@ -2405,7 +2405,7 @@ static void func_actor_421600_801354D8(Task* arg0)
                     scratch->criticalEffect = 3;
                 }
             }
-            func_800E2C78(enemy, scratch->hitKey, scratch->damage, 0);
+            damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
             effect = scratch->criticalEffect;
             if (effect != -1) {
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, (s32)(effect), 0);
@@ -3276,9 +3276,9 @@ static void func_actor_421600_8013A554(Task* arg0)
                     closeDistance = scratch->yawFromPlayer - scratch->playerYaw;
                     closeDistance = abs(closeDistance);
                     if (closeDistance < 0x400) {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 2), 0);
+                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 2), 0);
                     } else {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
+                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 3), 0);
                     }
                 }
                 if (scratch->playerKilled != 1) {
@@ -3300,9 +3300,9 @@ static void func_actor_421600_8013A554(Task* arg0)
                     farDistance = scratch->yawFromPlayer - scratch->playerYaw;
                     farDistance = abs(farDistance);
                     if (farDistance < 0x400) {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
+                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
                     } else {
-                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 1), 0);
+                        scratch->playerKilled = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 1), 0);
                     }
                 }
                 if (scratch->playerKilled == 1) {

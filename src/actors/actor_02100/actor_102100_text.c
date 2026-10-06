@@ -723,8 +723,8 @@ static void Actor02100_Fn004C4(Task* arg0)
                                                                scratch->vec.vy * scratch->vec.vy +
                                                                scratch->vec.vz * scratch->vec.vz),
                                                    0, 0);
-                if (Gp_RollEnemyChance(arg0->spawnArg2.pointer,
-                                       work->hitContacts[0].key.value, 0) != 0) {
+                if (damageRollCriticalHit(arg0->spawnArg2.pointer,
+                                          work->hitContacts[0].key.value, 0) != 0) {
                     damage *= 4;
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, 0);
                 }
@@ -1453,7 +1453,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_FIRE);
             frame = work->stepFrames;
             if (frame == 1) {
-                work->playerStrikeBody.key = Gp_PackPair(Actor02100_D03D64, work->weapon);
+                work->playerStrikeBody.key = damagePackAttackKey(Actor02100_D03D64, work->weapon);
                 packed                     = work->weapon + 0x26;
                 work->enemyStrikeBody.key  = flagBit;
                 work->enemyStrikeBody.key  = (packed << 8) | (packed | work->enemyStrikeBody.key);
@@ -1673,7 +1673,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             break;
 
         case ACTOR_02100_GUN_STEP_ARM:
-            work->playerStrikeBody.key = Gp_PackPair(Actor02100_D03D64, work->weapon);
+            work->playerStrikeBody.key = damagePackAttackKey(Actor02100_D03D64, work->weapon);
             work->step                 = ACTOR_02100_GUN_STEP_DISARM;
             work->enemyStrikeBody.key  = ((work->weapon + 0x26) << 8) | 0x20000 | (work->weapon + 0x26);
             work->shotsFired++;

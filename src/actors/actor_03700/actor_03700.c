@@ -125,7 +125,7 @@ extern u16 Actor03700_D07F7C[];
 extern u16 Actor03700_D07F3C[];
 extern u16 Actor03700_D07F5C[];
 
-/// Pair `Actor03700_Fn01550` packs with `Gp_PackPair` for message 0x3F9.
+/// Pair `Actor03700_Fn01550` packs with `damagePackAttackKey` for message 0x3F9.
 extern DamageAttack Actor03700_D07F08;
 
 /// Halfword table `Actor03700_Fn01550` indexes by a 4-bit LCG draw.
@@ -963,7 +963,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
                     work->deathEffect = (Gp_GetIdParam1(id) & 0xFFFF) == 7;
                 }
                 func_800DA6E8(&((Enemy*)task->spawnArg2.pointer)->node, damage, 0);
-                func_800E2C78(task->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
+                damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
                 if ((s32)damage > 0) {
                     ((Enemy*)task->spawnArg2.pointer)->hp = 0;
                     work->action                          = ACTOR_03700_ACTION_DIE;
@@ -1409,7 +1409,7 @@ static void Actor03700_Fn01550(Task* task)
 
     switch (work->actionStep) {
         case 0:
-            taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&Actor03700_D07F08, 0), 0);
+            taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&Actor03700_D07F08, 0), 0);
             func_800FDB18(1, obj, NULL, &work->hitEffectArg);
             Gp_SpawnPadLerp(5, 0xC0, 8);
             sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250004;

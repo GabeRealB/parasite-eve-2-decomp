@@ -92,7 +92,7 @@ void sucklercephSpawnState(Enemy* arg0, Task* arg1)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
     work->body.flags                  = (u16)(work->body.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->attackBody.key              = Gp_PackPair(&gSucklercephAttack, 0);
+    work->attackBody.key              = damagePackAttackKey(&gSucklercephAttack, 0);
     work->attackBody.radius           = 0x3E8;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);

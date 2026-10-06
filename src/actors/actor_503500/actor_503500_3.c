@@ -1329,11 +1329,11 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     enemy->hp -= dmg;
     func_800DA6E8(&enemy->node, dmg, 0);
     if (enemy->hp <= 0) {
@@ -1370,7 +1370,7 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
 /// the boss. Each attack id is taken once, and only type-2 ids land while the
 /// `hitCooldown` countdown is clear: the damage scales with the attacker's
-/// distance, `Gp_RollEnemyChance` can quadruple it, and a hit that empties
+/// distance, `damageRollCriticalHit` can quadruple it, and a hit that empties
 /// `hp` starts the death state instead of the id's status effect. `arg1`
 /// is passed by the caller but unused.
 static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
@@ -2961,11 +2961,11 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
@@ -3785,11 +3785,11 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {

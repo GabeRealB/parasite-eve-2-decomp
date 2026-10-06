@@ -445,7 +445,7 @@ static s16 func_actor_311500_80162DDC(Task* arg0)
     if (work->hitKey != 0) {
         work->lastHitKey = work->hitKey;
         damage           = Gp_ComputeDamage(work->hitKey, 0, 0, 0x1000);
-        if (Gp_RollEnemyChance(enemy, work->hitKey, 0) != 0) {
+        if (damageRollCriticalHit(enemy, work->hitKey, 0) != 0) {
             damage *= 5;
             Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
         }

@@ -779,7 +779,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = -0x3B6;
     work->attackBody.pos.vz           = 0x1CC;
-    work->attackBody.key              = Gp_PackPair(Actor02500_D05B30, 0);
+    work->attackBody.key              = damagePackAttackKey(Actor02500_D05B30, 0);
     work->attackBody.radius           = 0x12C;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -864,13 +864,13 @@ static void Actor02500_Fn00494(Task* actor)
                         damage *= 2;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 2, NULL);
                     }
-                    if (Gp_RollEnemyChance(ctx, work->hitContacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
                         damage *= 4;
                         if ((param0 & 0xFFFF) != 5) {
                             Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
                         }
                     }
-                    func_800E2C78(ctx, work->hitContacts[i].key.value, damage, 0);
+                    damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
                     func_800DA6E8(&ctx->node, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
@@ -1893,7 +1893,7 @@ static void Actor02500_Fn025D0(Enemy* ctx, Task* task)
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = Gp_PackPair(Actor02500_D05B30, 1);
+    work->body.key              = damagePackAttackKey(Actor02500_D05B30, 1);
     work->body.radius           = 200;
     work->body.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);

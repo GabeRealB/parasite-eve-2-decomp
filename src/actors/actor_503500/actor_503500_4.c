@@ -828,11 +828,11 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
@@ -1334,11 +1334,11 @@ static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPar
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
@@ -1693,11 +1693,11 @@ static inline void _actor503500ChainBaseHandleHit(Task* arg0, _Actor503500ChainB
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
@@ -2247,11 +2247,11 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
@@ -2704,11 +2704,11 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
@@ -3113,7 +3113,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     work->attackBody.pos.vx           = D_actor_503500_8016F3F4[idx].vx;
     work->attackBody.pos.vy           = D_actor_503500_8016F3F4[idx].vy;
     work->attackBody.pos.vz           = D_actor_503500_8016F3F4[idx].vz;
-    work->attackBody.key              = Gp_PackPair(enemy->param->attacks, 0);
+    work->attackBody.key              = damagePackAttackKey(enemy->param->attacks, 0);
     work->attackBody.radius           = 0x1F4;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -3567,11 +3567,11 @@ static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500Lun
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     func_800DA6E8(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
@@ -4560,11 +4560,11 @@ static inline void _actor503500ArmHandleHit(Task* arg0, _Actor503500ArmWork* wor
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+    if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
-    func_800E2C78(enemy, id, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     hp        = enemy->hp - dmg;
     enemy->hp = hp;
     if (hp <= 0) {
@@ -4713,7 +4713,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
                 gte_rtv0();
                 gte_stsv(&vec);
                 side = vec.vz >= 0;
-                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0);
+                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[side], 0);
                 taskSpawnFromTable(&D_actor_503500_8017146C, 0, side, &work->knockbackRotation);
                 Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
@@ -5059,7 +5059,7 @@ static void func_actor_503500_80144300(Task* arg0)
     work->body.pos.vx           = D_actor_503500_801715AC.vx;
     work->body.pos.vy           = D_actor_503500_801715AC.vy;
     work->body.pos.vz           = D_actor_503500_801715AC.vz;
-    work->body.key              = Gp_PackPair(D_actor_503500_8016E7CC[0], arg0->spawnArg1.value);
+    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7CC[0], arg0->spawnArg1.value);
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
@@ -5254,7 +5254,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     work->body.pos.vx           = D_actor_503500_801715B4.vx;
     work->body.pos.vy           = D_actor_503500_801715B4.vy;
     work->body.pos.vz           = D_actor_503500_801715B4.vz;
-    work->body.key              = Gp_PackPair(D_actor_503500_8016E7D0[0], arg0->spawnArg1.value);
+    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7D0[0], arg0->spawnArg1.value);
     work->body.radius           = 0x898;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);

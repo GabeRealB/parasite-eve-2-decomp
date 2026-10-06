@@ -23,7 +23,7 @@ void golemPawnRookLungeStrikeState(Task* arg0)
     anim  = gGolemPawnRookAnimBlendFrames[work->anim];
     self  = arg0->extra.tmd->coords;
     if (work->animFrame == anim + 0x1C) {
-        work->strikeBody.key    = Gp_PackPair(gGolemPawnRookAttacks, 4);
+        work->strikeBody.key    = damagePackAttackKey(gGolemPawnRookAttacks, 4);
         work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     } else if (work->animFrame == anim + 0x28) {
         work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

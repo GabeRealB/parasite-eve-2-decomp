@@ -744,7 +744,7 @@ typedef struct {
 } _Actor07000SlouchWork;
 STATIC_ASSERT_SIZEOF(_Actor07000SlouchWork, 0x39C);
 
-/// Node 3's attack row, packed by `Gp_PackPair` into `SucklercephWork::attackBody`, and the enemy
+/// Node 3's attack row, packed by `damagePackAttackKey` into `SucklercephWork::attackBody`, and the enemy
 /// parameters whose `attacks` point at it; its `hpMax` seeds the enemy's
 /// `field_40`.
 extern DamageAttack gSucklercephAttack;
@@ -1085,7 +1085,7 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     work->attackBody.pos.vx           = -0x154;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
-    work->attackBody.key              = Gp_PackPair(Actor07000_D08078, 0);
+    work->attackBody.key              = damagePackAttackKey(Actor07000_D08078, 0);
     work->attackBody.radius           = 0x1F4;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -1507,11 +1507,11 @@ static void Actor07000_Fn03E08(Task* arg0)
                     dz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                     scratch->delta.vector.vz = dz;
                     damage                   = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-                    if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
                         damage *= 4;
                     }
-                    func_800E2C78(enemy, work->contacts[i].key.value, (s32)damage, 0);
+                    damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, (s32)damage, 0);
                     Actor07000_Fn04274(arg0, (s32)damage);
                     reaction = Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF;
                     switch (reaction) {
@@ -1900,7 +1900,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     body->pos.vy          = 0;
     body->pos.vz          = 0;
     body->radius          = 0;
-    body->key             = Gp_PackPair(Actor07000_D08078, 1);
+    body->key             = damagePackAttackKey(Actor07000_D08078, 1);
     body->flags           = WORLD_COLLISION_BODY_CAPSULE;
     capsule->contacts     = work->contacts;
     capsule->ends[1].vx   = 0;
@@ -2112,7 +2112,7 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
     work->body.flags                  = (u16)(work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
-    work->attackBody.key              = Gp_PackPair(Actor07000_D08078, 0);
+    work->attackBody.key              = damagePackAttackKey(Actor07000_D08078, 0);
     work->attackBody.radius           = 0x12C;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);

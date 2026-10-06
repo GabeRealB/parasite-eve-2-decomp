@@ -106,7 +106,7 @@ void oddStrangerTakeHit(Task* arg0)
             s->toPlayer.vz    = dz;
             s->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
             s->damage         = Gp_ComputeDamage(s->hitKey, s->playerDistance, 0, 0);
-            if (Gp_RollEnemyChance(enemy, s->hitKey, 0) != 0) {
+            if (damageRollCriticalHit(enemy, s->hitKey, 0) != 0) {
                 s->critical       = 1;
                 s->criticalEffect = 0;
                 s->damage        *= 4;
@@ -129,7 +129,7 @@ void oddStrangerTakeHit(Task* arg0)
                     }
                 }
             }
-            func_800E2C78(enemy, s->hitKey, s->damage, 0);
+            damageAccumulateLifeDrainHp(enemy, s->hitKey, s->damage, 0);
             enemy->hp -= s->damage;
             func_800DA6E8(&enemy->node, s->damage, 0);
             work->recentDamage += s->damage;

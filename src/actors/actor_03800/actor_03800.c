@@ -1098,7 +1098,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                     frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
                     damage                 = Gp_ComputeDamage(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
                     if (work->overturned == 0) {
-                        if (Gp_RollEnemyChance(ctx, work->hitContacts[i].key.value, 0) != 0) {
+                        if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
                             damage *= 4;
                             Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
                         }
@@ -1107,7 +1107,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 4, NULL);
                     }
                     func_800DA6E8(&ctx->node, damage, 0);
-                    func_800E2C78(ctx, work->hitContacts[i].key.value, damage, 0);
+                    damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
                         reaction = 2;

@@ -469,7 +469,7 @@ enum {
     /// by the enemy hit-effect dispatcher (kinds 5 and 9) and by stalkers when hit.
     EFFECT_HIT_SPLATTER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x09B),
     /// Shaded burst ring of shards drawn for eight ticks where a hit rolled a critical
-    /// (damage multiplied after Gp_RollEnemyChance); spawned by most enemies' hit
+    /// (damage multiplied after damageRollCriticalHit); spawned by most enemies' hit
     /// handlers.
     EFFECT_CRITICAL_HIT = EFFECT_ID(EFFECT_TASK_BANK, 0x09C),
     /// Akropolis cafeteria emitter: on entering view mode 9 spawns 40 0x60061

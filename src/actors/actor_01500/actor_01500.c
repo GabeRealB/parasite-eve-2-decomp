@@ -963,7 +963,7 @@ static void Actor01500_Fn00094(Enemy* arg0, Task* arg1)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 400;
     work->roomBody.flags             |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->attackBody.key              = Gp_PackPair(&Actor01500_D09FB4, 0);
+    work->attackBody.key              = damagePackAttackKey(&Actor01500_D09FB4, 0);
     work->attackBody.radius           = 300;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -1073,12 +1073,12 @@ static void Actor01500_Fn004EC(Task* actor)
                     dz                     = sourceCoord->coord.t[2] - coord->coord.t[2];
                     frame->delta.vector.vz = dz;
                     damage                 = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(actor->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
                     func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
-                    func_800E2C78(actor->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
+                    damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
                     Actor01500_Fn00AFC(actor, damage);
                     switch (Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF) {
                         case 0:

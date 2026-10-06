@@ -163,7 +163,7 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                 work->strikeBody.pos.vy = 0;
                 work->strikeBody.pos.vz = 0;
                 work->strikeBody.radius = 0x12C;
-                work->strikeBody.key    = Gp_PackPair(gGolemKnightBishopAttacks, 1);
+                work->strikeBody.key    = damagePackAttackKey(gGolemKnightBishopAttacks, 1);
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 cue                     = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 sndEvtRequestScriptStart(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));

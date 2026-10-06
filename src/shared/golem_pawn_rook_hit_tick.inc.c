@@ -138,7 +138,7 @@ void golemPawnRookTakeHits(Task* arg0)
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
                 }
-                if (Gp_RollEnemyChance(enemy, work->hurtContacts[i].key.value, 0) != 0) {
+                if (damageRollCriticalHit(enemy, work->hurtContacts[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
@@ -151,7 +151,7 @@ void golemPawnRookTakeHits(Task* arg0)
                     damage >>= 2;
                 }
                 func_800DA6E8(&enemy->node, damage, 0);
-                func_800E2C78(enemy, work->hurtContacts[i].key.value, damage, 0);
+                damageAccumulateLifeDrainHp(enemy, work->hurtContacts[i].key.value, damage, 0);
                 enemy->hp -= damage;
                 if (enemy->hp <= 0) {
                     if (work->downedPose == 0) {

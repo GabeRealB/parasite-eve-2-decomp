@@ -18,11 +18,17 @@ typedef struct {
 } DamageReceivedScaleRow;
 STATIC_ASSERT_SIZEOF(DamageReceivedScaleRow, 0x14);
 
-/// Packed-id damage scale. `arg0` must carry `DAMAGE_ATTACK_CATEGORY` in its
-/// high halfword; the low 12 bits are the attack's power and bits 12-15, the
-/// reaction, are written to `*arg2` when it is non-NULL.
-/// `arg3 == 0` uses `gPlayerStatus.hp` and `DamageReceivedScaleRow.playerPercent`;
-/// otherwise `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp` and `DamageReceivedScaleRow.companionPercent`.
-s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
+/// Computes HP damage received by the player or companion from an attack key.
+///
+/// Category 4 keys carry 12-bit power and a 4-bit victim reaction. Other
+/// categories return 0 and leave `outReaction` untouched. For category 4,
+/// a non-NULL output receives the reaction even when power is zero.
+/// `victimIsCompanion` selects the player at 0 and the companion otherwise;
+/// the victim's current HP must be in 0..299 and difficulty in 0..4.
+/// Difficulty and the current HP band scale the power; Antibody further
+/// reduces player damage only. A nonzero power deals at least 1 HP after
+/// scaling. This calculates damage without changing either victim's HP.
+/// `unused` is retained by the interface and ignored.
+s32 damageComputeReceived(s32 attackKey, s32 unused, s32* outReaction, s32 victimIsCompanion);
 
 #endif // GAMEPLAY_PRIVATE_DAMAGE_H

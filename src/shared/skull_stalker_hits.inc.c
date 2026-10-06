@@ -76,10 +76,10 @@ void skullStalkerHits(Task* arg0)
                                                                    sc->delta.vector.vy * sc->delta.vector.vy +
                                                                    sc->delta.vector.vz * sc->delta.vector.vz),
                                                        0, 0);
-                if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->bodyContacts[i].key.value, 0) != 0) {
+                if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->bodyContacts[i].key.value, 0) != 0) {
                     damage *= 4;
                 }
-                func_800E2C78(enemy, work->bodyContacts[i].key.value, damage, 0);
+                damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, damage, 0);
                 func_800DA6E8(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->variant != 0) {

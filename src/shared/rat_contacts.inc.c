@@ -69,12 +69,12 @@ void ratContacts(Task* actor)
                     frame->delta.vector.vy = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
                     damage                 = Gp_ComputeDamage(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
-                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
                     func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
-                    func_800E2C78(actor->spawnArg2.pointer, work->hitContacts[i].key.value, damage, 0);
+                    damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->hitContacts[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
                         work->mode   = RAT_MODE_DEAD;

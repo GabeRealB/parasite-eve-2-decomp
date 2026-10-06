@@ -83,7 +83,7 @@ void ratSpawn(Enemy* ctx, Task* actor)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0x1F4;
     work->gridBody.flags              = (u16)(work->gridBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED));
-    work->attackBody.key              = Gp_PackPair(&gRatAttack, 0);
+    work->attackBody.key              = damagePackAttackKey(&gRatAttack, 0);
     work->attackBody.radius           = 0xC8;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);

@@ -1650,7 +1650,7 @@ static void func_actor_400600_8013203C(Task* arg0)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->capsuleBody);
     worldCollisionInitContacts(work->capsuleContacts, ARRAY_SIZE(work->capsuleContacts), 0);
     work->capsuleBody.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->rightArmBody.key              = Gp_PackPair(D_actor_400600_80144EA8, 0);
+    work->rightArmBody.key              = damagePackAttackKey(D_actor_400600_80144EA8, 0);
     work->rightArmBody.coord            = &arg0->extra.tmd->coords[7];
     work->rightArmBody.context.contacts = work->rightArmContacts;
     work->rightArmBody.pos.vx           = -0x200;
@@ -1661,7 +1661,7 @@ static void func_actor_400600_8013203C(Task* arg0)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->rightArmBody);
     worldCollisionInitContacts(work->rightArmContacts, ARRAY_SIZE(work->rightArmContacts), 0);
     work->rightArmBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->leftArmBody.key              = Gp_PackPair(D_actor_400600_80144EA8, 0);
+    work->leftArmBody.key              = damagePackAttackKey(D_actor_400600_80144EA8, 0);
     work->leftArmBody.coord            = &arg0->extra.tmd->coords[10];
     work->leftArmBody.context.contacts = work->leftArmContacts;
     work->leftArmBody.pos.vx           = 0x200;
@@ -2543,7 +2543,7 @@ static void func_actor_400600_80134218(Task* arg0)
         sound2 = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 1), 0) != 0) {
+        if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 1), 0) != 0) {
             work->holdKilledPlayer = 1;
         }
         vec.vx = 0;
@@ -3385,11 +3385,11 @@ static void func_actor_400600_80136968(Task* arg0)
                     dmg                = Gp_ComputeDamage(work->bodyContacts[i].key.value, work->playerDistance, 0, 0);
                     amount             = dmg;
                     work->hitCooldown  = Gp_GetIdParam2(work->bodyContacts[i].key.value);
-                    if (Gp_RollEnemyChance(enemy, work->bodyContacts[i].key.value, 0) != 0) {
+                    if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
-                    func_800E2C78(enemy, work->bodyContacts[i].key.value, amount, 0);
+                    damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount, 0);
                     func_800DA6E8(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {

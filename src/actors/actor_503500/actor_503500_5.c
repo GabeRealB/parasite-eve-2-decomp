@@ -1254,7 +1254,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     work->body.pos.vx          = D_actor_503500_801715C4.vx;
     work->body.pos.vy          = D_actor_503500_801715C4.vy;
     work->body.pos.vz          = D_actor_503500_801715C4.vz;
-    work->body.key             = Gp_PackPair(D_actor_503500_8016E7D4[0], 0);
+    work->body.key             = damagePackAttackKey(D_actor_503500_8016E7D4[0], 0);
     work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->body.radius          = 0;
 
@@ -1495,7 +1495,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     work->body.pos.vx           = D_actor_503500_801715D4.vx;
     work->body.pos.vy           = D_actor_503500_801715D4.vy;
     work->body.pos.vz           = D_actor_503500_801715D4.vz;
-    work->body.key              = Gp_PackPair(D_actor_503500_8016E7D4[1], 0);
+    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7D4[1], 0);
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
@@ -1651,7 +1651,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     work->body.pos.vx          = D_actor_503500_801715DC.vx;
     work->body.pos.vy          = D_actor_503500_801715DC.vy;
     work->body.pos.vz          = D_actor_503500_801715DC.vz;
-    work->body.key             = Gp_PackPair(D_actor_503500_8016E7DC[0], 0);
+    work->body.key             = damagePackAttackKey(D_actor_503500_8016E7DC[0], 0);
     work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->body.radius          = 0;
 

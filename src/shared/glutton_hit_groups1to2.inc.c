@@ -10,7 +10,7 @@
 /// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C and
 /// then takes the damage off the host: the player-relative offset to the part
 /// gives the `playerDistance` `Gp_ComputeDamage` scales `damage` by, quadrupled when
-/// `Gp_RollEnemyChance` fires, and zeroed unless the attack kind came back 2.
+/// `damageRollCriticalHit` fires, and zeroed unless the attack kind came back 2.
 /// The damage also comes off the work block's `groups1To2Pool` pool and the host's
 /// remaining HP is mirrored onto the three escorts sharing its pool.
 /// `sc->contactYaw` is the yaw of the contact point relative to the fourth escort's
@@ -133,7 +133,7 @@ void gluttonHitGroups1To2(Task* arg0)
         sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
         sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
 
-        if (Gp_RollEnemyChance(work->escorts[3], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
+        if (damageRollCriticalHit(work->escorts[3], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
             state != 9 && state != 0xE && state != 0xF) {
             sc->offset.vy = 0;
             sc->offset.vx = 0;
@@ -156,7 +156,7 @@ void gluttonHitGroups1To2(Task* arg0)
             sc->damage = 0;
         }
 
-        func_800E2C78(host, sc->attackKey, sc->damage, 0);
+        damageAccumulateLifeDrainHp(host, sc->attackKey, sc->damage, 0);
         host->hp -= sc->damage;
         func_800DA6E8(&work->escorts[3]->node, sc->damage, 0);
         work->groups1To2Pool -= sc->damage;

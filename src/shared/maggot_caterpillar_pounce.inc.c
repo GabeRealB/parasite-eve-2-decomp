@@ -43,7 +43,7 @@ void maggotCaterpillarPounceState(Task* arg0)
                         index = 4;
                     }
                 }
-                work->attackBody.key = Gp_PackPair(gMaggotCaterpillarAttacks, index);
+                work->attackBody.key = damagePackAttackKey(gMaggotCaterpillarAttacks, index);
                 if ((work->animFrame < 0x23) && ((work->struck != 0) || (work->blocked != 0))) {
                     work->step              = 1;
                     work->midLeap           = 0;

@@ -121,7 +121,7 @@ void golemPawnRookChargeState(Task* arg0)
             }
             if (work->animFrame == 0xD) {
                 work->strikeBody.flags = (u16)(work->strikeBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->strikeBody.key   = Gp_PackPair(gGolemPawnRookAttacks, 1);
+                work->strikeBody.key   = damagePackAttackKey(gGolemPawnRookAttacks, 1);
                 sound                  = gGolemPawnRookSwingCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan                    = (s8)worldCoordGetOriginAudioPan(self);
                 sndEvtRequestScriptStart(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(self));

@@ -602,7 +602,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0x3E8;
     work->hitBody.flags               = work->hitBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->attackBody.key              = Gp_PackPair(&D_actor_403600_80150E9C, 1);
+    work->attackBody.key              = damagePackAttackKey(&D_actor_403600_80150E9C, 1);
     work->attackBody.radius           = 0x5DC;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -1316,7 +1316,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                 func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
                 if ((sp10 < 0x835U) && (work->meleeGaveUp == 0)) {
                     work->attackBody.pos.vz = 0x3E8;
-                    work->attackBody.key    = Gp_PackPair(&D_actor_403600_80150E9C, 1);
+                    work->attackBody.key    = damagePackAttackKey(&D_actor_403600_80150E9C, 1);
                     work->attackBody.radius = 0x5DC;
                     work->animId            = 2U;
                     work->action            = ACTOR_403600_ACTION_MELEE;
@@ -1493,7 +1493,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_s0_7 = (s8)worldCoordGetOriginAudioPan(temp_s6);
                                 temp_v0_7 = worldCoordGetOriginAudioDepth(temp_s6);
                                 sndEvtRequestScriptStart(temp_s4, temp_s0_7, (s32)(((temp_v0_7 >> 0x1F) + temp_v0_7) << 0x17) >> 0x18);
-                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_801606A4, 0), 0);
                             }
                         }
                         temp_s0_8 = &work->worldCoord;
@@ -1779,7 +1779,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                             temp_s0_17 = (s8)worldCoordGetOriginAudioPan(temp_s6);
                             temp_v0_19 = worldCoordGetOriginAudioDepth(temp_s6);
                             sndEvtRequestScriptStart(temp_s4, temp_s0_17, (s32)(((temp_v0_19 >> 0x1F) + temp_v0_19) << 0x17) >> 0x18);
-                            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_403600_80150E9C, 0), 0);
+                            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_80150E9C, 0), 0);
                         }
                     }
                     if (temp_s1 < 0x3E9) {
@@ -1920,7 +1920,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_s0_21           = (s8)worldCoordGetOriginAudioPan(temp_s6);
                                 temp_v0_22           = worldCoordGetOriginAudioDepth(temp_s6);
                                 sndEvtRequestScriptStart(temp_s4, temp_s0_21, (s32)(((temp_v0_22 >> 0x1F) + temp_v0_22) << 0x17) >> 0x18);
-                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_801606A4, 0), 0);
                             } else {
                                 Gp_SpawnPadLerp(0x14, 0xB0, 0x50);
                                 work->knockbackFrame = 0;
@@ -1941,7 +1941,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 temp_s0_22 = (s8)worldCoordGetOriginAudioPan(temp_s6);
                                 temp_v0_23 = worldCoordGetOriginAudioDepth(temp_s6);
                                 sndEvtRequestScriptStart(temp_s4, temp_s0_22, (s32)(((temp_v0_23 >> 0x1F) + temp_v0_23) << 0x17) >> 0x18);
-                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_403600_80150E9C, 4), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_80150E9C, 4), 0);
                                 work->actionParam = (s16)work->rushPasses;
                             }
                             work->actionTimer = 0x96;
@@ -2147,7 +2147,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_26             = (s8)worldCoordGetOriginAudioPan(temp_s6);
                         temp_v0_31             = worldCoordGetOriginAudioDepth(temp_s6);
                         sndEvtRequestScriptStart(temp_s4, temp_s0_26, (s32)(((temp_v0_31 >> 0x1F) + temp_v0_31) << 0x17) >> 0x18);
-                        taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_actor_403600_80150E9C, 3), 0);
+                        taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_80150E9C, 3), 0);
                         D_actor_403600_80160568.animationId = 4;
                         TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                         temp_v0_32   = temp_wip->mp - 0xFB;
@@ -2560,7 +2560,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
         damage                   = Gp_ComputeDamage(work->hitContacts[i].key.value,
                                                     SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz),
                                                     0, 0);
-        if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
+        if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
             hitKind = 1;
             damage *= 4;
         }
@@ -2648,7 +2648,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
             }
         }
         if (arg0 != D_actor_403600_801606A8) {
-            func_800E2C78(enemy, work->hitContacts[i].key.value, damage, 0);
+            damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, damage, 0);
             if (work->hitContacts[i].key.value & 8) {
                 if ((_actor403600Rand() & 3) == 0) {
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, 0);
@@ -2659,7 +2659,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
             }
             func_actor_403600_80141C7C(arg0, damage);
         } else {
-            func_800E2C78(enemy, work->hitContacts[i].key.value, damage, 0);
+            damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, damage, 0);
             func_actor_403600_8013DAF4(arg0, damage);
             if (work->mode == ACTOR_403600_MODE_FIGHT) {
                 for (j = 0; j < ARRAY_SIZE(D_actor_403600_8016066C); j++) {
@@ -3447,7 +3447,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 sndEvtRequestScriptStart(temp_s2, temp_s0_2,
                                          (s8)worldCoordGetOriginAudioDepth(temp_s4));
                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE,
-                                    Gp_PackPair(&D_actor_403600_801606A4, 0), 0);
+                                    damagePackAttackKey(&D_actor_403600_801606A4, 0), 0);
             }
             if (work->knockbackFrame >= 0x66) {
                 work->knockbackFrame                = 0;
@@ -3718,7 +3718,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0x3E8;
     work->hitBody.flags              |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->attackBody.key              = Gp_PackPair(&D_actor_403600_80150EB0, 0);
+    work->attackBody.key              = damagePackAttackKey(&D_actor_403600_80150EB0, 0);
     work->attackBody.radius           = 0x5DC;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -3919,7 +3919,7 @@ static void func_actor_403600_801400BC(Task* arg0)
             }
             break;
         case ACTOR_403600_DOUBLE_ACTION_SWIPE_A:
-            work->attackBody.key = Gp_PackPair(&D_actor_403600_80150EB0, 0);
+            work->attackBody.key = damagePackAttackKey(&D_actor_403600_80150EB0, 0);
             work->animId         = 0xC;
             work->forwardSpeed   = 0U;
             work->verticalSpeed  = 0;
@@ -3956,7 +3956,7 @@ static void func_actor_403600_801400BC(Task* arg0)
             }
             break;
         case ACTOR_403600_DOUBLE_ACTION_SWIPE_B:
-            work->attackBody.key = Gp_PackPair(&D_actor_403600_80150EB0, 1);
+            work->attackBody.key = damagePackAttackKey(&D_actor_403600_80150EB0, 1);
             work->animId         = 0xD;
             work->forwardSpeed   = 0U;
             work->verticalSpeed  = 0;

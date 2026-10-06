@@ -52,7 +52,7 @@ void generatorBodyHit(Task* arg0)
             damage           = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0(scr->toPlayer.vx * scr->toPlayer.vx + scr->toPlayer.vy * scr->toPlayer.vy + scr->toPlayer.vz * scr->toPlayer.vz), 0, 0);
             if (work->lifeSupportDestroyed == 0) {
                 damage /= 10;
-            } else if (Gp_RollEnemyChance(enemy, work->contacts[i].key.value, 0) != 0) {
+            } else if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {
                 damage              *= 4;
                 scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
                 scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
@@ -60,7 +60,7 @@ void generatorBodyHit(Task* arg0)
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
             }
             func_800DA6E8(&enemy->node, damage, 0);
-            func_800E2C78(enemy, work->contacts[i].key.value, damage, 0);
+            damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, damage, 0);
             enemy->hp -= damage;
             if (enemy->hp <= 0) {
                 if (work->lifeSupportDestroyed == 0) {

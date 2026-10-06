@@ -1470,10 +1470,11 @@ static void func_actor_206100_8014B8B4(Task* task)
 /// takes the hit; `hitTaken` also ends the walk of the records.
 ///
 /// While the cooldown reads 0 the record's packed id is rolled through
-/// `Gp_ComputeDamage` and `Gp_RollEnemyChance` -- a successful roll scales the
-/// damage and selects the effect kind -- and the result is applied to the
-/// enemy's `hp` through `func_800E2C78` and
-/// `func_800DA6E8`.  The id's low parameter then picks one of the three flag
+/// `Gp_ComputeDamage` and `damageRollCriticalHit` -- a successful roll scales the
+/// damage and selects the effect kind. The result credits any Life Drain
+/// healing through `damageAccumulateLifeDrainHp`, updates the damage readout
+/// through `func_800DA6E8`, and is subtracted from the enemy's `hp`.
+/// The id's low parameter then picks one of the three flag
 /// setters, one of the hit reaction sizes, or clears the hit flag again, and
 /// the `0x7F`/`0x8000` pair on an id ending 0x1C forces the light reaction and
 /// clears bit 0 of the object's draw flags.  The `else` arm is the same record
@@ -1513,7 +1514,7 @@ static void func_actor_206100_8014BAA8(Task* task)
                 dmg               = Gp_ComputeDamage(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
                 amount            = dmg;
                 work->hitCooldown = Gp_GetIdParam2(work->hitContacts[i].key.value);
-                if (Gp_RollEnemyChance(enemy, work->hitContacts[i].key.value, 0) != 0) {
+                if (damageRollCriticalHit(enemy, work->hitContacts[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
@@ -1569,7 +1570,7 @@ static void func_actor_206100_8014BAA8(Task* task)
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], 2, 0);
                         break;
                 }
-                func_800E2C78(enemy, work->hitContacts[i].key.value, amount, 0);
+                damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, amount, 0);
                 func_800DA6E8(&enemy->node, amount, 0);
                 enemy->hp -= amount;
                 if ((s16)enemy->hp < 0) {
@@ -3335,7 +3336,7 @@ static void func_actor_206100_8014EEC0(Task* task)
     shot->burstPhase                         = 0;
     coord->parent                            = &gGfxViewCoord;
     coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
-    shot->strike.attackBody.key              = Gp_PackPair(&D_actor_206100_80155194, 0);
+    shot->strike.attackBody.key              = damagePackAttackKey(&D_actor_206100_80155194, 0);
     shot->strike.attackBody.coord            = task->extra.tmd->coords;
     contacts                                 = shot->contacts;
     shot->strike.attackBody.context.contacts = contacts;

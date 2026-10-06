@@ -117,7 +117,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[1] = vec.vy;
     task->extra.tmd->coords->coord.t[2] = vec.vz + parent->extra.tmd->coords->coord.t[2];
 
-    work->attackBody.key = Gp_PackObjPair(owner, 1);
+    work->attackBody.key = damagePackEnemyAttackKey(owner, 1);
 
     vec.vx = 0;
     vec.vy = 0;

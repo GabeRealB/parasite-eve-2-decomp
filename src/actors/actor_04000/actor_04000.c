@@ -1707,7 +1707,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
         work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = Gp_PackObjPair(arg0, 1);
+        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 1);
         work->burstWaveBody.key      = 0x22222;
         work->stateFrame             = 0;
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -1966,7 +1966,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
         work->hitBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = Gp_PackObjPair(arg0, 1);
+        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 1);
         work->burstWaveBody.key      = 0x22222;
         work->stateFrame             = 0;
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2094,7 +2094,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = Gp_PackObjPair(arg0, 1);
+        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 1);
         work->burstWaveBody.key      = 0x22222;
         work->stateFrame             = 0;
         work->gridBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -2309,7 +2309,7 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
         snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280003;
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
         sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
-        func_800E2C78(arg0, sc->hitKey, sc->damage, 0);
+        damageAccumulateLifeDrainHp(arg0, sc->hitKey, sc->damage, 0);
         func_800DA6E8(&arg0->node, sc->damage, 0);
         arg0->hp -= sc->damage;
         if (arg0->hp <= 0) {
@@ -3037,7 +3037,7 @@ static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
     animDriverTick(arg1);
     if (!(work->stateFrame & 7)) {
         Gp_SpawnPadLerp(3, 0xFF, 8);
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(arg0, 0), 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(arg0, 0), 0);
     }
     work->stateFrame++;
     if (work->stateFrame > 0x28) {

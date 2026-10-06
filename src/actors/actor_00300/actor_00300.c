@@ -1444,7 +1444,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     work->drainBody.pos.vx           = -0x1F4;
     work->drainBody.pos.vy           = 0x1F4;
     work->drainBody.pos.vz           = 0;
-    work->drainBody.key              = Gp_PackPair(Actor00300_D15FD8, 0);
+    work->drainBody.key              = damagePackAttackKey(Actor00300_D15FD8, 0);
     work->drainBody.radius           = 0x2BC;
     work->drainBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->drainBody);
@@ -1602,11 +1602,11 @@ static void Actor00300_Fn00E54(Task* arg0)
                                                             0, 0);
                 if (critical != 0) {
                     work->hitDamage >>= 1;
-                } else if (Gp_RollEnemyChance(enemy, work->hitContacts[i].key.value, 0) != 0) {
+                } else if (damageRollCriticalHit(enemy, work->hitContacts[i].key.value, 0) != 0) {
                     work->hitDamage *= 4;
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
-                func_800E2C78(enemy, work->hitContacts[i].key.value, work->hitDamage, 0);
+                damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, work->hitDamage, 0);
                 func_800DA6E8(&enemy->node, work->hitDamage, 0);
                 enemy->hp -= work->hitDamage;
                 if (enemy->hp <= 0) {
@@ -3010,7 +3010,7 @@ static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
     work->body.coord            = objCoord;
-    work->body.key              = Gp_PackPair(Actor00300_D15FD8, parentWork->fireballAttack);
+    work->body.key              = damagePackAttackKey(Actor00300_D15FD8, parentWork->fireballAttack);
     work->body.radius           = 450;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);

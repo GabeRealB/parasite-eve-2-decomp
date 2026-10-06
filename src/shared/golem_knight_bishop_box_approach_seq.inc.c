@@ -139,7 +139,7 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
                 work->strikeBody.pos.vz = 0x1F4;
                 work->strikeBody.pos.vx = 0;
                 work->strikeBody.radius = 0x3E8;
-                work->strikeBody.key    = Gp_PackPair(gGolemKnightBishopAttacks, 2);
+                work->strikeBody.key    = damagePackAttackKey(gGolemKnightBishopAttacks, 2);
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             if (work->animFrame == 0x20) {

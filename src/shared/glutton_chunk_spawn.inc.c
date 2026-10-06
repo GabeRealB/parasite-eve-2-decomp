@@ -78,7 +78,7 @@ void gluttonChunkSpawn(Enemy* enemy, Task* task)
     work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
     work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    work->attackBody.key  = Gp_PackObjPair(owner, 5);
+    work->attackBody.key  = damagePackEnemyAttackKey(owner, 5);
 
     task->extra.tmd->lightMtx = &work->lightMtx;
     task->extra.tmd->colorMtx = &work->colorMtx;

@@ -55,7 +55,7 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
                      ARRAY_SIZE(work->attackContacts));
 
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->attackBody.key    = Gp_PackObjPair(owner, 2);
+    work->attackBody.key    = damagePackEnemyAttackKey(owner, 2);
     work->stateChanged      = 1;
     task->state++;
 }

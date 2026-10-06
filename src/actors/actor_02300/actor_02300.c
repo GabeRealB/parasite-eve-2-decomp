@@ -51,7 +51,7 @@
 /// First frame of each animation, indexed by `GolemPawnRookWork::anim`;
 /// the state handlers offset it to get the frames their cues fire on.
 extern s16 gGolemPawnRookAnimBlendFrames[];
-/// The `Gp_PackPair` entry the lunge parks in the work block's `strikeBody`.
+/// The `damagePackAttackKey` entry the lunge parks in the work block's `strikeBody`.
 extern DamageAttack gGolemPawnRookAttacks[5];
 /// Sound id of the cue a sword strike plays as its hit body goes live; the
 /// swing and charge states OR the enemy's place index into bits 8 and up

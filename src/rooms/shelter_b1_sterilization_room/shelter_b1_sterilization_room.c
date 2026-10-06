@@ -1017,7 +1017,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     task->killCountdown++;
                     if (task->killCountdown == 0x78) {
-                        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
+                        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_shelter_b1_sterilization_room_80188738, 0), 0);
                     } else if (task->killCountdown >= 0x79) {
                         if (gPlayerStatus.hp > 0) {
                             coord = player->extra.tmd->coords;

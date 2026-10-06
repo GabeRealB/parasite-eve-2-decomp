@@ -1180,7 +1180,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
 /// list, node 0 takes the model's root coordinate and node 3 the pose 3 slots
 /// along it, both linked as kind 2 with their `flags` halves ORed in and a
 /// three-entry collision table each, and nodes 1 and 2 are linked as kind 3
-/// with a `Gp_PackObjPair` payload, the first of the two taking pose 0xC and
+/// with a `damagePackEnemyAttackKey` payload, the first of the two taking pose 0xC and
 /// the second pose 8 of the model's 0x50-byte coordinate records. The task then
 /// takes `Actor01100_Fn0668C` as its
 /// exit callback, the model's hidden bit is lifted, `msgTable` is pointed at
@@ -1244,7 +1244,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 obj->pos.vy = 0;
                 obj->pos.vz = 0;
                 obj->radius = reach;
-                obj->key    = Gp_PackObjPair(enemy, 1);
+                obj->key    = damagePackEnemyAttackKey(enemy, 1);
                 obj->flags  = WORLD_COLLISION_BODY_SPHERE;
                 worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
                 obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -1344,7 +1344,7 @@ static __inline__ void _actor01100ClearObjPair(_Actor01100Work* work)
 /// sparks every eighth frame), then takes the first class-2 contact from the
 /// last contact table: its damage is scaled by the source's distance, doubled
 /// in state 4 unless the source key has bit 15 set, and quadrupled by a
-/// successful `Gp_RollEnemyChance`. Damage-over-time ticks add to it, and
+/// successful `damageRollCriticalHit`. Damage-over-time ticks add to it, and
 /// `hitCooldown` discards it. Nonzero damage picks a reaction from the id's
 /// kind, the damage and `recentDamage`, subtracts from the hit points (playing
 /// the death cue and releasing the placement at zero), and stages the
@@ -1433,7 +1433,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
             rollParam = 5;
         }
         hitDamage = Gp_ComputeDamage(hitKey, (u32)dist, 0, 0x1000);
-        if (Gp_RollEnemyChance(enemy, hitKey, rollParam) != 0) {
+        if (damageRollCriticalHit(enemy, hitKey, rollParam) != 0) {
             if (sparkLevel < 0) {
                 sparkLevel = 0;
             }
@@ -1553,7 +1553,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         if ((enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) && (Gp_ObjFlag4Expired(enemy) != 0)) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
-        func_800E2C78(enemy, (s32)hitKey, (s32)damage, 0);
+        damageAccumulateLifeDrainHp(enemy, (s32)hitKey, (s32)damage, 0);
         func_800DA6E8(&enemy->node, (s32)damage, 0);
         if (work->hp > 0) {
             hp        = (u16)work->hp - damage;
@@ -2214,7 +2214,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
 
 /// Collision-arm handler: the first frame `stateStep` is still clear it sets
 /// motion 2, zeroes `stateCounter` and steps the latch. Every later frame
-/// increments that countdown. On frame 0x1A it writes a `Gp_PackObjPair`
+/// increments that countdown. On frame 0x1A it writes a `damagePackEnemyAttackKey`
 /// payload into collision body 1's `key` and ORs the grid and pair test enables
 /// into its `flags`. While the countdown sits in `[0x1B, 0x36]` and the latch
 /// is still 1, a hit on the left hand's contact table masks those bits back out
@@ -2236,7 +2236,7 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, 
     work->stateCounter = time;
     if ((s16)time == 0x1A) {
         obj         = &work->bodies[ACTOR_01100_BODY_LEFT_HAND];
-        obj->key    = Gp_PackObjPair(enemy, 1);
+        obj->key    = damagePackEnemyAttackKey(enemy, 1);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if ((u32)((u16)work->stateCounter - 0x1B) < 0x1C) {
@@ -2258,7 +2258,7 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// Collision-arm handler for collision body 2: the first frame `stateStep` is
 /// still clear it sets motion 3, zeroes `stateCounter` and steps the latch.
 /// Every later frame increments that countdown. On frame 0x1A it calls
-/// `Gp_PackObjPair` with pair 2 and ORs the grid and pair test enables into
+/// `damagePackEnemyAttackKey` with pair 2 and ORs the grid and pair test enables into
 /// collision body 2's `flags`. While the countdown sits in `[0x1B, 0x36]` and
 /// the latch is still 1, a hit on the right hand's contact table masks those
 /// bits back out of both middle collision bodies and steps the latch; frame
@@ -2279,7 +2279,7 @@ static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, 
     work->stateCounter = time;
     if ((s16)time == 0x1A) {
         obj = &work->bodies[ACTOR_01100_BODY_RIGHT_HAND];
-        Gp_PackObjPair(enemy, 2);
+        damagePackEnemyAttackKey(enemy, 2);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
     if ((u32)((u16)work->stateCounter - 0x1B) < 0x1C) {
@@ -2675,7 +2675,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
     pose->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->stateCounter == 0x16) {
         obj         = &work->bodies[ACTOR_01100_BODY_LEFT_HAND];
-        obj->key    = Gp_PackObjPair(enemy, 3);
+        obj->key    = damagePackEnemyAttackKey(enemy, 3);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->stateCounter == 0x20) {
         sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
@@ -2819,7 +2819,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
     Actor01100_Fn039D0(enemy, task, work, scratch);
     if (work->stateCounter == 0x23) {
         obj         = &work->bodies[ACTOR_01100_BODY_RIGHT_HAND];
-        obj->key    = Gp_PackObjPair(enemy, 4);
+        obj->key    = damagePackEnemyAttackKey(enemy, 4);
         obj->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else if (work->stateCounter == 0x2D) {
         sndEvtRequestScriptStart((work->waterRoom << 22) | (((u8)work->placeIndex << 8) | 0x400B0008), (s8)scratch->pan, (s8)scratch->depth);
@@ -3424,7 +3424,7 @@ static void Actor01100_Fn05E68(Task* task)
     obj->pos.vy          = 0;
     obj->pos.vz          = 0;
     obj->radius          = 0;
-    obj->key             = Gp_PackPair(&Actor01100_D074D0[0], 5);
+    obj->key             = damagePackAttackKey(&Actor01100_D074D0[0], 5);
     obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
 
     rec->contacts   = work->contacts;
@@ -3563,7 +3563,7 @@ static void Actor01100_Fn0638C(Task* task)
     obj->pos.vy           = 0;
     obj->pos.vz           = 0;
     obj->radius           = 0x2EE;
-    obj->key              = Gp_PackPair(Actor01100_D074F8, 5);
+    obj->key              = damagePackAttackKey(Actor01100_D074F8, 5);
     obj->flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionInitContacts(rec, 1, 0);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);

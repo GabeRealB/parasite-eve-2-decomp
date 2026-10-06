@@ -766,7 +766,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->frontAttackBody.pos.vy           = 0x50;
     work->frontAttackBody.pos.vz           = 0x8C;
     work->headBody.flags                  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->frontAttackBody.key              = Gp_PackPair(D_actor_207200_8014E7CC, 0);
+    work->frontAttackBody.key              = damagePackAttackKey(D_actor_207200_8014E7CC, 0);
     work->frontAttackBody.radius           = 0x12C;
     work->frontAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->frontAttackBody);
@@ -778,7 +778,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->sideAttackBody.pos.vy           = 0;
     work->sideAttackBody.pos.vz           = 0;
     work->frontAttackBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->sideAttackBody.key              = Gp_PackPair(D_actor_207200_8014E7CC, 1);
+    work->sideAttackBody.key              = damagePackAttackKey(D_actor_207200_8014E7CC, 1);
     work->sideAttackBody.radius           = 0x12C;
     work->sideAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sideAttackBody);
@@ -1252,14 +1252,14 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 case 9:
                     Gp_SetObjFlag2(enemy, work->headContacts[i].key.value, 0);
                 default:
-                    if ((Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->headContacts[i].key.value, 0) != 0 ||
+                    if ((damageRollCriticalHit(arg0->spawnArg2.pointer, work->headContacts[i].key.value, 0) != 0 ||
                          work->state == ACTOR_207200_STATE_STATUS_HOLD) &&
                         damage != 0) {
-                        func_800E2C78(enemy, work->headContacts[i].key.value, damage, 0);
+                        damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
                         func_actor_207200_8014CFEC(arg0);
                         return;
                     }
-                    func_800E2C78(enemy, work->headContacts[i].key.value, damage, 0);
+                    damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
                     func_actor_207200_8014C870(arg0, damage);
                     func_800FDB18((u16)Gp_GetIdParam1(work->headContacts[i].key.value),
                                   arg0->extra.tmd->coords + 3, &D_actor_207200_80153F08, &work->headHitEffectArg);

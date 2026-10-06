@@ -1949,7 +1949,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 sndEvtRequestScriptStart((s32)sound, pan2, depth);
                 break;
         }
-        func_800E2C78(enemy, (s32)work->bodyContacts[i].key.value, (s32)damage, 0);
+        damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, (s32)damage, 0);
         func_800DA6E8(&enemy->node, (s32)damage, 0);
         enemy->hp = (u16)enemy->hp - damage;
         if (lastId != work->bodyContacts[i].key.value) {
@@ -2200,14 +2200,14 @@ static void func_actor_521100_80132DE8(Task* arg0)
                 case ACTOR_521100_ATTACK_SLASH:
                     work->subState          = 1;
                     work->animationId       = 5;
-                    packed                  = Gp_PackPair(D_actor_521100_8015F550, ACTOR_521100_ATTACK_SLASH);
+                    packed                  = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_SLASH);
                     work->weaponAttack.key  = packed;
                     work->forearmAttack.key = packed;
                     break;
                 case ACTOR_521100_ATTACK_LONG_SLASH:
                     work->subState          = 2;
                     work->animationId       = 6;
-                    packed                  = Gp_PackPair(D_actor_521100_8015F550, ACTOR_521100_ATTACK_LONG_SLASH);
+                    packed                  = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_LONG_SLASH);
                     work->weaponAttack.key  = packed;
                     work->forearmAttack.key = packed;
                     break;
@@ -2215,7 +2215,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
                     work->subState          = 3;
                     work->attackStep        = 0;
                     work->animationId       = 3;
-                    packed                  = Gp_PackPair(D_actor_521100_8015F550, ACTOR_521100_ATTACK_STANCE);
+                    packed                  = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_STANCE);
                     work->weaponAttack.key  = packed;
                     work->forearmAttack.key = packed;
                     break;
@@ -2467,7 +2467,7 @@ static void func_actor_521100_801335B4(Task* arg0)
             } else {
                 work->attackStep        = 2;
                 work->animationId       = 8;
-                pair                    = Gp_PackPair(D_actor_521100_8015F550, ACTOR_521100_ATTACK_STANCE);
+                pair                    = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_STANCE);
                 work->weaponAttack.key  = pair;
                 work->forearmAttack.key = pair;
             }
@@ -2653,7 +2653,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                     flag = 1;
                 } else {
                     work->stateCounter = 0x20;
-                    taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(D_actor_521100_8015F550, 3), 0);
+                    taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_521100_8015F550, 3), 0);
                 }
             }
             if (flag != 1) {

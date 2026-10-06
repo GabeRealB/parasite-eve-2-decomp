@@ -1655,7 +1655,7 @@ static void Actor00400_Fn019B4(Task* arg0)
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
-    work->attackBody.key              = Gp_PackObjPair(arg0->spawnArg2.pointer, 0);
+    work->attackBody.key              = damagePackEnemyAttackKey(arg0->spawnArg2.pointer, 0);
     work->attackBody.radius           = 0x480;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -1708,7 +1708,7 @@ static void Actor00400_Fn01B90(Task* arg0)
                 dmg               = Gp_ComputeDamage(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
                 amount            = dmg;
                 work->hitCooldown = Gp_GetIdParam2(work->hitContacts[i].key.value);
-                if (Gp_RollEnemyChance(obj, work->hitContacts[i].key.value, work->critChanceScale) != 0) {
+                if (damageRollCriticalHit(obj, work->hitContacts[i].key.value, work->critChanceScale) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
@@ -1762,7 +1762,7 @@ static void Actor00400_Fn01B90(Task* arg0)
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[work->targetPart], 2, 0);
                         break;
                 }
-                func_800E2C78(obj, work->hitContacts[i].key.value, amount, 0);
+                damageAccumulateLifeDrainHp(obj, work->hitContacts[i].key.value, amount, 0);
                 func_800DA6E8(&obj->node, amount, 0);
                 obj->hp -= amount;
                 if ((s16)obj->hp < 0) {
@@ -5812,7 +5812,7 @@ static void Actor00400_Fn0A190(Task* task)
     work->frames                            = 0;
     coord->parent                           = &gGfxViewCoord;
     coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
-    work->child.attackBody.key              = Gp_PackPair(Actor00400_D0FDC0, 1);
+    work->child.attackBody.key              = damagePackAttackKey(Actor00400_D0FDC0, 1);
     work->child.attackBody.coord            = task->extra.tmd->coords;
     work->child.attackBody.context.contacts = work->contacts;
     work->child.attackBody.pos.vx           = 0;

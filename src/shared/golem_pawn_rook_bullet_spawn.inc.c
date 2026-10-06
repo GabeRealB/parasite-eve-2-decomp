@@ -74,7 +74,7 @@ void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.pos.vx           = 0;
     work->playerStrikeBody.pos.vy           = 0;
     work->playerStrikeBody.pos.vz           = 0;
-    work->playerStrikeBody.key              = Gp_PackPair(gGolemPawnRookAttacks, 3);
+    work->playerStrikeBody.key              = damagePackAttackKey(gGolemPawnRookAttacks, 3);
     work->playerStrikeBody.radius           = 0x64;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);

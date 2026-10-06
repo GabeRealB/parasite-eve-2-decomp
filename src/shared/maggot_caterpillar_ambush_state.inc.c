@@ -51,7 +51,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 work->attackBody.coord  = coord;
                 work->attackBody.radius = 0x12C;
                 work->attackBody.pos.vy = -0x12C;
-                work->attackBody.key    = Gp_PackPair(gMaggotCaterpillarAttacks, 5);
+                work->attackBody.key    = damagePackAttackKey(gMaggotCaterpillarAttacks, 5);
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
@@ -75,7 +75,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 work->attackBody.radius = 0x12C;
                 work->attackBody.coord  = coord;
                 work->attackBody.pos.vy = -0x12C;
-                work->attackBody.key    = Gp_PackPair(gMaggotCaterpillarAttacks, 5);
+                work->attackBody.key    = damagePackAttackKey(gMaggotCaterpillarAttacks, 5);
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;

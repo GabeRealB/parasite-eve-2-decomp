@@ -455,7 +455,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0x1F4;
-    work->attackBody.key              = Gp_PackPair(Actor02400_BodyPairs, work->variant * 2);
+    work->attackBody.key              = damagePackAttackKey(Actor02400_BodyPairs, work->variant * 2);
     work->attackBody.radius           = 0x64;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -622,7 +622,7 @@ static void Actor02400_Fn00C08(Task* task)
                         break;
                 }
                 dmg = damage;
-                func_800E2C78(task->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
+                damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
                 func_800DA6E8(&((Enemy*)task->spawnArg2.pointer)->node, dmg, 0);
                 if ((enemy->hp -= damage) <= 0) {
                     task->state = 2;
@@ -1348,7 +1348,7 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.pos.vy           = 0;
     work->playerStrikeBody.pos.vz           = 0;
     work->playerStrikeBody.coord            = objCoord;
-    work->playerStrikeBody.key              = Gp_PackPair(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
+    work->playerStrikeBody.key              = damagePackAttackKey(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
     work->playerStrikeBody.radius           = 0xC8;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);

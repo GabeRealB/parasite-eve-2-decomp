@@ -1598,7 +1598,7 @@ static void Actor01600_Fn00480(Task* actor)
     work->bite.body.pos.vy           = -0x186;
     work->bite.body.pos.vz           = 0;
     work->pathProbe.body.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->bite.body.key              = Gp_PackPair(Actor01600_D09F04, 1);
+    work->bite.body.key              = damagePackAttackKey(Actor01600_D09F04, 1);
     work->bite.body.radius           = 0x12C;
     work->bite.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->bite.body);
@@ -1796,7 +1796,7 @@ static void Actor01600_Fn00BAC(Task* actor)
                     z                        = other->coord.t[2] - coord->coord.t[2];
                     scratch->delta.vector.vz = z;
                     damage                   = Gp_ComputeDamage(work->bodySphere.contacts[contactIndex].key.value, SquareRoot0(x * x + y * y + z * z), 0, 0);
-                    if (Gp_RollEnemyChance(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0)) {
+                    if (damageRollCriticalHit(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0)) {
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 0, 0);
                     }
@@ -1804,7 +1804,7 @@ static void Actor01600_Fn00BAC(Task* actor)
                         damage *= 2;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 3, 0);
                     }
-                    func_800E2C78(ctx, work->bodySphere.contacts[contactIndex].key.value, damage, 0);
+                    damageAccumulateLifeDrainHp(ctx, work->bodySphere.contacts[contactIndex].key.value, damage, 0);
                     Actor01600_Fn0131C(actor, damage);
                     count = Gp_GetIdParam2(work->bodySphere.contacts[contactIndex].key.value);
                     if (count > 0)
@@ -2908,7 +2908,7 @@ static void Actor01600_Fn020F8(Task* actor)
                             targetKind = work->grabTargetIndex;
                             if (targetKind == 1) {
                                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0) {
-                                    if (taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(ctx, 0), 0) == targetKind) {
+                                    if (taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(ctx, 0), 0) == targetKind) {
                                         work->animRequest   = 9;
                                         work->forwardSpeed  = 0;
                                         work->animFrame     = 0;
@@ -2978,7 +2978,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         pan25 = (s8)worldCoordGetOriginAudioPan(coord);
                         sndEvtRequestScriptStart(id, (s32)pan25, (s8)worldCoordGetOriginAudioDepth(coord));
                         if (work->grabTargetIndex == 0) {
-                            taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(ctx, 0), 0);
+                            taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(ctx, 0), 0);
                         }
                         if (config->hp <= 0) {
                             if (work->grabTargetIndex == 0) {

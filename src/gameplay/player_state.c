@@ -1015,7 +1015,7 @@ static s32 Gp_TestHpDamage(s32 arg0)
     p       = &gPlayerStatus;
     saved18 = p->hp;
     saved1c = p->mp;
-    ret     = Gp_ApplyHpDamage(Gp_ScaleDamage(arg0, 0, &out, 0));
+    ret     = Gp_ApplyHpDamage(damageComputeReceived(arg0, 0, &out, 0));
     p->hp   = saved18;
     p->mp   = saved1c;
     if (ret != 0) {
@@ -1045,7 +1045,7 @@ static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
         } else {
             inner->hitRegion = 2;
         }
-        inner->pendingDamage  = Gp_ScaleDamage(arg1->key.value, 0, &out, flag);
+        inner->pendingDamage  = damageComputeReceived(arg1->key.value, 0, &out, flag);
         inner->damageReaction = out;
     }
 }
@@ -1871,7 +1871,7 @@ s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     ret = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp -= Gp_ScaleDamage(arg2, 0, 0, 1);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp -= damageComputeReceived(arg2, 0, 0, 1);
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
             ret = 1;

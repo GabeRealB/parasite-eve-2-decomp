@@ -990,7 +990,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
         work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = Gp_PackObjPair(arg0, 0);
+        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 0);
         work->burstWaveBody.key      = 0x22121;
         work->stateFrame             = 0;
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -1120,7 +1120,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
         work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = Gp_PackObjPair(arg0, 0);
+        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 0);
         work->burstWaveBody.key      = 0x22121;
         work->stateFrame             = 0;
         work->gridBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);

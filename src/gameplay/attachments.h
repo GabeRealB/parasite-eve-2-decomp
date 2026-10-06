@@ -64,20 +64,20 @@ extern u16 D_80113D30[];
 /// damage-over-time reaction removes, one per `Enemy.damageOverTimeGrade`.
 extern u16 D_80113D38[];
 
-/// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `gSceneCombatState.difficulty`.
+/// Damage-scale rows used by `damageComputeReceived`. Indexed by `gSceneCombatState.difficulty`.
 extern DamageReceivedScaleRow Gp_DmgRows[];
 
 /// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
 extern u16 D_80113F54[];
 
-/// Percent scale table used by `Gp_ScaleDamage` when `Gp_StateC08.antibodyCombo`
+/// Percent scale table used by `damageComputeReceived` when `Gp_StateC08.antibodyCombo`
 /// is non-zero. Indexed by `((antibodyCombo / 16) - 1) * 2 + (s8)(antibodyCombo % 16)`.
 extern u16 D_80113CFC[];
 
-/// Percent scale table used by `Gp_ComputeDamage` / `Gp_RollEnemyChance` when
+/// Percent scale table used by `Gp_ComputeDamage` / `damageRollCriticalHit` when
 /// `Gp_StateC08.energyShotCombo` is non-zero. Indexed by
 /// `((energyShotCombo / 16) - 1) * 2 + (s8)(energyShotCombo % 16)`; `Gp_ComputeDamage` reads
-/// `field_0` and `Gp_RollEnemyChance` reads `field_2` of each 4-byte slot.
+/// `field_0` and `damageRollCriticalHit` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];
 
 /// Final percent scale applied by `Gp_ComputeDamage`, indexed by `gSceneCombatState.difficulty`.

@@ -306,7 +306,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// the new state selects before it re-queues every slot.
 extern s16 D_actor_105100_801414C8[];
 
-/// The spawn's pair tables. `Gp_PackPair` packs the `DamageAttack` at 0x80141380
+/// The spawn's pair tables. `damagePackAttackKey` packs the `DamageAttack` at 0x80141380
 /// into the work's third list node (`_Actor105100Work::strikeBody.key`), and the
 /// `EnemyParams` at 0x80141398 is the parameter record the context points at
 /// with `Enemy::param`. Its `hpMax` seeds the enemy's hit points.
@@ -983,7 +983,7 @@ static void func_actor_105100_801327B4(Enemy* arg0, Task* arg1)
     work->strikeBody.pos.vx           = 0;
     work->strikeBody.pos.vy           = 0;
     work->strikeBody.pos.vz           = 0;
-    work->strikeBody.key              = Gp_PackPair(D_actor_105100_80141380, 5);
+    work->strikeBody.key              = damagePackAttackKey(D_actor_105100_80141380, 5);
     work->strikeBody.radius           = 0x1F4;
     work->strikeBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
@@ -1052,11 +1052,12 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
 /// Per-frame hit handler: walks the three `hitContacts` records. A category-2
 /// contact lands only while `hitCooldown` is clear. Damage is the player
 /// distance through `Gp_ComputeDamage`, quadrupled on a successful
-/// `Gp_RollEnemyChance`, and halved (or zeroed for 0x8000 ids) while the
+/// `damageRollCriticalHit`, and halved (or zeroed for 0x8000 ids) while the
 /// shield is up, which also plays the deflect flash and sound. The id
 /// parameter may ask for a stagger or, with the shield down, for
-/// `Gp_SetObjFlag2` or `Gp_SetObjFlag4`. HP is applied through
-/// `func_800E2C78` / `func_800DA6E8`; at 0 the actor goes to
+/// `Gp_SetObjFlag2` or `Gp_SetObjFlag4`. The hit credits Life Drain healing
+/// through `damageAccumulateLifeDrainHp`, updates the readout through
+/// `func_800DA6E8`, and reduces HP; at 0 the actor goes to
 /// `ACTION_DEFEATED`, and `staggerDamage` reaching 0x1A4 (or the stagger
 /// request) sends it to `ACTION_STAGGER`, breaking a charge in progress.
 /// Either ends `ringEffect`. A new id sparks `func_800FDB18` once, and
@@ -1097,7 +1098,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                                                     SquareRoot0(scratch->toPlayer.vx * scratch->toPlayer.vx + scratch->toPlayer.vy * scratch->toPlayer.vy +
                                                                 scratch->toPlayer.vz * scratch->toPlayer.vz),
                                                     0, 0);
-            if (Gp_RollEnemyChance(ctx, work->hitContacts[i].key.value, 0) != 0) {
+            if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
                 damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
             }
@@ -1144,7 +1145,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                     case 9:
                         break;
                 }
-                func_800E2C78(ctx, work->hitContacts[i].key.value, damage, 0);
+                damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
                 ctx->hp -= damage;
                 if (ctx->hp <= 0) {
                     work->action     = ACTOR_105100_ACTION_DEFEATED;
@@ -1991,7 +1992,7 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = Gp_PackPair(D_actor_105100_80141380, 0);
+    work->body.key              = damagePackAttackKey(D_actor_105100_80141380, 0);
     work->body.radius           = 0xC8;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
@@ -2200,7 +2201,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
                 // Become the burst: stop sweeping the room and carry the burst's attack.
                 work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 worldCollisionClearContacts(work->contacts);
-                work->body.key    = Gp_PackPair(D_actor_105100_80141380, 1);
+                work->body.key    = damagePackAttackKey(D_actor_105100_80141380, 1);
                 work->body.radius = 0x1F4;
                 work->timer       = 0x1E;
                 work->step        = ACTOR_105100_FIREBALL_BURST;
@@ -2263,7 +2264,7 @@ static void func_actor_105100_80135278(Enemy* arg0, Task* arg1)
     beam->body.pos.vx           = 0;
     beam->body.pos.vy           = 0;
     beam->body.pos.vz           = 0;
-    beam->body.key              = Gp_PackPair(D_actor_105100_80141380, beam->pattern + 2);
+    beam->body.key              = damagePackAttackKey(D_actor_105100_80141380, beam->pattern + 2);
     beam->body.radius           = 0xC8;
     beam->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &beam->body);

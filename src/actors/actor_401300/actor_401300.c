@@ -2523,7 +2523,7 @@ static void func_actor_401300_80134F90(Task* arg0)
             s->toPlayer.vz    = dz;
             s->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
             s->damage         = Gp_ComputeDamage(s->hitKey, s->playerDistance, 0, 0);
-            if (Gp_RollEnemyChance(enemy, s->hitKey, 0) != 0) {
+            if (damageRollCriticalHit(enemy, s->hitKey, 0) != 0) {
                 s->critical       = 1;
                 s->criticalEffect = 0;
                 s->damage        *= 4;
@@ -2546,7 +2546,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                     }
                 }
             }
-            func_800E2C78(enemy, s->hitKey, s->damage, 0);
+            damageAccumulateLifeDrainHp(enemy, s->hitKey, s->damage, 0);
             effect = s->criticalEffect;
             if (effect != -1) {
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
@@ -3513,7 +3513,7 @@ static void func_actor_401300_80138B24(Task* arg0)
         work->animRate    = 0x10;
         work->animId      = 6;
         work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
-        if ((s16)taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 0), 0) == 1) {
+        if ((s16)taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0) == 1) {
             ((GameActor*)player->work)->state = 0xA;
         }
         work->playerAnim.animationId = 2;
@@ -4473,7 +4473,7 @@ static void func_actor_401300_8013D2AC(Task* arg0)
         work->field_D1C       = 0;
         work->stateTimer      = 0;
         work->blockedFrames   = 0;
-        work->attackBody.key  = Gp_PackObjPair(enemy, 0);
+        work->attackBody.key  = damagePackEnemyAttackKey(enemy, 0);
         work->jointPairTarget = 0x200;
         work->jointPairStep   = 0x80;
         return;
@@ -4548,7 +4548,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
         work->field_D1C       = 0;
         work->stateTimer      = 0;
         work->blockedFrames   = 0;
-        work->attackBody.key  = Gp_PackObjPair(enemy, 1);
+        work->attackBody.key  = damagePackEnemyAttackKey(enemy, 1);
         work->jointPairTarget = 0x200;
         work->jointPairStep   = 0x80;
         return;
@@ -4800,12 +4800,12 @@ static void func_actor_401300_8013DADC(Task* arg0)
                         amount                       = -0x64;
                         work->playerAnim.animationId = 4;
                         work->playerPlacement.rot.vy = charge->turn + Actor401300_Yaw(task->extra.tmd->coords);
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
+                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 4), 0);
                     } else {
                         amount                       = 0x64;
                         work->playerAnim.animationId = 5;
                         work->playerPlacement.rot.vy = charge->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 5), 0);
+                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 5), 0);
                     }
                     if (ret == 1) {
                         player->state = 0xA;
@@ -5018,12 +5018,12 @@ static void func_actor_401300_8013E930(Task* arg0)
                         amount                       = -0x46;
                         work->playerAnim.animationId = 4;
                         work->playerPlacement.rot.vy = leap->turn + Actor401300_Yaw(task->extra.tmd->coords);
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 2), 0);
+                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 2), 0);
                     } else {
                         amount                       = 0x46;
                         work->playerAnim.animationId = 5;
                         work->playerPlacement.rot.vy = leap->turn + Actor401300_Yaw(task->extra.tmd->coords) + 0x800;
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 3), 0);
+                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 3), 0);
                     }
                     if (ret == 1) {
                         player->state = 0xA;

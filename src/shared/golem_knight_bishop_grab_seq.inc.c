@@ -168,7 +168,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->playerAnim, 0);
                     } else {
                         work->timer = GOLEM_KNIGHT_BISHOP_GRAB_RECHECK;
-                        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackPair(gGolemKnightBishopAttacks, 0), 0);
+                        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gGolemKnightBishopAttacks, 0), 0);
                         work->grabDamageTicks++;
                     }
                 }
