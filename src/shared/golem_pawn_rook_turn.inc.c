@@ -50,22 +50,9 @@ void golemPawnRookTurnTowardTarget(Task* arg0)
         }
     } else {
         wstep = work->turnRate;
-        if (diff > 0) {
-            if (wstep >= 0x1000 - diff) {
-                goto snap;
-            } else {
-                goto turn;
-            }
-        } else if (wstep >= 0x1000 + diff) {
-            goto snap;
-        } else {
-            goto turn;
-        }
-    snap:
-        work->yaw = work->targetYaw;
-        goto done;
-    turn:
-        if (work->anim == 3) {
+        if (diff > 0 ? wstep >= 0x1000 - diff : wstep >= 0x1000 + diff) {
+            work->yaw = work->targetYaw;
+        } else if (work->anim == 3) {
             work->yaw = (u16)work->yaw - (u16)work->turnRate;
         } else {
             wrapStep = work->turnRate;
@@ -77,7 +64,6 @@ void golemPawnRookTurnTowardTarget(Task* arg0)
             }
         }
     }
-done:
     rot->vx = 0;
     rot->vy = work->yaw;
     rot->vz = 0;
