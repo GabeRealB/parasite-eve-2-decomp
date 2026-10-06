@@ -66,7 +66,8 @@ void acropolisBridgeGroundGlowTask(Task* task);
 /// in `spawnArg2.pointer`. The full signed `spawnArg1.value` must be 0..2:
 /// it selects a 40-by-40 texture cell and palette, with grey levels 32/40,
 /// 96/112 or 32/44 on even/odd animation frames. Composes the coordinate and
-/// narrows its world origin to s16 before view projection. At camera Z / 4
+/// narrows its composed origin to s16 before projection through `GsWSMATRIX`.
+/// The composed transform includes the view parent. At camera Z / 4
 /// >=17, queues a square of pixel half-side 24960 / depth; GTE flags do not
 /// gate drawing. Requires initialized GTE, 20 scratch-stack bytes and space
 /// for one `POLY_FT4` packet, consumed even when clipped. Always releases

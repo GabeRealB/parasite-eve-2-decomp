@@ -34,7 +34,8 @@ extern WorldCollisionSurfaceProperties* D_dryfield_g_r_kitchen_8017F53C[];
 ///
 /// View 2 uses brighter grey beams; view 3 uses dimmer grey beams. Other
 /// views queue nothing. `task` must have a live `TASK_BODY_COORD` body whose
-/// coordinate cache maps the room's local endpoints into world space.
+/// coordinate cache maps the room's local endpoints into `GsWSMATRIX`'s input
+/// space, including the view parent in the composed transform.
 /// Borrows that coordinate for the call without changing task state.
 /// Requires composed view matrices, an initialized scratch stack with a free
 /// 40-byte block, and a current ordering table and frame arena with room for

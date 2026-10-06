@@ -33,7 +33,7 @@ void GLOW_LAMP_TASK(Task* task)
     s32                    intensity;
     s32                    paletteWord;
 
-    // Project the composed origin after narrowing its world coordinates to s16.
+    // Project the composed origin after narrowing its components to s16.
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
