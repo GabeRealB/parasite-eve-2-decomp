@@ -2337,7 +2337,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
     func_acropolis_security_room_8017E37C(task);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
@@ -2667,7 +2667,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
@@ -2745,7 +2745,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;

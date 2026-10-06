@@ -1908,8 +1908,8 @@ void func_mine_forked_tunnel_8017E2E0(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
-                if (Gp_GetCapEventKey() == state) {
+            if (capIsBusy() == 0) {
+                if (capGetVariantKey() == state) {
                     func_800E8634(D_mine_forked_tunnel_801831AC, 0, D_mine_forked_tunnel_801834F4);
                     gameFlagSetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED, 1);
                 }
@@ -1932,7 +1932,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state = arg0->state + 1;
             }
             break;
@@ -1940,7 +1940,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
             temp                = arg0->killCountdown + 1;
             arg0->killCountdown = temp;
             if (temp >= 0xB) {
-                if (Gp_GetCapEventKey() == state) {
+                if (capGetVariantKey() == state) {
                     Gp_StartCapSlot(2, 0, 1);
                     _mineForkedTunnelSetSpriteBatchesHidden(true);
                 }

@@ -29,7 +29,7 @@ void factoryWhiteoutScene(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() == 1) {
                 task->killCountdown = 0;
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0C), 0, 0);

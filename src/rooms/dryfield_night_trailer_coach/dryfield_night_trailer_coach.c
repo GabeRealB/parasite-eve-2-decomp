@@ -926,11 +926,11 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
             taskKill(task);
             break;
         case 2:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 func_800E8614(D_dryfield_night_trailer_coach_801881F8, 0);
-            } else if (Gp_GetCapEventKey() == 0xC) {
+            } else if (capGetVariantKey() == 0xC) {
                 func_800E8614(D_dryfield_night_trailer_coach_80188708, 1);
-            } else if (Gp_GetCapEventKey() == 0xD) {
+            } else if (capGetVariantKey() == 0xD) {
                 if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN) == 0) {
                     gameFlagSetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN, 1);
                     gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);

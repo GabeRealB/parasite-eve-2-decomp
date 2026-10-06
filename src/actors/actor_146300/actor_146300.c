@@ -1496,12 +1496,12 @@ void func_actor_146300_80132418(s32 arg0)
 {
     switch (arg0) {
         case 0:
-            if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() == 1) {
                 TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B10, 0);
             }
             break;
         case 1:
-            if (Gp_GetCapEventKey() == 2) {
+            if (capGetVariantKey() == 2) {
                 TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
             }
             break;

@@ -651,9 +651,9 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != 4) {
-                    if (Gp_GetCapEventKey() == 0xB) {
+                    if (capGetVariantKey() == 0xB) {
                         gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 2);
                     }
                     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) == 5) {

@@ -406,12 +406,12 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
     switch (task->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 1:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 D_shelter_1f_parking_garage_80181978.blend      = SCREEN_FADE_SUBTRACT;
                 D_shelter_1f_parking_garage_80181978.phase      = SCREEN_FADE_RUNNING;
                 D_shelter_1f_parking_garage_80181978.rampFrames = 0x1E;

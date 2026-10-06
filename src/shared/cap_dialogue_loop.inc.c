@@ -12,13 +12,13 @@ void capDialogueLoopTask(Task* task)
             task->state += 1;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             task->state += 1;
             break;
         case 2:
-            if (Gp_GetCapEventKey() == 0xF) {
+            if (capGetVariantKey() == 0xF) {
                 Gp_MsgPlayerWeapon(1);
                 taskKill(task);
             } else {

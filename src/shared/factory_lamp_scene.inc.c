@@ -21,13 +21,13 @@ void factoryLampScene(Task* task)
             task->state++;
             /* fallthrough */
         case 2:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             task->state++;
             return;
         case 3:
-            if (Gp_GetCapEventKey() == state) {
+            if (capGetVariantKey() == state) {
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 2);
             }
             Gp_MsgPlayerWeapon(1);

@@ -378,13 +378,13 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
             arg0->state = arg0->state + 1;
             return;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state = arg0->state + 1;
                 return;
             }
             return;
         case 2:
-            if (Gp_GetCapEventKey() == 0x1F) {
+            if (capGetVariantKey() == 0x1F) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE, 1);
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

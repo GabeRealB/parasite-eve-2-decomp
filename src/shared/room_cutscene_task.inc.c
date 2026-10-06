@@ -60,7 +60,7 @@ void roomCutsceneTask(Task* task)
                 } else {
                     a1 = script->capTPageY;
                 }
-                func_800E6D4C(a0, a1);
+                capSetTexturePage(a0, a1);
             }
             if (script->skipScene != 0) {
                 task->state = 6;
@@ -123,7 +123,7 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 8:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 if ((gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 0xE) && (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) == 0)) {
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 1);
                     task->state = 0x14;
@@ -134,7 +134,7 @@ void roomCutsceneTask(Task* task)
             }
             break;
         case 9:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
@@ -177,12 +177,12 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 21:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 22:
-            switch (Gp_GetCapEventKey()) {
+            switch (capGetVariantKey()) {
                 case 11:
                     Gp_RunCapCmd(0x20, 0);
                     task->state++;
@@ -198,7 +198,7 @@ void roomCutsceneTask(Task* task)
             }
             break;
         case 23:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state = 0x14;
             }
             break;

@@ -1728,7 +1728,7 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
     task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor = (GameActor*)task->work;
     coord = task->extra.tmd->coords;
-    if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_CapBusy() == 0) && (gGameSession->location.loc.room >= 7) &&
+    if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gGameSession->location.loc.room >= 7) &&
         (coord->coord.t[0] < -0x1266)) {
         z = coord->coord.t[2];
         if (z < 0x7D0) {
@@ -1948,12 +1948,12 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 1:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 D_shelter_b1_underground_parking_8018D750.blend      = SCREEN_FADE_SUBTRACT;
                 D_shelter_b1_underground_parking_8018D750.phase      = SCREEN_FADE_RUNNING;
                 D_shelter_b1_underground_parking_8018D750.rampFrames = 0x1E;
@@ -2183,12 +2183,12 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
 
     switch (state) {
         case 0:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state += 1;
             }
             return;
         case 1:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 gGameSession->location.loc.room                            = 6;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
                 gGameSession->roomObjsDirty                                = state;
@@ -2220,7 +2220,7 @@ void func_shelter_b1_underground_parking_8018363C(Task* arg0)
 
 void func_shelter_b1_underground_parking_801836D8(Task* arg0)
 {
-    if (Gp_CapBusy() == 0) {
+    if (capIsBusy() == 0) {
         Gp_MsgPlayerWeapon(1);
         taskKill(arg0);
     }
@@ -2232,12 +2232,12 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
         case 0:
             Gp_CapFile = 0;
             Gp_LoadCapFile(2);
-            func_800E6D4C(0x300, 0);
+            capSetTexturePage(0x300, 0);
             Gp_RunCapCmd(task->spawnArg1.value, 0);
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
@@ -2429,7 +2429,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
 
     _shelterB1UndergroundParkingDrawPanelIndicators();
     gGameSession->hideHud = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;

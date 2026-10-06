@@ -590,7 +590,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 func_800D4D2C(0x20);
                 arg0->state++;
             }
@@ -603,7 +603,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             arg0->state++;
             return;
         case 3:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             Gp_MsgPlayerWeapon(1);

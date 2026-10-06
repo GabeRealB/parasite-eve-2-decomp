@@ -96,14 +96,14 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
             Gp_RunCapCmd1(7);
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
                 /* keeps the `lw state` behind the `sb` instead of filling its load delay */
                 arg0->state = arg0->state + 1;
             }
             return;
         case 2:
-            if (Gp_GetCapEventKey() == 0xA) {
+            if (capGetVariantKey() == 0xA) {
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
                 func_dryfield_water_tower_8017DCB4();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

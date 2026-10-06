@@ -1853,12 +1853,12 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
                 Gp_LoadCapFile(MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
                 texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_LOW_COMMANDS;
             }
-            func_800E6D4C(texturePageX, 0);
+            capSetTexturePage(texturePageX, 0);
             Gp_RunCapCmd(task->spawnArg1.value, 0);
             task->state += 1;
             return;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             task->state += 1;

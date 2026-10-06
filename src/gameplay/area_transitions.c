@@ -647,7 +647,7 @@ static void Gp_PostMsg13EF(void)
     Task*                  roomTask;
 
     if (gGameSession->eventState == 0) {
-        if (Gp_CapBusy() == 0) {
+        if (capIsBusy() == 0) {
             request.control  = Gp_DirFlags;
             request.actionId = Gp_DirByte;
             request.argument = Gp_DirNibble;
@@ -670,7 +670,7 @@ static void Gp_PostMsg13EF(void)
 static void Gp_SpawnEvt1IfCapIdle(void)
 {
     if (gGameSession->eventState == 0) {
-        if (Gp_CapBusy() == 0) {
+        if (capIsBusy() == 0) {
             Gp_SpawnEvt1(Gp_DirByte, Gp_DirNibble);
         }
     }

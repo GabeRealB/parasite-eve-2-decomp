@@ -1857,7 +1857,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             task->state = task->state + 1;

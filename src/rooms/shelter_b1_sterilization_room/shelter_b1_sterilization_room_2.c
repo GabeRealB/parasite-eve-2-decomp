@@ -936,7 +936,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
             arg0->state = 2;
             return;
         case 2:
-            if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() == 1) {
                 func_800E8634(D_shelter_b1_sterilization_room_80188C94, 0, D_shelter_b1_sterilization_room_80188E14);
                 gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED, 1);
                 gGameSession->restartMode = GAME_SESSION_RESTART_NORMAL;
@@ -1025,7 +1025,7 @@ void func_shelter_b1_sterilization_room_80181698(s32 arg0)
     if (arg0 == 1) {
         Gp_CapFile = 0;
         Gp_LoadCapFile(1);
-        func_800E6D4C(0x2C0, 0x100);
+        capSetTexturePage(0x2C0, 0x100);
     }
 }
 
@@ -1039,7 +1039,7 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
             Gp_ResetCap();
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x2C0, 0x100);
+            capSetTexturePage(0x2C0, 0x100);
             if (task->spawnArg1.value != 0) {
                 flag = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
                 cmd  = 8;
@@ -1061,7 +1061,7 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
             task->state++;
             return;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 Gp_ResetCap();
                 taskKill(task);
             }
@@ -1076,12 +1076,12 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
             Gp_ResetCap();
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x2C0, 0x100);
+            capSetTexturePage(0x2C0, 0x100);
             Gp_RunCapCmd1(task->spawnArg1.value);
             task->state = task->state + 1;
             /* fallthrough */
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 Gp_ResetCap();
                 taskKill(task);
             }

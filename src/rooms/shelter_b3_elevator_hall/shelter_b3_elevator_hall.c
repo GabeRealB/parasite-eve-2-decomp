@@ -177,7 +177,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
@@ -192,12 +192,12 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             task->state++;
             break;
         case 3:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 4:
-            if (Gp_GetCapEventKey() == 0x15) {
+            if (capGetVariantKey() == 0x15) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;

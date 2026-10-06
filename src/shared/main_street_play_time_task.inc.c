@@ -5,8 +5,8 @@
 /// and ends.
 void mainStreetPlayTimeTask(Task* task)
 {
-    if (Gp_CapBusy() == 0) {
-        if (Gp_GetCapEventKey() == 1) {
+    if (capIsBusy() == 0) {
+        if (capGetVariantKey() == 1) {
             Gp_MarkPlayTime();
         }
         if (Gp_HasCollectedBit(0x119) != 0 && Gp_HasCollectedBit(0x11A) != 0) {

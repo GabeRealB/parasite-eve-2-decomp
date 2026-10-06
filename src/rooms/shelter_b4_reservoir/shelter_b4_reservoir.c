@@ -1009,13 +1009,13 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             task->state++;
             break;
         case 2:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 3:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            if (Gp_GetCapEventKey() == 0xC) {
+            if (capGetVariantKey() == 0xC) {
                 taskKill(task);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
                 Gp_MsgPlayerWeapon(1);
@@ -1064,12 +1064,12 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state++;
             }
             break;
         case 2:
-            if (Gp_GetCapEventKey() != 0xA) {
+            if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

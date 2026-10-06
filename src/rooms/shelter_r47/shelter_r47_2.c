@@ -948,7 +948,7 @@ static void func_shelter_r47_80183170(Task* task)
 
     state = task->work;
     func_shelter_r47_80181914(task, 0);
-    if ((state->buttonFlash == 0) && (Gp_CapBusy() == 0)) {
+    if ((state->buttonFlash == 0) && (capIsBusy() == 0)) {
         task->state = 3;
     }
 }

@@ -1735,12 +1735,12 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
         case 0:
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x300, 0);
+            capSetTexturePage(0x300, 0);
             Gp_SpawnIfCapIdle(task->spawnArg1.value, 0);
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             task->state++;

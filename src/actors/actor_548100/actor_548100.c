@@ -957,7 +957,7 @@ static void func_actor_548100_80132550(Task* task)
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
@@ -1051,8 +1051,8 @@ static void func_actor_548100_80132808(Task* arg0)
     s32               distA;
     s32               distB;
 
-    if (Gp_CapBusy() == 0) {
-        if (Gp_GetCapEventKey() == 0xB) {
+    if (capIsBusy() == 0) {
+        if (capGetVariantKey() == 0xB) {
             if (gameFlagGetNibble(GAME_FLAG_110) != 0) {
                 Gp_SetItemSeenBit(0x120, 1);
                 Gp_SetItemSeenBit(0x12C, 1);
@@ -1085,7 +1085,7 @@ static void func_actor_548100_80132808(Task* arg0)
             work->thirdProgress = 0;
             return;
         }
-        if (Gp_GetCapEventKey() == 0x15) {
+        if (capGetVariantKey() == 0x15) {
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
@@ -2304,7 +2304,7 @@ static void func_actor_548100_80134F64(Task* arg0)
 {
     _Actor548100Work* work = arg0->work;
 
-    if (Gp_CapBusy() == 0) {
+    if (capIsBusy() == 0) {
         if (Gp_GetCurBit2Flag(work->pickupObject) == 2) {
             // The player took the battery back: empty the socket.
             gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), 0);
@@ -2343,7 +2343,7 @@ static void func_actor_548100_80134FEC(Task* arg0)
 
 static void func_actor_548100_80135124(Task* arg0)
 {
-    if (Gp_CapBusy() == 0) {
+    if (capIsBusy() == 0) {
         arg0->state = 2;
     }
 }

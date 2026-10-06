@@ -618,7 +618,7 @@ void func_shelter_r36_8017D5E8(Task* task)
             } else {
                 Gp_CapFile = 0;
                 Gp_LoadCapFile(3);
-                func_800E6D4C(0x140, 0x100);
+                capSetTexturePage(0x140, 0x100);
                 slot = 2;
             }
             Gp_StartCapSlot(slot, 0, 0);
@@ -683,7 +683,7 @@ void func_shelter_r36_8017D7B4(Task* task)
     }
 }
 
-/// Loads CAP file `arg0` (non-zero), with `func_800E6D4C` given 0x280 for file
+/// Loads CAP file `arg0` (non-zero), with `capSetTexturePage` given 0x280 for file
 /// 1 and 0x2C0 otherwise; 0 resets the CAP state instead. Reached from the
 /// room's event data.
 void func_shelter_r36_8017D870(s32 arg0)
@@ -697,7 +697,7 @@ void func_shelter_r36_8017D870(s32 arg0)
         if (arg0 == 1) {
             var_a0 = 0x280;
         }
-        func_800E6D4C(var_a0, 0x100);
+        capSetTexturePage(var_a0, 0x100);
         return;
     }
     Gp_ResetCap();

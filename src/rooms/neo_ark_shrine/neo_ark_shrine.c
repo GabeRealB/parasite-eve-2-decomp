@@ -400,7 +400,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
 
     func_neo_ark_shrine_8017EAC0(task);
     gGameSession->hideHud = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;

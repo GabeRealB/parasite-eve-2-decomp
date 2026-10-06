@@ -16,7 +16,7 @@ void roomEventStagedTask(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 if (ROOM_EVENT_LATCHED.fade != 0) {
                     ROOM_EVENT_FADE.blend      = SCREEN_FADE_SUBTRACT;
                     ROOM_EVENT_FADE.phase      = SCREEN_FADE_RUNNING;

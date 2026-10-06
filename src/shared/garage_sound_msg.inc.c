@@ -10,7 +10,7 @@ s32 garageSoundMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 9), 0, 0);
             break;
         case 0x6C:
-            Gp_GetCapEventKey();
+            capGetVariantKey();
             break;
     }
     return 0;

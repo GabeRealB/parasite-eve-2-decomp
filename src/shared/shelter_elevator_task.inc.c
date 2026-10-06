@@ -1,6 +1,6 @@
 /* Part of the shelter elevator library; see shelter_elevator.h. */
 
-/// Holsters the weapon and waits for the CAP menu. It maps Gp_GetCapEventKey
+/// Holsters the weapon and waits for the CAP menu. It maps capGetVariantKey
 /// 0xB/0xC/0xD to area 9 warp 3, area 0x1B warp 2 and area 0x2A warp 3
 /// (B1/B2/B3); any other key cancels, restoring the weapon and ending the task.
 /// It then waits for voice spawnArg1, resolves the room with the Shelter map's
@@ -17,7 +17,7 @@ void shelterElevatorTask(Task* task)
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 task->state++;
                 break;
@@ -25,7 +25,7 @@ void shelterElevatorTask(Task* task)
             break;
         case 2:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            switch (Gp_GetCapEventKey()) {
+            switch (capGetVariantKey()) {
                 case 0xB:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;

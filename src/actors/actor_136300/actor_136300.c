@@ -1448,7 +1448,7 @@ void func_actor_136300_8013267C(Task* arg0)
             }
             return;
         case 2:
-            if (Gp_GetCapEventKey() == 2) {
+            if (capGetVariantKey() == 2) {
                 gGameSession->hideHud = 0;
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);
@@ -1572,7 +1572,7 @@ void func_actor_136300_801329EC(void)
 {
     AnimationPlayRequest* var_s0;
 
-    if (Gp_GetCapEventKey() == 1) {
+    if (capGetVariantKey() == 1) {
         var_s0 = &D_actor_136300_8013B208;
     } else {
         var_s0 = &D_actor_136300_8013B230;
@@ -1591,7 +1591,7 @@ void func_actor_136300_80132A7C(s32 arg0)
     if (arg0 == 0) {
         Gp_CapFile = 0;
         Gp_LoadCapFile(1);
-        func_800E6D4C(0x180, 0x100);
+        capSetTexturePage(0x180, 0x100);
         return;
     }
     Gp_ResetCap();

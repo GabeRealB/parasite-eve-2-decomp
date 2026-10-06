@@ -178,12 +178,12 @@ void func_mist_parking_80183708(s32 arg0)
         case 1:
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x140, 0x100);
+            capSetTexturePage(0x140, 0x100);
             break;
         case 2:
             Gp_CapFile = 0;
             Gp_LoadCapFile(2);
-            func_800E6D4C(0x2C0, 0);
+            capSetTexturePage(0x2C0, 0);
             break;
     }
 }

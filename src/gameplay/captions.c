@@ -52,22 +52,46 @@ s32 D_801156A8;
 
 #include "captions.h"
 
+/// Signed views of the u16 CAP stream's terminator, line break and spacer.
+///
+/// These are text codes, separate from the sequence-table reference sentinel.
+enum {
+    CAP_TEXT_CODE_END         = -1,
+    CAP_TEXT_CODE_LINE_BREAK  = -2,
+    CAP_TEXT_CODE_SPACER      = -3,
+    CAP_TEXT_CODE_FAMILY_MASK = 0xFF00,
+    CAP_TEXT_CODE_ICON        = 0x8400,
+    CAP_TEXT_GLYPH_INDEX_MASK = 0x3FF
+};
+
+/// Pixel extents used by CAP text measurement and baseline placement.
+enum {
+    CAP_TEXT_SPACER_WIDTH      = 3,
+    CAP_TEXT_ICON_WIDTH        = 16,
+    CAP_TEXT_LINE_GAP          = 2,
+    CAP_TEXT_END_LINE_ADVANCE  = 13,
+    CAP_TEXT_SCREEN_WIDTH      = 320,
+    CAP_TEXT_CENTER_LEFT_BIAS  = 5,
+    CAP_TEXT_BOTTOM_BASELINE_Y = 208
+};
+
+/// Inclusive grey-pulse levels; the upper level also normalizes vertex colours.
+enum { CAP_MARKER_PULSE_MIN = 8,
+       CAP_MARKER_PULSE_MAX = 15 };
+
 u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3);
 
-void func_800E62C0(void);
+static void _capDrawChoiceMarker(void);
 
 void Gp_CapExit(Task* arg0);
 
-/// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
-/// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
-/// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
-void Gp_DrawCapCaret(s32 unusedX, s32 unusedY);
+static void _capDrawContinueCaret(s32 unusedX, s32 unusedY);
 
-s16 Gp_CapCenterX(const u16* text);
+static s16 _capGetTextBlockLeftX(const u16* text);
 
-s16 Gp_CapCenterXLine(const u16* arg0, s32 arg1);
+static s16 _capGetTextLineLeftX(const u16* text, s32 selectedLineIndex);
 
-s32 func_800E6BB8(const u16* arg0);
+static s32 _capGetTextLineAdvance(const u16* text);
 
 void func_800E704C(void);
 
@@ -76,6 +100,25 @@ void func_8072455C(s16 arg0, s32 arg1);
 void func_807244CC(char* arg0);
 
 void func_80724714(void);
+
+/// Advances a marker's 8..15 grey pulse and reverses at either endpoint.
+///
+/// The pointers address distinct writable s32 words: a level in 8..15 and
+/// direction (0 rising, 1 falling).
+static inline void _capStepMarkerPulse(s32* greyLevel, s32* falling)
+{
+    if (*falling == 0) {
+        (*greyLevel)++;
+        if (*greyLevel >= CAP_MARKER_PULSE_MAX) {
+            *falling = 1;
+        }
+    } else {
+        (*greyLevel)--;
+        if (*greyLevel < CAP_MARKER_PULSE_MIN + 1) {
+            *falling = 0;
+        }
+    }
+}
 
 void func_800E44A0(Task* task)
 {
@@ -144,7 +187,7 @@ void func_800E44A0(Task* task)
     }
     eventIndex = Gp_FindCapEvt((s32)(s16)D_801155AE);
     D_801155AE = (u16)eventIndex;
-    D_801155B2 = Gp_CapCenterX(Gp_CapTable[eventIndex].textRef.text);
+    D_801155B2 = _capGetTextBlockLeftX(Gp_CapTable[eventIndex].textRef.text);
     eventFlags = Gp_CapTable[(s16)D_801155AE].control.text.flags;
     if (D_8011567A > 0) {
         D_8011567A = (u16)D_8011567A - 1;
@@ -214,9 +257,9 @@ void func_800E44A0(Task* task)
         func_800E704C();
         sceneText = Gp_CapTable[(s16)D_801155AE].textRef;
         if (sceneText.offset != CAP_TEXT_REF_END) {
-            D_801155B4 = Gp_CapTextTopY(sceneText.text);
-            D_801155B2 = Gp_CapCenterX(Gp_CapTable[(s16)D_801155AE].textRef.text);
-            D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+            D_801155B4 = capGetTextFirstBaselineY(sceneText.text);
+            D_801155B2 = _capGetTextBlockLeftX(Gp_CapTable[(s16)D_801155AE].textRef.text);
+            D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
             nextView   = view & 0xFF;
             D_801155BB = 0;
             if ((nextView != 0) && (nextView != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view)) {
@@ -316,8 +359,8 @@ void func_800E44A0(Task* task)
                     task->state += 1;
                     return;
                 }
-                D_801155B4 = Gp_CapTextTopY(dialogText.text);
-                D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                D_801155B4 = capGetTextFirstBaselineY(dialogText.text);
+                D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
                 return;
             }
         } else if (D_801155AC == 1) {
@@ -333,8 +376,8 @@ void func_800E44A0(Task* task)
                     if (timedText.offset == CAP_TEXT_REF_END) {
                         task->state += 1;
                     } else {
-                        D_801155B4 = Gp_CapTextTopY(timedText.text);
-                        D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                        D_801155B4 = capGetTextFirstBaselineY(timedText.text);
+                        D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
                     }
                     D_801155AC = 0;
                     D_801155B0 = 0;
@@ -349,7 +392,7 @@ void func_800E44A0(Task* task)
                 func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
                 nextChoiceIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
                 if (((Gp_CapTable[nextChoiceIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextChoiceIndex].actionId == 0) && ((Gp_CapTable[nextChoiceIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextChoiceIndex].control.text.pauseFrames == 0)) && (D_801155BE == 0) && !(Gp_CapTable[nextChoiceIndex].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
-                    Gp_DrawCapCaret(0xA0, 0xDC);
+                    _capDrawContinueCaret(0xA0, 0xDC);
                 } else {
                     D_80115664 = 0;
                 }
@@ -375,7 +418,7 @@ void func_800E44A0(Task* task)
                 if ((D_801155C0 != (s16)oldChoice) && (D_801155BE != 0)) {
                     sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                 }
-                func_800E62C0();
+                _capDrawChoiceMarker();
                 confirmMask = Pad_MaskConfirm;
                 if (D_801155BE == 0) {
                     confirmMask |= Pad_MaskCancel;
@@ -404,8 +447,8 @@ void func_800E44A0(Task* task)
                     if (choiceText.offset == CAP_TEXT_REF_END) {
                         task->state += 1;
                     } else {
-                        D_801155B4 = Gp_CapTextTopY(choiceText.text);
-                        D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+                        D_801155B4 = capGetTextFirstBaselineY(choiceText.text);
+                        D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
                     }
                     D_801155AC = 0;
                     D_801155B0 = 0;
@@ -457,7 +500,7 @@ void func_800E44A0(Task* task)
                 D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
                 nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
                 if (((Gp_CapTable[nextTextIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextTextIndex].actionId == 0) && ((Gp_CapTable[nextTextIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextTextIndex].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
-                    Gp_DrawCapCaret(0xA0, 0xDC);
+                    _capDrawContinueCaret(0xA0, 0xDC);
                     return;
                 }
                 D_80115664 = 0;
@@ -526,7 +569,7 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
     centered = ((arg3 >> 9) ^ 1) & 1;
     flagA    = arg2;
     if (centered) {
-        x = Gp_CapCenterXLine(arg0, 0) - 0xA0;
+        x = _capGetTextLineLeftX(arg0, 0) - 0xA0;
     } else {
         x = (u16)D_801155B2 - 0xA0;
     }
@@ -630,16 +673,16 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
             asm("" : "=r"(g), "+m"(*next) : "r"(lineIdx));
             lineIdx = t2;
             if (layout->vertical == 0) {
-                y += func_800E6BB8(next);
+                y += _capGetTextLineAdvance(next);
                 if (centered != 0) {
-                    x = Gp_CapCenterXLine(arg0, (s16)lineIdx) - 0xA0;
+                    x = _capGetTextLineLeftX(arg0, (s16)lineIdx) - 0xA0;
                 } else {
                     x = (u16)D_801155B2 - 0xA0;
                 }
             } else {
                 asm("" : "+r"(i) : "r"(g));
                 y  = -0x58;
-                x -= func_800E6BB8(next);
+                x -= _capGetTextLineAdvance(next);
             }
             i++;
             continue;
@@ -785,51 +828,47 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
     return ret;
 }
 
-void func_800E62C0(void)
+/// Draws the pulsing marker at the highlighted CAP dialogue choice.
+///
+/// With choices present, decrements the confirmation lockout once per call.
+/// The selected index must be within the laid-out choice count and table.
+/// Choice coordinates are centre-relative pixels; drawing removes vertical shake.
+static void _capDrawChoiceMarker(void)
 {
-    POLY_G3*   p;
+    POLY_G3*   marker;
     CapChoice* choices;
-    s32        i;
+    s32        choiceIndex;
     s32        x;
     s32        y;
-    s32        top;
-    s32        color;
+    s32        markerY;
+    s32        grey;
 
     if (D_801155BE != 0) {
+        // Confirmation stays locked while the initial choice frames elapse.
         if (D_80115659 != 0) {
             D_80115659--;
         }
-        p              = gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        i              = D_801155C0;
+        marker         = gGpuPrimCursor;
+        gGpuPrimCursor = marker + 1;
+        choiceIndex    = D_801155C0;
         choices        = D_801155D0;
-        x              = choices[i].x;
-        y              = choices[i].y;
-        top            = -(gDisplayState.vramYOffset + 2) + y;
-        setPolyG3(p);
-        color = (D_8010FB80 << 7) / 15;
-        setRGB0(p, color, color, color);
-        color = (D_8010FB80 * 0xC0) / 15;
-        p->x0 = x;
-        p->y0 = top - 5;
-        p->x1 = x - 10;
-        p->y1 = top - 10;
-        p->x2 = x - 10;
-        p->y2 = top;
-        setRGB1(p, color, color, color);
-        setRGB2(p, color, color, color);
-        addPrim(&gGpuCurrentOt[2], p);
-        if (D_8010FB84 == 0) {
-            D_8010FB80++;
-            if (D_8010FB80 >= 15) {
-                D_8010FB84 = 1;
-            }
-        } else {
-            D_8010FB80--;
-            if (D_8010FB80 < 9) {
-                D_8010FB84 = 0;
-            }
-        }
+        x              = choices[choiceIndex].x;
+        y              = choices[choiceIndex].y;
+        markerY        = -(gDisplayState.vramYOffset + 2) + y;
+        setPolyG3(marker);
+        grey = (D_8010FB80 << 7) / CAP_MARKER_PULSE_MAX;
+        setRGB0(marker, grey, grey, grey);
+        grey       = (D_8010FB80 * 0xC0) / CAP_MARKER_PULSE_MAX;
+        marker->x0 = x;
+        marker->y0 = markerY - 5;
+        marker->x1 = x - 10;
+        marker->y1 = markerY - 10;
+        marker->x2 = x - 10;
+        marker->y2 = markerY;
+        setRGB1(marker, grey, grey, grey);
+        setRGB2(marker, grey, grey, grey);
+        addPrim(&gGpuCurrentOt[2], marker);
+        _capStepMarkerPulse(&D_8010FB80, &D_8010FB84);
     }
 }
 
@@ -875,13 +914,15 @@ void Gp_CapExit(Task* arg0)
     taskKill(arg0);
 }
 
-/// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
-/// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
-/// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
-void Gp_DrawCapCaret(s32 unusedX, s32 unusedY)
+/// Draws the pulsing continue caret at the current CAP text pen.
+///
+/// Counts down the frame delay before drawing. Coordinates come from the text
+/// pen in centre-relative pixels, with vertical shake removed when emitted.
+/// Both arguments are ignored. The grey pulse runs inclusively from 8 to 15.
+static void _capDrawContinueCaret(s32 unusedX, s32 unusedY)
 {
-    POLY_G3* p;
-    s32      color;
+    POLY_G3* caret;
+    s32      grey;
     u16      x;
     u16      y;
 
@@ -890,195 +931,203 @@ void Gp_DrawCapCaret(s32 unusedX, s32 unusedY)
         return;
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setPolyG3(p);
+    caret          = gGpuPrimCursor;
+    gGpuPrimCursor = caret + 1;
+    setPolyG3(caret);
 
-    color = (Gp_CapCaretGrey << 7) / 15;
-    setRGB0(p, color, color, color);
+    grey = (Gp_CapCaretGrey << 7) / CAP_MARKER_PULSE_MAX;
+    setRGB0(caret, grey, grey, grey);
 
-    color = (Gp_CapCaretGrey * 0xC0) / 15;
-    setRGB1(p, color, color, color);
-    setRGB2(p, color, color, color);
+    grey = (Gp_CapCaretGrey * 0xC0) / CAP_MARKER_PULSE_MAX;
+    setRGB1(caret, grey, grey, grey);
+    setRGB2(caret, grey, grey, grey);
 
-    x     = Gp_CapCaretX;
-    y     = Gp_CapCaretY;
-    p->x0 = x + 3;
-    p->y0 = y - gDisplayState.vramYOffset;
-    p->x1 = x;
-    p->y1 = -(gDisplayState.vramYOffset + 7) + y;
-    p->x2 = x + 7;
-    p->y2 = -(gDisplayState.vramYOffset + 7) + y;
-    addPrim(&gGpuCurrentOt[2], p);
+    x         = Gp_CapCaretX;
+    y         = Gp_CapCaretY;
+    caret->x0 = x + 3;
+    caret->y0 = y - gDisplayState.vramYOffset;
+    caret->x1 = x;
+    caret->y1 = -(gDisplayState.vramYOffset + 7) + y;
+    caret->x2 = x + 7;
+    caret->y2 = -(gDisplayState.vramYOffset + 7) + y;
+    addPrim(&gGpuCurrentOt[2], caret);
 
-    if (Gp_CapCaretDir == 0) {
-        Gp_CapCaretGrey++;
-        if (Gp_CapCaretGrey >= 0xF) {
-            Gp_CapCaretDir = 1;
-        }
-    } else {
-        Gp_CapCaretGrey--;
-        if (Gp_CapCaretGrey < 9) {
-            Gp_CapCaretDir = 0;
-        }
-    }
+    _capStepMarkerPulse(&Gp_CapCaretGrey, &Gp_CapCaretDir);
 }
 
-s16 Gp_CapCenterX(const u16* text)
+/// Returns the screen X of a centred CAP block's left pen, in pixels.
+///
+/// Uses the widest break-terminated line, with a five-pixel left bias on a
+/// 320-pixel screen. An unfinished final line contributes no width. Glyphs
+/// advance by width minus one, spacers by three, and icons by sixteen pixels.
+/// The borrowed text must end with 0xFFFF before its signed-16 element index
+/// overflows, and the active glyph table must cover every low-ten-bit glyph index.
+static s16 _capGetTextBlockLeftX(const u16* text)
 {
-    s16 lineW = 0;
-    s16 maxW  = 0;
-    s16 i     = 0;
-    s16 code  = text[0];
+    s16 lineWidth = 0;
+    s16 maxWidth  = 0;
+    s16 codeIndex = 0;
+    s16 code      = text[0];
 
-    while (code != -1) {
-        if (code == -2) {
-            if (lineW > maxW) {
-                maxW = lineW;
+    while (code != CAP_TEXT_CODE_END) {
+        if (code == CAP_TEXT_CODE_LINE_BREAK) {
+            if (lineWidth > maxWidth) {
+                maxWidth = lineWidth;
             }
-            lineW = 0;
-            code  = text[++i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = text[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = text[++i];
+            lineWidth = 0;
+            code      = text[++codeIndex];
+        } else if (code == CAP_TEXT_CODE_SPACER) {
+            lineWidth += CAP_TEXT_SPACER_WIDTH;
+            code       = text[++codeIndex];
+        } else if ((code & CAP_TEXT_CODE_FAMILY_MASK) == CAP_TEXT_CODE_ICON) {
+            lineWidth += CAP_TEXT_ICON_WIDTH;
+            code       = text[++codeIndex];
         } else if (code >= 0) {
-            lineW += Gp_CapGlyphs[code & 0x3FF].width - 1;
-            code   = text[++i];
+            lineWidth += Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].width - 1;
+            code       = text[++codeIndex];
         } else {
-            code = text[++i];
+            code = text[++codeIndex];
         }
     }
-    return (0x140 - maxW) / 2 - 5;
+    return (CAP_TEXT_SCREEN_WIDTH - maxWidth) / 2 - CAP_TEXT_CENTER_LEFT_BIAS;
 }
 
-s16 Gp_CapCenterXLine(const u16* arg0, s32 arg1)
+/// Returns the screen X of a centred CAP line's left pen, in pixels.
+///
+/// `selectedLineIndex` is zero-based. Only a line closed by a break supplies its
+/// width; an absent or unfinished line uses width zero. Uses the same five-pixel
+/// left bias, glyph advances and borrowed-stream bounds as `_capGetTextBlockLeftX`.
+static s16 _capGetTextLineLeftX(const u16* text, s32 selectedLineIndex)
 {
-    s16 lineW;
-    s16 selectedW;
-    s16 i;
+    s16 lineWidth;
+    s16 selectedLineWidth;
+    s16 codeIndex;
     s16 lineIndex;
     s16 code;
 
-    lineW     = 0;
-    selectedW = 0;
-    i         = 0;
-    lineIndex = 0;
-    code      = arg0[0];
-    while (code != -1) {
-        if (code == -2) {
-            if (lineIndex == arg1) {
-                selectedW = lineW;
+    lineWidth         = 0;
+    selectedLineWidth = 0;
+    codeIndex         = 0;
+    lineIndex         = 0;
+    code              = text[0];
+    while (code != CAP_TEXT_CODE_END) {
+        if (code == CAP_TEXT_CODE_LINE_BREAK) {
+            if (lineIndex == selectedLineIndex) {
+                selectedLineWidth = lineWidth;
             }
-            lineW = 0;
-            i++;
+            lineWidth = 0;
+            codeIndex++;
             lineIndex++;
-            code = arg0[i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = arg0[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = arg0[++i];
+            code = text[codeIndex];
+        } else if (code == CAP_TEXT_CODE_SPACER) {
+            lineWidth += CAP_TEXT_SPACER_WIDTH;
+            code       = text[++codeIndex];
+        } else if ((code & CAP_TEXT_CODE_FAMILY_MASK) == CAP_TEXT_CODE_ICON) {
+            lineWidth += CAP_TEXT_ICON_WIDTH;
+            code       = text[++codeIndex];
         } else if (code >= 0) {
-            lineW += Gp_CapGlyphs[code & 0x3FF].width - 1;
-            code   = arg0[++i];
+            lineWidth += Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].width - 1;
+            code       = text[++codeIndex];
         } else {
-            code = arg0[++i];
+            code = text[++codeIndex];
         }
     }
-    return (0x140 - selectedW) / 2 - 5;
+    return (CAP_TEXT_SCREEN_WIDTH - selectedLineWidth) / 2 - CAP_TEXT_CENTER_LEFT_BIAS;
 }
 
-s16 Gp_CapTextHeight(const u16* arg0)
+s16 capGetTextBlockHeight(const u16* text)
 {
-    s16 lineH = 0;
-    s16 total = 0;
-    s16 i     = 0;
-    s16 code  = arg0[0];
+    s16 lineHeight  = 0;
+    s16 blockHeight = 0;
+    s16 codeIndex   = 0;
+    s16 code        = text[0];
 
-    while (code != -1) {
-        if (code == -2) {
-            if (lineH == 0) {
-                lineH = 2;
+    while (code != CAP_TEXT_CODE_END) {
+        if (code == CAP_TEXT_CODE_LINE_BREAK) {
+            if (lineHeight == 0) {
+                lineHeight = CAP_TEXT_LINE_GAP;
             }
-            total += lineH;
-            lineH  = 0;
-        } else if (code != -3) {
+            blockHeight += lineHeight;
+            lineHeight   = 0;
+        } else if (code != CAP_TEXT_CODE_SPACER) {
             if (code >= 0) {
-                if (lineH < Gp_CapGlyphs[code & 0x3FF].height + 2) {
-                    lineH = Gp_CapGlyphs[code & 0x3FF].height + 2;
+                if (lineHeight < Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
+                    lineHeight = Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
                 }
             }
         }
-        code = arg0[++i];
+        code = text[++codeIndex];
     }
-    if (total == 2) {
-        total = 0;
+    if (blockHeight == CAP_TEXT_LINE_GAP) {
+        blockHeight = 0;
     }
-    return total;
+    return blockHeight;
 }
 
-s16 Gp_CapTextTopY(const u16* arg0)
+s16 capGetTextFirstBaselineY(const u16* codes)
 {
-    s16        lineH     = 0;
-    s16        total     = 0;
-    s16        i         = 0;
-    s16        seenBreak = 0;
-    const u16* text      = arg0;
-    s16        code      = text[0];
+    s16 lineHeight      = 0;
+    s16 remainingHeight = 0;
+    s16 codeIndex       = 0;
+    s16 firstLineEnded  = 0;
+    s16 code            = codes[0];
 
-    while (code != -1) {
-        if (code == -2) {
-            if (seenBreak) {
-                if (lineH == 0) {
-                    lineH = 2;
+    while (code != CAP_TEXT_CODE_END) {
+        if (code == CAP_TEXT_CODE_LINE_BREAK) {
+            if (firstLineEnded) {
+                if (lineHeight == 0) {
+                    lineHeight = CAP_TEXT_LINE_GAP;
                 }
-                total += lineH;
+                remainingHeight += lineHeight;
             } else {
-                seenBreak = 1;
+                firstLineEnded = 1;
             }
-            lineH = 0;
-        } else if (code != -3) {
+            lineHeight = 0;
+        } else if (code != CAP_TEXT_CODE_SPACER) {
             if (code >= 0) {
-                if (lineH < Gp_CapGlyphs[code & 0x3FF].height + 2) {
-                    lineH = Gp_CapGlyphs[code & 0x3FF].height + 2;
+                if (lineHeight < Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
+                    lineHeight = Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
                 }
             }
         }
-        code = text[++i];
+        code = codes[++codeIndex];
     }
-    return 0xD0 - total;
+    return CAP_TEXT_BOTTOM_BASELINE_Y - remainingHeight;
 }
 
-s32 func_800E6BB8(const u16* arg0)
+/// Returns the baseline advance in pixels for the line starting at `text`.
+///
+/// Takes the greatest nonnegative glyph height plus two up to a line break,
+/// returning two for an empty line. Reaching 0xFFFF instead forces thirteen,
+/// even after glyphs. Other negative codes, including icons, add no height.
+/// The borrowed stream must reach a break or terminator before its signed-16
+/// element index overflows; the active glyph table must cover the glyph indices.
+static s32 _capGetTextLineAdvance(const u16* text)
 {
-    s16 height = 0;
-    s16 i      = 0;
-    s16 cont   = 1;
-    s16 code   = arg0[0];
+    s16 lineAdvance = 0;
+    s16 codeIndex   = 0;
+    s16 scanActive  = 1;
+    s16 code        = text[0];
 
     do {
-        if (code == -2) {
-            cont = 0;
-        } else if (code == -1) {
-            cont   = 0;
-            height = 0xD;
+        if (code == CAP_TEXT_CODE_LINE_BREAK) {
+            scanActive = 0;
+        } else if (code == CAP_TEXT_CODE_END) {
+            scanActive  = 0;
+            lineAdvance = CAP_TEXT_END_LINE_ADVANCE;
         } else if (code >= 0) {
-            if (height < Gp_CapGlyphs[code & 0x3FF].height + 2) {
-                height = Gp_CapGlyphs[code & 0x3FF].height + 2;
+            if (lineAdvance < Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP) {
+                lineAdvance = Gp_CapGlyphs[code & CAP_TEXT_GLYPH_INDEX_MASK].height + CAP_TEXT_LINE_GAP;
             }
-            code = arg0[++i];
+            code = text[++codeIndex];
         } else {
-            code = arg0[++i];
+            code = text[++codeIndex];
         }
-    } while (cont);
-    if (height == 0) {
-        height = 2;
+    } while (scanActive);
+    if (lineAdvance == 0) {
+        lineAdvance = CAP_TEXT_LINE_GAP;
     }
-    return height;
+    return lineAdvance;
 }
 
 s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2)
@@ -1096,7 +1145,7 @@ s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2)
     return (s16)Gp_StartCap(entry, arg1, arg2);
 }
 
-s32 Gp_CapBusy(void)
+s32 capIsBusy(void)
 {
     return Gp_CapTable != 0;
 }
@@ -1113,15 +1162,15 @@ s32 Gp_AbortCap(void)
     return -1;
 }
 
-s32 Gp_GetCapEventKey(void)
+s32 capGetVariantKey(void)
 {
     return Gp_CapEventKey;
 }
 
-void func_800E6D4C(s16 arg0, s16 arg1)
+void capSetTexturePage(s16 vramX, s16 vramY)
 {
-    D_80115654 = arg0;
-    D_80115656 = arg1;
+    D_80115654 = vramX;
+    D_80115656 = vramY;
 }
 
 void Gp_LoadCapFile(s32 arg0)
@@ -1150,13 +1199,13 @@ void Gp_ResetCap(void)
     Gp_CapTable = 0;
     D_801156A8  = 0;
     D_8011565A  = 0;
-    func_800E6D4C(0x180, 0);
+    capSetTexturePage(0x180, 0);
     Gp_CapFile = 0;
     Gp_LoadCapFile(0);
     D_8011569C = 0;
 }
 
-void func_800E6E44(CapTextUpdateCallback callback)
+void capSetTextUpdateCallback(CapTextUpdateCallback callback)
 {
     D_80115660 = callback;
 }
@@ -1195,9 +1244,12 @@ s32 Gp_FindCapEvt(s32 arg0)
     return arg0;
 }
 
-void func_800E6EF4(Task* task)
+void capClearUnstartedSequenceTask(Task* task)
 {
-    if (task->state > 0) {
+    enum { CAP_UNSTARTED_SEQUENCE_GRACE_STATE = 0 };
+
+    // Give queued playback one dispatch to begin before clearing its selection.
+    if (task->state > CAP_UNSTARTED_SEQUENCE_GRACE_STATE) {
         if (Gp_CapTable != 0 && D_8011565A == 0) {
             Gp_CapTable = 0;
         }

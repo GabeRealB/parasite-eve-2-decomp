@@ -16,12 +16,12 @@ s32 mainStreetCapSoundCue(Task* task, s32 msgId, s32 arg2, s32 arg3)
             Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 0x0C), 0, 0);
             break;
         case 0x65:
-            if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() == 1) {
                 Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 0x0D), 0, 0);
             }
             break;
         case 0x78:
-            if (Gp_GetCapEventKey() == 0) {
+            if (capGetVariantKey() == 0) {
                 Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MAIN_STREET, 0x0D), 0, 0);
             }
             break;

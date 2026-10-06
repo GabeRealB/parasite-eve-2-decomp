@@ -79,7 +79,7 @@ static void CapCaption_RunSchedule(Task* task)
                 CapCaption_SelectScript(script, key, (s16)task->spawnArg1.value);
                 CapCaption_DrawCurrent();
             }
-            if ((Gp_CapBusy() == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
+            if ((capIsBusy() == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
                 gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
             }
             break;
@@ -90,7 +90,7 @@ CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void)
 {
     if ((CapCaption_Data_8015E658 != NULL) &&
         (CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.offset != CAP_TEXT_REF_END) &&
-        (Gp_CapBusy() == 0)) {
+        (capIsBusy() == 0)) {
         CapCaption_DrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text, 0x80, 1,
                             CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.title |
                                 ((CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * 0x10));
@@ -376,7 +376,7 @@ static s32 CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// Top Y of the caption block the text stream `arg0` holds: every line after
 /// the first `-2` adds its height (the tallest glyph's `height + 2`, or 2 when empty)
 /// and the total is subtracted from `CapCaption_Data_8015E660`. Gameplay's
-/// `Gp_CapTextTopY` is the same walk against a fixed 0xD0.
+/// `capGetTextFirstBaselineY` is the same walk against a fixed 0xD0.
 static s16 CapCaption_TextTopY(const u16* arg0)
 {
     s16        lineH     = 0;
@@ -411,7 +411,7 @@ static s16 CapCaption_TextTopY(const u16* arg0)
 
 /// Draws the pulsing "more text" caret: a Gouraud triangle at
 /// (`CapCaption_Data_8015E668`, `CapCaption_Data_8015E66A`) whose grey level
-/// ramps up to 15 and back down to 9. Same body as gameplay's `Gp_DrawCapCaret`
+/// ramps up to 15 and back down to 9. Same body as gameplay's `_capDrawContinueCaret`
 /// without the VRAM Y offset.
 static void CapCaption_DrawCaret(void)
 {
@@ -455,7 +455,7 @@ static void CapCaption_DrawCaret(void)
 /// Horizontal centring offset of the caption line the text stream `arg0`
 /// starts with: the widest line's pixel width subtracted from the 0x140 screen
 /// width, halved, minus 5. The walk is the one `CapCaption_LineHeight`
-/// makes, and gameplay's `Gp_CapCenterX` compiles to the same 0x110 bytes with
+/// makes, and gameplay's `_capGetTextBlockLeftX` compiles to the same 0x110 bytes with
 /// only the glyph table symbol differing — `-2` closes a line and keeps the
 /// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
 /// each glyph code (non-negative, `& 0x3FF` indexing `CapCaption_Data_8015E654`)
@@ -497,7 +497,7 @@ static s16 CapCaption_CenterX(const u16* arg0)
 /// Horizontal centring offset of line `arg1` of the caption text stream
 /// `arg0`: that line's pixel width subtracted from 0x140, halved, minus 5.
 /// Same walk as `CapCaption_CenterX`, but keeps the width of the
-/// selected line instead of the widest; gameplay's `Gp_CapCenterXLine`
+/// selected line instead of the widest; gameplay's `_capGetTextLineLeftX`
 /// compiles to the same bytes.
 static s16 CapCaption_CenterLineX(const u16* arg0, s32 arg1)
 {
@@ -539,7 +539,7 @@ static s16 CapCaption_CenterLineX(const u16* arg0, s32 arg1)
 
 /// Total height of the caption block the text stream `arg0` holds: every `-2`
 /// line break adds the line's height (the tallest glyph's `height + 2`, or 2 when
-/// the line is empty). Gameplay's `Gp_CapTextHeight` is the same walk plus a
+/// the line is empty). Gameplay's `capGetTextBlockHeight` is the same walk plus a
 /// final `2 -> 0` clamp.
 static s16 CapCaption_TextHeight(const u16* arg0)
 {
@@ -568,7 +568,7 @@ static s16 CapCaption_TextHeight(const u16* arg0)
 }
 
 /// Height of the caption line the text stream `arg0` starts with, walking it
-/// the way gameplay's `func_800E6BB8` does — this overlay's caption system is
+/// the way gameplay's `_capGetTextLineAdvance` does — this overlay's caption system is
 /// a copy of that one, and the two functions compile to the same 0xB8 bytes
 /// with only the glyph table symbol differing.
 ///

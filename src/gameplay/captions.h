@@ -146,15 +146,34 @@ extern u8 D_8011569C;
 
 void func_800E44A0(Task* task);
 
-s16 Gp_CapTextHeight(const u16* arg0);
+/// Measures the CAP text box's height in pixels from break-terminated lines.
+///
+/// Each line contributes its greatest glyph height plus two, or two if empty.
+/// Negative controls, including icons, add no glyph height. The unfinished tail
+/// contributes nothing; a total of two is returned as zero. `text` is borrowed
+/// 0xFFFF-terminated storage whose signed-16 element index must not overflow,
+/// and the active glyph table must cover every low-ten-bit glyph index.
+s16 capGetTextBlockHeight(const u16* text);
 
-s16 Gp_CapTextTopY(const u16* arg0);
+/// Places the first CAP text baseline above the fixed screen Y of 208 pixels.
+///
+/// Subtracts the heights of break-terminated lines after the first; an unfinished
+/// final line contributes nothing. Each height is the greatest nonnegative
+/// glyph height plus two, or two for an empty line. The result is screen-relative,
+/// before the drawer converts to centre-relative coordinates and removes shake.
+/// The borrowed stream and glyph table have `capGetTextBlockHeight`'s bounds.
+s16 capGetTextFirstBaselineY(const u16* codes);
 
 void Gp_ApplyCapEvtFlags(void);
 
 s32 Gp_FindCapEvt(s32 arg0);
 
-void func_800E6EF4(Task* task);
+/// Clears a selected CAP sequence if queued playback has not begun.
+///
+/// Used during a queued CAP display transition: waits one task dispatch, then
+/// clears the selection only if playback has never run, and kills itself.
+/// `task` must be a live task; neither spawn argument is consumed.
+void capClearUnstartedSequenceTask(Task* task);
 
 /// `spawnArg1` packs three bytes: bits 0-7 are the message argument, bits
 /// 8-15 the delay in frames, and bits 16-23 the recipient - 0 for slot 3, 1

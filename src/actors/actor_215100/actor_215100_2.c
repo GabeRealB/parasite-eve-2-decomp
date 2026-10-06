@@ -1825,7 +1825,7 @@ void func_actor_215100_8014A398(void)
                 D_actor_215100_8014D044 -= 1;
                 return;
             }
-            if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_CapBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
+            if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
                 (D_80115768 == 0) && (coord->coord.t[0] < -0x1806)) {
                 z = coord->coord.t[2];
                 if (z < 0x1644) {
@@ -1859,7 +1859,7 @@ void func_actor_215100_8014A398(void)
 /// State 0 first honours the spawn argument: `spawnArg1 == 2` means the actor
 /// was placed already committed, so it just steps to state 1, and only
 /// `spawnArg1 == 0` is the interactive case. Otherwise it waits for
-/// `Gp_CapBusy` to drop and switches on the key `Gp_GetCapEventKey` returns.
+/// `capIsBusy` to drop and switches on the key `capGetVariantKey` returns.
 /// Key 1 is the plain "talk to me" — it takes the player's weapon away and
 /// clears `gSceneCombatState.actorControl`; every other key ends the encounter, and which ending
 /// depends on `spawnArg1`: non-zero plays caption command 0x17 behind story
@@ -1880,10 +1880,10 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 arg0->state = 1;
                 break;
             }
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
-            if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() == 1) {
                 Gp_MsgPlayerWeapon(1);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(arg0);
@@ -1912,7 +1912,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             taskKill(arg0);
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 gPlayerStatus.resourceVariant                       = 3;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
                 Gp_ClearInventory();
@@ -1930,7 +1930,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
 }
 
 /// Watches the caption system while the actor waits to be talked to: state 0
-/// polls `Gp_CapBusy` / `Gp_GetCapEventKey`, and on key 2 hands the scene task
+/// polls `capIsBusy` / `capGetVariantKey`, and on key 2 hands the scene task
 /// `D_mist_shooting_gallery_8018E0C4` its exit and steps to state 1, while any other key kills the
 /// task outright. State 1 starts the caption playback and steps to state 2,
 /// which commits the ending: it flags the save-slot session, plays the sound,
@@ -1943,10 +1943,10 @@ void func_actor_215100_8014A7C4(Task* arg0)
     actor = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     switch (arg0->state) {
         case 0:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
-            if (Gp_GetCapEventKey() == 2) {
+            if (capGetVariantKey() == 2) {
                 taskCallExit(D_mist_shooting_gallery_8018E0C4);
                 arg0->state++;
             } else {
@@ -2080,7 +2080,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             break;
         case 3:
             if (gGameSession->eventState == 0) {
-                if (Gp_GetCapEventKey() != 0) {
+                if (capGetVariantKey() != 0) {
                     arg0->state = 10;
                 } else {
                     arg0->state++;
@@ -2153,7 +2153,7 @@ void func_actor_215100_8014AEC4(s32 arg0)
     if (arg0 != 0) {
         Gp_CapFile = 0;
         Gp_LoadCapFile(1);
-        func_800E6D4C(0x300, 0);
+        capSetTexturePage(0x300, 0);
         return;
     }
     Gp_ResetCap();

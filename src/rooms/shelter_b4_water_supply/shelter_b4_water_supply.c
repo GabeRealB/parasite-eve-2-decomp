@@ -781,12 +781,12 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state++;
             }
             break;
         case 2:
-            if (Gp_GetCapEventKey() != 0xA) {
+            if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -937,7 +937,7 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
     RoomEventMsg        param;
     RoomVariantResolver resolve;
 
-    if (Gp_CapBusy() == 0) {
+    if (capIsBusy() == 0) {
         resolve       = _shelterB4WaterSupplyResolveWaterHoleVariant;
         work.stage    = GAME_STAGE_DRYFIELD_NIGHT;
         work.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;

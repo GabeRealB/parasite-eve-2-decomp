@@ -516,12 +516,12 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             break;
         case 2:
             D_80115690 = 1;
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 3:
-            if (Gp_GetCapEventKey() == 0xC) {
+            if (capGetVariantKey() == 0xC) {
                 task->state = 0xA;
                 break;
             }
@@ -549,7 +549,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             break;
         case 5:
             D_80115690 = 1;
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state = 0xA;
             }
             break;

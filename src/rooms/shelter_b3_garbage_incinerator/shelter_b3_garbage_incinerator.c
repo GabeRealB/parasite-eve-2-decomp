@@ -78,12 +78,12 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state++;
             }
             break;
         case 2:
-            if (Gp_GetCapEventKey() == 0) {
+            if (capGetVariantKey() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 Gp_MsgPlayerWeapon(1);
                 taskKill(arg0);

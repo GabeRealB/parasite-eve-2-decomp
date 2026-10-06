@@ -25,12 +25,12 @@ void factoryPowerScene(Task* task)
             task->state++;
             /* fallthrough */
         case 2:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             /* fallthrough */
         case 3:
-            if (Gp_GetCapEventKey() == 3) {
+            if (capGetVariantKey() == 3) {
                 gameFlagSetNibble(GAME_FLAG_FACTORY_POWER_ON, 1);
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 1);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
@@ -45,7 +45,7 @@ void factoryPowerScene(Task* task)
             task->state++;
             return;
         case 4:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             /* fallthrough */

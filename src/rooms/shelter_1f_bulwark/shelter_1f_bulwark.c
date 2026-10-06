@@ -385,7 +385,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             Gp_TriggerPeIfArmed();

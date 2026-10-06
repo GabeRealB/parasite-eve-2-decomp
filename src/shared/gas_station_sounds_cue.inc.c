@@ -33,7 +33,7 @@ s32 gasStationCueSoundMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             Gp_EnqueueStageSnd6(0x5201000E, 0, 0);
             break;
         case 0x83:
-            if (Gp_GetCapEventKey() == 0) {
+            if (capGetVariantKey() == 0) {
                 break;
             }
             Gp_EnqueueStageSnd6(0x52010012, 0, 0);

@@ -1755,7 +1755,7 @@ static void func_shelter_r47_801844A0(Task* task)
     func_shelter_r47_801851B8(task);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if ((Gp_CapBusy() != 0) || (st->holdPrompt != 0)) {
+    if ((capIsBusy() != 0) || (st->holdPrompt != 0)) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
@@ -2126,7 +2126,7 @@ static void func_shelter_r47_8018571C(Task* task)
     func_shelter_r47_801851B8(task);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     }

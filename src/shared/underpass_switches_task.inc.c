@@ -27,13 +27,13 @@ void underpassSwitchTask(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
         case 2:
-            if (Gp_GetCapEventKey() >= 0xA) {
+            if (capGetVariantKey() >= 0xA) {
                 gameFlagSetNibble(flag, gameFlagGetNibble(flag) == 0);
                 if (flag == 0x51) {
                     d             = &dst;

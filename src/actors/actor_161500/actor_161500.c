@@ -1436,7 +1436,7 @@ void func_actor_161500_80131F50(s32 arg0)
             arg0 = capFile;
         }
         Gp_LoadCapFile(arg0);
-        func_800E6D4C(0x340, 0);
+        capSetTexturePage(0x340, 0);
         return;
     }
     Gp_ResetCap();

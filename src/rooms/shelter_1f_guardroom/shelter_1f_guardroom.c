@@ -224,13 +224,13 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 2:
             Gp_CapCmds[2].command->counter = 1;
-            if (Gp_GetCapEventKey() != 0xB) {
+            if (capGetVariantKey() != 0xB) {
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 break;

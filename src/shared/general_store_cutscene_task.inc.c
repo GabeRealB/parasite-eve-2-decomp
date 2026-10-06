@@ -45,7 +45,7 @@ void storeCutsceneTask(Task* arg0)
             arg0->state += 1;
             return;
         case 4:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 gStoreFade.blend      = SCREEN_FADE_SUBTRACT;
                 gStoreFade.phase      = SCREEN_FADE_RUNNING;
                 gStoreFade.rampFrames = 8;

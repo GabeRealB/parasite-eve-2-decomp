@@ -3136,7 +3136,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     } else {

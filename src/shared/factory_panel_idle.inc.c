@@ -23,7 +23,7 @@ void factoryPanelIdle(Task* task)
     if (work->scanDelay != 0) {
         work->scanDelay = work->scanDelay - 1;
     }
-    if ((Gp_CapBusy() != 0) || (work->scanDelay != 0)) {
+    if ((capIsBusy() != 0) || (work->scanDelay != 0)) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;

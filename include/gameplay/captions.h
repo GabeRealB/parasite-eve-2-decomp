@@ -23,7 +23,7 @@ enum {
     /// Clears the completion flag and aborts the running CAP sequence, returning
     /// `Gp_AbortCap`'s result (`Gp_AbortCapClear`).
     CAP_CONTROL_MESSAGE_ABORT = 0xFA2,
-    /// Returns nonzero while a CAP sequence table is loaded (`Gp_CapBusy`).
+    /// Returns nonzero while a CAP sequence table is loaded (`capIsBusy`).
     CAP_CONTROL_MESSAGE_IS_BUSY = 0xFA3,
     /// Hides the HUD for a presentation; in demo scene 9 spawns its task.
     CAP_CONTROL_MESSAGE_HIDE_HUD = 0xFA4,
@@ -100,7 +100,11 @@ extern s32 D_801156A8;
 
 s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
 
-s32 Gp_CapBusy(void);
+/// Returns 1 while a CAP sequence is selected, otherwise 0.
+///
+/// Selection includes the interval before a queued display transition starts
+/// playback. Completion, abort and reset release it.
+s32 capIsBusy(void);
 
 s32 Gp_AbortCap(void);
 
@@ -108,11 +112,26 @@ void Gp_ResetCap(void);
 
 void Gp_LoadCapFile(s32 arg0);
 
-void func_800E6E44(CapTextUpdateCallback callback);
+/// Sets the update hook for timed CAP text reveal, or clears it with NULL.
+///
+/// The callback follows `CapTextUpdateCallback`'s cursor and reveal contract.
+/// Its overlay must remain loaded until the hook is cleared; starting CAP
+/// playback clears it automatically.
+void capSetTextUpdateCallback(CapTextUpdateCallback callback);
 
-/// Key of the event the running cap script stopped on (`Gp_CapEventKey`).
-s32 Gp_GetCapEventKey(void);
+/// Returns the current CAP sequence's variant key, retaining the last choice.
+///
+/// Playback starts with the supplied key; choices and declined actions can
+/// replace it with their byte-sized key. Completion does not clear the key,
+/// and reading it neither advances playback nor consumes the choice.
+/// The stored signed-16 value is returned sign-extended to s32.
+s32 capGetVariantKey(void);
 
-void func_800E6D4C(s16 arg0, s16 arg1);
+/// Selects the VRAM origin used by CAP title and text sprites.
+///
+/// `vramX` and `vramY` are VRAM coordinates in 16-bit pixels, passed to the
+/// GPU's 4-bit texture-page encoding when drawing. Texture data must already
+/// be loaded there. CAP reset restores (384, 0).
+void capSetTexturePage(s16 vramX, s16 vramY);
 
 #endif // GAMEPLAY_CAPTIONS_H

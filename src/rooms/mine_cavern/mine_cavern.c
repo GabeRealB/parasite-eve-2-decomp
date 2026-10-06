@@ -344,13 +344,13 @@ s32 func_mine_cavern_8017DD38(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_mine_cavern_8017DD6C(Task* task)
 {
-    if (Gp_CapBusy() == 0) {
-        if (Gp_GetCapEventKey() == 0xB) {
+    if (capIsBusy() == 0) {
+        if (capGetVariantKey() == 0xB) {
             gameFlagSetNibble(GAME_FLAG_0C4, 1);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 2);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
-        if (Gp_GetCapEventKey() == 0x15) {
+        if (capGetVariantKey() == 0x15) {
             gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_MINE_CAVERN, 0);
         }

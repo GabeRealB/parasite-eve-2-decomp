@@ -466,7 +466,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (Pad_RemapState->hideHud != 0) {
         return;
     }
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         return;
     }
     if (gGameSession->hideHud != 0) {

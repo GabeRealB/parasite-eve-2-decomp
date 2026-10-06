@@ -1206,7 +1206,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             break;
 
         case 2:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 if (Gp_GetCurBit2Flag(3) == 1) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
                     task->state = task->state + 1;

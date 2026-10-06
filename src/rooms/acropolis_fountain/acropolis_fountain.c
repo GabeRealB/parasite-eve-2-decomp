@@ -139,7 +139,7 @@ void func_acropolis_fountain_8017D868(Task* task)
             break;
 
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state = task->state + 1;
             }
             /* fallthrough */

@@ -1851,7 +1851,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
             task->state = 2;
             return;
         case 2:
-            if (Gp_GetCapEventKey() == state) {
+            if (capGetVariantKey() == state) {
                 gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 3);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4), 0, 0);
                 task->state = task->state + 1;
@@ -1952,7 +1952,7 @@ void func_acropolis_patio_8017DD80(Task* task)
             task->state = 2;
             return;
         case 2:
-            if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() == 1) {
                 gameFlagSetNibble(GAME_FLAG_015, 1);
             }
             taskKill(task);

@@ -91,8 +91,8 @@ s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2)
     }
 
     Gp_ApplyCapEvtFlags();
-    D_801155B4 = Gp_CapTextTopY(Gp_CapTable[(s16)D_801155AE].textRef.text);
-    D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
+    D_801155B4 = capGetTextFirstBaselineY(Gp_CapTable[(s16)D_801155AE].textRef.text);
+    D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
     D_80115666 = arg1;
     D_80115660 = 0;
     if (arg1 != 0) {

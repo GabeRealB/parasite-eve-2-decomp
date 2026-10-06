@@ -1670,7 +1670,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 if (D_801156A8 == 1) {
                     Gp_MsgPlayerWeapon(1);
                     taskKill(task);

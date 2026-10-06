@@ -5701,7 +5701,7 @@ void func_actor_560800_80135D54(Task* arg0)
             func_actor_560800_80135BD8(arg0);
             Gp_CapFile = 0;
             Gp_LoadCapFile(0);
-            func_800E6D4C(0x180, 0);
+            capSetTexturePage(0x180, 0);
             arg0->state++;
         case 1:
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
@@ -6143,14 +6143,14 @@ void func_actor_560800_80136A20(void)
 {
     Gp_CapFile = 0;
     Gp_LoadCapFile(1);
-    func_800E6D4C(0x180, 0);
+    capSetTexturePage(0x180, 0);
 }
 
 void func_actor_560800_80136A54(void)
 {
     Gp_CapFile = 0;
     Gp_LoadCapFile(2);
-    func_800E6D4C(0x180, 0);
+    capSetTexturePage(0x180, 0);
 }
 
 /// Task handler in the actor's task descriptor table that only kills the task.

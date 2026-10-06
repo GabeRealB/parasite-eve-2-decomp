@@ -1119,7 +1119,7 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
             arg0->state = arg0->state + 1;
             return;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 Gp_MsgPlayerWeapon(1);
                 TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
                 break;

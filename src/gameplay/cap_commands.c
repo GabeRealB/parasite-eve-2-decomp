@@ -52,7 +52,7 @@ AnimationPlayRequest D_8010FB24 = { { 1 }, 33, ANIMATION_BLEND_RESET, 0, ANIMATI
 AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_8010FB4C[3] = {
-    { { { TASK_BODY_NONE, 32 } }, func_800E6EF4, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, capClearUnstartedSequenceTask, { NULL } },
     { { { TASK_BODY_NONE, 32 } }, Gp_DelayedMsgTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
@@ -200,7 +200,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             arg0->state++;
             break;
         case 4:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 arg0->state++;
             }
@@ -311,7 +311,7 @@ void Gp_FillAllyHp(void)
 
 void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1)
 {
-    if (Gp_CapBusy() == 0) {
+    if (capIsBusy() == 0) {
         taskSpawnFromTable(Gp_EvtSpawnTable, 0, arg1, arg0);
     }
 }

@@ -1068,7 +1068,7 @@ case 0: ... D_80115690 = 1;
 block_11:
         arg0->state += 1;
         return;
-case 1: if (Gp_CapBusy() == 0) { ... }
+case 1: if (capIsBusy() == 0) { ... }
 block_10:
         goto block_11;
 ```
@@ -3947,7 +3947,7 @@ the signedness rule does apply:
 if (work->scanDelay != 0) {                 /* beqz $v1, .Lskip */
     work->scanDelay = work->scanDelay - 1;  /* addiu $v0, $v1, -0x1 ; sh $v0, 0x8($s2) */
 }
-if ((Gp_CapBusy() != 0) || (work->scanDelay != 0)) {   /* lhu $v0, 0x8($s2) again */
+if ((capIsBusy() != 0) || (work->scanDelay != 0)) {   /* lhu $v0, 0x8($s2) again */
 ```
 
 The second `lhu` is a load feeding a signed compare on its own, so a `s16`
@@ -4917,8 +4917,8 @@ cross-jump merge them:
 
 ```c
 case 0:
-    if (Gp_CapBusy() != 0) break;
-    if (Gp_GetCapEventKey() == 2) {
+    if (capIsBusy() != 0) break;
+    if (capGetVariantKey() == 2) {
         taskCallExit(D_8018E0C4);
         arg0->state++;          /* same tail as case 1 */
     } else {
@@ -6311,7 +6311,7 @@ that line look like the next insn, `line_loads_from_reg` fails, and the
 `#nop` stays a comment — object dump is missing the two nops the target
 has after `lbu v0,3(v1)`. Project `CC_FLAGS` have no `-dp`, so the same
 C inserts real nops. Do not rewrite the compare/update just to force
-nops in scratch; `func_800E6BB8` is the example.
+nops in scratch; `_capGetTextLineAdvance` is the example.
 
 ## `for (;;)` + `break` so `v0tmp = cont` dies before `shifted = code << 16`
 
@@ -6334,7 +6334,7 @@ shifted = code << 16;
 color the same `$v0`, reorg puts `sll v0, v1, 16` in the `bnez v0` delay,
 and `TOUCH_REG` before the test keeps `move v0, a3`. `break` (not `goto`
 past the loop) is required so GCC still treats it as the loop exit.
-`func_800E6BB8` is the example.
+`_capGetTextLineAdvance` is the example.
 
 ## Occupy `$a0` with the incoming arg so a later `la` cannot lift
 
@@ -10506,7 +10506,7 @@ merges the stores to one `sw`. Dummy `case 15: ... case 19: break;` keeps a
 
 ## Irregular inner `if` chain: jump to bodies, default last
 
-`Gp_GetCapEventKey()` dispatched with `beq 0xB` / `beq 0xC` / `j default` then
+`capGetVariantKey()` dispatched with `beq 0xB` / `beq 0xC` / `j default` then
 bodies `[B][C][default]` is not `if / else if / else`. The else-if form inlines
 default between the tests and case B. Force order with gotos:
 
@@ -28827,7 +28827,7 @@ if (acc < glyph->height + 2) {
 
 `&table[code & 0x3FF]` flips the `addu` operands (`table + scaled` vs
 `scaled + table`). The integer `idx * sizeof + (s32)table` form matches
-`addu v1, v0, t3`. `Gp_CapTextTopY` is the example; 99.8% with only that
+`addu v1, v0, t3`. `capGetTextFirstBaselineY` is the example; 99.8% with only that
 `lbu` dest wrong.
 
 ## `move v0, sum` before the restores, and `move t0, v1` for a loop bound: an explicit empty-range test with a return inside it
@@ -29279,7 +29279,7 @@ if (shifted >> 16 != -1) {
 }
 ```
 
-Target wants `li -2; li -3; lui/lw table; li -1`. `Gp_CapTextHeight` is the
+Target wants `li -2; li -3; lui/lw table; li -1`. `capGetTextBlockHeight` is the
 example; 97.8% with only those four setup insns swapped.
 
 ## Leaf scratch alloc: `tmp` then `s = tmp` for `move a0, v0`
@@ -29496,7 +29496,7 @@ if (shifted >> 16 != -1) {
 }
 ```
 
-`Gp_CapCenterX` is the example. A separate `val = shifted >> 16` used
+`_capGetTextBlockLeftX` is the example. A separate `val = shifted >> 16` used
 for both the empty check and the body stuck at ~75% with `lh` + `lhu`.
 
 ## Label increment inside `if (x < 0)` so `== K` is not inverted
@@ -29535,7 +29535,7 @@ after_load:
     /* loop latch */
 ```
 
-`Gp_CapCenterX` is the example. The same gotos with `inc` after the
+`_capGetTextBlockLeftX` is the example. The same gotos with `inc` after the
 `if/else` stuck at 91% with only that `beq` / sunk `addiu`.
 
 ## Compare temp in `$v1` before `li v0, -1`
@@ -29564,7 +29564,7 @@ v0tmp   = -1;
 } while (width != v0tmp);
 ```
 
-A literal `!= -1` hoists `-1` into `$t3`. `Gp_CapCenterX` is the
+A literal `!= -1` hoists `-1` into `$t3`. `_capGetTextBlockLeftX` is the
 example. `v0tmp = -1` before the `sra` stuck at 98.8% with only those
 two instructions swapped.
 
@@ -34596,7 +34596,7 @@ p->y2 = ((s8)*(volatile u8*)&gDisplayState.vramYOffset + 7) * -1 + y;
 ```
 
 Use that `mask` in a handwritten `addPrim` (same shape as `_uiDrawListOverflowCaret`).
-`Gp_DrawCapCaret` is the example.
+`_capDrawContinueCaret` is the example.
 
 ## `s16` `>=` as `x > y - 1` so GCC emits `addiu -1` / `slt` / `beqz`
 
@@ -43963,7 +43963,7 @@ unit suffix inside their `INCLUDE_ASM` folder strings; splat will not do it.
 
 ## Missing `nop` after `lw field`: a byte store to a scalar global does not block the load
 
-`case 1: if (Gp_CapBusy() == 0) { D_801153F4 = 2; task->state = task->state + 1; }`
+`case 1: if (capIsBusy() == 0) { D_801153F4 = 2; task->state = task->state + 1; }`
 compiled with the load hoisted into the store's slot, one instruction shorter
 than the target:
 
@@ -44197,7 +44197,7 @@ owns it**, jumping into it from the earlier arm:
 
 ```c
 case 2:
-    if (Gp_GetCapEventKey() != 0xB) {
+    if (capGetVariantKey() != 0xB) {
         goto kill;
     }
     ...
@@ -49917,14 +49917,14 @@ block_11:
     arg0->state += 1;
     return;
 case 1:
-    if (Gp_CapBusy() == 0) { goto block_11; }
+    if (capIsBusy() == 0) { goto block_11; }
     return;
 ```
 
 scored 88% with `branch=1 insert=2 delete=2 reorder=4`: the increment was
 emitted inline after case 0 and case 1 branched *back* into it. Moving the
 label to the end of case 1 and jumping forward from case 0 is a 100% match —
-the target's `j` out of case 0 lands past `jal Gp_CapBusy`, and case 1's
+the target's `j` out of case 0 lands past `jal capIsBusy`, and case 1's
 `bnez` returns while its fall-through is the increment.
 
 ```c
@@ -49932,7 +49932,7 @@ case 0:
     Gp_RunCapCmd(arg0->spawnArg1, 0);
     goto block_inc;
 case 1:
-    if (Gp_CapBusy() != 0) { return; }
+    if (capIsBusy() != 0) { return; }
 block_inc:
     arg0->state += 1;
     return;
@@ -53995,7 +53995,7 @@ statements rather than one `&&`/`||` condition.
 
 The `else if` chain above is not the only way back. `func_actor_215100_8014A398`
 has the same pair sitting inside a longer `&&` chain whose other terms have to
-stay in that one expression (`mode != 2 && Gp_CapBusy() == 0 && … && z <
+stay in that one expression (`mode != 2 && capIsBusy() == 0 && … && z <
 0x1644 && z >= 0x10CD && …`), and there the cheapest split is to nest just the
 second bound:
 
@@ -66195,7 +66195,7 @@ and using the existing `TmdObject.coords` / `GfxCoord.coord` types.
 
 ## Keep an address live across a load without changing the loaded values
 
-`func_800E62C0` draws a `POLY_G3` from an eight-byte CAP choice record.
+`_capDrawChoiceMarker` draws a `POLY_G3` from an eight-byte CAP choice record.
 The primitive cursor needs a non-volatile output plus memory clobber:
 `asm("" : "+r"(p) :: "memory")`. A volatile asm or a basic empty asm
 also fences register scheduling, preventing the division constant from
@@ -70929,7 +70929,7 @@ tree, not in a later pass.
 
 Where the sum feeds a store and a temporary is awkward, the one-expression
 spelling `-(b + CONST) + a` also keeps it: fold leaves a negated sum on the
-left alone and emits `addiu` / `subu a, sum`. `Gp_DrawCapCaret` writes
+left alone and emits `addiu` / `subu a, sum`. `_capDrawContinueCaret` writes
 `p->y1 = -(gDisplayState.vramYOffset + 7) + y;`, which is how the rest of its
 file already spells these screen offsets; `y - (… + 7)` gives `y - 7` hoisted.
 
@@ -81114,7 +81114,7 @@ The brief ranks already-matched bodies resembling the target in four classes
 candidate comes back 1.00 in two or more classes, read its `.c` body before
 writing any C: the twin is often the *whole* function, not a resemblance.
 
-`func_actor_215100_8014C360` was starred against gameplay's `func_800E6BB8`
+`func_actor_215100_8014C360` was starred against gameplay's `_capGetTextLineAdvance`
 (`shape` 1.00 + `fields` 1.00 + `cflow` 1.00). The two are the same 0xB8
 instruction stream at the same offsets; only the glyph-table symbol differs
 (`D_actor_215100_8015E654` against `Gp_CapGlyphs`), which is exactly why
@@ -81145,7 +81145,7 @@ Two consequences worth knowing before planning around it:
 
 - **Port the twin's register pins along with its body; this TU's house style is
   not a substitute.** `func_actor_215100_8014C06C` is gameplay's
-  `Gp_CapCenterX` — 68 instructions, `shape`/`fields`/`cflow` all 1.00 — and
+  `_capGetTextBlockLeftX` — 68 instructions, `shape`/`fields`/`cflow` all 1.00 — and
   that body's matched source carries three pins (`register s32 lineW asm("t0")`,
   `width asm("v1")`, `v0tmp asm("v0")`) beside its three `TOUCH_REG`s. The port
   with them scored 100% on the first build. Dropping just the pins and keeping
@@ -81154,7 +81154,7 @@ Two consequences worth knowing before planning around it:
   68/68 instructions, `insert`/`delete`/`branch` all zero) and still moves 71
   register choices: 94.78%, and the real TU checksum fails. Whether a body needs
   pins is a property of that body's allocation, not of the family or the TU: the
-  sibling twins `func_800E6BB8` and `Gp_CapCenterX` sit in the *same* file,
+  sibling twins `_capGetTextLineAdvance` and `_capGetTextBlockLeftX` sit in the *same* file,
   matched, one pin-free and one pinned. A `regs`-only 94–95% is therefore not
   evidence that the missing pins are incidental — check the twin's source before
   concluding the destination style is equivalent.
@@ -85494,7 +85494,7 @@ void func_actor_161500_80131F50(s32 arg0)
             arg0 = capFile;   /* after the join — see below */
         }
         Gp_LoadCapFile(arg0);
-        func_800E6D4C(0x340, 0);
+        capSetTexturePage(0x340, 0);
         return;
     }
     Gp_ResetCap();
@@ -91505,7 +91505,7 @@ block_6:
         sndEvtRequestScriptStart(var_a0, 0, 0);   /* label inside case 3 */
         break;
     case 0x65:
-        if (Gp_GetCapEventKey() == 0) {
+        if (capGetVariantKey() == 0) {
             var_a0 = 0x550E0004;
             goto block_6;
         }
@@ -91529,7 +91529,7 @@ own label, and give the *earlier* cases an explicit `goto`:
         id = 0x550E0003;
         goto play;
     case 0x65:
-        if (Gp_GetCapEventKey() != 0) {
+        if (capGetVariantKey() != 0) {
             break;
         }
         id = 0x550E0004;
@@ -118829,7 +118829,7 @@ target, not merged with the first guard's.
 **Symptom:** 93.6%, `branch=8 delete=5 reorder=4`. Everything matches except the
 tail, where retail has the call's argument setup as a block of its own:
 `.L…38: addu a0,s4,zero` / `.L…3C: jal func_…802A8` / `nop`, with the three
-exits landing on `.L…3C` and only the `Gp_CapBusy` arm landing on `.L…38`. A
+exits landing on `.L…3C` and only the `capIsBusy` arm landing on `.L…38`. A
 `goto done;` to a single `done: func_…802A8(task);` compiles to one block
 `{addu a0,s4; jal}` and dbr moves the `addu` into the `jal`'s own delay slot, so
 no exit can land on the `jal` and the extra label has no source.
@@ -120906,7 +120906,7 @@ out of a pass.
 
 m2c renders a shared tail at its **first** user. Here three arms increment the
 same `task->state`, and two of them test a shared result, so base.c came out
-`case 0: Gp_RunCapCmd1(2); block_9: state++; return; case 1: v = Gp_CapBusy();
+`case 0: Gp_RunCapCmd1(2); block_9: state++; return; case 1: v = capIsBusy();
 block_8: if (v == 0) goto block_9; ...` — 86.07%, `branch=1 reorder=5
 insert=4 delete=4`, with the increment emitted inside case 0's block and case 1
 branching *backwards* to it. The target has both shared blocks after the last
@@ -120918,7 +120918,7 @@ which is exactly where moving the two labels puts them:
         Gp_RunCapCmd1(2);
         goto L_advance;          /* was block_9, written after case 0 */
     case 1:
-        var_v0 = Gp_CapBusy();
+        var_v0 = capIsBusy();
         goto L_idle;             /* was block_8, written after case 1 */
     case 2: ...
     case 3:
@@ -122441,7 +122441,7 @@ increment block carries a store at all.
 
 ```c
     case 1:
-        if (Gp_CapBusy() != 0) {
+        if (capIsBusy() != 0) {
             break;
         }
         D_801153F4 = 0;
@@ -143126,7 +143126,7 @@ join that the target does not have.
 ## Constant compares pinned to `$v0` inside a code-stream walk: each arm advanced the cursor itself
 
 `func_actor_215100_8014C06C` (the caption line-width walk, twin of gameplay's
-`Gp_CapCenterX`) reloads `li $v0,-2` / `li $v0,-3` in every iteration. The
+`_capGetTextBlockLeftX`) reloads `li $v0,-2` / `li $v0,-3` in every iteration. The
 seed kept them there with `register ... asm("v0")` pins. Written as a plain `while` with one shared
 `code = index[++i];` after the `if` chain, the loop has 54 RTL insns and
 `move_movables` hoists both constants into `$t3/$t4` (84.7%). The original
@@ -144709,7 +144709,7 @@ The `lbu; sll 24; sra 24` on an `s8` field there stayed a volatile read: combine
 folds the load into `lb` unless the load sits in another basic block or a store
 separates it from the extension, and the target has neither.
 
-## A `"memory"` asm after a prim-cursor bump stood for a load through a decayed array member (func_800E62C0, 2026-09-26)
+## A `"memory"` asm after a prim-cursor bump stood for a load through a decayed array member (_capDrawChoiceMarker, 2026-09-26)
 
 The seed kept every load after `gGpuPrimCursor = p + 1;` with
 `asm("" : "+r"(p) :: "memory")`. The luis for later constants still crossed

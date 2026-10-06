@@ -960,13 +960,13 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             arg0->state = task->state + 1;
             return;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
                 task->state                    = task->state + 1;
             }
             return;
         case 2:
-            if (Gp_GetCapEventKey() == 0xA) {
+            if (capGetVariantKey() == 0xA) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);

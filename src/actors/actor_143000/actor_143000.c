@@ -327,7 +327,7 @@ static void func_actor_143000_801325F0(Task* arg0)
     p                              = D_actor_143000_80134580;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
     prompt                         = D_80114D28;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
@@ -825,7 +825,7 @@ static void func_actor_143000_801339CC(Task* arg0)
     _Actor143000KeypadWork* work = arg0->work;
     u32                     count;
 
-    if (Gp_CapBusy() == 0) {
+    if (capIsBusy() == 0) {
         count               = (u16)arg0->killCountdown - 1;
         arg0->killCountdown = count;
         if ((s16)count <= 0) {

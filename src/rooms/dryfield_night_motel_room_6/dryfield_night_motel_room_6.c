@@ -917,7 +917,7 @@ void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
             arg0->state++;
             break;
         case 2:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
             }
@@ -928,7 +928,7 @@ void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
             arg0->state++;
             break;
         case 4:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             arg0->state++;

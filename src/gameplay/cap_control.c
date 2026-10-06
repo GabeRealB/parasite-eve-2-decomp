@@ -90,7 +90,7 @@ void Gp_CapTaskState1(Task* task)
     if (Gp_CapFile != 0) {
         Gp_RelocCapFile(Gp_CapFile);
     }
-    if (Gp_CapBusy() != 0 && D_801156B0 != 0) {
+    if (capIsBusy() != 0 && D_801156B0 != 0) {
         D_801156BC++;
         if ((D_801156A4 & 0x20) == 0) {
             if (D_801156BC >= 0x1E) {
@@ -123,7 +123,7 @@ s32 Gp_AbortCapClear(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 s32 func_800E7358(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    return Gp_CapBusy();
+    return capIsBusy();
 }
 
 s32 func_800E7378(Task* task, s32 msgId, s32 arg2, s32 arg3)

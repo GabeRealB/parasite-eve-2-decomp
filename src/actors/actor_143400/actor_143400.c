@@ -612,7 +612,7 @@ EvsCommand D_actor_143400_801359D4[20] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 }; /// With a non-zero `arg0`, clears `Gp_CapFile`, loads capture file 2 and
-/// passes (0x140, 0x100) to `func_800E6D4C`; with zero, resets the capture
+/// passes (0x140, 0x100) to `capSetTexturePage`; with zero, resets the capture
 /// state instead. Reached only through the function pointers in the actor's
 /// data.
 void func_actor_143400_80131E24(s32 arg0)
@@ -620,7 +620,7 @@ void func_actor_143400_80131E24(s32 arg0)
     if (arg0 != 0) {
         Gp_CapFile = 0;
         Gp_LoadCapFile(2);
-        func_800E6D4C(0x140, 0x100);
+        capSetTexturePage(0x140, 0x100);
         return;
     }
     Gp_ResetCap();

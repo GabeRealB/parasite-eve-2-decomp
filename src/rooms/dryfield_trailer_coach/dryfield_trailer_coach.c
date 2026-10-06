@@ -1608,7 +1608,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
             }
             break;
         case 2:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 func_800E8614(D_dryfield_trailer_coach_80185C4C, 0);
             } else if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) < 2) {
                 func_800E8634(D_dryfield_trailer_coach_80185D54, 0,

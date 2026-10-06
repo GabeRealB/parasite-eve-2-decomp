@@ -717,7 +717,7 @@ void func_actor_450900_80131E38(Task* task)
             task->state             = task->state + 1;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             if (gGameSession->eventState != 0) {
@@ -770,7 +770,7 @@ void func_actor_450900_8013207C(Task* task)
             task->state         = task->state + 1;
             return;
         case 1:
-            if ((Gp_CapBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_map_neo_ark_8017A99C - 0x456) >= 0)) {
+            if ((capIsBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_map_neo_ark_8017A99C - 0x456) >= 0)) {
                 if ((D_map_neo_ark_8017A99C - 0x456) % 210 == 0) {
                     coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                     pan   = (s8)worldCoordGetOriginAudioPan(coord);
@@ -804,12 +804,12 @@ void func_actor_450900_8013223C(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state = task->state + 1;
             }
             break;
         case 2:
-            if (Gp_GetCapEventKey() != 0xB) {
+            if (capGetVariantKey() != 0xB) {
                 Gp_MsgPlayerWeapon(1);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
@@ -839,12 +839,12 @@ void func_actor_450900_8013235C(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state = task->state + 1;
             }
             break;
         case 2:
-            if (Gp_GetCapEventKey() != 0xB) {
+            if (capGetVariantKey() != 0xB) {
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
             } else {

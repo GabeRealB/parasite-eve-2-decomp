@@ -83,12 +83,12 @@ void func_neo_ark_altar_8017D668(Task* task)
             task->state++;
             break;
         case 3:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 4:
-            switch (Gp_GetCapEventKey()) {
+            switch (capGetVariantKey()) {
                 case 11:
                     gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE, 0);
                     task->state++;

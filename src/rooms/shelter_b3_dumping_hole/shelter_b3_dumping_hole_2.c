@@ -2955,7 +2955,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             if (gGameSession->eventState != 0) {
                 break;
             }
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE || gPlayerStatus.coordMtx->t[0] < 0x36B1) {

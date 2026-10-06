@@ -675,10 +675,10 @@ void func_mine_refuge_8017FDBC(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
-            if (Gp_GetCapEventKey() == 5) {
+            if (capGetVariantKey() == 5) {
                 arg0->state = arg0->state + 1;
                 return;
             }

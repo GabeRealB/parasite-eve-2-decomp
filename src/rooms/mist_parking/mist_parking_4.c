@@ -442,7 +442,7 @@ void func_mist_parking_80183EAC(Task* task)
             if (gGameSession->eventState != 0) {
                 return;
             }
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             for (i = 0; i < 5; i++) {
@@ -464,10 +464,10 @@ void func_mist_parking_80183EAC(Task* task)
             if (gGameSession->eventState != 0) {
                 return;
             }
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
-            if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() == 1) {
                 Gp_RunCapCmd(7, 0);
                 talk->prizeTimer          = 10;
                 talk->prizeClosingCommand = 2;
@@ -478,7 +478,7 @@ void func_mist_parking_80183EAC(Task* task)
             }
             break;
         case 4:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             // Give each prize ten frames: the caption of one still waiting here
@@ -513,7 +513,7 @@ void func_mist_parking_80183EAC(Task* task)
             if (gGameSession->eventState != 0) {
                 return;
             }
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             tick                = task->killCountdown + 1;
@@ -526,12 +526,12 @@ void func_mist_parking_80183EAC(Task* task)
             }
             break;
         case 7:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 8:
-            key                   = Gp_GetCapEventKey();
+            key                   = capGetVariantKey();
             task->spawnArg1.value = key;
             if (key == 6) {
                 func_800E8614(D_mist_parking_80191214, 1);
@@ -567,7 +567,7 @@ void func_mist_parking_80183EAC(Task* task)
             if (gGameSession->eventState != 0) {
                 return;
             }
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             cmd                 = 0xA;
@@ -603,7 +603,7 @@ void func_mist_parking_801842DC(Task* task)
             task->state++;
             break;
         case 2:
-            key                   = Gp_GetCapEventKey();
+            key                   = capGetVariantKey();
             task->spawnArg1.value = key;
             switch (key) {
                 case 1:
@@ -725,12 +725,12 @@ void func_mist_parking_801846A4(s32 arg0)
         case 1:
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x140, 0x100);
+            capSetTexturePage(0x140, 0x100);
             break;
         case 2:
             Gp_CapFile = 0;
             Gp_LoadCapFile(2);
-            func_800E6D4C(0x2C0, 0);
+            capSetTexturePage(0x2C0, 0);
             break;
     }
 }

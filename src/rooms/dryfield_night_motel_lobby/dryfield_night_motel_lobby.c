@@ -308,7 +308,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
     work->entryCleared       = 0;
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     } else {

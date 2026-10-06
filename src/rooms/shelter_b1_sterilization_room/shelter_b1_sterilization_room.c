@@ -691,7 +691,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
         case 0:
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x2C0, 0x100);
+            capSetTexturePage(0x2C0, 0x100);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
             task->state++;
             break;
@@ -708,7 +708,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
             task->state++;
             break;
         case 4:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;

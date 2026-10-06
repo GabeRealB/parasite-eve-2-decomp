@@ -241,7 +241,7 @@ void func_shelter_b1_armory_80180214(Task* task)
             task->state++;
             break;
         case 4:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 if ((u16)task->spawnArg1.value == 2) {
                     Gp_SetItemSeenBit(0x105, 1);
                 }
@@ -271,7 +271,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             func_800D4D2C(0x40);

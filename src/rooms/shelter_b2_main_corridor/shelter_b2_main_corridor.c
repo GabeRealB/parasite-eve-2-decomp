@@ -1782,13 +1782,13 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             arg0->state++;
             break;
         case 2:
-            if (Gp_GetCapEventKey() == 0xC) {
+            if (capGetVariantKey() == 0xC) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
@@ -1867,8 +1867,8 @@ static s32 _shelterB2MainCorridorHandleSoundMessage(Task* task, s32 messageId, s
 /// the capture ended on event key 0xC, and ends the task.
 void func_shelter_b2_main_corridor_8017E210(Task* arg0)
 {
-    if (Gp_CapBusy() == 0) {
-        if (Gp_GetCapEventKey() != 0xC) {
+    if (capIsBusy() == 0) {
+        if (capGetVariantKey() != 0xC) {
             gameFlagSetNibble(arg0->spawnArg1.value, 2);
         }
         taskKill(arg0);

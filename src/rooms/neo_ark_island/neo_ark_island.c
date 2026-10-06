@@ -579,13 +579,13 @@ void func_neo_ark_island_8017E844(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             arg0->state++;
             return;
         case 2:
-            if (Gp_GetCapEventKey() != 0xA) {
+            if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
                 Gp_MsgPlayerWeapon(1);
                 return;
@@ -655,7 +655,7 @@ s32 func_neo_ark_island_8017EA34(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             sndEvtRequestScriptStart(0x550E0003, 0, 0);
             break;
         case 0x65:
-            if (Gp_GetCapEventKey() == 0) {
+            if (capGetVariantKey() == 0) {
                 sndEvtRequestScriptStart(0x550E0004, 0, 0);
             }
             break;

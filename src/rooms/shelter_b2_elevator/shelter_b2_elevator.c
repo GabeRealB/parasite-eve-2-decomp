@@ -514,12 +514,12 @@ void func_shelter_b2_elevator_8017D888(Task* task)
             task->killCountdown = task->killCountdown + 1;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 2:
-            switch (Gp_GetCapEventKey()) {
+            switch (capGetVariantKey()) {
                 case 0xB:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;

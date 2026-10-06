@@ -162,13 +162,13 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             task->state++;
             return;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             return;
         case 2:
-            if (Gp_GetCapEventKey() != 0xA) {
-                if (Gp_GetCapEventKey() == 1) {
+            if (capGetVariantKey() != 0xA) {
+                if (capGetVariantKey() == 1) {
                     gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 2);
                 }
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

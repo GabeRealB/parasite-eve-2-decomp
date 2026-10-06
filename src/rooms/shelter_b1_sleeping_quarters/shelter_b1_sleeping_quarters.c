@@ -138,12 +138,12 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
         case 0:
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x2C0, 0);
+            capSetTexturePage(0x2C0, 0);
             Gp_RunCapCmd(task->spawnArg1.value, 1);
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;

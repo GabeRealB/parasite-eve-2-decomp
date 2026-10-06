@@ -1928,7 +1928,7 @@ void func_actor_160900_8013418C(Task* arg0)
             }
             Gp_CapFile = 0;
             Gp_LoadCapFile(3);
-            func_800E6D4C(0x180, 0);
+            capSetTexturePage(0x180, 0);
             arg0->state += 1;
             return;
         case 1:

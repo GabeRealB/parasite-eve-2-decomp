@@ -431,14 +431,14 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             task->state++;
             return;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             task->state++;
             return;
         case 2:
             D_80114D08 = 0xA;
-            if (Gp_GetCapEventKey() == 0xC) {
+            if (capGetVariantKey() == 0xC) {
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;
@@ -493,14 +493,14 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 return;
             }
             task->state++;
             return;
         case 2:
             D_80114D08 = 0xA;
-            if (Gp_GetCapEventKey() == 0xC) {
+            if (capGetVariantKey() == 0xC) {
                 taskKill(task);
                 Gp_MsgPlayerWeapon(1);
                 return;
@@ -626,8 +626,8 @@ s32 func_neo_ark_eve_access_tunnel_8017DE9C(Task* arg0, s32 arg1, s32 arg2, s32 
 /// the task's spawn argument to 2, and ends the task.
 void func_neo_ark_eve_access_tunnel_8017DED0(Task* arg0)
 {
-    if (Gp_CapBusy() == 0) {
-        if (Gp_GetCapEventKey() != 0xC) {
+    if (capIsBusy() == 0) {
+        if (capGetVariantKey() != 0xC) {
             gameFlagSetNibble(arg0->spawnArg1.value, 2);
         }
         taskKill(arg0);

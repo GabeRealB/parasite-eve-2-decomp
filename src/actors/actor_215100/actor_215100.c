@@ -232,7 +232,7 @@ void func_actor_215100_80149F2C(Task* task)
         case 0x2:
             gGameSession->eventState = 1;
             if (task->spawnArg1.value != 0) {
-                if (Gp_GetCapEventKey() != 0) {
+                if (capGetVariantKey() != 0) {
                     task->state = 5;
                 } else {
                     task->state = 4;
@@ -269,7 +269,7 @@ void func_actor_215100_80149F2C(Task* task)
             task->state++;
             break;
         case 0xB:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 func_mist_shooting_gallery_80180B34(0);
                 task->state++;
             }
@@ -282,7 +282,7 @@ void func_actor_215100_80149F2C(Task* task)
             task->state++;
             break;
         case 0x15:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 func_mist_shooting_gallery_8017F95C(0);
                 task->state++;
             }
@@ -308,17 +308,17 @@ void func_actor_215100_80149F2C(Task* task)
             if (task->killCountdown == -0x16) {
                 TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(1), 0x7D3, &D_actor_215100_8014CFAC, 0);
             }
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
         case 0x20:
-            D_actor_215100_8015E670 = Gp_GetCapEventKey();
+            D_actor_215100_8015E670 = capGetVariantKey();
             func_mist_shooting_gallery_8017DCAC(D_actor_215100_8015E670);
             task->state = 0x28;
             break;
         case 0x28:
-            Gp_StartCapSlot(Gp_GetCapEventKey() + 0xB, 0, 0);
+            Gp_StartCapSlot(capGetVariantKey() + 0xB, 0, 0);
             func_800E8614(D_actor_215100_8014F138, 1);
             task->state++;
             break;

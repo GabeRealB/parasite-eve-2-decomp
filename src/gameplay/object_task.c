@@ -132,7 +132,7 @@ void Gp_EvtCapTask(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state++;
             }
             break;

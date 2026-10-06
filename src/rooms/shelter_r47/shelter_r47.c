@@ -869,12 +869,12 @@ static void func_shelter_r47_80180650(Task* task)
         case 0:
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x240, 0x100);
+            capSetTexturePage(0x240, 0x100);
             Gp_RunCapCmd1(task->spawnArg1.value);
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             task->state++;
@@ -923,12 +923,12 @@ static void func_shelter_r47_8018080C(Task* task)
             Gp_ResetCap();
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x240, 0x100);
+            capSetTexturePage(0x240, 0x100);
             Gp_RunCapCmd1(8);
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             Gp_ResetCap();
@@ -950,12 +950,12 @@ static void func_shelter_r47_801808D4(Task* task)
             Gp_ResetCap();
             Gp_CapFile = 0;
             Gp_LoadCapFile(2);
-            func_800E6D4C(0x140, 0x100);
+            capSetTexturePage(0x140, 0x100);
             Gp_RunCapCmd1(7);
             task->state++;
             break;
         case 1:
-            if (Gp_CapBusy() != 0) {
+            if (capIsBusy() != 0) {
                 break;
             }
             Gp_ResetCap();
@@ -1215,7 +1215,7 @@ void func_shelter_r47_80181568(Task* task)
     func_shelter_r47_80181914(task, 0);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
-    if (Gp_CapBusy() != 0) {
+    if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;

@@ -157,7 +157,7 @@ void Gp_CommitDirWarp(void)
 void Gp_PostDirIfCapIdle(void)
 {
     if (gGameSession->eventState == 0) {
-        if (Gp_CapBusy() == 0) {
+        if (capIsBusy() == 0) {
             if (Gp_DirNibble == WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, Gp_DirByte, 0);
             } else {

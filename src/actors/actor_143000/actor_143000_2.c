@@ -106,7 +106,7 @@ EvsCommand D_actor_143000_801351B0[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143000_801344D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackSetText = func_800E6E44 }, { .captionText = func_actor_143000_801342F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackSetText = capSetTextUpdateCallback }, { .captionText = func_actor_143000_801342F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_143000_80135174 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -257,7 +257,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             Gp_MsgPlayerWeapon(0);
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
-            func_800E6D4C(0x340, 0);
+            capSetTexturePage(0x340, 0);
             Gp_SetItemSeenBit(0x121, 1);
             Gp_SetItemSeenBit(0x122, 1);
             func_800E8614(D_actor_143000_80135A20, 1);
@@ -278,12 +278,12 @@ void func_actor_143000_80133EE4(Task* arg0)
             arg0->state++;
             return;
         case 3:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state++;
             }
             return;
         case 4:
-            switch (Gp_GetCapEventKey()) {
+            switch (capGetVariantKey()) {
                 case 0xA:
                     arg0->state = 0x14;
                     return;
@@ -297,7 +297,7 @@ void func_actor_143000_80133EE4(Task* arg0)
                     return;
             }
         case 5:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state = 0xA;
             }
             return;
@@ -328,7 +328,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             arg0->state++;
             return;
         case 21:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state++;
             }
             return;
@@ -345,12 +345,12 @@ void func_actor_143000_80133EE4(Task* arg0)
             arg0->state++;
             return;
         case 23:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state++;
             }
             return;
         case 24:
-            if (Gp_GetCapEventKey() == 0xB) {
+            if (capGetVariantKey() == 0xB) {
                 D_actor_143000_80135C1C++;
             }
             D_actor_143000_80135C18++;
@@ -370,7 +370,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             return;
         case 6:
         case 31:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 arg0->state = 2;
             }
             return;
@@ -379,7 +379,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             arg0->state++;
             return;
         case 41:
-            if (Gp_CapBusy() == 0) {
+            if (capIsBusy() == 0) {
                 Gp_ResetCap();
                 func_800E3FAC(0xA2, 0x27);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 2);
@@ -435,7 +435,7 @@ void func_actor_143000_801344D8(void)
 {
     Gp_CapFile = 0;
     Gp_LoadCapFile(3);
-    func_800E6D4C(0x180, 0x100);
+    capSetTexturePage(0x180, 0x100);
 }
 
 void func_actor_143000_8013450C(void)
