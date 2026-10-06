@@ -2298,15 +2298,11 @@ static void func_actor_800100_80165010(Task* arg0)
             }
             break;
         case 2:
-            if (dist >= 0x301 || dist == 0) {
-                if (--actor->stateTimer > 0) {
-                    goto setFlag;
-                }
+            if ((dist < 0x301 && dist != 0) || --actor->stateTimer <= 0) {
+                companionEnterIdle(arg0, 0);
+            } else {
+                actor->movementSign = 1;
             }
-            companionEnterIdle(arg0, 0);
-            break;
-        setFlag:
-            actor->movementSign = 1;
             break;
     }
     func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
