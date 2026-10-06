@@ -83,10 +83,11 @@ void shelterB1MainCorridorRoomVisualEffectsMoteTask(Task* task);
 ///
 /// Requires a coordinate body and zeroed, counted `EffectWork` from
 /// `Gp_SpawnEff`; its parent stays live and `pos` is the parent-space offset.
-/// The signed halves of `spawnArg1` hold a positive expansion duration in active
-/// ticks (low) and tint index 0..2 (high). Initialization replaces the word with
-/// the remaining duration. Nonzero room effect control pauses it; values 4 and
-/// above cancel it. State 3 requests release; teardown frees the counted work.
+/// The unsigned low half of `spawnArg1` holds an expansion duration of 1..65535
+/// active ticks; the signed high half selects tint index 0..2. Initialization
+/// replaces the word with the remaining duration. Nonzero room effect control
+/// pauses it; values 4 and above cancel it. State 3 requests release; teardown
+/// frees the counted work.
 void shelterB1MainCorridorRoomVisualEffectsHaloTask(Task* task);
 
 /// Runs the room's growing orange disc and glow within an expanding, fading ring.
