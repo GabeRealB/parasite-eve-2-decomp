@@ -3018,6 +3018,33 @@ static void func_actor_421600_8013903C(Task* arg0)
 
 #include "../../shared/desert_chaser_steer.inc.c"
 
+/// Pulls a position that left the arena back inside: X first, and Z only when
+/// X was in range.
+static __inline__ void Actor421600_ClampToArena(GfxCoord* coord)
+{
+    s32 x;
+    s32 z;
+
+    x = coord->coord.t[0];
+    if (x > 0) {
+        if (x >= 0xBEB) {
+            coord->coord.t[0] = 0xB54;
+            return;
+        }
+    } else if (x < -0xB22) {
+        coord->coord.t[0] = -0xA8C;
+        return;
+    }
+    z = coord->coord.t[2];
+    if (z > 0) {
+        if (z >= 0xB23) {
+            coord->coord.t[2] = 0xA8C;
+        }
+    } else if (z < -0xB22) {
+        coord->coord.t[2] = -0xA8C;
+    }
+}
+
 /// Death / respawn tick: re-arms the model buffers and the 0x828 motion block,
 /// fires the 0x40010009 spawn sound and the 0x40010007 tick sound (draining
 /// `hp` by 0xF and flooring it at 1), then walks the two `WorldCollisionContact`
@@ -3029,14 +3056,11 @@ static void func_actor_421600_8013947C(Task* arg0)
 {
     DesertChaserWork* work;
     Enemy*            ctx;
-    GfxCoord*         coord;
     TmdObject*        obj;
     s32               sound;
     s32               pan;
     s32               eventSound;
     s32               eventPan;
-    s32               x;
-    s32               z;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
@@ -3069,27 +3093,7 @@ static void func_actor_421600_8013947C(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts));
     if (work->lastCommand.fields.command == 2) {
-        coord = arg0->extra.tmd->coords;
-        x     = coord->coord.t[0];
-        if (x > 0) {
-            if (x >= 0xBEB) {
-                coord->coord.t[0] = 0xB54;
-            } else {
-                goto block_10;
-            }
-        } else if (x < -0xB22) {
-            coord->coord.t[0] = -0xA8C;
-        } else {
-        block_10:
-            z = coord->coord.t[2];
-            if (z > 0) {
-                if (z >= 0xB23) {
-                    coord->coord.t[2] = 0xA8C;
-                }
-            } else if (z < -0xB22) {
-                coord->coord.t[2] = -0xA8C;
-            }
-        }
+        Actor421600_ClampToArena(arg0->extra.tmd->coords);
     } else {
         func_actor_421600_80133334(arg0->extra.tmd->coords);
     }
@@ -3721,33 +3725,6 @@ static __inline__ s32 Actor421600_RouteZone(s32 x, s32 z)
     s32 ix = x > 0;
     s32 iz = z < 1;
     return D_actor_421600_801511D0[ix + (iz * 2)];
-}
-
-/// Pulls a position that left the arena back inside: X first, and Z only when
-/// X was in range.
-static __inline__ void Actor421600_ClampToArena(GfxCoord* coord)
-{
-    s32 x;
-    s32 z;
-
-    x = coord->coord.t[0];
-    if (x > 0) {
-        if (x >= 0xBEB) {
-            coord->coord.t[0] = 0xB54;
-            return;
-        }
-    } else if (x < -0xB22) {
-        coord->coord.t[0] = -0xA8C;
-        return;
-    }
-    z = coord->coord.t[2];
-    if (z > 0) {
-        if (z >= 0xB23) {
-            coord->coord.t[2] = 0xA8C;
-        }
-    } else if (z < -0xB22) {
-        coord->coord.t[2] = -0xA8C;
-    }
 }
 
 static void func_actor_421600_8013BA70(Task* arg0)
