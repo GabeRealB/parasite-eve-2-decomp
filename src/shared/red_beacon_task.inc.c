@@ -1,18 +1,20 @@
 /* Part of the red beacon library; see red_beacon.h. */
 
-/// Sets the vertices of one half of the beacon's diamond around its screen centre.
+/// Lays out one Gouraud quad as the upper or lower half of the beacon's diamond.
 ///
-/// Borrows a writable quad and a scratch record with pixel `screenPos` and
-/// nonnegative `halfExtent`. `halfIndex` is 0 for the upper half, 1 for the
-/// lower half. Coordinates narrow to the packet's signed 16-bit fields;
-/// colour and packet-link fields remain intact.
+/// `beaconQuad` borrows one writable packet; `glowScratch` supplies its projected
+/// centre and nonnegative half extent in pixels. `halfIndex` selects 0 (upper)
+/// or 1 (lower). Vertices 0 and 3 are the left and right tips, vertex 1 is the
+/// selected vertical tip, and vertex 2 is the centre where the glow is brightest.
+/// Coordinates narrow to signed 16-bit packet fields without clipping; the
+/// caller supplies colours and queues the packet. Neither pointer is retained.
 static inline void _redBeaconSetHalfBounds(POLY_G4* beaconQuad, const RoomGlowSpriteScratch* glowScratch, s32 halfIndex)
 {
     beaconQuad->x0 = glowScratch->screenPos.vx - glowScratch->halfExtent;
     beaconQuad->x1 = beaconQuad->x2 = glowScratch->screenPos.vx;
     beaconQuad->x3                  = glowScratch->screenPos.vx + glowScratch->halfExtent;
     beaconQuad->y0 = beaconQuad->y2 = beaconQuad->y3 = glowScratch->screenPos.vy;
-    beaconQuad->y1                                   = (glowScratch->screenPos.vy - glowScratch->halfExtent) + glowScratch->halfExtent * (halfIndex + halfIndex);
+    beaconQuad->y1                                   = (glowScratch->screenPos.vy - glowScratch->halfExtent) + glowScratch->halfExtent * (halfIndex << 1);
 }
 
 void RED_BEACON_TASK(Task* task)
