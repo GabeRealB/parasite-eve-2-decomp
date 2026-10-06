@@ -6,6 +6,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
+#include "common.h"
 #include "gte.h"
 #include "types.h"
 
@@ -24,7 +25,6 @@
 #include "main/display_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -71,14 +71,26 @@ typedef struct {
 } _ShelterB2PodBottomDiscScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB2PodBottomDiscScratch, 0x120);
 
-static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 arg2);
-static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coord, s32 arg2);
-static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 color, u16 scale);
+enum {
+    SHELTER_B2_POD_BOTTOM_EFFECT_INIT    = 0,
+    SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE  = 1,
+    SHELTER_B2_POD_BOTTOM_EFFECT_FADE    = 2,
+    SHELTER_B2_POD_BOTTOM_TRIG_SHIFT     = 12,
+    SHELTER_B2_POD_BOTTOM_FULL_TURN      = 0x1000,
+    SHELTER_B2_POD_BOTTOM_HALF_TURN      = 0x800,
+    SHELTER_B2_POD_BOTTOM_QUARTER_TURN   = 0x400,
+    SHELTER_B2_POD_BOTTOM_EIGHTH_TURN    = 0x200,
+    SHELTER_B2_POD_BOTTOM_SIXTEENTH_TURN = 0x100
+};
+
+static void _shelterB2PodBottomDrawShockRing(const GfxCoord* coord, s16 innerRadius, s16 brightness);
+static void _shelterB2PodBottomDrawArcFlashBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex);
+static void _shelterB2PodBottomDrawLightBeam(const GfxCoord* coord, s16 radiusScale, u16 packedColor, u16 brightness);
 
 extern u16 D_shelter_b2_pod_bottom_80188790[3][16];
 
-static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* rgb);
-static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
+static void _shelterB2PodBottomDrawStarburst(const GfxCoord* coord, s32 radiusScale, const u8* rgb);
+static void _shelterB2PodBottomDrawBurstBlade(const GfxCoord* coord, s32 radiusScale, s32 bladeAngle, const u8* rgb);
 
 // All eight angles are initialized before use. The package contains only
 // the first twelve zero bytes of this sixteen-byte runtime allocation.
@@ -273,27 +285,28 @@ u16 D_shelter_b2_pod_bottom_80188790[3][16] = { 0 };
 
 static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVECTOR* center);
 
-/// On its first frame (state 0) fills three rows of 16 random bytes in
-/// `D_shelter_b2_pod_bottom_80188790` from the gameplay LCG and turns off
-/// `groundTraceEnabled`; every frame, disables the ground shadow in view 0xF and
-/// selects shade row 0 elsewhere.
-void func_shelter_b2_pod_bottom_8017D760(Task* task)
+void shelterB2PodBottomShadowTask(Task* task)
 {
-    s32 i;
+    enum {
+        SHELTER_B2_POD_BOTTOM_SHADOW_HIDDEN_VIEW = 15,
+        SHELTER_B2_POD_BOTTOM_MAPPED_VIEW_MASK   = 0xFF
+    };
 
-    if (task->state == 0) {
-        for (i = 0; i < 16; i++) {
-            gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            D_shelter_b2_pod_bottom_80188790[0][i] = (gRandomLcgState >> 16) & 0xFF;
-            gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            D_shelter_b2_pod_bottom_80188790[1][i] = (gRandomLcgState >> 16) & 0xFF;
-            gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            D_shelter_b2_pod_bottom_80188790[2][i] = (gRandomLcgState >> 16) & 0xFF;
+    s32 segmentIndex;
+
+    if (task->state == SHELTER_B2_POD_BOTTOM_EFFECT_INIT) {
+        for (segmentIndex = 0; segmentIndex < (s32)ARRAY_SIZE(D_shelter_b2_pod_bottom_80188790[0]); segmentIndex++) {
+            gRandomLcgState                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_shelter_b2_pod_bottom_80188790[0][segmentIndex] = (gRandomLcgState >> 16) & 0xFF;
+            gRandomLcgState                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_shelter_b2_pod_bottom_80188790[1][segmentIndex] = (gRandomLcgState >> 16) & 0xFF;
+            gRandomLcgState                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_shelter_b2_pod_bottom_80188790[2][segmentIndex] = (gRandomLcgState >> 16) & 0xFF;
         }
-        task->state                          = 1;
+        task->state                          = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
         gRoomEffectState->groundTraceEnabled = false;
     }
-    if ((viewGetMappedIndex() & 0xFF) == 0xF) {
+    if ((viewGetMappedIndex() & SHELTER_B2_POD_BOTTOM_MAPPED_VIEW_MASK) == SHELTER_B2_POD_BOTTOM_SHADOW_HIDDEN_VIEW) {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
     } else {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
@@ -315,147 +328,166 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
 #define EFFECT_SPRITE_ROTATED_DEPTH_BIAS 1
 #include "../../shared/effect_sprite_draw_rotated.inc.c"
 
-/// Draws a glowing band: two 16-vertex rings in the XZ plane, the inner of
-/// radius `arg1` at a height of -0x180 and the outer of radius `arg1 + 0x200`
-/// at 0, are rotated by `coord`'s `workm` and offset by its translation, then
-/// each of the 16 segments is projected through `GsWSMATRIX` as one
-/// `POLY_G4`. The inner edge carries the `(arg2 >> 1, arg2 >> 1, arg2)` colour
-/// and the outer edge fades to black; a negative `gte_stflg` drops the
-/// segment.
-static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 arg2)
+/// Projects a band segment while preserving the first corner before RTPT.
+///
+/// Borrows a live, initialized scratch block with both 16-point rims. The GTE
+/// projection matrices must be set, and `segmentIndex` is 0..15, wrapping at
+/// the seam. Updates the four screen corners and only the final RTPT flags.
+/// Leaves the final SZ3 in the GTE for depth sorting; retains no pointer.
+static inline void _shelterB2PodBottomProjectShockRingSegment(EffectBandScratch* scratch, s32 segmentIndex)
 {
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_G4*           prim;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s16                r0;
-    s16                r1;
-    u8                 red;
-    u8                 grn;
-    u8                 blu;
+    s32 nextSegmentIndex;
 
-    r1    = arg1 + 0x200;
-    red   = arg2 >> 1;
-    grn   = arg2 >> 1;
-    blu   = arg2;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+    gte_ldv0(&scratch->topRing[segmentIndex]);
+    gte_rtps();
+    gte_stsxy(&scratch->sxy0);
+    nextSegmentIndex = (segmentIndex + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
+    gte_ldv3(&scratch->topRing[nextSegmentIndex], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex]);
+    gte_rtpt();
+    gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
+    gte_stflg(&scratch->projectionFlags);
+}
+
+/// Draws the blue shock ring with a raised bright rim and a wider black rim.
+///
+/// Borrows a composed `coord`. The 16-vertex XZ rims have radii `innerRadius`
+/// and `innerRadius + 512`, at local Y -384 and 0, with signed-halfword wrap.
+/// Bright RGB is (brightness >> 1, brightness >> 1, brightness), narrowed to bytes.
+/// Projects through GsWSMATRIX and queues up to 16 additive Gouraud quads.
+/// Only the final RTPT flags reject a segment; sorting uses its last SZ3/4.
+/// Requires initialized scratch and packet space; retains no pointer.
+static void _shelterB2PodBottomDrawShockRing(const GfxCoord* coord, s16 innerRadius, s16 brightness)
+{
+    enum {
+        SHELTER_B2_POD_BOTTOM_SHOCK_RING_WIDTH = 512,
+        SHELTER_B2_POD_BOTTOM_SHOCK_RING_LIFT  = 384
+    };
+
+    EffectBandScratch* scratch;
+    SVECTOR*           outerVertex;
+    POLY_G4*           quad;
+    s32                segmentIndex;
+    s32                angle;
+    s16                raisedRadius;
+    s16                outerRadius;
+    u8                 red;
+    u8                 green;
+    u8                 blue;
+
+    outerRadius = innerRadius + SHELTER_B2_POD_BOTTOM_SHOCK_RING_WIDTH;
+    red         = brightness >> 1;
+    green       = brightness >> 1;
+    blue        = brightness;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    r0 = arg1;
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = -0x180;
-        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
+    raisedRadius = innerRadius;
+    // Build the raised bright rim and ground-level dark rim before projection.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        angle                             = segmentIndex * SHELTER_B2_POD_BOTTOM_SIXTEENTH_TURN;
+        scratch->topRing[segmentIndex].vx = (rsin(angle) * raisedRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
+        scratch->topRing[segmentIndex].vy = -SHELTER_B2_POD_BOTTOM_SHOCK_RING_LIFT;
+        scratch->topRing[segmentIndex].vz = (rcos(angle) * raisedRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->topRing[i]);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * r1) >> 12;
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx    = (u16)scratch->topRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy    = (u16)scratch->topRing[segmentIndex].vy + (u16)coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz    = (u16)scratch->topRing[segmentIndex].vz + (u16)coord->workm.t[2];
+        scratch->bottomRing[segmentIndex].vx = (rsin(angle) * outerRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
+        // This byte view stays within the complete scratch object.
+        outerVertex     = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        outerVertex->vy = 0;
+        outerVertex->vz = (rcos(angle) * outerRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->bottomRing[i]);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        scratch->bottomRing[segmentIndex].vx = (u16)scratch->bottomRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        outerVertex->vy                      = (u16)outerVertex->vy + (u16)coord->workm.t[1];
+        outerVertex->vz                      = (u16)outerVertex->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, red, grn, blu);
-            setRGB1(prim, red, grn, blu);
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        _shelterB2PodBottomProjectShockRingSegment(scratch, segmentIndex);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, red, green, blue);
+            setRGB1(quad, red, green, blue);
+            setRGB2(quad, 0, 0, 0);
+            setRGB3(quad, 0, 0, 0);
+            quad->x0 = scratch->sxy0.vx;
+            quad->y0 = scratch->sxy0.vy;
+            quad->x1 = scratch->sxy1.vx;
+            quad->y1 = scratch->sxy1.vy;
+            quad->x2 = scratch->sxy2.vx;
+            quad->y2 = scratch->sxy2.vy;
+            quad->x3 = scratch->sxy3.vx;
+            quad->y3 = scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-/// State 0 resets the coordinate frame's rotation to identity and starts the
-/// colour ramp at 0xA0. State 1 steps the ramps while no event is running
-/// (holding the tick otherwise), calls `func_shelter_b2_pod_bottom_8017EEAC`
-/// for indices 0-2, then draws three arcs stacked up the frame's Y axis and a
-/// fade quad in the ramp colour. The work is released once the ramp reaches 8
-/// or an event of state 4 or above starts.
-void func_shelter_b2_pod_bottom_8017EC78(Task* task)
+void shelterB2PodBottomArcFlashTask(Task* task)
 {
-    EffectWork*       work;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    u16               tick;
-    u8                rgb[3];
+    enum {
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_INITIAL_BRIGHTNESS = 160,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_FADE_STEP          = 8,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_VISIBLE_MIN        = 9,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_RADIUS_STEP        = 128,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_LIFT_STEP          = 32,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_Y_STEP        = 48,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_WIDTH         = 256
+    };
+
+    EffectWork* work;
+    GfxCoord*   coord;
+    u16         previousAge;
+    u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        tick                = work->age;
-        work->age           = tick + 1;
+        previousAge         = work->age;
+        work->age           = previousAge + 1;
         switch (task->state) {
-            case 0:
-                rot         = (GfxRotationWords*)&coord->coord;
-                rot->m00M01 = ONE;
-                rot->m02M10 = 0;
-                rot->m11M12 = ONE;
-                rot->m20M21 = 0;
-                rot->m22    = ONE;
-                work->scale = 0xA0;
+            case SHELTER_B2_POD_BOTTOM_EFFECT_INIT:
+                gfxSetRotIdentity(&coord->coord);
+                work->scale = SHELTER_B2_POD_BOTTOM_ARC_FLASH_INITIAL_BRIGHTNESS;
                 task->state++;
                 return;
-            case 1:
-                if (work->scale < 9) {
+            case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
+                if (work->scale < SHELTER_B2_POD_BOTTOM_ARC_FLASH_VISIBLE_MIN) {
                     break;
                 }
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    work->scale  -= 8;
-                    work->angle  += 0x80;
-                    work->period -= 0x20;
-                    work->step   += 0x20;
+                    work->scale  -= SHELTER_B2_POD_BOTTOM_ARC_FLASH_FADE_STEP;
+                    work->angle  += SHELTER_B2_POD_BOTTOM_ARC_FLASH_RADIUS_STEP;
+                    work->period -= SHELTER_B2_POD_BOTTOM_ARC_FLASH_LIFT_STEP;
+                    work->step   += SHELTER_B2_POD_BOTTOM_ARC_FLASH_LIFT_STEP;
                 } else {
-                    work->age = tick;
+                    work->age = previousAge;
                 }
-                func_shelter_b2_pod_bottom_8017EEAC(work, coord, 0);
-                func_shelter_b2_pod_bottom_8017EEAC(work, coord, 1);
-                func_shelter_b2_pod_bottom_8017EEAC(work, coord, 2);
-                rgb[0] = rgb[1]    = work->scale;
-                rgb[2]             = work->scale * 3 / 2;
-                coord->workm.t[1] -= work->age * 0x30;
-                effectDrawOuterGlowBand(coord, (s16)(work->age << 6), 0x100, rgb);
-                coord->workm.t[1] -= work->age * 0x30;
-                effectDrawOuterGlowBand(coord, (s16)(work->age << 7), 0x100, rgb);
-                coord->workm.t[1] -= work->age * 0x30;
-                effectDrawOuterGlowBand(coord, (s16)(work->age * 0xC0), 0x100, rgb);
+                _shelterB2PodBottomDrawArcFlashBand(work, coord, 0);
+                _shelterB2PodBottomDrawArcFlashBand(work, coord, 1);
+                _shelterB2PodBottomDrawArcFlashBand(work, coord, 2);
+                rgb[0] = rgb[1] = work->scale;
+                rgb[2]          = work->scale * 3 / 2;
+                // Stack the glow rings by displacing the cache cumulatively.
+                coord->workm.t[1] -= work->age * SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_Y_STEP;
+                effectDrawOuterGlowBand(coord, (s16)(work->age << 6), SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_WIDTH, rgb);
+                coord->workm.t[1] -= work->age * SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_Y_STEP;
+                effectDrawOuterGlowBand(coord, (s16)(work->age << 7), SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_WIDTH, rgb);
+                coord->workm.t[1] -= work->age * SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_Y_STEP;
+                effectDrawOuterGlowBand(coord, (s16)(work->age * 0xC0), SHELTER_B2_POD_BOTTOM_ARC_FLASH_RING_WIDTH, rgb);
                 effectDrawScreenTint(rgb, GPU_BLEND_ADD);
                 return;
             default:
@@ -465,136 +497,164 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
     effectKillTask(work, task);
 }
 
-/// Draws band `arg2` of the effect as sixteen semi-transparent `POLY_FT4`
-/// segments. Builds two 16-vertex rings in the XZ plane - one at the frame's
-/// origin height, one raised and wider - from the work's ramps plus the row's
-/// `D_shelter_b2_pod_bottom_80181C94` offsets, moves them into world space
-/// through `coord`, then projects each segment between the rings and picks its
-/// texture cell from the row's `D_shelter_b2_pod_bottom_80188790` value and the
-/// work's tick.
-static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coord, s32 arg2)
-{
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_FT4*          prim;
-    EffectBandShape*   row;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u;
-    u16                idx;
-    s16                r0;
-    s16                r1;
-    u16                y;
-    u16                f28;
+/// Projects a band segment while preserving the first corner before RTPT.
+///
+/// Borrows a live, initialized scratch block with both 16-point rims. The GTE
+/// projection matrices must be set, and `segmentIndex` is 0..15, wrapping at
+/// the seam. Updates the four screen corners and only the final RTPT flags.
+/// Leaves the final SZ3 in the GTE for depth sorting; retains no pointer.
+/// `bandIndex` is 0..2 in the initialized phase table. Writes signed age plus
+/// phase modulo six, narrowed to u16, to `textureFrame`; `nextSegmentIndex`
+/// receives the wrapped neighbour. The phase lookup precedes the first FIFO read.
+/// `scratch`, `work`, `bandIndex` and `segmentIndex` are evaluated repeatedly;
+/// all arguments must be side-effect-free, and the outputs writable scalars.
+/// Captures the initialized room phase table and the frame-count enum in its
+/// drawer. This is a statement sequence: use only inside braces, as below.
+#define SHELTER_B2_POD_BOTTOM_PROJECT_ARC_FLASH_SEGMENT(scratch, work, bandIndex, segmentIndex, textureFrame, nextSegmentIndex)                   \
+    gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                                \
+    gte_rtps();                                                                                                                                   \
+    (textureFrame) = (D_shelter_b2_pod_bottom_80188790[(bandIndex)][(segmentIndex)] + (work)->age) % SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_COUNT; \
+    gte_stsxy(&(scratch)->sxy0);                                                                                                                  \
+    (nextSegmentIndex) = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                                  \
+    gte_ldv3(&(scratch)->topRing[(nextSegmentIndex)], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[(nextSegmentIndex)]);        \
+    gte_rtpt();                                                                                                                                   \
+    gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                             \
+    gte_stflg(&(scratch)->projectionFlags);
 
-    row   = &D_shelter_b2_pod_bottom_80181C94[arg2];
-    f28   = work->period;
-    r1    = work->angle;
-    y     = f28 + row->lift;
-    r1   += row->baseRadius;
-    r0    = r1 + work->step + row->spread;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+/// Draws one of the arc flash's three animated, raised textured bands.
+///
+/// `bandIndex` is 0..2 in the shape and initialized per-segment phase tables.
+/// Angle/step/period in `work` supply base radius/spread/lift, in coordinate
+/// units with halfword wrapping; scale's low byte modulates all RGB channels.
+/// Age plus each phase selects one of six 40-texel frames by signed remainder.
+/// Normal ages are nonnegative. Borrows a composed `coord` and projects through
+/// GsWSMATRIX; only the final RTPT flags reject a quad, sorted at its last SZ3/4.
+/// Queues at most 16 semitransparent FT4s; needs scratch and packet capacity.
+/// Retains no pointer.
+static void _shelterB2PodBottomDrawArcFlashBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex)
+{
+    enum {
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_COUNT  = 6,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_TEXELS = 40,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_TOP_V        = 96,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_BOTTOM_V     = 135,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_TEXTURE_PAGE = 0x2A,
+        SHELTER_B2_POD_BOTTOM_ARC_FLASH_CLUT         = 0x42C1
+    };
+
+    EffectBandScratch*     scratch;
+    SVECTOR*               baseVertex;
+    POLY_FT4*              quad;
+    const EffectBandShape* shape;
+    s32                    segmentIndex;
+    s32                    nextSegmentIndex;
+    s32                    angle;
+    s32                    leftU;
+    u16                    textureFrame;
+    s16                    raisedRadius;
+    s16                    baseRadius;
+    u16                    lift;
+    u16                    animatedLift;
+
+    shape        = &D_shelter_b2_pod_bottom_80181C94[bandIndex];
+    animatedLift = work->period;
+    baseRadius   = work->angle;
+    lift         = animatedLift + shape->lift;
+    baseRadius  += shape->baseRadius;
+    raisedRadius = baseRadius + work->step + shape->spread;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = -y;
-        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
+    // Wrap rotated local positions to halfwords, then translate both rims.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        angle                             = segmentIndex * SHELTER_B2_POD_BOTTOM_SIXTEENTH_TURN;
+        scratch->topRing[segmentIndex].vx = (rsin(angle) * raisedRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
+        scratch->topRing[segmentIndex].vy = -lift;
+        scratch->topRing[segmentIndex].vz = (rcos(angle) * raisedRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->topRing[i]);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)coord->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)coord->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)coord->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * r1) >> 12;
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx    = (u16)scratch->topRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy    = (u16)scratch->topRing[segmentIndex].vy + (u16)coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz    = (u16)scratch->topRing[segmentIndex].vz + (u16)coord->workm.t[2];
+        scratch->bottomRing[segmentIndex].vx = (rsin(angle) * baseRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
+        // Address the base rim through the complete scratch object.
+        baseVertex     = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        baseVertex->vy = 0;
+        baseVertex->vz = (rcos(angle) * baseRadius) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT;
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&block->bottomRing[i]);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
         gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)coord->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)coord->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)coord->workm.t[2];
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        scratch->bottomRing[segmentIndex].vx = (u16)scratch->bottomRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        baseVertex->vy                       = (u16)baseVertex->vy + (u16)coord->workm.t[1];
+        baseVertex->vz                       = (u16)baseVertex->vz + (u16)coord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        idx = (D_shelter_b2_pod_bottom_80188790[arg2][i] + work->age) % 6;
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            setRGB0(prim, *(u8*)&work->scale, *(u8*)&work->scale, *(u8*)&work->scale);
-            setSemiTrans(prim, 1);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x42C1;
-            u           = idx * 0x28;
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        SHELTER_B2_POD_BOTTOM_PROJECT_ARC_FLASH_SEGMENT(scratch, work, bandIndex, segmentIndex, textureFrame, nextSegmentIndex);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            // Read the low brightness byte directly; this is an intentional byte view.
+            setRGB0(quad, *(const u8*)&work->scale, *(const u8*)&work->scale, *(const u8*)&work->scale);
+            setSemiTrans(quad, 1);
+            quad->tpage = SHELTER_B2_POD_BOTTOM_ARC_FLASH_TEXTURE_PAGE;
+            quad->clut  = SHELTER_B2_POD_BOTTOM_ARC_FLASH_CLUT;
+            leftU       = textureFrame * SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_TEXELS;
+            setUV4(quad, leftU, SHELTER_B2_POD_BOTTOM_ARC_FLASH_TOP_V, leftU + SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_TEXELS - 1, SHELTER_B2_POD_BOTTOM_ARC_FLASH_TOP_V, leftU, SHELTER_B2_POD_BOTTOM_ARC_FLASH_BOTTOM_V, leftU + SHELTER_B2_POD_BOTTOM_ARC_FLASH_FRAME_TEXELS - 1, SHELTER_B2_POD_BOTTOM_ARC_FLASH_BOTTOM_V);
+            quad->x0 = scratch->sxy0.vx;
+            quad->y0 = scratch->sxy0.vy;
+            quad->x1 = scratch->sxy1.vx;
+            quad->y1 = scratch->sxy1.vy;
+            quad->x2 = scratch->sxy2.vx;
+            quad->y2 = scratch->sxy2.vy;
+            quad->x3 = scratch->sxy3.vx;
+            quad->y3 = scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-/// State 0 resets the coordinate frame's rotation to identity, starts the
-/// colour ramp at 0 and the ring radius at 0x80, derives the colour step from
-/// `Task::spawnArg1` and picks a random tint row. State 1 grows both while no
-/// event is running (holding the tick otherwise) and draws two rings, at the
-/// radius and twice it, plus an arc whose sweep cycles with `spawnArg1 % 10`;
-/// when `spawnArg1` reaches 0 the colour is set to 0xFF and state 2 begins.
-/// State 2 draws the two rings, fading the colour by 0x10 per frame. Each
-/// channel is the colour shifted right by the tint row's entry for it, and
-/// the row is re-rolled below 18 on every animating frame. The work is
-/// released once the fade reaches 0x10 or an event of state 4 or above starts.
-void func_shelter_b2_pod_bottom_8017F448(Task* task)
+#undef SHELTER_B2_POD_BOTTOM_PROJECT_ARC_FLASH_SEGMENT
+
+void shelterB2PodBottomEnergyRingTask(Task* task)
 {
-    EffectWork*       work;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    s32               sum;
-    u8                rgb[3];
+    enum {
+        SHELTER_B2_POD_BOTTOM_ENERGY_RING_BRIGHTNESS_SPAN = 192,
+        SHELTER_B2_POD_BOTTOM_ENERGY_RING_INITIAL_RADIUS  = 128,
+        SHELTER_B2_POD_BOTTOM_ENERGY_RING_MAX_BRIGHTNESS  = 255,
+        SHELTER_B2_POD_BOTTOM_ENERGY_RING_FADE_STEP       = 16,
+        SHELTER_B2_POD_BOTTOM_ENERGY_RING_VISIBLE_MIN     = 17,
+        SHELTER_B2_POD_BOTTOM_ENERGY_RING_RING_WIDTH      = 128,
+        SHELTER_B2_POD_BOTTOM_ENERGY_RING_CYCLE_UPDATES   = 10
+    };
+
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         nextBrightness;
+    u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
-            case 0:
-                rot                 = (GfxRotationWords*)&coord->coord;
-                rot->m00M01         = ONE;
-                rot->m02M10         = 0;
-                rot->m11M12         = ONE;
-                rot->m20M21         = 0;
-                rot->m22            = ONE;
+            case SHELTER_B2_POD_BOTTOM_EFFECT_INIT:
+                gfxSetRotIdentity(&coord->coord);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->scale         = 0;
-                work->angle         = 0x80;
-                work->step          = 0xC0 / task->spawnArg1.value;
-                task->state         = 1;
+                work->angle         = SHELTER_B2_POD_BOTTOM_ENERGY_RING_INITIAL_RADIUS;
+                work->step          = SHELTER_B2_POD_BOTTOM_ENERGY_RING_BRIGHTNESS_SPAN / task->spawnArg1.value;
+                task->state         = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index         = (gRandomLcgState >> 16) % 18;
-            case 1:
+                work->index         = (gRandomLcgState >> 16) % ARRAY_SIZE(D_shelter_b2_pod_bottom_80181CA8);
+            // Pausing retains drawing without consuming the charge countdown.
+            case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     work->age--;
                     rgb[0] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][0];
@@ -602,30 +662,31 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                     rgb[2] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][2];
                     effectDrawGouraudDisc(coord, work->angle, rgb);
                     effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                    effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value % 10 * (work->scale << 2)), 0x80, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value % SHELTER_B2_POD_BOTTOM_ENERGY_RING_CYCLE_UPDATES * (work->scale << 2)), SHELTER_B2_POD_BOTTOM_ENERGY_RING_RING_WIDTH, rgb);
                     return;
                 }
-                sum         = (u16)work->scale + (u16)work->step;
-                work->scale = sum;
-                work->angle = sum * 4 + 0x80;
+                nextBrightness = (u16)work->scale + (u16)work->step;
+                work->scale    = nextBrightness;
+                work->angle    = nextBrightness * 4 + SHELTER_B2_POD_BOTTOM_ENERGY_RING_INITIAL_RADIUS;
                 task->spawnArg1.value--;
                 rgb[0] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][0];
                 rgb[1] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][1];
                 rgb[2] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][2];
                 effectDrawGouraudDisc(coord, work->angle, rgb);
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value % 10 * (work->scale << 2)), 0x80, rgb);
+                effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value % SHELTER_B2_POD_BOTTOM_ENERGY_RING_CYCLE_UPDATES * (work->scale << 2)), SHELTER_B2_POD_BOTTOM_ENERGY_RING_RING_WIDTH, rgb);
                 if (task->spawnArg1.value == 0) {
-                    work->scale  = 0xFF;
-                    task->state  = 2;
+                    work->scale  = SHELTER_B2_POD_BOTTOM_ENERGY_RING_MAX_BRIGHTNESS;
+                    task->state  = SHELTER_B2_POD_BOTTOM_EFFECT_FADE;
                     work->period = 0x300;
                     work->step   = 0;
                 }
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index     = (gRandomLcgState >> 16) % 18;
+                work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(D_shelter_b2_pod_bottom_80181CA8);
                 return;
-            case 2:
-                if (work->scale < 0x11) {
+            // The full-bright flash is drawn before each running fade step.
+            case SHELTER_B2_POD_BOTTOM_EFFECT_FADE:
+                if (work->scale < SHELTER_B2_POD_BOTTOM_ENERGY_RING_VISIBLE_MIN) {
                     break;
                 }
                 rgb[0] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][0];
@@ -635,8 +696,8 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->scale    -= 0x10;
-                    work->index     = (gRandomLcgState >> 16) % 18;
+                    work->scale    -= SHELTER_B2_POD_BOTTOM_ENERGY_RING_FADE_STEP;
+                    work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(D_shelter_b2_pod_bottom_80181CA8);
                 }
                 return;
             default:
@@ -646,201 +707,219 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
     effectKillTask(work, task);
 }
 
-/// Projects `coord`'s world position through `GsWSMATRIX` into a scratch block
-/// popped from the scratch stack and, when the GTE flag is non-negative, queues
-/// twenty gouraud `POLY_G4` wedges fanned about the projected point. The radii
-/// are `(s16)arg1 * 64 / otz` (outer) and `(s16)arg1 * 8 / otz` (inner). Each
-/// of the first eight steps draws a half-bright wedge at the outer radius and
-/// a full-bright one at half of it; four half-bright spikes follow, reaching
-/// twice the outer radius between two inner-radius corners. Only the apex at
-/// the projected point is coloured, from `rgb`; every rim corner is black.
-static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* rgb)
+/// Initializes a Gouraud glow wedge with a coloured centre and a black rim.
+///
+/// Borrows one writable G4 packet; sets its length, command and all four RGBs.
+/// Vertex 2 receives the supplied bytes. The caller supplies coordinates,
+/// ordering-table linkage and additive blending. Retains no pointer.
+static inline void _shelterB2PodBottomInitGlowWedge(POLY_G4* quad, u8 red, u8 green, u8 blue)
 {
-    EffectShapeScratch* block;
-    POLY_G4*            prim;
-    s32                 ang;
+    setPolyG4(quad);
+    setRGB0(quad, 0, 0, 0);
+    setRGB1(quad, 0, 0, 0);
+    setRGB2(quad, red, green, blue);
+    setRGB3(quad, 0, 0, 0);
+}
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
+/// Initializes a starburst wedge, reading each borrowed RGB byte at its store.
+///
+/// `brightnessShift` is 0 for the inner layer or 1 for the outer layer/spikes.
+/// The writable G4 gets its length, command, three black rim vertices and a
+/// coloured vertex 2. Coordinates, linkage and blending belong to the caller.
+/// Arguments are evaluated repeatedly and must be side-effect-free; captures
+/// no caller identifiers. This is a statement sequence used inside loop braces.
+#define SHELTER_B2_POD_BOTTOM_INIT_STARBURST_WEDGE(quad, rgb, brightnessShift)                                    \
+    setPolyG4((quad));                                                                                            \
+    setRGB0((quad), 0, 0, 0);                                                                                     \
+    setRGB1((quad), 0, 0, 0);                                                                                     \
+    setRGB2((quad), (rgb)[0] >> (brightnessShift), (rgb)[1] >> (brightnessShift), (rgb)[2] >> (brightnessShift)); \
+    setRGB3((quad), 0, 0, 0);
+
+/// Draws a two-layer eight-wedge glow with four longer spikes at its centre.
+///
+/// Borrows a composed coordinate and three RGB bytes for the call. Signed low
+/// halfword `radiusScale` gives outer/inner pixel radii as scale*64/depth and
+/// scale*8/depth, with depth SZ3/4 nonzero. The outer fan and long spikes are
+/// half bright; the half-radius fan is full bright. Rim vertices are black.
+/// A negative centre projection flag rejects all twenty additive G4 packets.
+/// Requires initialized scratch and packet capacity; retains no pointer.
+static void _shelterB2PodBottomDrawStarburst(const GfxCoord* coord, s32 radiusScale, const u8* rgb)
+{
+    enum {
+        SHELTER_B2_POD_BOTTOM_STARBURST_OUTER_SCALE = 64,
+        SHELTER_B2_POD_BOTTOM_STARBURST_INNER_SCALE = 8
+    };
+
+    EffectShapeScratch* scratch;
+    POLY_G4*            quad;
+    s32                 angle;
+
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->extent.burst.outer = ((s16)arg1 * 64) / block->depth;
-        block->extent.burst.inner = ((s16)arg1 * 8) / block->depth;
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->extent.burst.outer = ((s16)radiusScale * SHELTER_B2_POD_BOTTOM_STARBURST_OUTER_SCALE) / scratch->depth;
+        scratch->extent.burst.inner = ((s16)radiusScale * SHELTER_B2_POD_BOTTOM_STARBURST_INNER_SCALE) / scratch->depth;
 
-        ang = 0;
+        // Layer a half-bright outer fan over a full-bright half-radius fan.
+        angle = 0;
         do {
-            s32 mid;
-            s32 next;
+            s32 halfStepAngle;
+            s32 nextAngle;
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0] >> 1, rgb[1] >> 1, rgb[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 12);
-            mid      = ang + 0x100;
-            prim->y0 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(mid)) >> 12);
-            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(mid)) >> 12);
-            next     = ang + 0x200;
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->extent.burst.outer * rsin(next)) >> 12);
-            prim->y3 = block->screenY + ((block->extent.burst.outer * rcos(next)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            SHELTER_B2_POD_BOTTOM_INIT_STARBURST_WEDGE(quad, rgb, 1);
+            quad->x0      = scratch->screenX + ((scratch->extent.burst.outer * rsin(angle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            halfStepAngle = angle + SHELTER_B2_POD_BOTTOM_SIXTEENTH_TURN;
+            quad->y0      = scratch->screenY + ((scratch->extent.burst.outer * rcos(angle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            quad->x1      = scratch->screenX + ((scratch->extent.burst.outer * rsin(halfStepAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            quad->y1      = scratch->screenY + ((scratch->extent.burst.outer * rcos(halfStepAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            nextAngle     = angle + SHELTER_B2_POD_BOTTOM_EIGHTH_TURN;
+            quad->x2      = scratch->screenX;
+            quad->y2      = scratch->screenY;
+            quad->x3      = scratch->screenX + ((scratch->extent.burst.outer * rsin(nextAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            quad->y3      = scratch->screenY + ((scratch->extent.burst.outer * rcos(nextAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->extent.burst.outer * rsin(ang)) >> 13);
-            prim->y0 = block->screenY + ((block->extent.burst.outer * rcos(ang)) >> 13);
-            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(mid)) >> 13);
-            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(mid)) >> 13);
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->extent.burst.outer * rsin(next)) >> 13);
-            prim->y3 = block->screenY + ((block->extent.burst.outer * rcos(next)) >> 13);
-            ang      = next;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        } while (ang < 0x1000);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            SHELTER_B2_POD_BOTTOM_INIT_STARBURST_WEDGE(quad, rgb, 0);
+            quad->x0 = scratch->screenX + ((scratch->extent.burst.outer * rsin(angle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT + 1));
+            quad->y0 = scratch->screenY + ((scratch->extent.burst.outer * rcos(angle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT + 1));
+            quad->x1 = scratch->screenX + ((scratch->extent.burst.outer * rsin(halfStepAngle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT + 1));
+            quad->y1 = scratch->screenY + ((scratch->extent.burst.outer * rcos(halfStepAngle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT + 1));
+            quad->x2 = scratch->screenX;
+            quad->y2 = scratch->screenY;
+            quad->x3 = scratch->screenX + ((scratch->extent.burst.outer * rsin(nextAngle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT + 1));
+            quad->y3 = scratch->screenY + ((scratch->extent.burst.outer * rcos(nextAngle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT + 1));
+            angle    = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);
+        } while (angle < SHELTER_B2_POD_BOTTOM_FULL_TURN);
 
-        ang = 0x200;
+        // Add four long spikes between the two inner-radius shoulders.
+        angle = SHELTER_B2_POD_BOTTOM_EIGHTH_TURN;
         do {
-            s32 next;
-            s32 far;
+            s32 nextAngle;
+            s32 oppositeAngle;
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0] >> 1, rgb[1] >> 1, rgb[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->extent.burst.inner * rsin(ang)) >> 12);
-            next     = ang + 0x400;
-            prim->y0 = block->screenY + ((block->extent.burst.inner * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->extent.burst.outer * rsin(next)) >> 11);
-            prim->y1 = block->screenY + ((block->extent.burst.outer * rcos(next)) >> 11);
-            far      = ang + 0x800;
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->extent.burst.inner * rsin(far)) >> 12);
-            prim->y3 = block->screenY + ((block->extent.burst.inner * rcos(far)) >> 12);
-            ang      = next;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        } while (ang < 0x1000);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            SHELTER_B2_POD_BOTTOM_INIT_STARBURST_WEDGE(quad, rgb, 1);
+            quad->x0      = scratch->screenX + ((scratch->extent.burst.inner * rsin(angle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            nextAngle     = angle + SHELTER_B2_POD_BOTTOM_QUARTER_TURN;
+            quad->y0      = scratch->screenY + ((scratch->extent.burst.inner * rcos(angle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            quad->x1      = scratch->screenX + ((scratch->extent.burst.outer * rsin(nextAngle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT - 1));
+            quad->y1      = scratch->screenY + ((scratch->extent.burst.outer * rcos(nextAngle)) >> (SHELTER_B2_POD_BOTTOM_TRIG_SHIFT - 1));
+            oppositeAngle = angle + SHELTER_B2_POD_BOTTOM_HALF_TURN;
+            quad->x2      = scratch->screenX;
+            quad->y2      = scratch->screenY;
+            quad->x3      = scratch->screenX + ((scratch->extent.burst.inner * rsin(oppositeAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            quad->y3      = scratch->screenY + ((scratch->extent.burst.inner * rcos(oppositeAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+            angle         = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);
+        } while (angle < SHELTER_B2_POD_BOTTOM_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-/// State 0 resets the coordinate frame's rotation to identity, starts the
-/// colour ramp at 0 and the size ramp at 0x80, derives the colour step from
-/// `Task::spawnArg1`, and fills `D_shelter_b2_pod_bottom_801887F0` with eight
-/// angles, one random angle inside each eighth of the circle. State 1 grows
-/// both ramps once per frame while no event is running (holding the tick
-/// otherwise) and draws the ramp-coloured effect, a ring and an arc that
-/// shrinks as `spawnArg1` counts down; when it reaches 0 the colour is set to
-/// 0xFF and state 2 begins. State 2 draws the effect, the ring and a blade at
-/// each of the eight angles, fading the colour by 0x10 per frame. While
-/// animating, `index` is re-rolled to a random value below 18 every frame.
-/// The work is released once the fade reaches 0x10 or an event of state 4 or
-/// above starts.
-void func_shelter_b2_pod_bottom_8018016C(Task* task)
+#undef SHELTER_B2_POD_BOTTOM_INIT_STARBURST_WEDGE
+
+void shelterB2PodBottomChargeBurstTask(Task* task)
 {
-    EffectWork*       work;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    s32               i;
-    s32               sum;
-    u8                rgb[3];
+    enum {
+        SHELTER_B2_POD_BOTTOM_CHARGE_BURST_BRIGHTNESS_SPAN = 192,
+        SHELTER_B2_POD_BOTTOM_CHARGE_BURST_INITIAL_RADIUS  = 128,
+        SHELTER_B2_POD_BOTTOM_CHARGE_BURST_MAX_BRIGHTNESS  = 255,
+        SHELTER_B2_POD_BOTTOM_CHARGE_BURST_FADE_STEP       = 16,
+        SHELTER_B2_POD_BOTTOM_CHARGE_BURST_VISIBLE_MIN     = 17,
+        SHELTER_B2_POD_BOTTOM_CHARGE_BURST_RING_WIDTH      = 128
+    };
+
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         bladeIndex;
+    s32         nextBrightness;
+    u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         work->age++;
         switch (task->state) {
-            case 0:
-                rot                 = (GfxRotationWords*)&coord->coord;
-                rot->m00M01         = ONE;
-                rot->m02M10         = 0;
-                rot->m11M12         = ONE;
-                rot->m20M21         = 0;
-                rot->m22            = ONE;
+            case SHELTER_B2_POD_BOTTOM_EFFECT_INIT:
+                gfxSetRotIdentity(&coord->coord);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->scale         = 0;
-                work->angle         = 0x80;
-                work->step          = 0xC0 / task->spawnArg1.value;
-                task->state         = 1;
-                for (i = 0; i < 8; i++) {
-                    gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    D_shelter_b2_pod_bottom_801887F0[i] = (i << 9) + ((gRandomLcgState >> 16) & 0x1FF);
+                work->angle         = SHELTER_B2_POD_BOTTOM_CHARGE_BURST_INITIAL_RADIUS;
+                work->step          = SHELTER_B2_POD_BOTTOM_CHARGE_BURST_BRIGHTNESS_SPAN / task->spawnArg1.value;
+                task->state         = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
+                for (bladeIndex = 0; bladeIndex < (s32)ARRAY_SIZE(D_shelter_b2_pod_bottom_801887F0); bladeIndex++) {
+                    gRandomLcgState                              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    D_shelter_b2_pod_bottom_801887F0[bladeIndex] = (bladeIndex * SHELTER_B2_POD_BOTTOM_EIGHTH_TURN) + ((gRandomLcgState >> 16) & (SHELTER_B2_POD_BOTTOM_EIGHTH_TURN - 1));
                 }
-            case 1:
+            // Pausing retains drawing without consuming the charge countdown.
+            case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     work->age--;
                     rgb[0] = work->scale;
                     rgb[1] = work->scale;
                     rgb[2] = work->scale >> 1;
-                    func_shelter_b2_pod_bottom_8017F994(coord, (s16)((u16)work->angle * 2), rgb);
+                    _shelterB2PodBottomDrawStarburst(coord, (s16)((u16)work->angle * 2), rgb);
                     effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 4), rgb);
-                    effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value * work->step * 16), 0x80, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value * work->step * 16), SHELTER_B2_POD_BOTTOM_CHARGE_BURST_RING_WIDTH, rgb);
                     return;
                 }
-                sum         = (u16)work->scale + (u16)work->step;
-                work->scale = sum;
-                work->angle = sum * 4 + 0x80;
+                nextBrightness = (u16)work->scale + (u16)work->step;
+                work->scale    = nextBrightness;
+                work->angle    = nextBrightness * 4 + SHELTER_B2_POD_BOTTOM_CHARGE_BURST_INITIAL_RADIUS;
                 task->spawnArg1.value--;
                 rgb[0] = work->scale;
                 rgb[1] = work->scale;
                 rgb[2] = work->scale >> 1;
-                func_shelter_b2_pod_bottom_8017F994(coord, (s16)((u16)work->angle * 2), rgb);
+                _shelterB2PodBottomDrawStarburst(coord, (s16)((u16)work->angle * 2), rgb);
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 4), rgb);
-                effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value * work->step * 16), 0x80, rgb);
+                effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value * work->step * 16), SHELTER_B2_POD_BOTTOM_CHARGE_BURST_RING_WIDTH, rgb);
                 if (task->spawnArg1.value == 0) {
-                    work->scale  = 0xFF;
-                    task->state  = 2;
+                    work->scale  = SHELTER_B2_POD_BOTTOM_CHARGE_BURST_MAX_BRIGHTNESS;
+                    task->state  = SHELTER_B2_POD_BOTTOM_EFFECT_FADE;
                     work->period = 0x300;
                     work->step   = 0;
                 }
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->index     = (gRandomLcgState >> 16) % 18;
                 return;
-            case 2:
-                if (work->scale < 0x11) {
+            // The full-bright flash is drawn before each running fade step.
+            case SHELTER_B2_POD_BOTTOM_EFFECT_FADE:
+                if (work->scale < SHELTER_B2_POD_BOTTOM_CHARGE_BURST_VISIBLE_MIN) {
                     break;
                 }
                 rgb[0] = work->scale;
                 rgb[1] = work->scale;
                 rgb[2] = work->scale >> 1;
-                func_shelter_b2_pod_bottom_8017F994(coord, (s16)((u16)work->angle * 2), rgb);
+                _shelterB2PodBottomDrawStarburst(coord, (s16)((u16)work->angle * 2), rgb);
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 4), rgb);
-                for (i = 0; i < 8; i++) {
-                    func_shelter_b2_pod_bottom_801805A0(coord, (s16)((u16)work->angle * 2), D_shelter_b2_pod_bottom_801887F0[i], rgb);
+                for (bladeIndex = 0; bladeIndex < (s32)ARRAY_SIZE(D_shelter_b2_pod_bottom_801887F0); bladeIndex++) {
+                    _shelterB2PodBottomDrawBurstBlade(coord, (s16)((u16)work->angle * 2), D_shelter_b2_pod_bottom_801887F0[bladeIndex], rgb);
                 }
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->scale    -= 0x10;
+                    work->scale    -= SHELTER_B2_POD_BOTTOM_CHARGE_BURST_FADE_STEP;
                     work->index     = (gRandomLcgState >> 16) % 18;
                 }
                 return;
@@ -851,58 +930,57 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
     effectKillTask(work, task);
 }
 
-/// Draws one Gouraud triangle as a fan blade about `arg2`. `arg0`'s world
-/// position is projected through `GsWSMATRIX` into a scratch block popped from
-/// the scratch stack; the apex sits on that point in `rgb`, and the two black
-/// outer corners sit at angles `arg2 - 0x20` and `arg2 + 0x20`, `arg1` scaled
-/// down by the projected depth away. A negative GTE flag drops the triangle.
-static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
+/// Draws a narrow additive blade from the projected centre toward `bladeAngle`.
+///
+/// Borrows a composed coordinate and three RGB bytes. Signed low halfwords of
+/// `radiusScale` and `bladeAngle` give pixel length scale*128/(SZ3/4) and the
+/// centre angle in 4096-per-turn units. The black outer corners are at angle
+/// +/-32; the centre has the supplied RGB. Projection depth must be nonzero.
+/// A negative GTE flag rejects the triangle. Needs scratch and packet space;
+/// retains no pointer.
+static void _shelterB2PodBottomDrawBurstBlade(const GfxCoord* coord, s32 radiusScale, s32 bladeAngle, const u8* rgb)
 {
-    void**               scratch;
-    u8*                  head;
-    EffectCentreScratch* block;
-    SVECTOR*             vec;
-    POLY_G3*             prim;
-    s32                  ang;
-    s32                  ang2;
-    u16                  vz;
+    enum {
+        SHELTER_B2_POD_BOTTOM_BURST_BLADE_RADIUS_SCALE = 128,
+        SHELTER_B2_POD_BOTTOM_BURST_BLADE_HALF_ANGLE   = 32
+    };
 
-    scratch                                                                     = SCRATCH_STACK_CURSOR_SLOT;
-    head                                                                        = *scratch;
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
-    vz                                                                          = (u16)arg0->workm.t[2];
-    *scratch                                                                    = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    EffectCentreScratch* scratch;
+    POLY_G3*             triangle;
+    s32                  upperAngle;
+    s32                  lowerAngle;
+
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG3(prim);
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        setRGB0(prim, rgb[0], rgb[1], rgb[2]);
-        setRGB1(prim, 0, 0, 0);
-        setRGB2(prim, 0, 0, 0);
-        block->screenExtent = ((s16)arg1 * 128) / block->depth;
-        ang                 = (s16)arg2;
-        ang2                = ang - 0x20;
-        prim->x0            = block->screenX;
-        prim->y0            = block->screenY;
-        prim->x1            = block->screenX + ((block->screenExtent * rsin(ang2)) >> 12);
-        prim->y1            = block->screenY + ((block->screenExtent * rcos(ang2)) >> 12);
-        ang                += 0x20;
-        prim->x2            = block->screenX + ((block->screenExtent * rsin(ang)) >> 12);
-        prim->y2            = block->screenY + ((block->screenExtent * rcos(ang)) >> 12);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        triangle       = gGpuPrimCursor;
+        gGpuPrimCursor = triangle + 1;
+        setPolyG3(triangle);
+        gte_stszotz(&scratch->depth);
+        setRGB0(triangle, rgb[0], rgb[1], rgb[2]);
+        setRGB1(triangle, 0, 0, 0);
+        setRGB2(triangle, 0, 0, 0);
+        scratch->screenExtent = ((s16)radiusScale * SHELTER_B2_POD_BOTTOM_BURST_BLADE_RADIUS_SCALE) / scratch->depth;
+        upperAngle            = (s16)bladeAngle;
+        lowerAngle            = upperAngle - SHELTER_B2_POD_BOTTOM_BURST_BLADE_HALF_ANGLE;
+        triangle->x0          = scratch->screenX;
+        triangle->y0          = scratch->screenY;
+        triangle->x1          = scratch->screenX + ((scratch->screenExtent * rsin(lowerAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+        triangle->y1          = scratch->screenY + ((scratch->screenExtent * rcos(lowerAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+        upperAngle           += SHELTER_B2_POD_BOTTOM_BURST_BLADE_HALF_ANGLE;
+        triangle->x2          = scratch->screenX + ((scratch->screenExtent * rsin(upperAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+        triangle->y2          = scratch->screenY + ((scratch->screenExtent * rcos(upperAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                triangle);
+        gpuSetPrimitiveBlendMode(triangle, GPU_BLEND_ADD, scratch->depth);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
@@ -989,160 +1067,177 @@ static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVE
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB2PodBottomDiscScratch);
 }
 
-void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
+void shelterB2PodBottomLightBeamTask(Task* task)
 {
+    enum {
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RADIUS_SCALE       = 256,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_LIFETIME           = 16,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FADE_START         = 8,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FULL_BRIGHTNESS    = 16,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_WHITE_NIBBLES      = 0xCCC,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RANDOM_NIBBLE_MASK = 0x777
+    };
+
     EffectWork* work;
     GfxCoord*   coord;
-    u32         rnd;
+    u32         random;
 
-    work  = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rnd;
-            func_shelter_b2_pod_bottom_8018101C(coord, 0x100, (rnd >> 16) & 0x777, 0x10);
+            random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = random;
+            _shelterB2PodBottomDrawLightBeam(coord, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RADIUS_SCALE, (random >> 16) & SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RANDOM_NIBBLE_MASK, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FULL_BRIGHTNESS);
             return;
         }
-        effectKillTask(work, arg0);
+        effectKillTask(work, task);
         return;
     }
+    // Move the local transform; drawing still reads the existing composed cache.
     work->age++;
-    coord->coord.t[1]  += arg0->spawnArg1.value;
+    coord->coord.t[1]  += task->spawnArg1.value;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->age < 8) {
-        func_shelter_b2_pod_bottom_8018101C(coord, 0x100, 0xCCC, 0x10);
+    if (work->age < SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FADE_START) {
+        _shelterB2PodBottomDrawLightBeam(coord, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RADIUS_SCALE, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_WHITE_NIBBLES, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FULL_BRIGHTNESS);
         return;
     }
-    func_shelter_b2_pod_bottom_8018101C(coord, 0x100, 0xCCC, (u16)((0x10 - work->age) * 2));
-    if (work->age >= 0x10) {
-        effectKillTask(work, arg0);
+    _shelterB2PodBottomDrawLightBeam(coord, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RADIUS_SCALE, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_WHITE_NIBBLES, (u16)((SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_LIFETIME - work->age) * 2));
+    if (work->age >= SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_LIFETIME) {
+        effectKillTask(work, task);
     }
 }
 
-/// Queues a beam of gouraud `POLY_G4` wedges along `coord`'s local up axis:
-/// the tip sits `size * 16` units above the coordinate's world position, and
-/// both ends are projected. Two passes widen the wedge radii (`size * 64` and
-/// `size * 128` over each end's depth) and draw a fan at each end plus a
-/// connecting quad. `color` packs `[r][g][b]` nibbles scaled by `scale`, with
-/// `gDisplayState.animFrame & 1` adding a 16-unit flicker to every channel.
-static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 color, u16 scale)
+/// Draws a flickering capsule along the coordinate's negative local Y axis.
+///
+/// Borrows a composed `coord`; the second end is -16*`radiusScale` units from
+/// its origin, rotated and narrowed to signed halfwords before translation.
+/// Both projected depths SZ3/4 must be nonzero. Two layers have pixel radii
+/// scale*64/depth and scale*128/depth. Each queues two cap pairs and two joining
+/// quads: twelve additive G4s total, plus their blend commands. Caps sort at
+/// their own end depth; sides sort at the second end's depth.
+/// `packedColor` bits 8..11/4..7/0..3 are RGB nibbles multiplied by `brightness`;
+/// odd display frames add 16 to each channel, wrapping to bytes. Either end's
+/// negative GTE flag rejects the whole beam. Needs scratch and packet space.
+static void _shelterB2PodBottomDrawLightBeam(const GfxCoord* coord, s16 radiusScale, u16 packedColor, u16 brightness)
 {
-    RoomBeamScratch* block;
-    POLY_G4*         prim;
-    s32              pass;
-    u8               r;
-    u8               g;
-    u8               b;
-    s32              limit;
-    s32              angStart;
-    s32              scaled;
-    s32              ang;
-    s32              next;
-    s32              mid;
-    s32              blend;
+    enum {
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_LENGTH_SHIFT      = 4,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RADIUS_SHIFT      = 6,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_LAYERS            = 2,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FLICKER_SHIFT     = 4,
+        SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_COLOR_NIBBLE_MASK = 0xF
+    };
 
-    block            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
-    block->point1.vy = -(size << 4);
-    block->point1.vx = 0;
-    block->point1.vz = 0;
+    RoomBeamScratch* scratch;
+    POLY_G4*         quad;
+    s32              radiusPass;
+    u8               red;
+    u8               green;
+    u8               blue;
+    s32              sweepLimit;
+    s32              baseAngle;
+    s32              scaledRadius;
+    s32              sweepAngle;
+    s32              nextSweepAngle;
+    s32              sideAngle;
+    s32              flicker;
+
+    // Rotate the beam offset, wrap to halfwords, then project both ends.
+    scratch            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
+    scratch->point1.vy = -(radiusScale << SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_LENGTH_SHIFT);
+    scratch->point1.vx = 0;
+    scratch->point1.vz = 0;
     gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&block->point1);
+    gte_ldv0(&scratch->point1);
     gte_rtv0();
-    gte_stsv(&block->point1);
-    block->point0.vx  = coord->workm.t[0];
-    block->point0.vy  = coord->workm.t[1];
-    block->point0.vz  = coord->workm.t[2];
-    block->point1.vx += block->point0.vx;
-    block->point1.vy += block->point0.vy;
-    block->point1.vz += block->point0.vz;
+    gte_stsv(&scratch->point1);
+    scratch->point0.vx  = coord->workm.t[0];
+    scratch->point0.vy  = coord->workm.t[1];
+    scratch->point0.vz  = coord->workm.t[2];
+    scratch->point1.vx += scratch->point0.vx;
+    scratch->point1.vy += scratch->point0.vy;
+    scratch->point1.vz += scratch->point0.vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->point0);
+    gte_ldv0(&scratch->point0);
     gte_rtps();
-    gte_stsxy(&block->pair.sx0);
-    gte_stflg(&block->pair.flag);
-    if (block->pair.flag >= 0) {
-        gte_stszotz(&block->pair.otz0);
-        gte_ldv0(&block->point1);
+    gte_stsxy(&scratch->pair.sx0);
+    gte_stflg(&scratch->pair.flag);
+    if (scratch->pair.flag >= 0) {
+        gte_stszotz(&scratch->pair.otz0);
+        gte_ldv0(&scratch->point1);
         gte_rtps();
-        gte_stsxy(&block->pair.sx1);
-        gte_stflg(&block->pair.flag);
-        gte_stszotz(&block->pair.otz1);
-        if (block->pair.flag >= 0) {
-            blend = ((u8)gDisplayState.animFrame & 1) << 4;
-            r     = scale * ((color >> 8) & 0xF) + blend;
-            g     = scale * ((color >> 4) & 0xF) + blend;
-            b     = scale * (color & 0xF) + blend;
-            for (pass = 1; pass < 3; pass++) {
-                scaled              = size * (pass << 6);
-                block->pair.radius0 = scaled / block->pair.otz0;
-                block->pair.radius1 = scaled / block->pair.otz1;
-                ang                 = (s16)ratan2((s16)block->pair.sy1 - (s16)block->pair.sy0, (s16)block->pair.sx0 - (s16)block->pair.sx1);
-                if (ang < ang + 0x800) {
-                    angStart = ang;
-                    limit    = ang + 0x800;
+        gte_stsxy(&scratch->pair.sx1);
+        gte_stflg(&scratch->pair.flag);
+        gte_stszotz(&scratch->pair.otz1);
+        if (scratch->pair.flag >= 0) {
+            flicker = ((u8)gDisplayState.animFrame & 1) << SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FLICKER_SHIFT;
+            red     = brightness * ((packedColor >> 8) & SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_COLOR_NIBBLE_MASK) + flicker;
+            green   = brightness * ((packedColor >> 4) & SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_COLOR_NIBBLE_MASK) + flicker;
+            blue    = brightness * (packedColor & SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_COLOR_NIBBLE_MASK) + flicker;
+            for (radiusPass = 1; radiusPass < SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_LAYERS + 1; radiusPass++) {
+                scaledRadius          = radiusScale * (radiusPass << SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RADIUS_SHIFT);
+                scratch->pair.radius0 = scaledRadius / scratch->pair.otz0;
+                scratch->pair.radius1 = scaledRadius / scratch->pair.otz1;
+                sweepAngle            = (s16)ratan2((s16)scratch->pair.sy1 - (s16)scratch->pair.sy0, (s16)scratch->pair.sx0 - (s16)scratch->pair.sx1);
+                if (sweepAngle < sweepAngle + SHELTER_B2_POD_BOTTOM_HALF_TURN) {
+                    baseAngle  = sweepAngle;
+                    sweepLimit = sweepAngle + SHELTER_B2_POD_BOTTOM_HALF_TURN;
+                    // Each half-turn sweep step queues two cap wedges and one side.
                     do {
-                        prim           = gGpuPrimCursor;
-                        gGpuPrimCursor = prim + 1;
-                        setPolyG4(prim);
-                        setRGB0(prim, 0, 0, 0);
-                        setRGB1(prim, 0, 0, 0);
-                        setRGB2(prim, r, g, b);
-                        setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0x800)) >> 12);
-                        prim->y0 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0x800)) >> 12);
-                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xA00)) >> 12);
-                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xA00)) >> 12);
-                        prim->x2 = block->pair.sx1;
-                        prim->y2 = block->pair.sy1;
-                        prim->x3 = block->pair.sx1 + ((block->pair.radius1 * rsin(ang + 0xC00)) >> 12);
-                        prim->y3 = block->pair.sy1 + ((block->pair.radius1 * rcos(ang + 0xC00)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                                prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
+                        quad           = gGpuPrimCursor;
+                        gGpuPrimCursor = quad + 1;
+                        _shelterB2PodBottomInitGlowWedge(quad, red, green, blue);
+                        quad->x0 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_B2_POD_BOTTOM_HALF_TURN)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y0 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + SHELTER_B2_POD_BOTTOM_HALF_TURN)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->x1 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + (SHELTER_B2_POD_BOTTOM_HALF_TURN + SHELTER_B2_POD_BOTTOM_EIGHTH_TURN))) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y1 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + (SHELTER_B2_POD_BOTTOM_HALF_TURN + SHELTER_B2_POD_BOTTOM_EIGHTH_TURN))) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->x2 = scratch->pair.sx1;
+                        quad->y2 = scratch->pair.sy1;
+                        quad->x3 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + (SHELTER_B2_POD_BOTTOM_HALF_TURN + SHELTER_B2_POD_BOTTOM_QUARTER_TURN))) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y3 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + (SHELTER_B2_POD_BOTTOM_HALF_TURN + SHELTER_B2_POD_BOTTOM_QUARTER_TURN))) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                                quad);
+                        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
 
-                        prim           = gGpuPrimCursor;
-                        gGpuPrimCursor = prim + 1;
-                        setPolyG4(prim);
-                        setRGB0(prim, 0, 0, 0);
-                        setRGB1(prim, 0, 0, 0);
-                        setRGB2(prim, r, g, b);
-                        setRGB3(prim, 0, 0, 0);
-                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang)) >> 12);
-                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang)) >> 12);
-                        prim->x1 = block->pair.sx0 + ((block->pair.radius0 * rsin(ang + 0x200)) >> 12);
-                        prim->y1 = block->pair.sy0 + ((block->pair.radius0 * rcos(ang + 0x200)) >> 12);
-                        next     = ang + 0x400;
-                        prim->x2 = block->pair.sx0;
-                        prim->y2 = block->pair.sy0;
-                        prim->x3 = block->pair.sx0 + ((block->pair.radius0 * rsin(next)) >> 12);
-                        prim->y3 = block->pair.sy0 + ((block->pair.radius0 * rcos(next)) >> 12);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                                prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz0);
+                        quad           = gGpuPrimCursor;
+                        gGpuPrimCursor = quad + 1;
+                        _shelterB2PodBottomInitGlowWedge(quad, red, green, blue);
+                        quad->x0       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y0       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sweepAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->x1       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle + SHELTER_B2_POD_BOTTOM_EIGHTH_TURN)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y1       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sweepAngle + SHELTER_B2_POD_BOTTOM_EIGHTH_TURN)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        nextSweepAngle = sweepAngle + SHELTER_B2_POD_BOTTOM_QUARTER_TURN;
+                        quad->x2       = scratch->pair.sx0;
+                        quad->y2       = scratch->pair.sy0;
+                        quad->x3       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(nextSweepAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y3       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(nextSweepAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                                quad);
+                        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz0);
 
-                        prim           = gGpuPrimCursor;
-                        mid            = angStart + (ang - angStart) * 2;
-                        gGpuPrimCursor = prim + 1;
-                        setPolyG4(prim);
-                        setRGB0(prim, 0, 0, 0);
-                        setRGB1(prim, 0, 0, 0);
-                        setRGB2(prim, r, g, b);
-                        setRGB3(prim, r, g, b);
-                        prim->x0 = block->pair.sx0 + ((block->pair.radius0 * rsin(mid)) >> 12);
-                        prim->y0 = block->pair.sy0 + ((block->pair.radius0 * rcos(mid)) >> 12);
-                        prim->x1 = block->pair.sx1 + ((block->pair.radius1 * rsin(mid)) >> 12);
-                        prim->y1 = block->pair.sy1 + ((block->pair.radius1 * rcos(mid)) >> 12);
-                        prim->x2 = block->pair.sx0;
-                        prim->y2 = block->pair.sy0;
-                        prim->x3 = block->pair.sx1;
-                        prim->y3 = block->pair.sy1;
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                                prim);
-                        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->pair.otz1);
-                        ang = next;
-                    } while (ang < limit);
+                        quad           = gGpuPrimCursor;
+                        sideAngle      = baseAngle + (sweepAngle - baseAngle) * 2;
+                        gGpuPrimCursor = quad + 1;
+                        setPolyG4(quad);
+                        setRGB0(quad, 0, 0, 0);
+                        setRGB1(quad, 0, 0, 0);
+                        setRGB2(quad, red, green, blue);
+                        setRGB3(quad, red, green, blue);
+                        quad->x0 = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sideAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y0 = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sideAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->x1 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sideAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->y1 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sideAngle)) >> SHELTER_B2_POD_BOTTOM_TRIG_SHIFT);
+                        quad->x2 = scratch->pair.sx0;
+                        quad->y2 = scratch->pair.sy0;
+                        quad->x3 = scratch->pair.sx1;
+                        quad->y3 = scratch->pair.sy1;
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                                quad);
+                        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
+                        sweepAngle = nextSweepAngle;
+                    } while (sweepAngle < sweepLimit);
                 }
             }
         }
@@ -1186,33 +1281,41 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
     }
 }
 
-void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
+void shelterB2PodBottomShockRingTask(Task* task)
 {
+    enum {
+        SHELTER_B2_POD_BOTTOM_SHOCK_RING_INITIAL_RADIUS     = 384,
+        SHELTER_B2_POD_BOTTOM_SHOCK_RING_INITIAL_BRIGHTNESS = 192,
+        SHELTER_B2_POD_BOTTOM_SHOCK_RING_RADIUS_STEP        = 96,
+        SHELTER_B2_POD_BOTTOM_SHOCK_RING_FADE_STEP          = 24
+    };
+
     EffectWork* work;
     GfxCoord*   coord;
-    s16         y;
+    s16         nextBrightness;
 
-    work  = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        effectKillTask(work, arg0);
+        effectKillTask(work, task);
         return;
     }
     work->age++;
-    switch (arg0->state) {
-        case 0:
-            gfxRotMatrixX(&coord->coord, arg0->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
-            work->scale = 0xC0;
-            work->angle = 0x180;
-            arg0->state = 1;
-        case 1:
-            func_shelter_b2_pod_bottom_8017E788(coord, work->angle, work->scale);
+    switch (task->state) {
+        case SHELTER_B2_POD_BOTTOM_EFFECT_INIT:
+            gfxRotMatrixX(&coord->coord, task->spawnArg1.value, GRAPHICS_ROTATION_COMPOSE);
+            work->scale = SHELTER_B2_POD_BOTTOM_SHOCK_RING_INITIAL_BRIGHTNESS;
+            work->angle = SHELTER_B2_POD_BOTTOM_SHOCK_RING_INITIAL_RADIUS;
+            task->state = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
+        // Draw at the current radius/colour before advancing running ramps.
+        case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
+            _shelterB2PodBottomDrawShockRing(coord, work->angle, work->scale);
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                work->angle += 0x60;
-                y            = work->scale - 0x18;
-                work->scale  = y;
-                if (y < 0x18) {
-                    effectKillTask(work, arg0);
+                work->angle   += SHELTER_B2_POD_BOTTOM_SHOCK_RING_RADIUS_STEP;
+                nextBrightness = work->scale - SHELTER_B2_POD_BOTTOM_SHOCK_RING_FADE_STEP;
+                work->scale    = nextBrightness;
+                if (nextBrightness < SHELTER_B2_POD_BOTTOM_SHOCK_RING_FADE_STEP) {
+                    effectKillTask(work, task);
                 }
             } else {
                 work->age--;

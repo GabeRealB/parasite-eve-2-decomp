@@ -94,18 +94,23 @@ func_shelter_b2_pod_bottom_80181940 = 0x80181940; // type:func
 
 shelterB2PodBottomEffectSpriteDriftTask = 0x8017D850; // type:func
 
-func_shelter_b2_pod_bottom_80181B48 = 0x80181B48; // type:func
+shelterB2PodBottomShockRingTask = 0x80181B48; // type:func
 
-func_shelter_b2_pod_bottom_8018016C = 0x8018016C; // type:func
+shelterB2PodBottomChargeBurstTask = 0x8018016C; // type:func
 
 shelterB2PodBottomEffectSpriteRiseTask = 0x80180898; // type:func
 
-func_shelter_b2_pod_bottom_80180F10 = 0x80180F10; // type:func
+shelterB2PodBottomLightBeamTask = 0x80180F10; // type:func
 
-func_shelter_b2_pod_bottom_8017D760 = 0x8017D760; // type:func
+shelterB2PodBottomShadowTask = 0x8017D760; // type:func
 
-func_shelter_b2_pod_bottom_8017EC78 = 0x8017EC78; // type:func
+shelterB2PodBottomArcFlashTask = 0x8017EC78; // type:func
 
-func_shelter_b2_pod_bottom_8017F448 = 0x8017F448; // type:func
+shelterB2PodBottomEnergyRingTask = 0x8017F448; // type:func
 _effectSpriteDrawBanked = 0x8017DECC; // type:func
 _effectSpriteDrawRotated = 0x8017E334; // type:func
+_shelterB2PodBottomDrawShockRing = 0x8017e788; // type:func
+_shelterB2PodBottomDrawArcFlashBand = 0x8017eeac; // type:func
+_shelterB2PodBottomDrawStarburst = 0x8017f994; // type:func
+_shelterB2PodBottomDrawBurstBlade = 0x801805a0; // type:func
+_shelterB2PodBottomDrawLightBeam = 0x8018101c; // type:func

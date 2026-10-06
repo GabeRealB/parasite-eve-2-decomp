@@ -845,7 +845,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_access_tunnel_8017DD60, { NULL } },                    // 0x132
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_underground_parking_80184A18, { NULL } },              // 0x133
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_golem_freezer_1_8017DA7C, { NULL } },                  // 0x134
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8017D760, { NULL } },                       // 0x135
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomShadowTask, { NULL } },                              // 0x135
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_service_gantry_8017FA7C, { NULL } },               // 0x136
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_8017D6D0, { NULL } },                  // 0x137
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_8017E1BC, { NULL } },       // 0x138
@@ -977,14 +977,14 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08LampGlowTask, { NULL } },                                   // 0x1B6
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08SpriteDriftTask, { NULL } },                                // 0x1B7
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldR08SpriteDriftTask, { NULL } },                                // 0x1B8
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_80181B48, { NULL } },                       // 0x1B9
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8017EC78, { NULL } },                       // 0x1BA
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8017F448, { NULL } },                       // 0x1BB
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_8018016C, { NULL } },                       // 0x1BC
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomShockRingTask, { NULL } },                           // 0x1B9
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomArcFlashTask, { NULL } },                            // 0x1BA
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEnergyRingTask, { NULL } },                          // 0x1BB
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomChargeBurstTask, { NULL } },                         // 0x1BC
     { { { TASK_BODY_COORD, 0x70 } }, func_mist_shooting_gallery_80182064, { NULL } },                       // 0x1BD
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_service_gantry_8017E880, { NULL } },               // 0x1BE
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteRiseTask, { NULL } },                    // 0x1BF
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_bottom_80180F10, { NULL } },                       // 0x1C0
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomLightBeamTask, { NULL } },                           // 0x1C0
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017ED00, { NULL } },                       // 0x1C1
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017E38C, { NULL } },                          // 0x1C2
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017EDF0, { NULL } },                          // 0x1C3

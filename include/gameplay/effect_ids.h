@@ -1007,7 +1007,7 @@ enum {
     /// along Y; spawned by actor_403600 at its body parts (with 0x60070) when parts
     /// burst.
     EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE = EFFECT_ID(EFFECT_TASK_BANK, 0x1BF),
-    /// Vertical POLY_G4 beam (func_shelter_b2_pod_bottom_8018101C) that slides 0x300
+    /// Vertical POLY_G4 beam (_shelterB2PodBottomDrawLightBeam) that slides 0x300
     /// per frame for 16 frames, fading in its last 8; actor_403600 spawns them at
     /// random points around the view, from above and below.
     EFFECT_EVE_LIGHT_BEAM = EFFECT_ID(EFFECT_TASK_BANK, 0x1C0),

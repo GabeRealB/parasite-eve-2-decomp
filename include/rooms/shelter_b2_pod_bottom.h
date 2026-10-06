@@ -71,18 +71,79 @@ void func_shelter_b2_pod_bottom_80181940(Task* arg0);
 /// velocity components wrap on assignment; positions use coordinate units.
 void shelterB2PodBottomEffectSpriteDriftTask(Task* task);
 
-void func_shelter_b2_pod_bottom_80181B48(Task* arg0);
+/// Expands and dims the pod bottom's blue shock ring over eight running updates.
+///
+/// Owns spawner-initialized `EffectWork` and a coordinate body. On state 0,
+/// `spawnArg1.value` composes an X rotation in 4096-per-turn angle units; callers
+/// use 0 or half a turn. Drawing uses the existing cache on that update.
+/// Radius/brightness start at 384/192; each running update draws then adds 96
+/// to radius and subtracts 24 from brightness, releasing work and task when
+/// brightness falls below 24. Nonzero controls below 4 freeze ramps/age but
+/// still draw. Controls >=4 release before drawing. Requires composed
+/// coordinates, initialized scratch and packet capacity.
+void shelterB2PodBottomShockRingTask(Task* task);
 
-void func_shelter_b2_pod_bottom_8018016C(Task* task);
+/// Charges a yellow starburst, then adds eight radial blades while it fades.
+///
+/// Owns spawner-initialized `EffectWork` and a coordinate body. `spawnArg1.value`
+/// is a positive running-update countdown; integer 192/count sets brightness
+/// growth. Initialization resets local rotation and rolls one angle in each
+/// eighth turn into the room's shared blade table. A later burst can replace
+/// those angles while an earlier burst is live. The growing phase draws the
+/// starburst, a disc and a shrinking glow ring immediately. At zero countdown
+/// brightness becomes 255 and fading updates add the blades, drawing before
+/// dimming by 16. Brightness <=16 or controls >=4 release work and task.
+/// Nonzero controls below 4 retain drawing, freeze growing age/countdown and
+/// fading brightness, but fading age still advances. Requires composed
+/// coordinates, initialized scratch and packet capacity.
+void shelterB2PodBottomChargeBurstTask(Task* task);
 
 void shelterB2PodBottomEffectSpriteRiseTask(Task* task);
 
-void func_shelter_b2_pod_bottom_80180F10(Task* arg0);
+/// Moves a flickering light beam along local Y for sixteen running updates.
+///
+/// Owns spawner-initialized `EffectWork` and a coordinate body. `spawnArg1.value`
+/// is signed Y displacement per running update (callers use +/-768 coordinate
+/// units). Drawing uses the existing composed cache after dirtying the local
+/// transform. Updates 1..7 use full brightness; 8..16 scale RGB nibbles by
+/// twice the remaining updates, retaining odd-frame flicker even at zero.
+/// Nonzero controls below 4 freeze age/motion and draw a random nibble tint at
+/// full brightness, advancing the random generator. Controls >=4 cancel before
+/// drawing; update 16 draws then releases the work and task. Requires composed
+/// coordinates, initialized scratch and packet capacity.
+void shelterB2PodBottomLightBeamTask(Task* task);
 
-void func_shelter_b2_pod_bottom_8017D760(Task* task);
+/// Initializes the arc flash's segment phases and selects this room's ground shadow.
+///
+/// State 0 seeds three 16-entry rows with phases 0..255 and disables ground traces.
+/// Every update disables the shadow in mapped view 15 (low byte), selecting
+/// unmodulated shadow shading elsewhere. This callback leaves its lifetime to
+/// task teardown; it must initialize before arc flashes use the phase table.
+void shelterB2PodBottomShadowTask(Task* task);
 
-void func_shelter_b2_pod_bottom_8017EC78(Task* task);
+/// Advances three textured bands, three rising glow rings and an additive screen flash.
+///
+/// Owns spawner-initialized `EffectWork` and a coordinate body. State 0 resets
+/// local rotation and starts brightness at 160, returning without drawing.
+/// Running updates dim by 8 and expand the bands; brightness <=8 ends the task
+/// on the next update. Nonzero controls below 4 freeze age and ramps but draw
+/// every layer; controls >=4 release work and task before drawing.
+/// The glow rings successively offset the cached Y translation, which normal
+/// coordinate composition must restore before the next update. Requires the
+/// room's initialized phase table, composed coordinates, scratch and packets.
+void shelterB2PodBottomArcFlashTask(Task* task);
 
-void func_shelter_b2_pod_bottom_8017F448(Task* task);
+/// Charges and fades two tinted discs with a cycling outer glow ring.
+///
+/// Owns spawner-initialized `EffectWork` and a coordinate body. `spawnArg1.value`
+/// is a positive running-update countdown; callers use 32. Integer 192/count
+/// is the brightness increment. Local rotation is reset on the first update;
+/// the growing phase draws immediately and rerolls one of 18 RGB shift rows.
+/// At zero countdown brightness becomes 255; the next phase draws and dims by
+/// 16 until <=16, then releases work and task. Nonzero controls below 4 freeze
+/// the growing age/countdown or fading brightness while retaining drawing;
+/// fading age still advances. Controls >=4 cancel before drawing.
+/// Requires composed coordinates, initialized scratch and packet capacity.
+void shelterB2PodBottomEnergyRingTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B2_POD_BOTTOM_H

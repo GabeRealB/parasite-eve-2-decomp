@@ -141097,31 +141097,31 @@ starting one function too late. It also hides the copy from
 once at entry, then re-reads each byte with `lbu $a3,0x10(sp)` right before
 every `sb` into the primitive. Declaring the colour as `u8 rgb[3]` or a
 `CVECTOR` reproduced the stores and the reloads but put them in `$v0`
-(func_shelter_b2_pod_bottom_8017E788, 96.9%).
+(_shelterB2PodBottomDrawShockRing, 96.9%).
 
 **Cause.** Every callee-saved register (`$s0`-`$s7`, `$fp`) was already taken,
 so three `u8` locals live across the whole draw loop get no hard register.
 Reload gives them stack slots, and the reload register it picks for each use is
 `$a3`, not the first free one that local-alloc would pick for an array read.
 
-**Fix.** Declare three scalars (`u8 red, grn, blu;`) and use them directly in
+**Fix.** Declare three scalars (`u8 red, green, blue;`) and use them directly in
 `setRGB0`/`setRGB1`. When a function uses every `$s` register, `lbu`/`lw`
 reloads from low stack slots into an odd register are a sign of spilled
 scalars. The prologue statement order still mattered after that: assigning
-`block = head` *after* the colour scalars placed the `move $s3` where the
+`scratch = head` *after* the colour scalars placed the `move $s3` where the
 target has it, which removed the one `head asm("v1")` pin the attempt had
 needed.
 
-## `-(p * 16)` on an `s16` parameter keeps its sign extension; `-(p << 4)` drops it (func_shelter_b2_pod_bottom_8018101C, 2026-09-24)
+## `-(p * 16)` on an `s16` parameter keeps its sign extension; `-(p << 4)` drops it (_shelterB2PodBottomDrawLightBeam, 2026-09-24)
 
 Storing a negated, scaled `s16` parameter into a 16-bit field:
 
 ```c
-block->point1.vy = -(size * 16);   /* sll a1,16; sra 12; negu; sh */
-block->point1.vy = -(size << 4);   /* sll a1,4;  negu;         sh */
+scratch->point1.vy = -(radiusScale * 16);   /* sll a1,16; sra 12; negu; sh */
+scratch->point1.vy = -(radiusScale << 4);   /* sll a1,4;  negu;         sh */
 ```
 
-Only the low half reaches the `sh`, so the promotion of `size` is dead, but
+Only the low half reaches the `sh`, so the promotion of `radiusScale` is dead, but
 combine only removes it through the shift form - the multiply keeps the
 `sll 16`/`sra 12` pair. A target with a bare `sll a1,4` on a parameter that
 is spilled later as a halfword (`sh a1,…($sp)` / `lhu`+`sll 16`+`sra 16`) is
@@ -142931,11 +142931,11 @@ candidate still carried; with the halved amplitude typed `s16` and no
 wrapper, the tie resolves the target's way. See "A hoisted mask next to an
 in-loop `lui`: count the moves loop.c makes before it".
 
-## Low callee-saved registers on short temporaries mean the temporaries are block-local (func_shelter_b2_pod_bottom_8017F994, 2026-09-26)
+## Low callee-saved registers on short temporaries mean the temporaries are block-local (_shelterB2PodBottomDrawStarburst, 2026-09-26)
 
-**Symptom.** Two `do`-loops each compute `ang + 0x100`/`ang + 0x200` (and
-`ang + 0x400`/`ang + 0x800`) across `rsin`/`rcos` calls. The target gives those
-angles `$s0`/`$s1` while the prim and scratch-block pointers, used far more
+**Symptom.** Two `do`-loops each compute `angle + 0x100`/`angle + 0x200` (and
+`angle + 0x400`/`angle + 0x800`) across `rsin`/`rcos` calls. The target gives those
+angles `$s0`/`$s1` while the quad and scratch-block pointers, used far more
 often, sit in `$s2`/`$s3`. With one function-level pair of temporaries the
 pointers win `$s0`/`$s1` on refs-per-length and the colouring is permuted; the
 seed pinned four registers to hold it.
@@ -142946,7 +142946,7 @@ global-alloc and takes the lowest free callee-saved registers for call-crossing
 values. Reusing the same variable in both loops makes it a two-block pseudo, so
 it falls to global-alloc behind the pointers.
 
-**Fix.** Declare the temporaries inside each loop body (`do { s32 mid; s32 next;
+**Fix.** Declare the temporaries inside each loop body (`do { s32 halfStepAngle; s32 nextAngle;
 ... }`). When the lowest `$s` registers hold values that live only within one
 iteration, try giving them per-block scope before touching anything else.
 
