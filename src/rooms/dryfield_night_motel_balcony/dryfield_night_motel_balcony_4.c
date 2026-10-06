@@ -94,51 +94,60 @@ static void _dryfieldNightMotelBalconyDrawFallingParticle(const Task* task, cons
 static void _dryfieldNightMotelBalconyDrawDriftPuff(const Task* task, s32 clutOriginIndex);
 static void _dryfieldNightMotelBalconyDrawFlame(const Task* task, const u8* tintRgb, s16 unusedAge);
 
-/// Clears a particle's local rotation while preserving its translation.
+/// Projects a debris billboard's cached centre through the current screen matrix.
 ///
-/// The word stores cover the nine signed 12-fractional-bit rotation elements.
-/// Requires a writable, word-aligned matrix; no pointer is retained.
-static inline void _dryfieldNightMotelBalconyResetParticleRotation(MATRIX* localTransform)
-{
-    MATRIX_PAIR(localTransform, 0, 0) = ONE;
-    MATRIX_PAIR(localTransform, 0, 2) = 0;
-    MATRIX_PAIR(localTransform, 1, 1) = ONE;
-    MATRIX_PAIR(localTransform, 2, 0) = 0;
-    localTransform->m[2][2]           = ONE;
-}
-
-/// Projects a debris particle's composed view-space centre into scratch screen fields.
+/// `composedCoord->workm.t` must contain the centre to draw in `GsWSMATRIX`'s
+/// input space; these effect coordinates compose through the view. Each signed
+/// translation is narrowed to its low 16 bits in `scratch->worldPoint` before
+/// projection, without clamping. The vector's ignored fourth halfword is unchanged.
 ///
-/// Coordinates narrow to signed halfwords; projection and flags are stored in
-/// the caller's live scratch block. Changes GTE state and retains no pointers.
-static inline void _dryfieldNightMotelBalconyProjectDebrisCentre(EffectShapeScratch* projection, const GfxCoord* coord)
+/// Requires a live, writable, word-aligned `EffectShapeScratch`, disjoint from
+/// the borrowed coordinate, and the current GTE projection settings. Loads
+/// `GsWSMATRIX`'s rotation and translation, then stores raw pixel halfwords in
+/// `screenX`/`screenY` as one word and the signed GTE `projectionFlags` word,
+/// including rejected results (FLAG bit 31 set). Leaves `depth` and `extent`
+/// unchanged and SZ3 ready for the caller's depth read before another GTE command.
+/// The caller owns the scratch reservation. Reserves no storage, queues no GPU
+/// packet and retains no pointer.
+static inline void _dryfieldNightMotelBalconyProjectDebrisCentre(EffectShapeScratch* scratch, const GfxCoord* composedCoord)
 {
-    projection->worldPoint.vx = coord->workm.t[0];
-    projection->worldPoint.vy = coord->workm.t[1];
-    projection->worldPoint.vz = coord->workm.t[2];
+    scratch->worldPoint.vx = composedCoord->workm.t[0];
+    scratch->worldPoint.vy = composedCoord->workm.t[1];
+    scratch->worldPoint.vz = composedCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&projection->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&projection->screenX);
-    gte_stflg(&projection->projectionFlags);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
 }
 
-/// Projects a particle's composed view-space centre into scratch screen fields.
+/// Projects a falling particle, puff or flame anchor through the current screen matrix.
 ///
-/// Coordinates narrow to signed halfwords; projection and flags are stored in
-/// the caller's live scratch block. Changes GTE state and retains no pointers.
-static inline void _dryfieldNightMotelBalconyProjectParticleCentre(EffectCentreScratch* projection, const GfxCoord* coord)
+/// `composedCoord->workm.t` must contain the anchor to draw in `GsWSMATRIX`'s
+/// input space; these effect coordinates compose through the view. Each signed
+/// translation is narrowed to its low 16 bits in `scratch->worldPoint` before
+/// projection, without clamping. The vector's ignored fourth halfword is unchanged.
+///
+/// Requires a live, writable, word-aligned `EffectCentreScratch`, disjoint from
+/// the borrowed coordinate, and the current GTE projection settings. Loads
+/// `GsWSMATRIX`'s rotation and translation, then stores raw pixel halfwords in
+/// `screenX`/`screenY` as one word and the signed GTE `projectionFlags` word,
+/// including rejected results (FLAG bit 31 set). Leaves `depth` and `screenExtent`
+/// unchanged and SZ3 ready for the caller's depth read before another GTE command.
+/// The caller owns the scratch reservation. Reserves no storage, queues no GPU
+/// packet and retains no pointer.
+static inline void _dryfieldNightMotelBalconyProjectParticleCentre(EffectCentreScratch* scratch, const GfxCoord* composedCoord)
 {
-    projection->worldPoint.vx = coord->workm.t[0];
-    projection->worldPoint.vy = coord->workm.t[1];
-    projection->worldPoint.vz = coord->workm.t[2];
+    scratch->worldPoint.vx = composedCoord->workm.t[0];
+    scratch->worldPoint.vy = composedCoord->workm.t[1];
+    scratch->worldPoint.vz = composedCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&projection->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&projection->screenX);
-    gte_stflg(&projection->projectionFlags);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
 }
 
 extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183750[1];
@@ -3456,7 +3465,7 @@ void dryfieldNightMotelBalconyDebrisTask(Task* task)
         case DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_NEW:
             // Discard inherited rotation; velocity remains in the local world frame.
             localTransform = &coord->coord;
-            _dryfieldNightMotelBalconyResetParticleRotation(localTransform);
+            gfxSetRotIdentity(localTransform);
             work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SIZE_MASK;
             work->scale     = DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_INITIAL_SPEED;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -4017,7 +4026,7 @@ void dryfieldNightMotelBalconyDriftPuffTask(Task* task)
         case DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_NEW:
             // Normalize the chosen world-frame drift once, then retain displacement per frame.
             localTransform = &coord->coord;
-            _dryfieldNightMotelBalconyResetParticleRotation(localTransform);
+            gfxSetRotIdentity(localTransform);
             work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SIZE_MASK;
             work->scale     = driftRange;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -4197,7 +4206,7 @@ void dryfieldNightMotelBalconyFlameTask(Task* task)
             // Randomize the sprite phase and lifetime before selecting and scaling drift.
             randomState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             localTransform = &coord->coord;
-            _dryfieldNightMotelBalconyResetParticleRotation(localTransform);
+            gfxSetRotIdentity(localTransform);
             work->pos.vx    = task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_SIZE_MASK;
             gRandomLcgState = randomState;
             work->index     = (gRandomLcgState >> 16) % 10;
