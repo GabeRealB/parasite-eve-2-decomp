@@ -4593,61 +4593,25 @@ static void func_actor_400500_8013899C(Task* arg0)
     _Actor400500GrayStalkerWork* work;
     Enemy*                       enemy;
     TaskFuncTable5               sp;
-    _Actor400500GrayStalkerWork* workA;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          i;
-    _Actor400500GrayStalkerWork* work3;
-    s32                          skip;
 
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     sp    = D_actor_400500_80131F08;
     if (enemy->hp > 0) {
-        workA = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (workA->knockdownPending != 0) {
-            workA->knockdownPending = 0;
-            func_actor_400500_8013DB64(arg0, ACTOR_400500_STATE_KNOCKDOWN);
-            skip = 1;
-        } else {
-            skip = 0;
+        if (_actor400500TakeKnockdown(arg0)) {
+            return;
         }
-        if (skip == 0) {
-            sp.funcs[(s16)work->subState](arg0);
-            goto common;
-        }
+        sp.funcs[(s16)work->subState](arg0);
     } else {
         work->deathHeld            = 0;
         work->rightArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->rightArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmOuter.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmInner.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    common:
-        func_actor_400500_80133358(arg0);
-        work2 = (_Actor400500GrayStalkerWork*)arg0->work;
-        if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_BLEND) {
-            if (work2->appliedAnim != work2->animId) {
-                work2->animFrames = 0;
-            } else {
-                work2->animFrames = func_actor_400500_8013DD8C(arg0, work2->animFrames);
-            }
-            func_actor_400500_8013DCD4(arg0);
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING;
-        } else if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_RESET) {
-            func_actor_400500_8013DC4C(arg0);
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING;
-            work2->animFrames  = 0;
-        } else if (work2->animRequest == ACTOR_400500_ANIM_REQUEST_PLAYING) {
-            work2->animFrames = (u16)work2->animFrames + 1;
-        }
-        i = 1;
-        do {
-            work2->rig.slots[i].rate = work2->animRate;
-            animationTickSlot(&work2->rig.anim, i);
-            i++;
-        } while (i < ARRAY_SIZE(work2->rig.slots));
-        work3                     = (_Actor400500GrayStalkerWork*)arg0->work;
-        work3->ceilingFallPending = 0;
     }
+    func_actor_400500_80133358(arg0);
+    _actor400500TickAnim(arg0);
+    ((_Actor400500GrayStalkerWork*)arg0->work)->ceilingFallPending = 0;
 }
 
 static void func_actor_400500_80138B78(Task* arg0)
