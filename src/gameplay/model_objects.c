@@ -282,12 +282,22 @@ static inline void _tmdStoreFlatQuadFirstTriangleFacing(const POLY_F4* packet, s
     gte_stopz(facingArea);
 }
 
-/// Returns the signed double area of a projected flat quad's second triangle.
+/// Stores and returns the signed double area of a flat quad's second triangle.
 ///
-/// Pushes corner 3 after `_tmdStoreFlatQuadFirstTriangleFacing` left corners
-/// 0..2 in the screen FIFO, so NCLIP measures corners 1..3. The result is
-/// stored in `workspace->gteResult` through `facingArea` and read back from it.
-static inline s32 _tmdFlatQuadSecondTriangleFacing(const TmdStreamWorkspace* workspace, const POLY_F4* packet, s32* facingArea)
+/// Requires corners 0..2 from the first facing test still in SXY0..SXY2.
+/// Reads only `packet->x3` and `packet->y3` as one word-aligned packed pair
+/// of signed 16-bit pixel coordinates (X low, Y high), then pushes it to test
+/// corners 1..3. `facingArea` must equal `&workspace->gteResult`, a writable,
+/// word-aligned s32. Stores MAC0's signed 32-bit NCLIP result through that
+/// alias and returns it through the workspace, in square pixels. The caller
+/// accepts negative results; zero or positive results reject this triangle.
+/// Overflow is unchecked. The coordinate read precedes the sole memory write,
+/// so packet storage may overlap the result. All pointers are borrowed for
+/// this call and not retained.
+///
+/// Leaves corners 1..3 in SXY0..SXY2 and clobbers MAC0/FLAG. No other GTE
+/// setup is required; performs no projection or clipping.
+static inline s32 _tmdFlatQuadSecondTriangleFacing(TmdStreamWorkspace* workspace, const POLY_F4* packet, s32* facingArea)
 {
     gte_ldSXYP(*(const u32*)&packet->x3);
     gte_nclip();
@@ -342,12 +352,23 @@ static inline void _tmdStoreTexturedQuadFirstTriangleFacing(const POLY_GT4* pack
     gte_stopz(facingArea);
 }
 
-/// Returns the signed double area of a projected Gouraud textured quad's second triangle.
+/// Stores and returns a Gouraud textured quad's second-triangle signed double area.
 ///
-/// Pushes corner 3 after `_tmdStoreTexturedQuadFirstTriangleFacing` left
-/// corners 0..2 in the screen FIFO, so NCLIP measures corners 1..3. The result
-/// is stored in `workspace->gteResult` through `facingArea` and read back from it.
-static inline s32 _tmdTexturedQuadSecondTriangleFacing(const TmdStreamWorkspace* workspace, const POLY_GT4* packet, s32* facingArea)
+/// Requires corners 0..2 from the first facing test still in SXY0..SXY2.
+/// Reads only `packet->x3` and `packet->y3` as one word-aligned packed pair
+/// of signed 16-bit pixel coordinates (X low, Y high), then pushes it to test
+/// corners 1..3. Colours, texture data and the other coordinates are not read.
+/// `facingArea` must equal `&workspace->gteResult`, a writable, word-aligned
+/// s32. Stores MAC0's signed 32-bit NCLIP result through that alias and returns
+/// it through the workspace, in square pixels. The offset-layer caller accepts
+/// negative results; zero or positive results reject this triangle. Overflow
+/// is unchecked. The coordinate read precedes the sole memory write, so packet
+/// storage may overlap the result. All pointers are borrowed for this call
+/// and not retained.
+///
+/// Leaves corners 1..3 in SXY0..SXY2 and clobbers MAC0/FLAG. No other GTE
+/// setup is required; performs no projection, clipping or lighting.
+static inline s32 _tmdTexturedQuadSecondTriangleFacing(TmdStreamWorkspace* workspace, const POLY_GT4* packet, s32* facingArea)
 {
     gte_ldSXYP(*(const u32*)&packet->x3);
     gte_nclip();
