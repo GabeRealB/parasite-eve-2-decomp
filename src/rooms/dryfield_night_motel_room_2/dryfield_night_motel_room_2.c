@@ -56,9 +56,11 @@ extern TaskMessageEntry D_dryfield_night_motel_room_2_8017DA1C[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA44[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA54[];
 
-s32 func_dryfield_night_motel_room_2_8017D5D0(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_2_8017D660(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_2_8017D668(Task*, s32, s32, s32);
+static s32 _dryfieldNightMotelRoom2RejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _dryfieldNightMotelRoom2IgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _dryfieldNightMotelRoom2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+enum { DRYFIELD_NIGHT_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid     D_dryfield_night_motel_room_2_8017E184[1];
 extern WorldCollisionOccluder D_dryfield_night_motel_room_2_80180580[2];
@@ -68,9 +70,9 @@ extern WorldCoordRoomLights   D_dryfield_night_motel_room_2_80180928[1];
 
 TaskMessageEntry D_dryfield_night_motel_room_2_8017DA1C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
-    { 5105, func_dryfield_night_motel_room_2_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_2_8017D668 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_room_2_8017D660 },
+    { DRYFIELD_NIGHT_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom2RejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom2IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom2IgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1121,24 +1123,32 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_2_80180A90[8] = {
 };
 
 static void func_dryfield_night_motel_room_2_8017D670(Task* task);
-static void func_dryfield_night_motel_room_2_8017D6B4(Task* task);
 
-/// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in night motel room 2 without changing the item or room.
+///
+/// `itemId` is the collected item ID; zero is returned for every request, so
+/// the item menu reports that the item cannot be used here. No arguments are
+/// read or retained; the second payload word is unused.
+static s32 _dryfieldNightMotelRoom2RejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
 
 #include "../../shared/room_variants_main_street.inc.c"
 
-/// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D660(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands in night motel room 2 and returns zero.
+///
+/// Neither command payload word is read, and no task or scene state changes.
+static s32 _dryfieldNightMotelRoom2IgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D668(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-trigger room actions in night motel room 2.
+///
+/// The borrowed action request is never accessed or retained. The second
+/// payload word is unused, and zero is returned without changing room state.
+static s32 _dryfieldNightMotelRoom2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -1152,8 +1162,11 @@ static void func_dryfield_night_motel_room_2_8017D670(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// The event task's per-frame state: nothing to do.
-static void func_dryfield_night_motel_room_2_8017D6B4(Task* task)
+/// Leaves the initialized room task idle with its message table active.
+///
+/// State 1 does no per-frame work and never reads `task` or advances its state;
+/// the separate state-2 callback handles teardown.
+static void _dryfieldNightMotelRoom2IdleRoomTask(Task* task)
 {
 }
 
@@ -1162,7 +1175,7 @@ static void func_dryfield_night_motel_room_2_8017D6B4(Task* task)
 static const TaskFuncTable3 D_dryfield_night_motel_room_2_8017D5C4 = {
     {
         func_dryfield_night_motel_room_2_8017D670,
-        func_dryfield_night_motel_room_2_8017D6B4,
+        _dryfieldNightMotelRoom2IdleRoomTask,
         taskKill,
     },
 };
@@ -1179,24 +1192,33 @@ void func_dryfield_night_motel_room_2_8017D6BC(Task* task)
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"
 
-/// Night motel room 2 draw: queues the room's glowing discs for the visit
-/// `gGameSession->location.loc.view` selects - visits 2 and 3 a pair at one point,
-/// 5 and 6 a single one at another. Visits outside those ranges draw nothing.
-/// `jump.c` cross-jumps the two trailing disc-draw calls into one tail.
-void func_dryfield_night_motel_room_2_8017D990(Task* unused)
+void dryfieldNightMotelRoom2DrawFlaresTask(Task* unusedTask)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_FLARE_PAIR_A    = 2,
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_FLARE_PAIR_B    = 3,
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_SINGLE_FLARE_A  = 5,
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_SINGLE_FLARE_B  = 6,
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_PAIR_FLARE_TEXTURE   = 1,
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_SINGLE_FLARE_TEXTURE = 2,
+        // Screen half-extent is radius scale * 39 / (camera Z / 4), in pixels.
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_FIRST_FLARE_RADIUS_SCALE  = 0x200,
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_SECOND_FLARE_RADIUS_SCALE = 0x240,
+        DRYFIELD_NIGHT_MOTEL_ROOM_2_SINGLE_FLARE_RADIUS_SCALE = 0x180,
+    };
+
     switch (gGameSession->location.loc.view) {
-        case 2:
-        case 3: {
-            SVECTOR* p = D_dryfield_night_motel_room_2_8017DA44;
-            glowDrawFlareClipped(&p[0], 1, 0x200);
-            glowDrawFlareClipped(&p[1], 1, 0x240);
+        case DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_FLARE_PAIR_A:
+        case DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_FLARE_PAIR_B: {
+            const SVECTOR* flarePoints = D_dryfield_night_motel_room_2_8017DA44;
+            glowDrawFlareClipped(&flarePoints[0], DRYFIELD_NIGHT_MOTEL_ROOM_2_PAIR_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_ROOM_2_FIRST_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&flarePoints[1], DRYFIELD_NIGHT_MOTEL_ROOM_2_PAIR_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_ROOM_2_SECOND_FLARE_RADIUS_SCALE);
             break;
         }
-        case 5:
-        case 6: {
-            SVECTOR* p = D_dryfield_night_motel_room_2_8017DA54;
-            glowDrawFlareClipped(&p[0], 2, 0x180);
+        case DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_SINGLE_FLARE_A:
+        case DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_SINGLE_FLARE_B: {
+            const SVECTOR* flarePoints = D_dryfield_night_motel_room_2_8017DA54;
+            glowDrawFlareClipped(&flarePoints[0], DRYFIELD_NIGHT_MOTEL_ROOM_2_SINGLE_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_ROOM_2_SINGLE_FLARE_RADIUS_SCALE);
             break;
         }
     }

@@ -92831,9 +92831,9 @@ into a join; here nothing joins and the fallen-into case is the tell.
 
 Inputs: `base.i` (85%, the m2c switch), `base_1.i` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
-## A two-sided range test that stays two `slti`s is a `switch`, because `fold_range_test` eats the `&&` (func_dryfield_night_motel_room_2_8017D990, 2026-09-16)
+## A two-sided range test that stays two `slti`s is a `switch`, because `fold_range_test` eats the `&&` (dryfieldNightMotelRoom2DrawFlaresTask, 2026-09-16)
 
-The function draws one of two disc sets on the stage-visit byte. The target has
+The function draws one of two flare sets on the room-local view byte. The target has
 *two* compares per range:
 
 ```
@@ -92875,24 +92875,24 @@ blocks the fold too, but it is not what the original was here — it is a
     switch (gGameSession->location.loc.view) {
         case 2:
         case 3: {
-            SVECTOR* p = D_dryfield_night_motel_room_2_8017DA44;
-            Room_Draw20(&p[0], 1, 0x200);
-            Room_Draw20(&p[1], 1, 0x240);
+            const SVECTOR* flarePoints = D_dryfield_night_motel_room_2_8017DA44;
+            glowDrawFlareClipped(&flarePoints[0], 1, 0x200);
+            glowDrawFlareClipped(&flarePoints[1], 1, 0x240);
             break;
         }
         case 5:
         case 6: {
-            SVECTOR* p = D_dryfield_night_motel_room_2_8017DA54;
-            Room_Draw20(&p[0], 2, 0x180);
+            const SVECTOR* flarePoints = D_dryfield_night_motel_room_2_8017DA54;
+            glowDrawFlareClipped(&flarePoints[0], 2, 0x180);
             break;
         }
     }
 ```
 
 Everything else in the target falls out of the house idiom: the per-case
-`SVECTOR* p` is what keeps the base in `$s0` across the first call and gives
-`addiu a0,$s0,8` for `&p[1]` (see the pointer-local entries; here the second
-case uses `p` once and so materialises straight into `$a0`), and the last call
+`const SVECTOR* flarePoints` is what keeps the base in `$s0` across the first call and gives
+`addiu a0,$s0,8` for `&flarePoints[1]` (see the pointer-local entries; here the second
+case uses `flarePoints` once and so materialises straight into `$a0`), and the last call
 of each case is cross-jumped into the one `jal` + `nop` tail.
 
 **Tell.** Two compares in the target where the C wants `&&`: count case *nodes*,

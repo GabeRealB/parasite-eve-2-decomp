@@ -54,6 +54,10 @@ D_map_dryfield_full_8017B7D8 = 0x8017B7D8; // absolute:True owner=map_dryfield_f
 D_map_dryfield_full_8017B858 = 0x8017B858; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017B8C8 = 0x8017B8C8; // absolute:True owner=map_dryfield_full
 
-func_dryfield_night_motel_room_2_8017D990 = 0x8017D990; // type:func
+dryfieldNightMotelRoom2DrawFlaresTask = 0x8017D990; // type:func
 glowDrawFlareClipped = 0x8017D714; // type:func
 roomVariantMainStreetMsg = 0x8017D5D8; // type:func
+_dryfieldNightMotelRoom2RejectKeyItem = 0x8017d5d0; // type:func
+_dryfieldNightMotelRoom2IgnoreCommand = 0x8017d660; // type:func
+_dryfieldNightMotelRoom2IgnoreRoomAction = 0x8017d668; // type:func
+_dryfieldNightMotelRoom2IdleRoomTask = 0x8017d6b4; // type:func
