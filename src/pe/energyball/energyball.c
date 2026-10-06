@@ -202,7 +202,8 @@ void func_energyball_8012F180(Task* arg0)
             if (arg0->state != 0) {
                 worldCollisionUnlinkBody(&work->body);
             }
-            goto release;
+            effectKillTask(mem, arg0);
+            return;
         }
         actorRenderComposeCoord(coord);
         spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
@@ -458,8 +459,6 @@ void func_energyball_8012F180(Task* arg0)
         default:
             return;
     }
-release:
-    effectKillTask(mem, arg0);
 }
 
 /// Overlay copy of `effectDrawGouraudDisc` with a flat tint: draws an eight-segment
