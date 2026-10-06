@@ -46,5 +46,8 @@ D_neo_ark_substation_80180318 = 0x80180318; // size:0x8 defined:True
 D_neo_ark_substation_80180320 = 0x80180320; // size:0x8 defined:True
 D_neo_ark_substation_80180328 = 0x80180328; // size:0x20 defined:True
 
-func_neo_ark_substation_8017D874 = 0x8017D874; // type:func
+neoArkSubstationDrawLightGlowsTask = 0x8017D874; // type:func
 _glowDrawCapsule = 0x8017DA50; // type:func
+_neoArkSubstationRejectKeyItemUse = 0x8017d71c; // type:func
+_neoArkSubstationIgnoreRoomAction = 0x8017d7a4; // type:func
+_neoArkSubstationMessageTaskIdle = 0x8017d814; // type:func

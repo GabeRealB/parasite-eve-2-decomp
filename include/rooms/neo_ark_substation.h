@@ -27,7 +27,13 @@ extern SpriteView D_neo_ark_substation_8017F584[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[];
 
-void func_neo_ark_substation_8017D874(Task* unused);
+/// Draws the substation's flickering light glows for the current mapped view.
+///
+/// Bank-6 effect 0x38 draws fixed world-space endpoint pairs in views 2..8;
+/// other views emit nothing. The task argument is unused and no state is retained.
+/// Requires the substation overlay, composed view matrices, initialized scratch
+/// stack and enough space in the current frame's packet arena and ordering table.
+void neoArkSubstationDrawLightGlowsTask(Task* unusedTask);
 
 void func_neo_ark_substation_8017D81C(Task* task);
 

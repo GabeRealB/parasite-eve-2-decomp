@@ -54,7 +54,7 @@ extern SVECTOR D_neo_ark_substation_8017E360[];
 extern SVECTOR D_neo_ark_substation_8017E380[];
 
 static void func_neo_ark_substation_8017D7AC(Task* task);
-static void func_neo_ark_substation_8017D814(Task* task);
+static void _neoArkSubstationMessageTaskIdle(Task* unusedTask);
 
 /// State table of the room's message task: set-up
 /// (`func_neo_ark_substation_8017D7AC`), an empty per-frame state and
@@ -62,15 +62,21 @@ static void func_neo_ark_substation_8017D814(Task* task);
 /// jump table.
 static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
     func_neo_ark_substation_8017D7AC,
-    func_neo_ark_substation_8017D814,
+    _neoArkSubstationMessageTaskIdle,
     taskKill,
 };
 
-void func_neo_ark_substation_8017D608(Task*);
-s32  func_neo_ark_substation_8017D71C(Task*, s32, s32, s32);
-s32  func_neo_ark_substation_8017D724(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_substation_8017D768(Task*, s32, s32, s32);
-s32  func_neo_ark_substation_8017D7A4(Task*, s32, s32, s32);
+void       func_neo_ark_substation_8017D608(Task*);
+static s32 _neoArkSubstationRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_neo_ark_substation_8017D724(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_neo_ark_substation_8017D768(Task*, s32, s32, s32);
+static s32 _neoArkSubstationIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
+
+/// Key-item menu request and the reply that displays the cannot-use notice.
+enum {
+    NEO_ARK_SUBSTATION_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    NEO_ARK_SUBSTATION_KEY_ITEM_UNUSABLE    = 0,
+};
 
 extern WorldCollisionGrid    D_neo_ark_substation_8017E8A4[1];
 extern WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12];
@@ -79,8 +85,8 @@ extern WorldCoordRoomLights  D_neo_ark_substation_8017FC44[1];
 
 TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_substation_8017D724 },
-    { 5105, func_neo_ark_substation_8017D71C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_substation_8017D7A4 },
+    { NEO_ARK_SUBSTATION_MESSAGE_USE_KEY_ITEM, _neoArkSubstationRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSubstationIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_substation_8017D768 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -556,9 +562,12 @@ void func_neo_ark_substation_8017D608(Task* task)
     }
 }
 
-s32 func_neo_ark_substation_8017D71C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room with the cannot-use reply.
+///
+/// `itemId` is the selected inventory item ID; all arguments are ignored.
+static s32 _neoArkSubstationRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return NEO_ARK_SUBSTATION_KEY_ITEM_UNUSABLE;
 }
 
 /// Handler the room's message table gives message 0x13EE: copies the incoming
@@ -579,7 +588,11 @@ s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_neo_ark_substation_8017D7A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests and returns zero without changing room state.
+///
+/// `request` is borrowed for synchronous dispatch and is never read or retained.
+/// The receiver, message ID and unused second payload are also ignored.
+static s32 _neoArkSubstationIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
     return 0;
 }
@@ -598,9 +611,10 @@ static void func_neo_ark_substation_8017D7AC(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Per-frame state of the room's message task: nothing to do, the task only
-/// holds the message table.
-static void func_neo_ark_substation_8017D814(Task* task)
+/// Keeps the initialized room message task idle while its message table remains available.
+///
+/// Leaves the task's state and lifetime unchanged; synchronous messages do the work.
+static void _neoArkSubstationMessageTaskIdle(Task* unusedTask)
 {
 }
 
@@ -614,61 +628,69 @@ void func_neo_ark_substation_8017D81C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_neo_ark_substation_8017D874(Task* unused)
+void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)
 {
-    u8 view;
+    // The capsule drawer expands each RGB444 nibble by 16 and flickers by 8.
+    enum {
+        NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE  = 512, // Pixel radius = scale * 64 / (camera Z / 4)
+        NEO_ARK_SUBSTATION_GLOW_DIM_RGB444    = 0x222,
+        NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444 = 0x333,
+        NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444 = 0x444,
+    };
+    u8 mappedView;
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    // Keep one endpoint base per view; some pairs occupy the following tables.
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2: {
-            SVECTOR* p = D_neo_ark_substation_8017E310;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            const SVECTOR* lightPoints = D_neo_ark_substation_8017E310;
+            _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             break;
         }
         case 3: {
-            SVECTOR* p = D_neo_ark_substation_8017E310;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[2], 0x200, 0x444);
-            _glowDrawCapsule(&p[4], 0x200, 0x444);
-            _glowDrawCapsule(&p[6], 0x200, 0x444);
+            const SVECTOR* lightPoints = D_neo_ark_substation_8017E310;
+            _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[4], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[6], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             break;
         }
         case 4: {
-            SVECTOR* p = D_neo_ark_substation_8017E310;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x333);
-            _glowDrawCapsule(&p[4], 0x200, 0x444);
-            _glowDrawCapsule(&p[6], 0x200, 0x444);
-            _glowDrawCapsule(&p[16], 0x200, 0x222);
-            _glowDrawCapsule(&p[18], 0x200, 0x333);
+            const SVECTOR* lightPoints = D_neo_ark_substation_8017E310;
+            _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_DIM_RGB444);
+            _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
+            _glowDrawCapsule(&lightPoints[4], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[6], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[16], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_DIM_RGB444);
+            _glowDrawCapsule(&lightPoints[18], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
             break;
         }
         case 5: {
-            SVECTOR* p = D_neo_ark_substation_8017E330;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[2], 0x200, 0x333);
+            const SVECTOR* lightPoints = D_neo_ark_substation_8017E330;
+            _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
             break;
         }
         case 6: {
-            SVECTOR* p = D_neo_ark_substation_8017E350;
-            _glowDrawCapsule(&p[0], 0x200, 0x333);
-            _glowDrawCapsule(&p[2], 0x200, 0x444);
-            _glowDrawCapsule(&p[12], 0x200, 0x444);
+            const SVECTOR* lightPoints = D_neo_ark_substation_8017E350;
+            _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
+            _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[12], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             break;
         }
         case 7: {
-            SVECTOR* p = D_neo_ark_substation_8017E360;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[2], 0x200, 0x333);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[12], 0x200, 0x444);
-            _glowDrawCapsule(&p[14], 0x200, 0x333);
-            _glowDrawCapsule(&p[16], 0x200, 0x222);
+            const SVECTOR* lightPoints = D_neo_ark_substation_8017E360;
+            _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
+            _glowDrawCapsule(&lightPoints[4], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_DIM_RGB444);
+            _glowDrawCapsule(&lightPoints[12], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
+            _glowDrawCapsule(&lightPoints[14], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
+            _glowDrawCapsule(&lightPoints[16], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_DIM_RGB444);
             break;
         }
         case 8: {
-            SVECTOR* p = D_neo_ark_substation_8017E380;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
+            const SVECTOR* lightPoints = D_neo_ark_substation_8017E380;
+            _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             break;
         }
     }

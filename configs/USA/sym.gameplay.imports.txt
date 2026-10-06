@@ -1753,7 +1753,7 @@ func_acropolis_west_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func absolute:T
 
 func_acropolis_fountain_8017E014 = 0x8017E014; // type:func absolute:True owner=acropolis_fountain
 
-func_neo_ark_substation_8017D874 = 0x8017D874; // type:func absolute:True owner=neo_ark_substation
+neoArkSubstationDrawLightGlowsTask = 0x8017D874; // type:func absolute:True owner=neo_ark_substation
 
 mistParkingDrawGlowsTask = 0x80184728; // type:func absolute:True owner=mist_parking
 
