@@ -43,11 +43,11 @@ D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 Actor02000_D15FD0 = 0x8015FDF0; // absolute:True owner=actor_202000
 RoomFx_TrailOffsets = 0x80181EE4; // size:0x10 defined:True
 
-func_shelter_b1_control_room_access_tunnel_8017E1BC = 0x8017E1BC; // type:func
+shelterB1ControlRoomAccessTunnelDrawGlowsTask = 0x8017E1BC; // type:func
 
-func_shelter_b1_control_room_access_tunnel_8017E2D8 = 0x8017E2D8; // type:func
+shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlashTask = 0x8017E2D8; // type:func
 
-func_shelter_b1_control_room_access_tunnel_8017ED3C = 0x8017ED3C; // type:func
+shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017ED3C; // type:func
 
 func_shelter_b1_control_room_access_tunnel_8017F624 = 0x8017F624; // type:func
 
@@ -67,3 +67,7 @@ _roomVisualEffectsDrawFlyingBurstGlow = 0x801815D0; // type:func
 _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80181AFC; // type:func
 glowDrawDimGreyCapsule = 0x8017D6E4; // type:func
 glowDrawRedDisc = 0x8017DE60; // type:func
+_shelterB1ControlRoomAccessTunnelRejectKeyItemUse = 0x8017d5e4; // type:func
+_shelterB1ControlRoomAccessTunnelIgnoreRoomCommand = 0x8017d630; // type:func
+_shelterB1ControlRoomAccessTunnelIgnoreRoomAction = 0x8017d638; // type:func
+_shelterB1ControlRoomAccessTunnelIdle = 0x8017d684; // type:func

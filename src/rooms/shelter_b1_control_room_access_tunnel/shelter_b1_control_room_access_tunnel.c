@@ -43,20 +43,18 @@ extern TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[];
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181E9C[];
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[];
 
-/// The smoke trail's two spawn offsets: `[0]` places the effect's own
-/// coordinate and `[1]` the second trail's origin. State 1 reads `[1]` again
-/// under its own name.
+static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_shelter_b1_control_room_access_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task*, s32, s32, s32);
-s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, s32, s32);
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, s32, s32);
+enum { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_access_tunnel_8017D5EC },
-    { 5105, func_shelter_b1_control_room_access_tunnel_8017D5E4 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_control_room_access_tunnel_8017D638 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_control_room_access_tunnel_8017D630 },
+    { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1ControlRoomAccessTunnelRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ControlRoomAccessTunnelIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -78,9 +76,11 @@ SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[7] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 static void func_shelter_b1_control_room_access_tunnel_8017D640(Task* task);
-static void func_shelter_b1_control_room_access_tunnel_8017D684(Task* task);
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this room, selecting the inventory's cannot-use notice.
+///
+/// Ignores the collected `itemId` and all other arguments; always returns zero.
+static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
@@ -94,12 +94,18 @@ s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task* arg0, s32 arg1, Ro
     return 1;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from scripts and triggers and always returns zero.
+///
+/// Neither command word nor any other argument is read or retained.
+static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests from direction triggers and always returns zero.
+///
+/// The borrowed `request` and all other arguments are neither read nor retained.
+static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -113,8 +119,8 @@ static void func_shelter_b1_control_room_access_tunnel_8017D640(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room's task: does nothing until the task is killed.
-static void func_shelter_b1_control_room_access_tunnel_8017D684(Task* task)
+/// Keeps the initialized room task available for messages without per-frame work.
+static void _shelterB1ControlRoomAccessTunnelIdle(Task* task)
 {
 }
 
@@ -122,7 +128,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017D684(Task* task)
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_control_room_access_tunnel_8017D5C4 = {
-    { func_shelter_b1_control_room_access_tunnel_8017D640, func_shelter_b1_control_room_access_tunnel_8017D684, taskKill }
+    { func_shelter_b1_control_room_access_tunnel_8017D640, _shelterB1ControlRoomAccessTunnelIdle, taskKill }
 };
 
 /// Runs the room's task through its three-state handler table, copied onto
@@ -139,34 +145,43 @@ void func_shelter_b1_control_room_access_tunnel_8017D68C(Task* task)
 
 #include "../../shared/glow_draw_red_disc.inc.c"
 
-/// On its first tick stores six effect ids in gameplay's `D_801157xx` slots;
-/// every tick then draws the room's gouraud cones and disc for the current
-/// camera view (views 2 and 3).
-void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
+/// Selects this room's exported tasks for effects spawned by its actors.
+static inline void _shelterB1ControlRoomAccessTunnelBindEffects(void)
 {
-    u8 view;
+    gRoomEffectFlashId        = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_SPARK_BURST;
+    gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_GLOW_DISC;
+    gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLYING_SPARK;
+    gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ORANGE_BURST_2;
+}
 
-    if (arg0->state == 0) {
-        gRoomEffectFlashId        = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_SPARK_BURST;
-        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_GLOW_DISC;
-        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_FLYING_SPARK;
-        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ORANGE_BURST_2;
-        arg0->state               = 1;
+void shelterB1ControlRoomAccessTunnelDrawGlowsTask(Task* task)
+{
+    enum { GLOWS_INITIALIZE,
+           GLOWS_DRAW,
+           GLOW_RADIUS_SCALE = 0x200 };
+
+    u8 mappedView;
+
+    if (task->state == GLOWS_INITIALIZE) {
+        _shelterB1ControlRoomAccessTunnelBindEffects();
+        task->state = GLOWS_DRAW;
     }
-    view = viewGetMappedIndex();
-    switch (view) {
+    // Each view exposes two capsule glows; view 2 also exposes a red disc.
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2: {
-            SVECTOR* p = D_shelter_b1_control_room_access_tunnel_80181E9C;
-            glowDrawDimGreyCapsule(&p[0], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&p[4], 0x200, 0x400);
-            glowDrawRedDisc(&p[8], 0x200);
+            // These retained indices span both adjacent glow-point tables.
+            const SVECTOR* glowPoints = D_shelter_b1_control_room_access_tunnel_80181E9C;
+            glowDrawDimGreyCapsule(&glowPoints[0], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[4], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawRedDisc(&glowPoints[8], GLOW_RADIUS_SCALE);
         } break;
         case 3: {
-            SVECTOR* p = D_shelter_b1_control_room_access_tunnel_80181EAC;
-            glowDrawDimGreyCapsule(&p[0], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&p[4], 0x200, -0x400);
+            const SVECTOR* glowPoints = D_shelter_b1_control_room_access_tunnel_80181EAC;
+            glowDrawDimGreyCapsule(&glowPoints[0], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&glowPoints[4], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
         } break;
     }
 }
@@ -175,14 +190,14 @@ void func_shelter_b1_control_room_access_tunnel_8017E1BC(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_control_room_access_tunnel_8017E2D8(Task* arg0)
+void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_control_room_access_tunnel_8017ED3C(Task* task)
+void shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
