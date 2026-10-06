@@ -41433,15 +41433,15 @@ Unlike `register s32 shadeByteSource asm("v1")`, this does not reserve a hard re
 it leaves the rest of the allocation alone — the pinned version stole `$v1`
 from two later `mult`/`mflo` pairs in `effectSpriteTask7C`.
 
-The same fade in `func_actor_510900_80132D4C` masks at the *call*
-(`andi a2,s3,0xFF` for a `u8 col` set to the fade or to `0x80` in an if/else),
-and no plain-C spelling tried keeps `0xFF`: `col` as `u8`/`s8`/`s16`/`s32`, the
+The same fade in `actor510900FlameSpriteTask45` masks at the *call*
+(`andi a2,s3,0xFF` for a `u8 glowBrightness` set to the fade or to `0x80` in an if/else),
+and no plain-C spelling tried keeps `0xFF`: `glowBrightness` as `u8`/`s8`/`s16`/`s32`, the
 copy before or after the stores, chained assignment, `setRGB0`, a `u8`
 prototype, inline helpers for the fade or for the shadow call. Every one folds
-to `0xF0`. In `combine.c` the mask survives only if `nonzero_bits` of `col` is
-unknown: `col` live at function entry (`set_nonzero_bits_and_sign_copies` skips
+to `0xF0`. In `combine.c` the mask survives only if `nonzero_bits` of `glowBrightness` is
+unknown: `glowBrightness` live at function entry (`set_nonzero_bits_and_sign_copies` skips
 it), or a set from a memory load or other opaque value. Adding an
-uninitialised use of `col` confirmed the first but does not match the rest, so
+uninitialised use of `glowBrightness` confirmed the first but does not match the rest, so
 the copy there is still the asm.
 
 ## Put the `div`-derived `u` before the constant `v` so the constant fills the `mflo` slot
@@ -134279,7 +134279,7 @@ Inputs: base_29.i 6bd152160d825bffa3e64fce99bb39ea82db0d2a4f13619a6e4178d81641f5
 Evidence: tools/permuter_findings/func_actor_403600_80132E40/, session80eca9187dc049c6b722d7be32850d97, PERMUTER_EVIDENCE/e3b7c513460b4b2b/analysis/manual_match/. The router failed parsing and produced no discovery; these were manual experiments.
 
 
-## A real scratch-pointer copy plus a local reference threshold fixes a load-delay slot (func_actor_510900_80132D4C, 2026-09-19)
+## A real scratch-pointer copy plus a local reference threshold fixes a load-delay slot (actor510900FlameSpriteTask45, 2026-09-19)
 
 The unpinned seed had all matching registers and one early `lhu vy` (distance
 60). Moving that read after the vx store produced distance176: sched2 put a
@@ -134322,7 +134322,7 @@ Both focused traces preserve byte-identical assembly with and without GDB.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Input hashes: base_7.i 137d691975b5bbc1e5fdd86c2bff01909e4c77565a1d972a1047e0ef78260078;
 base_8.i 9d57342c0ee302fec6e22d58c4f78a4a7d1c3f1a5abfaad8acb3c077abb8b50d.
-Evidence: `tools/permuter_findings/func_actor_510900_80132D4C/` snapshots retain
+Evidence: archived snapshots for `actor510900FlameSpriteTask45` retain
 `PERMUTER_EVIDENCE/manual_resolution/` with paired sources, dumps and traces.
 base_9 is the exact readable port. This supports the quantity threshold and
 its scheduling consequence for this function; it does not identify retail's
@@ -148617,10 +148617,10 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   `sh` on the loaded register (the copy is then presumably a SUBREG, which that
   pass does not take; not checked in the dump) but moves the `lhu` below the
   branch.
-- `func_actor_510900_80132D4C` (`"=r"(col) : "0"(x2)`). `andi a2,s3,0xff`
-  survives only if `reg_nonzero_bits[col]` covers the low nibble. A second set
-  of `col` from anything with low bits does that (`col = rand & 0xF;
-  mem->angle = col;` gives `0xff`), because the bits are the union over all
+- `actor510900FlameSpriteTask45` (`"=r"(glowBrightness) : "0"(fadeBrightness)`). `andi a2,s3,0xff`
+  survives only if `reg_nonzero_bits[glowBrightness]` covers the low nibble. A second set
+  of `glowBrightness` from anything with low bits does that (`glowBrightness = rand & 0xF;
+  effect->angle = glowBrightness;` gives `0xff`), because the bits are the union over all
   sets, taken before combine merges anything. But the extra range is real and
   takes `$s2`. It would have to be a set combine deletes; none found.
 - `func_actor_143000_80133CF0` (two). The strip count is in `$a1` because the

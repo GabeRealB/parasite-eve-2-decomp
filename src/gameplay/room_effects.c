@@ -607,27 +607,27 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask42, { NULL } },                                        // 0x042
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80131F24, { NULL } },                                // 0x043
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801340E8, { NULL } },                                // 0x044
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80132D4C, { NULL } },                                // 0x045
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask45, { NULL } },                              // 0x045
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask46, { NULL } },                                        // 0x046
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSquareBeaconGlowTask, { NULL } },                             // 0x047
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_security_room_801805A4, { NULL } },                     // 0x048
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorFeedTask, { NULL } },                      // 0x049
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017E03C, { NULL } },                         // 0x04A
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowStarTask, { NULL } },                            // 0x04B
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801332EC, { NULL } },                                // 0x04C
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask4C, { NULL } },                              // 0x04C
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_plaza_8018251C, { NULL } },                             // 0x04D
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fire_escape_8017FF7C, { NULL } },                       // 0x04E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlareTask, { NULL } },                              // 0x04F
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_80180580, { NULL } },                // 0x050
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadLeafFallTask, { NULL } },                           // 0x051
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_8013371C, { NULL } },                                // 0x052
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask52, { NULL } },                              // 0x052
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask53, { NULL } },                                        // 0x053
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask54, { NULL } },                                           // 0x054
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask55, { NULL } },                                        // 0x055
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeScreenDripTask, { NULL } },                          // 0x056
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGroundGlowTask, { NULL } },                          // 0x057
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017F4A0, { NULL } },                       // 0x058
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80133C84, { NULL } },                                // 0x059
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask59, { NULL } },                              // 0x059
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_8017FA30, { NULL } },            // 0x05A
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_helicopter_landing_pad_801802E0, { NULL } },            // 0x05B
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask5C, { NULL } },                                           // 0x05C
@@ -639,7 +639,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_promenade_8017F0BC, { NULL } },                         // 0x062
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                   // 0x063
     { { { TASK_BODY_TMD, 0x70 } }, acropolisCafeteriaModelWanderTask, { &gAcropolisCafeteriaModel077D8 } }, // 0x064
-    { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80134284, { NULL } },                                // 0x065
+    { { { TASK_BODY_COORD, 0x70 } }, actor510900DebrisStreakTask, { NULL } },                               // 0x065
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_80112200 } },                                // 0x066
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_801120E4 } },                                // 0x067
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_8011231C } },                                // 0x068

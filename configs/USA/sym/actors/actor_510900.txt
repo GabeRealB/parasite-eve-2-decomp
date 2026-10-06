@@ -268,15 +268,15 @@ func_actor_510900_80131F24 = 0x80131F24; // type:func
 
 func_actor_510900_801340E8 = 0x801340E8; // type:func
 
-func_actor_510900_80132D4C = 0x80132D4C; // type:func
+actor510900FlameSpriteTask45 = 0x80132D4C; // type:func
 
-func_actor_510900_801332EC = 0x801332EC; // type:func
+actor510900FlameSpriteTask4C = 0x801332EC; // type:func
 
-func_actor_510900_8013371C = 0x8013371C; // type:func
+actor510900FlameSpriteTask52 = 0x8013371C; // type:func
 
-func_actor_510900_80133C84 = 0x80133C84; // type:func
+actor510900FlameSpriteTask59 = 0x80133C84; // type:func
 
-func_actor_510900_80134284 = 0x80134284; // type:func
+actor510900DebrisStreakTask = 0x80134284; // type:func
 
 func_actor_510900_8013482C = 0x8013482C; // type:func
 

@@ -2007,15 +2007,15 @@ func_actor_510900_80131F24 = 0x80131F24; // type:func absolute:True owner=actor_
 
 func_actor_510900_801340E8 = 0x801340E8; // type:func absolute:True owner=actor_510900
 
-func_actor_510900_80132D4C = 0x80132D4C; // type:func absolute:True owner=actor_510900
+actor510900FlameSpriteTask45 = 0x80132D4C; // type:func absolute:True owner=actor_510900
 
-func_actor_510900_801332EC = 0x801332EC; // type:func absolute:True owner=actor_510900
+actor510900FlameSpriteTask4C = 0x801332EC; // type:func absolute:True owner=actor_510900
 
-func_actor_510900_8013371C = 0x8013371C; // type:func absolute:True owner=actor_510900
+actor510900FlameSpriteTask52 = 0x8013371C; // type:func absolute:True owner=actor_510900
 
-func_actor_510900_80133C84 = 0x80133C84; // type:func absolute:True owner=actor_510900
+actor510900FlameSpriteTask59 = 0x80133C84; // type:func absolute:True owner=actor_510900
 
-func_actor_510900_80134284 = 0x80134284; // type:func absolute:True owner=actor_510900 shared=actors
+actor510900DebrisStreakTask = 0x80134284; // type:func absolute:True owner=actor_510900 shared=actors
 
 func_pyrokinesis_80130C54 = 0x80130C54; // type:func absolute:True owner=pyrokinesis
 
