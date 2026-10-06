@@ -1877,14 +1877,17 @@ static void Actor03800_Fn02584(Task* arg0)
                 work->speed = -0x7D;
                 break;
             }
-            goto turn_done;
+            work->speed = 0;
+            if (work->animFrame >= 0x11) {
+                work->actionStep = 3;
+            }
+            break;
 
         case 2:
             if (work->animFrame >= 8 && work->animFrame <= 0x10) {
                 work->speed = 0x7D;
                 break;
             }
-        turn_done:
             work->speed = 0;
             if (work->animFrame >= 0x11) {
                 work->actionStep = 3;
@@ -1940,30 +1943,18 @@ static void Actor03800_Fn026F8(Task* arg0)
         }
     } else {
         step = work->turnRate;
-        if (diff > 0) {
-            if (step >= 0x1000 - diff) {
-                goto snap;
+        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+            work->yaw = work->targetYaw;
+        } else {
+            wrapStep = work->turnRate;
+            cur      = work->yaw;
+            if (diff > 0) {
+                work->yaw = cur - wrapStep;
             } else {
-                goto turn;
+                work->yaw = cur + wrapStep;
             }
-        } else if (step >= 0x1000 + diff) {
-            goto snap;
-        } else {
-            goto turn;
-        }
-    snap:
-        work->yaw = work->targetYaw;
-        goto done;
-    turn:
-        wrapStep = work->turnRate;
-        cur      = work->yaw;
-        if (diff > 0) {
-            work->yaw = cur - wrapStep;
-        } else {
-            work->yaw = cur + wrapStep;
         }
     }
-done:
     rot->vx = 0;
     rot->vy = work->yaw;
     rot->vz = 0;
