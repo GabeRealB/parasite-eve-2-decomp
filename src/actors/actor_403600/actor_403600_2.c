@@ -3951,7 +3951,8 @@ static void func_actor_403600_801400BC(Task* arg0)
                         return;
                     }
                 }
-                goto block_33;
+                work->action = ACTOR_403600_DOUBLE_ACTION_WAIT;
+                return;
             }
             break;
         case ACTOR_403600_DOUBLE_ACTION_SWIPE_B:
@@ -3987,14 +3988,11 @@ static void func_actor_403600_801400BC(Task* arg0)
                         work->action = ACTOR_403600_DOUBLE_ACTION_SWIPE_A;
                         return;
                     }
-                    goto block_33;
                 }
-                goto block_33;
+                work->action = ACTOR_403600_DOUBLE_ACTION_WAIT;
+                return;
             }
             break;
-        block_33:
-            work->action = ACTOR_403600_DOUBLE_ACTION_WAIT;
-            return;
         case ACTOR_403600_DOUBLE_ACTION_APPEAR:
             work->animId        = 9;
             work->forwardSpeed  = 0U;
