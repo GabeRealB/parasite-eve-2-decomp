@@ -2023,13 +2023,24 @@ static inline void _actor03800TickAnim(Task* task)
     }
 }
 
+/// Recolours the actor from the lighting at its root coordinate's world position.
+static inline void _actor03800UpdateColorAtRoot(Task* arg0)
+{
+    GfxCoord* coord;
+    VECTOR    vec;
+
+    coord  = ((_Actor03800Work*)arg0->work)->rootCoord;
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1];
+    vec.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+}
+
 static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
 {
     _Actor03800Work* work;
     TmdObject*       obj;
     GfxCoord*        coord;
-    GfxCoord*        c;
-    VECTOR           vec;
     s32              state;
     s16              phase;
     s16              anim;
@@ -2042,10 +2053,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
     coord = work->rootCoord;
     switch (state) {
         case 1:
-            vec.vx = coord->workm.t[0];
-            vec.vy = coord->workm.t[1];
-            vec.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            _actor03800UpdateColorAtRoot(arg1);
             return;
         case 2:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2079,11 +2087,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
                 work->actionStep = 3;
             }
             _actor03800TickAnim(arg1);
-            c      = ((_Actor03800Work*)arg1->work)->rootCoord;
-            vec.vx = c->workm.t[0];
-            vec.vy = c->workm.t[1];
-            vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            _actor03800UpdateColorAtRoot(arg1);
             snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260004;
             pan = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
@@ -2103,11 +2107,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
                 obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             _actor03800TickAnim(arg1);
-            c      = ((_Actor03800Work*)arg1->work)->rootCoord;
-            vec.vx = c->workm.t[0];
-            vec.vy = c->workm.t[1];
-            vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            _actor03800UpdateColorAtRoot(arg1);
             return;
         case 2:
             enemyDestroy(arg0, arg1);
