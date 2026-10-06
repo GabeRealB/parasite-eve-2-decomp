@@ -123,7 +123,7 @@ typedef struct {
     u32          requestFlags;       // Pending work (file load, keep view, capture, view transition, ending)
     s32          pendingView;        // View slot copied into the session when a view transition starts
     s32          heldFrameBuffer;    // Framebuffer index captured for the current step; the step waits until presentation leaves it
-    s32          transitionStep;     // Step of the view transition or the file-load transition
+    u32          transitionStep;     // Step of the view transition or the file-load transition
     u8           loadFileKey[8];     // File-load command block; the enqueue reads bytes 0, 2 and 3, and nothing extracted writes it
     u8           loadFileArgs[4];    // Four argument bytes of that command; nothing extracted writes them
 } StageCtx;
@@ -299,65 +299,51 @@ static void Display_StepFadeOverlay(void)
 static s32 Display_TransitionLoad(Task* unused)
 {
     RECT rect;
-    s32  temp_v1;
 
-    temp_v1 = Stage_Ctx->transitionStep;
-    if (temp_v1 == 1) {
-        goto case1;
+    switch (Stage_Ctx->transitionStep) {
+        case 0:
+            SetDispMask(0);
+            Stage_Ctx->heldFrameBuffer = gDisplayState.frameBuffer;
+            gDisplayState.keepGraphics = 1;
+            gfxRestoreAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer);
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
+            Stage_Ctx->transitionStep            = Stage_Ctx->transitionStep + 1;
+            break;
+        case 1:
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->loadFileKey, Stage_Ctx->loadFileArgs);
+                Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
+            }
+            break;
+        case 2:
+            if ((CdCmd_IsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->heldFrameBuffer)) {
+                gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
+                                    MEMORY_PRIMITIVE_HEAP_BYTES);
+                memInitAuxHeap();
+                rect.x = 0;
+                rect.w = 0x140;
+                rect.h = 0xF0;
+                rect.y = (gDisplayState.frameBuffer ^ 1) * 0x110;
+                ClearImage(&rect, 0, 0, 0);
+                rect.x = 0;
+                rect.w = 0x140;
+                rect.h = 0xF0;
+                rect.y = gDisplayState.frameBuffer * 0x110;
+                ClearImage(&rect, 0, 0, 0);
+                DrawSync(0);
+                Stage_Ctx->loadBuffersCleared = 1;
+                Stage_Ctx->transitionStep     = Stage_Ctx->transitionStep + 1;
+            }
+            break;
+        case 3:
+            gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
+            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
+            Stage_Ctx->transitionStep               = Stage_Ctx->transitionStep + 1;
+        default:
+            SetDispMask(1);
+            Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_FILE_LOAD;
+            break;
     }
-    if (temp_v1 == 0) {
-        goto case0;
-    }
-    if (temp_v1 == 2) {
-        goto case2;
-    }
-    if (temp_v1 == 3) {
-        goto case3;
-    }
-    goto default_case;
-
-case0:
-    SetDispMask(0);
-    Stage_Ctx->heldFrameBuffer = gDisplayState.frameBuffer;
-    gDisplayState.keepGraphics = 1;
-    gfxRestoreAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer);
-    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-    Stage_Ctx->transitionStep            = Stage_Ctx->transitionStep + 1;
-    goto end;
-case1:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->loadFileKey, Stage_Ctx->loadFileArgs);
-        Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
-    }
-    goto end;
-case2:
-    if ((CdCmd_IsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->heldFrameBuffer)) {
-        gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
-                            MEMORY_PRIMITIVE_HEAP_BYTES);
-        memInitAuxHeap();
-        rect.x = 0;
-        rect.w = 0x140;
-        rect.h = 0xF0;
-        rect.y = (gDisplayState.frameBuffer ^ 1) * 0x110;
-        ClearImage(&rect, 0, 0, 0);
-        rect.x = 0;
-        rect.w = 0x140;
-        rect.h = 0xF0;
-        rect.y = gDisplayState.frameBuffer * 0x110;
-        ClearImage(&rect, 0, 0, 0);
-        DrawSync(0);
-        Stage_Ctx->loadBuffersCleared = 1;
-        Stage_Ctx->transitionStep     = Stage_Ctx->transitionStep + 1;
-    }
-    goto end;
-case3:
-    gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
-    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
-    Stage_Ctx->transitionStep               = Stage_Ctx->transitionStep + 1;
-default_case:
-    SetDispMask(1);
-    Stage_Ctx->requestFlags = Stage_Ctx->requestFlags & ~STAGE_REQUEST_FILE_LOAD;
-end:
     return 1;
 }
 
