@@ -149408,3 +149408,50 @@ attempts; left as it was.
 - **`dmg = x / 6; if (dmg == 0) { dmg = 1; if (x == 0) { x = 0; goto
   stored; } } x = dmg; stored:`** is `if (dmg == 0) { if (x == 0) x = 0;
   else x = 1; } else x = dmg;`; the two `sw v0` merge.
+
+### Goto removal, batch 09: which copy of a switch tail survives, a scan with two calls, a mode ladder (2026-10-06)
+
+- **`cmd = K; goto run;` from two cases into a third's `run: call(cmd); state =
+  2; break;`, where the `default` also ends in `state = 2`**
+  (`func_actor_143000_801336E8`). Writing `call(K, 0); arg0->state = 2; break;`
+  in all three keeps the *first* copy of the call and the other two jump
+  backward; the image keeps the last. Cause: cross-jumping first merges each
+  arm's `state = 2` into the default's, one arm at a time, so when the second
+  arm is retargeted the only other jump to its new label is the earlier arm,
+  and the arm being processed is the one deleted. Fix: do not put the store in
+  the arms. The cases `break` with only the call, the store is written once
+  after the switch (the cases that set another state `return`), and it merges
+  with the trailing `else` arm's `state = 2`. Then all three jumps go to the
+  switch's end label from the start and the last copy survives.
+- **A scan `L: if (key != *p) { i++; p++; if (i >= 5) { f(FLAG, 0); goto done; }
+  goto L; } f(FLAG, i); done:`** (`func_acropolis_security_room_8017EADC`) is a
+  `static inline void` with `for (i = 0; i < 5; i++) { if (key == tbl[i]) {
+  f(FLAG, i); return; } } f(FLAG, 0);`. The image's signature is the first
+  argument loaded twice (`li a0,FLAG` in the hit branch's delay slot and again
+  on the exhausted path) with one `jal`: two calls, merged by cross-jumping.
+  The hand-stepped `level` pointer was loop.c's strength reduction of
+  `tbl[i]`.
+- **`if (m == 1) { A; return; } if (m < 2) goto body; if (m == 2) return; body:`**
+  on `gSceneCombatState.actorControl`, with or without a `one = 1` local, is
+  `switch (m) { case 1: A; return; case 2: ...; return; case 0: default:
+  break; }` (three functions of `actor_105100.c`, first try each). Where mode
+  1 was `goto color_update` into the last inner case's tail, the tail is a
+  `static inline` owning the `VECTOR` and called in every arm; the copy in
+  the last arm survives and the frame is unchanged.
+- **`if (d > 0) { if (K - d < L) goto snap; else goto turn; } else if (K + d <
+  L) goto snap; else goto turn;`** is one condition,
+  `if (d > 0 ? K - d < L : K + d < L) snap; else turn;`
+  (`func_actor_105100_80135B40`): a `?:` of two comparisons in a condition
+  branches from each arm straight to the `then`/`else` code.
+- **`if (a && b) goto handOff; if (c == 0) { handOff: ... }`** is
+  `if ((a && b) || c == 0)` (`func_acropolis_square_80181AEC`).
+- Not converted: `func_actor_342000_80161EA4` / `func_actor_341900_80161E58`
+  (the `done = 0` block of the settle scan sitting between `first = n == 8`
+  and `i = first`). The block is where loop.c found a `BARRIER`, so the
+  original had an unconditional jump there. Three more forms, none with one:
+  the seek loop as an inline (block goes to the end, 2 insns shorter);
+  `if (!done) return 0; if (tbl < 0) return 1;` (block lands behind the
+  `return 0`); and `if (tbl >= 0) { anim; ctx; first; } else { return 1; }`
+  in front of the loop, which has the barrier in the right place in the raw
+  RTL, but the first jump pass inverts the test and moves the `return 1`
+  block up, so the block lands before `anim` (same length, 12 insns differ).
