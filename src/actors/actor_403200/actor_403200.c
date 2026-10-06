@@ -4590,25 +4590,13 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     if (work->stateTicks >= 0x15) {
         work->viewSelector = 1;
     }
-    model           = arg0->extra.tmd->coords;
-    sc->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
-    sc->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
-    sc->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
-    facing          = arg0->extra.tmd->coords;
-    ang             = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    if (ang < 0) {
-    wrapUp:
-        if (ang < -0x800) {
-            ang += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (ang > 0x800) {
-            ang -= 0x1000;
-            goto wrapDown;
-        }
-    }
+    model               = arg0->extra.tmd->coords;
+    sc->toPlayer.vx     = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
+    sc->toPlayer.vy     = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
+    sc->toPlayer.vz     = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
+    facing              = arg0->extra.tmd->coords;
+    ang                 = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    ang                 = actorWrapAngle(ang);
     work->neckYawTarget = ang;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403200RainLaunchScratch);
 }
