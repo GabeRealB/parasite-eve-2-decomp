@@ -84,7 +84,13 @@ SVECTOR D_shelter_b2_breeding_room_80180450[32] = {
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Selects the breeding room's implementations of the three Amoeba effects.
+/// Installs this room's effect IDs for the Amoeba's charge glow, sparks and projectile burst.
+///
+/// The charge glow emits sparks from player joints; the burst marks the
+/// projectile's end. Call after the room-effect controller initializes its
+/// slots and before these effects are spawned. The selected bank-6 IDs remain
+/// installed until another room overwrites them or the controller resets them.
+/// Their task handlers require this room's overlay to remain loaded.
 static inline void _shelterB2BreedingRoomInstallAmoebaEffects(void)
 {
     gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_BREEDING_ROOM_GLOW_DISC;
