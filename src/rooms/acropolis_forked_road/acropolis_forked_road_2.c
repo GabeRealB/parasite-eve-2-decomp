@@ -1484,25 +1484,32 @@ void func_acropolis_forked_road_8017E298(Task* task)
     }
 }
 
-/// Sets a lamp quad's four edges around its projected centre in screen pixels.
+/// Positions the wall-lamp glow quad as a screen-aligned square.
 ///
-/// Each edge narrows to signed 16 bits before it is copied to the two corners.
+/// Requires an initialized `projection->screenPos` centre and nonnegative
+/// `projection->halfExtent` half-width/half-height in pixels. Their sums and
+/// differences must fit signed 32 bits. Corner indices 0..3 are top-left,
+/// top-right, bottom-left and bottom-right. Each edge narrows to signed 16 bits
+/// without clipping. Borrows both objects for this call and writes only X/Y.
 static inline void _acropolisForkedRoadSetWallLampBounds(POLY_FT4* quad, const RoomGlowSpriteScratch* projection)
 {
-    s16 edge;
+    s16 left;
+    s16 right;
+    s16 top;
+    s16 bottom;
 
-    edge     = projection->screenPos.vx - projection->halfExtent;
-    quad->x2 = edge;
-    quad->x0 = edge;
-    edge     = projection->screenPos.vx + projection->halfExtent;
-    quad->x3 = edge;
-    quad->x1 = edge;
-    edge     = projection->screenPos.vy - projection->halfExtent;
-    quad->y1 = edge;
-    quad->y0 = edge;
-    edge     = projection->screenPos.vy + projection->halfExtent;
-    quad->y3 = edge;
-    quad->y2 = edge;
+    left     = projection->screenPos.vx - projection->halfExtent;
+    quad->x2 = left;
+    quad->x0 = left;
+    right    = projection->screenPos.vx + projection->halfExtent;
+    quad->x3 = right;
+    quad->x1 = right;
+    top      = projection->screenPos.vy - projection->halfExtent;
+    quad->y1 = top;
+    quad->y0 = top;
+    bottom   = projection->screenPos.vy + projection->halfExtent;
+    quad->y3 = bottom;
+    quad->y2 = bottom;
 }
 
 void acropolisForkedRoadWallLampTask(Task* task)
