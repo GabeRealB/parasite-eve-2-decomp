@@ -32,12 +32,12 @@ void madChaserSpawnHidden(Task* task)
     task->work = memCalloc(sizeof(MadChaserWork), 0);
     work       = (MadChaserWork*)task->work;
     if (work == NULL) {
-        goto destroy;
+        enemyDestroy(enemy, task);
+        return;
     }
     madChaserLoadSoundBank();
     flags = task->spawnArg1.value;
     if ((flags >> 16) & 1) {
-    destroy:
         enemyDestroy(enemy, task);
         return;
     }
