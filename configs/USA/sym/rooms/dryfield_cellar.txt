@@ -52,7 +52,11 @@ D_actor_103700_80139DAC = 0x80139DAC; // absolute:True owner=actor_103700
 D_actor_200700_80150C80 = 0x80150C80; // absolute:True owner=actor_200700
 D_map_dryfield_8017BC14 = 0x8017BC14; // absolute:True owner=map_dryfield
 
-func_dryfield_cellar_8017DAEC = 0x8017DAEC; // type:func
+dryfieldCellarDrawGlowsTask = 0x8017DAEC; // type:func
 _glowDrawFlareLocal = 0x8017D7DC; // type:func
 cellarCapMsg = 0x8017D5D0; // type:func
 cellarDoorMsg = 0x8017D634; // type:func
+_dryfieldCellarRejectKeyItem = 0x8017d62c; // type:func
+_dryfieldCellarIgnoreActionMessage = 0x8017d6f4; // type:func
+_dryfieldCellarHandleSoundMessage = 0x8017d6fc; // type:func
+_dryfieldCellarIdle = 0x8017d77c; // type:func

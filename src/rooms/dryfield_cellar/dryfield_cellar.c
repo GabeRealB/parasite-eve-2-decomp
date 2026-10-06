@@ -50,9 +50,12 @@ extern TaskMessageEntry D_dryfield_cellar_8017DB8C[];
 extern SVECTOR D_dryfield_cellar_8017DBBC[2];
 extern SVECTOR D_dryfield_cellar_8017DBCC[2];
 
-s32 func_dryfield_cellar_8017D62C(Task*, s32, s32, s32);
-s32 func_dryfield_cellar_8017D6F4(Task*, s32, s32, s32);
-s32 func_dryfield_cellar_8017D6FC(Task*, s32, s32, s32);
+/// Room message sent by the inventory's key-item use prompt.
+enum { DRYFIELD_CELLAR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32 _dryfieldCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32 _dryfieldCellarIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unused);
+static s32 _dryfieldCellarHandleSoundMessage(Task* task, s32 messageId, s32 soundSelector, s32 unused);
 
 extern WorldCollisionGrid     D_dryfield_cellar_8017DF54[1];
 extern WorldCollisionOccluder D_dryfield_cellar_8018067C[1];
@@ -64,10 +67,10 @@ extern WorldCoordRoomLights   D_dryfield_cellar_80180A90[1];
 
 TaskMessageEntry D_dryfield_cellar_8017DB8C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, cellarDoorMsg },
-    { 5105, func_dryfield_cellar_8017D62C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_cellar_8017D6F4 },
+    { DRYFIELD_CELLAR_MESSAGE_USE_KEY_ITEM, _dryfieldCellarRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldCellarIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, cellarCapMsg },
-    { ROOM_MESSAGE_SOUND, func_dryfield_cellar_8017D6FC },
+    { ROOM_MESSAGE_SOUND, _dryfieldCellarHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -877,32 +880,47 @@ WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[8] = {
 };
 
 static void func_dryfield_cellar_8017D730(Task* task);
-static void func_dryfield_cellar_8017D77C(Task* task);
+static void _dryfieldCellarIdle(Task* task);
 
 #include "../../shared/cellar_cap_msg.inc.c"
 
 static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint, s32 textureIndex, s32 radiusScale);
 
-/// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_dryfield_cellar_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects every key-item use in the cellar.
+///
+/// Returns 0 for any `itemId`, making the inventory prompt report that the item
+/// cannot be used here. All arguments are ignored; no item is consumed.
+static s32 _dryfieldCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    enum { DRYFIELD_CELLAR_KEY_ITEM_UNUSABLE = 0 };
+
+    return DRYFIELD_CELLAR_KEY_ITEM_UNUSABLE;
 }
 
 #include "../../shared/cellar_door_msg.inc.c"
 
-/// Message-table handler for message 0x13EF: does nothing and answers 0.
-s32 func_dryfield_cellar_8017D6F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-specific direction actions in the cellar.
+///
+/// The borrowed `action` payload is never read. Returns 0 without changing the
+/// room or receiver; the second payload word is unused.
+static s32 _dryfieldCellarIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unused)
 {
     return 0;
 }
 
-/// Message-table handler for message 0x13F2: on event 3 queues sound event
-/// 0x52220003. Always answers 0.
-s32 func_dryfield_cellar_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles the cellar's room-sound selector 3; other selectors do nothing.
+///
+/// Requests bank 0x5222, instance 0, entry 3 with unchanged pan and gain.
+/// Returns 0 even if the sound request is refused; no arguments are retained.
+static s32 _dryfieldCellarHandleSoundMessage(Task* task, s32 messageId, s32 soundSelector, s32 unused)
 {
-    if (arg2 == 3) {
-        sndEvtRequestScriptStart(0x52220000 | 3, 0, 0);
+    enum {
+        DRYFIELD_CELLAR_SOUND_SELECTOR_3 = 3,
+        DRYFIELD_CELLAR_SOUND_SCRIPT_3   = 0x52220003,
+    };
+
+    if (soundSelector == DRYFIELD_CELLAR_SOUND_SELECTOR_3) {
+        sndEvtRequestScriptStart(DRYFIELD_CELLAR_SOUND_SCRIPT_3, 0, 0);
     }
     return 0;
 }
@@ -918,14 +936,17 @@ static void func_dryfield_cellar_8017D730(Task* task)
     D_80115598  = 1;
 }
 
-/// The room entry task's idle state.
-static void func_dryfield_cellar_8017D77C(Task* task)
+/// Leaves the initialized room task alive without per-frame updates.
+///
+/// State 1 preserves the installed message table and task state until an
+/// external request ends the task.
+static void _dryfieldCellarIdle(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_cellar_8017D5C4 = {
-    { func_dryfield_cellar_8017D730, func_dryfield_cellar_8017D77C, taskKill },
+    { func_dryfield_cellar_8017D730, _dryfieldCellarIdle, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
@@ -940,22 +961,35 @@ void func_dryfield_cellar_8017D784(Task* task)
 
 #include "../../shared/glow_draw_flare_local.inc.c"
 
-/// Per-frame effect on a coordinate task: once event nibble 0x52 is 1, draws a glow
-/// sprite on each of the two points belonging to the current camera view
-/// (`gGameSession->location.loc.view`), 2 or 3, placed in the task's coordinate
-/// space. Every other view draws nothing.
-void func_dryfield_cellar_8017DAEC(Task* arg0)
+/// Draws two consecutive local flare points with one texture and perspective scale.
+///
+/// `points` supplies two readable local-unit positions; both it and `coord`
+/// are borrowed for the call. Each call reserves a flare packet before depth
+/// clipping, including for invisible points. Arguments are evaluated once.
+static inline void _dryfieldCellarDrawGlowPair(const GfxCoord* coord, const SVECTOR points[2], s32 textureIndex, s32 radiusScale)
 {
-    GfxCoord* coord;
+    _glowDrawFlareLocal(coord, &points[0], textureIndex, radiusScale);
+    _glowDrawFlareLocal(coord, &points[1], textureIndex, radiusScale);
+}
 
-    coord = arg0->extra.coordBody->coord;
-    if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 1) {
-        if (gGameSession->location.loc.view == 2) {
-            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
-            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
-        } else if (gGameSession->location.loc.view == 3) {
-            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBCC, 1, 0x280);
-            _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBCC + 1, 1, 0x280);
+void dryfieldCellarDrawGlowsTask(Task* task)
+{
+    enum {
+        DRYFIELD_CELLAR_GLOW_SWITCH_ON    = 1,
+        DRYFIELD_CELLAR_GLOW_VIEW_2       = 2,
+        DRYFIELD_CELLAR_GLOW_VIEW_3       = 3,
+        DRYFIELD_CELLAR_GLOW_TEXTURE      = 1,
+        DRYFIELD_CELLAR_GLOW_RADIUS_SCALE = 640, // Pixel half-extent = scale * 39 / (camera Z / 4)
+    };
+
+    const GfxCoord* coord;
+
+    coord = task->extra.coordBody->coord;
+    if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_CELLAR_GLOW_SWITCH_ON) {
+        if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_2) {
+            _dryfieldCellarDrawGlowPair(coord, D_dryfield_cellar_8017DBBC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
+        } else if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_3) {
+            _dryfieldCellarDrawGlowPair(coord, D_dryfield_cellar_8017DBCC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
         }
     }
 }

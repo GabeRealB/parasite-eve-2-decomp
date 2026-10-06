@@ -1512,8 +1512,8 @@ different offset in each room.
 A symbol argument materialises *at its move*, a pointer variable materialises at
 its own statement, and either way decides what `jump.c`'s cross-jump can merge.
 
-`func_dryfield_cellar_8017DAEC` (rooms/dryfield_cellar) picks a two-entry SVECTOR
-table by visit and draws both entries. The target's arms each open with the arg
+`dryfieldCellarDrawGlowsTask` (rooms/dryfield_cellar) picks a two-entry SVECTOR
+table by camera view and draws both entries. The target's arms each open with the arg
 setup, *before* the address they use:
 
 ```
@@ -1526,7 +1526,7 @@ Ljoin:                  /* shared tail starts at the second argument's move */
 addu   a1,s0
 ```
 
-With a pointer variable — `verts = D_A; Room_Draw35(coord, verts, 1, 0x280);`
+With a pointer variable — `verts = D_A; _glowDrawFlareLocal(coord, verts, 1, 0x280);`
 written out per arm — the arm reads `{lui, addiu, a0=coord, a1=verts, ...}`:
 the address is materialised by the assignment, which precedes the call's arg
 moves. The cross-jump walks the two arms backwards and its first mismatch is that
@@ -1541,8 +1541,8 @@ later, at `a1`, which leaves `a0=coord` in each arm and reaches 100%:
 
 ```c
 if (gGameSession->location.loc.view == 2) {
-    Room_Draw35(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
-    Room_Draw35(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
+    _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
+    _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
 } else if (gGameSession->location.loc.view == 3) {
     ... D_dryfield_cellar_8017DBCC ...
 }

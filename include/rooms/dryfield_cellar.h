@@ -30,7 +30,15 @@ extern SpriteView D_dryfield_cellar_8017FE40[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[];
 
-void func_dryfield_cellar_8017DAEC(Task* arg0);
+/// Draws the cellar's switch-gated pair of flickering flares each frame.
+///
+/// `GAME_FLAG_UNDERPASS_SWITCH_2` must equal 1; camera views 2 and 3 select
+/// separate pairs of local points, and other views draw nothing. `task` must
+/// own a live `TASK_BODY_COORD` body with its cached transform refreshed.
+/// The current view, scratch stack, ordering table and packet arena must be
+/// ready for drawing. Borrows the coordinate and room's points for this call;
+/// queued flare packets belong to the current frame.
+void dryfieldCellarDrawGlowsTask(Task* task);
 
 void func_dryfield_cellar_8017D784(Task* task);
 

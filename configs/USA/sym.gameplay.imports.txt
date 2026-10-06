@@ -664,7 +664,7 @@ func_dryfield_back_street_8017ED1C = 0x8017ED1C; // type:func absolute:True owne
 
 func_dryfield_breezeway_80181264 = 0x80181264; // type:func absolute:True owner=dryfield_breezeway
 
-func_dryfield_cellar_8017DAEC = 0x8017DAEC; // type:func absolute:True owner=dryfield_cellar
+dryfieldCellarDrawGlowsTask = 0x8017DAEC; // type:func absolute:True owner=dryfield_cellar
 
 dryfieldDilapidatedHouseTwinTrailTask = 0x80181F08; // type:func absolute:True owner=dryfield_dilapidated_house
 
