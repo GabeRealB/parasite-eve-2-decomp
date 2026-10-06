@@ -107,19 +107,19 @@ D_shelter_b4_reservoir_80187634 = 0x80187634; // size:0x50 defined:True
 D_shelter_b4_reservoir_80187684 = 0x80187684; // size:0x6 defined:True
 D_shelter_b4_reservoir_80185024 = 0x80185024; // size:0x70 defined:True
 
-func_shelter_b4_reservoir_801813F0 = 0x801813F0; // type:func
+shelterB4ReservoirBurstSpriteTask = 0x801813F0; // type:func
 
 func_shelter_b4_reservoir_8017FB84 = 0x8017FB84; // type:func
 
-func_shelter_b4_reservoir_801803DC = 0x801803DC; // type:func
+shelterB4ReservoirWaterRippleTask = 0x801803DC; // type:func
 
-func_shelter_b4_reservoir_80180864 = 0x80180864; // type:func
+shelterB4ReservoirWaterDriftTask = 0x80180864; // type:func
 
 func_shelter_b4_reservoir_80182B1C = 0x80182B1C; // type:func
 
-func_shelter_b4_reservoir_80183074 = 0x80183074; // type:func
+shelterB4ReservoirRoomVisualEffectsFlyingSparkTask = 0x80183074; // type:func
 
-func_shelter_b4_reservoir_80183CD4 = 0x80183CD4; // type:func
+shelterB4ReservoirRoomVisualEffectsFlyingOrangeBurstTask = 0x80183CD4; // type:func
 
 D_shelter_b4_reservoir_801850C8 = 0x801850C8; // size:0x10 defined:True
 
@@ -136,3 +136,10 @@ _waterDrawSpin = 0x80180D20; // type:func
 _waterDrawTile = 0x8018110C; // type:func
 glowDrawTintedDiscNoBias = 0x80182134; // type:func
 screenWaveRun = 0x8017E610; // type:func
+_shelterB4ReservoirRejectKeyItemMessage = 0x8017e25c; // type:func
+_shelterB4ReservoirIgnoreRoomActionMessage = 0x8017e3c4; // type:func
+_shelterB4ReservoirSoundMessage = 0x8017e3cc; // type:func
+_shelterB4ReservoirView8ModelTask = 0x8017e558; // type:func
+_shelterB4ReservoirNoopRoomTick = 0x8017e8e4; // type:func
+_shelterB4ReservoirInitializeWaterTask = 0x8017fb44; // type:func
+_shelterB4ReservoirDrawBurstSprite = 0x80181668; // type:func

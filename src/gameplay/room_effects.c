@@ -706,7 +706,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskA7, { NULL } },                                        // 0x0A7
     { { { TASK_BODY_COORD, 0x70 } }, func_800FAA14, { NULL } },                                             // 0x0A8
     { { { TASK_BODY_COORD, 0x70 } }, combustionEmberTask, { NULL } },                                       // 0x0A9
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_801813F0, { NULL } },                        // 0x0AA
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirBurstSpriteTask, { NULL } },                         // 0x0AA
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012EF48, { NULL } },                                   // 0x0AB
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskAC, { NULL } },                                           // 0x0AC
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012F9A8, { NULL } },                                   // 0x0AD
@@ -906,8 +906,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017F36C, { NULL } },                      // 0x16F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_8017E8B8, { NULL } },                      // 0x170
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_8017ED40, { NULL } },                      // 0x171
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_801803DC, { NULL } },                        // 0x172
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_80180864, { NULL } },                        // 0x173
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirWaterRippleTask, { NULL } },                         // 0x172
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirWaterDriftTask, { NULL } },                          // 0x173
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_8017F24C, { NULL } },                     // 0x174
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_8017F6D4, { NULL } },                     // 0x175
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionWaterRippleTaskFixedCoord, { NULL } },                   // 0x176
@@ -1096,7 +1096,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_operating_room_8017F254, { NULL } },                   // 0x22D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_80181370, { NULL } },                    // 0x22E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80184C20, { NULL } },                      // 0x22F
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_80183074, { NULL } },                        // 0x230
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirRoomVisualEffectsFlyingSparkTask, { NULL } },        // 0x230
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_80180F34, { NULL } },                     // 0x231
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_8018219C, { NULL } },                            // 0x232
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017FCE8, { NULL } },                              // 0x233
@@ -1107,7 +1107,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_operating_room_8017FEB4, { NULL } },                   // 0x238
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_80181FD0, { NULL } },                    // 0x239
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80185880, { NULL } },                      // 0x23A
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_80183CD4, { NULL } },                        // 0x23B
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirRoomVisualEffectsFlyingOrangeBurstTask, { NULL } },  // 0x23B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_80181B94, { NULL } },                     // 0x23C
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80182DFC, { NULL } },                            // 0x23D
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_80180948, { NULL } },                              // 0x23E

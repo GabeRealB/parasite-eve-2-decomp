@@ -59,7 +59,7 @@ D_mine_refuge_80181BC8 = 0x80181BC8; // absolute:True owner=mine_refuge shared=r
 D_mine_refuge_8018264C = 0x8018264C; // absolute:True owner=mine_refuge
 D_mine_refuge_80182AB4 = 0x80182AB4; // absolute:True owner=mine_refuge shared=rooms
 func_mine_forked_tunnel_8017DBE4 = 0x8017DBE4; // type:func absolute:True owner=mine_forked_tunnel
-func_mine_forked_tunnel_8017E25C = 0x8017E25C; // type:func absolute:True owner=mine_forked_tunnel shared=rooms
+func_mine_forked_tunnel_8017E25C = 0x8017E25C; // type:func absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelModel01B48 = 0x801807B4; // absolute:True owner=mine_forked_tunnel shared=rooms
 D_mine_forked_tunnel_80183634 = 0x80183634; // absolute:True owner=mine_forked_tunnel shared=rooms
 D_mine_forked_tunnel_8018363C = 0x8018363C; // absolute:True owner=mine_forked_tunnel shared=rooms

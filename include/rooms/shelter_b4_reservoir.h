@@ -46,18 +46,70 @@ extern WorldCollisionSurfaceProperties* D_shelter_b4_reservoir_80187480[];
 
 void func_shelter_b4_reservoir_8017E88C(Task* task);
 
-void func_shelter_b4_reservoir_801813F0(Task* task);
+/// Runs one six-cell burst sprite emitted by the reservoir event.
+///
+/// Requires a counted effect task with a live coordinate body, owned zeroed
+/// `EffectWork` in `spawnArg2.pointer`, and initial state and frame index zero.
+/// `spawnArg1` bits 0..11 give the world-unit perspective half-extent; bits
+/// 12..14 give running updates per cell (an entirely zero bits 12..15 field
+/// selects 1). A nonzero period field must have bits 12..14 nonzero: bit 15
+/// alone decodes to zero and would reach remainder by zero. Bits 16..23 give
+/// speed in parent-coordinate units per update (0 selects 64); higher bits
+/// are ignored. Initialization consumes one random draw and seeds motion
+/// along negative parent X without drawing. Later updates draw, move, and
+/// advance through cells 0..5; the coordinate-list pass refreshes the world
+/// matrix between updates. Non-running control redraws without aging;
+/// cancellation redraws once before releasing the work and task.
+void shelterB4ReservoirBurstSpriteTask(Task* task);
 
 void func_shelter_b4_reservoir_8017FB84(Task* task);
 
-void func_shelter_b4_reservoir_801803DC(Task* task);
+/// Runs the reservoir's expanding, fading water-surface ripple.
+///
+/// Requires a counted effect task with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body and initial state zero. `spawnArg1` bits 0..11 give the
+/// initial local half-side in coordinate units; higher bits are ignored.
+/// Running updates grow by 32 and dim brightness by 2, lasting 32 updates.
+/// Non-running control redraws retained state; cancellation redraws once
+/// before releasing the work and task. The coordinate's parent must stay live.
+void shelterB4ReservoirWaterRippleTask(Task* task);
 
-void func_shelter_b4_reservoir_80180864(Task* task);
+/// Runs the reservoir's eight-cell water-spray particle with gravity.
+///
+/// Requires a counted effect task with owned zeroed `EffectWork` in
+/// `spawnArg2.pointer`, a coordinate body, initial state and frame index zero.
+/// `spawnArg1` bits 0..11 give the perspective size scale, bits 12..15 updates
+/// per cell (0 selects 1), and bits 16..23 parent-space speed (0 selects 64).
+/// Bits 24..27 select velocity: 0 stationary, 1 upward burst, 2 all-axis spray,
+/// 3 narrow upward jet, 5 direction from the copied spawn offset in `pos`;
+/// other kinds retain a zero direction before normalization. Independently,
+/// any set bits 28..31 select upright drawing; otherwise drawing is rotated.
+/// A preseeded nonzero `move` bypasses speed and direction generation.
+/// Initialization composes without drawing; subsequent running updates draw,
+/// move and add 6 to signed-halfword Y velocity. Non-running control freezes
+/// motion and redraws; cancellation releases the work and task without drawing.
+void shelterB4ReservoirWaterDriftTask(Task* task);
 
 void func_shelter_b4_reservoir_80182B1C(Task* arg0);
 
-void func_shelter_b4_reservoir_80183074(Task* task);
+/// Runs the reservoir's glowing-disc spark toward an initial target coordinate.
+///
+/// Requires a counted effect task with owned `EffectWork` in `spawnArg2.pointer`
+/// and a coordinate body. `spawnArg1.pointer` borrows a `GfxCoord` through the
+/// first running update; both world matrices must be composed then. That update
+/// fixes a step at 204/4096 of the initial target displacement in parent axes.
+/// Later updates move by that step and draw on odd ages, releasing the work
+/// and task at age 20. Non-running control pauses without drawing; cancellation
+/// releases the effect. The target is not sampled after initialization.
+void shelterB4ReservoirRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_shelter_b4_reservoir_80183CD4(Task* arg0);
+/// Runs the reservoir's orange burst with a growing disc, glow and fading ring.
+///
+/// Requires a counted effect task with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body and initial state zero; `spawnArg1` is ignored. Running
+/// updates compose, expand the glow and fade the ring before the central disc.
+/// Non-running control pauses without drawing. Cancellation or completed fading
+/// releases the work and task; callers must not retain those released pointers.
+void shelterB4ReservoirRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B4_RESERVOIR_H

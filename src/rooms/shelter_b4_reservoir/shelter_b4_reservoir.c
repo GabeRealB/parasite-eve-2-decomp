@@ -89,6 +89,11 @@ enum {
     SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK = (1 << 12) | 0xFF,
 };
 
+enum {
+    SHELTER_B4_RESERVOIR_BURST_SPRITE_FRAME_COUNT = 6,
+    SHELTER_B4_RESERVOIR_MESSAGE_USE_KEY_ITEM     = 5105,
+};
+
 /// Configuration of the reservoir's per-frame burst-sprite emitter.
 ///
 /// Cleared when the room effect task starts and retained until reconfigured.
@@ -166,13 +171,13 @@ extern _ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684;
 
 static void func_shelter_b4_reservoir_8017E7C8(Task* arg0);
 static void func_shelter_b4_reservoir_8017E864(Task* task);
-static void func_shelter_b4_reservoir_8017E8E4(void);
+static void _shelterB4ReservoirNoopRoomTick(void);
 static void func_shelter_b4_reservoir_8017EA00(Task* task);
 static void func_shelter_b4_reservoir_8017EE04(Task* task);
 static void func_shelter_b4_reservoir_8017F23C(Task* task);
 static void func_shelter_b4_reservoir_8017F674(Task* task);
-static void func_shelter_b4_reservoir_8017FB44(Task* arg0);
-static void func_shelter_b4_reservoir_80181668(GfxCoord* coord, u16 frame, s16 size);
+static void _shelterB4ReservoirInitializeWaterTask(Task* task);
+static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 animationFrame, s16 halfExtent);
 static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
 
 /// State handlers of the room task `func_shelter_b4_reservoir_8017E88C` runs,
@@ -194,20 +199,20 @@ extern TaskDesc               Actor04400_D107E4;
 extern TaskDesc               D_actor_100400_80147E48;
 extern TaskDesc               D_actor_207000_801575F0;
 
-s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, s32, s32);
-s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b4_reservoir_8017E354(Task*, s32, s32, s32);
-s32  func_shelter_b4_reservoir_8017E3C4(Task*, s32, s32, s32);
-s32  func_shelter_b4_reservoir_8017E3CC(Task*, s32, s32, s32);
-void func_shelter_b4_reservoir_8017DE8C(Task*);
-void func_shelter_b4_reservoir_8017E0AC(Task*);
-void func_shelter_b4_reservoir_8017E400(Task*);
-void func_shelter_b4_reservoir_8017E4B0(Task*);
-void func_shelter_b4_reservoir_8017E558(Task*);
-void func_shelter_b4_reservoir_8017E690(s32);
-void func_shelter_b4_reservoir_8017E770(s32);
-void func_shelter_b4_reservoir_8017E780(s32);
-void func_shelter_b4_reservoir_8017E7A8(void);
+static s32  _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+s32         func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32         func_shelter_b4_reservoir_8017E354(Task*, s32, s32, s32);
+static s32  _shelterB4ReservoirIgnoreRoomActionMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
+static s32  _shelterB4ReservoirSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
+void        func_shelter_b4_reservoir_8017DE8C(Task*);
+void        func_shelter_b4_reservoir_8017E0AC(Task*);
+void        func_shelter_b4_reservoir_8017E400(Task*);
+void        func_shelter_b4_reservoir_8017E4B0(Task*);
+static void _shelterB4ReservoirView8ModelTask(Task* task);
+void        func_shelter_b4_reservoir_8017E690(s32);
+void        func_shelter_b4_reservoir_8017E770(s32);
+void        func_shelter_b4_reservoir_8017E780(s32);
+void        func_shelter_b4_reservoir_8017E7A8(void);
 
 TaskDesc gScreenWaveTaskDesc[2] = {
     { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
@@ -246,10 +251,10 @@ static TmdSource _gShelterB4ReservoirModel07220 = {
 
 TaskMessageEntry D_shelter_b4_reservoir_801848BC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_reservoir_8017E264 },
-    { 5105, func_shelter_b4_reservoir_8017E25C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_reservoir_8017E3C4 },
+    { SHELTER_B4_RESERVOIR_MESSAGE_USE_KEY_ITEM, _shelterB4ReservoirRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4ReservoirIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, func_shelter_b4_reservoir_8017E354 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b4_reservoir_8017E3CC },
+    { ROOM_MESSAGE_SOUND, _shelterB4ReservoirSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -263,7 +268,7 @@ TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
 ActorCommand D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
 
 TaskDesc D_shelter_b4_reservoir_80184920[1] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, func_shelter_b4_reservoir_8017E558, { .model = &_gShelterB4ReservoirModel07220 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, _shelterB4ReservoirView8ModelTask, { .model = &_gShelterB4ReservoirModel07220 } },
 };
 
 Task* D_shelter_b4_reservoir_8018492C = 0;
@@ -1102,7 +1107,10 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
     }
 }
 
-s32 func_shelter_b4_reservoir_8017E25C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in the reservoir by returning zero without consuming the item.
+///
+/// Handles `SHELTER_B4_RESERVOIR_MESSAGE_USE_KEY_ITEM`; all four arguments are ignored.
+static s32 _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
     return 0;
 }
@@ -1144,15 +1152,27 @@ s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_shelter_b4_reservoir_8017E3C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `DIRECTION_MESSAGE_ROOM_ACTION` and returns zero.
+///
+/// Neither payload word nor the receiving task is inspected or retained.
+static s32 _shelterB4ReservoirIgnoreRoomActionMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     return 0;
 }
 
-s32 func_shelter_b4_reservoir_8017E3CC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts the reservoir's sound script 2 when room sound command 2 arrives.
+///
+/// All other commands are ignored. Always returns zero; the receiver,
+/// message ID and second payload word are unused.
+static s32 _shelterB4ReservoirSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg)
 {
-    if (arg2 == 2) {
-        sndEvtRequestScriptStart(0x542D0000 | 2, 0, 0);
+    enum {
+        SHELTER_B4_RESERVOIR_SOUND_COMMAND_PLAY_SCRIPT_2 = 2,
+        SHELTER_B4_RESERVOIR_SOUND_SCRIPT_2              = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, 2),
+    };
+
+    if (soundCommand == SHELTER_B4_RESERVOIR_SOUND_COMMAND_PLAY_SCRIPT_2) {
+        sndEvtRequestScriptStart(SHELTER_B4_RESERVOIR_SOUND_SCRIPT_2, 0, 0);
     }
     return 0;
 }
@@ -1187,34 +1207,51 @@ void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
     }
 }
 
-void func_shelter_b4_reservoir_8017E558(Task* arg0)
+/// Restores the event model's starting translation in its parent's coordinate units.
+static inline void _shelterB4ReservoirResetEventModelCoord(GfxCoord* modelCoord)
 {
-    TmdObject* obj   = arg0->extra.tmd;
-    GfxCoord*  coord = obj->coords;
+    modelCoord->coord.t[0]   = -1000;
+    modelCoord->coord.t[1]   = -1000;
+    modelCoord->coord.t[2]   = -5000;
+    modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
 
-    if (arg0->state == 0) {
-        coord->coord.t[0]   = -1000;
-        coord->coord.t[1]   = -1000;
-        coord->coord.t[2]   = -5000;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->state++;
+/// Positions and moves the event model that is drawn only in saved view 8.
+///
+/// Requires a live TMD body with a root coordinate. State 0 resets placement
+/// and advances to stationary state 1; state 2 resets and advances to moving
+/// state 3 in the same update. State 3 adds four parent-coordinate units to Y
+/// each update. The room's event script can restart either phase. Other states
+/// leave placement intact. The object remains live when another view hides it.
+static void _shelterB4ReservoirView8ModelTask(Task* task)
+{
+    enum {
+        SHELTER_B4_RESERVOIR_MODEL_INITIALIZE     = 0,
+        SHELTER_B4_RESERVOIR_MODEL_RESTART_MOTION = 2,
+        SHELTER_B4_RESERVOIR_MODEL_MOVING         = 3,
+        SHELTER_B4_RESERVOIR_MODEL_VISIBLE_VIEW   = 8,
+    };
+    TmdObject* model      = task->extra.tmd;
+    GfxCoord*  modelCoord = model->coords;
+
+    if (task->state == SHELTER_B4_RESERVOIR_MODEL_INITIALIZE) {
+        _shelterB4ReservoirResetEventModelCoord(modelCoord);
+        task->state++;
     }
-    if (arg0->state == 2) {
-        coord->coord.t[0]   = -1000;
-        coord->coord.t[1]   = -1000;
-        coord->coord.t[2]   = -5000;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->state++;
+    if (task->state == SHELTER_B4_RESERVOIR_MODEL_RESTART_MOTION) {
+        _shelterB4ReservoirResetEventModelCoord(modelCoord);
+        task->state++;
     }
-    if (arg0->state == 3) {
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[1]  += 4;
+    // Restarted motion takes its first step immediately after the reset.
+    if (task->state == SHELTER_B4_RESERVOIR_MODEL_MOVING) {
+        modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        modelCoord->coord.t[1]  += 4;
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 8) {
-        obj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != SHELTER_B4_RESERVOIR_MODEL_VISIBLE_VIEW) {
+        model->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
-        obj->flags    = 0;
-        obj->otOffset = 0;
+        model->flags    = 0;
+        model->otOffset = 0;
     }
 }
 
@@ -1281,7 +1318,7 @@ static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
 static void func_shelter_b4_reservoir_8017E864(Task* task)
 {
     func_shelter_b4_reservoir_8017E068();
-    func_shelter_b4_reservoir_8017E8E4();
+    _shelterB4ReservoirNoopRoomTick();
 }
 
 /// Runs a task through the room's three-entry state table
@@ -1294,7 +1331,8 @@ void func_shelter_b4_reservoir_8017E88C(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_shelter_b4_reservoir_8017E8E4(void)
+/// Empty hook called by the room's per-frame state after updating spray arguments.
+static void _shelterB4ReservoirNoopRoomTick(void)
 {
 }
 
@@ -1623,23 +1661,26 @@ static void func_shelter_b4_reservoir_8017F674(Task* task)
 
 void func_shelter_b4_reservoir_8017FADC(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b4_reservoir_8017FB44, func_shelter_b4_reservoir_8017E8EC };
+    TaskFunc states[2] = { _shelterB4ReservoirInitializeWaterTask, func_shelter_b4_reservoir_8017E8EC };
 
     states[task->state](task);
     gGameSession->waterY = D_shelter_b4_reservoir_80184F80;
 }
 
-/// First state of the water task: clears the session counter the current
-/// display mode selects (`field_80` when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` is zero, `field_7E`
-/// otherwise) and moves on to the per-frame state.
-static void func_shelter_b4_reservoir_8017FB44(Task* arg0)
+/// Prepares the actor buffer reused by the reservoir's water renderer.
+///
+/// Called in state 0 of the water task. Clears the session marker for actor
+/// buffer 2 without a companion, or buffer 1 with a companion, then advances
+/// to state 1. The markers' nonzero meaning is unproven; both buffers are
+/// borrowed rendering storage, and this initializer allocates nothing.
+static void _shelterB4ReservoirInitializeWaterTask(Task* task)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
 void func_shelter_b4_reservoir_8017FB84(Task* task)
@@ -1789,7 +1830,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_shelter_b4_reservoir_801803DC(Task* task)
+void shelterB4ReservoirWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -1798,7 +1839,7 @@ void func_shelter_b4_reservoir_801803DC(Task* task)
 
 #include "../../shared/water_drift_task.inc.c"
 
-void func_shelter_b4_reservoir_80180864(Task* task)
+void shelterB4ReservoirWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
@@ -1807,140 +1848,182 @@ void func_shelter_b4_reservoir_80180864(Task* task)
 
 #include "../../shared/water_tile.inc.c"
 
-void func_shelter_b4_reservoir_801813F0(Task* task)
+/// Seeds the burst's negative-X direction and scales its Q12 normalization by speed.
+///
+/// `spriteWork->step` is the speed in parent-coordinate units per update.
+/// Consumes one random draw even though normalization removes its magnitude.
+static inline void _shelterB4ReservoirInitializeBurstVelocity(EffectWork* spriteWork)
 {
-    EffectWork* work  = task->spawnArg2.pointer;
-    GfxCoord*   coord = task->extra.coordBody->coord;
-    s16         f2a;
-    u32         rng;
+    u32 randomSample;
+
+    spriteWork->move.vy = 0;
+    spriteWork->move.vz = 0;
+    randomSample        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState     = randomSample;
+    spriteWork->move.vx = -((randomSample >> 16) & 0x3F) - 0x40;
+    VectorNormalSS(&spriteWork->move, &spriteWork->move);
+    gte_lddp(spriteWork->step);
+    gte_ldsv(&spriteWork->move);
+    gte_gpf12();
+    gte_stsv(&spriteWork->move);
+}
+
+void shelterB4ReservoirBurstSpriteTask(Task* task)
+{
+    enum {
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_INITIALIZE          = 0,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_ANIMATE             = 1,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_SIZE_MASK           = 0xFFF,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_PERIOD_PRESENT_MASK = 0xF000,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_PERIOD_SHIFT        = 12,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_PERIOD_MASK         = 7,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_DEFAULT_PERIOD      = 1,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_SPEED_PRESENT_MASK  = 0xFF0000,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_SPEED_SHIFT         = 16,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_SPEED_MASK          = 0xFF,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_DEFAULT_SPEED       = 64,
+    };
+    EffectWork* spriteWork  = task->spawnArg2.pointer;
+    GfxCoord*   spriteCoord = task->extra.coordBody->coord;
+    s16         speed;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
+        // Frozen and cancelling updates draw the retained cell before any teardown.
+        _shelterB4ReservoirDrawBurstSprite(spriteCoord, spriteWork->index, spriteWork->scale);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(work, task);
+            effectKillTask(spriteWork, task);
         }
         return;
     }
 
-    work->age++;
+    spriteWork->age++;
     switch (task->state) {
-        case 0:
-            work->scale = task->spawnArg1.value & 0xFFF;
+        case SHELTER_B4_RESERVOIR_BURST_SPRITE_INITIALIZE:
+            spriteWork->scale = task->spawnArg1.value & SHELTER_B4_RESERVOIR_BURST_SPRITE_SIZE_MASK;
 
-            if (task->spawnArg1.value & 0xF000) {
-                work->period = (task->spawnArg1.value >> 12) & 0x7;
+            if (task->spawnArg1.value & SHELTER_B4_RESERVOIR_BURST_SPRITE_PERIOD_PRESENT_MASK) {
+                spriteWork->period = (task->spawnArg1.value >> SHELTER_B4_RESERVOIR_BURST_SPRITE_PERIOD_SHIFT) & SHELTER_B4_RESERVOIR_BURST_SPRITE_PERIOD_MASK;
             } else {
-                work->period = 1;
+                spriteWork->period = SHELTER_B4_RESERVOIR_BURST_SPRITE_DEFAULT_PERIOD;
             }
 
-            work->age   = 0;
-            task->state = 1;
+            spriteWork->age = 0;
+            task->state     = SHELTER_B4_RESERVOIR_BURST_SPRITE_ANIMATE;
 
-            if (task->spawnArg1.value & 0xFF0000) {
-                f2a = (task->spawnArg1.value >> 16) & 0xFF;
+            if (task->spawnArg1.value & SHELTER_B4_RESERVOIR_BURST_SPRITE_SPEED_PRESENT_MASK) {
+                speed = (task->spawnArg1.value >> SHELTER_B4_RESERVOIR_BURST_SPRITE_SPEED_SHIFT) & SHELTER_B4_RESERVOIR_BURST_SPRITE_SPEED_MASK;
             } else {
-                f2a = 0x40;
+                speed = SHELTER_B4_RESERVOIR_BURST_SPRITE_DEFAULT_SPEED;
             }
 
-            work->step      = f2a;
-            work->move.vy   = 0;
-            work->move.vz   = 0;
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng;
-            work->move.vx   = -((rng >> 16) & 0x3F) - 0x40;
-            VectorNormalSS(&work->move, &work->move);
-
-            gte_lddp(work->step);
-            gte_ldsv(&work->move);
-            gte_gpf12();
-            gte_stsv(&work->move);
+            spriteWork->step = speed;
+            _shelterB4ReservoirInitializeBurstVelocity(spriteWork);
             break;
-        case 1:
-            func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);
-            if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        case SHELTER_B4_RESERVOIR_BURST_SPRITE_ANIMATE:
+            // The coordinate-list pass composes movement between task updates.
+            _shelterB4ReservoirDrawBurstSprite(spriteCoord, spriteWork->index, spriteWork->scale);
+            if (spriteWork->step != 0) {
+                spriteCoord->coord.t[0]  += spriteWork->move.vx;
+                spriteCoord->coord.t[1]  += spriteWork->move.vy;
+                spriteCoord->coord.t[2]  += spriteWork->move.vz;
+                spriteCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             }
-            if ((work->age % work->period) == 0) {
-                work->index++;
-                if (work->index >= 6) {
-                    effectKillTask(work, task);
+            if ((spriteWork->age % spriteWork->period) == 0) {
+                spriteWork->index++;
+                if (spriteWork->index >= SHELTER_B4_RESERVOIR_BURST_SPRITE_FRAME_COUNT) {
+                    effectKillTask(spriteWork, task);
                 }
             }
             break;
     }
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues one semi-transparent shade-tex
-/// `POLY_FT4` (tpage 0x2B, clut 0x4393). `frame` selects one of six 32-texel
-/// UV columns at u = `(frame % 6) * 32 + 0x40`, v = 0x40..0x5F. `size` is a
-/// half-extent; the on-screen radius is `size * 31 / depth`, and the quad is
-/// axis-aligned about the projected point.
-static void func_shelter_b4_reservoir_80181668(GfxCoord* coord, u16 frame, s16 size)
+/// Sets a burst quad's four corners around its projected centre with 16-bit wraparound.
+static inline void _shelterB4ReservoirSetBurstSpriteBounds(POLY_FT4* quad, const EffectCentreScratch* projection)
 {
-    void**               scratch;
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    DisplayState*        ds;
-    s32                  col;
-    s16                  xy;
-    u16                  vz;
+    s16 screenEdge;
 
-    scratch                                                                     = SCRATCH_STACK_CURSOR_SLOT;
-    head                                                                        = *scratch;
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)coord->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)coord->workm.t[1];
-    vz                                                                          = (u16)coord->workm.t[2];
-    *scratch                                                                    = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    screenEdge = projection->screenX - (u16)projection->screenExtent;
+    quad->x2   = screenEdge;
+    quad->x0   = screenEdge;
+    screenEdge = projection->screenX + (u16)projection->screenExtent;
+    quad->x3   = screenEdge;
+    quad->x1   = screenEdge;
+    screenEdge = projection->screenY - (u16)projection->screenExtent;
+    quad->y1   = screenEdge;
+    quad->y0   = screenEdge;
+    screenEdge = projection->screenY + (u16)projection->screenExtent;
+    quad->y3   = screenEdge;
+    quad->y2   = screenEdge;
+}
+
+/// Draws one raw-texture, semi-transparent cell of the reservoir's six-cell burst strip.
+///
+/// Borrows a composed coordinate, narrowing its world translation to signed
+/// 16-bit units. `animationFrame` wraps modulo six into 32-texel cells;
+/// `halfExtent` is a signed world-unit perspective scale. The screen radius is
+/// `halfExtent * 31 / (SZ3 / 4)`, with no depth bias or clamp: accepted projections
+/// must have nonzero depth. Negative GTE flags suppress drawing. Reserves and
+/// releases one complete scratch block; the emitted quad lives for this frame.
+static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 animationFrame, s16 halfExtent)
+{
+    enum {
+        // POLY_FT4 with semitransparency enabled and texture modulation disabled.
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_GPU_CODE     = 0x2F,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_TEXTURE_PAGE = 0x2B,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_CLUT         = 0x4393,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_U_ORIGIN     = 0x40,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_V_ORIGIN     = 0x40,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_TEXELS  = 32,
+        SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_SHIFT   = 5,
+    };
+    EffectCentreScratch* scratchEnd;
+    EffectCentreScratch* projection;
+    POLY_FT4*            quad;
+    SVECTOR*             worldPoint;
+    DisplayState*        displayState;
+    s32                  textureColumn;
+    u16                  worldZ;
+
+    // Stage the world point in the block below the downward-growing cursor.
+    scratchEnd                                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    scratchEnd[-1].worldPoint.vx              = (u16)spriteCoord->workm.t[0];
+    projection                                = scratchEnd - 1;
+    projection->worldPoint.vy                 = (u16)spriteCoord->workm.t[1];
+    worldZ                                    = (u16)spriteCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch) = projection;
+    projection->worldPoint.vz                 = worldZ;
+    worldPoint                                = &projection->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage         = 0x2B;
-        prim->clut          = 0x4393;
-        prim->v0            = 0x40;
-        prim->v1            = 0x40;
-        prim->v2            = 0x5F;
-        prim->v3            = 0x5F;
-        col                 = (u16)(frame % 6) << 5;
-        prim->u0            = col + 0x40;
-        prim->u2            = col + 0x40;
-        prim->u1            = col + 0x5F;
-        prim->u3            = col + 0x5F;
-        block->screenExtent = (size * 31) / block->depth;
-        xy                  = block->screenX - (u16)block->screenExtent;
-        prim->x2            = xy;
-        prim->x0            = xy;
-        xy                  = block->screenX + (u16)block->screenExtent;
-        prim->x3            = xy;
-        prim->x1            = xy;
-        xy                  = block->screenY - (u16)block->screenExtent;
-        prim->y1            = xy;
-        prim->y0            = xy;
-        xy                  = block->screenY + (u16)block->screenExtent;
-        prim->y3            = xy;
-        prim->y2            = xy;
-        ds                  = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&scratchEnd[-1].screenX);
+    gte_stflg(&scratchEnd[-1].projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&scratchEnd[-1].depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+        setcode(quad, SHELTER_B4_RESERVOIR_BURST_SPRITE_GPU_CODE);
+        quad->tpage              = SHELTER_B4_RESERVOIR_BURST_SPRITE_TEXTURE_PAGE;
+        quad->clut               = SHELTER_B4_RESERVOIR_BURST_SPRITE_CLUT;
+        quad->v0                 = SHELTER_B4_RESERVOIR_BURST_SPRITE_V_ORIGIN;
+        quad->v1                 = SHELTER_B4_RESERVOIR_BURST_SPRITE_V_ORIGIN;
+        quad->v2                 = SHELTER_B4_RESERVOIR_BURST_SPRITE_V_ORIGIN + SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_TEXELS - 1;
+        quad->v3                 = SHELTER_B4_RESERVOIR_BURST_SPRITE_V_ORIGIN + SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_TEXELS - 1;
+        textureColumn            = (u16)(animationFrame % SHELTER_B4_RESERVOIR_BURST_SPRITE_FRAME_COUNT) << SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_SHIFT;
+        quad->u0                 = textureColumn + SHELTER_B4_RESERVOIR_BURST_SPRITE_U_ORIGIN;
+        quad->u2                 = textureColumn + SHELTER_B4_RESERVOIR_BURST_SPRITE_U_ORIGIN;
+        quad->u1                 = textureColumn + SHELTER_B4_RESERVOIR_BURST_SPRITE_U_ORIGIN + SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_TEXELS - 1;
+        quad->u3                 = textureColumn + SHELTER_B4_RESERVOIR_BURST_SPRITE_U_ORIGIN + SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_TEXELS - 1;
+        projection->screenExtent = (halfExtent * (SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_TEXELS - 1)) / projection->depth;
+        _shelterB4ReservoirSetBurstSpriteBounds(quad, projection);
+        displayState = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << displayState->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
-    SCRATCH_POP_BYTES_AT(scratch, sizeof(EffectCentreScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
 #include "../../shared/glow_draw_capsule.inc.c"
@@ -1963,16 +2046,16 @@ void func_shelter_b4_reservoir_80182B1C(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b4_reservoir_80183074(Task* task)
+void shelterB4ReservoirRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b4_reservoir_80183CD4(Task* arg0)
+void shelterB4ReservoirRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"
