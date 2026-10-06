@@ -672,7 +672,9 @@ allocates. `SCRIPTED_WALK_WORK` selects that walker's borrowed work pointer
 for the animation and placement fragments. `SCRIPTED_WALK_MODE` selects its
 writable signed-halfword approach mode; `SCRIPTED_WALK_MODE_*` names the
 forward, backward and short forward distances. `SCRIPTED_WALK_TICK_ANIM`
-selects the private slot-tick instance and its update calls. A carrier with
+selects the private slot-tick instance and its update calls.
+`SCRIPTED_WALK_RESET_ANIM` selects the track-restart instance and its update
+calls, with the same published work binding at both sites. A carrier with
 two walkers rebinds these around each additional fragment instance and
 restores its first walker's bindings afterwards.
 

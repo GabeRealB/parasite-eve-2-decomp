@@ -131,6 +131,20 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #define SCRIPTED_WALK_TICK_ANIM _scriptedWalkTickAnim
 #endif
 
+#ifndef SCRIPTED_WALK_RESET_ANIM
+/// Selects the no-argument function that restarts the published walker's part tracks.
+///
+/// Bind to a `void name(void)` function before this header, or undefine and
+/// rebind around both the update and reset fragments for an additional walker.
+/// The reset fragment defines the function; the update fragment calls it.
+/// `SCRIPTED_WALK_WORK` must select the same live work block at both sites,
+/// with its context bound to the rig and a loaded set selected by `st.animId`.
+/// The default serves the sole or first walker in all five carriers;
+/// actor_143900 binds its private second copy to `_scriptedWalkResetSecondAnim`.
+/// This object-like binding has no arguments, captured locals or side effects.
+#define SCRIPTED_WALK_RESET_ANIM scriptedWalkResetAnim
+#endif
+
 void scriptedWalkUpdate(Task* task);
 
 /// Advances the selected walker's non-root animation slots and applies their poses.
@@ -143,7 +157,7 @@ void scriptedWalkUpdate(Task* task);
 /// Scratch-stack capacity and GTE requirements are those of `animationTickSlot`.
 static void SCRIPTED_WALK_TICK_ANIM(void);
 
-void scriptedWalkResetAnim(void);
+void SCRIPTED_WALK_RESET_ANIM(void);
 void scriptedWalkBlendAnim(void);
 s32  scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 

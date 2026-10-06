@@ -122,7 +122,7 @@ static void func_actor_143900_80132E48(Enemy* enemy, Task* task);
 static void func_actor_143900_80132ECC(Task* task);
 static void func_actor_143900_80132F14(Task* task);
 static void _scriptedWalkTickSecondAnim(void);
-static void func_actor_143900_801330B4(void);
+static void _scriptedWalkResetSecondAnim(void);
 static void func_actor_143900_80133144(void);
 
 static TmdSource _gActor143900Body2;
@@ -1413,8 +1413,12 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 ///
 /// The tick fragment is included later with this same function and work binding.
 #define SCRIPTED_WALK_TICK_ANIM _scriptedWalkTickSecondAnim
-#define scriptedWalkResetAnim   func_actor_143900_801330B4
-#define scriptedWalkBlendAnim   func_actor_143900_80133144
+#undef SCRIPTED_WALK_RESET_ANIM
+/// Routes the second walker's update to its private `void(void)` track restart.
+///
+/// The reset fragment uses this function binding and the same live work block.
+#define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetSecondAnim
+#define scriptedWalkBlendAnim    func_actor_143900_80133144
 #undef SCRIPTED_WALK_WORK
 /// Selects the second walker's allocation for this fragment instance.
 #define SCRIPTED_WALK_WORK       _gScriptedWalkSecondWork
@@ -1427,7 +1431,8 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #include "../../shared/scripted_walk_update.inc.c"
 #undef scriptedWalkUpdate
 #undef SCRIPTED_WALK_TICK_ANIM
-#undef scriptedWalkResetAnim
+#undef SCRIPTED_WALK_RESET_ANIM
+#define SCRIPTED_WALK_RESET_ANIM scriptedWalkResetAnim
 #undef scriptedWalkBlendAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
@@ -1515,12 +1520,14 @@ void func_actor_143900_80132FB0(Task* task)
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 
-/// The second walker's copy.
-#define scriptedWalkResetAnim func_actor_143900_801330B4
+#undef SCRIPTED_WALK_RESET_ANIM
+/// Defines the private track restart selected by the second walker's update.
+#define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetSecondAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
 #include "../../shared/scripted_walk_reset_anim.inc.c"
-#undef scriptedWalkResetAnim
+#undef SCRIPTED_WALK_RESET_ANIM
+#define SCRIPTED_WALK_RESET_ANIM scriptedWalkResetAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 
