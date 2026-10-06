@@ -162,7 +162,7 @@ D_dryfield_g_r_kitchen_8017EC48 = 0x8017EC48; // absolute:True owner=dryfield_g_
 D_dryfield_g_r_kitchen_8017EEE4 = 0x8017EEE4; // absolute:True owner=dryfield_g_r_kitchen shared=rooms
 D_dryfield_g_r_kitchen_8017F014 = 0x8017F014; // absolute:True owner=dryfield_g_r_kitchen shared=rooms
 D_dryfield_g_r_kitchen_8017F53C = 0x8017F53C; // absolute:True owner=dryfield_g_r_kitchen
-func_dryfield_water_tower_8017DDD8 = 0x8017DDD8; // type:func absolute:True owner=dryfield_water_tower shared=rooms
+func_dryfield_water_tower_8017DDD8 = 0x8017DDD8; // type:func absolute:True owner=dryfield_water_tower
 D_dryfield_water_tower_801827CC = 0x801827CC; // absolute:True owner=dryfield_water_tower shared=rooms
 D_dryfield_water_tower_801827DC = 0x801827DC; // absolute:True owner=dryfield_water_tower shared=rooms
 D_dryfield_water_tower_801827E0 = 0x801827E0; // absolute:True owner=dryfield_water_tower

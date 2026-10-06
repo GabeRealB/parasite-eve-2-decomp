@@ -79,6 +79,9 @@ enum {
     SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES        = 240, // Screen lines the seam travels, the height of either image
 };
 
+/// Key-item-use message handled by this room; inventory sends the selected item ID.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
 /// Work block of the task that scrolls one full-screen image vertically into
 /// another: after a fixed delay the seam between the two moves down the screen
 /// at a constant rate.
@@ -122,21 +125,21 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0);
-static void func_shelter_b1_pod_access_tunnel_8017DED8(Task* task);
+static void _shelterB1PodAccessTunnelIdleTaskState(Task* task);
 static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task);
 static void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task);
-static void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1);
+static void _shelterB1PodAccessTunnelQueueImageScrollTexturePage(s32 vramX, s16 vramY);
 
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task*);
 
 void func_shelter_b1_pod_access_tunnel_8017DA74(Task*);
 void func_shelter_b1_pod_access_tunnel_8017DC18(Task*);
 
-s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_pod_access_tunnel_8017DD68(Task*, s32, s32, s32);
-s32 func_shelter_b1_pod_access_tunnel_8017DD70(Task*, s32, s32, s32);
-s32 func_shelter_b1_pod_access_tunnel_8017DDD8(Task*, s32, s32, s32);
-s32 func_shelter_b1_pod_access_tunnel_8017DDE0(Task*, s32, s32, s32);
+s32        func_shelter_b1_pod_access_tunnel_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1PodAccessTunnelRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+s32        func_shelter_b1_pod_access_tunnel_8017DD70(Task*, s32, s32, s32);
+static s32 _shelterB1PodAccessTunnelIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 secondArg);
+static s32 _shelterB1PodAccessTunnelHandleSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
 
 void func_shelter_b1_pod_access_tunnel_8017E44C(Task*);
 void func_shelter_b1_pod_access_tunnel_8017E55C(Task*);
@@ -167,10 +170,10 @@ TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { { { TASK_BODY_NONE, 32 } },
 
 TaskMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_pod_access_tunnel_8017D7B4 },
-    { 5105, func_shelter_b1_pod_access_tunnel_8017DD68 },
-    { 5103, func_shelter_b1_pod_access_tunnel_8017DDD8 },
+    { SHELTER_B1_POD_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1PodAccessTunnelRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1PodAccessTunnelIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, func_shelter_b1_pod_access_tunnel_8017DD70 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b1_pod_access_tunnel_8017DDE0 },
+    { ROOM_MESSAGE_SOUND, _shelterB1PodAccessTunnelHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1056,7 +1059,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventM
 
 /// The room task's three states: set-up, idle and exit.
 static const TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D5D8 = {
-    { func_shelter_b1_pod_access_tunnel_8017DE10, func_shelter_b1_pod_access_tunnel_8017DED8, taskKill },
+    { func_shelter_b1_pod_access_tunnel_8017DE10, _shelterB1PodAccessTunnelIdleTaskState, taskKill },
 };
 
 void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
@@ -1151,7 +1154,10 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
     }
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DD68(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request in this room, returning zero to the inventory.
+///
+/// `itemId` is the inventory's selected item ID. No payload or task state is changed.
+static s32 _shelterB1PodAccessTunnelRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
     return 0;
 }
@@ -1170,14 +1176,22 @@ s32 func_shelter_b1_pod_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s
     return 0;
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DDD8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-triggered room actions and returns zero.
+///
+/// The borrowed `actionRequest` and second payload are never read or retained.
+static s32 _shelterB1PodAccessTunnelIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 secondArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DDE0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Plays the confirmation cue for room sound command 6; other commands do nothing.
+///
+/// Returns zero for every command. The task, message ID and second payload are unused.
+static s32 _shelterB1PodAccessTunnelHandleSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg)
 {
-    if (arg2 == 6) {
+    enum { SHELTER_B1_POD_ACCESS_TUNNEL_SOUND_COMMAND_CONFIRM = 6 };
+
+    if (soundCommand == SHELTER_B1_POD_ACCESS_TUNNEL_SOUND_COMMAND_CONFIRM) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
     }
     return 0;
@@ -1199,10 +1213,11 @@ static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// The idle state of the room's task-state table: it does nothing.
-static void func_shelter_b1_pod_access_tunnel_8017DED8(Task* task)
+/// Keeps the initialized room task alive without advancing its state or changing it.
+static void _shelterB1PodAccessTunnelIdleTaskState(Task* task)
 {
-    char pad[0x10];
+    // Retain the target's otherwise unused 16-byte stack frame.
+    char unusedStackFrame[0x10];
 }
 
 /// Runs the room task through its state table, copied onto the stack first and
@@ -1288,7 +1303,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     p->clut = 0x3FC0;
     p->h    = y + 1;
     addPrim(gGpuCurrentOt + 1023, p);
-    func_shelter_b1_pod_access_tunnel_8017E66C(0x340, 0);
+    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x340, 0);
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -1302,7 +1317,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     p->clut = 0x3FC0;
     p->h    = y + 1;
     addPrim(gGpuCurrentOt + 1023, p);
-    func_shelter_b1_pod_access_tunnel_8017E66C(0x3C0, 0);
+    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x3C0, 0);
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -1316,7 +1331,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     p->clut = 0x4000;
     p->h    = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - y;
     addPrim(gGpuCurrentOt + 1023, p);
-    func_shelter_b1_pod_access_tunnel_8017E66C(0x240, 0x100);
+    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x240, 0x100);
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -1330,7 +1345,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
     p->clut = 0x4000;
     p->h    = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - y;
     addPrim(gGpuCurrentOt + 1023, p);
-    func_shelter_b1_pod_access_tunnel_8017E66C(0x2C0, 0x100);
+    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x2C0, 0x100);
 }
 
 /// Queues the replacement of overlay 0x82.
@@ -1421,18 +1436,30 @@ static void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
     task->state += 1;
 }
 
-/// Append an 8-bit, ABR-0 `DR_TPAGE` for VRAM origin (`tpage`, `arg1`) to OT
-/// slot 1023.
-static void func_shelter_b1_pod_access_tunnel_8017E66C(s32 tpage, s16 arg1)
+/// Queues the image scroll's 8-bit texture-page command before its sprites.
+///
+/// `vramX` is in VRAM words, rounded down to a 64-word page within 0..1023;
+/// `vramY` is in scanlines (the callers use 0 or 256). Uses average blending,
+/// no dithering, and permits drawing into the display area. Requires a current
+/// 1024-entry ordering table and packet arena with room for one `DR_TPAGE`.
+static void _shelterB1PodAccessTunnelQueueImageScrollTexturePage(s32 vramX, s16 vramY)
 {
-    DR_TPAGE* p;
-    s32       y;
+    enum { IMAGE_SCROLL_TEXTURE_8_BIT     = 1,
+           IMAGE_SCROLL_PAGE_X_MASK       = 0x3C0,
+           IMAGE_SCROLL_DRAW_DISPLAY_AREA = 1,
+           IMAGE_SCROLL_DITHER_OFF        = 0,
+           IMAGE_SCROLL_ORDERING_SLOT     = 1023 };
 
-    y              = arg1;
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setDrawTPage(p, 1, 0, getTPage(1, 0, tpage & 0x3C0, y));
-    addPrim(gGpuCurrentOt + 1023, p);
+    DR_TPAGE* drawMode;
+    s32       pageY;
+
+    // Promote the scanline once for the SDK's texture-page bit encoding.
+    pageY          = vramY;
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, IMAGE_SCROLL_DRAW_DISPLAY_AREA, IMAGE_SCROLL_DITHER_OFF,
+                 getTPage(IMAGE_SCROLL_TEXTURE_8_BIT, GPU_BLEND_AVERAGE, vramX & IMAGE_SCROLL_PAGE_X_MASK, pageY));
+    addPrim(gGpuCurrentOt + IMAGE_SCROLL_ORDERING_SLOT, drawMode);
 }
 
 void func_shelter_b1_pod_access_tunnel_8017E704(void)
@@ -1465,35 +1492,48 @@ void func_shelter_b1_pod_access_tunnel_8017E7B4(void)
     Gp_PulseState1C();
 }
 
-void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0)
+/// Selects the room's combat effect implementations for subsequent actor spawns.
+static inline void _shelterB1PodAccessTunnelSelectCombatEffects(void)
 {
-    u8 view;
+    gRoomEffectFlashId      = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_FLASH;
+    gRoomEffectTwinTrailId  = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_TWIN_TRAIL;
+    gRoomEffectSparkBurstId = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_SPARK_BURST;
+}
 
-    if (arg0->state == 0) {
-        gRoomEffectFlashId      = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_FLASH;
-        gRoomEffectTwinTrailId  = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_TWIN_TRAIL;
-        gRoomEffectSparkBurstId = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_SPARK_BURST;
-        arg0->state             = 1;
+void shelterB1PodAccessTunnelDrawGlowsTask(Task* task)
+{
+    enum { GLOWS_SELECT_EFFECTS,
+           GLOWS_DRAW,
+           GLOWS_RADIUS_WORLD_UNITS = 0x180,
+           GLOWS_PACKED_WHITE       = 0x111 };
+
+    u8 mappedView;
+
+    if (task->state == GLOWS_SELECT_EFFECTS) {
+        _shelterB1PodAccessTunnelSelectCombatEffects();
+        task->state = GLOWS_DRAW;
     }
-    view = viewGetMappedIndex();
-    switch (view) {
+
+    // Each consecutive endpoint pair defines one fixed light in world space.
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2: {
-            SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839E4;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[2], 0x180, 0x111);
+            const SVECTOR* lightEndpoints = D_shelter_b1_pod_access_tunnel_801839E4;
+            _glowDrawCapsule(&lightEndpoints[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(&lightEndpoints[2], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
         } break;
         case 3:
         case 7: {
-            SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839A4;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[2], 0x180, 0x111);
-            _glowDrawCapsule(&p[4], 0x180, 0x111);
-            _glowDrawCapsule(&p[6], 0x180, 0x111);
+            const SVECTOR* lightEndpoints = D_shelter_b1_pod_access_tunnel_801839A4;
+            _glowDrawCapsule(&lightEndpoints[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(&lightEndpoints[2], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(&lightEndpoints[4], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(&lightEndpoints[6], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
         } break;
         case 4: {
-            SVECTOR* p = D_shelter_b1_pod_access_tunnel_801839A4;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[2], 0x180, 0x111);
+            const SVECTOR* lightEndpoints = D_shelter_b1_pod_access_tunnel_801839A4;
+            _glowDrawCapsule(&lightEndpoints[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(&lightEndpoints[2], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
         } break;
     }
 }
@@ -1504,14 +1544,14 @@ void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_pod_access_tunnel_8017F138(Task* arg0)
+void shelterB1PodAccessTunnelRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task)
+void shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

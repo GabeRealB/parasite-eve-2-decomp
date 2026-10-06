@@ -140,11 +140,11 @@ D_shelter_b1_pod_access_tunnel_80184D0C = 0x80184D0C; // size:0x4 defined:True
 gRoomEventLatched = 0x80184D10; // size:0xC defined:True
 RoomFx_TrailOffsets = 0x80183A04; // size:0x10 defined:True
 
-func_shelter_b1_pod_access_tunnel_8017E7D4 = 0x8017E7D4; // type:func
+shelterB1PodAccessTunnelDrawGlowsTask = 0x8017E7D4; // type:func
 
-func_shelter_b1_pod_access_tunnel_8017F138 = 0x8017F138; // type:func
+shelterB1PodAccessTunnelRoomVisualEffectsFlashTask = 0x8017F138; // type:func
 
-func_shelter_b1_pod_access_tunnel_8017FB9C = 0x8017FB9C; // type:func
+shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017FB9C; // type:func
 
 func_shelter_b1_pod_access_tunnel_80180484 = 0x80180484; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017F3DC; // type:func
@@ -153,3 +153,8 @@ _roomVisualEffectsDrawTwinTrail = 0x8018008C; // type:func
 _roomVisualEffectsDrawBurstStar = 0x8018070C; // type:func
 _glowDrawCapsule = 0x8017E8F4; // type:func
 roomEventStagedTask = 0x8017D61C; // type:func
+_shelterB1PodAccessTunnelRejectKeyItemMessage = 0x8017dd68; // type:func
+_shelterB1PodAccessTunnelIgnoreActionMessage = 0x8017ddd8; // type:func
+_shelterB1PodAccessTunnelHandleSoundMessage = 0x8017dde0; // type:func
+_shelterB1PodAccessTunnelIdleTaskState = 0x8017ded8; // type:func
+_shelterB1PodAccessTunnelQueueImageScrollTexturePage = 0x8017e66c; // type:func

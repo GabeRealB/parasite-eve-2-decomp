@@ -39,11 +39,39 @@ extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_access_tunnel_80184CDC[
 
 void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task);
 
-void func_shelter_b1_pod_access_tunnel_8017E7D4(Task* arg0);
+/// Selects this room's combat effects once and draws the lights visible in the mapped view.
+///
+/// Start in state 0; initialization advances to state 1. Draws two white
+/// capsule glows in views 2 and 4, four in views 3 and 7, and none elsewhere.
+/// Radius is 384 world units; RGB bytes flicker between 16 and 24 on alternate
+/// frames. Requires current view matrices, scratch stack, ordering table and
+/// packet arena, and the room overlay must remain loaded.
+void shelterB1PodAccessTunnelDrawGlowsTask(Task* task);
 
-void func_shelter_b1_pod_access_tunnel_8017F138(Task* task);
+/// Runs this room's counted pink charge flash, peak screen tint and fading star.
+///
+/// Requires a coordinate body and owned `EffectWork` in `spawnArg2.pointer`,
+/// initialized by `Gp_SpawnEff`. Start in state 0 with a positive charge
+/// duration in ticks in `spawnArg1.value`; the task consumes that countdown.
+/// Nonzero room effect control pauses it, and values at least 4 cancel it.
+/// Completion or state 3 releases counted work and kills the task. Requires
+/// current graphics workspace and the room overlay to remain loaded.
+void shelterB1PodAccessTunnelRoomVisualEffectsFlashTask(Task* task);
 
-void func_shelter_b1_pod_access_tunnel_8017FB9C(Task* task);
+/// Records and draws this room's counted pair of fading endpoint trails.
+///
+/// Requires a coordinate body and owned `EffectWork` in `spawnArg2.pointer`,
+/// initialized by `Gp_SpawnEff`; its parent coordinate must remain live.
+/// State 0 allocates two eight-frame histories in `Task::work` and seeds
+/// parent-relative offsets (0, 190, -15) and (0, 1085, 180), in world units.
+/// Allocation failure resets the age and retries on the next eligible tick.
+/// State 1 records world-space snapshots and draws seven quads with R:G:B
+/// multipliers 1:2:3. An exact nonzero age match to `spawnArg1.value`, in ticks,
+/// releases both histories and counted work; zero never expires. Age is signed
+/// 16-bit. Control values below 2 update, including pause value 1; values at
+/// least 2 freeze it. Requires current graphics workspace and the room overlay
+/// to remain loaded.
+void shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_shelter_b1_pod_access_tunnel_80180484(Task* task);
 
