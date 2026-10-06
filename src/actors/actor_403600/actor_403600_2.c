@@ -1295,11 +1295,6 @@ static void func_actor_403600_8013A444(Task* arg0)
     GfxCoord*             temp_s4_4;
     GfxCoord*             temp_s6;
     Enemy*                temp_s7;
-    Actor403600Work*      temp_v0_10;
-    Actor403600Work*      temp_v0_20;
-    Actor403600Work*      temp_v0_2;
-    Actor403600Work*      temp_reset_30;
-    Actor403600Work*      temp_v0_4;
     GameActor*            temp_v1_2;
     GfxCoord*             var_a0;
     GfxCoord*             var_s0;
@@ -1355,26 +1350,9 @@ static void func_actor_403600_8013A444(Task* arg0)
             work->forwardSpeed  = 0U;
             work->verticalSpeed = 0;
             if (work->phaseFrame >= 0x2D) {
-                temp_v0_2                  = arg0->work;
-                temp_v0_2->animBlendFrames = 8;
-                temp_v0_2->animRate        = 0x10;
-                temp_v0_2->actionDelay     = 0xA;
-                temp_v0_2->defeated        = 0;
-                temp_v0_2->aimMode         = ACTOR_403600_AIM_PLAYER;
-                temp_v0_2->ignorePushOut   = 0;
-                temp_v0_2->ambientBoost    = 0;
-                temp_v0_2->committed       = 0;
-                temp_v0_2->forwardSpeed    = 0U;
-                temp_v0_2->action          = ACTOR_403600_ACTION_CHOOSE;
-                temp_v0_2->verticalSpeed   = 0;
-                temp_v0_2->phaseFrame      = 0;
-                temp_v0_2->turnRate        = 0x40;
-                temp_v0_2->roll            = 0;
-                temp_v0_2->diving          = 0;
-                temp_v0_2->repositioning   = 0;
-                temp_v0_2->pauseSoundSent  = 0;
-                work->action               = ACTOR_403600_ACTION_RECHARGE_END;
-                work->exposed              = 0;
+                _actor403600ResetState(arg0);
+                work->action  = ACTOR_403600_ACTION_RECHARGE_END;
+                work->exposed = 0;
                 return;
             }
             break;
@@ -1388,24 +1366,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                 sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, 0x14);
             }
             if (work->phaseFrame >= 0x1E) {
-                temp_v0_4                  = arg0->work;
-                temp_v0_4->animBlendFrames = 8;
-                temp_v0_4->animRate        = 0x10;
-                temp_v0_4->defeated        = 0;
-                temp_v0_4->aimMode         = ACTOR_403600_AIM_PLAYER;
-                temp_v0_4->ignorePushOut   = 0;
-                temp_v0_4->ambientBoost    = 0;
-                temp_v0_4->committed       = 0;
-                temp_v0_4->forwardSpeed    = 0U;
-                temp_v0_4->action          = ACTOR_403600_ACTION_CHOOSE;
-                temp_v0_4->verticalSpeed   = 0;
-                temp_v0_4->phaseFrame      = 0;
-                temp_v0_4->actionDelay     = 0xA;
-                temp_v0_4->turnRate        = 0x40;
-                temp_v0_4->roll            = 0;
-                temp_v0_4->diving          = 0;
-                temp_v0_4->repositioning   = 0;
-                temp_v0_4->pauseSoundSent  = 0;
+                _actor403600ResetState(arg0);
                 return;
             }
             break;
@@ -1577,25 +1538,8 @@ static void func_actor_403600_8013A444(Task* arg0)
                         func_actor_403600_8013DFE0(arg0);
                     }
                     if (work->phaseFrame >= 0x26) {
-                        temp_v0_10                  = arg0->work;
-                        temp_v0_10->animBlendFrames = 8;
-                        temp_v0_10->animRate        = 0x10;
-                        temp_v0_10->actionDelay     = 0xA;
-                        temp_v0_10->defeated        = 0;
-                        temp_v0_10->aimMode         = ACTOR_403600_AIM_PLAYER;
-                        temp_v0_10->ignorePushOut   = 0;
-                        temp_v0_10->ambientBoost    = 0;
-                        temp_v0_10->committed       = 0;
-                        temp_v0_10->forwardSpeed    = 0U;
-                        temp_v0_10->action          = ACTOR_403600_ACTION_CHOOSE;
-                        temp_v0_10->verticalSpeed   = 0;
-                        temp_v0_10->phaseFrame      = 0;
-                        temp_v0_10->turnRate        = 0x40;
-                        temp_v0_10->roll            = 0;
-                        temp_v0_10->diving          = 0;
-                        temp_v0_10->repositioning   = 0;
-                        temp_v0_10->pauseSoundSent  = 0;
-                        work->action                = ACTOR_403600_ACTION_RECHARGE;
+                        _actor403600ResetState(arg0);
+                        work->action = ACTOR_403600_ACTION_RECHARGE;
                         return;
                     }
                     break;
@@ -1859,25 +1803,8 @@ static void func_actor_403600_8013A444(Task* arg0)
                     work->turnRate      = 0x40;
                     func_actor_403600_8013DFE0(arg0);
                     if (work->phaseFrame >= 0x26) {
-                        temp_v0_20                  = arg0->work;
-                        temp_v0_20->animBlendFrames = 8;
-                        temp_v0_20->animRate        = 0x10;
-                        temp_v0_20->defeated        = 0;
-                        temp_v0_20->aimMode         = ACTOR_403600_AIM_PLAYER;
-                        temp_v0_20->ignorePushOut   = 0;
-                        temp_v0_20->ambientBoost    = 0;
-                        temp_v0_20->committed       = 0;
-                        temp_v0_20->forwardSpeed    = 0U;
-                        temp_v0_20->action          = ACTOR_403600_ACTION_CHOOSE;
-                        temp_v0_20->verticalSpeed   = 0;
-                        temp_v0_20->phaseFrame      = 0;
-                        temp_v0_20->actionDelay     = 0xA;
-                        temp_v0_20->turnRate        = 0x40;
-                        temp_v0_20->roll            = 0;
-                        temp_v0_20->diving          = 0;
-                        temp_v0_20->repositioning   = 0;
-                        temp_v0_20->pauseSoundSent  = 0;
-                        work->action                = ACTOR_403600_ACTION_RECHARGE;
+                        _actor403600ResetState(arg0);
+                        work->action = ACTOR_403600_ACTION_RECHARGE;
                         return;
                     }
                     break;
@@ -2099,25 +2026,8 @@ static void func_actor_403600_8013A444(Task* arg0)
                     work->aimMode      = ACTOR_403600_AIM_PLAYER_LEVEL;
                     func_actor_403600_8013DFE0(arg0);
                     if (work->phaseFrame >= 0x26) {
-                        temp_reset_30                  = arg0->work;
-                        temp_reset_30->animBlendFrames = 8;
-                        temp_reset_30->animRate        = 0x10;
-                        temp_reset_30->defeated        = 0;
-                        temp_reset_30->aimMode         = ACTOR_403600_AIM_PLAYER;
-                        temp_reset_30->ignorePushOut   = 0;
-                        temp_reset_30->ambientBoost    = 0;
-                        temp_reset_30->committed       = 0;
-                        temp_reset_30->forwardSpeed    = 0U;
-                        temp_reset_30->action          = ACTOR_403600_ACTION_CHOOSE;
-                        temp_reset_30->verticalSpeed   = 0;
-                        temp_reset_30->phaseFrame      = 0;
-                        temp_reset_30->actionDelay     = 0xA;
-                        temp_reset_30->turnRate        = 0x40;
-                        temp_reset_30->roll            = 0;
-                        temp_reset_30->diving          = 0;
-                        temp_reset_30->repositioning   = 0;
-                        temp_reset_30->pauseSoundSent  = 0;
-                        work->action                   = ACTOR_403600_ACTION_RECHARGE;
+                        _actor403600ResetState(arg0);
+                        work->action = ACTOR_403600_ACTION_RECHARGE;
                         return;
                     }
                     break;
