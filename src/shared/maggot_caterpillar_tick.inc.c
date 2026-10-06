@@ -19,30 +19,20 @@ void maggotCaterpillarTick(Enemy* arg0, Task* arg1)
     state = gSceneCombatState.actorControl;
     work  = arg1->work;
     coord = obj->coords;
-    if (state == 1) {
-        goto case1;
+    switch (state) {
+        case 0:
+            obj->flags                   = 0;
+            arg0->node.state.parts.flags = 0;
+            break;
+        case 1:
+            maggotCaterpillarUpdateColor(arg1);
+            maggotCaterpillarDrawShadow(arg1);
+            return;
+        case 2:
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags                   = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case2:
-    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    return;
-default_body:
     if (arg0->reactionFlags != 0) {
         maggotCaterpillarApplyStatus(arg1);
     }
@@ -58,7 +48,6 @@ default_body:
     maggotCaterpillarTickAnim(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-case1:
     maggotCaterpillarUpdateColor(arg1);
     maggotCaterpillarDrawShadow(arg1);
 }
