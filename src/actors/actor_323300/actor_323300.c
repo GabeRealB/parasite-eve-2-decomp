@@ -475,7 +475,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     worldCollisionInitContacts(body->context.contacts, 1, 0);
     arg0->msgTable = D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-    actorMsgPlaceEuler(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
+    actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_8017259C, 0);
     actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
     sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
     arg0->exitCallback = func_actor_323300_8016269C;

@@ -1477,9 +1477,9 @@ static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
         placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
         placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
         placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
-        actorMsgPlaceEulerZyx(arg0, 0x7D4, &placement, 0);
+        actorMsgPlaceEulerZyx(arg0, ACTOR_MESSAGE_PLACE, &placement, 0);
     } else {
-        actorMsgPlaceEulerZyx(arg0, 0x7D4, &D_mine_forked_tunnel_80181BBC, 0);
+        actorMsgPlaceEulerZyx(arg0, ACTOR_MESSAGE_PLACE, &D_mine_forked_tunnel_80181BBC, 0);
     }
 
     _mineForkedTunnelSetAreaObjectDrawMode(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO, 0);
@@ -1507,7 +1507,7 @@ static void func_mine_forked_tunnel_8017D724(Task* arg0)
         placement.rot.vy = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vy;
         placement.rot.vz = D_mine_forked_tunnel_80180AC4[arg0->killCountdown].vz;
 
-        actorMsgPlaceEulerZyx(arg0, 0x7D4, &placement, 0);
+        actorMsgPlaceEulerZyx(arg0, ACTOR_MESSAGE_PLACE, &placement, 0);
         arg0->killCountdown++;
     }
 

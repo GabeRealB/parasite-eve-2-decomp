@@ -562,7 +562,7 @@ TaskMessageEntry D_actor_356100_80173258[7] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
-    { 2014, actorMsgReleaseHold },
+    { ACTOR_MESSAGE_RELEASE_HOLD, actorMsgReleaseHold },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_356100_8016A0B8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

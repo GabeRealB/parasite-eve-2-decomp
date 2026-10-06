@@ -1,22 +1,18 @@
 /* Part of the actor messages library; see actor_messages.h. */
 
-/// Message 0x7D4 handler: places the task's model in the world. The model's
-/// coordinate is parented to the view coordinate, takes `placement`'s
-/// position as its translation and its rotation applied Y, then X, then Z.
-/// `arg1` is the message id.
-s32 actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
+void actorMsgPlaceInView(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg)
 {
-    GfxCoord* coord;
-    MATRIX*   mtx;
+    GfxCoord* rootCoord;
+    MATRIX*   rootMatrix;
 
-    coord             = task->extra.tmd->coords;
-    coord->parent     = &gGfxViewCoord;
-    coord->coord.t[0] = placement->pos.vx;
-    coord->coord.t[1] = placement->pos.vy;
-    mtx               = &coord->coord;
-    coord->coord.t[2] = placement->pos.vz;
-    gfxRotMatrixY(mtx, placement->rot.vy, 1);
-    gfxRotMatrixX(mtx, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixZ(mtx, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord             = task->extra.tmd->coords;
+    rootCoord->parent     = &gGfxViewCoord;
+    rootCoord->coord.t[0] = placement->pos.vx;
+    rootCoord->coord.t[1] = placement->pos.vy;
+    rootMatrix            = &rootCoord->coord;
+    rootCoord->coord.t[2] = placement->pos.vz;
+    gfxRotMatrixY(rootMatrix, placement->rot.vy, GRAPHICS_ROTATION_REPLACE);
+    gfxRotMatrixX(rootMatrix, placement->rot.vx, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixZ(rootMatrix, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

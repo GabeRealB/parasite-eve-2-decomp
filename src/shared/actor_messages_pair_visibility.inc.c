@@ -1,28 +1,24 @@
 /* Part of the actor messages library; see actor_messages.h. */
 
-/// Message 0x7D5 handler: shows or hides the actor's model and the helper
-/// task's together. Bit 0 of `flags` clears both models' `TmdObject::flags`
-/// (shown); without it both get 0x80 (hidden). Bit 1 additionally ORs in
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` on both.
-s32 actorMsgSetPairVisibility(Task* task, s32 arg1, s32 flags, s32 arg3)
+s32 actorMsgSetPairVisibility(Task* task, s32 msgId, s32 flags, s32 unusedArg)
 {
-    TmdObject* self;
-    TmdObject* other;
+    TmdObject* model;
+    TmdObject* helperModel;
 
-    self  = gActorSelfTask->extra.tmd;
-    other = gActorHelperTask->extra.tmd;
+    model       = gActorSelfTask->extra.tmd;
+    helperModel = gActorHelperTask->extra.tmd;
 
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
+    if (flags & ACTOR_MESSAGE_PAIR_SHOW) {
+        model->flags       = 0;
+        helperModel->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        helperModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (flags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+        model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        helperModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

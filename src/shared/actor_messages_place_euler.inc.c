@@ -7,6 +7,7 @@
  * Without a binding, the fragment defines the ordinary actorMsgPlaceEuler.
  */
 
+#ifdef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 /// Places the model root and retains its Euler orientation for later updates.
 ///
 /// Requires a live TMD task with a writable root coordinate and a placement
@@ -15,10 +16,9 @@
 /// Reads only X/Y/Z from each vector, copying the angles into `param.rot` before
 /// rebuilding the local rotation. Marks the composed transform stale.
 /// The message ID and second payload word are ignored. Returns 0.
-#ifdef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 static s32 ACTOR_MESSAGE_PLACE_EULER_HANDLER(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg)
 #else
-s32 actorMsgPlaceEuler(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
+s32 actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg)
 #endif
 {
     GfxCoord* rootCoord;
