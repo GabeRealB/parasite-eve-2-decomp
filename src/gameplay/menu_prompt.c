@@ -1281,91 +1281,64 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
 
 void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
 {
-    register s32               count asm("t0");
-    s32                        i;
-    register InventoryItemRow* rec asm("a3");
-    register s32               item asm("v1");
-    s32                        j;
-    s32                        off;
-    s32                        temp;
-    s32                        limit;
-    u8*                        rowBytes;
-    InventoryItemRow*          rec2;
-    InventoryItemRange*        scan;
-    PlayerStatus*              cfg;
-    const u8*                  table0;
-    const u8*                  table1;
+    InventoryItemRow*   table;
+    InventoryItemRange* scan;
+    PlayerStatus*       cfg;
+    s32                 count;
+    s32                 visibleRows;
+    s32                 idx;
+    s32                 i;
+    s32                 j;
 
     count = 0;
-    // Byte offsets select whole rows; accesses resume through the row type.
-    rowBytes = (u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-    scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    {
-        register s32 hi asm("v1");
-        asm volatile("lui %1, %%hi(gPlayerStatus)\n\t"
-                     "addiu %0, %1, %%lo(gPlayerStatus)"
-                     : "=r"(cfg), "=r"(hi));
+    i     = 0;
+    if (arg1 == 0) {
+        // The weapon list shows four rows however many weapons are carried.
+        visibleRows = 4;
     }
-    limit = scan->rowCount;
-    item  = scan->firstRow;
-    i     = count;
-    if (count < limit) {
-        // Search the primary and secondary load choices as packed row bytes.
-        table0 = (const u8*)Gp_RelatedQty0.rows;
-        table1 = (const u8*)Gp_RelatedQty1.rows;
-        temp   = (u8)item * sizeof(InventoryItemRow);
-        rec    = (InventoryItemRow*)&rowBytes[temp];
-        do {
-            if ((u8)(rec->itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
-                rec2 = rec;
-                if (arg1 == 0) {
-                    goto increment;
+    table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    cfg   = &gPlayerStatus;
+    idx   = scan->firstRow;
+    for (; i < scan->rowCount; i++) {
+        if ((u8)(table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+            idx++;
+            continue;
+        }
+        if (arg1 == 0) {
+            count++;
+            idx++;
+            continue;
+        }
+        // Search the primary, then the secondary load choices of this weapon.
+        for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
+            if (Gp_RelatedQty0.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
+                if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE) {
+                    count++;
+                } else if (cfg->weapon == table[idx].itemId - 0x7F) {
+                    count++;
                 }
-                j = 0;
-                USE_REG(j);
-                item = rec->itemId;
-                off  = (item - EQUIPMENT_WEAPON_ITEM_FIRST) * sizeof(EquipmentWeaponLoadOptions);
-                item = item - 0x7F;
-                do {
-                    temp = j + off;
-                    if (table0[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)] == arg1) {
-                        if (rec2->attachSlot > INVENTORY_ATTACHMENT_NONE) {
-                            count++;
-                        } else if (cfg->weapon == item) {
-                            count++;
-                        }
-                        break;
-                    }
-                    j++;
-                } while (j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
-
-                j    = 0;
-                item = rec->itemId;
-                rec2 = rec;
-                off  = (item - EQUIPMENT_WEAPON_ITEM_FIRST) * sizeof(EquipmentWeaponLoadOptions);
-                item = item - 0x7F;
-                do {
-                    temp = j + off;
-                    if (table1[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)] == arg1) {
-                        if (rec2->attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == item) {
-                        increment:
-                            count++;
-                        }
-                        break;
-                    }
-                    j++;
-                } while (j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
+                break;
             }
-            rec++;
-            i++;
-        } while (i < scan->rowCount);
+        }
+        for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
+            if (Gp_RelatedQty1.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
+                if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE) {
+                    count++;
+                } else if (cfg->weapon == table[idx].itemId - 0x7F) {
+                    count++;
+                }
+                break;
+            }
+        }
+        idx++;
     }
 
     arg0->itemCount                     = count;
     arg0->visibleRowCount.unsignedValue = count;
     if (arg1 == 0) {
         arg0->rowHeight                     = 0xF;
-        arg0->visibleRowCount.unsignedValue = 4;
+        arg0->visibleRowCount.unsignedValue = visibleRows;
     } else {
         arg0->rowHeight = 0xF;
     }
