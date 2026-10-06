@@ -621,7 +621,6 @@ static s32 CdAudio_DriveSeek(void)
     u8                             step;
     _CdAudioHeader*                header;
     volatile _CdAudioDriverStatus* driverStatus;
-    s32                            status;
     s32                            tmp;
 
     step   = CdAudio_Phase.headerReadStep;
@@ -696,19 +695,17 @@ static s32 CdAudio_DriveSeek(void)
             driverStatus->failureKind = CD_AUDIO_FAILURE_TIMEOUT;
             goto error;
         do_cdsync:
-            status = CdSync(1, NULL);
-            if (status == CdlComplete) {
-                goto set_state_4;
+            switch (CdSync(1, NULL)) {
+                case CdlDiskError:
+                    CdFlush();
+                    /* fallthrough */
+                case CdlComplete:
+                    CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_DONE;
+                    break;
+                case CdlNoIntr:
+                default:
+                    break;
             }
-            if (status < 3) {
-                break;
-            }
-            if (status != CdlDiskError) {
-                break;
-            }
-            CdFlush();
-        set_state_4:
-            CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_DONE;
             break;
         default:
             tmp                   = CdAudio_Ctl.waitTicks;
