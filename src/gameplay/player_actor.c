@@ -5813,7 +5813,6 @@ Task* Gp_SpawnWeaponEff(void)
     Task*         parent;
     Task*         task;
     PlayerStatus* cfg;
-    s32           kind;
     s32           id;
     s32           arg2;
     TmdObject*    extra;
@@ -5829,61 +5828,49 @@ Task* Gp_SpawnWeaponEff(void)
     }
 
     parent = actor->attachmentTasks[1];
-    if (parent == NULL) {
-        goto join_4C;
+    if (parent != NULL) {
+        task                     = spawn_attach(parent, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, gPlayerStatus.weapon);
+        actor->equipmentTasks[1] = task;
+        if (task != NULL) {
+            cfg = &gPlayerStatus;
+            Gp_AttachActorObj(work, cfg->weapon, cfg->weaponSlotItem);
+            if (actor->weaponEffectTask == NULL) {
+                extra = actor->equipmentTasks[1]->extra.tmd;
+                id    = cfg->weapon;
+                coord = extra->coords;
+                if (id != 0x16) {
+                    goto check_19;
+                }
+                id   = 0x80060024;
+                arg2 = 0;
+                goto do_call;
+
+            do_success:
+                actor->weaponEffectTask = eff->task;
+                taskReparent(work, eff->task);
+                func_80106350(work, gPlayerStatus.weapon, 0);
+                goto done;
+
+            check_19:
+                if (id == 0x19) {
+                    id = 0x80060029;
+                } else {
+                    if (id != 0x1C) {
+                        goto done;
+                    }
+                    id = 0x8006002A;
+                }
+                arg2 = cfg->weapon;
+            do_call:
+                eff = Gp_SpawnEff(id, coord, arg2, 0);
+                if (eff != NULL) {
+                    goto do_success;
+                }
+            }
+        }
     }
 
-    task                     = spawn_attach(parent, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, gPlayerStatus.weapon);
-    actor->equipmentTasks[1] = task;
-    if (task == NULL) {
-        goto join_4C;
-    }
-
-    cfg = &gPlayerStatus;
-    Gp_AttachActorObj(work, cfg->weapon, cfg->weaponSlotItem);
-    if (actor->weaponEffectTask != NULL) {
-        goto join_50;
-    }
-
-    kind  = 0x16;
-    extra = actor->equipmentTasks[1]->extra.tmd;
-    id    = cfg->weapon;
-    coord = extra->coords;
-    if (id != kind) {
-        goto check_19;
-    }
-    id   = 0x80060024;
-    arg2 = 0;
-    goto do_call;
-
-do_success:
-    actor->weaponEffectTask = eff->task;
-    taskReparent(work, eff->task);
-    func_80106350(work, gPlayerStatus.weapon, 0);
-    goto join_50;
-
-check_19:
-    if (id != 0x19) {
-        goto check_1C;
-    }
-    id = 0x80060029;
-    goto do_call_item;
-
-check_1C:
-    if (id != 0x1C) {
-        goto join_50;
-    }
-    id = 0x8006002A;
-do_call_item:
-    arg2 = cfg->weapon;
-do_call:
-    eff = Gp_SpawnEff(id, coord, arg2, 0);
-    if (eff != NULL) {
-        goto do_success;
-    }
-
-join_4C:
-join_50:
+done:
     actor->reloadEffectSuppressed = 0;
     inner                         = work->work;
     anim                          = work->extra.tmd;
