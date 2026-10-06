@@ -26,7 +26,7 @@ void strideWalkUpdate(Task* task)
         } while (0);
         animId = work->st.animId;
         if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, 0x1E);
+            _actorMovementStepForward(task->extra.tmd->coords, 0x1E);
             work->st.travel--;
             if (work->st.travel == 0) {
                 work->st.state    = ACTOR_ENEMY_ANIM_BLEND;

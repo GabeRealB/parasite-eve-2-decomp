@@ -73,9 +73,9 @@ void desertChaserStrike(Task* arg0)
             yaw       = actorPositionYaw(arg0, vec, &gPlayerStatus);
             vec[1].vz = yaw;
             if (desertChaserCapsuleTouchesGrid(arg0)) {
-                actorMoveForward(arg0->extra.tmd->coords, 85);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 85);
             } else {
-                actorMoveForward(arg0->extra.tmd->coords, 200);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 200);
             }
             if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts))) {
                 work->state = 0x23;

@@ -57,7 +57,7 @@ void oddStrangerWalkingDeath(Task* arg0)
                 work->blendActive = 0;
             }
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
+                _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
             }
             ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if ((s16)work->stateTimer == 3) {

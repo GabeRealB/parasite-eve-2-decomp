@@ -155,9 +155,9 @@ void desertChaserRoam(Task* arg0)
     record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     if (work->blendActive == 0) {
         if (desertChaserCapsuleTouchesGrid(arg0)) {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 20);
         } else {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 20);
         }
         record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     }

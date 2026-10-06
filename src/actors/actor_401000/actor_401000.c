@@ -1768,7 +1768,7 @@ static void func_actor_401000_801388F4(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     if (work->animId == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0) {
-        actorMoveForward(arg0->extra.tmd->coords, -0x57);
+        _actorMovementStepForward(arg0->extra.tmd->coords, -0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {

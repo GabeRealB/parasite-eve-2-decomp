@@ -3181,7 +3181,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
         case 0x20:
             run->turn = ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
             gfxRotMatrixY(&arg0->extra.tmd->coords->coord, run->turn, 1);
-            actorMoveForward(arg0->extra.tmd->coords, 0x12C);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0x12C);
             actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(arg0->extra.tmd->coords);
@@ -3260,11 +3260,11 @@ static void func_actor_401300_801376E4(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x28) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, 0x28);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0x28);
         }
     } else {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x14) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, 0x14);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
         }
     }
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) != 1) {
@@ -3564,7 +3564,7 @@ static void func_actor_401300_80138CF8(Task* arg0)
         work->hitBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     if (work->animId == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x57) != 0) {
-        actorMoveForward(arg0->extra.tmd->coords, -0x57);
+        _actorMovementStepForward(arg0->extra.tmd->coords, -0x57);
     }
     func_actor_401300_80133A3C(arg0);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
@@ -3907,7 +3907,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     if (work->blendActive == 0) {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, 0xA);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
         }
     }
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) == 0) {
@@ -4038,7 +4038,7 @@ static void func_actor_401300_8013A5C0(Task* arg0)
     if (work->animId == 0x11) {
         work->stateTimer++;
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x10) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, -0x10);
+            _actorMovementStepForward(arg0->extra.tmd->coords, -0x10);
         }
         if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) == 0) {
             func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
@@ -4286,7 +4286,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                 work->blendActive = 0;
             }
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, 0xA);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
             }
             ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if (work->stateTimer == 3) {
@@ -4431,11 +4431,11 @@ static void func_actor_401300_8013CBAC(Task* arg0)
     if (work->animId == 2) {
         if (work->blendActive == 0) {
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x16) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, 0x16);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 0x16);
             }
         } else {
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 5) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, 5);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 5);
             }
         }
     } else if (work->rig.slots[1].status.fields.flags & 0x100) {
@@ -4639,7 +4639,7 @@ static __inline__ s32 Actor401300_Yaw(GfxCoord* coord)
     return ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
 
-/// `actorMoveForward` testing the flag byte through a `McSaveData*`.
+/// `_actorMovementStepForward` testing the flag byte through a `McSaveData*`.
 static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;
@@ -4755,7 +4755,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             charge->turn += Actor401300_Yaw(arg0->extra.tmd->coords);
             gfxRotMatrixY(&arg0->extra.tmd->coords->coord, charge->turn, 1);
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x70) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, 0x70);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 0x70);
             }
             Actor401300_ResetActorYaw(arg0);
             break;
@@ -4836,7 +4836,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 }
             }
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA8) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, 0xA8);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 0xA8);
             }
             Actor401300_ResetActorYaw(arg0);
             break;
@@ -5218,7 +5218,7 @@ static void func_actor_401300_8013F628(Task* arg0)
                 work->stateTimer  = 0;
             }
             if (work->playerHeld == 0 && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x78) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, 0x78);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 0x78);
             }
             Actor401300_ResetActorYaw(arg0);
             break;

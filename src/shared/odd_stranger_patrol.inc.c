@@ -70,7 +70,7 @@ void oddStrangerPatrol(Task* arg0)
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         if (work->blendActive == 0 && (detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) << 16) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
+            _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
         }
 #if ODD_STRANGER_VARIANT == 1
         if ((arg0->spawnArg1.value >> 16) != 0x10) {

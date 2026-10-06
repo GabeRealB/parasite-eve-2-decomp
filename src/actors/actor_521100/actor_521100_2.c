@@ -536,7 +536,7 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
 /// The tick step while a walk is in progress (`st.animId` is the walk clip and
 /// `st.travel` still has frames left) advances the root coordinate one step:
 /// 20 units along its local Z axis, the stride the walk-to handler divided the
-/// distance by, through `actorMoveForward`. The pause check the helper makes
+/// distance by, through `_actorMovementStepForward`. The pause check the helper makes
 /// is why the step is skipped while the game is frozen - `st.travel` still
 /// ticks down, so a paused actor finishes its walk.
 static void func_actor_521100_80135F2C(Task* task)
@@ -558,7 +558,7 @@ static void func_actor_521100_80135F2C(Task* task)
     if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
         animId = work->st.animId;
         if (animId == ACTOR_521100_ANMC_WOMAN_ANIM_WALK && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, ACTOR_521100_ANMC_WOMAN_WALK_STRIDE);
+            _actorMovementStepForward(task->extra.tmd->coords, ACTOR_521100_ANMC_WOMAN_WALK_STRIDE);
             D_actor_521100_8016A3D8->st.travel--;
         }
         func_actor_521100_80136724();

@@ -380,6 +380,13 @@ interface is `include/title/title.h`, implemented by `src/title/title.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
 whose entry points retain package identities.
 
+`actorMovement` owns the shared coordinate steps used by actor packages:
+translation along a normalized local axis, subject to the live actor-freeze
+state, with distances in parent-coordinate units. Its inline interface is
+`include/actors/actor.h`; each translation unit keeps a static instance with
+the `_` marker. Collision correction and animation scheduling belong to their
+own subsystems.
+
 Shared implementation interfaces live beside their source in `src/shared/`,
 including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
 `room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h`,

@@ -236,10 +236,10 @@ void desertChaserPursue(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
         if (desertChaserCapsuleTouchesGrid(arg0) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, 0x55);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0x55);
             distance = (u16)work->lungeDistance + 0x55;
         } else {
-            actorMoveForward(arg0->extra.tmd->coords, 0xC8);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0xC8);
             distance = (u16)work->lungeDistance + 0xC8;
         }
         work->lungeDistance = distance;

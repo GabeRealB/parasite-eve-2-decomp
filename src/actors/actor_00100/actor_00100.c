@@ -2532,19 +2532,19 @@ static void Actor00100_Fn06C10(Task* arg0)
         }
         switch (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) {
             case 12:
-                actorMoveForward(arg0->extra.tmd->coords, -60);
+                _actorMovementStepForward(arg0->extra.tmd->coords, -60);
                 break;
             case 13:
-                actorMoveForward(arg0->extra.tmd->coords, -30);
+                _actorMovementStepForward(arg0->extra.tmd->coords, -30);
                 break;
             case 14:
-                actorMoveForward(arg0->extra.tmd->coords, -15);
+                _actorMovementStepForward(arg0->extra.tmd->coords, -15);
                 break;
             default:
                 if (desertChaserCapsuleTouchesGrid(arg0)) {
-                    actorMoveForward(arg0->extra.tmd->coords, -85);
+                    _actorMovementStepForward(arg0->extra.tmd->coords, -85);
                 } else {
-                    actorMoveForward(arg0->extra.tmd->coords, -120);
+                    _actorMovementStepForward(arg0->extra.tmd->coords, -120);
                 }
                 break;
         }
@@ -2913,7 +2913,7 @@ static void Actor00100_Fn09724(Task* arg0)
                 pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 sndEvtRequestScriptStart(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
             }
-            actorMoveForward(arg0->extra.tmd->coords, 200);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 200);
             break;
         case 13:
             if (work->stateTimer <= ((s16)work->baseRate * 17) / 16) {

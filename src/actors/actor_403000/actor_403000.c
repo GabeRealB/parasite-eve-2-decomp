@@ -4195,7 +4195,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
     scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorMoveForward(arg0->extra.tmd->coords, 0x12C);
+    _actorMovementStepForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
@@ -4288,7 +4288,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
     scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorMoveForward(arg0->extra.tmd->coords, 0x12C);
+    _actorMovementStepForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
@@ -4420,7 +4420,7 @@ static void func_actor_403000_8013A678(Task* arg0)
     scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorMoveForward(arg0->extra.tmd->coords, 0x12C);
+    _actorMovementStepForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 
@@ -4973,7 +4973,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
     scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorMoveForward(arg0->extra.tmd->coords, 0x16);
+    _actorMovementStepForward(arg0->extra.tmd->coords, 0x16);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000WaypointScratch);
 }
 

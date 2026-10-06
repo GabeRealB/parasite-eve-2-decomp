@@ -81,11 +81,11 @@ void oddStrangerTurnAround(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, 0x28);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0x28);
         }
     } else {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x14) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, 0x14);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
         }
     }
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {

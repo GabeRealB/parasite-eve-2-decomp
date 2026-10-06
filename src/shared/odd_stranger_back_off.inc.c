@@ -55,7 +55,7 @@ void oddStrangerBackOff(Task* arg0)
     if (work->animId == 0x11) {
         work->stateTimer++;
         if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x10) << 16) != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, -0x10);
+            _actorMovementStepForward(arg0->extra.tmd->coords, -0x10);
         }
         if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
             oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));

@@ -843,7 +843,7 @@ static __inline__ void Actor01900_MoveForward(GfxCoord* coord, s16 amount)
 
 /// Step `coord` `amount` units along its local Z axis unless movement is
 /// frozen, without `Actor01900_MoveForward`'s zero-amount guard. Same body as
-/// `actorMoveForward`.
+/// `_actorMovementStepForward`.
 static __inline__ void Actor01900_StepForward(GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;

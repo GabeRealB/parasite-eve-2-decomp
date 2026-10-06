@@ -1264,7 +1264,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
 /// movement is frozen, normalising the column with the GTE first and giving the
 /// 8-byte scratch stack block back afterwards. The guardless sibling of
 /// `actorMoveForwardNonzero`, reading the X component back through
-/// `vec`; same body as `Actor01900_StepForward` / `actorMoveForward`.
+/// `vec`; same body as `Actor01900_StepForward` / `_actorMovementStepForward`.
 static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;

@@ -107223,10 +107223,10 @@ pseudo (`li $r,0x1F800000` / `ori $r,$r,0x3FC`) and nothing later takes it out.
 
 So a move block whose scratch accesses are folded is an inlined helper, not a
 statement sequence: this one is the same body as `Actor01900_MoveForward` /
-`actorMoveForward`, which is why those live in headers and why
+`_actorMovementStepForward`, which is why those live in headers and why
 `Actor01900_MoveForward` carries a `SOFT_TOUCH_REG`. Moving the body into
-`actorMoveForward(coord, 0x14)` took the score 84.892% -> 100.000%, every
-penalty zero, with no other edit - and the helper's own `D_80072729 != 1` check
+`_actorMovementStepForward(coord, 0x14)` took the score 84.892% -> 100.000%, every
+penalty zero, with no other edit - and the helper's own live `actorsFrozen != ACTOR_MOVEMENT_FROZEN` check
 is what puts the pause test after the caller's coordinate load, exactly as the
 target has it.
 
@@ -109285,7 +109285,7 @@ Inputs: `base_3.c` `09994bd5ea83966bbc12bfc85b0b848128705e2f840d0791363d99cb209c
 catch is that the family carries **two** helpers with that body:
 
 ```c
-static __inline__ void actorMoveForward(GfxCoord* coord, s16 amount)   /* plain */
+static __inline__ void _actorMovementStepForward(GfxCoord* coord, s16 stepDistance)   /* plain */
 static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
 ```
 
@@ -109311,7 +109311,7 @@ destination are both `$s`. Two reads isolate it fast:
   not a copy of it.
 
 Replacing the call with the plain `MoveForward` (identical to
-`actorMoveForward` at `src/actors/actor_401300/actor_401300.c:1765`, and
+`_actorMovementStepForward` in `include/actors/actor.h`, and
 already present in the 401300 twin's use at `:2197`) scored 100.000% with all six
 penalties zero. The general rule: when a family has `X` and `XNonzero` (or any
 pair of a plain helper and a guarded one), do not reach for the variant the
@@ -125167,11 +125167,10 @@ re-deriving it by hand is the obvious (wrong) move:
     mfc2  $t4, $9 ; mfc2 $t5, $10 ; mfc2 $t6, $11
 ```
 
-It is `ActorsShared8014c874_MoveForward`, already a `static __inline__` in
-`include/actors/actors_shared_8014c874.h` (which names it as the same body as
-`actorMoveForward`), and the call reproduces the inline exactly - the
-`gte_lddp(amount)` / `gte_ldsv(vec)` / `.word 0x4B98003D` / `gte_stsv(vec)`
-sequence, the two scratch-pad bumps around `gfxReadMatrixZAxis` + `VectorNormalSS`,
+It is the movement block shared by `_actorMovementStepForward`, a
+`static __inline__` in `include/actors/actor.h`, and the call reproduces the inline exactly - the
+`gte_lddp(stepDistance)` / `gte_ldsv(direction)` / `.word 0x4B98003D` / `gte_stsv(direction)`
+sequence in `_actorMovementBuildDisplacement`, the two scratch-pad bumps around `gfxReadMatrixZAxis` + `VectorNormalSS`,
 and the `coord->composeStamp = 0` between the `t[1]` and `t[2]` adds. `gpf 1` is the
 RTPS-style op with `sf=1` and bit 19 set, which gas spells that way; there is no
 need to model it.
@@ -151374,8 +151373,9 @@ No instruction changes; only the order of allocation does.
   the reserve followed by `vec = SCRATCH_STACK_CURSOR(T)`: the new cursor is a
   temporary, `vec` a copy of it, and cse writes the first field through the
   old cursor (`sh ...,-8(old)`) because the bare address has the older
-  equivalent. The `head[-1].vx` spelled out in `actorMoveForward` and its
-  siblings (`include/actors/actor.h`) may be this same artifact; not checked.
+  equivalent. The `head[-1].vx` spelled out in `actorMoveForwardNonzero`,
+  `actorMoveModelForward` and `actorStepForward` (`include/actors/actor.h`)
+  may be this same artifact; not checked.
 - The `.sched` dump prints each ready list with priorities
   (`7f000001` = a boosted birth) and ends with `register N life shortened from
   A to B`; here the `.lreg` header already showed B.

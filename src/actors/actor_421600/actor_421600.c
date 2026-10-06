@@ -2690,7 +2690,7 @@ static void func_actor_421600_80136138(Task* arg0)
     turn->angle          = turn->angle + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
-        actorMoveForward(arg0->extra.tmd->coords, 0x14);
+        _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
     }
     ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     func_actor_421600_80133334(arg0->extra.tmd->coords);
@@ -2892,7 +2892,7 @@ static void func_actor_421600_801369A0(Task* arg0)
 /// `stateCounter` below 5, walks the 0xB8C table and counts a retry for every hit.
 /// The 0xCE4 records decide which way the model is aimed: one carrying the
 /// 0x100000 kind turns it by `-0x55`, none by `-0xC8`, through
-/// `actorMoveForward`. Outside that frame window, and in both aim arms,
+/// `_actorMovementStepForward`. Outside that frame window, and in both aim arms,
 /// the 0xB8C walk is what runs.
 static void func_actor_421600_80138D24(Task* arg0)
 {
@@ -2930,9 +2930,9 @@ static void func_actor_421600_80138D24(Task* arg0)
         }
         found = desertChaserCapsuleTouchesGrid(arg0);
         if (found != 0) {
-            actorMoveForward(arg0->extra.tmd->coords, -0x55);
+            _actorMovementStepForward(arg0->extra.tmd->coords, -0x55);
         } else {
-            actorMoveForward(arg0->extra.tmd->coords, -0xC8);
+            _actorMovementStepForward(arg0->extra.tmd->coords, -0xC8);
         }
     } else {
         ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
@@ -3355,7 +3355,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     scratch->turn                         = actorNormalizeYaw(moveDelta);
     desertChaserAnimTick(arg0);
     stepCoord = arg0->extra.tmd->coords;
-    actorMoveForward(stepCoord, 200);
+    _actorMovementStepForward(stepCoord, 200);
     work->lungeDistance = (s16)((u16)work->lungeDistance + 0xC8);
     if (work->animId == 3) {
         switch (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) {
@@ -3519,7 +3519,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
     turn->angle          = turn->angle + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
-        actorMoveForward(arg0->extra.tmd->coords, 0xC8);
+        _actorMovementStepForward(arg0->extra.tmd->coords, 0xC8);
     }
     ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -3651,7 +3651,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
         coord4 = arg0->extra.tmd->coords;
-        actorMoveForward(coord4, 0xC8);
+        _actorMovementStepForward(coord4, 0xC8);
     }
     ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -3950,9 +3950,9 @@ static void func_actor_421600_8013BA70(Task* arg0)
     record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     if (work->blendActive == 0) {
         if (desertChaserCapsuleTouchesGrid(arg0)) {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 20);
         } else {
-            actorMoveForward(arg0->extra.tmd->coords, 20);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 20);
         }
         record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     }

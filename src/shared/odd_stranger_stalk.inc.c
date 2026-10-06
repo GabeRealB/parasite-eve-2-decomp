@@ -124,11 +124,11 @@ void oddStrangerStalk(Task* arg0)
     if (work->animId == 2) {
         if (work->blendActive == 0) {
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_STALK_STEP) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, ODD_STRANGER_STALK_STEP);
+                _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_STALK_STEP);
             }
         } else {
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
-                actorMoveForward(arg0->extra.tmd->coords, 5);
+                _actorMovementStepForward(arg0->extra.tmd->coords, 5);
             }
         }
     } else if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {

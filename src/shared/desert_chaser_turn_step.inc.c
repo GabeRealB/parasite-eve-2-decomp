@@ -72,7 +72,7 @@ void desertChaserTurnStep(Task* arg0)
     coord->coord.t[0]  += scratch->offset.vx;
     coord2              = arg0->extra.tmd->coords;
     coord2->coord.t[2] += scratch->offset.vz;
-    actorMoveForward(arg0->extra.tmd->coords, -8);
+    _actorMovementStepForward(arg0->extra.tmd->coords, -8);
 #if DESERT_CHASER_RUN_SEQUENCE
     ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
 #endif
