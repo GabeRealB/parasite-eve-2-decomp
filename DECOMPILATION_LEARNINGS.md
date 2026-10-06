@@ -45609,19 +45609,19 @@ re-split so splat drops the now-moved `INCLUDE_RODATA` line itself.
 
 ## Duplicate the tail call instead of an `else` when statement order can only fix one of scheduling and allocation
 
-`func_hypervelocity_8011F270` reads three things at the top — `mem =
-arg0->spawnArg2`, `flag = gRoomEffectState->effectControl`, `coord =
-((GameActorExt*)arg0->extra)->field_8` — and ends with one shared
-`effectKillTask(mem, index)` reached both from the early
-`flag`-dispatch arm and from the fall-through of the body. Written with the
-natural `if (flag != 0) { … } else { body }`, the head assignments trade the
+`hypervelocityDischargeConeTask` reads three things at the top — `effectWork =
+task->spawnArg2.pointer`, `effectControl = gRoomEffectState->effectControl`, `coord =
+task->extra.coordBody->coord` — and ends with one shared
+`effectKillTask(effectWork, task)` reached both from the early
+`effectControl`-dispatch arm and from the fall-through of the body. Written with the
+natural `if (effectControl != 0) { … } else { body }`, the head assignments trade the
 two remaining defects against each other and neither order wins:
 
-- `mem, flag, coord` (the order every matched `Gp_EffSprTask*` sibling uses)
+- `effectWork, effectControl, coord` (the order every matched `Gp_EffSprTask*` sibling uses)
   schedules the loads exactly like the target, but `coord`'s short live range
-  outranks `index` in `allocno_compare`, so `index` lands in `$s2` and `coord` in
+  outranks `task` in `allocno_compare`, so `task` lands in `$s2` and `coord` in
   `$s1` — the swap of every `$s1`/`$s2` reference in the function.
-- `coord, mem, flag` lengthens `coord`'s live range enough to flip the
+- `coord, effectWork, effectControl` lengthens `coord`'s live range enough to flip the
   priority and gets the registers right, but now `lw v1, 0x2c(s1)` is the
   first load instead of `lw s0, 0x20(s1)`.
 
@@ -45630,23 +45630,23 @@ arm its own copy of the call and return, keep the body unnested, and let
 `jump2` cross-jump the two calls into one tail.
 
 ```c
-if (flag != 0) {
-    if (flag < 4) {
+if (effectControl != 0) {
+    if (effectControl < 4) {
         return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(effectWork, task);
     return;
 }
 
 actorRenderComposeCoord(coord);
 /* … body … */
-if (val < 6) {
-    effectKillTask(mem, arg0);
+if (nextBrightness < 6) {
+    effectKillTask(effectWork, task);
 }
 ```
 
 This emits the target's `j` into the shared `jal` and, because the RTL now has
-two `mem`/`index` argument setups, raises `index`'s reference count enough to
+two `effectWork`/`task` argument setups, raises `task`'s reference count enough to
 beat `coord` while the head assignments stay in sibling order. Reach for it
 whenever a merged-tail function is stuck at ~99% with a pure `$sN` swap and
 reordering the head only moves the defect around.
@@ -57274,9 +57274,9 @@ narrowed form.
 
 ## Local-alloc ranks quantities by refs-per-insn, so splitting a statement can swap `$v0`/`$v1`
 
-`func_hypervelocity_8011EC1C` reached 99.2% with a perfectly ordered
+`_hypervelocityDrawDischargeCone` reached 99.2% with a perfectly ordered
 instruction stream whose prologue used `$v0` and `$v1` the other way round from
-the ROM: the ROM keeps `age << 7` in `$v0` and the scratchpad pointer in `$v1`,
+the ROM: the ROM keeps `ageFrames << 7` in `$v0` and the scratchpad pointer in `$v1`,
 the decompile did the opposite. No statement reordering moved it.
 
 GCC 2.8.1's `local-alloc` assigns hard registers to block-local quantities in
@@ -57293,14 +57293,14 @@ Register 99 used 3 times across 4 insns in block 0;    <- scratch ptr, 0.75
 The fix is to raise the loser's ratio rather than to pin. Writing
 
 ```c
-depth = age;
-depth = depth << 7;
+mouthExpansion = ageFrames;
+mouthExpansion = mouthExpansion << 7;
 ```
 
-instead of `depth = age << 7;` gave the quantity two more references over the
+instead of `mouthExpansion = ageFrames << 7;` gave the quantity two more references over the
 same range (5 → 7 refs), which put it ahead of the scratchpad chain and flipped
-both registers at once. The same split is what keeps `(depth + 0x200) + spin`
-from being folded to `(spin + 0x200) + depth`; GCC's tree folder reassociates a
+both registers at once. The same split is what keeps `(mouthExpansion + 0x200) + halfExtent`
+from being folded to `(halfExtent + 0x200) + mouthExpansion`; GCC's tree folder reassociates a
 single expression but leaves two statements alone.
 
 ## In a run of constant stores, the *statement order* decides each constant's register
@@ -57341,14 +57341,14 @@ of the same function shape already uses.
 
 ## A prologue local that only ever feeds a halfword store may have to be `u16`
 
-The last register in the same function refused to settle until the flare width,
-computed once in the prologue and used only as `(u16)corners[i].axis0Sign * flare` into an
+The last register in the same function refused to settle until the flared mouth half-width,
+computed once in the prologue and used only as `(u16)unitCorners[cornerIndex].axis0Sign * mouthHalfWidth` into an
 `sh`, was declared `u16` rather than `s32`:
 
 ```c
-u16 flare;
+u16 mouthHalfWidth;
 ...
-flare = radius + rise;
+mouthHalfWidth = halfExtent + mouthExpansion;
 ```
 
 `PROMOTE_MODE` keeps it in an SImode register and no `andi` appears, so the
@@ -57360,7 +57360,7 @@ before reaching for the permuter.
 
 ## A vertex stepped from one square to the next is one array, not two
 
-**Problem.** The discharge-cone drawer `func_hypervelocity_8011EC1C` stages
+**Problem.** The discharge-cone drawer `_hypervelocityDrawDischargeCone` stages
 four mouth vertices and four collar vertices in a scratch block. With the
 block declared as two arrays, the only spelling that matched reached the
 collar through the mouth, one past the end of its array and then
@@ -57389,11 +57389,11 @@ squares - and both spellings are then ordinary in-bounds C:
 ```c
 SVECTOR vertices[2 * COUNT];   /* mouth square, then collar square */
 ...
-collarVertex = &sc->vertices[i] + COUNT;
-gte_ldv0(&sc->vertices[i + COUNT]);
+collarVertex = &scratch->vertices[cornerIndex] + COUNT;
+gte_ldv0(&scratch->vertices[cornerIndex + COUNT]);
 ```
 
-`&sc->vertices[i + COUNT]` folds to the same `i * 8 + 0x20` giv the member
+`&scratch->vertices[cornerIndex + COUNT]` folds to the same `i * 8 + 0x20` giv the member
 spelling gave, so nothing else moves. In the same loop the lvalue casts
 `(u16) v->vx = (u16)v->vx + (u16)t` were never needed: `v->vx += (u16)t`
 compiles identically.
@@ -57401,8 +57401,8 @@ compiles identically.
 ## Loop-invariant `li` hoisting is decided by lifetime; reorder the stores to keep one inside
 
 Two constants used twice each in the same loop body do not have to be treated
-alike. `func_hypervelocity_8011EC1C` writes `setUV4(prim, u0, 0x60, u0 + 0x27,
-0x60, u0, 0x87, u0 + 0x27, 0x87)`, and the ROM hoists the `li 0x60` into the
+alike. `_hypervelocityDrawDischargeCone` writes `setUV4(wall, textureU, 0x60, textureU + 0x27,
+0x60, textureU, 0x87, textureU + 0x27, 0x87)`, and the ROM hoists the `li 0x60` into the
 loop preheader but leaves `li 0x87` in the body. `.loop` shows why:
 
 ```

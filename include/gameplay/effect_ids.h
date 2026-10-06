@@ -56,7 +56,7 @@ enum {
     /// GOLEM's silence-scream state spawns on its part 4.
     EFFECT_DRYFIELD_NIGHT_BACK_STREET_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x00A),
     /// Hypervelocity discharge cone: two flaring textured walls
-    /// (func_hypervelocity_8011EC1C) that climb, open and dim over a few frames;
+    /// (`hypervelocityDischargeConeTask`) that climb, open and dim over a few frames;
     /// spawned and adopted by the round in flight for its first 0x15 frames.
     EFFECT_HYPERVELOCITY_DISCHARGE_CONE = EFFECT_ID(EFFECT_TASK_BANK, 0x00B),
     /// The hypervelocity round in flight: ring and two trail halves along its path,

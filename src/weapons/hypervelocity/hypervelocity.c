@@ -139,13 +139,13 @@ STATIC_ASSERT_SIZEOF(_HypervelocityRoundBody, 0x38);
 /// (the muzzle), `(0, 0x240, 0x80)`.
 static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
-static void func_hypervelocity_8011F11C(Task* task);
-static void func_hypervelocity_8011F6A0(Task* task);
+static void _hypervelocityReleaseRound(Task* task);
+static void _hypervelocityReleaseWeapon(Task* task);
 
-static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb);
+static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames, s32 halfExtent, const u8* rgb);
 static void func_hypervelocity_8011F374(Task* arg0);
 static void func_hypervelocity_8011F570(Task* arg0);
-static void func_hypervelocity_8011F694(Task* arg0);
+static void _hypervelocityQueueWeaponTeardown(Task* task);
 void        func_hypervelocity_8011F724(Task* arg0);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
@@ -402,7 +402,7 @@ void func_hypervelocity_8011D830(Task* task)
                 work->age = 0;
                 return;
             }
-            task->exitCallback          = func_hypervelocity_8011F11C;
+            task->exitCallback          = _hypervelocityReleaseRound;
             player                      = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             destinationRotation         = (GfxRotationWords*)&coord->coord;
             sourceRotation              = (GfxRotationWords*)&player->coord;
@@ -566,206 +566,240 @@ void func_hypervelocity_8011D830(Task* task)
 #define GROUND_GLOW_CLUT 0x428B
 #include "../../shared/ground_glow_draw.inc.c"
 
-/// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two
-/// opposed `POLY_FT4` walls flaring out of `coord`, built in the scratchpad as
-/// a `_HypervelocityDischargeConeScratch`. The collar sits at y `0x700` and
-/// is `radius` wide, the mouth rises to `0x600 - age * 256 / 2` and flares to
-/// `radius + age * 128 + 0x200`, so the cone climbs and opens as the puff
-/// ages; both squares are `radius` deep in z. Wall `i` is therefore the quad
-/// of mouth vertices `i` and `i + 2` and collar vertices `i` and `i + 2` -
-/// the -x pair, then the +x pair. Each wall is a frame of the same six-frame
-/// strip at tpage 0x2A the trail uses, picked by the stored jitter
-/// `D_hypervelocity_8012EF0C[i]` plus `age`, tinted by `rgb` and linked into
-/// the OT bucket its own projected depth names. Walls the GTE flags as behind
-/// the eye are dropped.
-static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8* rgb)
+/// Draws the two opposed textured walls of a rising, opening discharge cone.
+///
+/// `coord` supplies a composed transform in the input space of `GsWSMATRIX`.
+/// `halfExtent` is the collar's local X half-width and both squares' Z
+/// half-depth, in game units; `ageFrames` raises and widens the mouth by 128
+/// units per tick. The effect calls this at ages 1..16 with half-extents
+/// 512..1952. `rgb` supplies three readable tint bytes. Vertices narrow to
+/// signed 16 bits after rotation and translation.
+///
+/// Borrows one scratch block and appends up to two additive `POLY_FT4`
+/// packets to the unchecked frame arena, rejecting negative GTE FLAG words.
+/// The initialized jitter table selects six texture cells independently for
+/// the walls. Inputs must remain clear of the scratch block and packet arena;
+/// packets live through GPU drawing. Changes GTE state; retains no inputs.
+static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames, s32 halfExtent, const u8* rgb)
 {
-    _HypervelocityDischargeConeScratch* sc;
-    POLY_FT4*                           prim;
-    EffectUnitQuadCorner*               corners;
-    SVECTOR*                            collarVertex;
-    MATRIX*                             rot;
-    s32                                 i;
-    s32                                 rise;
-    s32                                 top;
-    u16                                 flare;
-    s32                                 half;
-    s32                                 u0;
+/// Rotates one cone vertex in place, narrowing the result to signed 16 bits.
+///
+/// Captures the initialized local worldRotation (4096 per unit); vertex must
+/// be a side-effect-free pointer because it is evaluated twice. Expands to
+/// four statements: use only as a standalone sequence inside this function.
+/// Translation is added separately. Changes GTE state; retains no pointers.
+#define HYPERVELOCITY_ROTATE_CONE_VERTEX(vertex) \
+    gte_SetRotMatrix(worldRotation);             \
+    gte_ldv0((vertex));                          \
+    gte_rtv0();                                  \
+    gte_stsv((vertex))
 
-    /* `rise` is built in two steps and then walked in place, and `half` is a
-       second spelling of `radius`, because the ROM keeps both copies the
-       folded forms would have coalesced away. `flare` is 16-bit on purpose:
-       it only ever feeds a halfword store, and widening it moves the whole
-       prologue's register assignment. `collarVertex` is stepped from the
-       mouth vertex of the same corner rather than indexed off `sc`, so the
-       `gte_ldv0` / `gte_stsv` address stays a register of its own instead of
-       being shared with the field stores. */
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(_HypervelocityDischargeConeScratch);
-    rise  = age;
-    rise  = rise << 7;
-    top   = 0x600 - rise;
-    rise  = rise + 0x200;
-    flare = radius + rise;
-    half  = radius;
+    // Geometry is in local game units; the animation occupies six 40-texel cells.
+    enum {
+        HYPERVELOCITY_DISCHARGE_CONE_COLLAR_HEIGHT        = 0x700,
+        HYPERVELOCITY_DISCHARGE_CONE_INITIAL_MOUTH_HEIGHT = 0x600,
+        HYPERVELOCITY_DISCHARGE_CONE_INITIAL_FLARE        = 0x200,
+        HYPERVELOCITY_DISCHARGE_CONE_AGE_GEOMETRY_SHIFT   = 7,
+        HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_FRAME_COUNT  = 6,
+        HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE    = 40,
+        HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_TOP_V        = 0x60
+    };
+
+    _HypervelocityDischargeConeScratch* scratch;
+    POLY_FT4*                           wall;
+    const EffectUnitQuadCorner*         unitCorners;
+    SVECTOR*                            collarVertex;
+    const MATRIX*                       worldRotation;
+    s32                                 cornerIndex;
+    s32                                 mouthExpansion;
+    s32                                 mouthHeight;
+    u16                                 mouthHalfWidth;
+    s32                                 depthHalfExtent;
+    s32                                 textureU;
+
+    scratch         = SCRATCH_STACK_RESERVE_BLOCK(_HypervelocityDischargeConeScratch);
+    mouthExpansion  = ageFrames;
+    mouthExpansion  = mouthExpansion << HYPERVELOCITY_DISCHARGE_CONE_AGE_GEOMETRY_SHIFT;
+    mouthHeight     = HYPERVELOCITY_DISCHARGE_CONE_INITIAL_MOUTH_HEIGHT - mouthExpansion;
+    mouthExpansion  = mouthExpansion + HYPERVELOCITY_DISCHARGE_CONE_INITIAL_FLARE;
+    mouthHalfWidth  = halfExtent + mouthExpansion;
+    depthHalfExtent = halfExtent;
     gte_SetTransMatrix(&GsWSMATRIX);
-    i       = 0;
-    rot     = &coord->workm;
-    corners = D_80111E38;
-    // Stage each corner's mouth and collar vertex and move both to world space.
+    cornerIndex   = 0;
+    worldRotation = &coord->workm;
+    unitCorners   = D_80111E38;
+    // Build and rotate both squares; corner products and translations keep only
+    // their low 16 bits when stored as signed world-space vertices.
     do {
-        sc->vertices[i].vx = (u16)corners[i].axis0Sign * flare;
-        sc->vertices[i].vy = top;
-        sc->vertices[i].vz = (u16)corners[i].axis1Sign * half;
-        gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&sc->vertices[i]);
-        sc->vertices[i].vx += (u16)coord->workm.t[0];
-        sc->vertices[i].vy += (u16)coord->workm.t[1];
-        sc->vertices[i].vz += (u16)coord->workm.t[2];
-        collarVertex        = &sc->vertices[i] + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT;
-        collarVertex->vx    = (u16)corners[i].axis0Sign * radius;
-        collarVertex->vy    = 0x700;
-        collarVertex->vz    = (u16)corners[i].axis1Sign * half;
-        gte_SetRotMatrix(rot);
-        gte_ldv0(&sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]);
-        gte_rtv0();
-        gte_stsv(&sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]);
+        scratch->vertices[cornerIndex].vx = (u16)unitCorners[cornerIndex].axis0Sign * mouthHalfWidth;
+        scratch->vertices[cornerIndex].vy = mouthHeight;
+        scratch->vertices[cornerIndex].vz = (u16)unitCorners[cornerIndex].axis1Sign * depthHalfExtent;
+        HYPERVELOCITY_ROTATE_CONE_VERTEX(&scratch->vertices[cornerIndex]);
+        scratch->vertices[cornerIndex].vx += (u16)coord->workm.t[0];
+        scratch->vertices[cornerIndex].vy += (u16)coord->workm.t[1];
+        scratch->vertices[cornerIndex].vz += (u16)coord->workm.t[2];
+        collarVertex                       = &scratch->vertices[cornerIndex] + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT;
+        collarVertex->vx                   = (u16)unitCorners[cornerIndex].axis0Sign * halfExtent;
+        collarVertex->vy                   = HYPERVELOCITY_DISCHARGE_CONE_COLLAR_HEIGHT;
+        collarVertex->vz                   = (u16)unitCorners[cornerIndex].axis1Sign * depthHalfExtent;
+        HYPERVELOCITY_ROTATE_CONE_VERTEX(&scratch->vertices[cornerIndex + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]);
         collarVertex->vx += (u16)coord->workm.t[0];
-        i++;
+        cornerIndex++;
         collarVertex->vy += (u16)coord->workm.t[1];
         collarVertex->vz += (u16)coord->workm.t[2];
-    } while (i < ARRAY_SIZE(D_80111E38));
+    } while (cornerIndex < ARRAY_SIZE(D_80111E38));
 
-    // Project and draw one wall at a time: the corners sharing a local X sign.
+    // Project one wall at a time from the corners sharing a local X sign.
     gte_SetRotMatrix(&GsWSMATRIX);
-    i = 0;
+    cornerIndex = 0;
     do {
-        gte_ldv0(&sc->vertices[i]);
+        gte_ldv0(&scratch->vertices[cornerIndex]);
         gte_rtps();
-        gte_stsxy(&sc->sxy0);
-        gte_ldv3(&sc->vertices[i + 2],
-                 &sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT],
-                 &sc->vertices[i + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT + 2]);
+        gte_stsxy(&scratch->sxy0);
+        gte_ldv3(&scratch->vertices[cornerIndex + 2],
+                 &scratch->vertices[cornerIndex + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT],
+                 &scratch->vertices[cornerIndex + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT + 2]);
         gte_rtpt();
-        gte_stsxy3(&sc->sxy1, &sc->sxy2, &sc->sxy3);
-        gte_stflg(&sc->projectionFlags);
-        if (sc->projectionFlags >= 0) {
-            gte_stszotz(&sc->otz);
-            sc->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            setRGB0(prim, rgb[0], rgb[1], rgb[2]);
-            setSemiTrans(prim, 1);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x42C1;
-            u0          = (s16)((D_hypervelocity_8012EF0C[i] + age) % 6) * 40;
-            prim->u0    = u0;
-            prim->v0    = 0x60;
-            prim->u1    = u0 + 0x27;
-            prim->v1    = 0x60;
-            prim->u2    = u0;
-            prim->u3    = u0 + 0x27;
-            prim->v2    = 0x87;
-            prim->v3    = 0x87;
-            setXY4(prim, sc->sxy0.vx, sc->sxy0.vy, sc->sxy1.vx, sc->sxy1.vy, sc->sxy2.vx, sc->sxy2.vy, sc->sxy3.vx,
-                   sc->sxy3.vy);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
+        gte_stflg(&scratch->projectionFlags);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            scratch->otz++;
+            wall           = gGpuPrimCursor;
+            gGpuPrimCursor = wall + 1;
+            setPolyFT4(wall);
+            setRGB0(wall, rgb[0], rgb[1], rgb[2]);
+            setSemiTrans(wall, 1);
+            wall->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
+            wall->clut  = getClut(16, 267);
+            textureU    = (s16)((D_hypervelocity_8012EF0C[cornerIndex] + ageFrames) % HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_FRAME_COUNT) * HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE;
+            wall->u0    = textureU;
+            wall->v0    = HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_TOP_V;
+            wall->u1    = textureU + HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE - 1;
+            wall->v1    = HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_TOP_V;
+            wall->u2    = textureU;
+            wall->u3    = textureU + HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE - 1;
+            wall->v2    = HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_TOP_V + HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE - 1;
+            wall->v3    = HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_TOP_V + HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE - 1;
+            setXY4(wall, scratch->sxy0.vx, scratch->sxy0.vy, scratch->sxy1.vx, scratch->sxy1.vy, scratch->sxy2.vx, scratch->sxy2.vy, scratch->sxy3.vx,
+                   scratch->sxy3.vy);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), wall);
         }
-        i++;
-    } while (i < HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT);
+        cornerIndex++;
+    } while (cornerIndex < HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT);
     SCRATCH_STACK_RELEASE_BLOCK(_HypervelocityDischargeConeScratch);
+#undef HYPERVELOCITY_ROTATE_CONE_VERTEX
 }
 
-/// Exit callback: unlinks the `_HypervelocityRoundBody` at `Task::work`, if
-/// one was allocated, and releases the `EffectWork` in `Task::spawnArg2`.
-/// `body` is the block's first member, so the pointer is that
-/// `WorldCollisionBody`. M4A1 Pyke carries an identical copy.
-static void func_hypervelocity_8011F11C(Task* task)
+/// Tears down a counted hypervelocity round after unlinking its collision sphere.
+///
+/// The live task owns a `_HypervelocityRoundBody` in `work` (or NULL) and a
+/// separate `EffectWork` in `spawnArg2.pointer`. Default teardown frees the
+/// collision block and releases the coordinate body and task. Call once;
+/// neither allocation nor the task may be used after teardown.
+static void _hypervelocityReleaseRound(Task* task)
 {
-    WorldCollisionBody* obj = task->work;
-    void*               mem = task->spawnArg2.pointer;
+    _HypervelocityRoundBody* roundBody  = task->work;
+    EffectWork*              effectWork = task->spawnArg2.pointer;
 
-    if (obj != NULL) {
-        worldCollisionUnlinkBody(obj);
+    if (roundBody != NULL) {
+        worldCollisionUnlinkBody(&roundBody->body);
     }
-    effectKillTask(mem, task);
+    effectKillTask(effectWork, task);
 }
 
-void func_hypervelocity_8011F168(Task* arg0)
+void hypervelocityShockRingTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        HYPERVELOCITY_SHOCK_RING_STATE_INITIALIZE   = 0,
+        HYPERVELOCITY_SHOCK_RING_STATE_EXPAND       = 1,
+        HYPERVELOCITY_SHOCK_RING_INITIAL_BRIGHTNESS = 0xF0,
+        HYPERVELOCITY_SHOCK_RING_INITIAL_RADIUS     = 0x100,
+        HYPERVELOCITY_SHOCK_RING_RADIUS_STEP        = 0x40,
+        HYPERVELOCITY_SHOCK_RING_FADE_STEP          = 0x10
+    };
+
+    EffectWork* effectWork;
     GfxCoord*   coord;
-    s16         flag;
-    s16         val;
+    s16         effectControl;
+    s16         nextBrightness;
     u8          rgb[3];
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    effectWork    = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(effectWork, task);
         return;
     }
 
     actorRenderComposeCoord(coord);
-    mem->age++;
-    if (arg0->state == 0) {
-        mem->scale  = 0xF0;
-        mem->angle  = 0x100;
-        arg0->state = 1;
+    effectWork->age++;
+    if (task->state == HYPERVELOCITY_SHOCK_RING_STATE_INITIALIZE) {
+        effectWork->scale = HYPERVELOCITY_SHOCK_RING_INITIAL_BRIGHTNESS;
+        effectWork->angle = HYPERVELOCITY_SHOCK_RING_INITIAL_RADIUS;
+        task->state       = HYPERVELOCITY_SHOCK_RING_STATE_EXPAND;
     }
-    rgb[0] = mem->scale >> 1;
-    rgb[1] = mem->scale >> 1;
-    rgb[2] = mem->scale;
-    effectDrawRaisedGlowBand(coord, mem->angle, rgb);
-    mem->angle += 0x40;
-    val         = mem->scale - 0x10;
-    mem->scale  = val;
-    if (val < 0x10) {
-        effectKillTask(mem, arg0);
+    rgb[0] = effectWork->scale >> 1;
+    rgb[1] = effectWork->scale >> 1;
+    rgb[2] = effectWork->scale;
+    effectDrawRaisedGlowBand(coord, effectWork->angle, rgb);
+    effectWork->angle += HYPERVELOCITY_SHOCK_RING_RADIUS_STEP;
+    nextBrightness     = effectWork->scale - HYPERVELOCITY_SHOCK_RING_FADE_STEP;
+    effectWork->scale  = nextBrightness;
+    if (nextBrightness < HYPERVELOCITY_SHOCK_RING_FADE_STEP) {
+        effectKillTask(effectWork, task);
     }
 }
 
-void func_hypervelocity_8011F270(Task* arg0)
+void hypervelocityDischargeConeTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        HYPERVELOCITY_DISCHARGE_CONE_STATE_INITIALIZE    = 0,
+        HYPERVELOCITY_DISCHARGE_CONE_STATE_EXPAND        = 1,
+        HYPERVELOCITY_DISCHARGE_CONE_INITIAL_BRIGHTNESS  = 0x80,
+        HYPERVELOCITY_DISCHARGE_CONE_INITIAL_HALF_EXTENT = 0x200,
+        HYPERVELOCITY_DISCHARGE_CONE_HALF_EXTENT_STEP    = 0x60,
+        HYPERVELOCITY_DISCHARGE_CONE_FADE_STEP           = 8,
+        HYPERVELOCITY_DISCHARGE_CONE_MIN_BRIGHTNESS      = 6
+    };
+
+    EffectWork* effectWork;
     GfxCoord*   coord;
-    s16         flag;
-    s16         val;
+    s16         effectControl;
+    s16         nextBrightness;
     u8          rgb[3];
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    effectWork    = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(effectWork, task);
         return;
     }
 
     actorRenderComposeCoord(coord);
-    mem->age++;
-    if (arg0->state == 0) {
-        mem->scale  = 0x80;
-        mem->angle  = 0x200;
-        arg0->state = 1;
+    effectWork->age++;
+    if (task->state == HYPERVELOCITY_DISCHARGE_CONE_STATE_INITIALIZE) {
+        effectWork->scale = HYPERVELOCITY_DISCHARGE_CONE_INITIAL_BRIGHTNESS;
+        effectWork->angle = HYPERVELOCITY_DISCHARGE_CONE_INITIAL_HALF_EXTENT;
+        task->state       = HYPERVELOCITY_DISCHARGE_CONE_STATE_EXPAND;
     }
-    rgb[0] = mem->scale;
-    rgb[1] = mem->scale;
-    rgb[2] = mem->scale;
-    func_hypervelocity_8011EC1C(coord, mem->age, mem->angle, rgb);
-    mem->angle += 0x60;
-    val         = mem->scale - 8;
-    mem->scale  = val;
-    if (val < 6) {
-        effectKillTask(mem, arg0);
+    rgb[0] = effectWork->scale;
+    rgb[1] = effectWork->scale;
+    rgb[2] = effectWork->scale;
+    _hypervelocityDrawDischargeCone(coord, effectWork->age, effectWork->angle, rgb);
+    effectWork->angle += HYPERVELOCITY_DISCHARGE_CONE_HALF_EXTENT_STEP;
+    nextBrightness     = effectWork->scale - HYPERVELOCITY_DISCHARGE_CONE_FADE_STEP;
+    effectWork->scale  = nextBrightness;
+    if (nextBrightness < HYPERVELOCITY_DISCHARGE_CONE_MIN_BRIGHTNESS) {
+        effectKillTask(effectWork, task);
     }
 }
 
@@ -847,7 +881,7 @@ static void func_hypervelocity_8011F570(Task* arg0)
     extra               = arg0->extra.tmd;
     coord               = extra->coords;
     arg0->state        += 1;
-    arg0->exitCallback  = func_hypervelocity_8011F6A0;
+    arg0->exitCallback  = _hypervelocityReleaseWeapon;
     arg0->killCountdown = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     extra->flags        = 0;
@@ -874,13 +908,19 @@ static void func_hypervelocity_8011F570(Task* arg0)
     }
 }
 
-static void func_hypervelocity_8011F694(Task* arg0)
+/// Selects weapon teardown for the next dispatch of the four-state weapon task.
+static void _hypervelocityQueueWeaponTeardown(Task* task)
 {
-    arg0->state = 3;
+    enum { HYPERVELOCITY_WEAPON_STATE_TEARDOWN = 3 };
+
+    task->state = HYPERVELOCITY_WEAPON_STATE_TEARDOWN;
 }
 
-/// Exit callback: kills the task.
-static void func_hypervelocity_8011F6A0(Task* task)
+/// Releases a live hypervelocity weapon-model task and its child tasks.
+///
+/// Used both as the weapon's final state and its exit callback. Call once;
+/// `taskKill`'s work ownership and deferred model release rules apply.
+static void _hypervelocityReleaseWeapon(Task* task)
 {
     taskKill(task);
 }
@@ -892,8 +932,8 @@ void func_hypervelocity_8011F6C0(Task* arg0)
     TaskFunc states[4] = {
         func_hypervelocity_8011F570,
         func_hypervelocity_8011F374,
-        func_hypervelocity_8011F694,
-        func_hypervelocity_8011F6A0,
+        _hypervelocityQueueWeaponTeardown,
+        _hypervelocityReleaseWeapon,
     };
 
     states[arg0->state](arg0);

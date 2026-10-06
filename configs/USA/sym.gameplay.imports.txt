@@ -1965,11 +1965,11 @@ func_neo_ark_woodland_path_8017ED00 = 0x8017ED00; // type:func absolute:True own
 
 func_mist_parking_8018345C = 0x8018345C; // type:func absolute:True owner=mist_parking
 
-func_hypervelocity_8011F270 = 0x8011F270; // type:func absolute:True owner=hypervelocity
+hypervelocityDischargeConeTask = 0x8011F270; // type:func absolute:True owner=hypervelocity
 
 func_hypervelocity_8011D830 = 0x8011D830; // type:func absolute:True owner=hypervelocity
 
-func_hypervelocity_8011F168 = 0x8011F168; // type:func absolute:True owner=hypervelocity
+hypervelocityShockRingTask = 0x8011F168; // type:func absolute:True owner=hypervelocity
 
 func_pyrokinesis_8012EF48 = 0x8012EF48; // type:func absolute:True owner=pyrokinesis shared=pe
 

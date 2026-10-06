@@ -2,13 +2,17 @@ D_hypervelocity_801202F8 = 0x801202F8; // model named by a task descriptor
 D_hypervelocity_801205E4 = 0x801205E4; // model named by a task descriptor
 D_hypervelocity_80120860 = 0x80120860; // model named by a task descriptor
 
-func_hypervelocity_8011F270 = 0x8011F270; // type:func
+hypervelocityDischargeConeTask = 0x8011F270; // type:func
 
 func_hypervelocity_8011D830 = 0x8011D830; // type:func
 
-func_hypervelocity_8011F168 = 0x8011F168; // type:func
+hypervelocityShockRingTask = 0x8011F168; // type:func
 
 func_hypervelocity_8011D1E8 = 0x8011D1E8; // type:func
 spriteQuadDraw = 0x8011E494; // type:func
 jetConeDraw = 0x8011DF34; // type:func
 groundGlowDraw = 0x8011E8A0; // type:func
+_hypervelocityDrawDischargeCone = 0x8011ec1c; // type:func
+_hypervelocityReleaseRound = 0x8011f11c; // type:func
+_hypervelocityQueueWeaponTeardown = 0x8011f694; // type:func
+_hypervelocityReleaseWeapon = 0x8011f6a0; // type:func
