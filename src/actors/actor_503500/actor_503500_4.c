@@ -2184,6 +2184,99 @@ static void func_actor_503500_8013DD10(Task* arg0)
     arg0->state       += 1;
 }
 
+/// One contact record of `func_actor_503500_8013DEB4`'s pass; a `return`
+/// moves the caller on to the next record.
+static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500SmallOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord,
+                                                        WorldCollisionContact* arg2, s32 i)
+{
+    VECTOR    d;
+    SVECTOR   pos;
+    MATRIX    mtx;
+    MATRIX    rot;
+    GfxCoord* src;
+    s16       stun;
+    u32       id;
+    s32       dmg;
+    s32       crit;
+    s32       scale;
+    s32       j;
+
+    id = arg2[i].key.value;
+    for (j = 0; j < i; j++) {
+        if (arg2[j].key.value == id) {
+            return;
+        }
+    }
+    if ((id & 0xFFFF0000) == 0x10000) {
+        return;
+    }
+    if ((id & 0xFFFF0000) != 0x20000) {
+        return;
+    }
+    if (work->hitCooldown != 0) {
+        return;
+    }
+    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
+    d.vx = src->coord.t[0] - pos.vx;
+    d.vy = src->coord.t[1] - pos.vy;
+    d.vz = src->coord.t[2] - pos.vz;
+    crit = 0;
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
+    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+        dmg *= 4;
+        crit = 1;
+    }
+    func_800E2C78(enemy, id, dmg, 0);
+    func_800DA6E8(&enemy->node, dmg, 0);
+    enemy->hp -= dmg;
+    if (enemy->hp <= 0) {
+        func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
+    }
+    switch (Gp_GetIdParam0(id) & 0xFFFF) {
+        case 0:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            break;
+        case 1:
+            Gp_SetObjFlag1(enemy);
+            break;
+        case 2:
+            Gp_SetObjFlag2(enemy, id, 0);
+            break;
+        case 3:
+            Gp_SetObjFlag4(enemy, id, 0);
+            break;
+    }
+    gte_TransposeMatrix(&coord->workm, &rot);
+    pos.vx = arg2[i].point.vx - coord->workm.t[0];
+    pos.vy = arg2[i].point.vy - coord->workm.t[1];
+    pos.vz = arg2[i].point.vz - coord->workm.t[2];
+    scale  = 0x258000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
+    pos.vx = pos.vx * scale / 4096;
+    pos.vy = pos.vy * scale / 4096;
+    pos.vz = pos.vz * scale / 4096;
+    gte_SetRotMatrix(&rot);
+    gte_ldv0(&pos);
+    gte_rtv0();
+    gte_stsv(&pos);
+    pos.vx += D_actor_503500_8016F2D8.vx;
+    pos.vy += D_actor_503500_8016F2D8.vy;
+    pos.vz += D_actor_503500_8016F2D8.vz;
+    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->hitEffect);
+    if (crit != 0) {
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    }
+    stun = Gp_GetIdParam2(id);
+    if (work->hitCooldown < stun) {
+        work->hitCooldown = stun;
+    }
+}
+
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
 /// the small-orb emitter, like `func_actor_503500_80137C90`: each attack id
 /// is taken once, only type-2 ids land while `hitCooldown` is clear, and a
@@ -2194,101 +2287,16 @@ static void func_actor_503500_8013DD10(Task* arg0)
 /// by the caller but unused.
 static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
-    VECTOR                           d;
-    SVECTOR                          pos;
-    MATRIX                           mtx;
-    MATRIX                           rot;
     _Actor503500SmallOrbEmitterWork* work;
     Enemy*                           enemy;
     GfxCoord*                        coord;
-    GfxCoord*                        src;
-    s16                              stun;
-    u32                              id;
-    s32                              dmg;
-    s32                              crit;
-    s32                              scale;
     s32                              i;
-    s32                              j;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key.value;
-        for (j = 0; j < i; j++) {
-            if (arg2[j].key.value == id) {
-                goto next;
-            }
-        }
-        if ((id & 0xFFFF0000) == 0x10000) {
-            continue;
-        }
-        if ((id & 0xFFFF0000) != 0x20000) {
-            continue;
-        }
-        if (work->hitCooldown != 0) {
-            continue;
-        }
-        src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-        d.vx = src->coord.t[0] - pos.vx;
-        d.vy = src->coord.t[1] - pos.vy;
-        d.vz = src->coord.t[2] - pos.vz;
-        crit = 0;
-        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-        if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
-            dmg *= 4;
-            crit = 1;
-        }
-        func_800E2C78(enemy, id, dmg, 0);
-        func_800DA6E8(&enemy->node, dmg, 0);
-        enemy->hp -= dmg;
-        if (enemy->hp <= 0) {
-            func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
-        }
-        switch (Gp_GetIdParam0(id) & 0xFFFF) {
-            case 0:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-                break;
-            case 1:
-                Gp_SetObjFlag1(enemy);
-                break;
-            case 2:
-                Gp_SetObjFlag2(enemy, id, 0);
-                break;
-            case 3:
-                Gp_SetObjFlag4(enemy, id, 0);
-                break;
-        }
-        gte_TransposeMatrix(&coord->workm, &rot);
-        pos.vx = arg2[i].point.vx - coord->workm.t[0];
-        pos.vy = arg2[i].point.vy - coord->workm.t[1];
-        pos.vz = arg2[i].point.vz - coord->workm.t[2];
-        scale  = 0x258000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-        pos.vx = pos.vx * scale / 4096;
-        pos.vy = pos.vy * scale / 4096;
-        pos.vz = pos.vz * scale / 4096;
-        gte_SetRotMatrix(&rot);
-        gte_ldv0(&pos);
-        gte_rtv0();
-        gte_stsv(&pos);
-        pos.vx += D_actor_503500_8016F2D8.vx;
-        pos.vy += D_actor_503500_8016F2D8.vy;
-        pos.vz += D_actor_503500_8016F2D8.vz;
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, &pos, &work->hitEffect);
-        if (crit != 0) {
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
-        }
-        stun = Gp_GetIdParam2(id);
-        if (work->hitCooldown < stun) {
-            work->hitCooldown = stun;
-        }
-    next:;
+        _actor503500SmallOrbEmitterHandleHit(arg0, work, enemy, coord, arg2, i);
     }
 }
 
