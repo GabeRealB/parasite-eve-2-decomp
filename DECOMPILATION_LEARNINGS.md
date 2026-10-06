@@ -140616,7 +140616,7 @@ unrelated `regs=18` swap of the session pointer and switch value. When a
 global's address shows up whole in a branch delay slot, assign the pointer in
 the block before the branch. Input: `base_4.i` `ced5d17fd7fcf754dc166566e75d80372ebf5d597f4dafdd3022c2ea79bee988` (100%).
 
-### Two `x++` in a row fold to `+2` unless another store sits between them; `v += c ? K : -K` keeps one reload of a stack field (func_shelter_b3_garbage_incinerator_8017DF24, 2026-09-23)
+### Two `x++` in a row fold to `+2` unless another store sits between them; `v += c ? K : -K` keeps one reload of a stack field (_shelterB3GarbageIncineratorMoveLiftWithActor, 2026-09-23)
 
 The target stored a u16 state twice: `lhu; addiu 1; sh; addiu 1; sh`, with
 `sh zero,0x62` (a sibling field) scheduled ahead of them. `state++; state++;`
@@ -149668,8 +149668,8 @@ attempts; left as it was.
   all nine inlines that had it once the per-record body is an inline. Three more of those
   handlers (`_80134EAC`, `_80137C90`, `_80139A20`) took the batch 07 form on
   the first build.
-- Not converted: `func_shelter_b3_garbage_incinerator_8017F318` (`ret1:` inside
-  the first `if`, three `goto ret1`). The image has one `li v0,1; j end` block
+- Not converted: `_shelterB3GarbageIncineratorAdvanceBlazeAnimation` (`idleReturn:` inside
+  the first `if`, three `goto idleReturn`). The image has one `li v0,1; j end` block
   after the first test and later branches back to it. Any second `return 1`
   (plain returns; the clip step as a `void` inline between the guards and a
   final `return 1`) is cross-jumped with the final one, the first branch is
