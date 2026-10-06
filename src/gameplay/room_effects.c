@@ -747,7 +747,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017E64C, { NULL } },                             // 0x0CE
     { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012EF48, { NULL } },                                  // 0x0CF
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_saloon_g_r_8017DA70, { NULL } },                         // 0x0D0
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_g_r_kitchen_8017EB04, { NULL } },                        // 0x0D1
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldGRKitchenDrawLightBeamsTask, { NULL } },                       // 0x0D1
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_tower_80180348, { NULL } },                        // 0x0D2
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_tank_8017F084, { NULL } },                         // 0x0D3
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_8017FF7C, { NULL } },                          // 0x0D4

@@ -676,7 +676,7 @@ dryfieldDilapidatedHouseFlameConeTask = 0x80183C8C; // type:func absolute:True o
 
 dryfieldDilapidatedHouseFlameRingTask = 0x80183D5C; // type:func absolute:True owner=dryfield_dilapidated_house
 
-func_dryfield_g_r_kitchen_8017EB04 = 0x8017EB04; // type:func absolute:True owner=dryfield_g_r_kitchen
+dryfieldGRKitchenDrawLightBeamsTask = 0x8017EB04; // type:func absolute:True owner=dryfield_g_r_kitchen
 
 func_dryfield_gas_station_80181A78 = 0x80181A78; // type:func absolute:True owner=dryfield_gas_station
 

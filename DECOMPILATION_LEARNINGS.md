@@ -92774,7 +92774,7 @@ Inputs: `base.i` (100%, 11/11 instructions), compiler SHA256
 
 m2c renders a dispatch on one value as a `switch`, and that is the wrong
 construct whenever the target's *first* case is reached by falling out of the
-first compare. `func_dryfield_g_r_kitchen_8017EB04` picks one of two beam pairs
+first compare. `dryfieldGRKitchenDrawLightBeamsTask` picks one of two beam pairs
 by `gGameSession->location.loc.view`; the target is
 
 ```
@@ -92814,12 +92814,12 @@ immediately after the test and falls through. Writing the two arms as an
 reproduces the target exactly:
 
 ```c
-if (gGameSession->location.loc.view == 2) {
-    _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
-    _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
-} else if (gGameSession->location.loc.view == 3) {
-    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
-    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
+if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_BRIGHT_BEAM_VIEW) {
+    _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[1], &D_dryfield_g_r_kitchen_8017EBE8[0], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+    _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[3], &D_dryfield_g_r_kitchen_8017EBE8[2], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+} else if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_DIM_BEAM_VIEW) {
+    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[4], &D_dryfield_g_r_kitchen_8017EBE8[5], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[6], &D_dryfield_g_r_kitchen_8017EBE8[7], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
 }
 ```
 

@@ -478,22 +478,23 @@ static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SV
     SCRATCH_STACK_RELEASE_BLOCK(GlowWorldPointPairScratch);
 }
 
-/// Draws two light beams under the task's coordinate in `arg0->extra.coordBody->coord`,
-/// picked by the current view `gGameSession->location.loc.view`: in view 2 the
-/// beams of `D_dryfield_g_r_kitchen_8017EBF0` through
-/// `_glowDrawTaperedBeam`, in view 3 those of
-/// `D_dryfield_g_r_kitchen_8017EC08` through
-/// `_dryfieldGRKitchenDrawDimTaperedBeam`. Any other view draws nothing.
-void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
+void dryfieldGRKitchenDrawLightBeamsTask(Task* task)
 {
-    GfxCoord* coord;
+    enum {
+        DRYFIELD_G_R_KITCHEN_BRIGHT_BEAM_VIEW  = 2,
+        DRYFIELD_G_R_KITCHEN_DIM_BEAM_VIEW     = 3,
+        DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE = 256, // Pixel radius = scale * 64 / (camera Z / 4)
+    };
 
-    coord = arg0->extra.coordBody->coord;
-    if (gGameSession->location.loc.view == 2) {
-        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
-        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
-    } else if (gGameSession->location.loc.view == 3) {
-        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
-        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);
+    const GfxCoord* coord;
+
+    coord = task->extra.coordBody->coord;
+    // Endpoint order controls cap orientation, clipping and band sorting.
+    if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_BRIGHT_BEAM_VIEW) {
+        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[1], &D_dryfield_g_r_kitchen_8017EBE8[0], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[3], &D_dryfield_g_r_kitchen_8017EBE8[2], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+    } else if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_DIM_BEAM_VIEW) {
+        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[4], &D_dryfield_g_r_kitchen_8017EBE8[5], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[6], &D_dryfield_g_r_kitchen_8017EBE8[7], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
     }
 }

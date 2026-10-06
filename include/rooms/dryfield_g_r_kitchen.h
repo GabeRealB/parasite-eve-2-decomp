@@ -30,7 +30,17 @@ extern SpriteView D_dryfield_g_r_kitchen_8017F014[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_g_r_kitchen_8017F53C[];
 
-void func_dryfield_g_r_kitchen_8017EB04(Task* arg0);
+/// Draws the kitchen's two additive light beams for the current view.
+///
+/// View 2 uses brighter grey beams; view 3 uses dimmer grey beams. Other
+/// views queue nothing. `task` must have a live `TASK_BODY_COORD` body whose
+/// coordinate cache maps the room's local endpoints into world space.
+/// Borrows that coordinate for the call without changing task state.
+/// Requires composed view matrices, an initialized scratch stack with a free
+/// 40-byte block, and a current ordering table and frame arena with room for
+/// twelve `POLY_G4` and twelve `DR_TPAGE` packets. Queued packets must remain
+/// live until GPU completion.
+void dryfieldGRKitchenDrawLightBeamsTask(Task* task);
 
 void func_dryfield_g_r_kitchen_8017D9A4(Task* task);
 
