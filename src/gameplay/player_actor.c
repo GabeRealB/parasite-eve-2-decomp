@@ -1549,6 +1549,18 @@ static void _effectDrawGroundDecal(const GfxCoord* coord, s32 halfSize, s16 brig
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
 
+/// Spawns a burst particle on one running frame in three, sized by the work's scale.
+static inline void _effSprTask81SpawnBurstParticle(EffectWork* mem, GfxCoord* coord)
+{
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        return;
+    }
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
+        Gp_SpawnEff(EFFECT_PROJECTILE_BURST_PARTICLE, coord, (s32)(mem->scale), 0);
+    }
+}
+
 void Gp_EffSprTask81(Task* arg0)
 {
     EffectWork*           mem;
@@ -1624,7 +1636,8 @@ void Gp_EffSprTask81(Task* arg0)
                 arg0->spawnArg1.value = 4;
                 break;
             }
-            goto lcg;
+            _effSprTask81SpawnBurstParticle(mem, coord);
+            break;
         case 3:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && mem->index == 0) {
                 Gp_SpawnEff(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
@@ -1637,14 +1650,7 @@ void Gp_EffSprTask81(Task* arg0)
                 arg0->spawnArg1.value = 4;
                 break;
             }
-        lcg:
-            if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                break;
-            }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
-                Gp_SpawnEff(EFFECT_PROJECTILE_BURST_PARTICLE, coord, (s32)(mem->scale), 0);
-            }
+            _effSprTask81SpawnBurstParticle(mem, coord);
             break;
         case 4:
             effectKillTask(mem, arg0);
