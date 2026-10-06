@@ -4088,24 +4088,22 @@ static void Actor00400_Fn06B7C(Task* arg0)
 static inline s32 Actor00400_ConsumeStateRequest(_Actor00400Work* work)
 {
     s16 req;
-    s32 state;
 
-    state = work->hitTaken;
-    if (state != 1) {
+    if (work->hitTaken != 1) {
         return 0;
     }
     req = work->hitReaction;
     if (req == ACTOR_00400_HIT_REACTION_LIGHT) {
-        work->state    = state;
+        work->state    = 1;
         work->subState = 0;
     } else if (req == ACTOR_00400_HIT_REACTION_HEAVY) {
-        work->state    = state;
+        work->state    = 1;
         work->subState = 0;
     } else if (req == ACTOR_00400_HIT_REACTION_STATUS) {
-        work->state    = state;
+        work->state    = 1;
         work->subState = 0;
     } else if (req == ACTOR_00400_HIT_REACTION_BLAST) {
-        work->state    = state;
+        work->state    = 1;
         work->subState = 0;
     }
     work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
