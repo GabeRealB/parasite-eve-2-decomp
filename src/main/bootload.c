@@ -1553,101 +1553,70 @@ static void Fs_SelectLoadHandlers1(u8* arg0)
 
 static void Fs_SelectLoadHandlers2(u8* arg0)
 {
-    s32 temp_v1;
-    s32 area;
-    s32 val;
+    s32 chapter;
 
-    temp_v1 = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-    area    = Fs_LoadParams.area;
-
-    if (area == GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH) {
-        goto case_1B;
+    chapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+    switch (Fs_LoadParams.area) {
+        case GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY:
+            switch (chapter & 0xFFFF) {
+                case 3:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_Dryfield;
+                    *arg0             = 0xC;
+                    break;
+                case 4:
+                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
+                    *arg0             = 0x13;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
+                    *arg0             = 0x1A;
+                    break;
+            }
+            break;
+        case GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH:
+            switch (chapter & 0xFFFF) {
+                case 3:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_Dryfield;
+                    *arg0             = 0xD;
+                    break;
+                case 4:
+                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
+                    *arg0             = 0x14;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
+                    *arg0             = 0x1B;
+                    break;
+            }
+            break;
+        case GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_5:
+        default:
+            switch (chapter & 0xFFFF) {
+                case 3:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_Dryfield;
+                    *arg0             = 0xE;
+                    break;
+                case 4:
+                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
+                    *arg0             = 0xF;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
+                    *arg0             = 0x20;
+                    break;
+            }
+            break;
     }
-    if (area <= GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH) {
-        if (area != GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY) {
-            goto case_default;
-        }
-    } else {
-        goto case_default;
-    }
-
-    val = temp_v1 & 0xFFFF;
-    if (val == 4) {
-        goto case_11_4;
-    }
-    if (val < 5) {
-        goto case_11_def;
-    }
-    if (val == 5) {
-        goto case_11_5;
-    }
-case_11_def:
-    Fs_BootTimPrimary = &BootCaption_Dryfield;
-    *arg0             = 0xC;
-    return;
-case_11_4:
-    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-    *arg0             = 0x13;
-    return;
-case_11_5:
-    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-    *arg0             = 0x1A;
-    return;
-
-case_1B:
-    val = temp_v1 & 0xFFFF;
-    if (val == 4) {
-        goto case_1B_4;
-    }
-    if (val < 5) {
-        goto case_1B_def;
-    }
-    if (val == 5) {
-        goto case_1B_5;
-    }
-case_1B_def:
-    Fs_BootTimPrimary = &BootCaption_Dryfield;
-    *arg0             = 0xD;
-    return;
-case_1B_4:
-    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-    *arg0             = 0x14;
-    return;
-case_1B_5:
-    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-    *arg0             = 0x1B;
-    return;
-
-case_default:
-    val = temp_v1 & 0xFFFF;
-    if (val == 4) {
-        goto case_def_4;
-    }
-    if (val < 5) {
-        goto case_def_def;
-    }
-    if (val == 5) {
-        goto case_def_5;
-    }
-case_def_def:
-    Fs_BootTimPrimary = &BootCaption_Dryfield;
-    *arg0             = 0xE;
-    return;
-case_def_4:
-    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-    *arg0             = 0xF;
-    return;
-case_def_5:
-    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-    *arg0             = 0x20;
 }
 
 static void Fs_SelectLoadHandlers3(u8* arg0)
 {
-    s32 temp_v1;
-    s32 val;
+    s32 chapter;
 
-    temp_v1 = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+    chapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
     switch (Fs_LoadParams.area) {
         case GAME_AREA_MINE_MESA:
             Fs_BootTimPrimary   = &BootCaption_DryfieldMesaNight;
@@ -1655,67 +1624,52 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
             *arg0               = 3;
             break;
         case GAME_AREA_MINE_REFUGE:
-            val = temp_v1 & 0xFFFF;
-            if (val == 4) {
-                goto case_6_4;
+            switch (chapter & 0xFFFF) {
+                case 4:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_Mine;
+                    *arg0             = 0x10;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_Mine;
+                    *arg0             = 0x17;
+                    break;
             }
-            if (val == 5) {
-                goto case_6_5;
-            }
-        case_6_4:
-            Fs_BootTimPrimary = &BootCaption_Mine;
-            *arg0             = 0x10;
-            return;
-        case_6_5:
-            Fs_BootTimPrimary = &BootCaption_Mine;
-            *arg0             = 0x17;
-            return;
+            break;
         case GAME_AREA_SHELTER_B1_STERILIZATION_ROOM:
-            val = temp_v1 & 0xFFFF;
-            if (val == 5) {
-                goto case_16_5;
+            switch (chapter & 0xFFFF) {
+                case 4:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
+                    *arg0             = 0x11;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
+                    *arg0             = 0x18;
+                    break;
+                case 6:
+                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
+                    *arg0             = 0x24;
+                    break;
             }
-            if (val < 6) {
-                goto case_16_def;
-            }
-            if (val == 6) {
-                goto case_16_6;
-            }
-        case_16_def:
-            Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-            *arg0             = 0x11;
-            return;
-        case_16_5:
-            Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-            *arg0             = 0x18;
-            return;
-        case_16_6:
-            Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-            *arg0             = 0x24;
-            return;
+            break;
         case GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING:
-            val = temp_v1 & 0xFFFF;
-            if (val == 5) {
-                goto case_20_5;
+            switch (chapter & 0xFFFF) {
+                case 4:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
+                    *arg0             = 0x28;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
+                    *arg0             = 0x1F;
+                    break;
+                case 6:
+                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
+                    *arg0             = 0x26;
+                    break;
             }
-            if (val < 6) {
-                goto case_20_def;
-            }
-            if (val == 6) {
-                goto case_20_6;
-            }
-        case_20_def:
-            Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-            *arg0             = 0x28;
-            return;
-        case_20_5:
-            Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-            *arg0             = 0x1F;
-            return;
-        case_20_6:
-            Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-            *arg0             = 0x26;
-            return;
+            break;
         case GAME_AREA_SHELTER_R36:
             if (D5B498_8006ACC0 == 0) {
                 Fs_BootTimPrimary   = &BootCaption_WhiteHouseAftermath;
@@ -1728,44 +1682,35 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
             }
             break;
         case GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM:
-            val = temp_v1 & 0xFFFF;
-            if (val == 4) {
-                goto case_41_4;
+            switch (chapter & 0xFFFF) {
+                case 4:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_ShelterWaste;
+                    *arg0             = 0x12;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_ShelterWaste;
+                    *arg0             = 0x19;
+                    break;
             }
-            if (val == 5) {
-                goto case_41_5;
-            }
-        case_41_4:
-            Fs_BootTimPrimary = &BootCaption_ShelterWaste;
-            *arg0             = 0x12;
-            return;
-        case_41_5:
-            Fs_BootTimPrimary = &BootCaption_ShelterWaste;
-            *arg0             = 0x19;
-            return;
+            break;
         case GAME_AREA_SHELTER_B2_LABORATORY:
-            val = temp_v1 & 0xFFFF;
-            if (val == 5) {
-                goto case_31_5;
+            switch (chapter & 0xFFFF) {
+                case 4:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
+                    *arg0             = 0x15;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
+                    *arg0             = 0x1C;
+                    break;
+                case 6:
+                    Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
+                    *arg0             = 0x25;
+                    break;
             }
-            if (val < 6) {
-                goto case_31_def;
-            }
-            if (val == 6) {
-                goto case_31_6;
-            }
-        case_31_def:
-            Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
-            *arg0             = 0x15;
-            return;
-        case_31_5:
-            Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
-            *arg0             = 0x1C;
-            return;
-        case_31_6:
-            Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
-            *arg0             = 0x25;
-            return;
+            break;
         case 2:
         case 3:
         case 4:
@@ -1807,21 +1752,18 @@ static void Fs_SelectLoadHandlers3(u8* arg0)
         case 46:
         case 47:
         default:
-            val = temp_v1 & 0xFFFF;
-            if (val == 4) {
-                goto case_def_4;
+            switch (chapter & 0xFFFF) {
+                case 4:
+                default:
+                    Fs_BootTimPrimary = &BootCaption_ShelterPod;
+                    *arg0             = 0x16;
+                    break;
+                case 5:
+                    Fs_BootTimPrimary = &BootCaption_ShelterPod;
+                    *arg0             = 0x1D;
+                    break;
             }
-            if (val == 5) {
-                goto case_def_5;
-            }
-        case_def_4:
-            Fs_BootTimPrimary = &BootCaption_ShelterPod;
-            *arg0             = 0x16;
-            return;
-        case_def_5:
-            Fs_BootTimPrimary = &BootCaption_ShelterPod;
-            *arg0             = 0x1D;
-            return;
+            break;
     }
 }
 
@@ -1833,7 +1775,6 @@ void Fs_SetupBootLoad(void)
     u8    sp18[8];
     RECT  rect;
     RECT* r;
-    s32   area;
 
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     rect.y = 0;
@@ -1865,34 +1806,28 @@ void Fs_SetupBootLoad(void)
         case GAME_STAGE_SHELTER_NEO_ARK:
         default:
             gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-            area = Fs_LoadParams.area;
-            if (area == GAME_AREA_SHELTER_B6_NURSERY) {
-                goto case_16;
+            switch (Fs_LoadParams.area) {
+                case GAME_AREA_NEO_ARK_SHRINE:
+                default:
+                    if (D5B498_8006ACC0 == 0) {
+                        Fs_BootTimPrimary = &BootCaption_ShelterHeliport;
+                        sp10[0]           = 0x23;
+                    } else {
+                        Fs_BootTimPrimary   = &BootCaption_DesertReturn;
+                        Fs_BootTimSecondary = &BootCaption_DesertReturnSecondary;
+                        sp10[0]             = 3;
+                    }
+                    break;
+                case GAME_AREA_SHELTER_B6_NURSERY:
+                    Fs_BootTimPrimary = &BootCaption_ShelterExperiment;
+                    sp10[0]           = 0x1E;
+                    break;
+                case GAME_AREA_NEO_ARK_R26:
+                    Fs_BootTimPrimary   = &BootCaption_WhiteHouseEvening;
+                    Fs_BootTimSecondary = &BootCaption_WhiteHouseEveningSecondary;
+                    sp10[0]             = 3;
+                    break;
             }
-            if (area <= GAME_AREA_SHELTER_B6_NURSERY) {
-                goto case_default;
-            }
-            if (area == GAME_AREA_NEO_ARK_R26) {
-                goto case_1a;
-            }
-        case_default:
-            if (D5B498_8006ACC0 == 0) {
-                Fs_BootTimPrimary = &BootCaption_ShelterHeliport;
-                sp10[0]           = 0x23;
-            } else {
-                Fs_BootTimPrimary   = &BootCaption_DesertReturn;
-                Fs_BootTimSecondary = &BootCaption_DesertReturnSecondary;
-                sp10[0]             = 3;
-            }
-            break;
-        case_16:
-            Fs_BootTimPrimary = &BootCaption_ShelterExperiment;
-            sp10[0]           = 0x1E;
-            break;
-        case_1a:
-            Fs_BootTimPrimary   = &BootCaption_WhiteHouseEvening;
-            Fs_BootTimSecondary = &BootCaption_WhiteHouseEveningSecondary;
-            sp10[0]             = 3;
             break;
     }
     sp18[0]         = 0;
