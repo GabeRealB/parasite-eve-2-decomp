@@ -8,16 +8,12 @@ void desertChaserTurnStep(Task* arg0)
     GfxCoord*                    coord;
     GfxCoord*                    coord2;
     GfxCoord*                    targetCoord;
-    GfxCoord*                    facing;
     GfxCoord*                    facing2;
     DesertChaserTurnStepScratch* head;
     DesertChaserTurnStepScratch* scratch;
     s16                          yaw;
-    s16                          delta;
     s16                          z;
     s16                          steps;
-    s16                          wrapped;
-    s32                          angle;
     s32                          firstDelta;
 
     head    = SCRATCH_STACK_CURSOR(DesertChaserTurnStepScratch);
@@ -45,11 +41,7 @@ void desertChaserTurnStep(Task* arg0)
     scratch->offset.vy  = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
     z                   = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
     scratch->offset.vz  = z;
-    facing              = arg0->extra.tmd->coords;
-    angle               = ratan2((s32)head[-1].offset.vx, (s32)z);
-    delta               = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-    wrapped             = actorWrapAngle(delta);
-    firstDelta          = wrapped;
+    firstDelta          = actorYawTo(arg0->extra.tmd->coords, head[-1].offset.vx, z);
     scratch->turn       = (s16)firstDelta;
     work->lookYawTarget = (u16)firstDelta;
     if (scratch->turn < 0) {
