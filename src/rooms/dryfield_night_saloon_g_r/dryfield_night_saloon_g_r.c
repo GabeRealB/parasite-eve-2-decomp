@@ -2230,17 +2230,21 @@ void dryfieldNightSaloonGRDrawGlowsTask(Task* task)
 
 #include "../../shared/glow_draw_twin_shafts.inc.c"
 
-/// Initializes a beam-cap quad with a grey centre at vertex 2 and a black rim.
+/// Initializes a grey-to-black Gouraud quad for one beam-cap wedge.
 ///
-/// Borrows one writable packet; the caller supplies coordinates, ordering-table
-/// links and the additive blend command. `centreIntensity` is an RGB byte.
-static inline void _dryfieldNightSaloonGRInitBeamCap(POLY_G4* prim, u8 centreIntensity)
+/// Borrows one writable `POLY_G4`. Vertex 2 receives `centreIntensity`
+/// (0..255) in each RGB channel; rim vertices 0, 1 and 3 are black.
+/// Sets the eight-word payload length and opaque, untextured quad command.
+/// The caller supplies screen coordinates, the ordering-table link and
+/// additive semitransparency before submission. Two quarter-disc wedges
+/// form each half-disc cap.
+static inline void _dryfieldNightSaloonGRInitBeamCapWedge(POLY_G4* wedge, u8 centreIntensity)
 {
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, centreIntensity, centreIntensity, centreIntensity);
-    setRGB3(prim, 0, 0, 0);
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, centreIntensity, centreIntensity, centreIntensity);
+    setRGB3(wedge, 0, 0, 0);
 }
 
 /// Draws an additive grey beam between two saloon-local endpoints.
@@ -2304,7 +2308,7 @@ static void _dryfieldNightSaloonGRDrawTaperedBeam(const GfxCoord* coord, const S
         do {
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            _dryfieldNightSaloonGRInitBeamCap(prim, brightness);
+            _dryfieldNightSaloonGRInitBeamCapWedge(prim, brightness);
             prim->x0  = block->sx0 + ((block->radius0 * rsin(angle)) >> GLOW_TRIG_SHIFT);
             rimAngle  = angle + GLOW_EIGHTH_TURN;
             prim->y0  = block->sy0 + ((block->radius0 * rcos(angle)) >> GLOW_TRIG_SHIFT);
@@ -2340,7 +2344,7 @@ static void _dryfieldNightSaloonGRDrawTaperedBeam(const GfxCoord* coord, const S
 
             prim           = gGpuPrimCursor;
             gGpuPrimCursor = prim + 1;
-            _dryfieldNightSaloonGRInitBeamCap(prim, brightness);
+            _dryfieldNightSaloonGRInitBeamCapWedge(prim, brightness);
             prim->x0 = block->sx1 + ((block->radius1 * rsin(GLOW_FULL_TURN - angle)) >> GLOW_TRIG_SHIFT);
             prim->y0 = block->sy1 + ((block->radius1 * rcos(GLOW_FULL_TURN - angle)) >> GLOW_TRIG_SHIFT);
             prim->x1 = block->sx1 + ((block->radius1 * rsin((GLOW_FULL_TURN - GLOW_EIGHTH_TURN) - angle)) >> GLOW_TRIG_SHIFT);
