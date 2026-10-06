@@ -1112,9 +1112,16 @@ def footprints(nodes, edges, worklist_path: str, orders):
         where = nodes.get(usr, {}).get("file")
         if not where:
             continue
+        # A table that lists a function is not a consumer the step is reviewed
+        # through: the rename changes one entry and the function's shape is the
+        # table's callback type either way. Counting it made every overlay
+        # entry point listed in gameplay's effect and room tables overlap any
+        # step declared in the table's file - 79 candidates held back by one
+        # step, and rounds of one or two with ten workers.
+        table = _node_kind(usr) == "data"
         for d in deps:
             o = step_of.get(d)
-            if o:
+            if o and not (table and _node_kind(d) == "func"):
                 reach[o].add(where)
     return decl, reach
 
