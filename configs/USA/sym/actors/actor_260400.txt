@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_260400.
 D_actor_260400_80154C30 = 0x80154C30; // size:0x40 defined:True
-gScriptedWalkWork = 0x80154C70; // size:0x4 defined:True
+_gScriptedWalkWork = 0x80154C70; // size:0x4 defined:True
 D_actor_260400_80154C74 = 0x80154C74; // size:0x4 defined:True
 D_actor_260400_80154C18 = 0x80154C18; // size:0x18 defined:True
 gScriptedWalkBlendFrames = 0x80154BE4; // size:0x2 defined:True
@@ -149,9 +149,9 @@ _gActor260400Animation0267CRecords = 0x8014C2CC; // size:0x1A8 defined:True
 _gActor260400Animation0267CIndices = 0x8014C474; // size:0x28 defined:True
 _gActor260400Animation0267C = 0x8014C49C; // size:0x28 defined:True
 D_actor_260400_8014C4C4 = 0x8014C4C4; // size:0x14 defined:True
-gScriptedWalkMode = 0x80154C78; // size:0x2 defined:True
+_gScriptedWalkMode = 0x80154C78; // size:0x2 defined:True
 scriptedWalkUpdate = 0x8014A200; // type:func
-scriptedWalkTickAnim = 0x8014A7AC; // type:func
+_scriptedWalkTickAnim = 0x8014A7AC; // type:func
 scriptedWalkResetAnim = 0x8014A7F8; // type:func
 scriptedWalkBlendAnim = 0x8014A888; // type:func
 scriptedWalkTo = 0x8014AB50; // type:func

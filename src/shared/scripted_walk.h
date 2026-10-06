@@ -11,16 +11,16 @@
  * position. The walker's state belongs to the package, which defines it at
  * its own positions under these names:
  *
- *   gScriptedWalkWork         the published work block
- *   gScriptedWalkMode         the mode of the last walk
+ *   SCRIPTED_WALK_WORK        the borrowed, published work pointer
+ *   SCRIPTED_WALK_MODE        the signed halfword mode of the last walk
  *   gScriptedWalkBlendFrames  the blend the next reseed uses
  *
- * A package that does not address the mode as a plain `s16 gScriptedWalkMode`
- * names that halfword through SCRIPTED_WALK_MODE before including this header.
- * actor_143900 and actor_461800 bind it to `gScriptedWalkModeValue`, the
- * halfword at the start of their four-byte mode symbol. A file with a second
- * walker, as actor_143900 has, includes the fragments again with the library
- * names defined to that walker's own.
+ * The defaults select `_gScriptedWalkWork` and `_gScriptedWalkMode`.
+ * actor_143900 and actor_461800 bind the mode to `gScriptedWalkModeValue`,
+ * a scalar view of the first halfword in `_gScriptedWalkModeStorage`.
+ * Nothing accesses the other halfword, whose role remains unproven.
+ * A file with a second walker, as actor_143900 has, includes the fragments
+ * again with the bindings selecting that walker's functions and state.
  *
  * The update and the walk-to handler take the block from Task::work, so a
  * package whose walker allocates a block of its own type names that type
@@ -40,13 +40,43 @@
 
 #include "main/task_types.h"
 
+#ifndef SCRIPTED_WALK_WORK
+/// Selects the initialized work block used by the animation and placement fragments.
+///
+/// Bind to a side-effect-free pointer expression with an `ActorAnimRig20 rig`
+/// and the `st` members used by each included fragment. The pointer borrows
+/// the allocation owned by the current task; the task dispatcher must publish
+/// it before calling a fragment. The default selects the first walker.
+/// A carrier with another walker rebinds this together with its function bindings,
+/// then restores the first pointer after each inclusion. No argument is evaluated;
+/// fragment accesses may read the pointer repeatedly across animation calls.
+#define SCRIPTED_WALK_WORK _gScriptedWalkWork
+#endif
+
+/// Approach modes stored in the walker's signed halfword.
+///
+/// Distances are model-parent coordinate units per update, also used to divide
+/// the target's planar distance into a travel countdown. Other halfword values
+/// retain a 25-unit divisor but produce no translation in the update.
+enum {
+    SCRIPTED_WALK_MODE_FORWARD       = 0, // Face the target and step forward by 60
+    SCRIPTED_WALK_MODE_BACKWARD      = 1, // Face away from the target and step backward by 15
+    SCRIPTED_WALK_MODE_FORWARD_SHORT = 2, // Face the target and step forward by 25
+};
+
 #ifndef SCRIPTED_WALK_MODE
-#define SCRIPTED_WALK_MODE gScriptedWalkMode
+/// Selects the walker's writable signed-halfword approach mode.
+///
+/// Bind to a side-effect-free `s16` lvalue before this header. The walk-to
+/// fragment stores the low halfword of the message argument; the update reads
+/// it as `SCRIPTED_WALK_MODE_*`. Rebind around both fragments for another walker
+/// and restore afterwards. No arguments or local identifiers are captured.
+#define SCRIPTED_WALK_MODE (_gScriptedWalkMode)
 #endif
 
 /// Work block of a scripted walker that carries two attachments, allocated
 /// zeroed at its full size by the walker's spawn state and kept both at
-/// `Task::work` and in the walker's `gScriptedWalkWork`.
+/// `Task::work` and in the pointer selected by `SCRIPTED_WALK_WORK`.
 ///
 /// Each attachment is a task of its own that draws a one-part model and hangs
 /// that model's coordinate off one part of the walker's rig, the part being
@@ -80,7 +110,7 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 /// and the walk and turn countdowns, so a bound type has to declare an
 /// `ActorEnemyState st` and an `s16 turnFrames`, as every walker that carries
 /// them does behind its two light matrices and its rig. The other fragments
-/// reach the block through `gScriptedWalkWork` and take its type from the
+/// reach the block through `SCRIPTED_WALK_WORK` and take its type from the
 /// package's declaration of that global.
 ///
 /// Bind before this header. The binding persists across the fragments'
@@ -92,17 +122,27 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #ifndef SCRIPTED_WALK_TICK_ANIM
 /// Selects the no-argument function that ticks the published walker's part animation.
 ///
-/// Bind to a `void name(void)` function before this header, or undefine and
+/// Bind to a TU-private `void name(void)` function before this header, or undefine and
 /// rebind around both the update and tick fragments for an additional walker.
 /// The tick fragment defines the function; the update fragment calls it.
-/// `gScriptedWalkWork` must select the same walker's live, initialized rig.
+/// `SCRIPTED_WALK_WORK` must select the same walker's live, initialized rig.
 /// The default serves the sole or first walker in all five carriers;
 /// actor_143900 binds its second copy to `_scriptedWalkTickSecondAnim`.
-#define SCRIPTED_WALK_TICK_ANIM scriptedWalkTickAnim
+#define SCRIPTED_WALK_TICK_ANIM _scriptedWalkTickAnim
 #endif
 
 void scriptedWalkUpdate(Task* task);
-void SCRIPTED_WALK_TICK_ANIM(void);
+
+/// Advances the selected walker's non-root animation slots and applies their poses.
+///
+/// `SCRIPTED_WALK_WORK` must select a live work block whose animation context
+/// remains bound to its twenty slots, pose buffer, model and loaded clip data.
+/// Slots 1 through 19 must have been reset or seeded for blended playback;
+/// each consumes its configured signed rate in sixteenths of a frame, subject
+/// to the death-playback adjustment. Slot 0 keeps the separately placed root.
+/// Scratch-stack capacity and GTE requirements are those of `animationTickSlot`.
+static void SCRIPTED_WALK_TICK_ANIM(void);
+
 void scriptedWalkResetAnim(void);
 void scriptedWalkBlendAnim(void);
 s32  scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);

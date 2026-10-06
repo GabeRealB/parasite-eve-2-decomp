@@ -22,20 +22,20 @@ s32 scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode)
     dz                 = target->vz - coord->coord.t[2];
     angle              = ratan2(dx, dz);
     work->st.yaw       = angle;
-    if (SCRIPTED_WALK_MODE == 1) {
+    if (SCRIPTED_WALK_MODE == SCRIPTED_WALK_MODE_BACKWARD) {
         work->st.yaw = angle + 0x800;
     }
     gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (SCRIPTED_WALK_MODE) {
-        case 0:
+        case SCRIPTED_WALK_MODE_FORWARD:
             steps = 0x3C;
             break;
-        case 1:
+        case SCRIPTED_WALK_MODE_BACKWARD:
             steps = 0xF;
             break;
-        case 2:
+        case SCRIPTED_WALK_MODE_FORWARD_SHORT:
             break;
     }
     work->st.travel = dist / steps;

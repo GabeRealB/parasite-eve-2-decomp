@@ -9,9 +9,9 @@ void scriptedWalkResetAnim(void)
 
     i = 1;
     do {
-        gScriptedWalkWork->rig.slots[i].rate = 1;
-        animationResetSlot(&gScriptedWalkWork->rig.anim, i, gScriptedWalkWork->st.animId);
+        SCRIPTED_WALK_WORK->rig.slots[i].rate = 1;
+        animationResetSlot(&SCRIPTED_WALK_WORK->rig.anim, i, SCRIPTED_WALK_WORK->st.animId);
         i++;
     } while (i < 0x14);
-    gScriptedWalkWork->st.appliedAnimId = gScriptedWalkWork->st.animId;
+    SCRIPTED_WALK_WORK->st.appliedAnimId = SCRIPTED_WALK_WORK->st.animId;
 }

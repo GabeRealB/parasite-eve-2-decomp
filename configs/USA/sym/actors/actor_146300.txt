@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_146300.
 D_actor_146300_80142824 = 0x80142824; // size:0x4 defined:True
-gScriptedWalkWork = 0x80142828; // size:0x4 defined:True
+_gScriptedWalkWork = 0x80142828; // size:0x4 defined:True
 gActorSelfTask = 0x8014282C; // size:0x4 defined:True
 gActorHelperTask = 0x80142830; // size:0x4 defined:True
 D_actor_146300_801427C8 = 0x801427C8; // size:0x18 defined:True
@@ -239,7 +239,7 @@ D_actor_146300_80137A0C = 0x80137A0C; // size:0x14 defined:True
 D_actor_146300_80137A20 = 0x80137A20; // size:0x14 defined:True
 D_actor_146300_80137A34 = 0x80137A34; // size:0x14 defined:True
 D_actor_146300_80137A48 = 0x80137A48; // size:0x14 defined:True
-scriptedWalkTickAnim = 0x80132840; // type:func
+_scriptedWalkTickAnim = 0x80132840; // type:func
 scriptedWalkResetAnim = 0x8013288C; // type:func
 scriptedWalkBlendAnim = 0x8013291C; // type:func
 scriptedWalkPlace = 0x80132A98; // type:func

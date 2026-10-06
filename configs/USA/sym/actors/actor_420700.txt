@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_420700.
-gScriptedWalkWork = 0x8013EFE0; // size:0x4 defined:True
+_gScriptedWalkWork = 0x8013EFE0; // size:0x4 defined:True
 D_actor_420700_8013EFE4 = 0x8013EFE4; // size:0x4 defined:True
 D_actor_420700_8013EFE8 = 0x8013EFE8; // size:0x4 defined:True
 D_actor_420700_8013EFEC = 0x8013EFEC; // size:0x4 defined:True
@@ -186,5 +186,5 @@ _gActor420700Animation0D100Bank4 = 0x8013ED6C; // size:0x70 defined:True
 _gActor420700Animation0D100Records = 0x8013EDDC; // size:0x11C defined:True
 _gActor420700Animation0D100Indices = 0x8013EEF8; // size:0x28 defined:True
 _gActor420700Animation0D100 = 0x8013EF20; // size:0x28 defined:True
-scriptedWalkTickAnim = 0x801324EC; // type:func
+_scriptedWalkTickAnim = 0x801324EC; // type:func
 scriptedWalkResetAnim = 0x80132538; // type:func

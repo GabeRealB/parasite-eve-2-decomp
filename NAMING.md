@@ -656,7 +656,13 @@ walker of `actor_461800` and the second of `actor_143900`; the other walkers'
 blocks are their packages' own. The two fragments that take the block from the
 task, `scriptedWalkUpdate` and `scriptedWalkTo`, declare it as
 `SCRIPTED_WALK_WORK_T`, which each carrier binds to the type its walker
-allocates.
+allocates. `SCRIPTED_WALK_WORK` selects that walker's borrowed work pointer
+for the animation and placement fragments. `SCRIPTED_WALK_MODE` selects its
+writable signed-halfword approach mode; `SCRIPTED_WALK_MODE_*` names the
+forward, backward and short forward distances. `SCRIPTED_WALK_TICK_ANIM`
+selects the private slot-tick instance and its update calls. A carrier with
+two walkers rebinds these around each additional fragment instance and
+restores its first walker's bindings afterwards.
 
 `pacedWalk` owns the included twenty-part cutscene NPC walk whose work block
 is kept at `Task::work`, and the animation-slot tick, reset, blend and placement

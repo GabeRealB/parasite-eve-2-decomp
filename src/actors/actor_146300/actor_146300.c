@@ -59,7 +59,7 @@ extern _Actor146300AnimationBankExtensionStorage D_actor_146300_80137898;
 /// place and give clips to but that never walks.
 ///
 /// The spawn state allocates it zeroed and keeps it both at `Task::work` and
-/// in `gScriptedWalkWork`. The model object borrows `light` and `color` for as
+/// in `_gScriptedWalkWork`. The model object borrows `light` and `color` for as
 /// long as the block lives. The matrices, the rig and `st` sit where the
 /// scripted walkers' blocks keep theirs, which is what lets the package carry
 /// that library's slot tick, its two reseeds and its placement under the
@@ -73,9 +73,12 @@ typedef struct {
 } _Actor146300Work;
 STATIC_ASSERT_SIZEOF(_Actor146300Work, 0x4EC);
 
-/// The work block above, published by the task handler
-/// `func_actor_146300_801326CC` and by the spawn routine.
-extern _Actor146300Work* gScriptedWalkWork;
+/// Borrowed work block used by this actor's scripted-walk animation and placement.
+///
+/// The spawn and dispatcher publish the allocation also held by `Task::work`.
+/// The included fragments require it to remain live; task teardown releases
+/// it without clearing this pointer. This carrier has no walking countdown.
+static _Actor146300Work* _gScriptedWalkWork;
 
 /// The actor's own task, published by the spawn routine: the 0x7D3 handler
 /// runs the per-frame update on it, and the 0x7D5 handler and the companion's
@@ -1337,8 +1340,6 @@ u8 D_actor_146300_801427E0[68] = {
 
 s32 D_actor_146300_80142824 = 0;
 
-_Actor146300Work* gScriptedWalkWork;
-
 Task* gActorSelfTask;
 
 Task* gActorHelperTask;
@@ -1509,7 +1510,7 @@ void func_actor_146300_80132418(s32 arg0)
 }
 
 /// Spawn routine, state 0 of the task handler `func_actor_146300_801326CC`:
-/// allocates the work block and publishes it in `gScriptedWalkWork`
+/// allocates the work block and publishes it in `_gScriptedWalkWork`
 /// and the task's `work` slot (destroying the enemy if the allocation fails),
 /// installs the exit callback, binds the model's coordinate frame to the view
 /// and publishes the task in `gActorSelfTask`.
@@ -1531,11 +1532,11 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     GfxCoord*         coord;
     Task*             helper;
 
-    obj               = task->extra.tmd;
-    coord             = obj->coords;
-    work              = memCalloc(sizeof(_Actor146300Work), false);
-    gScriptedWalkWork = work;
-    task->work        = work;
+    obj                = task->extra.tmd;
+    coord              = obj->coords;
+    work               = memCalloc(sizeof(_Actor146300Work), false);
+    _gScriptedWalkWork = work;
+    task->work         = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -1553,23 +1554,23 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     gActorHelperTask                 = helper;
     actorTintTask(helper, enemy);
     taskReparent(task, gActorHelperTask);
-    obj->lightMtx = &gScriptedWalkWork->light;
-    obj->colorMtx = &gScriptedWalkWork->color;
+    obj->lightMtx = &_gScriptedWalkWork->light;
+    obj->colorMtx = &_gScriptedWalkWork->color;
     vec.vx        = coord->workm.t[0];
     vec.vy        = coord->workm.t[1] - 0x320;
     vec.vz        = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_146300_801427E0, obj,
-                         gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
-    gScriptedWalkWork->st.animId = 0xB;
-    gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable               = D_actor_146300_801427A0;
+    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_146300_801427E0, obj,
+                         _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
+    _gScriptedWalkWork->st.animId = 0xB;
+    _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
+    task->msgTable                = D_actor_146300_801427A0;
     func_actor_146300_801327CC(task);
     task->state++;
 }
 
 /// The actor's task handler: publishes the task's work block in
-/// `gScriptedWalkWork` on the way through, then runs the handler its
+/// `_gScriptedWalkWork` on the way through, then runs the handler its
 /// state selects from a table built on the stack - the spawn routine for state
 /// 0, the per-frame update after it.
 void func_actor_146300_801326CC(Task* task)
@@ -1579,7 +1580,7 @@ void func_actor_146300_801326CC(Task* task)
         func_actor_146300_80132728,
     };
 
-    gScriptedWalkWork = task->work;
+    _gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1616,18 +1617,18 @@ static void func_actor_146300_801327A4(Task* task)
 /// the second survives.
 static void func_actor_146300_801327CC(Task* task)
 {
-    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
+    if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         scriptedWalkBlendAnim();
-        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
+    if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
         scriptedWalkResetAnim();
-        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
-        scriptedWalkTickAnim();
+    if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
+        _scriptedWalkTickAnim();
     }
 }
 
@@ -1644,14 +1645,14 @@ static void func_actor_146300_801327CC(Task* task)
 s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 0x11) {
-        gScriptedWalkWork->st.animId = preset->animationId;
+        _gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gScriptedWalkBlendFrames    = preset->blendFrames;
+            _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
+            gScriptedWalkBlendFrames     = preset->blendFrames;
         } else {
-            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
+            _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
-        gScriptedWalkWork->st.field_6 = 0;
+        _gScriptedWalkWork->st.field_6 = 0;
         func_actor_146300_801327CC(gActorSelfTask);
         return 0;
     }

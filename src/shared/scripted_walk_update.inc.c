@@ -11,23 +11,23 @@ void scriptedWalkUpdate(Task* task)
     GfxCoord*             coord = task->extra.tmd->coords;
     SCRIPTED_WALK_WORK_T* work  = task->work;
 
-    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
+    if (SCRIPTED_WALK_WORK->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         scriptedWalkBlendAnim();
-        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
-    } else if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
+        SCRIPTED_WALK_WORK->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (SCRIPTED_WALK_WORK->st.state == ACTOR_ENEMY_ANIM_RESET) {
         scriptedWalkResetAnim();
-        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
-    } else if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
+        SCRIPTED_WALK_WORK->st.state = ACTOR_ENEMY_ANIM_TICK;
+    } else if (SCRIPTED_WALK_WORK->st.state == ACTOR_ENEMY_ANIM_TICK) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
             if (work->st.travel != 0) {
                 switch (SCRIPTED_WALK_MODE) {
-                    case 0:
+                    case SCRIPTED_WALK_MODE_FORWARD:
                         _actorMovementStepModelForward(task, 0x3C);
                         break;
-                    case 1:
+                    case SCRIPTED_WALK_MODE_BACKWARD:
                         _actorMovementStepModelForward(task, -0xF);
                         break;
-                    case 2:
+                    case SCRIPTED_WALK_MODE_FORWARD_SHORT:
                         _actorMovementStepModelForward(task, 0x19);
                         break;
                 }

@@ -53,7 +53,7 @@ enum {
 };
 
 /// Work block of the overlay's actor, allocated zeroed at its full size by the
-/// spawn step and kept both at `Task::work` and in `gScriptedWalkWork`, which
+/// spawn step and kept both at `Task::work` and in `_gScriptedWalkWork`, which
 /// the actor's task handler republishes every tick.
 ///
 /// The model object borrows `light` and `color` for as long as the block
@@ -70,9 +70,13 @@ typedef struct {
 } _Actor420700Work;
 STATIC_ASSERT_SIZEOF(_Actor420700Work, 0x5A0);
 
-/// The work block above, published by the task dispatcher
-/// `func_actor_420700_80132340` and by the state-0 handler.
-extern _Actor420700Work* gScriptedWalkWork;
+/// Borrowed work block used by this actor's scripted-walk animation fragments.
+///
+/// The spawn and dispatcher publish the allocation also held by `Task::work`.
+/// The included fragments require it to remain live; task teardown releases
+/// it without clearing this pointer. The carrier's remaining state drives its
+/// head turn; it does not implement the scripted walk's movement.
+static _Actor420700Work* _gScriptedWalkWork;
 
 /// The actor's own task, the `task` the state-0 handler
 /// `func_actor_420700_80131E24` is entered with. Its `Task::extra` holds the
@@ -1011,8 +1015,6 @@ u8 D_actor_420700_8013EF8C[84] = {
     128,
 };
 
-_Actor420700Work* gScriptedWalkWork;
-
 Task* D_actor_420700_8013EFE4;
 
 Task* D_actor_420700_8013EFE8;
@@ -1037,11 +1039,11 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     TmdObject*        obj;
     _Actor420700Work* work;
 
-    obj               = task->extra.tmd;
-    coord             = obj->coords;
-    work              = memCalloc(sizeof(_Actor420700Work), 0);
-    gScriptedWalkWork = work;
-    task->work        = work;
+    obj                = task->extra.tmd;
+    coord              = obj->coords;
+    work               = memCalloc(sizeof(_Actor420700Work), 0);
+    _gScriptedWalkWork = work;
+    task->work         = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -1058,19 +1060,19 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     D_actor_420700_8013EFE8          = taskSpawnFromTable(D_actor_420700_8013EF68, 1, 0, 0);
     D_actor_420700_8013EFEC          = taskSpawnFromTable(D_actor_420700_8013EF68, 2, 0, 0);
     actorTintTask(D_actor_420700_8013EFE8, enemy);
-    obj->lightMtx           = &gScriptedWalkWork->light;
-    obj->colorMtx           = &gScriptedWalkWork->color;
+    obj->lightMtx           = &_gScriptedWalkWork->light;
+    obj->colorMtx           = &_gScriptedWalkWork->color;
     D_actor_420700_8013EFF0 = 0;
     vec.vx                  = coord->workm.t[0];
     vec.vy                  = coord->workm.t[1] - 0x320;
     D_actor_420700_8013EFF4 = 0x96;
     vec.vz                  = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, obj,
-                         gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
-    gScriptedWalkWork->st.animId = 5;
-    gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable               = D_actor_420700_8013EF48;
+    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_420700_8013EF8C, obj,
+                         _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
+    _gScriptedWalkWork->st.animId = 5;
+    _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
+    task->msgTable                = D_actor_420700_8013EF48;
     func_actor_420700_80132478(task);
     task->state++;
 }
@@ -1111,26 +1113,26 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
     worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     func_actor_420700_80132478(task);
     rate = 0x10;
-    if (gScriptedWalkWork->st.turnMode != ACTOR_420700_TURN_AUTO) {
-        if (gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_PLAYER ||
-            gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
-            gScriptedWalkWork->st.turnWeight += 0x80;
-            if (gScriptedWalkWork->st.turnWeight > ONE) {
-                gScriptedWalkWork->st.turnWeight = ONE;
+    if (_gScriptedWalkWork->st.turnMode != ACTOR_420700_TURN_AUTO) {
+        if (_gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_PLAYER ||
+            _gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
+            _gScriptedWalkWork->st.turnWeight += 0x80;
+            if (_gScriptedWalkWork->st.turnWeight > ONE) {
+                _gScriptedWalkWork->st.turnWeight = ONE;
             }
         } else {
-            gScriptedWalkWork->st.turnWeight -= 0x80;
-            if (gScriptedWalkWork->st.turnWeight < 0) {
-                gScriptedWalkWork->st.turnWeight = 0;
+            _gScriptedWalkWork->st.turnWeight -= 0x80;
+            if (_gScriptedWalkWork->st.turnWeight < 0) {
+                _gScriptedWalkWork->st.turnWeight = 0;
             }
         }
-        if (gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
+        if (_gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
             target[0].coord.t[0] = 0x1173;
             target[0].coord.t[1] = 0;
             target[0].coord.t[2] = -0x733;
-            animationAimHeadAtPoint(task, target, 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
+            animationAimHeadAtPoint(task, target, 0x200, 0x100, _gScriptedWalkWork->st.turnWeight);
         } else {
-            animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
+            animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, _gScriptedWalkWork->st.turnWeight);
         }
     } else {
         if (gGameSession->eventState == 0) {
@@ -1143,28 +1145,28 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
             } else {
                 D_actor_420700_8013EFF0 = -0x80;
             }
-            if (gScriptedWalkWork->st.turnWeight != 0) {
+            if (_gScriptedWalkWork->st.turnWeight != 0) {
                 rate = 0;
             }
         } else {
             D_actor_420700_8013EFF0 = -0x80;
         }
-        gScriptedWalkWork->st.turnWeight += D_actor_420700_8013EFF0;
-        if (gScriptedWalkWork->st.turnWeight > ONE) {
-            gScriptedWalkWork->st.turnWeight = ONE;
+        _gScriptedWalkWork->st.turnWeight += D_actor_420700_8013EFF0;
+        if (_gScriptedWalkWork->st.turnWeight > ONE) {
+            _gScriptedWalkWork->st.turnWeight = ONE;
         }
-        if (gScriptedWalkWork->st.turnWeight < 0) {
-            gScriptedWalkWork->st.turnWeight = 0;
+        if (_gScriptedWalkWork->st.turnWeight < 0) {
+            _gScriptedWalkWork->st.turnWeight = 0;
         }
-        animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, gScriptedWalkWork->st.turnWeight);
+        animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, _gScriptedWalkWork->st.turnWeight);
     }
     for (i = 1; i < 0x14; i++) {
-        gScriptedWalkWork->rig.slots[i].rate = rate;
+        _gScriptedWalkWork->rig.slots[i].rate = rate;
     }
 }
 
 /// Task handler of the actor: republishes the task's work block in
-/// `gScriptedWalkWork`, so the rest of the overlay can reach it without
+/// `_gScriptedWalkWork`, so the rest of the overlay can reach it without
 /// the task, then runs the handler for the task's state from a two-entry table
 /// built on the stack -- the spawn step `func_actor_420700_80131E24` or the
 /// per-frame step `func_actor_420700_80132064`.
@@ -1175,7 +1177,7 @@ void func_actor_420700_80132340(Task* task)
         func_actor_420700_80132064,
     };
 
-    gScriptedWalkWork = task->work;
+    _gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1222,18 +1224,18 @@ void func_actor_420700_801323D8(Task* task)
 /// second survives.
 static void func_actor_420700_80132478(Task* task)
 {
-    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
+    if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         func_actor_420700_801325C8();
-        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
+    if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
         scriptedWalkResetAnim();
-        gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
-        scriptedWalkTickAnim();
+    if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
+        _scriptedWalkTickAnim();
     }
 }
 
@@ -1249,10 +1251,10 @@ static void func_actor_420700_801325C8(void)
 
     i = 1;
     do {
-        animationSeekSlotWithBlend(&gScriptedWalkWork->rig.anim, i, gScriptedWalkWork->st.animId, 0, 8);
+        animationSeekSlotWithBlend(&_gScriptedWalkWork->rig.anim, i, _gScriptedWalkWork->st.animId, 0, 8);
         i++;
     } while (i < 0x14);
-    gScriptedWalkWork->st.appliedAnimId = gScriptedWalkWork->st.animId;
+    _gScriptedWalkWork->st.appliedAnimId = _gScriptedWalkWork->st.animId;
 }
 
 /// Starts the requested local clip, translating its bank selector to a clip offset.
@@ -1277,14 +1279,14 @@ s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args,
                 offset = 0;
                 break;
         }
-        work            = gScriptedWalkWork;
+        work            = _gScriptedWalkWork;
         work->st.animId = (u16)args->animationId + offset;
         if (args->blend != ANIMATION_BLEND_RESET) {
             work->st.state = ACTOR_ENEMY_ANIM_BLEND;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
-        gScriptedWalkWork->st.field_A = 0;
+        _gScriptedWalkWork->st.field_A = 0;
         func_actor_420700_80132478(D_actor_420700_8013EFE4);
         return 0;
     }
@@ -1337,16 +1339,16 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args, s32 arg
     if (args->context.key != 0x1B02) {
         return -1;
     }
-    gScriptedWalkWork->st.turnMode = args->command;
+    _gScriptedWalkWork->st.turnMode = args->command;
     switch (args->command) {
         case ACTOR_420700_TURN_AUTO:
             break;
         case ACTOR_420700_TURN_PLAYER:
         case ACTOR_420700_TURN_POINT:
-            gScriptedWalkWork->st.turnWeight = 0;
+            _gScriptedWalkWork->st.turnWeight = 0;
             break;
         case ACTOR_420700_TURN_RELEASE:
-            gScriptedWalkWork->st.turnWeight = ONE;
+            _gScriptedWalkWork->st.turnWeight = ONE;
             break;
     }
     return 0;

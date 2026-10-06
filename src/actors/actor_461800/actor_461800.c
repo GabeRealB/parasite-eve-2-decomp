@@ -37,22 +37,22 @@
 
 #include "rooms/neo_ark_r31.h"
 #include "../../shared/footstep_walk.h"
+/// Selects the scripted walker's writable signed-halfword approach mode.
+///
+/// Only element zero is a mode; the remaining halfword has an unproven role.
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #include "../../shared/scripted_walk.h"
 #include "../../shared/walker.h"
 
-/// Bytes at the scripted-walk mode's address. The first halfword is
-/// `gScriptedWalkModeValue`. Nothing reads or writes the second halfword;
-/// its role, including padding, is unproven.
-extern s16 gScriptedWalkMode[2];
+static s16 _gScriptedWalkModeStorage[2];
 
-/// Approach mode the last `scriptedWalkTo` selected for the first variant
-/// (0 faces the target, step 60; 1 faces away, step 15 backward; 2 faces the
-/// target, step 25). Halfword view of `gScriptedWalkMode`, which is how the
-/// walk code addresses the mode.
-extern s16 gScriptedWalkModeValue __asm__("gScriptedWalkMode");
+/// Signed-halfword approach mode at the start of the scripted walker's storage.
+///
+/// Values are `SCRIPTED_WALK_MODE_*`. The scalar view retains the access
+/// shape required by the walk-to handler; the trailing halfword is not read.
+extern s16 gScriptedWalkModeValue __asm__("_gScriptedWalkModeStorage");
 
-extern ScriptedWalkAttachmentsWork* gScriptedWalkWork;
+static ScriptedWalkAttachmentsWork* _gScriptedWalkWork;
 
 /// The task the first variant's work block above belongs to, published by
 /// `func_actor_461800_80132390` alongside it.
@@ -866,11 +866,21 @@ s32 D_actor_461800_8014388C = 0;
 
 s32 D_actor_461800_80143890 = 0;
 
-ScriptedWalkAttachmentsWork* gScriptedWalkWork = NULL;
+/// Borrowed work block of the scripted walker and its two model attachments.
+///
+/// The spawn and dispatcher publish the allocation also held by `Task::work`.
+/// Animation and message handlers require it to remain live; task teardown
+/// releases it without clearing this pointer.
+static ScriptedWalkAttachmentsWork* _gScriptedWalkWork = NULL;
 
 Task* D_actor_461800_80143898 = NULL;
 
-s16 gScriptedWalkMode[2] = {
+/// Halfword storage containing the scripted walker's approach mode.
+///
+/// Element zero is the writable signed mode selected by the walk-to message
+/// (`SCRIPTED_WALK_MODE_*`). Element one is never accessed; its role is
+/// unproven. Keep both halfwords, including the second's original contents.
+static s16 _gScriptedWalkModeStorage[2] = {
     0,
     -0x3658,
 };
@@ -1060,8 +1070,8 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    task->work = (gScriptedWalkWork = memCalloc(sizeof(ScriptedWalkAttachmentsWork), false));
-    if (gScriptedWalkWork == NULL) {
+    task->work = (_gScriptedWalkWork = memCalloc(sizeof(ScriptedWalkAttachmentsWork), false));
+    if (_gScriptedWalkWork == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -1073,33 +1083,33 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     obj->otOffset                    = 1;
     obj->flags                       = 0;
-    obj->lightMtx                    = &gScriptedWalkWork->light;
-    obj->colorMtx                    = &gScriptedWalkWork->color;
+    obj->lightMtx                    = &_gScriptedWalkWork->light;
+    obj->colorMtx                    = &_gScriptedWalkWork->color;
     vec.vx                           = coord->workm.t[0];
     vec.vy                           = coord->workm.t[1] - 0x320;
     D_actor_461800_80143898          = task;
     vec.vz                           = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&gScriptedWalkWork->rig.anim, D_actor_461800_80139FB0, obj,
-                         gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
-    gScriptedWalkWork->st.animId = 1;
-    gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
+    animationInitContext(&_gScriptedWalkWork->rig.anim, D_actor_461800_80139FB0, obj,
+                         _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
+    _gScriptedWalkWork->st.animId = 1;
+    _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
 
     spawned1 = taskSpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
-        gScriptedWalkWork->attachment1 = spawned1;
+        _gScriptedWalkWork->attachment1 = spawned1;
         actorTintModel(spawned1->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned2 = taskSpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
-        gScriptedWalkWork->attachment2 = spawned2;
+        _gScriptedWalkWork->attachment2 = spawned2;
         actorTintModel(spawned2->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
-    gScriptedWalkWork->st.travel  = 0;
-    gScriptedWalkWork->turnFrames = 0;
-    task->msgTable                = D_actor_461800_80139F5C;
+    _gScriptedWalkWork->st.travel  = 0;
+    _gScriptedWalkWork->turnFrames = 0;
+    task->msgTable                 = D_actor_461800_80139F5C;
     scriptedWalkUpdate(task);
     task->state++;
 }
@@ -1107,7 +1117,7 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
 #include "../../shared/scripted_walk_update.inc.c"
 
 /// Two-state dispatcher: publishes the task's work block in
-/// `gScriptedWalkWork` on the way through, then calls the handler its
+/// `_gScriptedWalkWork` on the way through, then calls the handler its
 /// state selects.
 void func_actor_461800_801329B0(Task* task)
 {
@@ -1116,7 +1126,7 @@ void func_actor_461800_801329B0(Task* task)
         func_actor_461800_80132A0C,
     };
 
-    gScriptedWalkWork = task->work;
+    _gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1185,14 +1195,14 @@ void func_actor_461800_80132B74(Task* task)
 s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 6) {
-        gScriptedWalkWork->st.animId = preset->animationId;
+        _gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gScriptedWalkBlendFrames    = preset->blendFrames;
+            _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
+            gScriptedWalkBlendFrames     = preset->blendFrames;
         } else {
-            gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
+            _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
-        gScriptedWalkWork->st.field_6 = 0;
+        _gScriptedWalkWork->st.field_6 = 0;
         scriptedWalkUpdate(D_actor_461800_80143898);
         return 0;
     }
@@ -1207,8 +1217,8 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
 s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TmdObject* own    = D_actor_461800_80143898->extra.tmd;
-    TmdObject* first  = gScriptedWalkWork->attachment1->extra.tmd;
-    TmdObject* second = gScriptedWalkWork->attachment2->extra.tmd;
+    TmdObject* first  = _gScriptedWalkWork->attachment1->extra.tmd;
+    TmdObject* second = _gScriptedWalkWork->attachment2->extra.tmd;
 
     if (arg2 & 1) {
         own->flags    = 0;
@@ -1232,7 +1242,7 @@ s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 {
     if (request->command == 0) {
-        gScriptedWalkWork->turnFrames = 0x14;
+        _gScriptedWalkWork->turnFrames = 0x14;
     }
     return 0;
 }

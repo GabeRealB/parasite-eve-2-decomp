@@ -9,9 +9,9 @@ void scriptedWalkBlendAnim(void)
 
     i = 1;
     do {
-        animationSeekSlotWithBlend(&gScriptedWalkWork->rig.anim, i, gScriptedWalkWork->st.animId, 0,
+        animationSeekSlotWithBlend(&SCRIPTED_WALK_WORK->rig.anim, i, SCRIPTED_WALK_WORK->st.animId, 0,
                                    gScriptedWalkBlendFrames);
         i++;
     } while (i < 0x14);
-    gScriptedWalkWork->st.appliedAnimId = gScriptedWalkWork->st.animId;
+    SCRIPTED_WALK_WORK->st.appliedAnimId = SCRIPTED_WALK_WORK->st.animId;
 }

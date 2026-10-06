@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_143900.
 D_actor_143900_80149688 = 0x80149688; // size:0x30 defined:True
-gScriptedWalkWork = 0x801496B8; // size:0x4 defined:True
+_gScriptedWalkWork = 0x801496B8; // size:0x4 defined:True
 D_actor_143900_801496BC = 0x801496BC; // size:0x4 defined:True
 D_actor_143900_80149630 = 0x80149630; // size:0x2 defined:True
 D_actor_143900_80149634 = 0x80149634; // size:0x30 defined:True
@@ -184,8 +184,8 @@ _gActor143900Animation17280Records = 0x80148E40; // size:0x238 defined:True
 _gActor143900Animation17280Indices = 0x80149078; // size:0x28 defined:True
 _gActor143900Animation17280 = 0x801490A0; // size:0x28 defined:True
 D_actor_143900_80133860 = 0x80133860; // size:0x120 defined:True
-gScriptedWalkMode = 0x801496C0; // size:0x4 defined:True
-D_actor_143900_801496C4 = 0x801496C4; // size:0x4 defined:True
+_gScriptedWalkModeStorage = 0x801496C0; // size:0x4 defined:True
+_gScriptedWalkSecondWork = 0x801496C4; // size:0x4 defined:True
 D_actor_143900_801496C8 = 0x801496C8; // size:0x4 defined:True
 D_actor_143900_801334FC = 0x801334FC; // size:0x14 defined:True
 D_actor_143900_80133510 = 0x80133510; // size:0x14 defined:True
@@ -193,11 +193,11 @@ D_actor_143900_80133524 = 0x80133524; // size:0x14 defined:True
 D_actor_143900_80133538 = 0x80133538; // size:0x14 defined:True
 D_actor_143900_8013354C = 0x8013354C; // size:0x14 defined:True
 D_actor_143900_80133560 = 0x80133560; // size:0x300 defined:True
-D_actor_143900_801496CC = 0x801496CC; // size:0x2 defined:True
+_gScriptedWalkSecondMode = 0x801496CC; // size:0x2 defined:True
 
 D_shelter_r49_8017DA00 = 0x8017DA00; // absolute:True owner=shelter_r49
 scriptedWalkUpdate = 0x80131FD4; // type:func
-scriptedWalkTickAnim = 0x801324C8; // type:func
+_scriptedWalkTickAnim = 0x801324C8; // type:func
 scriptedWalkResetAnim = 0x80132514; // type:func
 scriptedWalkBlendAnim = 0x801325A4; // type:func
 scriptedWalkTo = 0x8013279C; // type:func
