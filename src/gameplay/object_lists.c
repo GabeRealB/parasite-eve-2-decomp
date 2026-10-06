@@ -871,24 +871,24 @@ void Gp_ClearObj4AList(s32 arg0)
     WorldCollisionTrigger*  next;
     WorldCollisionTrigger*  temp;
     s32                     flags;
-    s32                     mask;
 
     head = Gp_Obj4ALists[arg0];
     temp = *head;
     if (temp != NULL) {
         node  = temp;
         *head = NULL;
-        mask  = ~(0xFF ^ WORLD_COLLISION_TRIGGER_PERSISTENT_FLAGS);
-    loop:
-        flags          = node->flags;
-        next           = node->next;
-        node->prevLink = NULL;
-        flags         &= mask;
-        node->flags    = flags;
-        if (next != NULL) {
-            node->next = NULL;
-            node       = next;
-            goto loop;
+        for (;;) {
+            flags          = node->flags;
+            next           = node->next;
+            node->prevLink = NULL;
+            flags         &= ~(0xFF ^ WORLD_COLLISION_TRIGGER_PERSISTENT_FLAGS);
+            node->flags    = flags;
+            if (next != NULL) {
+                node->next = NULL;
+                node       = next;
+            } else {
+                break;
+            }
         }
     }
 }
@@ -949,24 +949,24 @@ void Gp_ClearObj3AList(s32 arg0)
     WorldCollisionOccluder*  next;
     WorldCollisionOccluder*  first;
     s32                      flags;
-    s32                      mask;
 
     head  = Gp_Obj3ALists[arg0];
     first = *head;
     if (first != NULL) {
         node  = first;
         *head = NULL;
-        mask  = ~(0xFF ^ WORLD_COLLISION_OCCLUDER_PERSISTENT_FLAGS);
-    loop:
-        flags          = node->flags;
-        next           = node->next;
-        node->prevLink = NULL;
-        flags         &= mask;
-        node->flags    = flags;
-        if (next != NULL) {
-            node->next = NULL;
-            node       = next;
-            goto loop;
+        for (;;) {
+            flags          = node->flags;
+            next           = node->next;
+            node->prevLink = NULL;
+            flags         &= ~(0xFF ^ WORLD_COLLISION_OCCLUDER_PERSISTENT_FLAGS);
+            node->flags    = flags;
+            if (next != NULL) {
+                node->next = NULL;
+                node       = next;
+            } else {
+                break;
+            }
         }
     }
 }
