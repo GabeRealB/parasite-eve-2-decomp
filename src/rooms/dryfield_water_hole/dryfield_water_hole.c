@@ -97,18 +97,22 @@ extern WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9];
 extern WorldCoordRoomLights       D_dryfield_water_hole_80182468[1];
 extern WorldCoordRoomLights       D_dryfield_water_hole_8018278C[1];
 
-s32 func_dryfield_water_hole_8017D5E8(Task*, s32, s32, s32);
-s32 func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
-s32 func_dryfield_water_hole_8017D784(Task*, s32, s32, s32);
-s32 func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
+static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+s32        func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
+static s32 _dryfieldWaterHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+s32        func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
+
+enum {
+    DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
+};
 
 extern _DryfieldWaterHoleSpotLightStorage D_dryfield_water_hole_801821E0;
 extern WorldCoordPointLight               D_dryfield_water_hole_80181FA0[6];
 
 TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
-    { 5105, func_dryfield_water_hole_8017D5E8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_hole_8017D784 },
+    { DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldWaterHoleRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldWaterHoleIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_dryfield_water_hole_8017D73C },
     { ROOM_MESSAGE_SOUND, func_dryfield_water_hole_8017D78C },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1306,13 +1310,17 @@ u8* gWaterHolePrimCursor = NULL;
 s16 gWaterHoleWaveScroll;
 
 static void func_dryfield_water_hole_8017D7DC(Task* arg0);
-static void func_dryfield_water_hole_8017D838(Task* task);
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_water_hole_8017D5E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room without consuming the item.
+///
+/// `itemId` is the inventory item ID carried by
+/// `DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM`; all inputs are unused.
+/// Returns zero so the item menu displays its refusal notice.
+static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_WATER_HOLE_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_WATER_HOLE_KEY_ITEM_REFUSED;
 }
 
 #include "../../shared/water_hole_door_msg.inc.c"
@@ -1330,9 +1338,12 @@ s32 func_dryfield_water_hole_8017D73C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Handler for message 0x13EF in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_water_hole_8017D784(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores trigger requests for a room-specific action.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` supplies a borrowed `request` and a zero
+/// second payload word. All inputs are unused; returns zero, which the
+/// direction sender ignores.
+static s32 _dryfieldWaterHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -1364,9 +1375,11 @@ static void func_dryfield_water_hole_8017D7DC(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// The room task's idle state, entry 1 of its three-state table: does
-/// nothing.
-static void func_dryfield_water_hole_8017D838(Task* task)
+/// Keeps the initialized room task idle without changing its state.
+///
+/// State 1 has no per-frame work; the task's installed message table remains
+/// available for dispatch. The task argument is unused.
+static void _dryfieldWaterHoleRoomIdle(Task* task)
 {
 }
 
@@ -1374,7 +1387,7 @@ static void func_dryfield_water_hole_8017D838(Task* task)
 /// `func_dryfield_water_hole_8017D840`: the entry tick, the idle state, then
 /// `taskKill`.
 static const TaskFuncTable3 D_dryfield_water_hole_8017D5C4 = {
-    { func_dryfield_water_hole_8017D7DC, func_dryfield_water_hole_8017D838, taskKill },
+    { func_dryfield_water_hole_8017D7DC, _dryfieldWaterHoleRoomIdle, taskKill },
 };
 
 /// The room task: copies the three-state table
@@ -1485,7 +1498,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_dryfield_water_hole_8017EC90(Task* task)
+void dryfieldWaterHoleWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
