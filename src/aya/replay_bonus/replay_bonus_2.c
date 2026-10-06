@@ -405,7 +405,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             func_replay_bonus_80118F00(0);
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             SetDispMask(1);
-            Display_SetMode(DISPLAY_SETUP_INTERLACED_640X480);
+            displayConfigureFramebuffers(DISPLAY_SETUP_INTERLACED_640X480);
             rect.x = REPLAY_BONUS_PICTURE_VRAM_X;
             rect.w = REPLAY_BONUS_PICTURE_WIDTH;
             rect.y = 0;
@@ -491,7 +491,7 @@ void func_replay_bonus_80117A08(Task* arg0)
         case 21:
             Gp_RestoreStreamRng();
             memFree(D_replay_bonus_801192BC);
-            Display_SetMode(DISPLAY_SETUP_DEFAULT);
+            displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
             arg0->state += 1;
             return;
         case 24:

@@ -16,7 +16,8 @@ static const u16 Display_WidthTable[];
 
 static const u16 Display_HeightTable[];
 
-static void Display_SetModeDefault(void);
+/// Gap in VRAM rows between the two 240-line framebuffer regions.
+enum { DISPLAY_FRAMEBUFFER_VERTICAL_GAP = 32 };
 
 static const u16 Display_WidthTable[] = {
     0x100,
@@ -32,53 +33,72 @@ static const u16 Display_HeightTable[] = {
     0x1E0,
 };
 
-void Display_SetMode(s32 modeBits)
+/// Initializes two environments that draw and display opposite VRAM regions.
+static inline void _displayInitializeAlternatingFramebuffers(DisplayState* display, u32 widthPixels, s32 heightPixels)
 {
-    DisplayState* ds;
+    s32 lowerFramebufferY;
+
+    SetDefDrawEnv(&display->drawEnv[0], 0, 0, (u16)widthPixels, heightPixels);
+    lowerFramebufferY = heightPixels + DISPLAY_FRAMEBUFFER_VERTICAL_GAP;
+    SetDefDispEnv(&display->dispEnv[0], 0, lowerFramebufferY, (u16)widthPixels, heightPixels);
+    SetDefDrawEnv(&display->drawEnv[1], 0, lowerFramebufferY, (u16)widthPixels, heightPixels);
+    SetDefDispEnv(&display->dispEnv[1], 0, 0, (u16)widthPixels, heightPixels);
+}
+
+/// Initializes two environments that draw and display the same VRAM region.
+static inline void _displayInitializeSharedFramebuffers(DisplayState* display, u32 widthPixels, s32 heightPixels)
+{
+    SetDefDrawEnv(&display->drawEnv[0], 0, 0, (u16)widthPixels, heightPixels);
+    SetDefDispEnv(&display->dispEnv[0], 0, 0, (u16)widthPixels, heightPixels);
+    SetDefDrawEnv(&display->drawEnv[1], 0, 0, (u16)widthPixels, heightPixels);
+    SetDefDispEnv(&display->dispEnv[1], 0, 0, (u16)widthPixels, heightPixels);
+}
+
+void displayConfigureFramebuffers(s32 setupBits)
+{
+    enum {
+        DISPLAY_SETUP_BITS_MASK         = 0xFFFF,
+        DISPLAY_FRAMEBUFFER_FULL_HEIGHT = 480,
+        DISPLAY_FRAMEBUFFER_HALF_HEIGHT = 240,
+    };
+
+    DisplayState* display;
     u32           widthPixels;
     u32           heightPixels;
-    s32           envHeight;
-    char          widthStagingByte;
-    s32           secondBufferY;
-    DisplayState* stateAlias;
+    s32           envHeightPixels;
     s8            interlaced;
-    u32           halfHeight;
+    u32           halfHeightPixels;
 
-    if (!(modeBits & 0xFFFF)) {
-        modeBits = DISPLAY_SETUP_DEFAULT;
+    if (!(setupBits & DISPLAY_SETUP_BITS_MASK)) {
+        setupBits = DISPLAY_SETUP_DEFAULT;
     }
-    interlaced   = (modeBits & DISPLAY_SETUP_INTERLACE_MASK) != 0;
-    ds           = &gDisplayState;
-    widthPixels  = Display_WidthTable[(u32)(modeBits & DISPLAY_SETUP_WIDTH_MASK) >> 4];
-    heightPixels = Display_HeightTable[modeBits & DISPLAY_SETUP_HEIGHT_MASK];
-    ds->width    = widthPixels;
-    ds->height   = heightPixels;
+    interlaced      = (setupBits & DISPLAY_SETUP_INTERLACE_MASK) != 0;
+    display         = &gDisplayState;
+    widthPixels     = Display_WidthTable[(setupBits & DISPLAY_SETUP_WIDTH_MASK) >> 4];
+    heightPixels    = Display_HeightTable[setupBits & DISPLAY_SETUP_HEIGHT_MASK];
+    display->width  = widthPixels;
+    display->height = heightPixels;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.interlace != 0) {
         interlaced = 1;
     }
-    envHeight     = heightPixels & 0xFFFF;
-    ds->interlace = interlaced;
-    stateAlias    = ds;
-    // A 480-line setup shares one VRAM area; shorter frames alternate vertically.
-    if (envHeight != 0x1E0) {
-        SetDefDrawEnv(&ds->drawEnv[0], 0, 0, (widthStagingByte = widthPixels, widthPixels & 0xFFFF), envHeight);
-        secondBufferY = envHeight + 0x20;
-        SetDefDispEnv(&ds->dispEnv[0], 0, secondBufferY, widthPixels & 0xFFFF, envHeight);
-        SetDefDrawEnv(&ds->drawEnv[1], 0, secondBufferY, widthPixels & 0xFFFF, envHeight);
-        SetDefDispEnv(&ds->dispEnv[1], 0, 0, widthPixels & 0xFFFF, envHeight);
-        if (modeBits & DISPLAY_SETUP_RGB24) {
-            ds->dispEnv[1].isrgb24 = 1;
-            ds->dispEnv[0].isrgb24 = 1;
+    envHeightPixels    = (u16)heightPixels;
+    display->interlace = interlaced;
+    // Separate 240-line regions alternate; a 480-line frame occupies both fields.
+    if (envHeightPixels != DISPLAY_FRAMEBUFFER_FULL_HEIGHT) {
+        _displayInitializeAlternatingFramebuffers(display, widthPixels, envHeightPixels);
+        if (setupBits & DISPLAY_SETUP_RGB24) {
+            display->dispEnv[1].isrgb24 = 1;
+            display->dispEnv[0].isrgb24 = 1;
         } else {
-            ds->dispEnv[1].isrgb24 = 0;
-            ds->dispEnv[0].isrgb24 = 0;
+            display->dispEnv[1].isrgb24 = 0;
+            display->dispEnv[0].isrgb24 = 0;
         }
         gDisplayState.drawEnv[1].ofs[0] = widthPixels >> 1;
         gDisplayState.drawEnv[0].ofs[0] = widthPixels >> 1;
-        halfHeight                      = heightPixels >> 1;
-        gDisplayState.drawEnv[0].ofs[1] = halfHeight;
-        gDisplayState.drawEnv[1].ofs[1] = (heightPixels + halfHeight) + 0x20;
-        gDisplayState.drawEnv[1].clip.y = heightPixels + 0x20;
+        halfHeightPixels                = heightPixels >> 1;
+        gDisplayState.drawEnv[0].ofs[1] = halfHeightPixels;
+        gDisplayState.drawEnv[1].ofs[1] = (heightPixels + halfHeightPixels) + DISPLAY_FRAMEBUFFER_VERTICAL_GAP;
+        gDisplayState.drawEnv[1].clip.y = heightPixels + DISPLAY_FRAMEBUFFER_VERTICAL_GAP;
         gDisplayState.drawEnv[1].clip.x = 0;
         gDisplayState.drawEnv[0].clip.x = 0;
         gDisplayState.drawEnv[0].clip.y = 0;
@@ -89,29 +109,27 @@ void Display_SetMode(s32 modeBits)
         gDisplayState.drawEnv[1].dfe    = 1;
         gDisplayState.drawEnv[0].dfe    = 1;
     } else {
-        SetDefDrawEnv(&ds->drawEnv[0], 0, 0, (widthStagingByte = widthPixels, widthPixels & 0xFFFF), envHeight);
-        SetDefDispEnv(&ds->dispEnv[0], 0, 0, widthPixels & 0xFFFF, envHeight);
-        SetDefDrawEnv(&stateAlias->drawEnv[1], 0, 0, widthPixels & 0xFFFF, envHeight);
-        SetDefDispEnv(&ds->dispEnv[1], 0, 0, widthPixels & 0xFFFF, envHeight);
-        widthStagingByte      = (widthPixels & 0xFFFF) >> 1;
-        ds->drawEnv[1].ofs[0] = (widthPixels & 0xFFFF) >> 1;
-        ds->drawEnv[0].ofs[0] = (widthPixels & 0xFFFF) >> 1;
-        ds->drawEnv[1].ofs[1] = 0xF0;
-        ds->drawEnv[0].ofs[1] = 0xF0;
-        ds->drawEnv[1].clip.x = 0;
-        ds->drawEnv[0].clip.x = 0;
-        ds->drawEnv[1].clip.y = 0;
-        ds->drawEnv[0].clip.y = 0;
-        ds->drawEnv[1].clip.w = widthPixels;
-        ds->drawEnv[0].clip.w = widthPixels;
-        ds->drawEnv[1].clip.h = heightPixels;
-        ds->drawEnv[0].clip.h = heightPixels;
-        ds->drawEnv[1].dfe    = 0;
-        ds->drawEnv[0].dfe    = 0;
+        // Both environments share VRAM; the SDK defaults keep 16-bit display.
+        _displayInitializeSharedFramebuffers(display, widthPixels, envHeightPixels);
+        display->drawEnv[1].ofs[0] = (u16)widthPixels >> 1;
+        display->drawEnv[0].ofs[0] = (u16)widthPixels >> 1;
+        display->drawEnv[1].ofs[1] = DISPLAY_FRAMEBUFFER_HALF_HEIGHT;
+        display->drawEnv[0].ofs[1] = DISPLAY_FRAMEBUFFER_HALF_HEIGHT;
+        display->drawEnv[1].clip.x = 0;
+        display->drawEnv[0].clip.x = 0;
+        display->drawEnv[1].clip.y = 0;
+        display->drawEnv[0].clip.y = 0;
+        display->drawEnv[1].clip.w = widthPixels;
+        display->drawEnv[0].clip.w = widthPixels;
+        display->drawEnv[1].clip.h = heightPixels;
+        display->drawEnv[0].clip.h = heightPixels;
+        display->drawEnv[1].dfe    = 0;
+        display->drawEnv[0].dfe    = 0;
     }
+    // Clear and display flags apply to both environment pairs.
     gDisplayState.drawEnv[1].dtd = 1;
     gDisplayState.drawEnv[0].dtd = 1;
-    if (modeBits & DISPLAY_SETUP_NO_CLEAR) {
+    if (setupBits & DISPLAY_SETUP_NO_CLEAR) {
         gDisplayState.drawEnv[1].isbg = 0;
         gDisplayState.drawEnv[0].isbg = 0;
     } else {
@@ -126,7 +144,7 @@ void Display_SetMode(s32 modeBits)
     }
     gDisplayState.dispEnv[1].isinter = interlaced;
     gDisplayState.dispEnv[0].isinter = interlaced;
-    if (!(modeBits & DISPLAY_SETUP_KEEP_VIEW)) {
+    if (!(setupBits & DISPLAY_SETUP_KEEP_VIEW)) {
         gfxResetView();
         gfxResetDefaultLights();
     }
@@ -149,9 +167,12 @@ void displaySetClearColor(s32 red, s32 green, s32 blue)
     gDisplayState.drawEnv[0].b0   = blue;
 }
 
-static void Display_SetModeDefault(void)
+/// Restores the default 320x240 environments, black clearing, view and lights.
+///
+/// The live save's interlace preference still applies.
+static void _displayConfigureDefaultFramebuffers(void)
 {
-    Display_SetMode(DISPLAY_SETUP_DEFAULT);
+    displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
 }
 
 void displaySetShakeY(s8 offsetY)

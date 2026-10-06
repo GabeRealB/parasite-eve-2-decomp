@@ -223,7 +223,7 @@ void Gp_BeginSessionTask(Task* arg0)
             ds->dispEnv[ds->drawBuffer].disp.x,
             ds->dispEnv[ds->drawBuffer].disp.y);
         ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
-        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+        displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
     Task_Spawn(0, 0x1C, arg0->spawnArg1.value & 0xF, 0);
     ds->skipDraw                      = 0;

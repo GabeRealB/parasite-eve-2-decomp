@@ -339,8 +339,9 @@ cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
 ```
 
 Both title rows share `source.interSectorOffset = 0` (same video). Disc → id is still how
-the key is chosen. `data.movie.displayMode == STREAM_MOVIE_DISPLAY_RGB24`: 24-bit MDEC (`Display_SetMode` 0xD010
-path). 320×240.
+the key is chosen. `data.movie.displayMode == STREAM_MOVIE_DISPLAY_RGB24`: 24-bit MDEC
+(`displayConfigureFramebuffers` with `DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 |
+DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW`, packed value 0xF010). 320×240.
 
 #### In-game
 

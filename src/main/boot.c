@@ -209,7 +209,7 @@ void Boot_LoadInitialFile(Task* task)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+            displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
             modeParam[0] = CdlModeSpeed | CdlModeSize1;
             CdControlB(CdlSetmode, modeParam, NULL);
             SetDispMask(0);

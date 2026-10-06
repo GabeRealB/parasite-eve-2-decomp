@@ -410,9 +410,9 @@ u32 Stream_InitializePlayback(u32 slotIndex)
         queue->movieFrame = 1;
         _streamClearDisplayBuffers(&clearRect);
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-            Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+            displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         } else {
-            Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+            displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         }
         gDisplayState.mdecActive = 1;
         DecDCTvlcBuild(D_8006AC38);
@@ -458,7 +458,7 @@ s32 CdCmd_StopMdec(s32 arg0)
                     rect.y = 0x110;
                     ClearImage(&rect, 0, 0, 0);
                 }
-                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+                displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
             }
             p->movieFrameAvailable   = 0;
             gDisplayState.mdecActive = 0;
@@ -840,7 +840,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                     ClearImage(&scratch.rect, 0, 0, 0);
                     scratch.rect.y = 0x110;
                     ClearImage(&scratch.rect, 0, 0, 0);
-                    Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+                    displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 }
                 stop->movieFrameAvailable = 0;
                 gDisplayState.mdecActive  = 0;
@@ -857,7 +857,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             if ((s16)CdCmd_StopMdec(0) != 0) {
                 if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
                     if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
-                        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+                        displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                     }
                     gDisplayState.mdecActive = 1;
                 }

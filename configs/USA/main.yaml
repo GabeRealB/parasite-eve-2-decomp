@@ -296,7 +296,7 @@ segments:
       - [0x2dd08, o, libgte/msc02] # InvSquareRoot, VectorNormalS, VectorNormal, VectorNormalSS, MatrixNormal
       - [0x2dfb8, o, libgte/smp_00] # LightColor, DpqColorLight, DpqColor3, Intpl, Square12, Square0, AverageZ3, AverageZ4, OuterProduct12, OuterProduct0, Lzc
       - [0x2e1c8, o, libgte/ratan] # ratan2
-      - [0x2e348, c, displaymode] # Display_SetMode / SetAutoClear
+      - [0x2e348, c, displaymode] # displayConfigureFramebuffers / SetAutoClear
       - [0x2e6b0, o, libgpu/e03] # SetDefDrawEnv
       - [0x2e770, o, libgpu/e04] # SetDefDispEnv
       - [0x2e7b0, c, otutil] # GsOT / display OT helpers

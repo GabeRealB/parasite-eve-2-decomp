@@ -147,13 +147,26 @@ extern void* gGpuPrimCursor;
 /// ordering-table base and primitive storage retain their existing values.
 void gpuClearFrameOrderingTable(s16 bufferIndex);
 
-/// Configure the two draw/display environments from packed setup bits.
+/// Configures the resident framebuffer layout and draw/display environments.
 ///
-/// Width index (bits 4..7) must be 0..4 for 256/320/384/512/640 pixels; height
-/// index (bits 0..3) must be 0..1 for 240/480 lines. Any bit in 8..11 requests
-/// interlace, and the saved interlace preference can also enable it. Other
-/// options are DISPLAY_SETUP_* flags; zero low 16 bits selects the default.
-void Display_SetMode(s32 modeBits);
+/// `setupBits` uses `DISPLAY_SETUP_*`: bits 4..7 select widths 256/320/384/512/640
+/// pixels (indices 0..4), and bits 0..3 select 240/480 lines (indices 0..1).
+/// Callers must supply valid indices; there is no bounds check. Zero low 16 bits
+/// selects `DISPLAY_SETUP_DEFAULT` (320x240); higher bits are ignored.
+/// Any bit in 8..11 requests interlace; the live save's preference can force it.
+///
+/// The 240-line layout alternates VRAM regions at y=0 and y=272, drawing into
+/// the region opposite the displayed one. The 480-line layout shares y=0 for
+/// both buffers and disables drawing into the displayed area. Drawing origins
+/// are centered in each region. `DISPLAY_SETUP_RGB24` enables 24-bit display
+/// only in the 240-line layout; the 480-line layout keeps the SDK's 16-bit mode.
+/// Dithering is enabled in both layouts. Clearing is black unless
+/// `DISPLAY_SETUP_NO_CLEAR` disables it. View and default lights are reset
+/// unless `DISPLAY_SETUP_KEEP_VIEW` is set.
+///
+/// Replaces both environment pairs in `gDisplayState` in place; subsequent
+/// presentation applies the rebuilt environments to the GPU.
+void displayConfigureFramebuffers(s32 setupBits);
 
 /// Selectors for one-, two- and three-vblank nominal frame timing.
 enum {

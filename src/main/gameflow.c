@@ -373,7 +373,7 @@ static void GameFlow_SpawnMainWhenReady(Task* task)
 {
     if (gDisplayState.control.flags.pendingPlayerPos == 0) {
         Task_Spawn(0, 2, 0, 0);
-        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR);
+        displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR);
         taskKill(task);
         return;
     }

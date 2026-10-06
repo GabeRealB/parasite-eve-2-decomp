@@ -203,7 +203,7 @@ static void Title_InitTask(Task* arg0)
             work->selection = TITLE_MENU_LOAD_GAME;
         }
         Text_LoadClutImages();
-        Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_KEEP_VIEW);
+        displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_KEEP_VIEW);
         ds->holdState                 = DISPLAY_HOLD_INITIAL;
         work->idleFrames              = -TITLE_SCREEN_FADE_FRAMES;
         ds->control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
@@ -542,7 +542,7 @@ void Title_DemoStreamTask(Task* task)
             break;
         case 5:
             if (cdCmdIsIdle()) {
-                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+                displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 task->state++;
             }
             break;

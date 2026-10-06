@@ -21661,27 +21661,24 @@ When the target schedules `andi s0, sN, 0xffff` *after* `a0`/`a1`/`a2` setup
 for a call (just before `move a3, s0`), a plain
 
 ```c
-widthStagingByte = widthPixels & 0xFFFF;
-SetDefDrawEnv(p, 0, 0, widthStagingByte, h);
+envWidthPixels = widthPixels & 0xFFFF;
+SetDefDrawEnv(p, 0, 0, envWidthPixels, h);
 ```
 
-with `u32 widthStagingByte` hoists the `andi` *before* the `addiu a0`. Declaring
-`widthStagingByte` as `char` and writing the width as a comma expression forces the late
-schedule while still emitting `andi …, 0xffff` for the actual argument:
+with `u32 envWidthPixels` hoists the `andi` *before* the `addiu a0`. Expressing
+the argument's unsigned 16-bit narrowing directly preserves the late schedule:
 
 ```c
-char widthStagingByte;
-
-SetDefDrawEnv(p, 0, 0, (widthStagingByte = widthPixels, widthPixels & 0xFFFF), h);
-/* later args reuse the same expression so CSE keeps $s0: */
-SetDefDispEnv(q, 0, y, widthPixels & 0xFFFF, h);
+SetDefDrawEnv(p, 0, 0, (u16)widthPixels, h);
+/* Later calls reuse the same narrowing so CSE keeps $s0. */
+SetDefDispEnv(q, 0, y, (u16)widthPixels, h);
 ```
 
-`widthStagingByte = widthPixels & 0xFFFF` alone on a `char` becomes `andi …, 0xff`. The
-comma form evaluates the full-width mask for the call while the dummy `char`
-store reshuffles the scheduler. A second local pointer alias (`stateAlias = ds`)
-used on one call site can also be required to keep the register set stable.
-`Display_SetMode` is the pure example.
+`displayConfigureFramebuffers` uses this form in its two environment-initialization
+helpers. Its former dead byte stores, comma expressions and second display-state
+pointer are unnecessary with the explicit narrowing; removing them preserves
+all 872 bytes of the translation unit's `.text` and its 16-byte `.rodata`.
+Both `static inline` helpers and block-scoped macro expansions retain those bytes.
 
 ## Dual magic-division + remainder for NTSC/PAL frame scaling
 

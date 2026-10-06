@@ -191,7 +191,7 @@ static void GameMain_Init(void)
 
     flag                     = 1;
     gDisplayState.drawBuffer = flag;
-    Display_SetMode(DISPLAY_SETUP_DEFAULT);
+    displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
     memFillBytes(Pad_RemapState, 0, sizeof(*Pad_RemapState));
 }
 

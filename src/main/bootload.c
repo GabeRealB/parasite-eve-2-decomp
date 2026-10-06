@@ -1380,7 +1380,7 @@ static void Fade_StartWhite(void)
     DR_TPAGE* dr;
     u8        color;
 
-    Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+    displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     SetDispMask(1);
 
     D_8006ACB4        = 0xFF;

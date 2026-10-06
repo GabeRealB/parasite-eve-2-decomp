@@ -9,7 +9,7 @@
 /// 3 step `r` -- the first by 0xA up to 0x50, the second by 1 up to
 /// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
 /// two ramps run back to back. State 4 steps `g` / `b` by 8; once
-/// `g` passes 0xFF the display mode is switched, `Fs_ImgBuffers` is
+/// `g` passes 0xFF the framebuffer environments are reconfigured, `Fs_ImgBuffers` is
 /// filled white, the parent work block's wave ramp is sent to
 /// `SCREEN_WAVE_RAMP_FINISHED`, and state 5 draws the full-screen white
 /// `TILE` + `DR_TPAGE` packed into `gGpuPrimCursor` before returning without
@@ -59,7 +59,7 @@ void blazeFadeTask(Task* arg0)
             if (work->g >= 0x100) {
                 parent             = (BlazeParentWork*)((Task*)arg0->spawnArg2.pointer)->work;
                 parent->wave.state = SCREEN_WAVE_RAMP_FINISHED;
-                Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
+                displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 memFillBytes(Fs_ImgBuffers, 0xFF, sizeof(*Fs_ImgBuffers));
                 work->b     = 0xFF;
                 work->g     = 0xFF;
