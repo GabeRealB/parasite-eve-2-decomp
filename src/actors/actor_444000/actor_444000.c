@@ -6798,6 +6798,24 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
+/// Puts the two floor quads `Gp_GridParams` keeps at vertices 24..31 back at
+/// their default heights: 500 for each quad's first two vertices, 800 for the
+/// other two.
+static inline void _actor444000ResetFloorQuads(void)
+{
+    SVECTOR* verts;
+
+    verts        = Gp_GridParams->vertices;
+    verts[24].vy = 0x1F4;
+    verts[25].vy = 0x1F4;
+    verts[26].vy = 0x320;
+    verts[27].vy = 0x320;
+    verts[28].vy = 0x1F4;
+    verts[29].vy = 0x1F4;
+    verts[30].vy = 0x320;
+    verts[31].vy = 0x320;
+}
+
 /// Per-frame tail of the arena fight: keeps the camera pulled back far enough
 /// to hold both the boss and the player, then runs the state the task is in.
 ///
@@ -6834,7 +6852,6 @@ void func_actor_444000_80142F28(Task* arg0)
     GluttonWork* work;
     Enemy*       enemy;
     Task*        player;
-    SVECTOR*     verts;
     s32          diff;
     s16          state;
 
@@ -6938,25 +6955,14 @@ void func_actor_444000_80142F28(Task* arg0)
                     }
                 }
             }
-            /* Re-read: the calls above can drop the fight back to state 0. The
-               `goto` is what lets the `state == 0` edge reach the reset
-               directly, as the ROM does. */
-            if (work->state != 0) {
-                goto skipGrid;
+            /* Re-read: the calls above can drop the fight back to state 0. */
+            if (work->state == 0) {
+                _actor444000ResetFloorQuads();
             }
+        } else {
+            _actor444000ResetFloorQuads();
         }
 
-        verts        = Gp_GridParams->vertices;
-        verts[24].vy = 0x1F4;
-        verts[25].vy = 0x1F4;
-        verts[26].vy = 0x320;
-        verts[27].vy = 0x320;
-        verts[28].vy = 0x1F4;
-        verts[29].vy = 0x1F4;
-        verts[30].vy = 0x320;
-        verts[31].vy = 0x320;
-
-    skipGrid:
         state = work->state;
         if (state == 5) {
             gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
