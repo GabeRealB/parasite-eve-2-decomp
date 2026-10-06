@@ -2460,20 +2460,7 @@ static s32 func_actor_403000_80134204(GfxCoord* arg0)
     scratch->offset.vz  = v->vz;
     scratch->offset.vx -= coord->coord.t[0];
     scratch->offset.vz -= coord->coord.t[2];
-    angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    angle               = actorYawTo(coord, scratch->offset.vx, scratch->offset.vz);
     if (angle < 0x400) {
         scratch->ringDir = 1;
     } else {
