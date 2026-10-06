@@ -139076,7 +139076,7 @@ Which fix applies depends on where the target's intermediate lives. If it is in
 a scratch register, split out the value. If it is computed in place in the
 argument register, hold only the constant in a local, as the `|` entry does.
 
-### A tied `SOFT_TOUCH_REG` copy is placed by sched2, an explicit `asm("move")` by sched1 (func_dryfield_night_motel_balcony_8018221C, 2026-09-23)
+### A tied `SOFT_TOUCH_REG` copy is placed by sched2, an explicit `asm("move")` by sched1 (_dryfieldNightMotelBalconyDrawFlame, 2026-09-23)
 
 **Symptom.** The scratch-block push has the compute-then-copy shape with the
 next field load *between* the two:
@@ -139372,7 +139372,7 @@ The remaining gap closed with two further spellings: `setUV4` (its store order
 u0,v0,u1,v1,u2,... is what keeps `u1` in its own register) and, for the scratch
 block's `addiu v0,head,-0x18` / `move t1,v0` pair whose copy is the value later
 stored to `SCRATCH_STACK_CURSOR_SLOT`, the explicit `__asm__("move %0,%1")` already used by
-`func_dryfield_night_motel_balcony_8018221C`. The compound push stores the carve
+`_dryfieldNightMotelBalconyDrawFlame`. The compound push stores the carve
 instead (98.87%), and `SOFT_TOUCH_REG` on the carve leaves the reload move ahead
 of the `lhu` (99.07%), as the scratch-push entries above predict.
 

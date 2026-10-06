@@ -89,10 +89,57 @@ STATIC_ASSERT_SIZEOF(_ClutOrigin, 4);
 
 extern _ClutOrigin D_dryfield_night_motel_balcony_80182DF4[];
 
-static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg);
-static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused);
-static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
-static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
+static void _dryfieldNightMotelBalconyDrawDebris(const Task* task, const u8* tintRgb, s32 unusedRowIndex);
+static void _dryfieldNightMotelBalconyDrawFallingParticle(const Task* task, const u8* tintRgb, s32 unusedDrawArg);
+static void _dryfieldNightMotelBalconyDrawDriftPuff(const Task* task, s32 clutOriginIndex);
+static void _dryfieldNightMotelBalconyDrawFlame(const Task* task, const u8* tintRgb, s16 unusedAge);
+
+/// Clears a particle's local rotation while preserving its translation.
+///
+/// The word stores cover the nine signed 12-fractional-bit rotation elements.
+/// Requires a writable, word-aligned matrix; no pointer is retained.
+static inline void _dryfieldNightMotelBalconyResetParticleRotation(MATRIX* localTransform)
+{
+    MATRIX_PAIR(localTransform, 0, 0) = ONE;
+    MATRIX_PAIR(localTransform, 0, 2) = 0;
+    MATRIX_PAIR(localTransform, 1, 1) = ONE;
+    MATRIX_PAIR(localTransform, 2, 0) = 0;
+    localTransform->m[2][2]           = ONE;
+}
+
+/// Projects a debris particle's composed view-space centre into scratch screen fields.
+///
+/// Coordinates narrow to signed halfwords; projection and flags are stored in
+/// the caller's live scratch block. Changes GTE state and retains no pointers.
+static inline void _dryfieldNightMotelBalconyProjectDebrisCentre(EffectShapeScratch* projection, const GfxCoord* coord)
+{
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&projection->worldPoint);
+    gte_rtps();
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+}
+
+/// Projects a particle's composed view-space centre into scratch screen fields.
+///
+/// Coordinates narrow to signed halfwords; projection and flags are stored in
+/// the caller's live scratch block. Changes GTE state and retains no pointers.
+static inline void _dryfieldNightMotelBalconyProjectParticleCentre(EffectCentreScratch* projection, const GfxCoord* coord)
+{
+    projection->worldPoint.vx = coord->workm.t[0];
+    projection->worldPoint.vy = coord->workm.t[1];
+    projection->worldPoint.vz = coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&projection->worldPoint);
+    gte_rtps();
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+}
 
 extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183750[1];
 extern WorldCollisionGrid         D_dryfield_night_motel_balcony_80183FE0[1];
@@ -3369,34 +3416,30 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
     addPrim(&gGpuCurrentOt[arg1], prim);
 }
 
-/// Per-frame handler of a falling room effect task that bounces. The first
-/// frame resets the coordinate's rotation to identity, keeps the low twelve bits of
-/// `Task::spawnArg1` in `pos.vx`, sets the speed `scale` to 0xA0, and rolls
-/// a frame period (0..7) into `pos.vy`, a start frame into `index`, a value
-/// into `pos.vz` and its per-tick step into `period`. When the spawner left
-/// no drift it rolls one (negative `spawnArg1`: about +-0x40 across and
-/// 0x20..0x11F in y; otherwise about +-0x80 on every axis) and turns it into
-/// `parent`'s frame. `spawnArg1` is then replaced by two bits of its upper half.
-/// Later frames step `pos.vz`, advance `index` once per period and move the
-/// coordinate by the drift scaled to `scale`. When `worldCollisionProbeGridSegment` reports a hit
-/// along the view-space step, the move is undone, the drift is bent halfway
-/// towards the vector it returns, speed and step are halved and the coordinate moves
-/// again; a hit within eight ticks of the previous one at a speed below 0x20
-/// moves the task to state 2. Without a hit, `0xA000 / scale` is added to the
-/// drift's y. Both states draw through
-/// `func_dryfield_night_motel_balcony_8017FF78`, fading over ticks 60..89 and
-/// releasing the task at 90. Event states 2 and 3 suspend it, 4 and above
-/// release it at once, and event state 1 freezes the tick and the motion.
-void func_dryfield_night_motel_balcony_8017F84C(Task* task)
+void dryfieldNightMotelBalconyDebrisTask(Task* task)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_NEW               = 0,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_MOVING            = 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SETTLED           = 2,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SIZE_MASK         = 0xFFF,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_ROW_MASK          = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FADE_START        = 60,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_LIFETIME          = 90,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FADE_STEP         = 4,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_REST_INTERVAL     = 8,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_REST_SPEED        = 0x20,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_INITIAL_SPEED     = 0xA0,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_GRAVITY_NUMERATOR = 0xA000,
+    };
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    MATRIX*     m;
-    s32         half;
-    SVECTOR     delta;
-    SVECTOR     dir;
-    SVECTOR     pos;
-    u8          color[3];
+    MATRIX*     localTransform;
+    s32         randomCentre;
+    SVECTOR     localDisplacement;
+    SVECTOR     probeEndOrHitPoint;
+    SVECTOR     probeStartOrNormal;
+    u8          fadeRgb[3];
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -3405,44 +3448,42 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
         goto release;
     }
 
+    // Probe and draw the composed starting position; local movement dirties the next cache.
     actorRenderComposeCoord(coord);
     work->age++;
 
     switch (task->state) {
-        case 0:
-            m                    = &coord->coord;
-            MATRIX_PAIR(m, 0, 0) = 0x1000;
-            MATRIX_PAIR(m, 0, 2) = 0;
-            MATRIX_PAIR(m, 1, 1) = 0x1000;
-            MATRIX_PAIR(m, 2, 0) = 0;
-            m->m[2][2]           = 0x1000;
-            work->pos.vx         = (u16)task->spawnArg1.value & 0xFFF;
-            work->scale          = 0xA0;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy         = (gRandomLcgState >> 16) & 7;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index          = (gRandomLcgState >> 16) & 7;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz         = (gRandomLcgState >> 16) & 0xFFF;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period         = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_NEW:
+            // Discard inherited rotation; velocity remains in the local world frame.
+            localTransform = &coord->coord;
+            _dryfieldNightMotelBalconyResetParticleRotation(localTransform);
+            work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SIZE_MASK;
+            work->scale     = DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_INITIAL_SPEED;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vy    = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->index     = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vz    = (gRandomLcgState >> 16) & (ONE - 1);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period    = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1.value < 0) {
-                    half            = 0x40;
+                    randomCentre    = 0x40;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = half - ((gRandomLcgState >> 16) & 0x7F);
+                    work->move.vx   = randomCentre - ((gRandomLcgState >> 16) & 0x7F);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->move.vy   = ((gRandomLcgState >> 16) & 0xFF) + 0x20;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = half - ((gRandomLcgState >> 16) & 0x7F);
+                    work->move.vz   = randomCentre - ((gRandomLcgState >> 16) & 0x7F);
                 } else {
-                    half            = 0x80;
+                    randomCentre    = 0x80;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vx   = randomCentre - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vy   = randomCentre - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vz   = randomCentre - ((gRandomLcgState >> 16) & 0xFF);
                 }
                 gte_SetRotMatrix(&work->parent->coord);
                 gte_ldv0(&work->move);
@@ -3451,10 +3492,10 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
             }
             VectorNormalSS(&work->move, &work->move);
             coord->composeStamp   = GRAPHICS_COORD_DIRTY;
-            task->state           = 1;
-            task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & 3;
+            task->state           = DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_MOVING;
+            task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_ROW_MASK;
             break;
-        case 1:
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_MOVING:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 work->pos.vz += work->period;
                 if (work->pos.vy != 0 && work->age % work->pos.vy == 0) {
@@ -3463,67 +3504,69 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
                 gte_lddp(work->scale);
                 gte_ldsv(&work->move);
                 gte_gpf12();
-                gte_stsv(&delta);
-                coord->coord.t[0]  += delta.vx;
-                coord->coord.t[1]  += delta.vy;
-                coord->coord.t[2]  += delta.vz;
+                gte_stsv(&localDisplacement);
+                coord->coord.t[0]  += localDisplacement.vx;
+                coord->coord.t[1]  += localDisplacement.vy;
+                coord->coord.t[2]  += localDisplacement.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                // Rotate the local step into composed view space; outputs reuse the endpoints.
                 gte_SetRotMatrix(&gGfxViewCoord.workm);
-                gte_ldv0(&delta);
+                gte_ldv0(&localDisplacement);
                 gte_rtv0();
-                gte_stsv(&dir);
-                pos.vx  = coord->workm.t[0];
-                pos.vy  = coord->workm.t[1];
-                pos.vz  = coord->workm.t[2];
-                dir.vx += pos.vx;
-                dir.vy += pos.vy;
-                dir.vz += pos.vz;
-                if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == 1) {
-                    coord->coord.t[0] -= delta.vx;
-                    coord->coord.t[1] -= delta.vy;
-                    coord->coord.t[2] -= delta.vz;
-                    work->move.vx      = (pos.vx >> 1) + (work->move.vx >> 1);
-                    work->move.vy      = pos.vy + (work->move.vy >> 1);
-                    work->move.vz      = (pos.vz >> 1) + (work->move.vz >> 1);
+                gte_stsv(&probeEndOrHitPoint);
+                probeStartOrNormal.vx  = coord->workm.t[0];
+                probeStartOrNormal.vy  = coord->workm.t[1];
+                probeStartOrNormal.vz  = coord->workm.t[2];
+                probeEndOrHitPoint.vx += probeStartOrNormal.vx;
+                probeEndOrHitPoint.vy += probeStartOrNormal.vy;
+                probeEndOrHitPoint.vz += probeStartOrNormal.vz;
+                if (worldCollisionProbeGridSegment(&probeEndOrHitPoint, &probeStartOrNormal, &probeEndOrHitPoint, &probeStartOrNormal) == 1) {
+                    // Undo the trial move and blend toward the room-space surface normal.
+                    coord->coord.t[0] -= localDisplacement.vx;
+                    coord->coord.t[1] -= localDisplacement.vy;
+                    coord->coord.t[2] -= localDisplacement.vz;
+                    work->move.vx      = (probeStartOrNormal.vx >> 1) + (work->move.vx >> 1);
+                    work->move.vy      = probeStartOrNormal.vy + (work->move.vy >> 1);
+                    work->move.vz      = (probeStartOrNormal.vz >> 1) + (work->move.vz >> 1);
                     VectorNormalSS(&work->move, &work->move);
                     work->scale  = work->scale >> 1;
                     work->period = work->period >> 1;
                     gte_lddp(work->scale);
                     gte_ldsv(&work->move);
                     gte_gpf12();
-                    gte_stsv(&delta);
-                    coord->coord.t[0] += delta.vx;
-                    coord->coord.t[1] += delta.vy;
-                    coord->coord.t[2] += delta.vz;
-                    if (work->age - work->step < 8 && work->scale < 0x20) {
-                        task->state = 2;
+                    gte_stsv(&localDisplacement);
+                    coord->coord.t[0] += localDisplacement.vx;
+                    coord->coord.t[1] += localDisplacement.vy;
+                    coord->coord.t[2] += localDisplacement.vz;
+                    if (work->age - work->step < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_REST_INTERVAL && work->scale < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_REST_SPEED) {
+                        task->state = DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SETTLED;
                     } else {
                         work->step = work->age;
                     }
                 } else if (work->scale > 0) {
-                    work->move.vy += 0xA000 / work->scale;
+                    work->move.vy += DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_GRAVITY_NUMERATOR / work->scale;
                 }
             } else {
                 work->age--;
             }
-            if (work->age < 60) {
-                func_dryfield_night_motel_balcony_8017FF78(task, NULL, task->spawnArg1.value);
-            } else if (work->age < 90) {
-                color[0] = color[1] = color[2] = (90 - work->age) * 4;
-                func_dryfield_night_motel_balcony_8017FF78(task, color, task->spawnArg1.value);
+            if (work->age < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FADE_START) {
+                _dryfieldNightMotelBalconyDrawDebris(task, NULL, task->spawnArg1.value);
+            } else if (work->age < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_LIFETIME) {
+                fadeRgb[0] = fadeRgb[1] = fadeRgb[2] = (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_LIFETIME - work->age) * DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FADE_STEP;
+                _dryfieldNightMotelBalconyDrawDebris(task, fadeRgb, task->spawnArg1.value);
             } else {
                 effectKillTask(work, task);
             }
             break;
-        case 2:
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SETTLED:
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 work->age--;
             }
-            if (work->age < 60) {
-                func_dryfield_night_motel_balcony_8017FF78(task, NULL, task->spawnArg1.value);
-            } else if (work->age < 90) {
-                color[0] = color[1] = color[2] = (90 - work->age) * 4;
-                func_dryfield_night_motel_balcony_8017FF78(task, color, task->spawnArg1.value);
+            if (work->age < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FADE_START) {
+                _dryfieldNightMotelBalconyDrawDebris(task, NULL, task->spawnArg1.value);
+            } else if (work->age < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_LIFETIME) {
+                fadeRgb[0] = fadeRgb[1] = fadeRgb[2] = (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_LIFETIME - work->age) * DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FADE_STEP;
+                _dryfieldNightMotelBalconyDrawDebris(task, fadeRgb, task->spawnArg1.value);
             } else {
             release:
                 effectKillTask(work, task);
@@ -3532,74 +3575,71 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
     }
 }
 
-/// Draws the task's coordinate-body position as a rotated billboard `POLY_FT4`, taking
-/// its texture frame from texture row `Task::spawnArg1` and column
-/// `index & 7`. The quad's half-extent is the inclusive frame UV span times `pos.vx`
-/// divided by the projected depth, rotated by `pos.vz`. A non-NULL `color`
-/// tints the quad and makes it semi-transparent; NULL draws it raw. `arg` is
-/// unused.
-static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
+/// Draws a spinning debris billboard, optionally modulated by three RGB bytes.
+///
+/// The live task supplies an `EffectWork` and a composed coordinate body. Its
+/// initialized `spawnArg1.value` selects texture/palette row 0..2; `index` wraps
+/// across eight frames. `pos.vx` is the sizing numerator and `pos.vz` the angle
+/// (4096 per turn). `tintRgb` is borrowed for this call; NULL selects raw opaque
+/// texture, otherwise the quad uses additive semitransparency. The ignored
+/// `unusedRowIndex` is retained in the call signature. Uses and releases one
+/// `EffectShapeScratch` block; changes GTE state and queues at projected depth.
+static void _dryfieldNightMotelBalconyDrawDebris(const Task* task, const u8* tintRgb, s32 unusedRowIndex)
 {
     enum {
-        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW = 8,
-        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_WORDS     = 16,
-        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_Y         = 271,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW     = 8,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_WORDS         = 16,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_Y             = 271,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_TRIG_FRACTION_BITS = 12,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_QUARTER_TURN       = ONE / 4,
     };
-    EffectWork*         work  = task->spawnArg2.pointer;
-    GfxCoord*           coord = task->extra.coordBody->coord;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
+    const EffectWork*   work  = task->spawnArg2.pointer;
+    const GfxCoord*     coord = task->extra.coordBody->coord;
+    EffectShapeScratch* projection;
+    POLY_FT4*           quad;
     s16                 uvSpan;
 
     uvSpan = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize - 1;
     SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    block                = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
-    gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        if (color != NULL) {
-            prim->r0 = color[0];
-            prim->g0 = color[1];
-            prim->b0 = color[2];
-            setSemiTrans(prim, 1);
+    projection = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    // Project the composed view-space centre before constructing screen-space corners.
+    _dryfieldNightMotelBalconyProjectDebrisCentre(projection, coord);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        if (tintRgb != NULL) {
+            quad->r0 = tintRgb[0];
+            quad->g0 = tintRgb[1];
+            quad->b0 = tintRgb[2];
+            setSemiTrans(quad, 1);
         } else {
-            setcode(prim, 0x2D);
+            setShadeTex(quad, 1);
         }
-        prim->tpage            = getTPage(0, GPU_BLEND_ADD, D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].vramX, 0);
-        prim->clut             = getClut(task->spawnArg1.value * DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_WORDS, DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_Y);
-        prim->u0               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize;
-        prim->v0               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
-        prim->u1               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize + uvSpan;
-        prim->v1               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
-        prim->u2               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize;
-        prim->v2               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + uvSpan;
-        prim->u3               = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize + uvSpan;
-        prim->v3               = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + uvSpan;
-        block->extent.corner.x = (((uvSpan * work->pos.vx) / block->depth) * rsin(work->pos.vz)) >> 12;
-        block->extent.corner.y = (((uvSpan * work->pos.vx) / block->depth) * rcos(work->pos.vz)) >> 12;
-        prim->x0               = block->screenX + block->extent.corner.x;
-        prim->x3               = block->screenX - block->extent.corner.x;
-        prim->y0               = block->screenY - block->extent.corner.y;
-        prim->y3               = block->screenY + block->extent.corner.y;
-        block->extent.corner.x = (((uvSpan * work->pos.vx) / block->depth) * rsin(work->pos.vz + 0x400)) >> 12;
-        block->extent.corner.y = (((uvSpan * work->pos.vx) / block->depth) * rcos(work->pos.vz + 0x400)) >> 12;
-        prim->x1               = block->screenX + block->extent.corner.x;
-        prim->x2               = block->screenX - block->extent.corner.x;
-        prim->y1               = block->screenY - block->extent.corner.y;
-        prim->y2               = block->screenY + block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        quad->tpage                 = getTPage(0, GPU_BLEND_ADD, D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].vramX, 0);
+        quad->clut                  = getClut(task->spawnArg1.value * DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_WORDS, DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_CLUT_Y);
+        quad->u0                    = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize;
+        quad->v0                    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
+        quad->u1                    = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize + uvSpan;
+        quad->v1                    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v;
+        quad->u2                    = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize;
+        quad->v2                    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + uvSpan;
+        quad->u3                    = (work->index & (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FRAMES_PER_ROW - 1)) * D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].frameSize + uvSpan;
+        quad->v3                    = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].v + uvSpan;
+        projection->extent.corner.x = (((uvSpan * work->pos.vx) / projection->depth) * rsin(work->pos.vz)) >> DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_TRIG_FRACTION_BITS;
+        projection->extent.corner.y = (((uvSpan * work->pos.vx) / projection->depth) * rcos(work->pos.vz)) >> DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_TRIG_FRACTION_BITS;
+        quad->x0                    = projection->screenX + projection->extent.corner.x;
+        quad->x3                    = projection->screenX - projection->extent.corner.x;
+        quad->y0                    = projection->screenY - projection->extent.corner.y;
+        quad->y3                    = projection->screenY + projection->extent.corner.y;
+        projection->extent.corner.x = (((uvSpan * work->pos.vx) / projection->depth) * rsin(work->pos.vz + DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_QUARTER_TURN)) >> DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_TRIG_FRACTION_BITS;
+        projection->extent.corner.y = (((uvSpan * work->pos.vx) / projection->depth) * rcos(work->pos.vz + DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_QUARTER_TURN)) >> DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_TRIG_FRACTION_BITS;
+        quad->x1                    = projection->screenX + projection->extent.corner.x;
+        quad->x2                    = projection->screenX - projection->extent.corner.x;
+        quad->y1                    = projection->screenY - projection->extent.corner.y;
+        quad->y2                    = projection->screenY + projection->extent.corner.y;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
@@ -3749,10 +3789,10 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
             }
             t = work->age;
             if (t < 0x14) {
-                func_dryfield_night_motel_balcony_80180C60(task, NULL, 0);
+                _dryfieldNightMotelBalconyDrawFallingParticle(task, NULL, 0);
             } else if (t < 0x1E) {
                 color[0] = color[1] = color[2] = (0x1E - t) * 0xC;
-                func_dryfield_night_motel_balcony_80180C60(task, color, 0);
+                _dryfieldNightMotelBalconyDrawFallingParticle(task, color, 0);
             } else {
                 effectKillTask(work, task);
             }
@@ -3763,10 +3803,10 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
             }
             t = work->age;
             if (t < 0x14) {
-                func_dryfield_night_motel_balcony_80180C60(task, NULL, 0);
+                _dryfieldNightMotelBalconyDrawFallingParticle(task, NULL, 0);
             } else if (t < 0x1E) {
                 color[0] = color[1] = color[2] = (0x1E - t) * 0xC;
-                func_dryfield_night_motel_balcony_80180C60(task, color, 0);
+                _dryfieldNightMotelBalconyDrawFallingParticle(task, color, 0);
             } else {
                 effectKillTask(work, task);
             }
@@ -3774,76 +3814,75 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
     }
 }
 
-/// Projects the task model's world position through `GsWSMATRIX` and, when the
-/// GTE flag is non-negative, queues one `POLY_FT4` billboard (tpage 0x2C, clut
-/// 0x43C3) centred on it. `index % 6` picks one of six 40-texel columns at
-/// v 0x40..0x67, and the half-extent is `pos.vx * 39 / depth` on both axes.
-/// `color` modulates the texture and makes the quad semi-transparent; NULL
-/// draws the texture raw and opaque. The third argument is never read; every
-/// caller passes 0.
-static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
+/// Draws the falling particle's six-frame billboard, optionally tinted.
+///
+/// Requires a live `EffectWork` and composed coordinate body. `index` wraps across
+/// six 40-texel cells; `pos.vx` * 39 / (SZ3 / 4) is the half-side in screen pixels.
+/// `tintRgb` borrows three RGB bytes, enabling additive semitransparency; NULL
+/// draws the raw opaque texture. `unusedDrawArg` is ignored (callers supply 0).
+/// Uses and releases one `EffectCentreScratch` block, changes GTE state and queues
+/// one `POLY_FT4` when projection succeeds. No caller pointers are retained.
+static void _dryfieldNightMotelBalconyDrawFallingParticle(const Task* task, const u8* tintRgb, s32 unusedDrawArg)
 {
-    EffectWork*          work;
-    GfxCoord*            coord;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    DisplayState*        ds;
-    s16                  xy;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_FRAME_COUNT = 6,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_CELL_SIZE   = 40,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_UV_SPAN     = DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_CELL_SIZE - 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_TOP_V       = 0x40,
+    };
+    const EffectWork*    work;
+    const GfxCoord*      coord;
+    EffectCentreScratch* projection;
+    POLY_FT4*            quad;
+    const DisplayState*  display;
+    s16                  screenEdge;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
     SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
-    gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        if (color != NULL) {
-            prim->r0 = color[0];
-            prim->g0 = color[1];
-            prim->b0 = color[2];
-            setSemiTrans(prim, 1);
+    projection = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    // Project the composed view-space centre before constructing screen-space corners.
+    _dryfieldNightMotelBalconyProjectParticleCentre(projection, coord);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        if (tintRgb != NULL) {
+            quad->r0 = tintRgb[0];
+            quad->g0 = tintRgb[1];
+            quad->b0 = tintRgb[2];
+            setSemiTrans(quad, 1);
         } else {
-            setcode(prim, 0x2D);
+            setShadeTex(quad, 1);
         }
-        prim->tpage         = 0x2C;
-        prim->clut          = 0x43C3;
-        prim->u0            = work->index % 6 * 40;
-        prim->v0            = 0x40;
-        prim->u1            = work->index % 6 * 40 + 0x27;
-        prim->v1            = 0x40;
-        prim->u2            = work->index % 6 * 40;
-        prim->v2            = 0x67;
-        prim->u3            = work->index % 6 * 40 + 0x27;
-        prim->v3            = 0x67;
-        block->screenExtent = work->pos.vx * 39 / block->depth;
-        xy                  = block->screenX - block->screenExtent;
-        prim->x2            = xy;
-        prim->x0            = xy;
-        xy                  = block->screenX + block->screenExtent;
-        prim->x3            = xy;
-        prim->x1            = xy;
-        xy                  = block->screenY - block->screenExtent;
-        prim->y1            = xy;
-        prim->y0            = xy;
-        xy                  = block->screenY + block->screenExtent;
-        prim->y3            = xy;
-        prim->y2            = xy;
-        ds                  = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        quad->tpage              = getTPage(0, GPU_BLEND_ADD, 768, 0);
+        quad->clut               = getClut(48, 271);
+        quad->u0                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_FRAME_COUNT * DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_CELL_SIZE;
+        quad->v0                 = DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_TOP_V;
+        quad->u1                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_FRAME_COUNT * DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_UV_SPAN;
+        quad->v1                 = DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_TOP_V;
+        quad->u2                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_FRAME_COUNT * DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_CELL_SIZE;
+        quad->v2                 = DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_TOP_V + DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_UV_SPAN;
+        quad->u3                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_FRAME_COUNT * DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_UV_SPAN;
+        quad->v3                 = DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_TOP_V + DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_UV_SPAN;
+        projection->screenExtent = work->pos.vx * DRYFIELD_NIGHT_MOTEL_BALCONY_FALLING_UV_SPAN / projection->depth;
+        screenEdge               = projection->screenX - projection->screenExtent;
+        quad->x2                 = screenEdge;
+        quad->x0                 = screenEdge;
+        screenEdge               = projection->screenX + projection->screenExtent;
+        quad->x3                 = screenEdge;
+        quad->x1                 = screenEdge;
+        screenEdge               = projection->screenY - projection->screenExtent;
+        quad->y1                 = screenEdge;
+        quad->y0                 = screenEdge;
+        screenEdge               = projection->screenY + projection->screenExtent;
+        quad->y3                 = screenEdge;
+        quad->y2                 = screenEdge;
+        display                  = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
@@ -3946,26 +3985,21 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
     }
 }
 
-/// Per-frame handler of a drifting room effect task, a variant of
-/// `func_dryfield_night_motel_balcony_80181E7C`. The first frame resets the
-/// coordinate's rotation to identity, keeps the low twelve bits of
-/// `Task::spawnArg1` in `pos.vx`, rolls a frame period (1..4 ticks) into
-/// `pos.vy` and a value into `pos.vz`, and, when the spawner left no drift,
-/// rolls one whose ranges depend on `spawnArg1` (bit 30: +-0x80 on every axis;
-/// negative: +-0x10 across and 0..-0xFF in y; otherwise +-0x80 across and
-/// 0..15 in y) and turns it into `parent`'s frame. The drift is normalised and scaled to `scale`
-/// (0x40 with bit 30 or bit 29, else 0x80), and `spawnArg1` is replaced by
-/// two bits of its upper half. Later frames advance `index` once per period,
-/// move the coordinate by the drift, decrementing its y by one a tick, and hand
-/// the task to `func_dryfield_night_motel_balcony_801819E0` until `index`
-/// reaches 12, when it is released. Event states 2 and 3 suspend it, 4 and
-/// above release it at once, and state 1 freezes the drift and the tick.
-void func_dryfield_night_motel_balcony_8018158C(Task* task)
+void dryfieldNightMotelBalconyDriftPuffTask(Task* task)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_NEW         = 0,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_MOVING      = 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SIZE_MASK   = 0xFFF,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_ORIGIN_MASK = 3,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_FRAME_COUNT = 12,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SCATTER     = 0x40000000,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SLOW        = 0x20000000,
+    };
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    MATRIX*     m;
-    s32         half; // default drift length and the centre of the wide drift rolls
+    MATRIX*     localTransform;
+    s32         driftRange;
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -3974,33 +4008,31 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
         goto release;
     }
 
+    // Draw the composed starting position; local movement dirties the next cache.
     actorRenderComposeCoord(coord);
-    half = 0x80;
+    driftRange = 0x80;
     work->age++;
 
     switch (task->state) {
-        case 0:
-            m                    = &coord->coord;
-            MATRIX_PAIR(m, 0, 0) = 0x1000;
-            MATRIX_PAIR(m, 0, 2) = 0;
-            MATRIX_PAIR(m, 1, 1) = 0x1000;
-            MATRIX_PAIR(m, 2, 0) = 0;
-            m->m[2][2]           = 0x1000;
-            work->pos.vx         = (u16)task->spawnArg1.value & 0xFFF;
-            work->scale          = half;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy         = ((gRandomLcgState >> 16) & 3) + 1;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz         = (gRandomLcgState >> 16) & 0xFFF;
-            work->index          = 0;
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_NEW:
+            // Normalize the chosen world-frame drift once, then retain displacement per frame.
+            localTransform = &coord->coord;
+            _dryfieldNightMotelBalconyResetParticleRotation(localTransform);
+            work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SIZE_MASK;
+            work->scale     = driftRange;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vy    = ((gRandomLcgState >> 16) & 3) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vz    = (gRandomLcgState >> 16) & (ONE - 1);
+            work->index     = 0;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0x40000000) {
+                if (task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SCATTER) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vx   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vy   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    work->move.vz   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
                     work->scale     = 0x40;
                 } else {
                     if (task->spawnArg1.value < 0) {
@@ -4012,13 +4044,13 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
                         work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                     } else {
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = half - ((gRandomLcgState >> 16) & 0xFF);
+                        work->move.vx   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->move.vy   = (gRandomLcgState >> 16) & 0xF;
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = half - ((gRandomLcgState >> 16) & 0xFF);
+                        work->move.vz   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
                     }
-                    if (task->spawnArg1.value & 0x20000000) {
+                    if (task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SLOW) {
                         work->scale = 0x40;
                     }
                 }
@@ -4032,11 +4064,12 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
             gte_ldsv(&work->move);
             gte_gpf12();
             gte_stsv(&work->move);
-            coord->composeStamp   = GRAPHICS_COORD_DIRTY;
-            task->state           = 1;
-            task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & 3;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state         = DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_MOVING;
+            // Replace the packed spawn word with the palette-origin index (0..2).
+            task->spawnArg1.value = (s16)(task->spawnArg1.value >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_ORIGIN_MASK;
             break;
-        case 1:
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_MOVING:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 if (work->age % work->pos.vy == 0) {
                     work->index++;
@@ -4049,8 +4082,8 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
             } else {
                 work->age--;
             }
-            if (work->index < 12) {
-                func_dryfield_night_motel_balcony_801819E0(task, task->spawnArg1.value);
+            if (work->index < DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_FRAME_COUNT) {
+                _dryfieldNightMotelBalconyDrawDriftPuff(task, task->spawnArg1.value);
             } else {
             release:
                 effectKillTask(work, task);
@@ -4059,100 +4092,94 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
     }
 }
 
-/// Projects the task model's world position through `GsWSMATRIX` and, when the
-/// GTE flag is non-negative, queues one semi-transparent `POLY_FT4` billboard
-/// on tpage 0x2C centred on it. `index` is the animation frame: it picks a
-/// 48-texel cell of a five-column sheet starting at v 0x68, and steps the CLUT
-/// x by 16 per frame from the origin `arg` selects in
-/// `D_dryfield_night_motel_balcony_80182DF4`. The half-extent is
-/// `pos.vx * 47 / (depth + 1)` on both axes.
-static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
+/// Draws a centred drifting puff with its frame's palette, using additive blending.
+///
+/// Requires a live `EffectWork` and composed coordinate body. `clutOriginIndex`
+/// selects palette-origin row 0..2; `index` must be 0..11 and selects a 48-texel
+/// cell and a palette 16 VRAM words further along the row per frame. The raw
+/// texture supplies colour. `pos.vx` * 47 / (SZ3 / 4 + 1) gives the half-side in
+/// screen pixels. Uses and releases one `EffectCentreScratch` block, changes GTE
+/// state and queues one `POLY_FT4` when projection succeeds; retains no pointers.
+static void _dryfieldNightMotelBalconyDrawDriftPuff(const Task* task, s32 clutOriginIndex)
 {
-    EffectWork*          work;
-    GfxCoord*            coord;
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    DisplayState*        ds;
-    _ClutOrigin*         clut;
-    SVECTOR*             vec;
-    s16                  xy;
-    u16                  vz;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS    = 5,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE  = 48,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_UV_SPAN    = DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE - 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_TOP_V      = 0x68,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CLUT_WORDS = 16,
+    };
+    const EffectWork*    work;
+    const GfxCoord*      coord;
+    EffectCentreScratch* projection;
+    POLY_FT4*            quad;
+    const DisplayState*  display;
+    const _ClutOrigin*   selectedOrigin;
+    s16                  screenEdge;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
-    head                                                                        = SCRATCH_STACK_CURSOR(void);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)coord->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)coord->workm.t[1];
-    vz                                                                          = (u16)coord->workm.t[2];
-    SCRATCH_STACK_CURSOR(void)                                                  = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage         = 0x2C;
-        clut                = &D_dryfield_night_motel_balcony_80182DF4[arg];
-        prim->clut          = getClut(clut->x + work->index * 16, clut->y);
-        prim->u0            = work->index % 5 * 48;
-        prim->v0            = work->index / 5 * 48 + 0x68;
-        prim->u1            = work->index % 5 * 48 + 0x2F;
-        prim->v1            = work->index / 5 * 48 + 0x68;
-        prim->u2            = work->index % 5 * 48;
-        prim->v2            = work->index / 5 * 48 + 0x97;
-        prim->u3            = work->index % 5 * 48 + 0x2F;
-        prim->v3            = work->index / 5 * 48 + 0x97;
-        block->screenExtent = work->pos.vx * 0x2F / block->depth;
-        xy                  = block->screenX - (u16)block->screenExtent;
-        prim->x2            = xy;
-        prim->x0            = xy;
-        xy                  = block->screenX + (u16)block->screenExtent;
-        prim->x3            = xy;
-        prim->x1            = xy;
-        xy                  = block->screenY - (u16)block->screenExtent;
-        prim->y1            = xy;
-        prim->y0            = xy;
-        xy                  = block->screenY + (u16)block->screenExtent;
-        prim->y3            = xy;
-        prim->y2            = xy;
-        ds                  = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    projection = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    // Project the composed view-space centre before constructing screen-space corners.
+    _dryfieldNightMotelBalconyProjectParticleCentre(projection, coord);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        projection->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setShadeTex(quad, 1);
+        setSemiTrans(quad, 1);
+        quad->tpage              = getTPage(0, GPU_BLEND_ADD, 768, 0);
+        selectedOrigin           = &D_dryfield_night_motel_balcony_80182DF4[clutOriginIndex];
+        quad->clut               = getClut(selectedOrigin->x + work->index * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CLUT_WORDS, selectedOrigin->y);
+        quad->u0                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE;
+        quad->v0                 = work->index / DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_TOP_V;
+        quad->u1                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_UV_SPAN;
+        quad->v1                 = work->index / DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_TOP_V;
+        quad->u2                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE;
+        quad->v2                 = work->index / DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_TOP_V + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_UV_SPAN;
+        quad->u3                 = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_UV_SPAN;
+        quad->v3                 = work->index / DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_CELL_SIZE + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_TOP_V + DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_UV_SPAN;
+        projection->screenExtent = work->pos.vx * DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_UV_SPAN / projection->depth;
+        screenEdge               = projection->screenX - (u16)projection->screenExtent;
+        quad->x2                 = screenEdge;
+        quad->x0                 = screenEdge;
+        screenEdge               = projection->screenX + (u16)projection->screenExtent;
+        quad->x3                 = screenEdge;
+        quad->x1                 = screenEdge;
+        screenEdge               = projection->screenY - (u16)projection->screenExtent;
+        quad->y1                 = screenEdge;
+        quad->y0                 = screenEdge;
+        screenEdge               = projection->screenY + (u16)projection->screenExtent;
+        quad->y3                 = screenEdge;
+        quad->y2                 = screenEdge;
+        display                  = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// Per-frame handler of a drifting room effect task. The first frame resets the
-/// coordinate's rotation to identity, rolls a starting animation step (0..9) and a
-/// lifetime (5..14 ticks), and, when the spawner left no drift, rolls one and
-/// turns it into `parent`'s frame. The drift is then normalised and scaled to a
-/// length chosen by `Task::spawnArg1` (8 when negative, 0x80 with bit 30, 0x20
-/// otherwise). Later frames move the coordinate by the drift, bending it by one
-/// unit a tick, and draw it through `func_dryfield_night_motel_balcony_8018221C`,
-/// fading its colour over the last ten ticks before releasing the task. Event
-/// states 2 and 3 suspend it; 4 and above release it at once, and any non-zero
-/// state below that freezes the drift and the lifetime tick.
-void func_dryfield_night_motel_balcony_80181E7C(Task* task)
+void dryfieldNightMotelBalconyFlameTask(Task* task)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_NEW         = 0,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_MOVING      = 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_SIZE_MASK   = 0xFFF,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FAST        = 0x40000000,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FADE_FRAMES = 10,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FADE_STEP   = 12,
+    };
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    MATRIX*     m;
-    s32         seed;
-    s16         tick;
-    s16         end;
-    u8          color[3];
+    MATRIX*     localTransform;
+    s32         randomState;
+    s16         ageFrames;
+    s16         lifetimeFrames;
+    u8          fadeRgb[3];
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -4161,23 +4188,21 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
         goto release;
     }
 
+    // Draw the composed starting position; local movement dirties the next cache.
     actorRenderComposeCoord(coord);
     work->age++;
 
     switch (task->state) {
-        case 0:
-            seed                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            m                    = &coord->coord;
-            MATRIX_PAIR(m, 0, 0) = 0x1000;
-            MATRIX_PAIR(m, 0, 2) = 0;
-            MATRIX_PAIR(m, 1, 1) = 0x1000;
-            MATRIX_PAIR(m, 2, 0) = 0;
-            m->m[2][2]           = 0x1000;
-            work->pos.vx         = task->spawnArg1.value & 0xFFF;
-            gRandomLcgState      = seed;
-            work->index          = (gRandomLcgState >> 16) % 10;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle          = (gRandomLcgState >> 16) % 10 + 5;
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_NEW:
+            // Randomize the sprite phase and lifetime before selecting and scaling drift.
+            randomState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            localTransform = &coord->coord;
+            _dryfieldNightMotelBalconyResetParticleRotation(localTransform);
+            work->pos.vx    = task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_SIZE_MASK;
+            gRandomLcgState = randomState;
+            work->index     = (gRandomLcgState >> 16) % 10;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = (gRandomLcgState >> 16) % 10 + 5;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
@@ -4187,7 +4212,7 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
                 work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                 if (task->spawnArg1.value < 0) {
                     work->scale = 8;
-                } else if (task->spawnArg1.value & 0x40000000) {
+                } else if (task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FAST) {
                     work->scale = 0x80;
                 } else {
                     work->scale = 0x20;
@@ -4203,9 +4228,9 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
             gte_gpf12();
             gte_stsv(&work->move);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->state         = 1;
+            task->state         = DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_MOVING;
             break;
-        case 1:
+        case DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_MOVING:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 work->index++;
                 work->move.vy--;
@@ -4216,13 +4241,13 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
             } else {
                 work->age--;
             }
-            tick = work->age;
-            end  = work->angle;
-            if (tick < end - 10) {
-                func_dryfield_night_motel_balcony_8018221C(task, NULL, tick);
-            } else if (tick < end) {
-                color[0] = color[1] = color[2] = (end - tick) * 12;
-                func_dryfield_night_motel_balcony_8018221C(task, color, tick);
+            ageFrames      = work->age;
+            lifetimeFrames = work->angle;
+            if (ageFrames < lifetimeFrames - DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FADE_FRAMES) {
+                _dryfieldNightMotelBalconyDrawFlame(task, NULL, ageFrames);
+            } else if (ageFrames < lifetimeFrames) {
+                fadeRgb[0] = fadeRgb[1] = fadeRgb[2] = (lifetimeFrames - ageFrames) * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FADE_STEP;
+                _dryfieldNightMotelBalconyDrawFlame(task, fadeRgb, ageFrames);
             } else {
             release:
                 effectKillTask(work, task);
@@ -4231,89 +4256,90 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
     }
 }
 
-/// Draws a drifting effect task's sprite: projects its model's world position
-/// through `GsWSMATRIX` and, when the GTE flag is non-negative, queues one
-/// semi-transparent `POLY_FT4` (tpage 0x2B). The animation frame is
-/// `index % 10`; it picks the CLUT column and one 48-texel cell of a 5x2
-/// grid starting at v=0x28. The quad is centred on the projected point with a
-/// half-width of `pos.vx * 47 / depth` and extends three quarters above and one
-/// quarter below. `color` is the RGB the texture is modulated by; NULL draws
-/// the texture raw.
-/// `tick` is unused.
-static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
+/// Draws an additive flame billboard with three quarters above its anchor.
+///
+/// Requires a live `EffectWork` and composed coordinate body. `index` wraps across
+/// ten 48-texel cells and selects the matching 16-colour palette. `pos.vx` * 47 /
+/// (SZ3 / 4) gives the half-width in screen pixels; integer halving sets the
+/// vertical extents in a 3:1 ratio. `tintRgb` borrows three RGB bytes, or NULL
+/// selects raw texture colour; both modes blend additively. `unusedAge` is ignored.
+/// Uses and releases one `EffectCentreScratch` block, changes GTE state and queues
+/// one `POLY_FT4` when projection succeeds. No caller pointers are retained.
+static void _dryfieldNightMotelBalconyDrawFlame(const Task* task, const u8* tintRgb, s16 unusedAge)
 {
-    EffectWork*          work = task->spawnArg2.pointer;
-    GfxCoord*            coord;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    DisplayState*        ds;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FRAME_COUNT = 10,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_COLUMNS     = 5,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_CELL_SIZE   = 48,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_UV_SPAN     = DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_CELL_SIZE - 1,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_TOP_V       = 0x28,
+        DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_CLUT_WORDS  = 16,
+    };
+    const EffectWork*    work = task->spawnArg2.pointer;
+    const GfxCoord*      coord;
+    EffectCentreScratch* projection;
+    POLY_FT4*            quad;
+    const DisplayState*  display;
     s16                  frame;
-    s32                  u0;
-    s32                  u1;
-    s32                  vTop;
-    s32                  vBottom;
-    s16                  xy;
+    s32                  leftU;
+    s32                  rightU;
+    s32                  topV;
+    s32                  bottomV;
+    s16                  screenEdge;
 
-    frame = work->index % 10;
+    frame = work->index % DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FRAME_COUNT;
     coord = task->extra.coordBody->coord;
 
     SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
-    block->worldPoint.vx = coord->workm.t[0];
-    block->worldPoint.vy = coord->workm.t[1];
-    block->worldPoint.vz = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
-    gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        if (color != NULL) {
-            prim->r0 = color[0];
-            prim->g0 = color[1];
-            prim->b0 = color[2];
+    projection = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    // Project the composed view-space centre before constructing screen-space corners.
+    _dryfieldNightMotelBalconyProjectParticleCentre(projection, coord);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        if (tintRgb != NULL) {
+            quad->r0 = tintRgb[0];
+            quad->g0 = tintRgb[1];
+            quad->b0 = tintRgb[2];
         } else {
-            setcode(prim, 0x2D);
+            setShadeTex(quad, 1);
         }
-        prim->tpage = 0x2B;
-        prim->clut  = getClut(frame * 16 + 0x40, 0x10E);
-        setSemiTrans(prim, 1);
-        u0                    = frame % 5 * 48;
-        vTop                  = frame / 5 * 48;
-        u1                    = u0 + 0x2F;
-        vBottom               = vTop + 0x57;
-        vTop                  = vTop + 0x28;
-        prim->u0              = u0;
-        prim->v0              = vTop;
-        prim->u1              = u1;
-        prim->v1              = vTop;
-        prim->u2              = u0;
-        prim->v2              = vBottom;
-        prim->u3              = u1;
-        prim->v3              = vBottom;
-        block->screenExtent   = work->pos.vx * 47 / block->depth;
-        xy                    = block->screenX - block->screenExtent;
-        prim->x2              = xy;
-        prim->x0              = xy;
-        xy                    = block->screenX + block->screenExtent;
-        prim->x3              = xy;
-        prim->x1              = xy;
-        block->screenExtent >>= 1;
-        xy                    = block->screenY - block->screenExtent * 3;
-        prim->y1              = xy;
-        prim->y0              = xy;
-        xy                    = block->screenY + block->screenExtent;
-        prim->y3              = xy;
-        prim->y2              = xy;
-        ds                    = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+        quad->clut  = getClut(frame * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_CLUT_WORDS + 0x40, 0x10E);
+        setSemiTrans(quad, 1);
+        leftU                    = frame % DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_CELL_SIZE;
+        topV                     = frame / DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_COLUMNS * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_CELL_SIZE;
+        rightU                   = leftU + DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_UV_SPAN;
+        bottomV                  = topV + DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_TOP_V + DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_UV_SPAN;
+        topV                     = topV + DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_TOP_V;
+        quad->u0                 = leftU;
+        quad->v0                 = topV;
+        quad->u1                 = rightU;
+        quad->v1                 = topV;
+        quad->u2                 = leftU;
+        quad->v2                 = bottomV;
+        quad->u3                 = rightU;
+        quad->v3                 = bottomV;
+        projection->screenExtent = work->pos.vx * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_UV_SPAN / projection->depth;
+        screenEdge               = projection->screenX - projection->screenExtent;
+        quad->x2                 = screenEdge;
+        quad->x0                 = screenEdge;
+        screenEdge               = projection->screenX + projection->screenExtent;
+        quad->x3                 = screenEdge;
+        quad->x1                 = screenEdge;
+        // Keep three quarters of the billboard above its projected anchor.
+        projection->screenExtent >>= 1;
+        screenEdge                 = projection->screenY - projection->screenExtent * 3;
+        quad->y1                   = screenEdge;
+        quad->y0                   = screenEdge;
+        screenEdge                 = projection->screenY + projection->screenExtent;
+        quad->y3                   = screenEdge;
+        quad->y2                   = screenEdge;
+        display                    = &gDisplayState;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }

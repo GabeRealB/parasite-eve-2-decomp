@@ -597,7 +597,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_tonfa_baton_8011D1EC, { NULL } },                                 // 0x03A
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask3B, { NULL } },                                           // 0x03B
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_80181264, { NULL } },                          // 0x03C
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_8017F84C, { NULL } },                // 0x03D
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyDebrisTask, { NULL } },                       // 0x03D
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_bayonet_8011D1E4, { NULL } },                                // 0x03E
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask3F, { NULL } },                                        // 0x03F
     { { { TASK_BODY_COORD, 0x70 } }, func_p229_8011D1DC, { NULL } },                                        // 0x040
@@ -662,7 +662,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_security_room_80181108, { NULL } },                     // 0x07B
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask7C, { NULL } },                                        // 0x07C
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                   // 0x07D
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_80181E7C, { NULL } },                // 0x07E
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyFlameTask, { NULL } },                        // 0x07E
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask7F, { NULL } },                                           // 0x07F
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask80, { NULL } },                                        // 0x080
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask81, { NULL } },                                           // 0x081
@@ -685,7 +685,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTask92, { NULL } },                                          // 0x092
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_801809CC, { NULL } },                // 0x093
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_80181024, { NULL } },                // 0x094
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_8018158C, { NULL } },                // 0x095
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyDriftPuffTask, { NULL } },                    // 0x095
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_plaza_80182054, { NULL } },                             // 0x096
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_back_street_8017EDF4, { NULL } },                  // 0x097
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_plaza_801802C0, { NULL } },                             // 0x098
