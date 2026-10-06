@@ -1689,11 +1689,6 @@ static void func_actor_800100_80164184(Task* arg0)
         return;
     }
     switch (actor->statePhase) {
-        case 1:
-        case 2:
-        case 3:
-            actor->movementSign = 1;
-            goto drive;
         case 0:
             actor->stateTimer = 0;
             if (companionGetPlayerPlanarDistance(coord) >= 0x1600) {
@@ -1709,9 +1704,12 @@ static void func_actor_800100_80164184(Task* arg0)
                 arg                 = 2;
             }
             playerActorPlayChildSlotsWithBlend(arg0, arg, 0, 5);
+            /* fallthrough */
+        case 1:
+        case 2:
+        case 3:
             actor->movementSign = 1;
-        drive:
-            dist = companionGetPlayerPlanarDistance(coord);
+            dist                = companionGetPlayerPlanarDistance(coord);
             if (dist < 0x301) {
                 companionEnterIdle(arg0, 0);
             } else if (actor->statePhase != 3) {
