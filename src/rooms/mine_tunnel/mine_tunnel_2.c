@@ -536,36 +536,38 @@ WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[8] = {
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-/// Room effect tick: sets `gRoomEffectState->roomEffectMode` to 2 and draws the
-/// light anchors the current view index shows - anchor 2 in view 2, all five
-/// in view 3, anchors 2 and 3 in view 4, anchors 1 and 4 in view 5, none
-/// otherwise.
-void func_mine_tunnel_8017D7D4(Task* unused)
+void mineTunnelDrawViewFlaresTask(Task* unusedTask)
 {
-    s32 idx;
+    enum {
+        MINE_TUNNEL_FLARE_TEXTURE_INDEX = 1,     // 40-texel column and matching palette offset
+        MINE_TUNNEL_FLARE_RADIUS_SCALE  = 0x300, // Pixel half-extent = scale * 39 / (camera Z / 4)
+    };
+
+    u8 mappedViewIndex;
 
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    idx                              = viewGetMappedIndex() & 0xFF;
+    mappedViewIndex                  = viewGetMappedIndex();
 
-    switch (idx) {
+    switch (mappedViewIndex) {
         case 2:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 3:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[0], 1, 0x300);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], 1, 0x300);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], 1, 0x300);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[0], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], 1, 0x300);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], 1, 0x300);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], 1, 0x300);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
+        // The empty sixth case preserves the original five-entry jump table.
         case 6:
             break;
     }

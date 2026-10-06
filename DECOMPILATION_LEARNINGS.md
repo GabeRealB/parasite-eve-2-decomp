@@ -93200,7 +93200,7 @@ evidence about the callee: check `include/` before editing registers.
 Inputs: `base_2.i`
 `4938436ada38aca74e031c63da8d241b44707ad37d3365148d41d7adddfb4819` (100%).
 
-## Distinct-looking data symbols can be indices into one array (func_mine_tunnel_8017D7D4, 2026-09-16)
+## Distinct-looking data symbols can be indices into one array (mineTunnelDrawViewFlaresTask, 2026-09-16)
 
 The seed for this room effect tick read the target's `%hi`/`%lo` pairs as four
 separate anchor arrays -- `D_mine_tunnel_8017E12C`, `_E134`, `_E13C`, `_E14C` --
@@ -96930,7 +96930,7 @@ beqz $v0, default        # v1 >= 6
 ...                      # the 4..5 range node's body
 ```
 
-Its sibling `func_mine_tunnel_8017D7D4` dispatches on five contiguous values
+Its sibling `mineTunnelDrawViewFlaresTask` dispatches on five contiguous values
 (2..6) and *does* get the `sltiu` + `jtbl` form. Both are what the case values
 imply; the difference is the node count.
 

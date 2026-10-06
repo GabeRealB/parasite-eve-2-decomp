@@ -30,7 +30,17 @@ extern SpriteView D_mine_tunnel_8017F9A4[];
 
 extern WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[];
 
-void func_mine_tunnel_8017D7D4(Task* unused);
+/// Draws the mine tunnel's flickering light flares for the current mapped view.
+///
+/// Enables room-view ambient effects every tick. Mapped views 2, 3, 4 and 5
+/// select one, five, two and two flare anchors respectively; other indices draw
+/// none. Rejected projections emit no packets.
+/// Requires the tunnel overlay to stay loaded, a live `gRoomEffectState`,
+/// composed view matrices, an initialized scratch stack and the current frame's
+/// packet arena and ordering table, with room for up to five textured quads.
+/// Accepted projections require nonzero camera Z / 4. Packets live until that
+/// frame's GPU draw completes. `unusedTask` and its spawn arguments are ignored.
+void mineTunnelDrawViewFlaresTask(Task* unusedTask);
 
 void func_mine_tunnel_8017D77C(Task* task);
 
