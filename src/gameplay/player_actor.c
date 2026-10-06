@@ -5129,17 +5129,16 @@ static inline void _playerActorCapturePad(Task* task)
 
 void Gp_UpdatePlayerMove(void)
 {
-    Task*              work;
-    GameActor*         actor;
-    register GfxCoord* coord asm("s1");
-    SVECTOR*           vec;
-    Task*              task;
-    MATRIX*            mat;
+    Task*      work;
+    GameActor* actor;
+    GfxCoord*  coord;
+    SVECTOR*   vec;
+    Task*      task;
+    MATRIX*    mat;
 
     work  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     actor = work->work;
-    SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    vec   = SCRATCH_STACK_CURSOR(SVECTOR);
+    vec   = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     coord = work->extra.tmd->coords;
     _playerActorCapturePad(work);
     gSceneCombatState.signals.bytes.actionFlags = 0;
@@ -5181,7 +5180,8 @@ void Gp_UpdatePlayerMove(void)
     actor->collisionMotionContexts[2].motionDirection.vy = vec->vy;
     actor->collisionMotionContexts[2].motionDirection.vz = vec->vz;
     if (task != NULL) {
-        actor->weaponCollisionCoord = *task->extra.tmd->coords;
+        coord                       = task->extra.tmd->coords;
+        actor->weaponCollisionCoord = *coord;
         mat                         = &actor->weaponCollisionCoord.workm;
         if (gPlayerStatus.weapon != 0x17) {
             gfxRotMatrixX(mat, -0x400, GRAPHICS_ROTATION_COMPOSE);
