@@ -149553,10 +149553,11 @@ attempts; left as it was.
 - **A block with branches of its own, entered from three later places, stays
   a `goto`** (`grenadeShellFly`'s `explode:`). As a `static inline` called at
   each site only the last straight-line run of the copies merges
-  (cross-jumping stops at the conditional branch inside the block), 230
-  lines of assembly longer. The classification of the two contact lists
-  written out in both arms does not merge either, and a `found` inline with
-  two `return 1` is not folded (frame 8 bytes larger).
+  (cross-jumping stops at the conditional branch inside the block): 370
+  insns against 224. The classification of the two contact lists written out
+  in both arms does not merge either (252), and a `found` inline with two
+  `return 1` is not folded (229, frame 8 bytes larger). Scratch compiles of
+  the unit, not full builds.
 - `func_800E31E8` is the `src/main/task.c` case: a real loop hoists the
   `0xFFFF` of the end test next to the hand-hoisted `kind`; the image reloads
   it every iteration.
