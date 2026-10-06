@@ -576,7 +576,12 @@ WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1] = {
     { NULL, NULL, { 4815, -1856, -6112, 0 }, { { -1689, 2880, 2964, 0 }, { 1690, 2880, -2964, 0 }, { -1689, -2880, 2964, 0 }, { 1690, -2880, -2964, 0 } }, { 3574, 0, 2037, 0 }, 4463, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-/// Selects this room's loaded implementations for effects spawned by actors.
+/// Binds seven actor effect families to this room's effect-task implementations.
+///
+/// The selectors pack task bank 6 and a descriptor index for `Gp_SpawnEff`.
+/// Call during room setup before actor effects are spawned; this overlay must
+/// remain loaded while its effect tasks run. The bindings persist until another
+/// room replaces them or the gameplay effect controller clears them.
 static inline void _shelterB2PodAccessTunnelInstallEffectIds(void)
 {
     gRoomEffectMoteId         = EFFECT_SHELTER_B2_POD_ACCESS_TUNNEL_MOTE;
