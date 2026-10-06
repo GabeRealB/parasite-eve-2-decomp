@@ -791,7 +791,7 @@ dryfieldToiletFlyingSparkTask = 0x8017EBF4; // type:func absolute:True owner=dry
 
 dryfieldToiletFlyingOrangeBurstTask = 0x8017F854; // type:func absolute:True owner=dryfield_toilet
 
-func_dryfield_trailer_coach_801838DC = 0x801838DC; // type:func absolute:True owner=dryfield_trailer_coach
+dryfieldTrailerCoachDrawGlowsTask = 0x801838DC; // type:func absolute:True owner=dryfield_trailer_coach
 
 
 dryfieldWarehouseDrawGlowsTask = 0x8017F494; // type:func absolute:True owner=dryfield_warehouse

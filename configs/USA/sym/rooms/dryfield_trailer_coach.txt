@@ -271,7 +271,7 @@ D_actor_420700_8013EF68 = 0x8013EF68; // absolute:True owner=actor_420700
 D_map_dryfield_8017BA14 = 0x8017BA14; // absolute:True owner=map_dryfield
 D_dryfield_trailer_coach_80189C9C = 0x80189C9C; // size:0x18 defined:True
 
-func_dryfield_trailer_coach_801838DC = 0x801838DC; // type:func
+dryfieldTrailerCoachDrawGlowsTask = 0x801838DC; // type:func
 
 func_dryfield_trailer_coach_80181364 = 0x80181364; // type:func
 Telephone_DrawPlayDataRow = 0x8017FFCC; // type:func
@@ -319,3 +319,6 @@ roomCutsceneSoundTask = 0x801824E8; // type:func
 _glowDrawStarLocal = 0x801829A8; // type:func
 trailerCoachSetDepthShift = 0x8018291C; // type:func
 _glowDrawRayStar = 0x80182EB4; // type:func
+_dryfieldTrailerCoachRejectKeyItemUse = 0x80182578; // type:func
+_dryfieldTrailerCoachResolveRoomEvent = 0x80182580; // type:func
+_dryfieldTrailerCoachWaitForTopicChoice = 0x80182794; // type:func

@@ -191,11 +191,15 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xEF"
 #include "../../shared/shop.h"
 
-s32  func_dryfield_trailer_coach_80182578(Task*, s32, s32, s32);
-s32  func_dryfield_trailer_coach_80182580(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_trailer_coach_801825A8(Task*, s32, s32, s32);
-void func_dryfield_trailer_coach_801822F4(Task*);
-void func_dryfield_trailer_coach_801827F8(Task*);
+static s32  _dryfieldTrailerCoachRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32  _dryfieldTrailerCoachResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static void _dryfieldTrailerCoachWaitForTopicChoice(Task* task);
+s32         func_dryfield_trailer_coach_801825A8(Task*, s32, s32, s32);
+void        func_dryfield_trailer_coach_801822F4(Task*);
+void        func_dryfield_trailer_coach_801827F8(Task*);
+
+/// Inventory request to use a key item in this room.
+enum { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern AnimationPlayRequest       D_dryfield_trailer_coach_80185038;
 extern AnimationPlayRequest       D_dryfield_trailer_coach_8018504C;
@@ -336,8 +340,8 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_dryfield_trailer_coach_80184FA0[4] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_trailer_coach_80182580 },
-    { 5105, func_dryfield_trailer_coach_80182578 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldTrailerCoachResolveRoomEvent },
+    { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM, _dryfieldTrailerCoachRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_dryfield_trailer_coach_801825A8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1567,7 +1571,6 @@ extern SVECTOR D_dryfield_trailer_coach_801871C4;
 static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 static void func_dryfield_trailer_coach_801826A0(Task* task);
-static void func_dryfield_trailer_coach_80182794(Task* task);
 
 #include "../../shared/shop.inc.c"
 
@@ -1640,18 +1643,30 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// Always returns 0.
-s32 func_dryfield_trailer_coach_80182578(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room without consuming the item.
+///
+/// Handles the inventory's key-item request; `itemId` is a collected-item ID
+/// and `unusedSecondArg` is normally zero. All arguments are ignored. The zero
+/// result selects the inventory's "No use now" notice.
+static s32 _dryfieldTrailerCoachRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_TRAILER_COACH_KEY_ITEM_USE_REJECTED = 0 };
+
+    return DRYFIELD_TRAILER_COACH_KEY_ITEM_USE_REJECTED;
 }
 
-/// Location-message handler: copies the requested location onto the outgoing
-/// record and answers 1.
-s32 func_dryfield_trailer_coach_80182580(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Permits a room transition with the requested destination unchanged.
+///
+/// Copies the complete eight-byte request into the reply and returns 1 in both
+/// query and execute modes. Borrows readable request and writable reply records
+/// for synchronous dispatch; they may be the same object. Retains neither
+/// pointer and performs no transition effects itself.
+static s32 _dryfieldTrailerCoachResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    return 1;
+    enum { DRYFIELD_TRAILER_COACH_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_TRAILER_COACH_TRANSITION_ALLOWED;
 }
 
 /// Runs the trailer coach's day-2 hand-off. Request 3 spawns entry 1 of the
@@ -1738,19 +1753,26 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     task->state++;
 }
 
-/// Waits for the option dialog to answer the `RoomOptionDialog` parked at
-/// `Task::work`, stores the answer (1 or 2, the chosen option) through
-/// `Task::spawnArg2` and advances the task.
-static void func_dryfield_trailer_coach_80182794(Task* task)
+/// Waits for a topic choice and publishes its one-based option number.
+///
+/// `Task::work` must hold the live `RoomOptionDialog` opened by the preceding
+/// state. `spawnArg2.pointer` borrows a writable, word-aligned `s32` that must
+/// outlive this wait. A zero answer leaves the destination and state untouched;
+/// a nonzero signed-halfword answer is widened to a word before advancing to
+/// teardown. The two-option request disables cancellation, so normal answers
+/// are 1 or 2. The task owns the dialog allocation, not the result destination.
+static void _dryfieldTrailerCoachWaitForTopicChoice(Task* task)
 {
-    RoomOptionDialog* dialog;
-    s16               result;
+    const RoomOptionDialog* dialog;
+    s16                     choiceResult;
 
-    dialog = task->work;
-    result = dialog->request.result;
-    if (result != 0) {
-        *(s32*)task->spawnArg2.pointer = result;
-        task->state                    = task->state + 1;
+    dialog       = task->work;
+    choiceResult = dialog->request.result;
+    if (choiceResult != USER_INTERFACE_RESULT_NONE) {
+        s32* choiceDestination = task->spawnArg2.pointer;
+
+        *choiceDestination = choiceResult;
+        task->state++;
     }
 }
 
@@ -1778,7 +1800,7 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
 static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     {
         func_dryfield_trailer_coach_801826A0,
-        func_dryfield_trailer_coach_80182794,
+        _dryfieldTrailerCoachWaitForTopicChoice,
         func_dryfield_trailer_coach_801827D0,
     },
 };
@@ -1839,24 +1861,28 @@ void func_dryfield_trailer_coach_80182950(Task* task)
 #define GLOW_DRAW_RAY_STAR_RAY(p, c)      setRGB2(p, 0, c, c)
 #include "../../shared/glow_draw_ray_star.inc.c"
 
-/// Picks the trailer's shaft drawer for the current camera view. The
-/// stage-visit byte `gGameSession->location.loc.view` is used as a bit index: views 2
-/// and 8 (bits 2 and 8, `0x104`) take `_glowDrawStarLocal`
-/// with radius scale 0xC0, and view 10 (bit 10, `0x400`) takes `_glowDrawRayStar`
-/// with 0x30. `Task::extra` is the task's `TmdObject`, so `coords` is the
-/// coordinate both draws share.
-void func_dryfield_trailer_coach_801838DC(Task* arg0)
+void dryfieldTrailerCoachDrawGlowsTask(Task* task)
 {
-    s32       mask;
+    enum {
+        DRYFIELD_TRAILER_COACH_DIAMOND_GLOW_VIEWS   = (1 << 2) | (1 << 8),
+        DRYFIELD_TRAILER_COACH_RAY_GLOW_VIEWS       = 1 << 10,
+        DRYFIELD_TRAILER_COACH_GLOW_PULSE_RATE      = 0x60, // Angle units per animation frame; 4096 per turn
+        DRYFIELD_TRAILER_COACH_DIAMOND_RADIUS_SCALE = 0xC0, // Pixel half-extent is scale * 32 / (camera Z / 4)
+        DRYFIELD_TRAILER_COACH_RAY_RADIUS_SCALE     = 0x30, // Outer pixel radius is scale * 64 / (camera Z / 4)
+    };
+
+    s32       viewMask;
     GfxCoord* coord;
 
-    mask  = 1 << gGameSession->location.loc.view;
-    coord = arg0->extra.coordBody->coord;
-    if (mask & 0x104) {
-        _glowDrawStarLocal(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
+    viewMask = 1 << gGameSession->location.loc.view;
+    coord    = task->extra.coordBody->coord;
+    if (viewMask & DRYFIELD_TRAILER_COACH_DIAMOND_GLOW_VIEWS) {
+        _glowDrawStarLocal(coord, &D_dryfield_trailer_coach_801871C4,
+                           DRYFIELD_TRAILER_COACH_GLOW_PULSE_RATE, DRYFIELD_TRAILER_COACH_DIAMOND_RADIUS_SCALE);
         return;
     }
-    if (mask & 0x400) {
-        _glowDrawRayStar(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0x30);
+    if (viewMask & DRYFIELD_TRAILER_COACH_RAY_GLOW_VIEWS) {
+        _glowDrawRayStar(coord, &D_dryfield_trailer_coach_801871C4,
+                         DRYFIELD_TRAILER_COACH_GLOW_PULSE_RATE, DRYFIELD_TRAILER_COACH_RAY_RADIUS_SCALE);
     }
 }
