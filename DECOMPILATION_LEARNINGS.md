@@ -149611,3 +149611,37 @@ attempts; left as it was.
   test either, because the image reloads `idx` from its stack slot at the
   join, which needs a label between `idx = class(&idx)` and its use, and the
   second contact test sits *after* the surface test with a backward branch.
+### Goto forms from the scorpion, bat and desert chaser actors (batch 15, 2026-10-06)
+
+- **`if (d > 0) { if (s >= K - d) goto snap; else goto turn; } else if (s >= K
+  + d) goto snap; else goto turn; snap: ...; goto done; turn: ...`** (the
+  wrap-around arm of the actors' turn-to-yaw step, `Actor02500_Fn016FC`,
+  `Actor02400_Fn02264`, `Actor01500_Fn01838`) is a conditional expression in
+  the test: `if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+  snap } else { turn }`. Each arm of the `?:` branches straight to the two
+  bodies, so the image's two compares with opposite polarity (`beqz snap; j
+  turn` / `bnez turn`) come out as written; first try in all three. The
+  `rat_turn`, `maggot_caterpillar_turn` and `actor_03700/03800/00300/521100`
+  copies have the same lines.
+- **A variable holding one of two constants in front of a shared call
+  sequence** (`soundBase = 0x40010008; ...; goto playHitSound;` against
+  `soundBase = 0x40010007; playHitSound: sound = (place << 8) | soundBase;
+  pan = ...; start(sound, pan, depth)`, `Actor00100_Fn0375C`) is a `static
+  inline` taking the constant, called in every arm. Cross-jumping merges the
+  copies from the first insn after the constant load, which is why the image
+  has `lui/ori v1,K` in each predecessor and `or s0,s0,v1` in the shared
+  block. Writing the three statements out in each arm with the *same* locals
+  failed on allocation (`arg0` moved from `$s1` to `$s5`, one more saved
+  register): a local shared by two copies is one pseudo with two ranges; the
+  inline gives each copy pseudos of its own. The same call replaced the
+  function's two other hand-written copies (the ones followed by `state =
+  0x14`), which stay separate in the image because they end differently.
+- **`==1; <2 -> L0; ==2; ==3; default` where `L0` and the default are the same
+  statements** (`Actor00100_Fn02C54`) is `case 1: case 2: case 3: case 0:
+  default:` with the shared body last. The two labels one insn apart
+  (`L0: li v0,-1; sh` / `Ldefault: li v0,0x18`) are reorg having filled the
+  default jump's delay slot with the store, not two blocks.
+- A `block_N: return 0;` label inside the last switch of a function that ends
+  `return 0` on every path (`Actor00100_Fn00E58`) is `break` in each case and
+  one `return 0;` after the `if`; the `default: return 0;` and the `else
+  return 0;` were the same statement.
