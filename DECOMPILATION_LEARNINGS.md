@@ -151564,6 +151564,9 @@ to read it. No reason for the copy was recovered.
 - `0 / x` survives cse and dies in combine; if a frame is 8 bytes too large
   after such a fold, the remainder pseudo of the deleted `divmodsi4` took a
   stack slot.
+
+**2026-10-07.** The `s32` copy is not needed. With `u8 start0` set before the other bounds and both tests reading `start0` itself, cse reuses the first test's `zero_extend` for the second, which leaves `start0` the single use this entry requires. Matched that way in the three `actor_400500` handlers, and a trial build of `func_actor_400600_801361AC` without `first` matched too (not landed there). See "The widening copy is cse's" at the end of this file.
+
 ## A pointer assigned before a call keeps `crosses 1 call` after sched1 sinks it below (_waterDrawSpinU16 of shelter_b1_pod_service_gantry, 2026-10-06)
 
 **Symptom.** A pointer that is only a copy of another one, set in one block and
@@ -151922,3 +151925,56 @@ be live at local-alloc and gone at output. Insns inside the competitor's own
 range do not help. Print `;; N regs to allocate` and the three
 `used/across` lines first; the pin's comment had the cause right but the pin
 worked through a conflict, not through the order.
+
+### The widening copy is cse's: a `u8` zero bound read directly by two tests in different blocks (func_actor_400500_801335E8 / 80133B14 / 8013403C, 2026-10-07)
+
+**Was.** `SOFT_MOVE_ZERO(start0);` in the join after `if (hit) frame = 0;`,
+for `lh v0,frame` / `move s2,zero` / `bne v0,s2` and a later `slt v0,v1,s2`.
+The sibling `func_actor_400600_801361AC` had been landed the day before with
+`u8 start0; s32 first; ... first = start0;`, the copy being positional.
+
+**Now.** No copy. The four window bounds are four `u8` locals assigned in
+order, the first one a constant, and every test reads its bound directly:
+
+```c
+u8 start0;                       /* with end0, start1, end1 */
+...
+start0 = 0;                      /* before the three computed bounds */
+... end0 = tmp0; ... start1 = tmp1; ... end1 = tmp2;
+if (hit) { work->animFrames = 0; }
+if (work->animFrames == start0) { ... }
+if (work->animFrames == start1) { ... }
+if (work->animFrames >= start0 && work->animFrames <= end0) { ... }
+```
+
+**Mechanism (dumps of all three).** `.rtl` has two
+`(zero_extend:SI (reg/v:QI start0))`, one per test. cse, following the jumps
+from the first test to the third, replaces the second by the first one's SI
+pseudo, so after cse `start0` has one set and one use, in another block. That
+is the state "A zero that local-alloc materialises" needs:
+`update_equiv_regs` rewrites the use to `(set (reg:SI) (const_int 0))` and
+deletes the QI set. The explicit `first` only wrote out what cse builds.
+
+**Measured around it (801335E8, one build each).**
+- `work->animFrames = start0` in the reset arm (with or without `first`): a
+  third reference; `start0` stays a register set at the top (`move a1,zero`),
+  the first bound's zero arm becomes a copy of it, the join gets
+  `andi s2,a1,0xff`.
+- `first = start0` moved above the hit test, the reset storing `first`: the
+  `move s2,zero` moves up with it and the store is `sh s2`. The image has
+  `sh zero` and the `move` after the `lh`.
+- `start0 = 0` after the three bounds, just before the hit test: fails; the
+  zero has to be assigned before the computed bounds (or as an initialiser,
+  which matched in the `first` form).
+- `u8 bounds[4]`: the array is addressable, lives on the stack (`sb zero,16(sp)`).
+- Inline `atFrame(work, s32)` / `inWindow(work, s32, s32)` reading `start0`:
+  each call converts the argument separately, the `==` test folds to `bnez`
+  and the window keeps a `move s2,zero`; two extra moves.
+- The whole tail as an inline taking the four bounds as `u8` parameters (and
+  `work`) matches as well: an unmodified parameter is replaced by the caller's
+  pseudo, so it is the direct form again. With a literal `0` argument it folds.
+  With `work` re-derived inside the inline there is one extra `lw`.
+
+**Use.** Before adding a copy to give a constant "one use in a later block",
+count the uses after cse, not in the source: two widenings of one narrow local
+on a path cse follows are already one.
