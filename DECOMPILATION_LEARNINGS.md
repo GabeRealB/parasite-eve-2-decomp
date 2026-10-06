@@ -144235,6 +144235,11 @@ the seed gets from a no-output `asm` (implicitly volatile, so a full sched
 barrier). No barrier-free spelling found gets past 89.4%, and a `do {} while (0)`
 barrier around `r.h` (loop notes block sched) only reaches 98%.
 
+*Note 2026-10-06:* the helper is now in the source and one of the two asms is
+gone; the `$a1` count needs no asm at all. See "One asm instead of two: a
+call's argument copy is a leftover or a birth by how often its register is
+set" at the end of this file.
+
 ## `li s0,K` before an `if`/`else if` chain, `bne x,s0`: a variable equal to K, set before the calls (func_actor_403100_8013B5E0, 2026-09-26)
 
 **Symptom.** One arm of a compare chain tests against a constant held in a
@@ -148653,6 +148658,9 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   to their users. Reusing one local for the count and the offset does not tie
   them (cse replaces the second range). `bottom` as `s32` and the offset
   computed before `r.h` reproduce the two separate `lh`/`lhu` reads of `r.y`.
+  *Note 2026-10-06:* now one. The count in `$a1` was not a birth that must not
+  sink: it follows from where sched1 leaves the `a0 = &dest` argument copy.
+  See the section at the end of this file with this function's name.
 - `func_actor_521100_80133104` (two). `move a1,s1` / `addiu a1,a1,0x280` is
   still only reachable with the touch: `&coord[8]`, an inline taking the
   element, an inline incrementing its parameter, an inline returning the
@@ -150846,3 +150854,89 @@ not match (built: 96 instructions, `count` ranked first at 14736).
   another `giv += k`, free in the output.
 - Duplicated arms that cross-jump are references the listing cannot show;
   REG_N_REFS is taken at flow, the listing after jump2.
+
+## One asm instead of two: a call's argument copy is a leftover or a birth by how often its register is set (func_actor_143000_80133CF0, 2026-10-06)
+
+**Was.** `rp = &r2; SOFT_TOUCH_REG_USE(rp, n);` to put the strip count in
+`$a1`, and an input-only `SOFT_USE_REG(offset)` (a full barrier) to keep the
+`* 640` shifts above the struct copy. **Is.** The inline helper of the entry
+"A field of a stack struct stored through the call's argument register", with
+`args->stripsCaptured++` and no `rp`, and one asm:
+
+```c
+offset = r.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
+r.h    = bottom - r.y;
+__asm__("" : "+m"(r) : "r"(offset));
+_actor143000StoreStrip(&r, offset);     /* RECT dest = *strip; x, w, y += ; StoreImage(&dest, buf + offset) */
+```
+
+**1. The count's register is decided by the `a0 = &dest` copy, and that needs
+no asm.** `birthing_insn_p` (sched.c) asks `REG_N_SETS == 1` of hard registers
+too, and flow counts every RTL set of a hard register in the function. Here
+`$a0` is set three times (two `taskKill`, one `StoreImage`) and `$a1` once. So
+`(set a1 (plus Fs offset))` is a birth, launched the cycle after the call, and
+`(set a0 fb)` is a priority-1 leftover: it is taken at the first cycle where
+nothing else is ready, and the helper's frame-base pseudo (a real birth) lands
+directly above it. `optimize_reg_copy_1` then rewrites the later `dest.w` store
+to `4($a0)` and the two tie into `addiu a0,sp,0x18`.
+
+- A cycle with nothing ready is a load still queued for its cost of 2 (or
+  blocked on the memory unit by the store scheduled just before). With the
+  helper as written, the first one is between `addiu v0,v0,0x100` and its
+  `lhu` (cycle 15 in the trace): the copy goes there, `$a0` is free above the
+  struct copy, and the count takes it (89.4%, the old "closest hack-free
+  form").
+- If that cycle is filled, the next empty one is the 35-cycle stall of the
+  second `div`, at the top. Then the block opens `div; fb; lh band.y; a0 = fb;
+  sw count`, `$a0` is live across the count's death, the count gets `$a1`, and
+  the divisor/quotient quantity is two insns longer (span 14, priority 7142
+  under the bottom chain's 8571) and takes `$v1`. Built with the stores
+  reordered to `y, x, w` (no gap): everything above the copy matches, the
+  stores do not (90.3%).
+- In the target the gap is filled by `lw v1,%lo(Fs_ImgBuffers)`. That load is
+  only still unscheduled there if the shifts were not launched in front of it.
+
+**2. The shifts are births, and nothing but a second user holds them up.**
+Each is a single-set pseudo, so it is scheduled directly above its first
+scheduled user. The only user is the `$a1` add, itself a birth scheduled first.
+So shifts and the `Fs_ImgBuffers` load pile up above the call, the load's
+`%hi` gets `$v0` (nothing else is live), and sched2 does not lift the shifts
+back: in its trace the `dest.y` store is not ready when the last shift is, so
+the shift is taken first (with the `%hi` in `$v1`, as in the probe row below,
+it does lift them). What was built to make the last shift wait (all with the
+plain helper):
+
+| form | what happens | result |
+|---|---|---|
+| second live set of its pseudo, reusing the count (`n = y * 320; ...; n <<= 1`; a plain `n = y * 640` is renamed away by cse) | not a birth, but priority 51 under the helper's 95: scheduled after the `bottom` chain, and the `lh r.y` queue gap takes the `a0` copy *after* the count store | 95.9% |
+| the same reusing `bottom`, final shift after `r.h` | priority 95 by anti-dependence on the `subu`; schedule right, but one pseudo now has two ranges and is global | 93.7% |
+| `SOFT_TOUCH_REG_USE(bottom, offset)` before `r.h` | `bottom`'s add stops being a birth and is scheduled before `lh r.y`, so `lh band.y` lands below the count store | 97.7% |
+| `SOFT_TOUCH_REG_USE2(args, offset, bottom)` after `r.h` | priority 95 ties with the `r.h` store, and a store wins a tie on `potential_hazard` | 93.5% |
+| probe: a second 2-argument call elsewhere in the function | the `$a1` add becomes a leftover, fills the gap itself; count, shifts and stores all match; `lui v0; lw v1,0(v0)` for `lui v1; lw v1,0(v1)`, placed two lines later | 1 register, 1 reorder |
+| `RECT` passed by value to the helper | same instructions, frame 8 bytes larger | - |
+| asm that reads `offset` and writes `r` | the copy depends on it, it depends on the `r.h` store: scheduled exactly between them, shifts launched above it; not a barrier, so the `a0` copy still floats | **match** |
+
+The asm must sit after `r.h = ...`; before it, the `r.h` store is no longer
+its predecessor (96.2%). `"=m"(r)` and the same asm on `*strip` at the top of
+the helper match too.
+
+**What the remaining asm stands for.** An instruction between the `r.h` store
+and the copy that the copy depends on and that reads the finished offset. In
+plain C that is a store into `r` computed from `offset`, and the target has
+none. No natural form found; the argument above says a single-block one would
+have to change which instruction first uses the offset.
+
+**Use.**
+- A call argument that is an address (`&local`) is set by a register copy
+  just before the call. Count the RTL sets of that argument register in the
+  whole function: once, and the copy is launched next to the call; more than
+  once, and it floats up to the first cycle with nothing ready. A `div` or
+  `mult` earlier in the block is such a cycle (35 and 12), so an `addiu
+  aN,sp,k` sitting right after a `mflo` is this, not a source-order fact.
+- Its position is also a register fact: the argument register is busy from
+  there on, which moves every block-local value born later one register up.
+- Adding or removing a call with more arguments anywhere in a function can
+  therefore reorder a block that does not contain it (the probe row).
+- An asm with an output is not implicitly volatile, including a memory output;
+  `"+m"(obj) : "r"(x)` orders `x`'s computation against the reads of `obj`
+  without fencing the block.
