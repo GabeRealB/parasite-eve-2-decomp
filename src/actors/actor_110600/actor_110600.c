@@ -1878,7 +1878,6 @@ static void func_actor_110600_80135194(Task* arg0)
     TmdObject*        obj;
     Enemy*            enemy;
     GfxCoord*         coord;
-    GfxCoord*         facing;
     SVECTOR           delta;
     SVECTOR*          d;
     s16               angle;
@@ -1904,21 +1903,7 @@ static void func_actor_110600_80135194(Task* arg0)
     delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
     d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
     d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    facing   = arg0->extra.tmd->coords;
-    angle    = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    angle    = actorYawTo(arg0->extra.tmd->coords, delta.vx, d->vz);
     if (abs(angle) < 0x3E8) {
         if (actorOutsideRadius(&delta, work->noticeRangeAhead) == 0)
             work->state = ACTOR_110600_STATE_ALERT;
