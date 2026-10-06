@@ -5979,6 +5979,27 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
     }
 }
 
+/// The first of the leading `count` contact records whose kind is 0x20000:
+/// copies its point to `pos` and returns its key, or returns 0 when none is
+/// found before an empty record or the end.
+static inline s32 _acropolisBridgeFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+{
+    s16 i;
+
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
+            pos->vx = records[i].point.vx;
+            pos->vy = records[i].point.vy;
+            pos->vz = records[i].point.vz;
+            return records[i].key.value;
+        }
+    }
+    return 0;
+}
+
 /// Ticks the bridge enemy once per frame. It refreshes the model's root
 /// coordinate and relights it, then branches on the global pause mode
 /// `gSceneCombatState.actorControl`: mode 1 only releases the collision records, mode 2 also hides
@@ -5998,13 +6019,10 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
     _AcropolisBridgeEnemyWork*  cur;
     _AcropolisBridgeHitScratch* block;
     TmdObject*                  extra;
-    WorldCollisionContact*      recs;
     VECTOR                      pos;
-    s32                         mode;
     s32                         view;
     s32                         hit;
     u16                         state;
-    s16                         i;
 
     work                                  = (_AcropolisBridgeEnemyWork*)task->work;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -6014,92 +6032,60 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
     pos.vz = task->extra.tmd->coords->workm.t[2];
     Gp_UpdateActorColor(enemy, &pos, 0, 0);
 
-    mode = gSceneCombatState.actorControl;
-    if (mode == 1) {
-        goto paused;
-    }
-    if (mode >= 2) {
-        goto ge2;
-    }
-    if (mode == 0) {
-        goto running;
-    }
-    goto body;
-ge2:
-    if (mode == 2) {
-        goto hidden;
-    }
-    goto body;
-
-running:
-    state = (u16)work->state;
-    if ((u32)(state - 6) >= 2U) {
-        if (state != 0) {
-            view = viewGetMappedIndex() & 0xFF;
-            switch (view) {
-                case 8:
-                    if ((s32)work->syncedView == view) {
-                        goto drop;
+    switch (gSceneCombatState.actorControl) {
+        case 0:
+            state = (u16)work->state;
+            if ((u32)(state - 6) >= 2U) {
+                if (state != 0) {
+                    view = viewGetMappedIndex() & 0xFF;
+                    switch (view) {
+                        case 8:
+                            if ((s32)work->syncedView != view) {
+                                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                                break;
+                            }
+                            task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                            extra                   = task->extra.tmd;
+                            if (extra->buffer != NULL) {
+                                tmdFreePrimitiveBuffer(extra);
+                            }
+                            break;
+                        case 22:
+                            if (work->state == 4) {
+                                task->extra.tmd->flags = 0;
+                                break;
+                            }
+                            task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                            extra                   = task->extra.tmd;
+                            if (extra->buffer != NULL) {
+                                tmdFreePrimitiveBuffer(extra);
+                            }
+                            break;
+                        default:
+                            tmdAllocPrimitiveBuffer(task->extra.tmd);
+                            task->extra.tmd->flags = 0;
+                            break;
                     }
-                    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    goto resync;
-                case 22:
-                    if (work->state == 4) {
-                        goto draw;
-                    }
-                drop:
-                    task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    extra                   = task->extra.tmd;
-                    if (extra->buffer != NULL) {
-                        tmdFreePrimitiveBuffer(extra);
-                    }
-                    goto resync;
-                default:
-                    tmdAllocPrimitiveBuffer(task->extra.tmd);
-                draw:
-                    task->extra.tmd->flags = 0;
-                    break;
+                    work->syncedView = viewGetMappedIndex() & 0xFF;
+                }
             }
-        resync:
-            work->syncedView = viewGetMappedIndex() & 0xFF;
-        }
+            break;
+        case 1:
+            state = (u16)work->state;
+            if ((u32)(state - 6) >= 2U && state != 0) {
+                worldCollisionClearContacts(&work->bodyContacts[0]);
+                worldCollisionClearContacts(&work->attackContacts[0]);
+            }
+            return;
+        case 2:
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            worldCollisionClearContacts(&work->bodyContacts[0]);
+            worldCollisionClearContacts(&work->attackContacts[0]);
+            return;
     }
-    goto body;
 
-paused:
-    state = (u16)work->state;
-    if ((u32)(state - 6) >= 2U && state != 0) {
-        worldCollisionClearContacts(&work->bodyContacts[0]);
-        worldCollisionClearContacts(&work->attackContacts[0]);
-    }
-    return;
-
-hidden:
-    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    worldCollisionClearContacts(&work->bodyContacts[0]);
-    worldCollisionClearContacts(&work->attackContacts[0]);
-    return;
-
-body:
-    block = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisBridgeHitScratch);
-    recs  = work->bodyContacts;
-    i     = 0;
-    do {
-        if (recs[i].key.value == 0) {
-            goto missed;
-        }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            block->point.vx = recs[i].point.vx;
-            block->point.vy = recs[i].point.vy;
-            block->point.vz = recs[i].point.vz;
-            hit             = recs[i].key.value;
-            goto hitTaken;
-        }
-        i++;
-    } while (i < 3);
-missed:
-    hit = 0;
-hitTaken:
+    block      = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisBridgeHitScratch);
+    hit        = _acropolisBridgeFindHit(&block->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     block->key = hit;
     if (hit != 0) {
         func_acropolis_bridge_801876A8(task, hit);
