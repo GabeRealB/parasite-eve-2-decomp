@@ -282,6 +282,19 @@ static inline void _tmdStoreFlatQuadFirstTriangleFacing(const POLY_F4* packet, s
     gte_stopz(facingArea);
 }
 
+/// Returns the signed double area of a projected flat quad's second triangle.
+///
+/// Pushes corner 3 after `_tmdStoreFlatQuadFirstTriangleFacing` left corners
+/// 0..2 in the screen FIFO, so NCLIP measures corners 1..3. The result is
+/// stored in `workspace->gteResult` through `facingArea` and read back from it.
+static inline s32 _tmdFlatQuadSecondTriangleFacing(const TmdStreamWorkspace* workspace, const POLY_F4* packet, s32* facingArea)
+{
+    gte_ldSXYP(*(const u32*)&packet->x3);
+    gte_nclip();
+    gte_stopz(facingArea);
+    return workspace->gteResult;
+}
+
 /// Stores a projected Gouraud textured triangle's signed double area for facing tests.
 ///
 /// `packet` supplies three word-aligned packed XY pairs in corner order 0..2:
@@ -327,6 +340,19 @@ static inline void _tmdStoreTexturedQuadFirstTriangleFacing(const POLY_GT4* pack
     gte_ldSXYP(*(const u32*)&packet->x2);
     gte_nclip();
     gte_stopz(facingArea);
+}
+
+/// Returns the signed double area of a projected Gouraud textured quad's second triangle.
+///
+/// Pushes corner 3 after `_tmdStoreTexturedQuadFirstTriangleFacing` left
+/// corners 0..2 in the screen FIFO, so NCLIP measures corners 1..3. The result
+/// is stored in `workspace->gteResult` through `facingArea` and read back from it.
+static inline s32 _tmdTexturedQuadSecondTriangleFacing(const TmdStreamWorkspace* workspace, const POLY_GT4* packet, s32* facingArea)
+{
+    gte_ldSXYP(*(const u32*)&packet->x3);
+    gte_nclip();
+    gte_stopz(facingArea);
+    return workspace->gteResult;
 }
 
 /// Projects and lights corners with reduced-scale screen/normal environment mapping.
@@ -721,14 +747,7 @@ u32* tmdDrawStreamPrimF4PreXform(TmdStreamWorkspace* workspace, s32 objectFlags,
             depthRefs = (const u16*)elements;
             // Either triangle may accept the quad; their winding signs are opposite.
             _tmdStoreFlatQuadFirstTriangleFacing(packet, gteResultDestination);
-            if (workspace->gteResult > 0) {
-                goto draw;
-            }
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 3));
-            gte_nclip();
-            gte_stopz(gteResultDestination);
-            if (workspace->gteResult < 0) {
-            draw:
+            if (workspace->gteResult > 0 || _tmdFlatQuadSecondTriangleFacing(workspace, packet, gteResultDestination) < 0) {
                 // Reject failed projections before averaging all four cached depths.
                 vertexDepths    = workspace->szTable;
                 depthByteOffset = depthRefs[0] & TMD_F4_PRE_XFORM_DEPTH_REFERENCE_MASK;
@@ -1375,14 +1394,8 @@ u32* tmdDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* workspace, s32 
             depthRefs = (const u16*)elements;
             // Accept a positive first half immediately; otherwise require a negative second half.
             _tmdStoreTexturedQuadFirstTriangleFacing(&(*packetPair)[0], gteResultDestination);
-            if (workspace->gteResult > 0) {
-                goto draw;
-            }
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&(*packetPair)[0], 3));
-            gte_nclip();
-            gte_stopz(gteResultDestination);
-            if (workspace->gteResult < 0) {
-            draw:
+            if (workspace->gteResult > 0 ||
+                _tmdTexturedQuadSecondTriangleFacing(workspace, &(*packetPair)[0], gteResultDestination) < 0) {
                 // Only initialized, valid cached depths may contribute to AVSZ4.
                 vertexDepths    = workspace->szTable;
                 depthByteOffset = depthRefs[0] & TMD_GT4_OFFSET_LAYER_DEPTH_BYTE_OFFSET_MASK;
