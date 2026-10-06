@@ -128,45 +128,35 @@ void func_dryfield_gas_station_801802C0(Task* task)
     work = task->work;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            allocated  = memMalloc(sizeof(*allocated), false);
+            task->work = allocated;
+            if (allocated == NULL) {
+                taskKill(task);
+                break;
+            }
+            Display_SpawnWithOt(D_dryfield_gas_station_80181E7C, 1, 0, 0);
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
+            Gp_SpawnViewTasks();
+            task->state = task->state + 1;
+            break;
         case 1:
-            goto advance;
         case 2:
-            goto advance;
+            task->state = task->state + 1;
+            break;
         case 3:
-            goto L_case3;
+            cutscene       = taskSpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
+            work->cutscene = cutscene;
+            if (cutscene == NULL) {
+                Task_RequestKill(task, 0);
+                break;
+            }
+            task->state = task->state + 1;
+            break;
         case 4:
-            goto L_case4;
+            if (Task_PollKill(work->cutscene, &killed) == 0) {
+                break;
+            }
+            Task_RequestKill(task, 0);
+            break;
     }
-    return;
-
-L_case0:
-    allocated  = memMalloc(sizeof(*allocated), false);
-    task->work = allocated;
-    if (allocated == NULL) {
-        taskKill(task);
-        return;
-    }
-    Display_SpawnWithOt(D_dryfield_gas_station_80181E7C, 1, 0, 0);
-    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
-    goto advance;
-
-L_case3:
-    cutscene       = taskSpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
-    work->cutscene = cutscene;
-    if (cutscene == NULL) {
-        goto L_kill;
-    }
-
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case4:
-    if (Task_PollKill(work->cutscene, &killed) == 0) {
-        return;
-    }
-L_kill:
-    Task_RequestKill(task, 0);
 }
