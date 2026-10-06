@@ -705,7 +705,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskA6, { NULL } },                                           // 0x0A6
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskA7, { NULL } },                                        // 0x0A7
     { { { TASK_BODY_COORD, 0x70 } }, func_800FAA14, { NULL } },                                             // 0x0A8
-    { { { TASK_BODY_COORD, 0x70 } }, func_combustion_8012F888, { NULL } },                                  // 0x0A9
+    { { { TASK_BODY_COORD, 0x70 } }, combustionEmberTask, { NULL } },                                       // 0x0A9
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_801813F0, { NULL } },                        // 0x0AA
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012EF48, { NULL } },                                   // 0x0AB
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskAC, { NULL } },                                           // 0x0AC

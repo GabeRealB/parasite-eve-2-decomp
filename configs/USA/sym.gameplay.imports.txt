@@ -2019,7 +2019,7 @@ func_actor_510900_80134284 = 0x80134284; // type:func absolute:True owner=actor_
 
 func_pyrokinesis_80130C54 = 0x80130C54; // type:func absolute:True owner=pyrokinesis
 
-func_combustion_8012F888 = 0x8012F888; // type:func absolute:True owner=combustion
+combustionEmberTask = 0x8012F888; // type:func absolute:True owner=combustion
 
 func_lifedrain_8012F9A8 = 0x8012F9A8; // type:func absolute:True owner=lifedrain
 

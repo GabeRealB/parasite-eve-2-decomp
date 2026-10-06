@@ -3,8 +3,11 @@ func_combustion_8012EF34 = 0x8012EF34; // type:func
 
 func_combustion_8012F2BC = 0x8012F2BC; // type:func
 
-func_combustion_8012F888 = 0x8012F888; // type:func
+combustionEmberTask = 0x8012F888; // type:func
 
 func_combustion_801308E0 = 0x801308E0; // type:func
 _pyroFlameDrawSprite = 0x8012FB14; // type:func
 spriteQuadDrawFlicker = 0x80130184; // type:func
+_combustionDrawSmallFlame = 0x8012f5ec; // type:func
+_combustionDrawEmber = 0x8012ff0c; // type:func
+_combustionDrawLargeFlame = 0x801305f8; // type:func

@@ -14,7 +14,7 @@ The invariant: for every function with a `matched` commit, either
   * it is genuinely shared - no .s of its own under nonmatchings/.
 
 A function that is INCLUDE_ASM *and* still owns a .s under nonmatchings has lost
-its C body. Two such losses (func_combustion_8012FF0C, func_antibody_8012FBB0)
+its C body. Two such losses (_combustionDrawEmber, func_antibody_8012FBB0)
 were found by hand before this check existed; a sweep then found 37 more.
 
 Exit status is 1 when anything is lost, so this can gate a commit or CI.

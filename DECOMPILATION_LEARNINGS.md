@@ -63215,8 +63215,8 @@ the value is being reloaded, not held.
 
 ## Two empty `SCHED_BARRIER()`s keep `u1 = u0 + N` in `$a0` across the `u0` stores
 
-`func_combustion_8012FF0C` is the axis-aligned cousin of `effectSpriteTask8D`:
-`(value & 7) * 0x18` is `u0`/`u2`, `u0 + 0x17` is `u1`/`u3`, and `0xA0` is `v0`/`v1`.
+`_combustionDrawEmber` is the axis-aligned cousin of `effectSpriteTask8D`:
+`(animationFrame & 7) * 0x18` is `u0`/`u2`, `u0 + 0x17` is `u1`/`u3`, and `0xA0` is `v0`/`v1`.
 The ROM does:
 
 ```
@@ -63240,19 +63240,19 @@ Two empty barriers, with the `0xA0` temp assigned *before* the first, split the
 region without emitting a nop:
 
 ```c
-u0 = (arg1 & 7) * 0x18;
+leftU = (animationFrame & 7) * 0x18;
 va = 0xA0;
-u1 = u0 + 0x17;
+rightU = leftU + 0x17;
 SCHED_BARRIER();
-prim->u0 = u0;
-prim->u2 = u0;
+quad->u0 = leftU;
+quad->u2 = leftU;
 SCHED_BARRIER();
-prim->v0 = va;
-prim->v1 = va;
-prim->v2 = 0xB7;
-prim->v3 = 0xB7;
-prim->u1 = u1;
-prim->u3 = u1;
+quad->v0 = va;
+quad->v1 = va;
+quad->v2 = 0xB7;
+quad->v3 = 0xB7;
+quad->u1 = rightU;
+quad->u3 = rightU;
 ```
 
 Region 1 has to materialise `u0`, `va` and `u1` (all live across the first
@@ -63267,8 +63267,8 @@ to a late use of the same register.
 **Superseded: no barrier is needed.** The whole block is one `setUV4`:
 
 ```c
-u0 = (arg1 & 7) * 0x18;
-setUV4(prim, u0, 0xA0, u0 + 0x17, 0xA0, u0, 0xB7, u0 + 0x17, 0xB7);
+leftU = (animationFrame & 7) * 0x18;
+setUV4(quad, leftU, 0xA0, leftU + 0x17, 0xA0, leftU, 0xB7, leftU + 0x17, 0xB7);
 ```
 
 The macro stores in `u0, v0, u1, v1, u2, v2, u3, v3` order, which gives sched1
@@ -63419,19 +63419,19 @@ delay slot and fills it from the fall-through side, as the target does.
 
 ## `s16 % 12` shortens to `HImode`: a stray `sll 16 / sra 16` on the *remainder*
 
-`func_combustion_801305F8(GfxCoord*, s16 value, s16 arg2)` picks a sprite
-cell with `value % 12`. Writing that literally emits one instruction pair more
+`_combustionDrawLargeFlame(const GfxCoord*, s16 animationFrame, s16 sizeFactor)` picks a sprite
+cell with `animationFrame % 12`. Writing that literally emits one instruction pair more
 than the target:
 
 ```
-subu   a0,a0,v0        <- a0 = arg1 % 12
+subu   a0,a0,v0        <- a0 = animationFrame % 12
 sll    a0,a0,0x10      <- not in the target
 sra    a3,a0,0x10
 ```
 
 The C front end's `shorten` path in `build_binary_op` applies to `*`, `/` and
 `%` as well as the additive operators: with both operands narrower than `int`
-it does the arithmetic in the narrow type, so `value % 12` is `(short)arg1 %
+it does the arithmetic in the narrow type, so `animationFrame % 12` is `(short)animationFrame %
 (short)12` yielding a `short`, which then has to be sign-extended back to fill
 the `SImode` pseudo. `.rtl` shows it plainly:
 
@@ -63440,20 +63440,20 @@ the `SImode` pseudo. `.rtl` shows it plainly:
   (expr_list:REG_EQUAL (sign_extend:SI (subreg:HI (reg:SI 114) 0)))
 ```
 
-`get_narrower` looks straight through a `NOP_EXPR`, so `(s32)value % 12` and
-`(int)value % 12` shorten exactly the same way and change nothing. What does
+`get_narrower` looks straight through a `NOP_EXPR`, so `(s32)animationFrame % 12` and
+`(int)animationFrame % 12` shorten exactly the same way and change nothing. What does
 work is giving the value a real `int` home first, because a `VAR_DECL` of type
 `int` is not narrower than `int`:
 
 ```c
-s32 frame;
+s32 wrappedFrame;
 
-frame = arg1;
-frame = frame % 12;
+wrappedFrame = animationFrame;
+wrappedFrame = wrappedFrame % 12;
 ```
 
-Two statements, not `s32 frame = value % 12;` - the initialiser is still one
-expression and shortens. A separate temp (`t = value; frame = t % 12;`) also
+Two statements, not `s32 wrappedFrame = animationFrame % 12;` - the initialiser is still one
+expression and shortens. A separate temp (`t = animationFrame; wrappedFrame = t % 12;`) also
 removes the extension but leaves `t` as its own pseudo, which cost the
 allocation of `$a0` here; reassigning the same variable is both shorter and the
 one that matched.
@@ -63464,23 +63464,23 @@ The same function truncates the cell index once and then uses it three ways -
 a CLUT nibble, `/ 6` and `% 6`:
 
 ```
-andi   a0,a0,0xffff     <- idx dies here, a0 is now the truncated value
+andi   a0,a0,0xffff     <- wrappedFrame dies here, a0 is now the truncated value
 multu  a0,v0
 andi   v0,a0,0x3f
 ```
 
-`((u16)idx & 0x3F)` and `u16 cell = idx; ... cell & 0x3F` both give the wrong
-thing: `cell` lands in an `HImode` pseudo, the AND is expanded as
-`(and:SI (subreg:SI (reg:HI cell)) 63)`, and *cse* rewrites that paradoxical
+`((u16)wrappedFrame & 0x3F)` and `u16 cellIndex = wrappedFrame; ... cellIndex & 0x3F` both give the wrong
+thing: `cellIndex` lands in an `HImode` pseudo, the AND is expanded as
+`(and:SI (subreg:SI (reg:HI cellIndex)) 63)`, and *cse* rewrites that paradoxical
 subreg back to the `SImode` original because they share their low half:
 
 ```
 (insn (set (reg:SI 128) (and:SI (reg/v:SI 90) (const_int 63))))
 ```
 
-`idx` is then still live past the truncation, so it and the truncated value
+`wrappedFrame` is then still live past the truncation, so it and the truncated value
 need two registers instead of one, and every later allocation shifts by one -
-here `prim` lost `$a2` (which the target shares with the dead scratch-head
+here `quad` lost `$a2` (which the target shares with the dead scratch-head
 pointer) and took `$a1`, for 43 register penalties on an otherwise
 instruction-identical body.
 
@@ -63488,18 +63488,18 @@ Declaring the truncated value `u32` makes the cast a real `zero_extend` insn
 into an `SImode` pseudo, which cse has nothing to rewrite it to:
 
 ```c
-u32 cell;
+u32 cellIndex;
 
-cell       = (u16)frame;
-prim->clut = (cell & 0x3F) | 0x4300;
-col        = cell % 6;
-row        = cell / 6;
+cellIndex     = (u16)wrappedFrame;
+quad->clut    = getClut(cellIndex << 4, 268);
+textureColumn = cellIndex % 6;
+textureRow    = cellIndex / 6;
 ```
 
-`cell` still promotes to unsigned for `/ 6` and `% 6`, so the `multu
-0xAAAAAAAB` division survives. Note `frame & 0xFFFF` with a `u32` local does
+`cellIndex` still promotes to unsigned for `/ 6` and `% 6`, so the `multu
+0xAAAAAAAB` division survives. Note `wrappedFrame & 0xFFFF` with a `u32` local does
 *not* work: two nested `and`s merge their constants and you are back to
-`idx & 0x3F`. The cast has to be to the narrow *type*, not a mask.
+`wrappedFrame & 0x3F`. The cast has to be to the narrow *type*, not a mask.
 
 ## Where a preheader `move` sits relative to the hoisted invariants says whether it is a source local
 
@@ -63670,9 +63670,9 @@ Rewrite from the nearest matched sibling's shape, then look at dumps.
 
 ## A volatile halfword reload is `lhu` + `sll`/`sra`, never `lh`; separate it from the store with an unrelated global store instead
 
-`func_combustion_8012F888`'s archived seed stored `mem->field_2A = kind` and
-read it straight back through `((volatile EffectWork*)mem)->step` so the
-reload would not be forwarded from `kind`. That reload can only ever be
+`combustionEmberTask`'s archived seed stored `work->step = levelIndex` and
+read it straight back through `((volatile EffectWork*)work)->step` so the
+reload would not be forwarded from `levelIndex`. That reload can only ever be
 `lhu; sll 16; sra 10`: MIPS `extendhisi2` expands an optimised `sign_extend
 (mem:HI)` as a plain `movhi` load plus two shifts, and it is *combine* that
 folds the pair back into one `lh` - which it refuses to do for a volatile
@@ -63681,29 +63681,29 @@ folds the pair back into one `lh` - which it refuses to do for a volatile
 Non-volatile, CSE turns the reload into `sll/sra` of the stored register (or a
 bare `move` when the store operand is already `HImode`). A memory clobber
 between the two keeps the `lh` but also fences the block, and the target
-sinks both `gRandomLcgState = rng; gRandomLcgState = rng2;` stores below the reload.
+sinks both `gRandomLcgState = riseRng; gRandomLcgState = angleRng;` stores below the reload.
 What matches is putting one of those global stores between the field store and
 the field reload in the source:
 
 ```c
-mem->field_2A = kind;
-gRandomLcgState   = rng;        /* any store CSE cannot prove disjoint */
-tmp           = mem->field_2A;   /* s32 tmp: keeps the sign_extend → lh */
-mem->field_12 = -hi - (tmp << 6);
-gRandomLcgState   = rng2;
+work->step      = levelIndex;
+gRandomLcgState = riseRng;        /* any store CSE cannot prove disjoint */
+riseLevelIndex  = work->step;     /* s32 riseLevelIndex: keeps the sign_extend → lh */
+work->move.vy   = -randomRiseStep - (riseLevelIndex << 6);
+gRandomLcgState = angleRng;
 ```
 
 A `sw` to a symbol invalidates every register-based `mem` in the hash table,
 so the reload survives, and sched2 still floats both `sw`s down to where the
-target has them. Keep the `s32 tmp`: `-hi - (mem->field_2A << 6)` stored into
+target has them. Keep the `s32 riseLevelIndex`: `-randomRiseStep - (work->step << 6)` stored into
 an `s16` narrows the shift to `HImode` and the load becomes `lhu`.
 
 The last instruction was a second reload of the same field after
-`index->state = …` that the target keeps as two loads (`lh v0; lh v1`). Both
-survive CSE - the `sw` through `index` invalidates them - but when both reads
-use one `tmp` local they colour to the same hard register and `reload_cse`
+`task->state = …` that the target keeps as two loads (`lh v0; lh v1`). Both
+survive CSE - the `sw` through `task` invalidates them - but when both reads
+use one `riseLevelIndex` local they colour to the same hard register and `reload_cse`
 deletes the second `lh` as a self-copy. Give the second read its own local
-(`tmp2`) so it lands in `$v1` and the load is emitted.
+(`sizeLevelIndex`) so it lands in `$v1` and the load is emitted.
 
 ## An `s16` copy of an `s16` parameter survives cse; an `s32` one needs a dead store
 

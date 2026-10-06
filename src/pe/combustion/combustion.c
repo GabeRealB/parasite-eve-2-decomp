@@ -54,9 +54,18 @@ typedef struct {
 } _CombustionLevelTuning;
 STATIC_ASSERT_SIZEOF(_CombustionLevelTuning, 0x8);
 
-static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2);
-static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2);
-static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2);
+/// Strip lengths shared by the drawers and the ember task's stopping tests.
+enum {
+    COMBUSTION_SMALL_FLAME_FRAME_COUNT = 6,
+    COMBUSTION_EMBER_FRAME_COUNT       = 8,
+};
+
+/// Added to SZ3 / 4 before perspective sizing and ordering to avoid a zero divisor.
+enum { COMBUSTION_SPRITE_DEPTH_BIAS = 1 };
+
+static void _combustionDrawSmallFlame(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor);
+static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 sizeFactor);
+static void _combustionDrawLargeFlame(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor);
 
 /// Per-level tuning for the combustion flame, one row per PE level 1-3,
 /// weakest first.
@@ -215,9 +224,9 @@ void func_combustion_8012F2BC(Task* arg0)
         case 1:
             actorRenderComposeCoord(coord);
             if (mem->index < 2) {
-                func_combustion_8012F5EC(coord, mem->age, mem->scale);
+                _combustionDrawSmallFlame(coord, mem->age, mem->scale);
             } else {
-                func_combustion_801305F8(coord, mem->age, mem->scale);
+                _combustionDrawLargeFlame(coord, mem->age, mem->scale);
             }
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) || (mem->age >= 0x21)) {
                 effectKillTask(mem, arg0);
@@ -259,239 +268,266 @@ void func_combustion_8012F2BC(Task* arg0)
     }
 }
 
-/// Links one frame of the small combustion flame at `arg0`'s world position.
-/// The position is projected through `GsWSMATRIX` by a single `RTPS` and the
-/// quad is dropped when that sets a negative `gte_stflg`. `arg1 % 6` picks one
-/// of the six 0x20-wide texture frames on tpage 0x29 (CLUT 0x4282), and `arg2`
-/// sizes it: the corners sit `arg2 * 31 / depth` from the projected centre.
-/// Same 0x18-byte scratch and axis-aligned quad as `func_combustion_8012FF0C`.
-static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
+/// Sets the opposite corner pairs of a square billboard around its projected centre.
+///
+/// `quad` is writable and `scratch` has an initialized centre and half-extent.
+/// Both borrow live storage. The centre and signed half-extent are narrowed
+/// modulo 65536 for the GPU's signed 16-bit coordinates.
+static inline void _combustionSetBillboardCorners(POLY_FT4* quad, const EffectCentreScratch* scratch)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    s32                  u0;
-    s32                  u1;
-    s16                  x;
-    s16                  y;
-    u16                  vz;
+    s16 cornerX;
+    s16 cornerY;
 
-    head                                                                        = SCRATCH_STACK_CURSOR(u8);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
-    vz                                                                          = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    cornerX  = scratch->screenX - (u16)scratch->screenExtent;
+    quad->x2 = cornerX;
+    quad->x0 = cornerX;
+    cornerX  = scratch->screenX + (u16)scratch->screenExtent;
+    quad->x3 = cornerX;
+    quad->x1 = cornerX;
+    cornerY  = scratch->screenY - (u16)scratch->screenExtent;
+    quad->y1 = cornerY;
+    quad->y0 = cornerY;
+    cornerY  = scratch->screenY + (u16)scratch->screenExtent;
+    quad->y3 = cornerY;
+    quad->y2 = cornerY;
+}
+
+/// Draws an additive square billboard from Combustion's six-cell small-flame strip.
+///
+/// `coord` must have a composed world transform; its translation is narrowed to
+/// signed 16-bit world coordinates. Nonnegative `animationFrame` wraps modulo
+/// six. `sizeFactor * 31 / (SZ3 / 4 + 1)` gives the pixel half-extent, truncated
+/// toward zero. A negative GTE FLAG word discards the projection.
+///
+/// Requires an initialized scratch stack with one word-aligned
+/// `EffectCentreScratch` block free, and primitive space for one `POLY_FT4`.
+/// Scratch is released before return; a linked packet lives until GPU completion.
+static void _combustionDrawSmallFlame(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor)
+{
+    // UV coordinates and the perspective numerator use the texel span of one cell.
+    enum {
+        COMBUSTION_SMALL_FLAME_CELL_WIDTH = 32,
+        COMBUSTION_SMALL_FLAME_UV_SPAN    = COMBUSTION_SMALL_FLAME_CELL_WIDTH - 1,
+        COMBUSTION_SMALL_FLAME_TOP_V      = 0x98,
+        COMBUSTION_SMALL_FLAME_BOTTOM_V   = COMBUSTION_SMALL_FLAME_TOP_V + COMBUSTION_SMALL_FLAME_UV_SPAN,
+    };
+    EffectCentreScratch* scratchTop;
+    EffectCentreScratch* scratch;
+    POLY_FT4*            quad;
+    SVECTOR*             worldPoint;
+    s32                  leftU;
+    s32                  rightU;
+    u16                  worldZ;
+
+    // Narrow the composed centre into the GTE vector and project it.
+    scratchTop                                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    (scratchTop - 1)->worldPoint.vx           = (u16)coord->workm.t[0];
+    scratch                                   = scratchTop - 1;
+    scratch->worldPoint.vy                    = (u16)coord->workm.t[1];
+    worldZ                                    = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch) = scratch;
+    scratch->worldPoint.vz                    = worldZ;
+    worldPoint                                = &scratch->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage         = 0x29;
-        prim->clut          = 0x4282;
-        prim->v0            = 0x98;
-        prim->v1            = 0x98;
-        prim->v2            = 0xB7;
-        prim->v3            = 0xB7;
-        u0                  = (s16)(arg1 % 6) * 0x20;
-        u1                  = u0 + 0x1F;
-        prim->u1            = u1;
-        prim->u3            = u1;
-        prim->u0            = u0;
-        prim->u2            = u0;
-        block->screenExtent = (arg2 * 0x1F) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&(scratchTop - 1)->screenX);
+    gte_stflg(&(scratchTop - 1)->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&(scratchTop - 1)->depth);
+        scratch->depth += COMBUSTION_SPRITE_DEPTH_BIAS;
+        quad            = gGpuPrimCursor;
+        gGpuPrimCursor  = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setShadeTex(quad, 1);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 576, 0);
+        quad->clut  = getClut(32, 266);
+        quad->v0    = COMBUSTION_SMALL_FLAME_TOP_V;
+        quad->v1    = COMBUSTION_SMALL_FLAME_TOP_V;
+        quad->v2    = COMBUSTION_SMALL_FLAME_BOTTOM_V;
+        quad->v3    = COMBUSTION_SMALL_FLAME_BOTTOM_V;
+        leftU       = (s16)(animationFrame % COMBUSTION_SMALL_FLAME_FRAME_COUNT) * COMBUSTION_SMALL_FLAME_CELL_WIDTH;
+        rightU      = leftU + COMBUSTION_SMALL_FLAME_UV_SPAN;
+        quad->u1    = rightU;
+        quad->u3    = rightU;
+        quad->u0    = leftU;
+        quad->u2    = leftU;
+        // Size the axis-aligned quad in pixels using the biased projection depth.
+        scratch->screenExtent = (sizeFactor * COMBUSTION_SMALL_FLAME_UV_SPAN) / scratch->depth;
+        _combustionSetBillboardCorners(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-/// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
-/// the kind from `Gp_StateC08.attachId % 10 - 1` into `step`, two
-/// `gRandomLcgState` draws into the spin `scale` and the per-frame rise
-/// `move.vy` (`-(rand & 0xFF) - kind * 64`, so bigger embers climb faster),
-/// sizes the sprite as `kind * 0x100 + 0x300` in `angle`, and enters
-/// `spawnArg1 + 1` - or one state later on a coin flip when `kind >= 2`. Every
-/// later state lifts the coordinate by `move.vy` and redraws: state 1 steps
-/// `index` every other frame and draws the `_pyroFlameDrawSprite` flame
-/// on the odd frames, state 2 draws `func_combustion_8012FF0C` and state 3 the
-/// small `func_combustion_8012F5EC`, each releasing the ember after eight (six
-/// for state 3) frames.
-void func_combustion_8012F888(Task* arg0)
+/// Advances an ember along its coordinate's Y axis and recomposes its world transform.
+///
+/// `riseStep` is the signed displacement per tick in the parent frame's units;
+/// Combustion initializes it in -383..0. The coordinate remains owned by its task.
+static inline void _combustionRiseEmber(GfxCoord* coord, s16 riseStep)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s32         rng;
-    s32         rng2;
-    s32         y;
-    s16         step;
-    s16         kind;
-    s16         frame;
-    s32         state;
-    s32         tmp;
-    s32         hi;
-    s32         tmp2;
+    s32 nextY;
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    state    = arg0->state;
-    switch (state) {
-        case 0:
-            kind       = (Gp_StateC08.attachId % 10U) - 1;
-            rng        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rng2       = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale = ((u32)rng2 >> 16) & 0xFFF;
-            hi         = ((u32)rng >> 16) & 0xFF;
-            mem->step  = kind;
-            /* The global store between the `field_2A` store and its reload keeps
-             * GCC from forwarding `kind` into the `lh`. */
-            gRandomLcgState = rng;
-            tmp             = mem->step;
-            mem->move.vy    = -hi - (tmp << 6);
-            gRandomLcgState = rng2;
-            arg0->state     = arg0->spawnArg1.value + 1;
-            tmp2            = mem->step;
-            mem->angle      = (tmp2 << 8) + 0x300;
-            if (mem->step >= 2) {
-                gRandomLcgState = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                arg0->state    += (gRandomLcgState >> 16) & 1;
+    nextY               = coord->coord.t[1] + riseStep;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]   = nextY;
+    actorRenderComposeCoord(coord);
+}
+
+void combustionEmberTask(Task* task)
+{
+    enum {
+        COMBUSTION_EMBER_STATE_INIT        = 0,
+        COMBUSTION_EMBER_STATE_PYRO_FLAME  = 1,
+        COMBUSTION_EMBER_STATE_EMBER       = 2,
+        COMBUSTION_EMBER_STATE_SMALL_FLAME = 3,
+        COMBUSTION_EMBER_RANDOM_RISE_MASK  = 0xFF,
+        COMBUSTION_EMBER_LEVEL_RISE_SHIFT  = 6,
+        COMBUSTION_EMBER_LEVEL_SIZE_SHIFT  = 8,
+        COMBUSTION_EMBER_BASE_SIZE_FACTOR  = 0x300,
+        COMBUSTION_EMBER_LARGE_LEVEL_INDEX = 2,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         riseRng;
+    s32         angleRng;
+    s16         riseStep;
+    s16         levelIndex;
+    s16         animationFrame;
+    s32         riseLevelIndex;
+    s32         randomRiseStep;
+    s32         sizeLevelIndex;
+
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    work->age = work->age + 1;
+    switch (task->state) {
+        case COMBUSTION_EMBER_STATE_INIT:
+            // Retain the PE level, fixed orientation, rise speed and size for this ember.
+            levelIndex      = (Gp_StateC08.attachId % 10U) - 1;
+            riseRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            angleRng        = riseRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale     = ((u32)angleRng >> 16) & (PYRO_FLAME_FULL_TURN - 1);
+            randomRiseStep  = ((u32)riseRng >> 16) & COMBUSTION_EMBER_RANDOM_RISE_MASK;
+            work->step      = levelIndex;
+            gRandomLcgState = riseRng;
+            riseLevelIndex  = work->step;
+            work->move.vy   = -randomRiseStep - (riseLevelIndex << COMBUSTION_EMBER_LEVEL_RISE_SHIFT);
+            gRandomLcgState = angleRng;
+            task->state     = task->spawnArg1.value + COMBUSTION_EMBER_STATE_PYRO_FLAME;
+            sizeLevelIndex  = work->step;
+            work->angle     = (sizeLevelIndex << COMBUSTION_EMBER_LEVEL_SIZE_SHIFT) + COMBUSTION_EMBER_BASE_SIZE_FACTOR;
+            if (work->step >= COMBUSTION_EMBER_LARGE_LEVEL_INDEX) {
+                gRandomLcgState = angleRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                task->state    += (gRandomLcgState >> 16) & 1;
             }
+            // The first tick always uses pyro-flame frame zero, regardless of the selected state.
             /* fallthrough */
-        case 1:
-            step                = mem->move.vy;
-            y                   = coord->coord.t[1] + step;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]   = y;
-            actorRenderComposeCoord(coord);
-            if (!(mem->age & 1)) {
-                mem->index = mem->index + 1;
+        case COMBUSTION_EMBER_STATE_PYRO_FLAME:
+            riseStep = work->move.vy;
+            _combustionRiseEmber(coord, riseStep);
+            // Advance on even ages and flash the retained cell on odd ages.
+            if (!(work->age & 1)) {
+                work->index = work->index + 1;
             }
-            frame = mem->index;
-            if (frame < PYRO_FLAME_FRAME_COUNT) {
-                if (mem->age & 1) {
-                    _pyroFlameDrawSprite(coord, frame, mem->angle, mem->scale);
+            animationFrame = work->index;
+            if (animationFrame < PYRO_FLAME_FRAME_COUNT) {
+                if (work->age & 1) {
+                    _pyroFlameDrawSprite(coord, animationFrame, work->angle, work->scale);
                     return;
                 }
             } else {
-                effectKillTask(mem, arg0);
+                effectKillTask(work, task);
                 return;
             }
             break;
-        case 2:
-            step                = mem->move.vy;
-            y                   = coord->coord.t[1] + step;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]   = y;
-            actorRenderComposeCoord(coord);
-            frame      = mem->index + 1;
-            mem->index = frame;
-            if (frame < 8) {
-                func_combustion_8012FF0C(coord, frame, mem->angle);
+        case COMBUSTION_EMBER_STATE_EMBER:
+            riseStep = work->move.vy;
+            _combustionRiseEmber(coord, riseStep);
+            animationFrame = work->index + 1;
+            work->index    = animationFrame;
+            if (animationFrame < COMBUSTION_EMBER_FRAME_COUNT) {
+                _combustionDrawEmber(coord, animationFrame, work->angle);
                 return;
             }
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
             return;
-        case 3:
-            step                = mem->move.vy;
-            y                   = coord->coord.t[1] + step;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]   = y;
-            actorRenderComposeCoord(coord);
-            frame      = mem->index + 1;
-            mem->index = frame;
-            if (frame < 6) {
-                func_combustion_8012F5EC(coord, frame, mem->angle);
+        case COMBUSTION_EMBER_STATE_SMALL_FLAME:
+            riseStep = work->move.vy;
+            _combustionRiseEmber(coord, riseStep);
+            animationFrame = work->index + 1;
+            work->index    = animationFrame;
+            if (animationFrame < COMBUSTION_SMALL_FLAME_FRAME_COUNT) {
+                _combustionDrawSmallFlame(coord, animationFrame, work->angle);
                 return;
             }
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
             return;
     }
 }
 
 #include "../../shared/pyro_flame_draw_sprite.inc.c"
 
-/// Links one frame of the combustion flame at `arg0`'s world position. The
-/// position is projected through `GsWSMATRIX` by a single `RTPS` and the quad
-/// is dropped when that sets a negative `gte_stflg`. `arg1` picks one of the
-/// eight 0x18-wide texture frames on tpage 0x28 (CLUT 0x430D), and `arg2`
-/// sizes it: the corners sit `arg2 * 23 / depth` from the projected centre, so
-/// the sprite shrinks with depth. Same 0x18-byte scratch and axis-aligned
-/// quad as gameplay `effectSpriteTask8D`.
-static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
+/// Draws an additive square billboard from Combustion's eight-cell ember strip.
+///
+/// Uses the composed world translation, narrowed to signed 16-bit coordinates.
+/// The low three bits of `animationFrame` select the cell. The pixel half-extent
+/// is `sizeFactor * 23 / (SZ3 / 4 + 1)`, truncated toward zero; a negative GTE
+/// FLAG word discards the projection.
+///
+/// Requires and releases one word-aligned `EffectCentreScratch` block on an
+/// initialized scratch stack. Primitive space must hold one `POLY_FT4` packet,
+/// which remains live until GPU completion if linked into the ordering table.
+static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 sizeFactor)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    s32                  u0;
-    s16                  x;
-    s16                  y;
-    u16                  vz;
+    enum {
+        COMBUSTION_EMBER_CELL_WIDTH = 24,
+        COMBUSTION_EMBER_UV_SPAN    = COMBUSTION_EMBER_CELL_WIDTH - 1,
+        COMBUSTION_EMBER_TOP_V      = 0xA0,
+        COMBUSTION_EMBER_BOTTOM_V   = COMBUSTION_EMBER_TOP_V + COMBUSTION_EMBER_UV_SPAN,
+    };
+    EffectCentreScratch* scratchTop;
+    EffectCentreScratch* scratch;
+    POLY_FT4*            quad;
+    SVECTOR*             worldPoint;
+    s32                  leftU;
+    u16                  worldZ;
 
-    head                                                                        = SCRATCH_STACK_CURSOR(u8);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
-    vz                                                                          = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    // Narrow the composed centre into the GTE vector and project it.
+    scratchTop                                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    (scratchTop - 1)->worldPoint.vx           = (u16)coord->workm.t[0];
+    scratch                                   = scratchTop - 1;
+    scratch->worldPoint.vy                    = (u16)coord->workm.t[1];
+    worldZ                                    = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch) = scratch;
+    scratch->worldPoint.vz                    = worldZ;
+    worldPoint                                = &scratch->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x28;
-        prim->clut  = 0x430D;
-        u0          = (arg1 & 7) * 0x18;
-        setUV4(prim, u0, 0xA0, u0 + 0x17, 0xA0, u0, 0xB7, u0 + 0x17, 0xB7);
-        block->screenExtent = (arg2 * 0x17) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&(scratchTop - 1)->screenX);
+    gte_stflg(&(scratchTop - 1)->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&(scratchTop - 1)->depth);
+        scratch->depth += COMBUSTION_SPRITE_DEPTH_BIAS;
+        quad            = gGpuPrimCursor;
+        gGpuPrimCursor  = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setShadeTex(quad, 1);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, 512, 0);
+        quad->clut  = getClut(208, 268);
+        leftU       = (animationFrame & (COMBUSTION_EMBER_FRAME_COUNT - 1)) * COMBUSTION_EMBER_CELL_WIDTH;
+        setUV4(quad, leftU, COMBUSTION_EMBER_TOP_V, leftU + COMBUSTION_EMBER_UV_SPAN, COMBUSTION_EMBER_TOP_V, leftU, COMBUSTION_EMBER_BOTTOM_V, leftU + COMBUSTION_EMBER_UV_SPAN, COMBUSTION_EMBER_BOTTOM_V);
+        // Size the axis-aligned quad in pixels using the biased projection depth.
+        scratch->screenExtent = (sizeFactor * COMBUSTION_EMBER_UV_SPAN) / scratch->depth;
+        _combustionSetBillboardCorners(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
@@ -506,80 +542,82 @@ static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
     SPRITE_QUAD_RIM_CELL(p)
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 
-/// Links one frame of the large combustion flame at `arg0`'s world position,
-/// the same way `func_combustion_8012F5EC` does the small one: the position is
-/// projected through `GsWSMATRIX` by a single `RTPS` and the quad is dropped
-/// when that sets a negative `gte_stflg`. `arg1 % 12` picks a cell of the
-/// 6x2 sheet of 0x28-pixel frames on tpage 0x2A, each with its own CLUT
-/// (`0x4300` plus the cell index), and `arg2` sizes it: the corners sit
-/// `arg2 * 39 / depth` from the projected centre, so the sprite shrinks with
-/// depth.
-static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2)
+/// Draws an additive square billboard from Combustion's twelve-cell large-flame sheet.
+///
+/// Uses the composed world translation, narrowed to signed 16-bit coordinates.
+/// Nonnegative `animationFrame` wraps modulo twelve over two rows of six cells;
+/// each cell selects its own palette. The pixel half-extent is
+/// `sizeFactor * 39 / (SZ3 / 4 + 1)`, truncated toward zero. A negative GTE FLAG
+/// word discards the projection.
+///
+/// Requires and releases one word-aligned `EffectCentreScratch` block on an
+/// initialized scratch stack. Primitive space must hold one `POLY_FT4` packet,
+/// which remains live until GPU completion if linked into the ordering table.
+static void _combustionDrawLargeFlame(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    s32                  frame;
-    u32                  cell;
-    u16                  col;
-    u16                  row;
-    s32                  u0;
-    s32                  u1;
-    s32                  v0;
-    s32                  v2;
-    s16                  x;
-    s16                  y;
-    u16                  vz;
+    enum {
+        COMBUSTION_LARGE_FLAME_COLUMNS     = 6,
+        COMBUSTION_LARGE_FLAME_FRAME_COUNT = 12,
+        COMBUSTION_LARGE_FLAME_CELL_WIDTH  = 40,
+        COMBUSTION_LARGE_FLAME_UV_SPAN     = COMBUSTION_LARGE_FLAME_CELL_WIDTH - 1,
+        // Signed origins wrap to byte UVs starting at V=0x88.
+        COMBUSTION_LARGE_FLAME_TOP_V    = -0x78,
+        COMBUSTION_LARGE_FLAME_BOTTOM_V = COMBUSTION_LARGE_FLAME_TOP_V + COMBUSTION_LARGE_FLAME_UV_SPAN,
+    };
+    EffectCentreScratch* scratchTop;
+    EffectCentreScratch* scratch;
+    POLY_FT4*            quad;
+    SVECTOR*             worldPoint;
+    s32                  wrappedFrame;
+    u32                  cellIndex;
+    u16                  textureColumn;
+    u16                  textureRow;
+    s32                  leftU;
+    s32                  rightU;
+    s32                  topV;
+    s32                  bottomV;
+    u16                  worldZ;
 
-    head                                                                        = SCRATCH_STACK_CURSOR(u8);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
-    vz                                                                          = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    // Narrow the composed centre into the GTE vector and project it.
+    scratchTop                                = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    (scratchTop - 1)->worldPoint.vx           = (u16)coord->workm.t[0];
+    scratch                                   = scratchTop - 1;
+    scratch->worldPoint.vy                    = (u16)coord->workm.t[1];
+    worldZ                                    = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(EffectCentreScratch) = scratch;
+    scratch->worldPoint.vz                    = worldZ;
+    worldPoint                                = &scratch->worldPoint;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    frame = arg1;
-    frame = frame % 12;
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2A;
-        cell        = (u16)frame;
-        prim->clut  = (cell & 0x3F) | 0x4300;
-        col         = cell % 6;
-        row         = cell / 6;
-        u0          = col * 0x28;
-        u1          = u0 + 0x27;
-        v0          = row * 0x28 - 0x78;
-        v2          = row * 0x28 - 0x51;
-        setUV4(prim, u0, v0, u1, v0, u0, v2, u1, v2);
-        block->screenExtent = (arg2 * 0x27) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    wrappedFrame = animationFrame;
+    wrappedFrame = wrappedFrame % COMBUSTION_LARGE_FLAME_FRAME_COUNT;
+    gte_stsxy(&(scratchTop - 1)->screenX);
+    gte_stflg(&(scratchTop - 1)->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&(scratchTop - 1)->depth);
+        scratch->depth += COMBUSTION_SPRITE_DEPTH_BIAS;
+        quad            = gGpuPrimCursor;
+        gGpuPrimCursor  = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, 1);
+        setShadeTex(quad, 1);
+        quad->tpage   = getTPage(0, GPU_BLEND_ADD, 640, 0);
+        cellIndex     = (u16)wrappedFrame;
+        quad->clut    = getClut(cellIndex << 4, 268);
+        textureColumn = cellIndex % COMBUSTION_LARGE_FLAME_COLUMNS;
+        textureRow    = cellIndex / COMBUSTION_LARGE_FLAME_COLUMNS;
+        leftU         = textureColumn * COMBUSTION_LARGE_FLAME_CELL_WIDTH;
+        rightU        = leftU + COMBUSTION_LARGE_FLAME_UV_SPAN;
+        topV          = textureRow * COMBUSTION_LARGE_FLAME_CELL_WIDTH + COMBUSTION_LARGE_FLAME_TOP_V;
+        bottomV       = textureRow * COMBUSTION_LARGE_FLAME_CELL_WIDTH + COMBUSTION_LARGE_FLAME_BOTTOM_V;
+        setUV4(quad, leftU, topV, rightU, topV, leftU, bottomV, rightU, bottomV);
+        // Size the axis-aligned quad in pixels using the biased projection depth.
+        scratch->screenExtent = (sizeFactor * COMBUSTION_LARGE_FLAME_UV_SPAN) / scratch->depth;
+        _combustionSetBillboardCorners(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
