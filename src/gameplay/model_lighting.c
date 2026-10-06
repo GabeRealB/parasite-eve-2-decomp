@@ -2975,7 +2975,6 @@ void Gp_TickPlayClock(Task* task)
     McSaveData*     save;
     PlayerStatus*   cfg;
     GameSession*    session;
-    s32             one;
     s32             temp;
     s32             companion;
 
@@ -3005,61 +3004,43 @@ void Gp_TickPlayClock(Task* task)
     }
 
     save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    one  = 1;
-    if (save->state.demoScene == one) {
+    if (save->state.demoScene == 1) {
         req.x          = -0x96;
         req.y          = 0x64;
         req.otIndex    = 4;
         req.colorRgb   = 0x502008;
         req.glyphTable = TEXT_GLYPH_TABLE_LARGE_ALTERNATE;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = one;
+        req.drawMode   = 1;
         textDrawString(&req, textItoaUnsigned(buf, work->hours));
         textDrawString(&req, ":");
         textDrawString(&req, textItoaPadded(buf, work->minutes, 2));
         textDrawString(&req, "'");
         textDrawString(&req, textItoaPadded(buf, D_8005ED68 / 60, 2));
-        padCheckButtons(one, one, PAD_BUTTON_SELECT);
+        padCheckButtons(1, 1, PAD_BUTTON_SELECT);
     }
 
-    if (gGameSession->suppressDeathChecks == 0) {
-        if (cfg->hp > 0) {
-            companion = save->state.companionType;
-            if (companion == one) {
-                if (save->state.companionHp <= 0) {
-                    goto block_hp;
-                }
-            }
-            if (companion != 3) {
-                goto block_normal;
-            }
-            if (save->state.companionHp > 0) {
-                goto block_normal;
-            }
-        block_hp:
-            if (cfg->hp > 0) {
-                goto block_companion;
-            }
-        }
-
-        if (gGameSession->eventState != 0) {
-            cfg->hp = 1;
-            return;
-        }
-        Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
-        func_800A7DE0();
-        Gp_PulseState1C80();
-        session = gGameSession;
-        if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            session->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
-            SndBank_SetEnableFlags(0, 0x20000000);
-            CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x1D) & 0xFF, 3);
-        }
-
-    block_companion: {
+    if (gGameSession->suppressDeathChecks == 0 && (cfg->hp <= 0 || (save->state.companionType == 1 && save->state.companionHp <= 0) || (save->state.companionType == 3 && save->state.companionHp <= 0))) {
         McSaveData* p;
+
+        if (cfg->hp <= 0) {
+            if (gGameSession->eventState != 0) {
+                cfg->hp = 1;
+                return;
+            }
+            Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
+            func_800A7DE0();
+            Gp_PulseState1C80();
+            session = gGameSession;
+            if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
+                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                session->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
+                sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
+                SndBank_SetEnableFlags(0, 0x20000000);
+                CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x1D) & 0xFF, 3);
+            }
+        }
+
         p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (p->state.companionHp <= 0) {
             if (gGameSession->eventState != 0) {
@@ -3083,7 +3064,6 @@ void Gp_TickPlayClock(Task* task)
                 gGameSession->restartMode = GAME_SESSION_RESTART_COMPANION_3_DOWN;
             }
         }
-    }
         Display_AcquireRef();
         task->killCountdown   = gGameSession->deathRestartDelay;
         Wip_SysFlags.gameOver = 1;
@@ -3091,7 +3071,6 @@ void Gp_TickPlayClock(Task* task)
         return;
     }
 
-block_normal:
     if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
         Display_AcquireRef();
         gGameSession->deathVariant = 1;
