@@ -913,9 +913,9 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4WaterSupplyWaterRippleTask, { NULL } },                                    // 0x174
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4WaterSupplyWaterDriftTask, { NULL } },                                     // 0x175
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionWaterRippleTaskFixedCoord, { NULL } },                                // 0x176
-    { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionWaterDriftTaskU16FixedCoord, { NULL } },                              // 0x177
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionWaterSprayTask, { NULL } },                                           // 0x177
     { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandWaterRippleTaskFixedCoord, { NULL } },                                  // 0x178
-    { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandWaterDriftTaskU16FixedCoord, { NULL } },                                // 0x179
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandWaterSprayTask, { NULL } },                                             // 0x179
     { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeWaterRippleTask, { NULL } },                                            // 0x17A
     { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeWaterDriftTask, { NULL } },                                             // 0x17B
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLeafFallTask, { NULL } },                                        // 0x17C

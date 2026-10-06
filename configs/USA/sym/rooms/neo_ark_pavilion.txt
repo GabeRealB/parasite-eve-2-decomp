@@ -75,7 +75,7 @@ neoArkPavilionInstallRoomEffectsTask = 0x8017FC10; // type:func
 
 neoArkPavilionWaterRippleTaskFixedCoord = 0x8017EC4C; // type:func
 
-neoArkPavilionWaterDriftTaskU16FixedCoord = 0x8017F0CC; // type:func
+neoArkPavilionWaterSprayTask = 0x8017F0CC; // type:func
 
 neoArkPavilionRoomVisualEffectsFlashTask = 0x8017FCB0; // type:func
 

@@ -51,7 +51,34 @@ void neoArkPavilionInstallRoomEffectsTask(Task* task);
 
 void neoArkPavilionWaterRippleTaskFixedCoord(Task* task);
 
-void neoArkPavilionWaterDriftTaskU16FixedCoord(Task* task);
+/// Animates one eight-cell pavilion water-spray particle using its cached draw coordinate.
+///
+/// Requires a live counted effect with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body, initial state 0 and cell index 0, as `Gp_SpawnEff` supplies.
+/// Drawers read the coordinate's composed `workm`; this task never composes it.
+/// Movement changes local translation in parent-coordinate units and marks it
+/// dirty, so drawing uses the cached position until another user composes it.
+///
+/// `spawnArg1` bits 0..11 give perspective size (0..4095), bits 12..15 running
+/// updates per cell (0 selects 1), and bits 16..23 launch speed in parent units
+/// per update (0 selects 64). Bits 24..27 select direction: 0 stationary,
+/// 1 upward burst, 2 all-axis spray, 3 narrow upward jet, 5 the copied `pos`
+/// offset; other values leave the zero direction for SDK normalization.
+/// Nonzero bits 28..31 select the upright drawer; otherwise the sprite uses
+/// a retained random angle in 4096 units per turn. A supplied nonzero `move`
+/// bypasses direction generation and scaling; `step` becomes 64 to enable it.
+///
+/// The first running update initializes without drawing or moving. Later
+/// updates draw cells 0..7 through u16 indices, move by signed halfword
+/// velocity, and add 6 to Y velocity with halfword truncation. Stationary
+/// particles skip movement and gravity. Each cell lasts `period` running
+/// updates; retirement follows initialization plus 8 * `period` updates.
+/// Non-running control freezes initialization and aging but still draws,
+/// including once before cancellation at control 4 or above. Retirement frees
+/// the work and tears down the counted task and body. Keep the overlay loaded
+/// and scratch/frame packet storage available while live; released pointers
+/// must not be retained.
+void neoArkPavilionWaterSprayTask(Task* task);
 
 /// Runs the pavilion's pink charge flash, peak screen tint and fading star.
 ///

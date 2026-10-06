@@ -1,130 +1,163 @@
+#include "gameplay/message.h"
+
 #include "main/random.h"
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// Room-effect task that plays an eight-frame sprite animation. The
-/// first frame takes the angle from the spawn parameter's low 12 bits, the
-/// frame step from bits 12-15 and, from the top nibble, which of the two
-/// sprite drawers to use; a zero velocity is seeded from the spawn kind
-/// (random scatter, the stored direction, or none) and scaled to the requested
-/// speed. Each later frame draws the sprite, moves the coordinate under a
-/// constant downward pull while the speed is non-zero, and advances the frame
-/// every `step` ticks, releasing the effect after the eighth. Once
-/// `gRoomEffectState->effectControl` leaves running it only draws, and releases
-/// at cancellation.
-void waterDriftTaskU16FixedCoord(Task* task)
-{
-    EffectWork* work;
-    GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         kind;
-    s32         step;
-    s32         state;
-    s32         level;
+#ifndef WATER_SPRAY_TASK
+#error "Define WATER_SPRAY_TASK to the package's declared void (Task*) callback"
+#endif
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
+/// Converts a water-spray particle's launch direction into parent-space velocity.
+///
+/// Borrows live writable work: `move` supplies signed direction components and
+/// `step` the speed in coordinate units per running update (0..255). Normalizes
+/// in place to Q12, then scales with the GTE's 12-bit shift. Only the three
+/// signed halfword components change; a zero direction still reaches the SDK
+/// normalizer. No pointer is retained and GTE state is overwritten.
+static inline void _waterSprayInitializeVelocity(EffectWork* particleWork)
+{
+    SVECTOR* velocity = &particleWork->move;
+
+    VectorNormalSS(velocity, velocity);
+    gte_lddp(particleWork->step);
+    gte_ldsv(velocity);
+    gte_gpf12();
+    gte_stsv(velocity);
+}
+
+void WATER_SPRAY_TASK(Task* task)
+{
+    enum {
+        WATER_SPRAY_STATE_NEW              = 0,
+        WATER_SPRAY_STATE_ROTATED          = 1,
+        WATER_SPRAY_STATE_UPRIGHT          = 2,
+        WATER_SPRAY_SPAWN_SIZE_MASK        = 0xFFF,
+        WATER_SPRAY_SPAWN_PERIOD_MASK      = 0xF000,
+        WATER_SPRAY_SPAWN_PERIOD_SHIFT     = 12,
+        WATER_SPRAY_PERIOD_MASK            = 0xF,
+        WATER_SPRAY_SPAWN_SPEED_MASK       = 0xFF0000,
+        WATER_SPRAY_SPAWN_SPEED_SHIFT      = 16,
+        WATER_SPRAY_SPEED_MASK             = 0xFF,
+        WATER_SPRAY_SPAWN_UPRIGHT_MASK     = 0xF0000000,
+        WATER_SPRAY_VELOCITY_KIND_MASK     = 0xF,
+        WATER_SPRAY_VELOCITY_STATIONARY    = 0,
+        WATER_SPRAY_VELOCITY_UPWARD_BURST  = 1,
+        WATER_SPRAY_VELOCITY_ALL_AXES      = 2,
+        WATER_SPRAY_VELOCITY_NARROW_JET    = 3,
+        WATER_SPRAY_VELOCITY_POS_DIRECTION = 5,
+        WATER_SPRAY_DEFAULT_SPEED          = 0x40,
+        WATER_SPRAY_DEFAULT_PERIOD         = 1,
+        // Signed-halfword encoding of -64 before the random upward Y offset.
+        WATER_SPRAY_UPWARD_Y_BIAS      = 0xFFC0,
+        WATER_SPRAY_GRAVITY_PER_UPDATE = 6,
+        WATER_SPRAY_CELL_COUNT         = 8
+    };
+    EffectWork* particleWork;
+    GfxCoord*   particleCoord;
+    s32         velocityKind;
+    s32         updatesPerCell;
+    s32         launchSpeed;
+
+    particleWork  = task->spawnArg2.pointer;
+    particleCoord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (task->state < 2) {
-            _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+        // Redraw cached state even on the update that cancels the particle.
+        if (task->state < WATER_SPRAY_STATE_UPRIGHT) {
+            _waterDrawSpinU16(particleCoord, (u16)particleWork->index, particleWork->scale, particleWork->angle);
         } else {
-            _waterDrawTileU16(coord, (u16)work->index, work->scale);
+            _waterDrawTileU16(particleCoord, (u16)particleWork->index, particleWork->scale);
         }
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(work, task);
+            effectKillTask(particleWork, task);
         }
         return;
     }
-    work->age++;
+    particleWork->age++;
     switch (task->state) {
-        case 0:
-            work->scale     = task->spawnArg1.halves.low & 0xFFF;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 0xF;
+        case WATER_SPRAY_STATE_NEW:
+            // Decode independent spawn fields; the random angle remains fixed.
+            particleWork->scale = task->spawnArg1.halves.low & WATER_SPRAY_SPAWN_SIZE_MASK;
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            particleWork->angle = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (task->spawnArg1.value & WATER_SPRAY_SPAWN_PERIOD_MASK) {
+                updatesPerCell = (task->spawnArg1.value >> WATER_SPRAY_SPAWN_PERIOD_SHIFT) & WATER_SPRAY_PERIOD_MASK;
             } else {
-                step = 1;
+                updatesPerCell = WATER_SPRAY_DEFAULT_PERIOD;
             }
-            work->period = step;
-            work->age    = 0;
-            state        = 1;
-            if (task->spawnArg1.value & 0xF0000000) {
-                state = 2;
-            }
-            task->state = state;
-            if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
+            particleWork->period = updatesPerCell;
+            particleWork->age    = 0;
+            task->state          = task->spawnArg1.value & WATER_SPRAY_SPAWN_UPRIGHT_MASK ? WATER_SPRAY_STATE_UPRIGHT : WATER_SPRAY_STATE_ROTATED;
+            if ((particleWork->move.vx | particleWork->move.vy | particleWork->move.vz) == 0) {
+                if (task->spawnArg1.value & WATER_SPRAY_SPAWN_SPEED_MASK) {
+                    launchSpeed = (task->spawnArg1.value >> WATER_SPRAY_SPAWN_SPEED_SHIFT) & WATER_SPRAY_SPEED_MASK;
                 } else {
-                    level = 0x40;
+                    launchSpeed = WATER_SPRAY_DEFAULT_SPEED;
                 }
-                work->step = level;
-                kind       = task->spawnArg1.signedBytes[3];
-                switch (kind & 0xF) {
-                    case 0:
-                        work->step = 0;
+                particleWork->step = launchSpeed;
+                velocityKind       = task->spawnArg1.signedBytes[3];
+                switch (velocityKind & WATER_SPRAY_VELOCITY_KIND_MASK) {
+                    case WATER_SPRAY_VELOCITY_STATIONARY:
+                        particleWork->step = 0;
                         break;
-                    case 1:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    case WATER_SPRAY_VELOCITY_UPWARD_BURST:
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vy = WATER_SPRAY_UPWARD_Y_BIAS - ((gRandomLcgState >> 16) & 0x7F);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 2:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    case WATER_SPRAY_VELOCITY_ALL_AXES:
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vy = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
-                    case 3:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                    case WATER_SPRAY_VELOCITY_NARROW_JET:
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vx = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vy = -((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vz = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
-                    case 5:
-                        work->move.vx = work->pos.vx;
-                        work->move.vy = work->pos.vy;
-                        work->move.vz = work->pos.vz;
+                    case WATER_SPRAY_VELOCITY_POS_DIRECTION:
+                        // Use the copied spawn offset as a direction without transforming it.
+                        particleWork->move.vx = particleWork->pos.vx;
+                        particleWork->move.vy = particleWork->pos.vy;
+                        particleWork->move.vz = particleWork->pos.vz;
                         break;
                 }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
+                _waterSprayInitializeVelocity(particleWork);
             } else {
-                work->step = 0x40;
+                // A supplied velocity bypasses scaling; step only enables movement.
+                particleWork->step = WATER_SPRAY_DEFAULT_SPEED;
             }
             return;
-        case 1:
-            _waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
+        case WATER_SPRAY_STATE_ROTATED:
+            _waterDrawSpinU16(particleCoord, (u16)particleWork->index, particleWork->scale, particleWork->angle);
             break;
-        case 2:
-            _waterDrawTileU16(coord, (u16)work->index, work->scale);
+        case WATER_SPRAY_STATE_UPRIGHT:
+            _waterDrawTileU16(particleCoord, (u16)particleWork->index, particleWork->scale);
             break;
         default:
             return;
     }
-    if (work->step != 0) {
-        coord->coord.t[0]  += work->move.vx;
-        coord->coord.t[1]  += work->move.vy;
-        coord->coord.t[2]  += work->move.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->move.vy      += 6;
+    // Update local translation without recomposing the cached matrix used to draw.
+    if (particleWork->step != 0) {
+        particleCoord->coord.t[0]  += particleWork->move.vx;
+        particleCoord->coord.t[1]  += particleWork->move.vy;
+        particleCoord->coord.t[2]  += particleWork->move.vz;
+        particleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        particleWork->move.vy      += WATER_SPRAY_GRAVITY_PER_UPDATE;
     }
-    if ((work->age % work->period) == 0) {
-        work->index++;
-        if (work->index >= 8) {
-            effectKillTask(work, task);
+    if ((particleWork->age % particleWork->period) == 0) {
+        particleWork->index++;
+        if (particleWork->index >= WATER_SPRAY_CELL_COUNT) {
+            effectKillTask(particleWork, task);
         }
     }
 }

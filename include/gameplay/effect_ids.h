@@ -775,17 +775,17 @@ enum {
     /// read alongside gRoomEffectWaterSprayId at the water surface (actor_800100, actor_401300,
     /// actor_400600, actor_01100, water-room surface hits with arg 0x40).
     EFFECT_NEO_ARK_PAVILION_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x176),
-    /// neo_ark_pavilion's copy of the water drift sprite: an eight-frame water sprite
-    /// flung on a velocity under gravity; the room stores it in slot gRoomEffectWaterSprayId, which
-    /// actors and the diver impact burst spawn as spray.
+    /// Pavilion's eight-cell water particle (`neoArkPavilionWaterSprayTask`),
+    /// drawn from a cached transform while local velocity and gravity advance.
+    /// Installed in `gRoomEffectWaterSprayId` for actor and diver-impact spray.
     EFFECT_NEO_ARK_PAVILION_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x177),
     /// Expanding, fading splash quad (waterRippleTaskFixedCoord, _waterDrawSplash);
     /// stored in gRoomEffectWaterRippleId, which several actors (actor_800100, 401300, 400600, 01100)
     /// spawn as water ripples.
     EFFECT_NEO_ARK_ISLAND_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x178),
-    /// neo_ark_island's copy of the shared water droplet sprite particle
-    /// (`waterDriftTaskU16FixedCoord`): fixed-angle rotated or upright sprite thrown by a velocity kind,
-    /// pulled down by gravity; the room stores it in gRoomEffectWaterSprayId (water-spray slot).
+    /// Island's eight-cell water particle (`neoArkIslandWaterSprayTask`),
+    /// drawn from a cached transform while local velocity and gravity advance.
+    /// Installed in `gRoomEffectWaterSprayId` for water-surface spray.
     EFFECT_NEO_ARK_ISLAND_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x179),
     /// neo_ark_bridge's water ripple: a growing, fading quad drawn by _waterDrawSplash;
     /// stored in gRoomEffectWaterRippleId, which wading actors (companion, enemies) spawn at the

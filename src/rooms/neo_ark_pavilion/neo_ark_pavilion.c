@@ -61,9 +61,11 @@
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
+/// Binds the shared water-spray definition to this package's public void (Task*)
+/// callback. Define before including its fragment; the room header declares it.
+#define WATER_SPRAY_TASK neoArkPavilionWaterSprayTask
 // Exported instance: another image refers to this package's copy by name.
-#define waterDriftTaskU16FixedCoord neoArkPavilionWaterDriftTaskU16FixedCoord
-#define waterRippleTaskFixedCoord   neoArkPavilionWaterRippleTaskFixedCoord
+#define waterRippleTaskFixedCoord neoArkPavilionWaterRippleTaskFixedCoord
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 

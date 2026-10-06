@@ -7,9 +7,10 @@
  *
  * Include this header once, in the room prologue, and include each
  * water_<name>.inc.c at the position of that function. A package includes
- * only the fragments it carries. The ripple and drift tasks are static
- * inline: gameplay's room-effect tables name each room's copy, so a room
- * keeps its own entry point, which calls the task.
+ * only the fragments it carries. Some tasks are static inline, with a room
+ * entry point that gameplay's room-effect table imports. The water-spray
+ * fragment instead defines the package's public callback selected by
+ * WATER_SPRAY_TASK; its prototype is in the carrier's room header.
  *
  * _waterDriftTaskU16 feeds its drawers an unsigned 16-bit sprite index.
  * _waterDrawSpinU16 and _waterDrawTileU16 are those drawers. The flags below
@@ -44,6 +45,5 @@ void waterRefractionTask(Task* task);
 void waterDriftTaskNoUpdate(Task* task);
 
 void waterRippleTaskFixedCoord(Task* task);
-void waterDriftTaskU16FixedCoord(Task* task);
 
 #endif /* SRC_SHARED_WATER_EFFECTS_H */
