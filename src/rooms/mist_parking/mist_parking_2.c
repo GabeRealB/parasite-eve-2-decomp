@@ -33,7 +33,6 @@
 #include "main/ui_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/model_placement.h"
 
 void func_mist_parking_8018345C(Task* arg0);
 
@@ -47,6 +46,7 @@ extern EvsCommand D_mist_parking_8018FB3C[];
 extern s32        D_mist_parking_8018FBFC[];
 extern s32        D_mist_parking_8018FC10[];
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_mist_parking_801833F8(Task* task);
 
 static void func_mist_parking_801830F8(Task* task);
@@ -57,7 +57,7 @@ static void func_mist_parking_80183434(Task* arg0);
 /// parent's part and then idles; nothing in the room reads this table.
 static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
     {
-        modelPlacementAttachPart,
+        _modelPlacementAttachPartTask,
         func_mist_parking_801830F8,
         taskKill,
     },

@@ -36,7 +36,6 @@
 #include "rooms/dryfield_night_garage.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/model_placement.h"
 
 /// Work block of Flint, the dog whose model this package carries beside
 /// Gary Douglas's.
@@ -93,7 +92,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasPlaces, 0x30);
 
 /// The actor's two-entry `TaskDesc` table, indexed by `taskSpawnFromTable`:
-/// entry 1 is the model-bearing part task `modelPlacementAttachPart`
+/// entry 1 is the model-bearing part task `_modelPlacementAttachPartTask`
 /// reparents, entry 2 the second part (`_modelPlacementAttachPart`).
 extern TaskDesc D_actor_135400_8013A4AC[];
 
@@ -131,6 +130,7 @@ extern AnimationSet** D_actor_135400_8013F8D4[1];
 /// Main-executable helper the spawn runs on the flag-clear path, once the
 /// actor is placed. Unmatched, so declared here.
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_135400_80131EB4(Task* task);
 static void func_actor_135400_80132064(Task* arg0);
 static void func_actor_135400_801322A8(Task* task);
@@ -146,10 +146,10 @@ s32         func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayReques
 s32         func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
 
 /// State table of the first part task: state 0 reparents it
-/// (`modelPlacementAttachPart`), state 1 does nothing and state 2 kills it.
+/// (`_modelPlacementAttachPartTask`), state 1 does nothing and state 2 kills it.
 /// Dispatched by `func_actor_135400_801323F8`.
 static const TaskFuncTable3 D_actor_135400_80131E24 = { {
-    modelPlacementAttachPart,
+    _modelPlacementAttachPartTask,
     func_actor_135400_801324CC,
     taskKill,
 } };

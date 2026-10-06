@@ -148,6 +148,7 @@ typedef struct {
 } _Actor511000RupertBroderickWork;
 STATIC_ASSERT_SIZEOF(_Actor511000RupertBroderickWork, 0x4D4);
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_511000_80131E78(Task* arg0);
 static void func_actor_511000_80132048(Task* arg0);
 static void func_actor_511000_80132224(Task* task);
@@ -178,7 +179,7 @@ static void func_actor_511000_80134130(Enemy* enemy, Task* task);
 /// State table of a child chained under a part of its spawner's model: the
 /// attach state, an empty tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E24 = {
-    modelPlacementAttachPart,
+    _modelPlacementAttachPartTask,
     func_actor_511000_80132224,
     taskKill,
 };

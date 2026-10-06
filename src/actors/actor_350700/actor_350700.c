@@ -31,7 +31,6 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/model_placement.h"
 #include "../../shared/reversing_walker.h"
 
 /// Animation bank tables of the enemy actor and of the parent block.
@@ -54,6 +53,7 @@ extern TaskMessageEntry gReverseWalkMessages[];
 extern TaskDesc         D_actor_350700_801708DC[];
 extern TaskMessageEntry D_actor_350700_8017090C[];
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_350700_80162B30(Task* arg0);
 static void func_actor_350700_80162D5C(Task* arg0);
 static void func_actor_350700_80163348(Task* task);
@@ -88,7 +88,7 @@ static const VECTOR _gReverseWalkForward = { 0, 0, 0x200000, 0 };
 /// Spawn, tick and exit handlers of the child part tasks, dispatched by
 /// `func_actor_350700_80163274`.
 static const TaskFuncTable3 D_actor_350700_80161E50 = { {
-    modelPlacementAttachPart,
+    _modelPlacementAttachPartTask,
     func_actor_350700_80163348,
     taskKill,
 } };

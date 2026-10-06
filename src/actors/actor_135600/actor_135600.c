@@ -34,7 +34,6 @@
 #include "overlay.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/model_placement.h"
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -58,6 +57,7 @@ extern TaskDesc D_actor_135600_8013B0C4[];
 
 extern TaskMessageEntry D_actor_135600_8013B0F4[];
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_135600_80132234(Task* task);
 static void func_actor_135600_801324D0(Task* task);
 static void func_actor_135600_80132AB4(Task* task);
@@ -75,7 +75,7 @@ s32         func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3
 /// dispatched by `func_actor_135600_801329E0`: attach to the parent, idle,
 /// kill.
 static const TaskFuncTable3 D_actor_135600_80131E24 = { {
-    modelPlacementAttachPart,
+    _modelPlacementAttachPartTask,
     func_actor_135600_80132AB4,
     taskKill,
 } };

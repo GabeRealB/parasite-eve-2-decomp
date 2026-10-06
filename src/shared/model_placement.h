@@ -19,7 +19,6 @@
 
 void modelPlacementAttachChild(Task* task);
 void modelPlacementSetScaled(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
-void modelPlacementAttachPart(Task* childTask);
 void modelPlacementMirrorParent(Task* task);
 
 #endif /* SRC_SHARED_MODEL_PLACEMENT_H */

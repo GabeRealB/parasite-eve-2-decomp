@@ -26,7 +26,6 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/model_placement.h"
 
 /// Work block of Jodie Bouquet as a room script poses her: what her body model
 /// plays, the matrices it is lit with and the model she holds.
@@ -66,6 +65,7 @@ extern TaskMessageEntry D_actor_213100_801521C0[4];
 /// view: nonzero shows the actor and its child, zero hides both.
 extern s8 D_actor_213100_801521E0[];
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_213100_8014A0B8(Task* task);
 static void func_actor_213100_8014A118(Task* arg0);
 static void func_actor_213100_8014A21C(Task* arg0);
@@ -445,7 +445,7 @@ static void func_actor_213100_80149E3C(Task* task)
 /// idle, kill.
 static const TaskFuncTable3 D_actor_213100_80149E24 = {
     {
-        modelPlacementAttachPart,
+        _modelPlacementAttachPartTask,
         func_actor_213100_8014A0B8,
         taskKill,
     },

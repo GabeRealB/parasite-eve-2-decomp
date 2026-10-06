@@ -104,6 +104,7 @@ extern s8             D_actor_310600_80179644[];  // extra ticks owed to the ani
 
 /// Spawn table of the follow-up task queued once the cue has fired five times.
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_310600_80161E64(Task* task);
 static void func_actor_310600_80161FA0(Task* task);
 static void func_actor_310600_8016231C(Task* arg0);
@@ -128,7 +129,7 @@ static const TaskFuncTable3 D_actor_310600_80161E24 = { {
 /// A second child handler triple - attach to the parent's part, an empty tick,
 /// exit. No dispatcher in this package reads it.
 static const TaskFuncTable3 D_actor_310600_80161E30 = { {
-    modelPlacementAttachPart,
+    _modelPlacementAttachPartTask,
     func_actor_310600_801629C4,
     taskKill,
 } };

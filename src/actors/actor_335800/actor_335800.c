@@ -50,7 +50,6 @@
 #include "rooms/dryfield_night_motel_balcony.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/model_placement.h"
 
 /// Work block of Flint, the dog whose model this package carries beside
 /// Gary Douglas's.
@@ -136,6 +135,7 @@ extern TaskMessageEntry D_actor_335800_8016EB00[];
 /// `func_actor_335800_80163AA0`; terminator id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_actor_335800_80172EA8[];
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_335800_80162640(Task* arg0);
 static void func_actor_335800_80162844(Task* task);
 static void func_actor_335800_80162F08(Task* task);
@@ -157,7 +157,7 @@ static void func_actor_335800_80163D20(Task* arg0);
 /// Spawn, tick and teardown handlers of the two part tasks the parent block
 /// spawns, dispatched by `func_actor_335800_80162E34`.
 static const TaskFuncTable3 D_actor_335800_80161E24 = { {
-    modelPlacementAttachPart,
+    _modelPlacementAttachPartTask,
     func_actor_335800_80162F08,
     taskKill,
 } };

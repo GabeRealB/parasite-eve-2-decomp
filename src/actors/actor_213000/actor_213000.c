@@ -65,6 +65,7 @@ extern TaskMessageEntry D_actor_213000_80157E1C[];
 extern AnimationSet*  D_actor_213000_80157DB0[11];
 extern AnimationSet** D_actor_213000_80157DDC[1];
 
+static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_213000_8014A158(Task* task);
 static void func_actor_213000_8014A5D0(Task* task);
 static void func_actor_213000_8014A6AC(Task* task);
@@ -588,7 +589,7 @@ static void func_actor_213000_80149E54(Task* task)
 /// the parent, idle, kill.
 static const TaskFuncTable3 D_actor_213000_80149E24 = {
     {
-        modelPlacementAttachPart,
+        _modelPlacementAttachPartTask,
         func_actor_213000_8014A158,
         taskKill,
     },

@@ -130,4 +130,4 @@ actorMotionArrive19 = 0x8016373C; // type:func
 actorMotionPlayAnim19 = 0x80163E20; // type:func
 actorMsgPlaceEuler = 0x801633C0; // type:func
 _actorMsgPlaceEuler = 0x80163F3C; // type:func
-modelPlacementAttachPart = 0x80162E8C; // type:func
+_modelPlacementAttachPartTask = 0x80162E8C; // type:func

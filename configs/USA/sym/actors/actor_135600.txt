@@ -108,4 +108,4 @@ actorMotionTurnToYaw = 0x80132FA8; // type:func
 actorMotionPlayAnim = 0x801330A8; // type:func
 actorMotionStartWalk = 0x8013282C; // type:func
 actorMsgPlaceEuler = 0x801331C4; // type:func
-modelPlacementAttachPart = 0x80132A38; // type:func
+_modelPlacementAttachPartTask = 0x80132A38; // type:func
