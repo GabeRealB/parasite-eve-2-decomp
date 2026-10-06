@@ -1106,7 +1106,6 @@ static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord
 static __inline__ void Actor110600_InitScale(BossStrangerWalker* walker);
 static void            func_actor_110600_80134AB4(Enemy* enemy, Task* task);
 static void            func_actor_110600_80135194(Task* arg0);
-static __inline__ s16  Actor110600_WrapHitAngle(s16 angle);
 static __inline__ s32  Actor110600_TickShake(void);
 static __inline__ s32  Actor110600_HasRec10000(WorldCollisionContact* recs);
 static void            func_actor_110600_80135B84(Task* arg0);
@@ -1912,24 +1911,6 @@ static void func_actor_110600_80135194(Task* arg0)
     func_actor_110600_80134728(arg0);
 }
 
-static __inline__ s16 Actor110600_WrapHitAngle(s16 angle)
-{
-    if (angle < 0) {
-    neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto neg;
-        }
-    } else {
-    pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto pos;
-        }
-    }
-    return angle;
-}
-
 static __inline__ s32 Actor110600_TickShake(void)
 {
     D_actor_110600_8014865C++;
@@ -2003,7 +1984,7 @@ static void func_actor_110600_80135454(Task* arg0)
     work->stateFrame++;
     facing = arg0->extra.tmd->coords;
     angle  = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    angle  = Actor110600_WrapHitAngle(angle);
+    angle  = actorWrapAngle(angle);
     if (abs(angle) < 0x80) {
         if (actorOutsideRadius(&delta, 500) != 0) {
             if (actorOutsideRadius(&delta, 1000) == 0 && work->stateFrame >= 25)
@@ -2330,7 +2311,7 @@ static void func_actor_110600_80136210(Task* arg0)
         facing                = arg0->extra.tmd->coords;
         angle                 = yaw - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
         scratch->hitYaw       = angle;
-        scratch->hitYaw       = Actor110600_WrapHitAngle(scratch->hitYaw);
+        scratch->hitYaw       = actorWrapAngle(scratch->hitYaw);
         func_actor_110600_80135E20(arg0, scratch->hitYaw, scratch->hitKey);
         work->lookYaw       = 0;
         work->lookYawTarget = 0;
