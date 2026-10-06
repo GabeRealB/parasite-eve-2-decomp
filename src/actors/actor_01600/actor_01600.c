@@ -1763,25 +1763,21 @@ static void Actor01600_Fn00BAC(Task* actor)
     coord   = actor->extra.tmd->coords;
     mode    = func_800E0C10(work->bodySphere.contacts, &scratch->delta, ARRAY_SIZE(work->bodySphere.contacts), &scratch->contributorMask);
     world   = coord + 1;
-    if (mode == 1)
-        goto mode1;
-    if (mode < 2)
-        goto mode_end;
-    if (mode == 2)
-        goto mode2;
-    goto mode_end;
-    {
-    mode1:
-        coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-        coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-        coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
-        goto mode_end;
-    mode2:
-        coord->coord.t[0] = work->previousPosition.vx;
-        coord->coord.t[1] = work->previousPosition.vy;
-        coord->coord.t[2] = work->previousPosition.vz;
+    switch (mode) {
+        case 1:
+            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+            break;
+        case 2:
+            coord->coord.t[0] = work->previousPosition.vx;
+            coord->coord.t[1] = work->previousPosition.vy;
+            coord->coord.t[2] = work->previousPosition.vz;
+            break;
+        case 0:
+        default:
+            break;
     }
-mode_end:
     slots = gPlayerActorTasks;
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown <= 0)
@@ -1816,8 +1812,13 @@ mode_end:
                     switch (Gp_GetIdParam0(work->bodySphere.contacts[contactIndex].key.value) & 0xFFFF) {
                         case 4:
                         case 6:
-                            if ((s16)ctx->hp <= 0)
-                                goto dead;
+                            if ((s16)ctx->hp <= 0) {
+                                work->burstState = 0;
+                                Actor01600_Fn0646C(actor);
+                                work->burstState = 2;
+                                work->airborne   = 0;
+                                return;
+                            }
                             Gp_SetObjFlag1(actor->spawnArg2.pointer);
                             break;
                         case 2:
@@ -1945,23 +1946,15 @@ mode_end:
             amount                = Actor01600_Fn045A8(actor, &distance);
             if (amount < 0)
                 amount = -amount;
-            if (amount >= 0x400)
-                goto far_angle;
-            work->animRequest  = 14;
-            work->forwardSpeed = -40;
-            goto release;
-        dead:
-            work->burstState = 0;
-            Actor01600_Fn0646C(actor);
-            work->burstState = 2;
-            work->airborne   = 0;
-            return;
-        far_angle:
-            work->animRequest  = 11;
-            work->forwardSpeed = 40;
+            if (amount < 0x400) {
+                work->animRequest  = 14;
+                work->forwardSpeed = -40;
+            } else {
+                work->animRequest  = 11;
+                work->forwardSpeed = 40;
+            }
         }
     }
-release:
     SCRATCH_STACK_RELEASE_BLOCK(_Actor01600ContactScratch);
     return;
 }
