@@ -1973,37 +1973,25 @@ static void Actor01500_Fn02484(Enemy* arg0, Task* arg1)
     TmdObject*       obj;
     _Actor01500Work* work;
     s32              state;
-    s32              one;
 
     obj   = arg1->extra.tmd;
     state = gSceneCombatState.actorControl;
     work  = arg1->work;
     coord = obj->coords;
-    one   = 1;
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            obj->flags                   = 0;
+            arg0->node.state.parts.flags = 0;
+            break;
+        case 1:
+            Actor01500_Fn02B14(arg1);
+            Actor01500_Fn02B70(arg1);
+            return;
+        case 2:
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = 1;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags                   = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case2:
-    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     if (arg0->reactionFlags != 0) {
         Actor01500_Fn025C8(arg1);
     }
@@ -2024,7 +2012,6 @@ default_body:
     Actor01500_Fn02A1C(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-case1:
     Actor01500_Fn02B14(arg1);
     Actor01500_Fn02B70(arg1);
 }
