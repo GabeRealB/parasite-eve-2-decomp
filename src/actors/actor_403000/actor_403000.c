@@ -4631,21 +4631,9 @@ static void func_actor_403000_8013B238(Task* arg0)
         scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
         coord               = arg0->extra.tmd->coords;
         angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto loop_neg;
-            }
-        } else {
-        loop_pos:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos;
-            }
-        }
-        mag           = angle;
-        scratch->turn = mag;
+        angle               = actorWrapAngle(angle);
+        mag                 = angle;
+        scratch->turn       = mag;
         if (ABS(mag) < 0x400) {
             work->state = ACTOR_403000_STATE_PATROL;
         }
