@@ -116,10 +116,11 @@ static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2);
 /// Inline copy of `Gp_GetAttachLevels`.
 static __inline__ u8* getAttachLevels(void);
 
-/// Inline copy of `func_800A7E5C(0)`: the HUD category can be swapped only
+/// Inline copy of `func_800A7E5C`: the HUD category can be swapped only
 /// while the player actor is idle, no CD request is pending and the
-/// `Gp_ItemGrantCooldown` cooldown has expired.
-static __inline__ s32 hudSwapReady(void);
+/// `Gp_ItemGrantCooldown` cooldown has expired. `ignoreSwapLock` skips the
+/// `ATTACHMENT_FLAG_SWAP_LOCK` test, as `Gp_HudTask` does for START in battle.
+static __inline__ s32 hudSwapReady(s32 ignoreSwapLock);
 
 /// Inline copy of `Gp_CdIdleIfF0Active`.
 static __inline__ s32 cdIdleIfF0Active_(void);
@@ -1076,16 +1077,16 @@ static __inline__ u8* getAttachLevels(void)
     return Gp_DebugAttachLevels;
 }
 
-/// Inline copy of `func_800A7E5C(0)`: the HUD category can be swapped only
+/// Inline copy of `func_800A7E5C`: the HUD category can be swapped only
 /// while the player actor is idle, no CD request is pending and the
-/// `Gp_ItemGrantCooldown` cooldown has expired.
-static __inline__ s32 hudSwapReady(void)
+/// `Gp_ItemGrantCooldown` cooldown has expired. `ignoreSwapLock` skips the
+/// `ATTACHMENT_FLAG_SWAP_LOCK` test, as `Gp_HudTask` does for START in battle.
+static __inline__ s32 hudSwapReady(s32 ignoreSwapLock)
 {
     Task*         work;
     GameActor*    actor;
     PlayerStatus* p;
     s32           flag;
-    s32           ret;
 
     flag = 0;
     work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
@@ -1102,20 +1103,20 @@ static __inline__ s32 hudSwapReady(void)
             }
         }
     }
-    if (Gp_StateC08.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
-        flag = 0;
-    }
-    if (flag != 0) {
-        if (Gp_ItemGrantCooldown <= 0) {
-            ret = 1;
-            if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
-                goto done;
-            }
+    if (ignoreSwapLock == 0) {
+        if (Gp_StateC08.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
+            flag = 0;
         }
     }
-    ret = 0;
-done:
-    return ret;
+    if (flag != 0) {
+        if (Gp_ItemGrantCooldown > 0) {
+            return 0;
+        }
+        if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /// Inline copy of `Gp_CdIdleIfF0Active`.
@@ -1231,7 +1232,7 @@ static void Gp_UseItemTask(HudState* hud)
 
     // Open the wheel from idle when the pad asks, or when a script forces it.
     if (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE && Gp_StateC08.queuedIndex == 0) {
-        ok = hudSwapReady();
+        ok = hudSwapReady(0);
         if ((ok != 0 && (gGameSession->padPressed & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
              !(Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) ||
             (Gp_StateC08.flags & ATTACHMENT_FLAG_OPEN_WHEEL)) {
@@ -1368,6 +1369,63 @@ static void Gp_UseItemTask(HudState* hud)
     }
 }
 
+/// Battle-end step of `Gp_HudTask` that waits for the player's end action to
+/// finish (or skips it when the weapon is being re-equipped), refills the
+/// weapon's ammunition choices and moves on to the results.
+static __inline__ void hudWaitEndAction(HudState* hud)
+{
+    s32           hit;
+    s32           flags;
+    s32           item;
+    PlayerStatus* p;
+    s32           cond;
+
+    SceneCombatState* combat;
+    Task*             w;
+    s32               c;
+
+    w      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    hit    = 0;
+    combat = &gSceneCombatState;
+    c      = combat->signals.bytes.endDelayFrames;
+    if (c != 0) {
+        if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+            combat->signals.bytes.endDelayFrames = c - 1;
+        }
+    }
+    if (w != NULL) {
+        if (((GameActor*)w->work)->statePhase == 0x3E8) {
+            hit = 1;
+        }
+    }
+    flags = gGameSession->flowFlags;
+    if ((flags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
+        if (w != NULL) {
+            if (hit == 0) {
+                return;
+            }
+        }
+        func_80108874(w);
+    } else {
+        if (flags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
+            taskMessageDispatch(w, GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
+        }
+    }
+    p    = &gPlayerStatus;
+    item = p->weapon + 0x7F;
+    Gp_FillRelated(item, 0);
+    Gp_FillRelated(item, 1);
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+        cond = 0;
+    } else {
+        cond = p->resourceVariant == 4;
+    }
+    if (cond == 0 || gGameSession->battleResetPending == 0) {
+        hud->suppression = HUD_SUPPRESS_ALL;
+    }
+    hud->battleStep = hud->battleStep + 1;
+}
+
 void Gp_HudTask(HudState* hud)
 {
     DisplayState*     ds;
@@ -1464,103 +1522,39 @@ void Gp_HudTask(HudState* hud)
         DisplayState* d2;
 
         d2 = &gDisplayState;
-        if (d2->holdState < 0) {
-            goto after;
-        }
-        if (Gp_StateC08.mode != ATTACHMENT_MODE_IDLE) {
-            if (d2->demoScene == DISPLAY_DEMO_NONE) {
-                goto after;
-            }
-        }
-        if (Gp_ItemGrantCooldown > 0) {
-            goto after;
-        }
-        if (gGameSession->dirActionBusy != 0) {
-            goto after;
-        }
-        if (cfg->interactionPressed != 0) {
-            goto after;
-        }
-        if (gSceneCombatState.signals.bytes.endDelayFrames != 0) {
-            goto after;
-        }
-        if (d2->pendingMode != DISPLAY_MODE_NONE) {
-            goto after;
-        }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0) {
-            s32 hit;
-            s32 ok;
+        if (d2->holdState >= 0 && (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE || d2->demoScene != DISPLAY_DEMO_NONE) && Gp_ItemGrantCooldown <= 0 && gGameSession->dirActionBusy == 0 &&
+            cfg->interactionPressed == 0 && gSceneCombatState.signals.bytes.endDelayFrames == 0 && d2->pendingMode == DISPLAY_MODE_NONE) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0) {
+                if (hud->inBattle == 0) {
+                    hud->queuedMenuMode = 0x41;
+                    hud->suppression    = HUD_SUPPRESS_ALL;
+                } else if (hudSwapReady(1) != 0 && gPlayerStatus.armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+                    hud->queuedMenuMode = 0x42;
+                    hud->suppression    = HUD_SUPPRESS_PARASITE_ENERGY;
+                }
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
+                if (hud->inBattle != 0) {
+                    PlayerStatus* p;
+                    s32           cond;
 
-            if (hud->inBattle == 0) {
-                hud->queuedMenuMode = 0x41;
-                hud->suppression    = HUD_SUPPRESS_ALL;
-                goto after;
-            }
-            hit  = 0;
-            work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-            if (work != NULL) {
-                GameActor*    actor;
-                PlayerStatus* p;
-                s32           mode;
-
-                actor = work->work;
-                p     = &gPlayerStatus;
-                if (actor->mode == GAME_ACTOR_MODE_NORMAL) {
-                    mode = actor->state;
-                    if (mode == 0 || mode == 2) {
-                        if (gGameSession->dirActionBusy == 0) {
-                            if (p->interactionPressed == 0) {
-                                hit = 1;
-                            }
-                        }
+                    p = &gPlayerStatus;
+                    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                        cond = 0;
+                    } else {
+                        cond = p->resourceVariant == 4;
                     }
-                }
-            }
-            if (hit != 0) {
-                if (Gp_ItemGrantCooldown > 0) {
-                    ok = 0;
-                    goto have;
-                }
-                if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
-                    ok = 1;
-                    goto have;
-                }
-            }
-            ok = 0;
-        have:
-            if (ok == 0) {
-                goto after;
-            }
-            if (gPlayerStatus.armor == PLAYER_STATUS_EQUIPMENT_NONE) {
-                goto after;
-            }
-            hud->queuedMenuMode = 0x42;
-            hud->suppression    = HUD_SUPPRESS_PARASITE_ENERGY;
-            goto after;
-        }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
-            if (hud->inBattle != 0) {
-                PlayerStatus* p;
-                s32           cond;
-
-                p = &gPlayerStatus;
-                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                    cond = 0;
+                    if (cond == 0) {
+                        hud->queuedMenuMode = 0x45;
+                        hud->suppression    = HUD_SUPPRESS_ALL;
+                    }
                 } else {
-                    cond = p->resourceVariant == 4;
+                    hud->queuedMenuMode = DISPLAY_MODE_MAP;
+                    hud->suppression    = HUD_SUPPRESS_ALL;
                 }
-                if (cond != 0) {
-                    goto after;
-                }
-                hud->queuedMenuMode = 0x45;
-            } else {
-                hud->queuedMenuMode = DISPLAY_MODE_MAP;
             }
-            hud->suppression = HUD_SUPPRESS_ALL;
         }
     }
 
-after:
     Gp_UpdateLinkXforms();
     {
         DisplayState* d3;
@@ -1570,43 +1564,161 @@ after:
         attachment->effectPhase     = ATTACHMENT_EFFECT_IDLE;
         d3->suppressDisconnectPause = 1;
         inBattle                    = hud->inBattle;
-        if (inBattle != 1) {
-            goto other;
-        }
-        step = hud->battleStep;
-        if (step == HUD_BATTLE_STEP_START) {
-            s32 currentStageAreaKey;
+        if (inBattle == 1) {
+            step = hud->battleStep;
+            if (step == HUD_BATTLE_STEP_START) {
+                s32 currentStageAreaKey;
 
-            if (bad != 0) {
-                goto tail;
-            }
-            currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
-            currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
-            hud->field_8         = 0;
-            if (currentStageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                Display_InitModeObj(&D_8010CAB0, 0, hud, 0x100);
-            } else {
+                if (bad == 0) {
+                    currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
+                    currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
+                    hud->field_8         = 0;
+                    if (currentStageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                        Display_InitModeObj(&D_8010CAB0, 0, hud, 0x100);
+                    } else {
+                        hud->battleStep = hud->battleStep + 1;
+                    }
+                    Gp_StateC08.mode = ATTACHMENT_MODE_IDLE;
+                }
+            } else if (step == HUD_BATTLE_STEP_FIGHT) {
+                combat                      = &gSceneCombatState;
+                b                           = combat->signals.bytes.endDelayFrames;
+                d3->suppressDisconnectPause = 0;
+                if (b != 0) {
+                    if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                        combat->signals.bytes.endDelayFrames = b - 1;
+                    }
+                    n = combat->signals.bytes.endDelayFrames;
+                    if (n == 2) {
+                        Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
+                        CdCmd_EnqueueLoadFile(0, 0, 4);
+                        if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+                            attachment->effectPhase = n;
+                        }
+                        attachment->queuedIndex  = 0;
+                        attachment->mode         = ATTACHMENT_MODE_IDLE;
+                        D_80115768               = 0;
+                        combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
+                        attachment->previewSound = 0;
+                        attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
+                        Gp_PulseState1C80();
+                        worldTargetClearActorTargetMarks();
+                        if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
+                            hud->battleStep = hud->battleStep + 1;
+                        } else {
+                            work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                            func_80106350(work, gPlayerStatus.weapon, 0);
+                            if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
+                                Gp_MsgPlayerWeapon(0);
+                            }
+                            hud->battleStep = hud->battleStep + 2;
+                        }
+                    }
+                } else {
+                    GameSession* session;
+
+                    if (stageAreaKey == GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                        session = gGameSession;
+                        if (session->battleResetPending != 0) {
+                            combat->signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
+                            combat->battleRefs                = 0;
+                            session->battleResetPending       = 0;
+                            if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+                                attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
+                            }
+                            attachment->queuedIndex = 0;
+                            attachment->mode        = ATTACHMENT_MODE_IDLE;
+                            D_80115768              = 0;
+                            combat->actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
+                            attachment->menuOpen    = ATTACHMENT_MENU_CLOSED;
+                            hud->battleStep         = HUD_BATTLE_STEP_START;
+                            hud->inBattle           = 0;
+                        }
+                    }
+                }
+            } else if (step == HUD_BATTLE_STEP_END_ACTION) {
+                SceneCombatState* combat;
+                Task*             w;
+                s32               c;
+
+                combat = &gSceneCombatState;
+                c      = combat->signals.bytes.endDelayFrames;
+                if (c != 0) {
+                    if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                        combat->signals.bytes.endDelayFrames = c - 1;
+                    }
+                }
+                w = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                if (w != NULL) {
+                    func_801088D4(w, 0, 2);
+                }
                 hud->battleStep = hud->battleStep + 1;
-            }
-            Gp_StateC08.mode = ATTACHMENT_MODE_IDLE;
-            goto tail;
-        }
-        if (step == HUD_BATTLE_STEP_FIGHT) {
-            combat                      = &gSceneCombatState;
-            b                           = combat->signals.bytes.endDelayFrames;
-            d3->suppressDisconnectPause = 0;
-            if (b != 0) {
-                if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                    combat->signals.bytes.endDelayFrames = b - 1;
+            } else if (step == HUD_BATTLE_STEP_WAIT_END_ACTION) {
+                hudWaitEndAction(hud);
+            } else if (step == HUD_BATTLE_STEP_RESULTS && bad == 0) {
+                PlayerStatus*    p;
+                s32              cond;
+                DisplayState*    d4;
+                AttachmentState* attachment;
+
+                p = &gPlayerStatus;
+                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                    cond = 0;
+                } else {
+                    cond = p->resourceVariant == 4;
                 }
-                n = combat->signals.bytes.endDelayFrames;
-                if (n != 2) {
-                    goto tail;
+                if (cond != 0 && gGameSession->battleResetPending != 0) {
+                    hud->battleStep = HUD_BATTLE_STEP_START;
+                    hud->inBattle   = 0;
+                } else {
+                    d4 = &gDisplayState;
+                    if (d4->demoScene != DISPLAY_DEMO_NONE) {
+                        d4->gameMode    = DISPLAY_GAME_RESTART;
+                        hud->battleStep = HUD_BATTLE_STEP_START;
+                        hud->inBattle   = 0;
+                    } else {
+                        Display_InitModeObj(&D_8010CABC, 0, hud, 0);
+                    }
                 }
-                Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
-                CdCmd_EnqueueLoadFile(0, 0, 4);
+                attachment = &Gp_StateC08;
                 if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-                    attachment->effectPhase = n;
+                    attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
+                }
+                attachment->queuedIndex        = 0;
+                attachment->mode               = ATTACHMENT_MODE_IDLE;
+                D_80115768                     = 0;
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                attachment->menuOpen           = ATTACHMENT_MENU_CLOSED;
+            }
+            if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
+                if (gGameSession->hideHud == 0) {
+                    func_800A57B0(hud);
+                    if (func_800B9D80(0x100000) != 0) {
+                        if (gGameSession->sceneUpdatesPaused == 0) {
+                            Gp_DrawHudSprites(hud);
+                        }
+                    }
+                }
+            }
+        } else {
+            SceneCombatState* combat;
+            AttachmentState*  attachment;
+            s32               m;
+
+            if (gSceneCombatState.signals.bytes.endDelayFrames != 0) {
+                if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
+                    gSceneCombatState.signals.bytes.endDelayFrames = gSceneCombatState.signals.bytes.endDelayFrames - 1;
+                }
+            }
+            combat = &gSceneCombatState;
+            m      = gSceneCombatState.signals.bytes.battlePhase;
+            if (m == 1) {
+                hud->battleStep = HUD_BATTLE_STEP_START;
+                hud->inBattle   = m;
+                CdCmd_EnqueueLoadFile(0, 0, 4);
+                attachment = &Gp_StateC08;
+                if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+                    attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
                 }
                 attachment->queuedIndex  = 0;
                 attachment->mode         = ATTACHMENT_MODE_IDLE;
@@ -1614,210 +1726,15 @@ after:
                 combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
                 attachment->previewSound = 0;
                 attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
-                Gp_PulseState1C80();
-                worldTargetClearActorTargetMarks();
-                if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
-                    goto inc1;
-                }
-                work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                func_80106350(work, gPlayerStatus.weapon, 0);
-                if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
-                    Gp_MsgPlayerWeapon(0);
-                }
-                hud->battleStep = hud->battleStep + 2;
-                goto tail;
-            } else {
-                GameSession* session;
-
-                if (stageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                    goto tail;
-                }
-                session = gGameSession;
-                if (session->battleResetPending == 0) {
-                    goto tail;
-                }
-                combat->signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
-                combat->battleRefs                = 0;
-                session->battleResetPending       = 0;
-                if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-                    attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
-                }
-                attachment->queuedIndex = 0;
-                attachment->mode        = ATTACHMENT_MODE_IDLE;
-                D_80115768              = 0;
-                combat->actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
-                attachment->menuOpen    = ATTACHMENT_MENU_CLOSED;
-                hud->battleStep         = HUD_BATTLE_STEP_START;
-                hud->inBattle           = 0;
-                goto tail;
-            }
-        }
-        if (step == HUD_BATTLE_STEP_END_ACTION) {
-            SceneCombatState* combat;
-            Task*             w;
-            s32               c;
-
-            combat = &gSceneCombatState;
-            c      = combat->signals.bytes.endDelayFrames;
-            if (c != 0) {
-                if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                    combat->signals.bytes.endDelayFrames = c - 1;
-                }
-            }
-            w = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            if (w == NULL) {
-                goto inc1;
-            }
-            func_801088D4(w, 0, 2);
-            goto inc1;
-        }
-        if (step == HUD_BATTLE_STEP_WAIT_END_ACTION) {
-            s32           hit;
-            s32           flags;
-            s32           item;
-            PlayerStatus* p;
-            s32           cond;
-
-            SceneCombatState* combat;
-            Task*             w;
-            s32               c;
-
-            w      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            hit    = 0;
-            combat = &gSceneCombatState;
-            c      = combat->signals.bytes.endDelayFrames;
-            if (c != 0) {
-                if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                    combat->signals.bytes.endDelayFrames = c - 1;
-                }
-            }
-            if (w != NULL) {
-                if (((GameActor*)w->work)->statePhase == 0x3E8) {
-                    hit = 1;
-                }
-            }
-            flags = gGameSession->flowFlags;
-            if ((flags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
-                if (w != NULL) {
-                    if (hit == 0) {
-                        goto tail;
-                    }
-                }
-                func_80108874(w);
-            } else {
-                if (flags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
-                    taskMessageDispatch(w, GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
-                }
-            }
-            p    = &gPlayerStatus;
-            item = p->weapon + 0x7F;
-            Gp_FillRelated(item, 0);
-            Gp_FillRelated(item, 1);
-            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                cond = 0;
-            } else {
-                cond = p->resourceVariant == 4;
-            }
-            if (cond != 0) {
-                if (gGameSession->battleResetPending != 0) {
-                    goto inc1;
-                }
-            }
-            hud->suppression = HUD_SUPPRESS_ALL;
-        inc1:
-            hud->battleStep = hud->battleStep + 1;
-            goto tail;
-        }
-        if (step == HUD_BATTLE_STEP_RESULTS && bad == 0) {
-            PlayerStatus*    p;
-            s32              cond;
-            DisplayState*    d4;
-            AttachmentState* attachment;
-
-            p = &gPlayerStatus;
-            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                cond = 0;
-            } else {
-                cond = p->resourceVariant == 4;
-            }
-            if (cond != 0) {
-                if (gGameSession->battleResetPending != 0) {
-                    goto zero;
-                }
-            }
-            d4 = &gDisplayState;
-            if (d4->demoScene != DISPLAY_DEMO_NONE) {
-                d4->gameMode = DISPLAY_GAME_RESTART;
-            zero:
-                hud->battleStep = HUD_BATTLE_STEP_START;
-                hud->inBattle   = 0;
-            } else {
-                Display_InitModeObj(&D_8010CABC, 0, hud, 0);
-            }
-            attachment = &Gp_StateC08;
-            if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-                attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
-            }
-            attachment->queuedIndex        = 0;
-            attachment->mode               = ATTACHMENT_MODE_IDLE;
-            D_80115768                     = 0;
-            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            attachment->menuOpen           = ATTACHMENT_MENU_CLOSED;
-        }
-    }
-
-tail:
-    if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
-        if (gGameSession->hideHud == 0) {
-            func_800A57B0(hud);
-            if (func_800B9D80(0x100000) != 0) {
-                if (gGameSession->sceneUpdatesPaused == 0) {
-                    Gp_DrawHudSprites(hud);
-                }
-            }
-        }
-    }
-    goto end;
-
-other: {
-    SceneCombatState* combat;
-    AttachmentState*  attachment;
-    s32               m;
-
-    if (gSceneCombatState.signals.bytes.endDelayFrames != 0) {
-        if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-            gSceneCombatState.signals.bytes.endDelayFrames = gSceneCombatState.signals.bytes.endDelayFrames - 1;
-        }
-    }
-    combat = &gSceneCombatState;
-    m      = gSceneCombatState.signals.bytes.battlePhase;
-    if (m == 1) {
-        hud->battleStep = HUD_BATTLE_STEP_START;
-        hud->inBattle   = m;
-        CdCmd_EnqueueLoadFile(0, 0, 4);
-        attachment = &Gp_StateC08;
-        if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-            attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
-        }
-        attachment->queuedIndex  = 0;
-        attachment->mode         = ATTACHMENT_MODE_IDLE;
-        D_80115768               = 0;
-        combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
-        attachment->previewSound = 0;
-        attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
-        hud->suppression         = HUD_SUPPRESS_ALL;
-    } else {
-        if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
-            if (gGameSession->hideHud == 0) {
+                hud->suppression         = HUD_SUPPRESS_ALL;
+            } else if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY && gGameSession->hideHud == 0) {
                 func_800A57B0(hud);
-                goto end;
+            } else {
+                hud->suppression = HUD_SUPPRESS_ALL;
             }
         }
-        hud->suppression = HUD_SUPPRESS_ALL;
     }
-}
 
-end:
     if (hud->suppression <= HUD_SUPPRESS_NONE) {
         if (gGameSession->eventState == 0) {
             if (func_800B9D80(0x4000) != 0) {
