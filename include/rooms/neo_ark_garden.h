@@ -38,9 +38,10 @@ void func_neo_ark_garden_8017EA9C(Task* task);
 ///
 /// Requires a counted effect task with a coordinate body, owned `EffectWork`
 /// in `spawnArg2.pointer`, state zero and age/frame index zero. `spawnArg1.pointer`
-/// borrows a target `GfxCoord` through the first running update, when both world
-/// matrices must be composed. That update fixes a parent-space step at 204/4096
-/// of the initial displacement, with intermediate signed 16-bit narrowing.
+/// borrows a target `GfxCoord` through the first running update, when both cached
+/// matrices must be current in the same view space. That update fixes a
+/// parent-space step at 204/4096 of the initial displacement, with intermediate
+/// signed 16-bit narrowing.
 /// Later running updates move by that step and draw on odd ages; at age 20 the
 /// work and task are released. Non-running room control pauses without drawing;
 /// cancellation releases the effect. The target is not sampled again.
