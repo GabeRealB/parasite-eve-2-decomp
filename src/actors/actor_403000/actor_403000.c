@@ -3581,7 +3581,6 @@ static void func_actor_403000_801377C8(Task* arg0)
     GfxCoord*                 coord;
     GfxCoord*                 coord2;
     GfxCoord*                 pos;
-    GfxCoord*                 rot;
     SVECTOR*                  dir;
     SVECTOR*                  t;
     SVECTOR*                  v;
@@ -3589,7 +3588,6 @@ static void func_actor_403000_801377C8(Task* arg0)
     SVECTOR*                  dirB;
     Task*                     task;
     GameActor*                pw;
-    s16                       angle;
     s16                       step;
     s16                       diff;
     s32                       mag;
@@ -3629,10 +3627,7 @@ static void func_actor_403000_801377C8(Task* arg0)
             t->vx         = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
             t->vy         = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
             t->vz         = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-            rot           = arg0->extra.tmd->coords;
-            angle         = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-            angle         = actorWrapAngle(angle);
-            scratch->turn = mag = angle;
+            scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
             if (ABS(mag) < 0x400) {
                 if (_actor403000HasPlayerContact(work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
                     work->state            = ACTOR_403000_STATE_GRAB_CATCH;
@@ -3647,9 +3642,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                     t->vy                  = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
                     t->vz                  = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
                     scratch->yawFromPlayer = ratan2(scratch->offset.vx, scratch->offset.vz) + 0x800;
-                    angle                  = scratch->yawFromPlayer;
-                    angle                  = actorWrapAngle(angle);
-                    scratch->yawFromPlayer = mag = angle;
+                    scratch->yawFromPlayer = mag = actorWrapAngle(scratch->yawFromPlayer);
                     mag                         -= scratch->playerYaw;
                     if (ABS(mag) < 0x400) {
                         work->playerAnimation.source.sets          = D_actor_403000_80158C08;
