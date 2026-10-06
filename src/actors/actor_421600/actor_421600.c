@@ -3251,11 +3251,11 @@ static void func_actor_421600_8013A554(Task* arg0)
             scratch->offset.vz     = targetZ;
             yaw                    = ratan2(scratch->offset.vx, targetZ) + 0x800;
             scratch->yawFromPlayer = yaw;
-            scratch->yawFromPlayer = actorNormalizeYaw(yaw);
+            scratch->yawFromPlayer = _actorAngleNormalizeYaw(yaw);
             facingCoord            = arg0->extra.tmd->coords;
             facingAngle            = ratan2(scratch->offset.vx, scratch->offset.vz);
             facingDelta            = facingAngle - ratan2(-facingCoord->coord.m[2][0], facingCoord->coord.m[2][2]);
-            scratch->turn          = actorNormalizeYaw(facingDelta);
+            scratch->turn          = _actorAngleNormalizeYaw(facingDelta);
             distance               = scratch->yawFromPlayer - scratch->playerYaw;
             distance               = abs(distance);
             if (distance < 0x400) {
@@ -3331,7 +3331,7 @@ static void func_actor_421600_8013A554(Task* arg0)
         aimFacing              = arg0->extra.tmd->coords;
         aimAngle               = ratan2(scratch->offset.vx, aimZ);
         aimDelta               = aimAngle - ratan2(-aimFacing->coord.m[2][0], aimFacing->coord.m[2][2]);
-        scratch->playerBearing = actorNormalizeYaw(aimDelta);
+        scratch->playerBearing = _actorAngleNormalizeYaw(aimDelta);
     } else {
         fallbackCoord          = arg0->extra.tmd->coords;
         scratch->offset.vx     = (s16)(gPlayerStatus.coordMtx->t[0] - fallbackCoord->coord.t[0]);
@@ -3341,7 +3341,7 @@ static void func_actor_421600_8013A554(Task* arg0)
         fallbackFacing         = arg0->extra.tmd->coords;
         fallbackAngle          = ratan2(scratch->offset.vx, fallbackZ);
         fallbackDelta          = fallbackAngle - ratan2(-fallbackFacing->coord.m[2][0], fallbackFacing->coord.m[2][2]);
-        fallbackYaw            = actorNormalizeYaw(fallbackDelta);
+        fallbackYaw            = _actorAngleNormalizeYaw(fallbackDelta);
         scratch->playerBearing = (s16)fallbackYaw;
         fallbackYaw            = abs(fallbackYaw);
         if (fallbackYaw >= 0x601) {
@@ -3352,7 +3352,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     moveCoord                             = arg0->extra.tmd->coords;
     moveAngle                             = ratan2(work->playerDelta.vx, work->playerDelta.vz);
     moveDelta                             = moveAngle - ratan2(-moveCoord->coord.m[2][0], moveCoord->coord.m[2][2]);
-    scratch->turn                         = actorNormalizeYaw(moveDelta);
+    scratch->turn                         = _actorAngleNormalizeYaw(moveDelta);
     desertChaserAnimTick(arg0);
     stepCoord = arg0->extra.tmd->coords;
     _actorMovementStepForward(stepCoord, 200);

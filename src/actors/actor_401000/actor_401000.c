@@ -1543,9 +1543,9 @@ static void func_actor_401000_80135AA4(Task* arg0)
                               gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+    chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
     coord                = arg0->extra.tmd->coords;
-    chase->turn          = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    chase->turn          = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget  = chase->turn;
     diff                 = chase->yawFromPlayer - chase->playerYaw;
     if (ABS(diff) < 0x44) {
@@ -1564,7 +1564,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
     if (detectSightBlocked(arg0) != 1) {
         work->stateTimer++;
         coord               = arg0->extra.tmd->coords;
-        chase->turn         = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (chase->turn < 0x200) {
             if (!oddStrangerOutOfRange(&chase->delta, 0x44C) && work->grabCooldown == 0) {
@@ -1574,7 +1574,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
     } else {
         work->stateTimer    = 0;
         coord               = arg0->extra.tmd->coords;
-        chase->turn         = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (work->sidestepSide == 1) {
             chase->turn += 0x300;

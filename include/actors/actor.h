@@ -1150,24 +1150,28 @@ loop:
     }
 }
 
-/// Wraps an angle difference into [-0x800, 0x800].
-static __inline__ s16 actorNormalizeYaw(s16 input)
+/// Wraps an actor heading or turn difference into [-2048, 2048].
+///
+/// `yaw` uses 4096 units per turn. Both half-turn endpoints are retained:
+/// positive odd half turns return +2048, negative ones return -2048.
+/// Wider caller expressions are narrowed to signed 16 bits before wrapping.
+static __inline__ s16 _actorAngleNormalizeYaw(s16 yaw)
 {
-    s16 value = input;
-    if (input < 0) {
+    // Explicit exits keep the inlined loops tested at the top.
+    if (yaw < 0) {
         while (1) {
-            if (value >= -0x800)
+            if (yaw >= -ACTOR_TRANSFORM_ANGLE_HALF_TURN)
                 break;
-            value += 0x1000;
+            yaw += ACTOR_TRANSFORM_ANGLE_TURN;
         }
     } else {
         while (1) {
-            if (value <= 0x800)
+            if (yaw <= ACTOR_TRANSFORM_ANGLE_HALF_TURN)
                 break;
-            value -= 0x1000;
+            yaw -= ACTOR_TRANSFORM_ANGLE_TURN;
         }
     }
-    return value;
+    return yaw;
 }
 
 /// The offset from `coord` to the translation of `config`'s coordinate.
@@ -1187,7 +1191,7 @@ static __inline__ s16 actorPositionYaw(Task* actor, SVECTOR* pos, PlayerStatus* 
     actorConfigPositionDelta(config, actor->extra.tmd->coords, pos);
     coord = actor->extra.tmd->coords;
     angle = ratan2(pos->vx, pos->vz);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
 /// Rebuilds `coord`'s rotation as a turn about Y by its current heading,
@@ -1529,7 +1533,7 @@ static __inline__ s16 actorMatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* 
     actorMatrixPositionDelta(m, actor->extra.tmd->coords, pos);
     coord = actor->extra.tmd->coords;
     angle = ratan2(pos->vx, pos->vz);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
 /// The turn from `coord`'s heading to the bearing of the offset (`x`, `z`),
@@ -1539,7 +1543,7 @@ static __inline__ s16 actorYawTo(GfxCoord* coord, s16 x, s16 z)
     s32 angle;
 
     angle = ratan2(x, z);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
 /// The turn from `coord`'s heading to the bearing of the offset `dir`,
@@ -1549,7 +1553,7 @@ static __inline__ s16 actorViewYaw(GfxCoord* coord, SVECTOR* dir)
     s32 angle;
 
     angle = ratan2(dir->vx, dir->vz);
-    return actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
 /// Combines a movement step with a push along the same axis: the push when

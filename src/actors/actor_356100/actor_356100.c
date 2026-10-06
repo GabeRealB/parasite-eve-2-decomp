@@ -1418,7 +1418,7 @@ static void func_actor_356100_80164158(Task* arg0)
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     yaw                 = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
     aim->yawFromPlayer  = yaw;
-    aim->yawFromPlayer  = actorNormalizeYaw(yaw);
+    aim->yawFromPlayer  = _actorAngleNormalizeYaw(yaw);
     aim->turn           = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
     work->lookYawTarget = aim->turn;
     diff                = aim->yawFromPlayer - aim->playerYaw;
@@ -1427,7 +1427,7 @@ static void func_actor_356100_80164158(Task* arg0)
             work->state = ACTOR_356100_STATE_SIDESTEP;
         }
     }
-    range = actorNormalizeYaw((u16)aim->yawFromPlayer - (u16)aim->playerYaw);
+    range = _actorAngleNormalizeYaw(aim->yawFromPlayer - aim->playerYaw);
     if (ABS(range) >= 0x201 && (((s16)work->sidestepCount / 2) + 3) < work->stateTimer && work->stateCounter == 0) {
         work->stateCounter = 1;
         work->animId       = 9;
@@ -1530,11 +1530,11 @@ static void func_actor_356100_80164ACC(Task* arg0)
         chase->playerYaw     = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
         chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-        chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+        chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
         work->state          = ACTOR_356100_STATE_SLIDE;
     }
     coord       = arg0->extra.tmd->coords;
-    chase->turn = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    chase->turn = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     turn        = chase->turn;
     if (turn >= 0) {
         diffPos = turn - 1000;
@@ -1560,7 +1560,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->heading, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     coord                                 = arg0->extra.tmd->coords;
-    work->lookYawTarget                   = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->lookYawTarget                   = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work->runStep                         = work->animRate * 8;
     if (work->blendActive != 0) {
@@ -1584,7 +1584,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
             chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-            yaw                  = actorNormalizeYaw(chase->yawFromPlayer);
+            yaw                  = _actorAngleNormalizeYaw(chase->yawFromPlayer);
             chase->yawFromPlayer = yaw;
             yaw                  = yaw - chase->playerYaw;
             if (yaw < 0) {
@@ -2269,7 +2269,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
     func_actor_356100_80163508(arg0);
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    turn->angle         = actorNormalizeYaw(angle);
+    turn->angle         = _actorAngleNormalizeYaw(angle);
     work->lookYawTarget = turn->angle;
     if (turn->angle >= 0x21) {
         turn->angle = 0x20;

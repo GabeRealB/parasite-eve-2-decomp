@@ -1454,9 +1454,9 @@ static void func_actor_401800_80136560(Task* arg0)
     chase->delta.vy      = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     chase->delta.vz      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+    chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
     turnCoord            = arg0->extra.tmd->coords;
-    chase->turn          = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]));
+    chase->turn          = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]));
     work->lookYawTarget  = chase->turn;
     if (abs(chase->yawFromPlayer - chase->playerYaw) < 0x44) {
         if (((s16)work->sidestepDelay + work->sidestepCount / 2) < work->stateTimer) {

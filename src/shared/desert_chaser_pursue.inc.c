@@ -118,7 +118,7 @@ void desertChaserPursue(Task* arg0)
         facing                            = arg0->extra.tmd->coords;
         contactYaw                        = scratch->catchYaw - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         scratch->catchYaw                 = contactYaw;
-        yaw                               = actorNormalizeYaw(contactYaw);
+        yaw                               = _actorAngleNormalizeYaw(contactYaw);
         scratch->catchYaw                 = yaw;
         if (abs(yaw) < 0x180) {
 #if !DESERT_CHASER_RUN_SEQUENCE
@@ -128,7 +128,7 @@ void desertChaserPursue(Task* arg0)
                 gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
                 contactYaw          = ratan2(scratch->offset.vx, scratch->offset.vz) + 0x800;
                 scratch->catchYaw   = contactYaw;
-                scratch->catchYaw   = actorNormalizeYaw(contactYaw);
+                scratch->catchYaw   = _actorAngleNormalizeYaw(contactYaw);
                 scratch->turn       = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
                 scratch->offset.vy  = 0;
                 scratch->offset.vx  = -scratch->offset.vx;

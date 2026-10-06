@@ -2486,7 +2486,7 @@ static void func_actor_401300_80134F90(Task* arg0)
             yaw             = ratan2(s->hitOffset.vx, z);
             coord           = arg0->extra.tmd->coords;
             s->hitYaw       = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-            s->hitYaw       = actorNormalizeYaw(s->hitYaw);
+            s->hitYaw       = _actorAngleNormalizeYaw(s->hitYaw);
             func_actor_401300_80134BA4(arg0, s->hitYaw, s->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;
@@ -2990,7 +2990,7 @@ static void func_actor_401300_801365F8(Task* arg0)
     }
     c2                  = arg0->extra.tmd->coords;
     angle               = ratan2(head[-1].delta.vx, delta->vz);
-    run->turn           = actorNormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
+    run->turn           = _actorAngleNormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
     work->lookYawTarget = run->turn;
     if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (work->chaseRate + 2) * 30 * 1.5f / 18.0f)) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (work->chaseRate + 2) * 30 * 1.5f / 18.0f);
@@ -3157,13 +3157,13 @@ static void func_actor_401300_80136CE8(Task* arg0)
                 func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
             coord               = arg0->extra.tmd->coords;
-            run->turn           = actorNormalizeYaw(ratan2(head[-1].delta.vx, head[-1].delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+            run->turn           = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, head[-1].delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
             work->lookYawTarget = run->turn;
             if (run->turn > 0x30) {
                 run->turn = 0x30;
             } else if (run->turn < -0x30) {
                 run->turn = -0x30;
-            } else if ((run->distance < 0x898 && Actor401300_Abs(actorNormalizeYaw(ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - work->withdrawPoint.pad)) < 0x200) || work->stateTimer > 0xB4) {
+            } else if ((run->distance < 0x898 && Actor401300_Abs(_actorAngleNormalizeYaw(ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]) - work->withdrawPoint.pad)) < 0x200) || work->stateTimer > 0xB4) {
                 work->animId      = 0x20;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_WOODLAND_STRANGER_WITHDRAW, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords), (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -3223,7 +3223,7 @@ static void func_actor_401300_801376E4(Task* arg0)
         func_actor_401300_80133A3C(arg0);
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
         coord               = arg0->extra.tmd->coords;
-        chase->turn         = actorNormalizeYaw(ratan2(head[-1].delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        chase->turn         = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing              = arg0->extra.tmd->coords;
         chase->heading      = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->turnYaw       = chase->heading;
@@ -3893,7 +3893,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     coord               = arg0->extra.tmd->coords;
-    turn->angle         = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    turn->angle         = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget = turn->angle;
     if (turn->angle > 0x20) {
         turn->angle = 0x20;
@@ -3919,7 +3919,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
         work->state = ACTOR_401300_STATE_ALERT;
     } else if (!overlayOutOfRange(&turn->delta, 0xFA0)) {
         coord       = arg0->extra.tmd->coords;
-        turn->angle = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        turn->angle = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         if (ABS(turn->angle) < 0x300) {
             work->state = ACTOR_401300_STATE_ALERT;
         }
@@ -4407,10 +4407,10 @@ static void func_actor_401300_8013CBAC(Task* arg0)
     aim->delta.vz       = config->coordMtx->t[2] - root2->coord.t[2];
     yaw                 = ratan2(head[-1].delta.vx, aim->delta.vz) + 0x800;
     aim->yawFromPlayer  = yaw;
-    aim->yawFromPlayer  = actorNormalizeYaw(yaw);
+    aim->yawFromPlayer  = _actorAngleNormalizeYaw(yaw);
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(aim->delta.vx, aim->delta.vz);
-    aim->turn           = actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    aim->turn           = _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget = aim->turn;
     if (aim->turn < 0x200) {
         if (!overlayOutOfRange(&aim->delta, 0x44C)) {
@@ -4500,7 +4500,7 @@ static void func_actor_401300_8013D2AC(Task* arg0)
     if (work->stateTimer < 0xE) {
         coord               = arg0->extra.tmd->coords;
         angle               = ratan2(aim->delta.vx, aim->delta.vz);
-        aim->turn           = actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        aim->turn           = _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = aim->turn;
         if (aim->turn > 0x30) {
             aim->turn = 0x30;
@@ -4575,7 +4575,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
     if (work->stateTimer < 0xE) {
         coord               = arg0->extra.tmd->coords;
         angle               = ratan2(aim->delta.vx, aim->delta.vz);
-        aim->turn           = actorNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        aim->turn           = _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = aim->turn;
         if (aim->turn > 0x30) {
             aim->turn = 0x30;

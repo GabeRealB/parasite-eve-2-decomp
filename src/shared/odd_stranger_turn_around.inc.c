@@ -40,7 +40,7 @@ void oddStrangerTurnAround(Task* arg0)
         oddStrangerDrive(arg0);
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
         coord               = arg0->extra.tmd->coords;
-        aim->turn           = actorNormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        aim->turn           = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing              = arg0->extra.tmd->coords;
         aim->heading        = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->turnYaw       = aim->heading;

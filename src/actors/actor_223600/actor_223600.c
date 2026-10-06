@@ -1107,8 +1107,8 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
     turn->delta.vz                         = work->walkTarget.vz - task->extra.tmd->coords->coord.t[2];
 
     coord       = task->extra.tmd->coords;
-    turn->angle = actorNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) -
-                                    ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    turn->angle = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) -
+                                          ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     if (turn->angle > 0x10) {
         turn->angle = 0x10;
     }

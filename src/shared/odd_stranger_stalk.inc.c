@@ -63,18 +63,18 @@ void oddStrangerStalk(Task* arg0)
 #if ODD_STRANGER_VARIANT == 1
     yaw                  = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
     chase->yawFromPlayer = yaw;
-    chase->yawFromPlayer = actorNormalizeYaw(yaw);
+    chase->yawFromPlayer = _actorAngleNormalizeYaw(yaw);
     coord                = arg0->extra.tmd->coords;
-    chase->turn          = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    chase->turn          = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget  = chase->turn;
 #else
     chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+    chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
 #endif
     if (detectSightBlocked(arg0) != 1) {
         work->stateTimer    = 0;
         coord               = arg0->extra.tmd->coords;
-        chase->turn         = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (chase->turn < 0x200) {
             if (!oddStrangerOutOfRange(&chase->delta, 0x44C) && work->grabCooldown == 0) {
@@ -90,7 +90,7 @@ void oddStrangerStalk(Task* arg0)
         work->stateTimer++;
 #endif
         coord               = arg0->extra.tmd->coords;
-        chase->turn         = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (work->sidestepSide == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

@@ -88028,8 +88028,8 @@ once it is matched, the compiler emits the table, so remove the entries.
 scratch block whose head accesses are absolute (`lui $s2`/`lw 0x3FC($s2)`,
 `lui $at`/`sw`) between two `lui`/`ori` register-form bumps. Written out flat
 it stalled at 85% (goto loops, locals, `scratch_base`). The whole gap was
-source shape: the body is `actorPositionYaw` / `actorNormalizeYaw`
-(`include/actors/actor_400100_facing.h`) plus `ActorsShared80135a60(coord,
+source shape: the body is `actorPositionYaw` / `_actorAngleNormalizeYaw`
+(`include/actors/actor.h`) plus `ActorsShared80135a60(coord,
 0x1194)`, all as `static __inline__`. Inside the `s16`-returning inline the
 plain `while (1) { if (v >= -0x800) break; v += 0x1000; }` keeps the top test
 (the return's sign extension supplies the `sll` at the exit label), and the
@@ -88128,7 +88128,7 @@ What matches: store the normalized result to the field, test a reload of it,
 and read the field again for the stored value:
 
 ```c
-chase->turn = actorNormalizeYaw(...);
+chase->turn = _actorAngleNormalizeYaw(...);
 turn    = chase->turn;               /* sign_extend(subreg) - a distinct pseudo to cse */
 if (turn >= 0) {
     diffPos = turn - 1000;
@@ -88225,7 +88225,7 @@ if (enemy->hp <= 0) {
 ```
 
 Same function: a hand-written yaw wrap loop left the loop variable in `$v1`
-instead of `$a1`; `chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer)` (the overlay's
+instead of `$a1`; `chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer)` (the overlay's
 existing inline) put it in `$a1`, because the inline's return pseudo, not the
 loop variable, is what gets stored and passed.
 
@@ -108780,7 +108780,7 @@ anything else.
 
 ### `s16` vs `s32` on an abs'd 12-bit angle: one instruction or four
 
-`ang = actorNormalizeYaw(...); if (ang < 0) ang = -ang; if (ang < 0x20)`
+`ang = _actorAngleNormalizeYaw(...); if (ang < 0) ang = -ang; if (ang < 0x20)`
 with `ang` declared `s16` re-truncates the negated value:
 
 ```
@@ -113991,7 +113991,7 @@ s32 range;                   /* second condition */
 ...
 diff  = aim->current - aim->target;
 if (ABS(diff) < 0x44 && ...) { ... }
-range = actorNormalizeYaw((u16)aim->current - (u16)aim->target);
+range = _actorAngleNormalizeYaw(aim->current - aim->target);
 if (ABS(range) >= 0x201 && ...) { ... }
 ```
 

@@ -907,7 +907,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     turn->delta.vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     turn->delta.vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     facing            = arg1->extra.tmd->coords;
-    turn->angle       = actorNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
+    turn->angle       = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]));
     if (turn->angle > 0x10) {
         turn->angle = 0x10;
     }
@@ -1396,7 +1396,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     turn->delta.vz                         = work->patrolPoints[work->patrolIndex].vz - arg1->extra.tmd->coords->coord.t[2];
     coord                                  = arg1->extra.tmd->coords;
     angle                                  = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    turn->angle                            = actorNormalizeYaw(angle);
+    turn->angle                            = _actorAngleNormalizeYaw(angle);
     if (turn->angle > 0x20) {
         turn->angle = 0x20;
     }
@@ -1427,7 +1427,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     if (!overlayOutOfRange(&turn->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
         angle = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
+        if (_actorAngleNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
             work->state = ACTOR_01200_STATE_CHASE;
         }
     }
@@ -1480,7 +1480,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     turn->delta.vy                        = 0;
     turn->delta.vz                        = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
     coord                                 = arg1->extra.tmd->coords;
-    turn->angle                           = actorNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    turn->angle                           = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     if (turn->angle > 0x10) {
         turn->angle = 0x10;
     }

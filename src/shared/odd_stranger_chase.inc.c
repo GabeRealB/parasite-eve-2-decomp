@@ -65,11 +65,11 @@ void oddStrangerChase(Task* arg0)
         chase->playerYaw     = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
         chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-        chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+        chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
         work->state          = ODD_STRANGER_STATE_SLIDE;
     }
     coord       = arg0->extra.tmd->coords;
-    chase->turn = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    chase->turn = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     turn        = chase->turn;
     if (turn >= 0) {
         diffPos = turn - 1000;
@@ -95,7 +95,7 @@ void oddStrangerChase(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->heading, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     coord                                 = arg0->extra.tmd->coords;
-    work->lookYawTarget                   = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    work->lookYawTarget                   = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work->slideStep                       = work->animRate * 8;
     if (work->blendActive != 0) {
@@ -121,7 +121,7 @@ void oddStrangerChase(Task* arg0)
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
             chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-            chase->yawFromPlayer = actorNormalizeYaw(chase->yawFromPlayer);
+            chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
             yaw                  = chase->yawFromPlayer - chase->playerYaw;
             if (yaw < 0) {
                 yaw = -yaw;

@@ -70,7 +70,7 @@ void oddStrangerTakeHit(Task* arg0)
             yaw             = ratan2(s->hitOffset.vx, z);
             coord           = arg0->extra.tmd->coords;
             s->hitYaw       = yaw - ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-            s->hitYaw       = actorNormalizeYaw(s->hitYaw);
+            s->hitYaw       = _actorAngleNormalizeYaw(s->hitYaw);
             oddStrangerSpawnHitEffect(arg0, s->hitYaw, s->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;

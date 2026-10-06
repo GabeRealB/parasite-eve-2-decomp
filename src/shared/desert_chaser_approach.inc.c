@@ -71,7 +71,7 @@ void desertChaserApproach(Task* arg0)
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(scratch->delta.vx, scratch->delta.vz);
     delta               = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    value               = actorNormalizeYaw(delta);
+    value               = _actorAngleNormalizeYaw(delta);
     scratch->angle      = value;
     work->lookYawTarget = value;
     if (scratch->angle >= 0x11)
@@ -118,7 +118,7 @@ void desertChaserApproach(Task* arg0)
                 coord          = arg0->extra.tmd->coords;
                 angle          = ratan2(scratch->delta.vx, scratch->delta.vz);
                 delta          = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-                value          = actorNormalizeYaw(delta);
+                value          = _actorAngleNormalizeYaw(delta);
                 scratch->angle = value;
                 value          = abs(value);
                 if (value < 0x300) {

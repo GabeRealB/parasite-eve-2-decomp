@@ -58,7 +58,7 @@ void oddStrangerPatrol(Task* arg0)
         }
         oddStrangerDrive(arg0);
         coord               = arg0->extra.tmd->coords;
-        turn->angle         = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+        turn->angle         = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = turn->angle;
         if (turn->angle > ODD_STRANGER_PATROL_TURN_CLAMP) {
             turn->angle = ODD_STRANGER_PATROL_TURN_CLAMP;
@@ -114,7 +114,7 @@ void oddStrangerPatrol(Task* arg0)
                 work->state = ODD_STRANGER_STATE_ALERT;
             } else if (!oddStrangerOutOfRange(&turn->delta, 0xFA0)) {
                 coord       = arg0->extra.tmd->coords;
-                turn->angle = actorNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+                turn->angle = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
                 if (ABS(turn->angle) < 0x300) {
                     work->state = ODD_STRANGER_STATE_ALERT;
                 }
