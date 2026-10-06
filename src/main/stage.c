@@ -925,47 +925,33 @@ void Mdec_ResolveStreamBuffer(u8* arg0)
     u16         i;
     u16         found;
     s16         bufferKind;
-    s16         neg;
     s32         key;
     s32         imageDataOffset;
     CdCmdQueue* p;
-    u8*         base;
 
     p     = &gCdCmdQueue;
     i     = 0;
     found = 0;
     key   = *arg0;
-loop:
-    if (key == p->sceneImageHeaders[i].viewId) {
-        goto matched;
-    }
-    i++;
-    if (i < ARRAY_SIZE(p->sceneImageHeaders)) {
-        goto loop;
-    }
-done:
-    if ((found & 0xFFFF) != 0) {
-        if (p->scenePayloadLoading == 0) {
-            goto success;
+    for (; i < ARRAY_SIZE(p->sceneImageHeaders); i++) {
+        if (key == p->sceneImageHeaders[i].viewId) {
+            found = 1;
+            break;
         }
     }
-    p->imageDecodePending = 1;
-    p->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
-    neg                   = CD_COMMAND_IMAGE_WAIT_HEADER;
-    p->imageDecodeStep    = neg;
-    return;
+    if (!found || p->scenePayloadLoading != 0) {
+        p->imageDecodePending = 1;
+        p->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
+        p->imageDecodeStep    = CD_COMMAND_IMAGE_WAIT_HEADER;
+        return;
+    }
 
-matched:
-    found = 1;
-    goto done;
-
-success:
     Stage_CdEntry = &p->sceneImageHeaders[i];
     bufferKind    = Stage_CdEntry->bufferKind;
     switch (bufferKind) {
         case STREAM_SCENE_BUFFER_DECODE:
-            base = p->decodeBuffer;
-            goto store_base;
+            Mdec_DecodeBase = p->decodeBuffer;
+            break;
         case STREAM_SCENE_BUFFER_ACTOR_0:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0;
             if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
@@ -997,9 +983,7 @@ success:
             gGameSession->field_80 = 0;
             break;
         case STREAM_SCENE_BUFFER_EXTERNAL:
-            base = p->externalScenePayloadBuffer;
-        store_base:
-            Mdec_DecodeBase = base;
+            Mdec_DecodeBase = p->externalScenePayloadBuffer;
             break;
     }
     imageDataOffset       = Stage_CdEntry->imageDataOffset;
@@ -1036,7 +1020,7 @@ static void Mdec_ProcessDecode(void)
     s32         r;
 
     p = &gCdCmdQueue;
-    switch ((s16)p->imageDecodeStep) {
+    switch (p->imageDecodeStep) {
         case CD_COMMAND_IMAGE_WAIT_HEADER:
             Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
             if ((u32)++D_8007A358 >= 0x5B) {
@@ -1135,7 +1119,7 @@ static void Mdec_DecodeToVram(void)
     DisplayState* d;
 
     p = &gCdCmdQueue;
-    switch ((s16)p->imageDecodeStep) {
+    switch (p->imageDecodeStep) {
         case CD_COMMAND_IMAGE_START:
             gpuResetAndInvalidateModelBuffers();
             p->mdecOutputPending = 1;

@@ -206,7 +206,7 @@ typedef struct {
     u8          imageLoadStatus;                  // Image completion (0 pending, 0xFF complete)
     u8          field_1FF;                        // Set to 1 when selecting scene/audio; subsequent role unproven
     u16         imageDecodePending;               // Nonzero while an image decode request remains outstanding
-    u16         imageDecodeStep;                  // Signed interpretation: -1 wait for header, 0 start, 1 wait for output
+    s16         imageDecodeStep;                  // -1 wait for header, 0 start, 1 wait for output
     u16         suspendNormalDispatch;            // Nonzero suppresses normal ring dispatch; setter is unproven
     byte        unknown_206[4];
     u16         suppressMoviePresentation;        // Nonzero suppresses movie presentation during a session change
