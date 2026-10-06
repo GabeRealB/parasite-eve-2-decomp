@@ -633,10 +633,16 @@ enum {
     SHELTER_1F_TENT_GLOW_CAPSULE_RGB444          = 0x111,
 };
 
-/// Draws the adjacent grey and smaller cyan flickering discs of one glow pair.
+/// Draws grey and cyan flickering discs at two world-space centres.
 ///
-/// Borrows two consecutive world points for these calls; packets use the
-/// current frame's arena and ordering table.
+/// Borrows two consecutive world-space centres during the call. Element 0 is
+/// grey with radius scale 640; element 1 is cyan with radius scale 384. Each
+/// pixel radius is its scale times 64 divided by camera Z / 4.
+/// Requires the view transform, initialized scratch stack and space in the
+/// current frame's packet arena and ordering table. Each centre independently
+/// rejects negative GTE flags and otherwise requires nonzero projection depth.
+/// Accepted centres queue four additive wedges each; queued packets live until
+/// the frame's GPU work completes. No point pointer is retained.
 static inline void _shelter1fTentDrawDiscPair(const SVECTOR worldPoints[2])
 {
     glowDrawDisc(&worldPoints[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREY_RGB444);
