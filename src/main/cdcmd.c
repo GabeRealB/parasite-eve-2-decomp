@@ -176,7 +176,6 @@ static void CdCmd_HandleStreamDecode(void)
     CdCmdQueue* state;
     CdCmdQueue* p;
     CdCmdEntry* entry;
-    s16         ret;
     s32         slotIndex;
     s32         cmd;
     s32         busy;
@@ -204,69 +203,66 @@ static void CdCmd_HandleStreamDecode(void)
                 state->busy          = 1;
                 gDisplayState.cdBusy = DISPLAY_CD_BUSY;
             }
-            ret = CdCmd_PollStatus(0, 0);
-            if (ret != 1) {
-                if (ret < 2) {
-                    if (ret == 0) {
-                        return;
+            switch ((s16)CdCmd_PollStatus(0, 0)) {
+                case 0:
+                    return;
+                case 2:
+                    CdFlush();
+                    /* fallthrough */
+                case 1:
+                    entry = &state->entries[state->readIdx];
+                    if (entry->cmd == CD_COMMAND_PLAY_STREAM) {
+                        D_8005EAEC = 0;
+                        D_8005EAEE = 0;
+                    } else if (entry->cmd == CD_COMMAND_CONTINUE_STREAM) {
+                        entry->cmd = CD_COMMAND_PLAY_STREAM;
                     }
-                    goto end_check;
-                }
-                if (ret != 2) {
-                    goto end_check;
-                }
-                CdFlush();
+                    if ((s16)Stream_InitializePlayback(slotIndex & 0xFFFF) != 0) {
+                        p                        = &gCdCmdQueue;
+                        busy                     = p->busy;
+                        state->movieReady        = 1;
+                        state->movieFrameChanged = 1;
+                        if (busy != 0) {
+                            p->busy              = 0;
+                            gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+                        }
+                        p->step               = 0;
+                        p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                        p->pausePlayClock     = 0;
+                        p->cdOperationPending = 0;
+                        if (p->readIdx != p->writeIdx) {
+                            p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
+                            p->readIdx                 = p->readIdx + 1;
+                            p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
+                        }
+                        break;
+                    }
+                    state->continueMovie = 1;
+                    Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA);
+                    state->step = state->step + 1;
+                    break;
             }
-            entry = &state->entries[state->readIdx];
-            if (entry->cmd == CD_COMMAND_PLAY_STREAM) {
-                D_8005EAEC = 0;
-                D_8005EAEE = 0;
-            } else if (entry->cmd == CD_COMMAND_CONTINUE_STREAM) {
-                entry->cmd = CD_COMMAND_PLAY_STREAM;
-            }
-            if ((s16)Stream_InitializePlayback(slotIndex & 0xFFFF) != 0) {
-                p                        = &gCdCmdQueue;
-                busy                     = p->busy;
-                state->movieReady        = 1;
-                state->movieFrameChanged = 1;
-                if (busy != 0) {
-                    p->busy              = 0;
-                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
-                }
-                p->step               = 0;
-                p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                p->pausePlayClock     = 0;
-                p->cdOperationPending = 0;
-                if (p->readIdx != p->writeIdx) {
-                    p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
-                    p->readIdx                 = p->readIdx + 1;
-                    p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
-                }
-                goto end_check;
-            }
-            state->continueMovie = 1;
-            Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA);
-            state->step = state->step + 1;
-            /* fallthrough */
+            break;
         case 1:
-        end_check:
-            if ((s16)Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA) != 0) {
-                p = &gCdCmdQueue;
-                if (p->busy != 0) {
-                    p->busy              = 0;
-                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
-                }
-                p->step               = 0;
-                p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                p->pausePlayClock     = 0;
-                p->cdOperationPending = 0;
-                if (p->readIdx != p->writeIdx) {
-                    p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
-                    p->readIdx                 = p->readIdx + 1;
-                    p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
-                }
-            }
+            break;
+        default:
             return;
+    }
+    if ((s16)Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA) != 0) {
+        p = &gCdCmdQueue;
+        if (p->busy != 0) {
+            p->busy              = 0;
+            gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+        }
+        p->step               = 0;
+        p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+        p->pausePlayClock     = 0;
+        p->cdOperationPending = 0;
+        if (p->readIdx != p->writeIdx) {
+            p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
+            p->readIdx                 = p->readIdx + 1;
+            p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
+        }
     }
 }
 
