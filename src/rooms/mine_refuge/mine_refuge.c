@@ -758,10 +758,16 @@ void func_mine_refuge_8017FFBC(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Initializes a Gouraud glow quad with a lit centre and a black rim.
+/// Initializes the packet header and centre-to-rim colors of a Gouraud glow quad.
 ///
-/// Color arguments narrow to bytes. The caller owns allocation, coordinates,
-/// ordering-table linkage and blend setup; the packet must be writable.
+/// Vertex 2 receives the low byte of each intensity without clamping; vertices
+/// 0, 1 and 3 are black. The untextured polygon command starts opaque, clearing
+/// any previous semitransparency setting.
+///
+/// Borrows one word-aligned, writable `POLY_G4` without allocating it. Coordinates
+/// and the DMA link remain untouched. The caller places vertex 2 at the centre
+/// and the other vertices on the rim, links the packet and selects blending
+/// before drawing; queued storage must remain live until GPU drawing completes.
 static inline void _mineRefugeInitGlowQuad(POLY_G4* quad, s32 redIntensity, s32 greenIntensity, s32 blueIntensity)
 {
     setPolyG4(quad);
