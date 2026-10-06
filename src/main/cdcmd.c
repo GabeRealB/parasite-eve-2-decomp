@@ -787,13 +787,9 @@ u16 CdCmd_ActivatePhase2(void)
         return 1;
     }
     cmd = p->entries[p->readIdx].cmd;
-    if ((cmd >> 4) != 8) {
-        if (cmd != CD_COMMAND_EMPTY) {
-            goto do_work;
-        }
+    if ((cmd >> 4) == 8 || cmd == CD_COMMAND_EMPTY) {
+        return 0;
     }
-    return 0;
-do_work:
     p->activeRequest.entry.cmd           = cmd;
     p->activeRequest.entry.stage         = p->entries[p->readIdx].stage;
     p->activeRequest.entry.fileGroup     = p->entries[p->readIdx].fileGroup;
