@@ -373,15 +373,17 @@ void antibodyMoteTask(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             spriteQuadDrawMote(coord, work->age, work->scale, work->angle);
-            goto checkLifetime;
+            // Both final phases emit their last frame before retiring the counted effect.
+            if (work->age >= ANTIBODY_MOTE_LAST_FRAME) {
+                effectKillTask(work, task);
+            }
+            break;
         case ANTIBODY_MOTE_PLAYER_FLASH:
             // Freeze the local position, then draw the larger sprite and its link to the player.
             ANTIBODY_MOTE_REROLL_APPEARANCE(2);
             actorRenderComposeCoord(coord);
             spriteQuadDraw(coord, work->age, work->scale, work->angle);
             _antibodyDrawMoteStrip(coord, work->age, work->scale);
-        checkLifetime:
-            // Both final phases emit their last frame before retiring the counted effect.
             if (work->age >= ANTIBODY_MOTE_LAST_FRAME) {
                 effectKillTask(work, task);
             }
