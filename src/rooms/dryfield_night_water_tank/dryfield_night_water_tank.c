@@ -53,8 +53,8 @@ extern EvsCommand D_actor_146300_80137C28[];
 extern EvsCommand D_actor_146300_80138570[];
 
 /// Message table of the night water-tank room, 0x13EE..0x13F1 with the
-/// `TASK_MESSAGE_TABLE_END` terminator: `func_dryfield_night_water_tank_8017D714`,
-/// `..._8017D70C`, `..._8017D76C` and `..._8017D73C`.
+/// `TASK_MESSAGE_TABLE_END` terminator: `_dryfieldNightWaterTankResolveRoomEvent`,
+/// `_dryfieldNightWaterTankRejectKeyItemUse`, `..._8017D76C` and `..._8017D73C`.
 extern TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[];
 
 /// Task descriptor tables spawned by the room entry task, each one entry and
@@ -89,11 +89,14 @@ extern WorldCollisionTrigger  D_dryfield_night_water_tank_801804BC[8];
 extern WorldCoordRoomLights   D_dryfield_night_water_tank_80180374[1];
 static TmdSource              _gDryfieldNightWaterTankModel00FF8;
 
-s32  func_dryfield_night_water_tank_8017D70C(Task*, s32, s32, s32);
-s32  func_dryfield_night_water_tank_8017D714(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, s32);
-s32  func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, s32);
-void func_dryfield_night_water_tank_8017D5D0(Task*);
+static s32 _dryfieldNightWaterTankRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldNightWaterTankResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+s32        func_dryfield_night_water_tank_8017D73C(Task*, s32, s32, s32);
+s32        func_dryfield_night_water_tank_8017D76C(Task*, s32, RoomEventMsg*, s32);
+void       func_dryfield_night_water_tank_8017D5D0(Task*);
+
+/// Inventory's request to use a collected key item in this room.
+enum { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 ActorTransform D_dryfield_night_water_tank_8017DD94 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
 
@@ -130,8 +133,8 @@ EvsCommand D_dryfield_night_water_tank_8017DEE0[11] = {
 };
 
 TaskMessageEntry D_dryfield_night_water_tank_8017DFE8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_tank_8017D714 },
-    { 5105, func_dryfield_night_water_tank_8017D70C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightWaterTankResolveRoomEvent },
+    { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterTankRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_tank_8017D76C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_tank_8017D73C },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -647,19 +650,29 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
     }
 }
 
-/// Handler for message 0x13F1 in the room's message table: does nothing and
-/// answers 0.
-s32 func_dryfield_night_water_tank_8017D70C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects inventory requests to use a key item in the night water-tank room.
+///
+/// `itemId` is the collected item's inventory ID; all arguments are ignored.
+/// Returns 0 so the inventory displays its refusal message. No item is consumed.
+static s32 _dryfieldNightWaterTankRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_NIGHT_WATER_TANK_KEY_ITEM_USE_REJECTED = 0 };
+
+    return DRYFIELD_NIGHT_WATER_TANK_KEY_ITEM_USE_REJECTED;
 }
 
-/// Handler for message 0x13EE in the room's message table: copies the location
-/// record it is handed onto the outgoing one and answers 1.
-s32 func_dryfield_night_water_tank_8017D714(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Allows a room transition with the requested destination unchanged.
+///
+/// Copies the complete eight-byte `RoomEventMsg` and returns 1 for query and
+/// execution requests alike. `request` and `reply` must be live, non-null records
+/// through synchronous dispatch; they may be the same object. `reply` must be
+/// writable. No payload is retained and no transition effects are performed.
+static s32 _dryfieldNightWaterTankResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    return 1;
+    enum { DRYFIELD_NIGHT_WATER_TANK_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_NIGHT_WATER_TANK_TRANSITION_ALLOWED;
 }
 
 s32 func_dryfield_night_water_tank_8017D73C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -794,6 +807,6 @@ static void func_dryfield_night_water_tank_8017D9DC(s32 arg0)
 
 #include "../../shared/water_tank_sway_task.inc.c"
 
-void func_dryfield_night_water_tank_8017DD8C(Task* unused)
+void dryfieldNightWaterTankNoOpEffectTask(Task* unusedTask)
 {
 }

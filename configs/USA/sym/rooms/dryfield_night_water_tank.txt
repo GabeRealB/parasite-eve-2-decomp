@@ -72,5 +72,7 @@ _gDryfieldNightWaterTankModel00FF8Normals = 0x8017E378; // size:0x240 defined:Tr
 _gDryfieldNightWaterTankModel00FF8Stream = 0x8017E5B8; // size:0x84C defined:True
 _gDryfieldNightWaterTankModel00FF8 = 0x8017EE04; // size:0x24 defined:True
 
-func_dryfield_night_water_tank_8017DD8C = 0x8017DD8C; // type:func
+dryfieldNightWaterTankNoOpEffectTask = 0x8017DD8C; // type:func
 waterTankSwayTask = 0x8017DB8C; // type:func
+_dryfieldNightWaterTankRejectKeyItemUse = 0x8017d70c; // type:func
+_dryfieldNightWaterTankResolveRoomEvent = 0x8017d714; // type:func

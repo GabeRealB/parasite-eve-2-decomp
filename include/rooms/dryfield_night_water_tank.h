@@ -30,7 +30,13 @@ extern SpriteView D_dryfield_night_water_tank_801801CC[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_water_tank_80180890[];
 
-void func_dryfield_night_water_tank_8017DD8C(Task* unused);
+/// No-op callback for the night water-tank room's effect task.
+///
+/// Gameplay selects effect bank 6, slot 0x111 for this room. The callback draws
+/// nothing and leaves the task, its work and coordinate body unchanged; it does
+/// not advance or release the task. The room overlay must remain loaded while
+/// the task can invoke this callback.
+void dryfieldNightWaterTankNoOpEffectTask(Task* unusedTask);
 
 void func_dryfield_night_water_tank_8017D984(Task* task);
 
