@@ -1173,8 +1173,6 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
     u8                 param1[8];
     u8                 param2[8];
     s32                i;
-    s32                one;
-    s32                kind;
     s32                param;
 
     obj   = actor->extra.tmd;
@@ -1201,136 +1199,119 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
     eff = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
     actorTintTask(eff->task, ctx);
 
-    one  = 1;
-    kind = ctx->spawnState;
-    if (kind == one) {
-        goto case1;
+    switch (ctx->spawnState) {
+        case 0:
+            ctx->field_4  = &coord->coord;
+            ctx->field_48 = 0;
+            worldTargetLinkNode(&ctx->node);
+            parts           = actor->extra.tmd->coords;
+            ctx->bodyPos.vx = 0;
+            ctx->bodyPos.vy = 0;
+            ctx->bodyPos.vz = 0;
+            ctx->param      = &Actor02000_D15D10;
+            ctx->recs       = work->hurtContacts;
+            ctx->coord      = &parts[3];
+            ctx->hp         = Actor02000_D15D10.hpMax;
+            sceneAcquireBattleRef(0);
+            work->patrols = ctx->place->mode & 1;
+            if (work->patrols == 0) {
+                work->anim     = 1;
+                work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_IDLE;
+            } else {
+                work->anim               = 2;
+                work->behavior           = GOLEM_PAWN_ROOK_BEHAVIOR_PATROL;
+                param                    = ctx->place->variant;
+                work->patrolDistanceLeft = param * 1000;
+            }
+
+            tbl = Actor02000_D15FB8[gGameSession->location.loc.stage];
+            if (tbl != NULL) {
+                work->soundSet = tbl[gGameSession->location.loc.area];
+            }
+            if (work->soundSet != 0) {
+                param1[3] = 0;
+                param1[2] = 0xA;
+                param1[0] = work->soundSet;
+                param2[0] = 0x14;
+                param2[3] = 0;
+                param2[2] = 0;
+                param2[1] = 0;
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            }
+
+            work->sightCapsule.ends[0].vz   = 0x1F40;
+            work->sightCapsule.end0Radius   = 0x3E8;
+            work->sightCapsule.ends[0].vx   = 0;
+            work->sightCapsule.ends[0].vy   = 0;
+            work->sightCapsule.ends[1].vx   = 0;
+            work->sightCapsule.ends[1].vy   = 0;
+            work->sightCapsule.ends[1].vz   = 0;
+            work->sightCapsule.end1Radius   = 0x5DC;
+            work->sightCapsule.contacts     = work->sightContacts;
+            partsA                          = actor->extra.tmd->coords;
+            work->sightBody.context.capsule = &work->sightCapsule;
+            work->sightBody.pos.vx          = 0;
+            work->sightBody.pos.vy          = 0;
+            work->sightBody.pos.vz          = 0;
+            work->sightBody.key             = 0;
+            work->sightBody.radius          = 0;
+            work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+            work->sightBody.coord           = &partsA[4];
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody);
+            worldCollisionInitContacts(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
+            work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+
+            partsB                          = actor->extra.tmd->coords;
+            work->hurtBody.context.contacts = work->hurtContacts;
+            work->hurtBody.pos.vx           = 0;
+            work->hurtBody.pos.vy           = 0;
+            work->hurtBody.pos.vz           = 0;
+            work->hurtBody.key              = 0x30014;
+            work->hurtBody.radius           = 0x190;
+            work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->hurtBody.coord            = &partsB[3];
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody);
+            worldCollisionInitContacts(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
+            work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+
+            partsC                            = actor->extra.tmd->coords;
+            work->groundBody.pos.vy           = -0x226;
+            work->groundBody.context.contacts = work->groundContacts;
+            work->groundBody.pos.vx           = 0;
+            work->groundBody.pos.vz           = 0;
+            work->groundBody.key              = 0;
+            work->groundBody.radius           = 0x226;
+            work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->groundBody.coord            = partsC;
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);
+            worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
+            work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
+
+            effParts                          = eff->task->extra.tmd->coords;
+            work->strikeBody.context.contacts = work->strikeContacts;
+            work->strikeBody.pos.vx           = 0;
+            work->strikeBody.pos.vy           = 0x1F4;
+            work->strikeBody.pos.vz           = 0;
+            work->strikeBody.key              = 0;
+            work->strikeBody.radius           = 0x1F4;
+            work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            work->strikeBody.coord            = effParts;
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
+            worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
+            work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            actor->state            = 1;
+            break;
+        case 1:
+            work->anim   = 0x19;
+            work->step   = 2;
+            actor->state = 2;
+            break;
+        case 2:
+            work->anim   = 0x1D;
+            work->step   = 2;
+            actor->state = 2;
+            break;
     }
-    if (kind >= 2) {
-        goto ge2;
-    }
-    if (kind == 0) {
-        goto case0;
-    }
-    return;
-ge2:
-    if (kind == 2) {
-        goto case2;
-    }
-    return;
-
-case0:
-    ctx->field_4  = &coord->coord;
-    ctx->field_48 = 0;
-    worldTargetLinkNode(&ctx->node);
-    parts           = actor->extra.tmd->coords;
-    ctx->bodyPos.vx = 0;
-    ctx->bodyPos.vy = 0;
-    ctx->bodyPos.vz = 0;
-    ctx->param      = &Actor02000_D15D10;
-    ctx->recs       = work->hurtContacts;
-    ctx->coord      = &parts[3];
-    ctx->hp         = Actor02000_D15D10.hpMax;
-    sceneAcquireBattleRef(0);
-    work->patrols = ctx->place->mode & 1;
-    if (work->patrols == 0) {
-        work->anim     = one;
-        work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_IDLE;
-    } else {
-        work->anim               = 2;
-        work->behavior           = one;
-        param                    = ctx->place->variant;
-        work->patrolDistanceLeft = param * 1000;
-    }
-
-    tbl = Actor02000_D15FB8[gGameSession->location.loc.stage];
-    if (tbl != NULL) {
-        work->soundSet = tbl[gGameSession->location.loc.area];
-    }
-    if (work->soundSet != 0) {
-        param1[3] = 0;
-        param1[2] = 0xA;
-        param1[0] = work->soundSet;
-        param2[0] = 0x14;
-        param2[3] = 0;
-        param2[2] = 0;
-        param2[1] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-    }
-
-    work->sightCapsule.ends[0].vz   = 0x1F40;
-    work->sightCapsule.end0Radius   = 0x3E8;
-    work->sightCapsule.ends[0].vx   = 0;
-    work->sightCapsule.ends[0].vy   = 0;
-    work->sightCapsule.ends[1].vx   = 0;
-    work->sightCapsule.ends[1].vy   = 0;
-    work->sightCapsule.ends[1].vz   = 0;
-    work->sightCapsule.end1Radius   = 0x5DC;
-    work->sightCapsule.contacts     = work->sightContacts;
-    partsA                          = actor->extra.tmd->coords;
-    work->sightBody.context.capsule = &work->sightCapsule;
-    work->sightBody.pos.vx          = 0;
-    work->sightBody.pos.vy          = 0;
-    work->sightBody.pos.vz          = 0;
-    work->sightBody.key             = 0;
-    work->sightBody.radius          = 0;
-    work->sightBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->sightBody.coord           = &partsA[4];
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sightBody);
-    worldCollisionInitContacts(work->sightContacts, ARRAY_SIZE(work->sightContacts), 0);
-    work->sightBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-
-    partsB                          = actor->extra.tmd->coords;
-    work->hurtBody.context.contacts = work->hurtContacts;
-    work->hurtBody.pos.vx           = 0;
-    work->hurtBody.pos.vy           = 0;
-    work->hurtBody.pos.vz           = 0;
-    work->hurtBody.key              = 0x30014;
-    work->hurtBody.radius           = 0x190;
-    work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->hurtBody.coord            = &partsB[3];
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hurtBody);
-    worldCollisionInitContacts(work->hurtContacts, ARRAY_SIZE(work->hurtContacts), 0);
-    work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-
-    partsC                            = actor->extra.tmd->coords;
-    work->groundBody.pos.vy           = -0x226;
-    work->groundBody.context.contacts = work->groundContacts;
-    work->groundBody.pos.vx           = 0;
-    work->groundBody.pos.vz           = 0;
-    work->groundBody.key              = 0;
-    work->groundBody.radius           = 0x226;
-    work->groundBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->groundBody.coord            = partsC;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->groundBody);
-    worldCollisionInitContacts(work->groundContacts, ARRAY_SIZE(work->groundContacts), 0);
-    work->groundBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
-
-    effParts                          = eff->task->extra.tmd->coords;
-    work->strikeBody.context.contacts = work->strikeContacts;
-    work->strikeBody.pos.vx           = 0;
-    work->strikeBody.pos.vy           = 0x1F4;
-    work->strikeBody.pos.vz           = 0;
-    work->strikeBody.key              = 0;
-    work->strikeBody.radius           = 0x1F4;
-    work->strikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    work->strikeBody.coord            = effParts;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->strikeBody);
-    worldCollisionInitContacts(work->strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
-    work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    actor->state            = 1;
-    return;
-
-case1:
-    work->anim   = 0x19;
-    work->step   = 2;
-    actor->state = 2;
-    return;
-
-case2:
-    work->anim   = 0x1D;
-    work->step   = kind;
-    actor->state = kind;
 }
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"
