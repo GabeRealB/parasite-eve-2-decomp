@@ -505,70 +505,81 @@ WorldCollisionSurfaceProperties* D_shelter_b1_elevator_hall_801849D0[8] = {
 
 RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 
-/// On the task's first tick stores seven room-specific values into resident
-/// gameplay globals, then draws the `_glowDrawCapsule`
-/// placements the current camera view shows. Views 2 and 9 share their last
-/// placement, `D_shelter_b1_elevator_hall_80182CF4[26]`.
-void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
+/// Selects this room's loaded copies of the counted effects actors can spawn.
+static inline void _shelterB1ElevatorHallInstallEffectIds(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectMoteId         = EFFECT_SHELTER_B1_ELEVATOR_HALL_MOTE;
-        gRoomEffectHaloId         = EFFECT_SHELTER_B1_ELEVATOR_HALL_HALO;
-        gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_ELEVATOR_HALL_ORANGE_BURST;
-        gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_EMITTER;
-        gRoomEffectFlashId        = EFFECT_SHELTER_B1_ELEVATOR_HALL_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_ELEVATOR_HALL_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_BURST;
-        arg0->state               = 1;
+    gRoomEffectMoteId         = EFFECT_SHELTER_B1_ELEVATOR_HALL_MOTE;
+    gRoomEffectHaloId         = EFFECT_SHELTER_B1_ELEVATOR_HALL_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_ELEVATOR_HALL_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_EMITTER;
+    gRoomEffectFlashId        = EFFECT_SHELTER_B1_ELEVATOR_HALL_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_ELEVATOR_HALL_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_ELEVATOR_HALL_SPARK_BURST;
+}
+
+void shelterB1ElevatorHallDrawGlowsTask(Task* task)
+{
+    enum { GLOWS_INITIALIZE,
+           GLOWS_DRAW,
+           GLOWS_STANDARD_RADIUS_SCALE = 0x180,
+           GLOWS_WARM_RADIUS_SCALE     = 0x200,
+           GLOWS_GREY_RGB              = 0x444,
+           GLOWS_WARM_RGB              = 0x421,
+           GLOWS_CYAN_RGB              = 0x044 }; // RGB nibbles become channel levels in steps of 16.
+
+    if (task->state == GLOWS_INITIALIZE) {
+        _shelterB1ElevatorHallInstallEffectIds();
+        task->state = GLOWS_DRAW;
     }
 
+    // Select endpoint pairs visible in this view; each draw reads two consecutive points.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[0], 0x180, 0x444);
-            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], 0x180, 0x44);
+            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_CYAN_RGB);
             break;
         case 3: {
-            SVECTOR* p;
-            p = D_shelter_b1_elevator_hall_80182D04;
-            _glowDrawCapsule(&p[0], 0x180, 0x444);
-            _glowDrawCapsule(&p[18], 0x200, 0x421);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_elevator_hall_80182D04;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[18], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 4: {
-            SVECTOR* p;
-            p = D_shelter_b1_elevator_hall_80182D14;
-            _glowDrawCapsule(&p[0], 0x180, 0x444);
-            _glowDrawCapsule(&p[8], 0x180, 0x444);
-            _glowDrawCapsule(&p[16], 0x200, 0x421);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_elevator_hall_80182D14;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[8], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[16], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 5: {
-            SVECTOR* p;
-            p = D_shelter_b1_elevator_hall_80182D24;
-            _glowDrawCapsule(&p[0], 0x180, 0x444);
-            _glowDrawCapsule(&p[6], 0x180, 0x444);
-            _glowDrawCapsule(&p[8], 0x180, 0x444);
-            _glowDrawCapsule(&p[12], 0x180, 0x444);
-            _glowDrawCapsule(&p[16], 0x200, 0x421);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_elevator_hall_80182D24;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[6], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[8], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[12], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[16], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 7: {
-            SVECTOR* p;
-            p = D_shelter_b1_elevator_hall_80182D84;
-            _glowDrawCapsule(&p[0], 0x180, 0x444);
-            _glowDrawCapsule(&p[6], 0x200, 0x421);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_elevator_hall_80182D84;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[6], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 8: {
-            SVECTOR* p;
-            p = D_shelter_b1_elevator_hall_80182D34;
-            _glowDrawCapsule(&p[0], 0x180, 0x444);
-            _glowDrawCapsule(&p[2], 0x180, 0x444);
-            _glowDrawCapsule(&p[14], 0x200, 0x421);
+            const SVECTOR* glowPoints;
+            glowPoints = D_shelter_b1_elevator_hall_80182D34;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[2], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[14], GLOWS_WARM_RADIUS_SCALE, GLOWS_WARM_RGB);
             break;
         }
         case 9:
-            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], 0x180, 0x44);
+            _glowDrawCapsule(&D_shelter_b1_elevator_hall_80182CF4[26], GLOWS_STANDARD_RADIUS_SCALE, GLOWS_CYAN_RGB);
             break;
     }
 }
@@ -577,21 +588,21 @@ void func_shelter_b1_elevator_hall_8017DC80(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b1_elevator_hall_8017E6F4(Task* task)
+void shelterB1ElevatorHallRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b1_elevator_hall_8017F43C(Task* arg0)
+void shelterB1ElevatorHallRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b1_elevator_hall_8017F7D4(Task* arg0)
+void shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -604,14 +615,14 @@ void func_shelter_b1_elevator_hall_80180BE4(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_elevator_hall_80180D18(Task* arg0)
+void shelterB1ElevatorHallRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_elevator_hall_8018177C(Task* task)
+void shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

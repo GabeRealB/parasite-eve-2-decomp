@@ -996,15 +996,15 @@ shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask = 0x801807C4; /
 
 shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingOrangeBurstTask = 0x80181424; // type:func absolute:True owner=shelter_b1_control_room_access_tunnel
 
-func_shelter_b1_elevator_hall_8017E6F4 = 0x8017E6F4; // type:func absolute:True owner=shelter_b1_elevator_hall
+shelterB1ElevatorHallRoomVisualEffectsMoteTask = 0x8017E6F4; // type:func absolute:True owner=shelter_b1_elevator_hall
 
-func_shelter_b1_elevator_hall_8017F43C = 0x8017F43C; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
+shelterB1ElevatorHallRoomVisualEffectsHaloTask = 0x8017F43C; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
 func_shelter_b1_elevator_hall_80180BE4 = 0x80180BE4; // type:func absolute:True owner=shelter_b1_elevator_hall
 
-func_shelter_b1_elevator_hall_80180D18 = 0x80180D18; // type:func absolute:True owner=shelter_b1_elevator_hall
+shelterB1ElevatorHallRoomVisualEffectsFlashTask = 0x80180D18; // type:func absolute:True owner=shelter_b1_elevator_hall
 
-func_shelter_b1_elevator_hall_8018177C = 0x8018177C; // type:func absolute:True owner=shelter_b1_elevator_hall
+shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask = 0x8018177C; // type:func absolute:True owner=shelter_b1_elevator_hall
 
 shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
 
@@ -1855,7 +1855,7 @@ mineForkedTunnelDrawViewFlaresTask = 0x8017E78C; // type:func absolute:True owne
 
 mineSecretPassageDrawLightGlowsTask = 0x8017D9D4; // type:func absolute:True owner=mine_secret_passage
 
-func_shelter_b1_elevator_hall_8017DC80 = 0x8017DC80; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
+shelterB1ElevatorHallDrawGlowsTask = 0x8017DC80; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
 func_shelter_b1_south_maintenance_walkway_8017DA8C = 0x8017DA8C; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 
@@ -1943,7 +1943,7 @@ func_neo_ark_shrine_801811EC = 0x801811EC; // type:func absolute:True owner=neo_
 
 func_shelter_b1_sleeping_quarters_8017EC34 = 0x8017EC34; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 
-func_shelter_b1_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
+shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F7D4; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
 acropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func absolute:True owner=acropolis_forked_road shared=rooms
 

@@ -141351,7 +141351,7 @@ where the target has them after the draw's final `addu`.
 
 The target also had `li a0,0xA2` in the delay slot of the `beqz` for a later `x ? 0x28 : 0x29` argument (entry: "A call's `a0` setup in the delay slot of the *preceding* `if` branch…"). Writing the call once in each arm, `if (f(0x83)) g(0xA2, 0x28); else g(0xA2, 0x29);`, gave 100%, and it fixed the `$s0` store too. With constant arms, the first jump pass turns a ternary or an `if`/`else` into "default, then conditional set", and deletes the `j` and the barrier (`base_3.i.jump`). With a call in each arm, the barrier survives into cse and ends the extended basic block, so the equivalence never reaches the store. When a constant store takes a register the function tested against that constant, look for an earlier `if`/`else` that should keep its `j` over the else arm.
 
-### `j L+4; nop` into a case whose first `lui` is duplicated at `L`: the shared tail's address is written off another array (func_shelter_b1_elevator_hall_8017DC80, 2026-09-24)
+### `j L+4; nop` into a case whose first `lui` is duplicated at `L`: the shared tail's address is written off another array (shelterB1ElevatorHallDrawGlowsTask, 2026-09-24)
 
 **Symptom.** A view switch where one case draws array A then address B, and a
 later case draws only B. Target: the first case keeps A in `$s0`

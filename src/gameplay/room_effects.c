@@ -834,7 +834,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, mineRefugeDrawGlowsTask, { NULL } },                                        // 0x125
     { { { TASK_BODY_COORD, 0x70 } }, mineForkedTunnelDrawViewFlaresTask, { NULL } },                             // 0x126
     { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageDrawLightGlowsTask, { NULL } },                            // 0x127
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017DC80, { NULL } },                         // 0x128
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallDrawGlowsTask, { NULL } },                          // 0x128
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017DA8C, { NULL } },             // 0x129
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017D7EC, { NULL } },                             // 0x12A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017DBC8, { NULL } },             // 0x12B
@@ -994,7 +994,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPyramidConfigureEffectsTask, { NULL } },                              // 0x1C5
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryEffectSpriteRiseTask, { NULL } },                  // 0x1C6
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08RoomVisualEffectsFlashTask, { NULL } },                     // 0x1C7
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_80180D18, { NULL } },                         // 0x1C8
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsFlashTask, { NULL } },             // 0x1C8
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017E760, { NULL } },             // 0x1C9
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80180DCC, { NULL } },                             // 0x1CA
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80180EDC, { NULL } },             // 0x1CB
@@ -1022,7 +1022,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeRoomVisualEffectsFlashTask, { NULL } },                         // 0x1E1
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPyramidRoomVisualEffectsFlashTask, { NULL } },                        // 0x1E2
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08RoomVisualEffectsTwinTrailTask, { NULL } },                 // 0x1E3
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8018177C, { NULL } },                         // 0x1E4
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask, { NULL } },         // 0x1E4
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017F1C4, { NULL } },             // 0x1E5
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80181830, { NULL } },                             // 0x1E6
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80181940, { NULL } },             // 0x1E7
@@ -1119,7 +1119,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsMoteTask, { NULL } },                     // 0x242
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_80180D58, { NULL } },                              // 0x243
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsMoteTask, { NULL } },                            // 0x244
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017E6F4, { NULL } },                         // 0x245
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsMoteTask, { NULL } },              // 0x245
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017E7A8, { NULL } },                             // 0x246
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017E8B8, { NULL } },             // 0x247
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017EAD4, { NULL } },                         // 0x248
@@ -1131,7 +1131,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80180110, { NULL } },                           // 0x24E
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsMoteTask, { NULL } },                  // 0x24F
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsHaloTask, { NULL } },                            // 0x250
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017F43C, { NULL } },                         // 0x251
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsHaloTask, { NULL } },              // 0x251
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017F4F0, { NULL } },                             // 0x252
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017F600, { NULL } },             // 0x253
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017F81C, { NULL } },                         // 0x254
@@ -1142,7 +1142,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_8017F53C, { NULL } },                         // 0x259
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80180E58, { NULL } },                           // 0x25A
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsHaloTask, { NULL } },                  // 0x25B
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017F7D4, { NULL } },                         // 0x25C
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask, { NULL } },   // 0x25C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017F888, { NULL } },                             // 0x25D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017F998, { NULL } },             // 0x25E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017FBB4, { NULL } },                         // 0x25F
