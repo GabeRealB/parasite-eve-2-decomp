@@ -87,6 +87,30 @@
 /// Amount the selector panel's closing fade darkens each frame.
 #define SHELTER_B1_UNDERGROUND_PARKING_PANEL_FADE_STEP 6
 
+/// RGB nibbles for the selector panel's screen-space glows, in red/green/blue order.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_RED      = 0xF00,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_GREEN    = 0x0F0,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_BLUE     = 0x00F,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_YELLOW   = 0xFF0,
+    SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY = 0x111,
+};
+
+/// Pulse selection and rendering scales for this room's view-dependent lights.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_SLOW                = 0,
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_FAST                = 1,
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_SLOW           = 0x60, // Angle units per animation frame; 4096 units per turn
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_FAST           = 0x180,
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DIAMOND_RADIUS_SCALE      = 0xC0,
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DISC_RADIUS_SCALE         = 0x300,
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DISC_COLOR_FACTORS        = 0x10,  // Green only in the bit-disc format
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE         = 0x200,
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS        = 0x111, // Equal RGB factors
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_SIDE_BEAM_COLOR_FACTORS   = 0x210, // Red factor 2, green factor 1, blue factor 0
+    SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSING_DISC_RADIUS_SCALE = 0x80,
+};
+
 /// Work block of the task that runs the parking lot's selector panel screen,
 /// allocated zeroed by its first state and kept at `Task::work`.
 ///
@@ -359,8 +383,8 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task);
 static void func_shelter_b1_underground_parking_8018390C(void);
 static void func_shelter_b1_underground_parking_801848A4(void);
 static void func_shelter_b1_underground_parking_8018491C(void);
-static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color);
-static void func_shelter_b1_underground_parking_80186890(s16 arg0);
+static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, s16 pixelRadius, s16 packedRgb);
+static void _shelterB1UndergroundParkingSetFastLightPulse(s16 fastPulse);
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0<\x9E"
 #include "../../shared/telephone.h"
@@ -398,7 +422,7 @@ void                              func_shelter_b1_underground_parking_80183560(T
 void                              func_shelter_b1_underground_parking_8018363C(Task*);
 void                              func_shelter_b1_underground_parking_801836D8(Task*);
 void                              func_shelter_b1_underground_parking_80183714(Task*);
-void                              func_shelter_b1_underground_parking_801837D8(u8);
+static void                       _shelterB1UndergroundParkingSetRoom(u8 roomNumber);
 void                              func_shelter_b1_underground_parking_80183804(u8);
 void                              func_shelter_b1_underground_parking_80184234(Task*);
 void                              func_shelter_b1_underground_parking_80184284(Task*);
@@ -478,7 +502,7 @@ EvsCommand D_shelter_b1_underground_parking_801873DC[15] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54140003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54140009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_shelter_b1_underground_parking_801837D8 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetRoom }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -490,7 +514,7 @@ EvsCommand D_shelter_b1_underground_parking_80187544[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_shelter_b1_underground_parking_801837D8 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _shelterB1UndergroundParkingSetRoom }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2000,7 +2024,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
             break;
         case 1:
             if (D_shelter_b1_underground_parking_8018D758 == 0) {
-                func_shelter_b1_underground_parking_80186890(0);
+                _shelterB1UndergroundParkingSetFastLightPulse(SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_SLOW);
                 sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(task);
                 break;
@@ -2183,10 +2207,14 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
     }
 }
 
-void func_shelter_b1_underground_parking_801837D8(u8 arg0)
+/// Selects the area's room and requests deferred object relinking and view refresh.
+///
+/// `roomNumber` must be a valid one-based room in this area's resources. Updates
+/// both the session location and the live save location; does not load an area.
+static void _shelterB1UndergroundParkingSetRoom(u8 roomNumber)
 {
-    gGameSession->location.loc.room                            = arg0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = roomNumber;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomNumber;
     gGameSession->roomObjsDirty                                = 1;
     gGameSession->viewDirty                                    = 1;
 }
@@ -2226,7 +2254,7 @@ static void func_shelter_b1_underground_parking_8018390C(void)
 {
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
         D_shelter_b1_underground_parking_8018D758 = 1;
-        func_shelter_b1_underground_parking_80186890(1);
+        _shelterB1UndergroundParkingSetFastLightPulse(SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_FAST);
         taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 5, 0, 0);
     }
 }
@@ -2236,26 +2264,26 @@ static void func_shelter_b1_underground_parking_8018390C(void)
 static void func_shelter_b1_underground_parking_80183B9C(void)
 {
     if (D_shelter_b1_underground_parking_8018D789 & 8) {
-        func_shelter_b1_underground_parking_801857E0(-0x46, 0x54, 7, 0xF00);
+        _shelterB1UndergroundParkingDrawPanelGlow(-0x46, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_RED);
     }
     if (D_shelter_b1_underground_parking_8018D789 & 4) {
-        func_shelter_b1_underground_parking_801857E0(-0x28, 0x54, 7, 0xF0);
+        _shelterB1UndergroundParkingDrawPanelGlow(-0x28, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_GREEN);
     }
     if (D_shelter_b1_underground_parking_8018D789 & 2) {
-        func_shelter_b1_underground_parking_801857E0(-0xE, 0x54, 7, 0xF);
+        _shelterB1UndergroundParkingDrawPanelGlow(-0xE, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_BLUE);
     }
     if (D_shelter_b1_underground_parking_8018D789 & 1) {
-        func_shelter_b1_underground_parking_801857E0(0xC, 0x54, 7, 0xFF0);
+        _shelterB1UndergroundParkingDrawPanelGlow(0xC, 0x54, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_YELLOW);
     }
-    func_shelter_b1_underground_parking_801857E0(0x11, -0x3D, 0xA, 0x111);
-    func_shelter_b1_underground_parking_801857E0(0x3D, -0x3D, 0xA, 0x111);
-    func_shelter_b1_underground_parking_801857E0(0x10, 9, 0xA, 0x111);
-    func_shelter_b1_underground_parking_801857E0(-0x42, -0x19, 0xA, 0x111);
-    func_shelter_b1_underground_parking_801857E0(-0x17, 0x2B, 0xA, 0x111);
-    func_shelter_b1_underground_parking_801857E0(0x3D, 0x2B, 0xA, 0x111);
-    func_shelter_b1_underground_parking_801857E0(
+    _shelterB1UndergroundParkingDrawPanelGlow(0x11, -0x3D, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(0x3D, -0x3D, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(0x10, 9, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(-0x42, -0x19, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(-0x17, 0x2B, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(0x3D, 0x2B, 0xA, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DIM_GREY);
+    _shelterB1UndergroundParkingDrawPanelGlow(
         D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vx,
-        D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vy, 7, 0xF0);
+        D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vy, 7, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_GREEN);
 }
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
@@ -2477,67 +2505,81 @@ static void func_shelter_b1_underground_parking_8018491C(void)
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-void func_shelter_b1_underground_parking_80184A18(Task* unused)
+/// Queues the diamond, green disc and grey beam common to six mapped views.
+///
+/// Uses the room's pulse selection and current view/scratch/packet state under
+/// the same contract as `shelterB1UndergroundParkingDrawGlowsTask`.
+static inline void _shelterB1UndergroundParkingDrawCommonViewGlows(void)
 {
-    u8 view;
+    if (D_shelter_b1_underground_parking_8018D78C != 0) {
+        _glowDrawDiamond(D_shelter_b1_underground_parking_80187714,
+                         SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_FAST,
+                         SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DIAMOND_RADIUS_SCALE);
+    } else {
+        _glowDrawDiamond(D_shelter_b1_underground_parking_80187714,
+                         SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_SLOW,
+                         SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DIAMOND_RADIUS_SCALE);
+    }
+    _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C,
+                     SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DISC_RADIUS_SCALE,
+                     SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DISC_COLOR_FACTORS);
+    _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11],
+                  SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, 0,
+                  SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
+}
 
-    view = viewGetMappedIndex();
-    switch (view) {
+void shelterB1UndergroundParkingDrawGlowsTask(Task* unused)
+{
+    u8 mappedViewIndex;
+
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
         case 10:
-            if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
-            } else {
-                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
-            }
-            _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
-            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
+            _shelterB1UndergroundParkingDrawCommonViewGlows();
             break;
         case 3:
         case 7:
         case 11:
         case 12:
-            if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
-            } else {
-                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
-            }
-            _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
-            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[11], 0x200, 0, 0x111);
+            _shelterB1UndergroundParkingDrawCommonViewGlows();
             break;
         case 8:
         case 13:
-            _glowDrawBeam(D_shelter_b1_underground_parking_801877A4, 0x200, 0, 0x210);
+            _glowDrawBeam(D_shelter_b1_underground_parking_801877A4,
+                          SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, 0,
+                          SHELTER_B1_UNDERGROUND_PARKING_LIGHT_SIDE_BEAM_COLOR_FACTORS);
+            // These views also show all five beams drawn by views 4 and 14.
         case 4:
         case 14:
-            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[0], 0x200, -0x400, 0x111);
-            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[2], 0x200, -0x400, 0x111);
-            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[4], 0x200, 0x800, 0x111);
-            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[6], 0x200, 0x800, 0x111);
-            _glowDrawBeam(&(D_shelter_b1_underground_parking_8018771C + 1)[8], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[1], SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[3], SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[5], SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[7], SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_8018771C[9], SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, 0, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
             break;
         case 9:
         case 15:
         case 22:
         case 24:
-            _glowDrawBeam(&D_shelter_b1_underground_parking_80187784[0], 0x200, 0, 0x111);
-            _glowDrawBeam(&D_shelter_b1_underground_parking_80187784[2], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_80187784[0], SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, 0, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
+            _glowDrawBeam(&D_shelter_b1_underground_parking_80187784[2], SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_BEAM_COLOR_FACTORS);
             break;
         case 16:
-            _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, 0x300, 0x10);
+            _glowDrawBitDisc(D_shelter_b1_underground_parking_8018771C, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DISC_RADIUS_SCALE, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DISC_COLOR_FACTORS);
             break;
         case 18:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x180, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_FAST, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DIAMOND_RADIUS_SCALE);
             } else {
-                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, 0x60, 0xC0);
+                _glowDrawDiamond(D_shelter_b1_underground_parking_80187714, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_SLOW, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_DIAMOND_RADIUS_SCALE);
             }
             break;
         case 20:
             if (D_shelter_b1_underground_parking_8018D78C != 0) {
-                _glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x180, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_FAST, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSING_DISC_RADIUS_SCALE);
             } else {
-                _glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, 0x60, 0x80);
+                _glowDrawPulsingDisc(D_shelter_b1_underground_parking_80187714, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_RATE_SLOW, SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSING_DISC_RADIUS_SCALE);
             }
             break;
     }
@@ -2547,66 +2589,84 @@ void func_shelter_b1_underground_parking_80184A18(Task* unused)
 
 #include "../../shared/glow_draw_bit_disc.inc.c"
 
-static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color)
+/// Draws a flickering additive glow in the selector panel's pixel coordinates.
+///
+/// `packedRgb` holds red, green and blue nibbles in bits 8..11, 4..7 and 0..3.
+/// Each is scaled by 16, with 12 added on odd animation frames. Three eight-wedge
+/// discs use radii `pixelRadius`, twice it and four times it, halving the colour
+/// bytes after each disc. Callers use positive pixel radii of 7 or 10; radius
+/// updates retain signed-halfword narrowing. The centre coordinates are relative
+/// to the current GPU draw offset, with no view projection or clipping.
+///
+/// Requires space for 24 `POLY_G4` packets and 24 blend commands in the current
+/// frame arena, and a current depth ordering table. Packets are sorted at depth
+/// 64 and remain borrowed until GPU completion.
+static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, s16 pixelRadius, s16 packedRgb)
 {
-    POLY_G4* prim;
-    s32      i;
-    s32      ang;
-    s32      t;
-    u8       r;
-    u8       g;
-    u8       b;
-    s32      base;
-    s32      c;
-    s32      rMask;
-    s32      gMask;
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DEPTH        = 64,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_LAYER_COUNT  = 3,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_FLICKER_STEP = 12,
+    };
 
-    i     = 0;
-    base  = (gDisplayState.animFrame & 1) * 12;
-    c     = color;
-    rMask = (c >> 4) & 0xF0;
-    gMask = c & 0xF0;
-    r     = base + rMask;
-    g     = base + gMask;
-    b     = base + ((color & 0xF) << 4);
+    POLY_G4* prim;
+    s32      layerIndex;
+    s32      sweepAngle;
+    s32      halfStepAngle;
+    s32      nextAngle;
+    u8       red;
+    u8       green;
+    u8       blue;
+    s32      flicker;
+    s32      colorWord;
+    s32      redComponent;
+    s32      greenComponent;
+
+    // Unpack the RGB nibbles before applying the frame-parity flicker.
+    layerIndex     = 0;
+    flicker        = (gDisplayState.animFrame & 1) * SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_FLICKER_STEP;
+    colorWord      = packedRgb;
+    redComponent   = (colorWord >> 4) & 0xF0;
+    greenComponent = colorWord & 0xF0;
+    red            = flicker + redComponent;
+    green          = flicker + greenComponent;
+    blue           = flicker + ((packedRgb & 0xF) << 4);
+    // Successive discs double the radius and halve the centre intensity.
     do {
-        ang = 0;
+        sweepAngle = 0;
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = x + ((radius * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = y + ((radius * rcos(ang)) >> 12);
-            prim->x1 = x + ((radius * rsin(t)) >> 12);
-            prim->y1 = y + ((radius * rcos(t)) >> 12);
-            t        = ang + 0x200;
-            prim->x2 = x;
-            prim->y2 = y;
-            prim->x3 = x + ((radius * rsin(t)) >> 12);
-            prim->y3 = y + ((radius * rcos(t)) >> 12);
-            ang      = t;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)0x40 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            prim          = _glowAllocateBitDiscWedge(red, green, blue);
+            prim->x0      = screenX + ((pixelRadius * rsin(sweepAngle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = sweepAngle + GLOW_SIXTEENTH_TURN;
+            prim->y0      = screenY + ((pixelRadius * rcos(sweepAngle)) >> GLOW_TRIG_SHIFT);
+            prim->x1      = screenX + ((pixelRadius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y1      = screenY + ((pixelRadius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = sweepAngle + GLOW_EIGHTH_TURN;
+            prim->x2      = screenX;
+            prim->y2      = screenY;
+            prim->x3      = screenX + ((pixelRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y3      = screenY + ((pixelRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+            sweepAngle    = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, 0x40);
-        } while (ang < 0x1000);
-        radius <<= 1;
-        r      >>= 1;
-        g      >>= 1;
-        b      >>= 1;
-        i++;
-    } while (i < 3);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DEPTH);
+        } while (sweepAngle < GLOW_FULL_TURN);
+        pixelRadius <<= 1;
+        red         >>= 1;
+        green       >>= 1;
+        blue        >>= 1;
+        layerIndex++;
+    } while (layerIndex < SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_LAYER_COUNT);
 }
 
 #include "../../shared/glow_draw_diamond.inc.c"
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-static void func_shelter_b1_underground_parking_80186890(s16 arg0)
+/// Selects the cyan room light's pulse speed (0 slow, nonzero fast).
+///
+/// Retains all 16 argument bits in the room's flag; callers pass 0 or 1.
+static void _shelterB1UndergroundParkingSetFastLightPulse(s16 fastPulse)
 {
-    D_shelter_b1_underground_parking_8018D78C = arg0;
+    D_shelter_b1_underground_parking_8018D78C = fastPulse;
 }

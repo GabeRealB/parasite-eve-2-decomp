@@ -53,6 +53,14 @@ void func_shelter_b1_underground_parking_801838B4(Task* task);
 
 void func_shelter_b1_underground_parking_8017EDE8(Task* task);
 
-void func_shelter_b1_underground_parking_80184A18(Task* unused);
+/// Draws this room's light glows and beams for the current mapped view each frame.
+///
+/// Gameplay effect slot 0x133 calls this with an unused task argument. The
+/// view mapping, view matrix, scratch stack, packet arena and depth ordering
+/// table must be ready for the included glow drawers. Unlisted views emit no
+/// packets. The cyan light uses the room's slow/fast pulse selection; the other
+/// lights keep their frame-parity flicker. Queued packets borrow the current
+/// frame arena until GPU completion; this callback owns no task work or body.
+void shelterB1UndergroundParkingDrawGlowsTask(Task* unused);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_UNDERGROUND_PARKING_H

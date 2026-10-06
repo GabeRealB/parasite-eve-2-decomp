@@ -266,7 +266,7 @@ D_shelter_b1_underground_parking_8018771C = 0x8018771C; // size:0x68 defined:Tru
 
 func_shelter_b1_underground_parking_8017EDE8 = 0x8017EDE8; // type:func
 
-func_shelter_b1_underground_parking_80184A18 = 0x80184A18; // type:func
+shelterB1UndergroundParkingDrawGlowsTask = 0x80184A18; // type:func
 Telephone_DrawPlayDataRow = 0x8017DA50; // type:func
 Telephone_DrawUsageRow = 0x8017E21C; // type:func
 Telephone_BuildWeaponUsage = 0x8017E618; // type:func
@@ -321,3 +321,6 @@ roomCutsceneTask = 0x80182154; // type:func
 roomVariantResolveNeoArk = 0x80183124; // type:func
 roomCutsceneSoundTask = 0x801831F4; // type:func
 capDialogueLoopTask = 0x80183410; // type:func
+_shelterB1UndergroundParkingSetFastLightPulse = 0x80186890; // type:func
+_shelterB1UndergroundParkingDrawPanelGlow = 0x801857e0; // type:func
+_shelterB1UndergroundParkingSetRoom = 0x801837d8; // type:func

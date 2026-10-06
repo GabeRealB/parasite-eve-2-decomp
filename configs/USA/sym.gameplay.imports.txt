@@ -1867,7 +1867,7 @@ shelterB1ArmoryDrawGlowsTask = 0x801807E4; // type:func absolute:True owner=shel
 
 shelterB1AccessTunnelDrawGlowsTask = 0x8017DD60; // type:func absolute:True owner=shelter_b1_access_tunnel shared=rooms
 
-func_shelter_b1_underground_parking_80184A18 = 0x80184A18; // type:func absolute:True owner=shelter_b1_underground_parking
+shelterB1UndergroundParkingDrawGlowsTask = 0x80184A18; // type:func absolute:True owner=shelter_b1_underground_parking
 
 func_shelter_b1_golem_freezer_1_8017DA7C = 0x8017DA7C; // type:func absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 
