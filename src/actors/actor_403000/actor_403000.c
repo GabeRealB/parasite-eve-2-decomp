@@ -4185,20 +4185,8 @@ static void func_actor_403000_80139AE0(Task* arg0)
         scratch->playerCell                = Actor403000_Cell(player->extra.tmd->coords);
         scratch->cell                      = Actor403000_Cell(arg0->extra.tmd->coords);
         diff                               = scratch->cell - scratch->playerCell;
-        if (diff < -5) {
-            goto neg;
-        }
-        if (diff < 0) {
-            goto pos;
-        }
-        if (diff < 5) {
-        neg:
-            dir = -1;
-        } else {
-        pos:
-            dir = 1;
-        }
-        work->seekRingDir = dir;
+        dir                                = _actor403000RingSide(diff);
+        work->seekRingDir                  = dir;
     }
     ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
@@ -4225,19 +4213,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    angle               = actorWrapAngle(angle);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
