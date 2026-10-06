@@ -1144,7 +1144,6 @@ static s32 Actor02100_Fn014E4(Task* arg0)
     VECTOR*                   vec;
     WorldTargetNode*          lock;
     s32                       result;
-    s32                       state;
 
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
@@ -1155,53 +1154,47 @@ static s32 Actor02100_Fn014E4(Task* arg0)
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
     vec     = &scratch->vec;
-    state   = work->targetKind;
-    if (state == ACTOR_02100_TARGET_PLAYER) {
-        goto case1;
-    }
-    if (state < ACTOR_02100_TARGET_ENEMY) {
-        goto cleanup;
-    }
-    if (state == ACTOR_02100_TARGET_ENEMY) {
-        goto case2;
-    }
-    goto cleanup;
+    switch (work->targetKind) {
+        case ACTOR_02100_TARGET_PLAYER:
+            if (work->weapon == ACTOR_02100_WEAPON_GUN) {
+                targetCoord = work->target->extra.tmd->coords;
+            } else {
+                targetCoord = &work->target->extra.tmd->coords[3];
+            }
+            vec->vx = targetCoord->workm.t[0];
+            vec->vy = targetCoord->workm.t[1];
+            vec->vz = targetCoord->workm.t[2];
+            ApplyTransposeMatrixLV(&coord->workm, vec, &work->targetPos);
+            result = 1;
+            break;
 
-case1:
-    if (work->weapon == ACTOR_02100_WEAPON_GUN) {
-        targetCoord = work->target->extra.tmd->coords;
-    } else {
-        targetCoord = &work->target->extra.tmd->coords[3];
-    }
-    vec->vx = targetCoord->workm.t[0];
-    vec->vy = targetCoord->workm.t[1];
-    vec->vz = targetCoord->workm.t[2];
-    ApplyTransposeMatrixLV(&coord->workm, vec, &work->targetPos);
-    result = 1;
-    goto cleanup;
+        case ACTOR_02100_TARGET_ENEMY:
+            if (((Enemy*)work->target->spawnArg2.pointer)->hp <= 0) {
+                break;
+            }
+            lock = &((Enemy*)work->target->spawnArg2.pointer)->node;
+            // The lock position is written over the three components of `vec`, then
+            // narrowed for the GTE and rotated back into `vec` in view space.
+            Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
+            scratch->shortVec.vx = scratch->vec.vx;
+            scratch->shortVec.vy = scratch->vec.vy;
+            scratch->shortVec.vz = scratch->vec.vz;
+            gte_SetRotMatrix(&gGfxViewCoord.workm);
+            gte_ldv0(&scratch->shortVec);
+            gte_rtv0();
+            gte_stlvnl(vec);
+            scratch->vec.vx += gGfxViewCoord.workm.t[0];
+            scratch->vec.vy += gGfxViewCoord.workm.t[1];
+            scratch->vec.vz += gGfxViewCoord.workm.t[2];
+            ApplyTransposeMatrixLV(&coord->workm, &scratch->vec, &work->targetPos);
+            result = 1;
+            break;
 
-case2:
-    if (((Enemy*)work->target->spawnArg2.pointer)->hp <= 0) {
-        goto cleanup;
+        case ACTOR_02100_TARGET_NONE:
+        default:
+            break;
     }
-    lock = &((Enemy*)work->target->spawnArg2.pointer)->node;
-    // The lock position is written over the three components of `vec`, then
-    // narrowed for the GTE and rotated back into `vec` in view space.
-    Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
-    scratch->shortVec.vx = scratch->vec.vx;
-    scratch->shortVec.vy = scratch->vec.vy;
-    scratch->shortVec.vz = scratch->vec.vz;
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&scratch->shortVec);
-    gte_rtv0();
-    gte_stlvnl(vec);
-    scratch->vec.vx += gGfxViewCoord.workm.t[0];
-    scratch->vec.vy += gGfxViewCoord.workm.t[1];
-    scratch->vec.vz += gGfxViewCoord.workm.t[2];
-    ApplyTransposeMatrixLV(&coord->workm, &scratch->vec, &work->targetPos);
-    result = 1;
 
-cleanup:
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
     return result;
 }
