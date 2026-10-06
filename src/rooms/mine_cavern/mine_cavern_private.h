@@ -77,10 +77,12 @@ extern TaskMessageEntry D_mine_cavern_80183C6C[7];
 
 void func_mine_cavern_8017E394(void);
 
-/// Hides (`arg0` 1) or shows (0) five of the area's sprite commands by setting
-/// their `SpriteBatch::hidden`, which keeps a command's sprites out of the
-/// ordering table; any other value changes nothing.
-void func_mine_cavern_8017E3A0(s32 arg0);
+/// Hides or shows the cavern's sprite batches controlled by nursery progress.
+///
+/// Only the low byte of `hiddenValue` is used: 0 shows, 1 hides, and other
+/// byte values leave visibility unchanged. Requires the cavern's stage/area
+/// sprite directory and its mutable view/batch arrays to remain loaded.
+void mineCavernSetProgressSpritesHidden(s32 hiddenValue);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_mine_cavern_8017DD6C(Task*);

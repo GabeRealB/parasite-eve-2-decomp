@@ -803,11 +803,11 @@ dryfieldWaterHoleWaterDriftTaskU16 = 0x8017F118; // type:func absolute:True owne
 
 func_mine_cavern_8017E474 = 0x8017E474; // type:func absolute:True owner=mine_cavern
 
-func_mine_cavern_8017F240 = 0x8017F240; // type:func absolute:True owner=mine_cavern
+mineCavernRoomVisualEffectsMoteTask = 0x8017F240; // type:func absolute:True owner=mine_cavern
 
-func_mine_cavern_8017FF88 = 0x8017FF88; // type:func absolute:True owner=mine_cavern
+mineCavernRoomVisualEffectsHaloTask = 0x8017FF88; // type:func absolute:True owner=mine_cavern
 
-func_mine_cavern_80180320 = 0x80180320; // type:func absolute:True owner=mine_cavern shared=rooms
+mineCavernRoomVisualEffectsHaloOrangeBurstTask = 0x80180320; // type:func absolute:True owner=mine_cavern shared=rooms
 
 func_mine_cavern_80181730 = 0x80181730; // type:func absolute:True owner=mine_cavern
 

@@ -1113,12 +1113,12 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_80181B94, { NULL } },                       // 0x23C
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80182DFC, { NULL } },                              // 0x23D
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_80180948, { NULL } },                                // 0x23E
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_80180320, { NULL } },                                   // 0x23F
+    { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsHaloOrangeBurstTask, { NULL } },              // 0x23F
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017F948, { NULL } },                           // 0x240
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017F5B0, { NULL } },                           // 0x241
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017E868, { NULL } },                           // 0x242
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_80180D58, { NULL } },                           // 0x243
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_8017F240, { NULL } },                                   // 0x244
+    { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsMoteTask, { NULL } },                         // 0x244
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017E6F4, { NULL } },                      // 0x245
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017E7A8, { NULL } },                          // 0x246
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017E8B8, { NULL } },          // 0x247
@@ -1130,7 +1130,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_8017E7F4, { NULL } },                      // 0x24D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80180110, { NULL } },                        // 0x24E
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017D7B0, { NULL } },                       // 0x24F
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_8017FF88, { NULL } },                                   // 0x250
+    { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsHaloTask, { NULL } },                         // 0x250
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017F43C, { NULL } },                      // 0x251
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017F4F0, { NULL } },                          // 0x252
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017F600, { NULL } },          // 0x253

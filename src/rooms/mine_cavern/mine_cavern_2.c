@@ -115,9 +115,7 @@ static void func_mine_cavern_80182DA8(Task* task);
 static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1);
 static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task);
 
-/// Current screen id at 0x8007218B.
-
-static void func_mine_cavern_80183860(Task* arg0);
+static void _mineCavernTargetExitCallback(Task* task);
 
 /// Mode byte the cavern enemy's hit check switches on: 1 skips the check and 2
 /// hides the model and skips it. Its wider role is unproven.
@@ -184,9 +182,9 @@ extern SpriteSource D_mine_cavern_8018C068[59];
 extern SpriteSource D_mine_cavern_8018C53C[47];
 extern SpriteSource D_mine_cavern_8018C910[48];
 
-void func_mine_cavern_8017E330(void);
-void func_mine_cavern_8017E358(void);
-void func_mine_cavern_8017E360(void);
+static void _mineCavernActivateRoom2(void);
+static void _mineCavernScriptNoop(void);
+void        func_mine_cavern_8017E360(void);
 
 TaskMessageEntry D_mine_cavern_80183C6C[7] = {
     { 5102, func_mine_cavern_8017D908 },
@@ -844,8 +842,8 @@ EvsCommand D_mine_cavern_80188A3C[31] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E330 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E358 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineCavernActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineCavernScriptNoop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017DFAC }, { .value = 95 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -868,8 +866,8 @@ EvsCommand D_mine_cavern_80188D24[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C70 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C60 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E330 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E358 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineCavernActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineCavernScriptNoop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2142,16 +2140,20 @@ static void func_mine_cavern_80181D80(s16 point);
 static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1);
 static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1);
 static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1);
-static void func_mine_cavern_80183890(Enemy* enemy, Task* task);
+static void _mineCavernTargetRetireBody(Enemy* enemy, Task* task);
 
-void func_mine_cavern_8017E330(void)
+/// Selects room 2 in the live save and session, requesting room-object relinking.
+static void _mineCavernActivateRoom2(void)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-    gGameSession->location.loc.room                            = 2;
-    gGameSession->roomObjsDirty                                = 1;
+    enum { MINE_CAVERN_POST_SCENE_ROOM = 2 };
+
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = MINE_CAVERN_POST_SCENE_ROOM;
+    gGameSession->location.loc.room                            = MINE_CAVERN_POST_SCENE_ROOM;
+    gGameSession->roomObjsDirty                                = true;
 }
 
-void func_mine_cavern_8017E358(void)
+/// No-op callback retained after the room switch in both cavern event scripts.
+static void _mineCavernScriptNoop(void)
 {
 }
 
@@ -2171,30 +2173,34 @@ void func_mine_cavern_8017E394(void)
     D_mine_cavern_8018EB54 = 0;
 }
 
-void func_mine_cavern_8017E3A0(s32 arg0)
+/// Applies visibility to the five cavern sprite batches controlled by nursery progress.
+///
+/// `views` is the loaded cavern's 25-entry view array; `hidden` is 0 or 1.
+static inline void _mineCavernSetProgressSpriteBatchesHidden(const SpriteView* views, s32 hidden)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
-    s32              v;
+    views[3].batches[5].hidden  = hidden;
+    views[4].batches[6].hidden  = hidden;
+    views[21].batches[5].hidden = hidden;
+    views[22].batches[3].hidden = hidden;
+    views[23].batches[4].hidden = hidden;
+}
 
-    sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-    v    = arg0 & 0xFF;
+void mineCavernSetProgressSpritesHidden(s32 hiddenValue)
+{
+    const GameLocationKey* location;
+    const SpriteView*      views;
+    s32                    hidden;
 
-    if (v == 1) {
-        rec[3].batches[5].hidden  = v;
-        rec[4].batches[6].hidden  = v;
-        rec[21].batches[5].hidden = v;
-        rec[22].batches[3].hidden = v;
-        rec[23].batches[4].hidden = v;
+    location = &gGameSession->location.loc;
+    views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    hidden   = hiddenValue & 0xFF;
+
+    if (hidden == true) {
+        _mineCavernSetProgressSpriteBatchesHidden(views, hidden);
         return;
     }
-    if (v == 0) {
-        rec[3].batches[5].hidden  = 0;
-        rec[4].batches[6].hidden  = 0;
-        rec[21].batches[5].hidden = 0;
-        rec[22].batches[3].hidden = 0;
-        rec[23].batches[4].hidden = 0;
+    if (hidden == false) {
+        _mineCavernSetProgressSpriteBatchesHidden(views, false);
     }
 }
 
@@ -2306,21 +2312,21 @@ void func_mine_cavern_8017E474(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_mine_cavern_8017F240(Task* task)
+void mineCavernRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_mine_cavern_8017FF88(Task* arg0)
+void mineCavernRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_mine_cavern_80180320(Task* arg0)
+void mineCavernRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -2918,7 +2924,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
 }
 
 /// Spawn state of the cavern enemy: allocates its work block, parks it in
-/// `Task::work` and installs `func_mine_cavern_80183860` as the exit callback,
+/// `Task::work` and installs `_mineCavernTargetExitCallback` as the exit callback,
 /// or destroys the enemy when the allocation fails. The model is hung under the
 /// view coordinate, given the block's two matrices and seated on the spawn spot
 /// `Task::spawnArg1` names. Two collision bodies are then linked through
@@ -2948,7 +2954,7 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
         enemyDestroy(arg0, arg1);
         return;
     }
-    arg1->exitCallback                    = func_mine_cavern_80183860;
+    arg1->exitCallback                    = _mineCavernTargetExitCallback;
     arg1->extra.tmd->coords->parent       = &gGfxViewCoord;
     arg1->extra.tmd->flags                = 0;
     arg1->extra.tmd->lightMtx             = &work->light;
@@ -3161,17 +3167,26 @@ static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-static void func_mine_cavern_80183860(Task* arg0)
+/// Unlinks the intact target's attack-taking body when its exit callback is dispatched.
+///
+/// `task` must be live; its work may be NULL, otherwise it is a live target
+/// work block. This callback releases no storage. Before that block is freed,
+/// its blast body must be unlinked or the collision lists must be discarded.
+static void _mineCavernTargetExitCallback(Task* task)
 {
     _MineCavernTargetWork* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work != NULL) {
         worldCollisionUnlinkBody(&work->body);
     }
 }
 
-static void func_mine_cavern_80183890(Enemy* enemy, Task* task)
+/// Stops target hits and lock-on, then starts the explosion sequence at tick zero.
+///
+/// State 2 of the intact target task. `enemy` and the task's target work must
+/// remain live. The blast body stays linked for the explosion to retire.
+static void _mineCavernTargetRetireBody(Enemy* enemy, Task* task)
 {
     _MineCavernTargetWork* work;
 
@@ -3192,7 +3207,7 @@ static const EnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
     {
         func_mine_cavern_80182E34,
         func_mine_cavern_801830F0,
-        func_mine_cavern_80183890,
+        _mineCavernTargetRetireBody,
         func_mine_cavern_801838F4,
         enemyDestroy,
     },

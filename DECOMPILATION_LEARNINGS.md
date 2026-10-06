@@ -87192,16 +87192,16 @@ definition - see "Interleaved jump tables"/the migration entry above). No file
 is deleted, so no matched body can be lost; `build-and-verify.sh --only <overlay>`
 confirms it, and `ninja_config.py`'s post-split check still guards the `.text`
 span.
-## The `lui`-order trick has a mirror: read the target's *first* `lui` to pick the form (func_mine_cavern_8017E330, 2026-09-15)
+## The `lui`-order trick has a mirror: read the target's *first* `lui` to pick the form (_mineCavernActivateRoom2, 2026-09-15)
 
 "Chaining across two *different* destinations fixes the `lui` order too" above
 describes the pair `gGameSession->location.loc.room = D_8007216D = 2;` vs. the two separate
-stores for the *same* two addresses. `func_mine_cavern_8017E330` is that same
+stores for the *same* two addresses. `_mineCavernActivateRoom2` is that same
 body with the `%hi`s the other way round, and it confirms the mechanism decides
 both directions — so use the target's first `lui` as the selector:
 
 ```
-func_mine_cavern_8017E330        _acropolisPatioActivateRoom2
+_mineCavernActivateRoom2        _acropolisPatioActivateRoom2
 lui a1, %hi(D_8007216D)          lui a1, %hi(gGameSession)
 lui a0, %hi(gGameSession)        lui v1, %hi(D_8007216D)
 lw  v1, %lo(gGameSession)(a0)    lw  a0, %lo(gGameSession)(a1)
@@ -87238,7 +87238,7 @@ li    a0, 0xC7
 beqz  v0, .L
 addu  a0, zero, zero
 addiu a0, zero, 1
-.L:   jal   func_mine_cavern_8017E3A0
+.L:   jal   mineCavernSetProgressSpritesHidden
 nop
 ```
 
@@ -87257,9 +87257,9 @@ The ROM's form is the same decision with a call in each arm:
 
 ```c
 if (gameFlagGetNibble(0xC7) != 0) {
-    func_mine_cavern_8017E3A0(1);
+    mineCavernSetProgressSpritesHidden(1);
 } else {
-    func_mine_cavern_8017E3A0(0);
+    mineCavernSetProgressSpritesHidden(0);
 }
 ```
 
@@ -96835,7 +96835,7 @@ local-alloc's own order is `QTY_CMP_PRI = floor_log2(refs)*refs*size /
 (death-birth)`, allocated in decreasing priority with ties by birth order
 (`local-alloc.c:qty_compare`). A temp whose definition and use are adjacent has
 the highest score and therefore always wins the first free register. The matched
-`func_mine_cavern_8017E330` (same three-store idiom) is the control: its
+`_mineCavernActivateRoom2` (same three-store idiom) is the control: its
 D-address temp is born first but scores 0.5 because a `lw` of `gGameSession`
 sits between its def and its use, so the constants (score 2) and the load's
 address take `$v0`, and the temp falls to `$a1`.
@@ -119760,7 +119760,7 @@ All three in one rewrite: 62.684% with `regs=57 insert=17 delete=15` to
 
 ## A nested `if`'s comparison lands in the outer branch's delay slot: read the branch as testing the *earlier* value
 
-`func_mine_cavern_80180320` gates on `gRoomEffectState`'s `effectControl` the way the whole
+`mineCavernRoomVisualEffectsHaloOrangeBurstTask` gates on `gRoomEffectState`'s `effectControl` the way the whole
 room-effect family does - 1-3 parks the effect, 4 or more tears the work block
 down - and the target tests it twice off one load:
 
@@ -119802,7 +119802,7 @@ The same body recurs across `dryfield_night_main_street`, `mine_secret_passage`
 and `shelter_b3_elevator_hall`, instruction-identical apart from the per-overlay
 `func_<room>_80XXXXXX` ring call - so `overlay_dup_index.py promote` refuses it
 ("references its own overlay's code"), and the cheap path is to port the matched
-sibling's C verbatim with the callees swapped. `func_mine_cavern_80180320` went
+sibling's C verbatim with the callees swapped. `mineCavernRoomVisualEffectsHaloOrangeBurstTask` went
 in at 100.000% on the first build that way.
 
 ## A unit with its own strings *and* a generated jump table: name the strings, blobs before the function
@@ -119857,7 +119857,7 @@ both blobs — a checksum failure with a 100% scratch score. The map is the chec
 
 ## A masked byte argument: an `s8` / `u8` local cannot carry the mask into the stores
 
-`func_mine_cavern_8017E3A0(s32 index)` masks its argument (`index & 0xFF`),
+`mineCavernSetProgressSpritesHidden(s32 hiddenValue)` masks its argument (`hiddenValue & 0xFF`),
 compares it against 1 and 0, and writes the value it compared into five byte
 fields. The target masks once, in place, and *both* the comparison and every
 store read that one register:
@@ -119869,22 +119869,22 @@ bne   a0,v1,.L428
 sb    a0,0x2C(v0)     # the stored value is the masked one
 ```
 
-Typing the local as the field's own type loses that. With `u8 v = index;` the
+Typing the local as the field's own type loses that. With `u8 hidden = hiddenValue;` the
 comparison still gets its `andi` (comparing a QI value promotes it to SI), but
 the store does not: `sb` takes the low byte of whatever register holds the
 value, so GCC keeps the *unmasked* argument register for the stores and spends a
 second register on the zero-extended copy that the comparison reads. The build
 lands at 96.5% with `regs` and `branch` penalties and one extra instruction — a
 `move` of the raw argument in the prologue, `sb` of one register, `bne` of
-another. Declaring the local `s8` instead (what m2c emits for `index & 0xFF`) is
+another. Declaring the local `s8` instead (what m2c emits for `hiddenValue & 0xFF`) is
 worse: the comparison becomes `sll/sra 0x18`, sign-extending a value the target
 zero-extends.
 
 Keep the masked quantity 32-bit and let the truncation happen at the store:
 
 ```c
-s32 v = arg0 & 0xFF;
-if (v == 1) { rec->field_28->field_2C = v; ... }
+s32 hidden = hiddenValue & 0xFF;
+if (hidden == 1) { views[3].batches[5].hidden = hidden; ... }
 ```
 
 That gives one `andi` into the argument's own register, shared by the compare
@@ -122095,7 +122095,7 @@ Same rule as "A narrowing cast into a *wider* local materialises the
 sign-extend at the assignment", reached from the unsigned side and from a
 parameter rather than a call result. The tell is the pair: an `andi`/`sll`/`sra`
 that appears *after* the code that could have used it, and the value's source
-register still live in a second home. `func_mine_cavern_8017E3A0` and
+register still live in a second home. `mineCavernSetProgressSpritesHidden` and
 `dryfieldWaterTankSetPreOperationSprites` — the two matched siblings of this body —
 both used the wider spelling during this experiment.
 

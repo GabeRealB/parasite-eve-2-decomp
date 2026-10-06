@@ -270,13 +270,13 @@ _gMineCavernTargetGlowRimGreen = 0x8018E35C; // type:u8 size:0x1 defined:True
 _gMineCavernTargetGlowRimBlue = 0x8018E35D; // type:u8 size:0x1 defined:True
 D_mine_cavern_8018E35E = 0x8018E35E; // type:u16 size:0x2 defined:True
 
-func_mine_cavern_80180320 = 0x80180320; // type:func
+mineCavernRoomVisualEffectsHaloOrangeBurstTask = 0x80180320; // type:func
 
 func_mine_cavern_8017E474 = 0x8017E474; // type:func
 
-func_mine_cavern_8017F240 = 0x8017F240; // type:func
+mineCavernRoomVisualEffectsMoteTask = 0x8017F240; // type:func
 
-func_mine_cavern_8017FF88 = 0x8017FF88; // type:func
+mineCavernRoomVisualEffectsHaloTask = 0x8017FF88; // type:func
 
 func_mine_cavern_80181730 = 0x80181730; // type:func
 _roomVisualEffectsDrawMote = 0x8017F50C; // type:func
@@ -287,3 +287,8 @@ _roomVisualEffectsDrawHaloBurstGroundQuad = 0x801809F8; // type:func
 _roomVisualEffectsDrawHaloStar = 0x80180D70; // type:func
 _glowDrawCapsule = 0x8017E774; // type:func
 _glowDrawFlare = 0x8017EFB8; // type:func
+_mineCavernActivateRoom2 = 0x8017e330; // type:func
+_mineCavernScriptNoop = 0x8017e358; // type:func
+mineCavernSetProgressSpritesHidden = 0x8017e3a0; // type:func
+_mineCavernTargetExitCallback = 0x80183860; // type:func
+_mineCavernTargetRetireBody = 0x80183890; // type:func

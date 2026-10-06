@@ -371,9 +371,9 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
     }
     taskSpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
-        func_mine_cavern_8017E3A0(1);
+        mineCavernSetProgressSpritesHidden(1);
     } else {
-        func_mine_cavern_8017E3A0(0);
+        mineCavernSetProgressSpritesHidden(0);
     }
     arg0->state            = arg0->state + 1;
     D_mine_cavern_8018EB50 = 0;
