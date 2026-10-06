@@ -4,7 +4,7 @@
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 /// The cap script task the entry task spawns, the target of the scene task's
-/// message 0x13EC and of the room's message 0x13F4.
+/// message `DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN` and of the room's message 0x13F4.
 Task* D_dryfield_water_tower_801876A0;
 
 Task* D_dryfield_water_tower_801876A4;
@@ -72,7 +72,7 @@ static const TaskFuncTable3 D_dryfield_water_tower_8017D5DC = {
 /// The room's scene task, spawned on script event 7. Unless nibble 0x55 has
 /// reached 2 it hides the player's weapon, runs CAP command 7 and waits for it,
 /// saving the view byte; a key answer of 0xA then sets nibble 0x55 to 2, sends
-/// 0x13EC to the cap script and plays 0x52140009, and any other answer restores
+/// `DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN` to the cap script and plays 0x52140009, and any other answer restores
 /// the session and the view byte. With nibble 0x55 already at 2 it only runs
 /// CAP command 7. Every finished path kills the task.
 void func_dryfield_water_tower_8017D948(Task* arg0)
@@ -107,7 +107,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 2);
                 func_dryfield_water_tower_8017DCB4();
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                taskMessageDispatch(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
+                taskMessageDispatch(D_dryfield_water_tower_801876A0, DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN, 0, 0);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 9), 0, 0);
             } else {
                 gGameSession->eventState                                   = 0;
@@ -138,9 +138,9 @@ static void func_dryfield_water_tower_8017DCB4(void)
         return;
     }
     if (mode < 2) {
-        func_dryfield_water_tower_801802D8(1);
+        dryfieldWaterTowerSetMechanismSpriteVisible(1);
     } else if (mode < 4) {
-        func_dryfield_water_tower_801802D8(0);
+        dryfieldWaterTowerSetMechanismSpriteVisible(0);
     }
 }
 

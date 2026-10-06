@@ -44,9 +44,18 @@ extern DryfieldWaterTowerSavedView D_dryfield_water_tower_8018768C;
 /// `Task::msgTable`.
 extern TaskMessageEntry D_dryfield_water_tower_801803A0[7];
 
-/// Sets the current view's skip-OT-link byte: a zero low byte skips the view's
-/// sprites, non-zero draws them.
-void func_dryfield_water_tower_801802D8(u8 arg0);
+/// Requests a timed mechanism run from the room's prop-scene driver.
+///
+/// Both payload words are ignored; the driver consumes the request when waiting.
+/// The sender must discard the handler's reply word.
+enum { DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN = 5100 };
+
+/// Shows or hides the mechanism's single background sprite in mapped view 19.
+///
+/// `visible` is zero to hide, nonzero to draw. During Dryfield, the water-tower
+/// area's sprite directory and its three-record view-19 batch list must be live.
+/// The selected batch contains source sprite 0. Other stages are left alone.
+void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tower_8017D948(Task*);

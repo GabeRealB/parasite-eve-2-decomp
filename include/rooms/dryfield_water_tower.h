@@ -34,7 +34,12 @@ extern SpriteView D_dryfield_water_tower_80186560[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_water_tower_80187608[];
 
-void func_dryfield_water_tower_80180348(Task* unused);
+/// Updates the room's ambient-effect gate for the current mapped view each frame.
+///
+/// Room-effect task 0xD2 ignores its task argument. The water-tower overlay and
+/// current view mapping must be live, with a mapped view index in 1..21.
+/// The per-view table supplies 2 for enabled effects and 0 for disabled effects.
+void dryfieldWaterTowerUpdateViewEffectGateTask(Task* unused);
 
 void func_dryfield_water_tower_8017DDD8(Task* task);
 

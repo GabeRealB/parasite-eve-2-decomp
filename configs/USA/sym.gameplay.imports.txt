@@ -1725,7 +1725,7 @@ func_shelter_b6_nursery_8017EAC4 = 0x8017EAC4; // type:func absolute:True owner=
 
 func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func absolute:True owner=shelter_1f_tent shared=rooms
 
-func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func absolute:True owner=mist_shooting_gallery shared=rooms
+func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func absolute:True owner=mist_shooting_gallery
 
 acropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func absolute:True owner=acropolis_square
 
@@ -1781,7 +1781,7 @@ dryfieldMotelRoom2EffectNoopTaskCA = 0x8017D6B4; // type:func absolute:True owne
 
 dryfieldParkingLotUpdateViewEffectGateTask = 0x8017DBAC; // type:func absolute:True owner=dryfield_parking_lot shared=rooms
 
-func_dryfield_water_tower_80180348 = 0x80180348; // type:func absolute:True owner=dryfield_water_tower
+dryfieldWaterTowerUpdateViewEffectGateTask = 0x80180348; // type:func absolute:True owner=dryfield_water_tower
 
 dryfieldWaterTankUpdateViewEffectGateTask = 0x8017F084; // type:func absolute:True owner=dryfield_water_tank
 

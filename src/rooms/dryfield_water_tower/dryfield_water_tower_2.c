@@ -409,7 +409,7 @@ extern ActorTransform D_dryfield_water_tower_801823A8;
 extern EvsCommand D_dryfield_water_tower_80182464[];
 extern EvsCommand D_dryfield_water_tower_80182674[];
 
-/// The per-view `roomEffectMode` table `func_dryfield_water_tower_80180348`
+/// The per-view `roomEffectMode` table `dryfieldWaterTowerUpdateViewEffectGateTask`
 /// reads, indexed by the 1-based view.
 extern u16 D_dryfield_water_tower_801827A0[];
 
@@ -441,15 +441,15 @@ void             func_dryfield_water_tower_8017F8E8(s16);
 void             func_dryfield_water_tower_8017F908(void);
 void             func_dryfield_water_tower_8017F9AC(void);
 void             func_dryfield_water_tower_8017FA5C(void);
-s32              func_dryfield_water_tower_8017FBC8(Task*, s32, s32, s32);
-s32              func_dryfield_water_tower_8017FBD8(Task*, s32, s32, s32);
+static void      _dryfieldWaterTowerLatchActorEvent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
+static void      _dryfieldWaterTowerRequestRun(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 static WorldCollisionGridFace _gDryfieldWaterTowerCollision06004Faces[73];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Normals[29];
 static SVECTOR                _gDryfieldWaterTowerCollision06004Verts[175];
 extern TaskDesc               Actor00100_D1BA84;
 static s16*                   _gDryfieldWaterTowerCollision06004Table[16];
-s32                           func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32                    _dryfieldWaterTowerApplyPropCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedSecondArg);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -546,7 +546,7 @@ ActorTransform D_dryfield_water_tower_80181AD0[2] = {
 
 TaskMessageEntry D_dryfield_water_tower_80181B00[2] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_dryfield_water_tower_8017F808 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _dryfieldWaterTowerApplyPropCommand },
 };
 
 static SVECTOR _gDryfieldWaterTowerCollision04550[2] = {
@@ -700,8 +700,8 @@ _DryfieldWaterTowerViewVolume D_dryfield_water_tower_80182350[9] = {
 };
 
 TaskMessageEntry D_dryfield_water_tower_80182374[2] = {
-    { ROOM_MESSAGE_ACTOR_EVENT, func_dryfield_water_tower_8017FBC8 },
-    { 5100, func_dryfield_water_tower_8017FBD8 },
+    { ROOM_MESSAGE_ACTOR_EVENT, _dryfieldWaterTowerLatchActorEvent },
+    { DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN, _dryfieldWaterTowerRequestRun },
 };
 
 TaskDesc D_dryfield_water_tower_80182384[3] = {
@@ -1954,35 +1954,42 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
     return 0;
 }
 
-/// Relights the cap for where it is: rebuilds its colour matrix from the room's
-/// lights as they fall on the origin of its coordinate frame.
+/// Updates the falling prop's light and colour matrices at its frame's composed origin.
 ///
-/// The frame's world matrix is read as it stands, so it has to be current.
-static inline void _dryfieldWaterTowerLightCap(Task* task)
+/// The live model must have writable lighting matrices and a current `workm`.
+/// Position is in composed coordinate units; all three available light slots are queried.
+static inline void _dryfieldWaterTowerLightFallingProp(const Task* task)
 {
-    VECTOR     position;
-    TmdObject* model;
+    enum { DRYFIELD_WATER_TOWER_PROP_LIGHT_COUNT = 3 };
 
-    model       = task->extra.tmd;
-    position.vx = model->coords->workm.t[0];
-    position.vy = task->extra.tmd->coords->workm.t[1];
-    position.vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(model, &position, 0, 3);
+    VECTOR3          worldPosition;
+    const TmdObject* model;
+
+    model            = task->extra.tmd;
+    worldPosition.vx = model->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(model, &worldPosition, 0, DRYFIELD_WATER_TOWER_PROP_LIGHT_COUNT);
 }
 
-/// Draws the cap's ground shadow, a square in the XZ plane of the cap's frame.
+/// Draws the falling prop's 768-unit square shadow on its parent's Y = -200 plane.
 ///
-/// `coord` is that frame. The offset is the frame's own height negated, less
-/// 0xC8, so an unrotated cap casts its shadow at a fixed height of -0xC8 in its
-/// parent's frame however far it has travelled.
-static inline void _dryfieldWaterTowerDrawCapShadow(Task* task, GfxCoord* coord)
+/// `coord` supplies the live model frame's height. The local Y offset wraps to
+/// a signed halfword; yaw preserves the plane, while pitch or roll tilts it.
+/// Drawing requires the current frame's primitive arena and ordering table.
+static inline void _dryfieldWaterTowerDrawFallingPropShadow(const Task* task, const GfxCoord* coord)
 {
+    enum {
+        DRYFIELD_WATER_TOWER_PROP_SHADOW_SIDE    = 768,
+        DRYFIELD_WATER_TOWER_PROP_SHADOW_PLANE_Y = -200
+    };
+
     SVECTOR offset;
 
     offset.vx = 0;
-    offset.vy = -((u16)coord->coord.t[1]) - 0xC8;
+    offset.vy = -((u16)coord->coord.t[1]) + DRYFIELD_WATER_TOWER_PROP_SHADOW_PLANE_Y;
     offset.vz = 0;
-    actorRenderDrawGroundShadow(task->extra.tmd->coords, 0x300, &offset);
+    actorRenderDrawGroundShadow(task->extra.tmd->coords, DRYFIELD_WATER_TOWER_PROP_SHADOW_SIDE, &offset);
 }
 
 /// The table's entry-2 cap prop, the one that raises the cap: it runs the same
@@ -2079,10 +2086,10 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 }
                 break;
         }
-        _dryfieldWaterTowerLightCap(arg0);
+        _dryfieldWaterTowerLightFallingProp(arg0);
     }
     if (state->shadowEnabled != new_var) {
-        _dryfieldWaterTowerDrawCapShadow(arg0, coord);
+        _dryfieldWaterTowerDrawFallingPropShadow(arg0, coord);
     }
 }
 
@@ -2827,21 +2834,24 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-/// Message 0x7DB handler, the room script table `D_dryfield_water_tower_80181B00`
-/// lists beside its 0x7D4 entry `actorMsgPlaceYawPitchRoll`. It rests the cap script: the
-/// three halfword slots it keeps its timers in are cleared along with the
-/// task's kill countdown, and the payload's halfword becomes the task's state,
-/// so the 0x7DB sender picks the state the cap script resumes in. The opcode
-/// itself is never read, hence the named-but-unused `msgId`.
-s32 func_dryfield_water_tower_8017F808(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Restarts a sliding or falling prop in the state selected by an actor command.
+///
+/// Receives `ACTOR_COMMAND_MESSAGE_APPLY` with a borrowed command and a live
+/// prop-scene work block. Only `command` is read: 2 starts sliding out or falling,
+/// and 3 starts sliding back or dropping. Motion phase, settle time, the unused
+/// reset slot and kill countdown are cleared. Returns the selected state.
+static s32 _dryfieldWaterTowerApplyPropCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedSecondArg)
 {
-    _DryfieldWaterTowerPropSceneWork* state = task->work;
+    _DryfieldWaterTowerPropSceneWork* work = task->work;
+    s32                               nextState;
 
-    state->phase        = 0;
-    state->field_60     = 0;
-    state->settleFrames = 0;
-    task->state         = msg->command;
+    work->phase         = 0;
+    work->field_60      = 0;
+    work->settleFrames  = 0;
+    nextState           = command->command;
+    task->state         = nextState;
     task->killCountdown = 0;
+    return nextState;
 }
 
 /// The 0x0D entry of two of the room's script tables -- `D_..._801820B0` and
@@ -2981,14 +2991,24 @@ static s32 func_dryfield_water_tower_8017FB4C(Task* task)
     return (D_dryfield_water_tower_8018767C[i].duration * DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES) & 0xFFFE;
 }
 
-s32 func_dryfield_water_tower_8017FBC8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Latches an actor's room event so the mechanism's closing step can finish.
+///
+/// Receives `ROOM_MESSAGE_ACTOR_EVENT` on the initialized prop-scene driver.
+/// Both payload words are ignored; the latch stays set for this driver's lifetime.
+/// No sender reads a reply value.
+static void _dryfieldWaterTowerLatchActorEvent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     _DryfieldWaterTowerPropSceneWork* work = task->work;
 
     work->actorEventReceived = 1;
 }
 
-s32 func_dryfield_water_tower_8017FBD8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Requests a timed mechanism run for the driver to start when it is waiting.
+///
+/// Receives `DRYFIELD_WATER_TOWER_MESSAGE_REQUEST_RUN` on the initialized
+/// prop-scene driver. Both payload words are ignored. Repeated requests coalesce
+/// until the driver consumes the latch. No sender reads a reply value.
+static void _dryfieldWaterTowerRequestRun(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     _DryfieldWaterTowerPropSceneWork* work = task->work;
 
@@ -3188,27 +3208,28 @@ void func_dryfield_water_tower_80180220(void)
     Gp_RestoreStreamRng();
 }
 
-/// Hides or shows one of the area's sprite commands from the nibble-0x55 band
-/// by setting its `SpriteBatch::hidden`: the argument's low byte zero keeps the
-/// command's sprites out of the ordering table, non-zero draws them. Only stage
-/// 2 has a record to write.
-void func_dryfield_water_tower_801802D8(u8 arg0)
+void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible)
 {
-    GameLocationKey* sess;
+    enum {
+        DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_VIEW_INDEX  = 19,
+        DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_BATCH_INDEX = 1
+    };
+
+    GameLocationKey* location;
     SpriteBatch*     batches;
 
-    sess = &gGameSession->location.loc;
-    if (sess->stage == GAME_STAGE_DRYFIELD) {
-        batches = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1][18].batches;
-        if (!(arg0 & 0xFF)) {
-            batches[1].hidden = 1;
+    location = &gGameSession->location.loc;
+    if (location->stage == GAME_STAGE_DRYFIELD) {
+        batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_VIEW_INDEX - 1].batches;
+        if (!visible) {
+            batches[DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_BATCH_INDEX].hidden = 1;
             return;
         }
-        batches[1].hidden = 0;
+        batches[DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_BATCH_INDEX].hidden = 0;
     }
 }
 
-void func_dryfield_water_tower_80180348(Task* unused)
+void dryfieldWaterTowerUpdateViewEffectGateTask(Task* unused)
 {
-    gRoomEffectState->roomEffectMode = D_dryfield_water_tower_801827A0[(viewGetMappedIndex() & 0xFF) - 1];
+    gRoomEffectState->roomEffectMode = D_dryfield_water_tower_801827A0[(u8)viewGetMappedIndex() - 1];
 }

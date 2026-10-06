@@ -89916,7 +89916,7 @@ Inputs: `base_1.i` (99.412%)
 `3b81a9453cbedcd717734661411a852d49e5b77f1d2826d574c0a525c8e4e8cd`,
 `base_5.i` (100.000%)
 `90523f0871234519882131068d802613b7737a9e205f436c3daa8e2d70c8c40a`.
-## A load above a store on a *different* base pins the source order (func_dryfield_water_tower_8017F808, 2026-09-15)
+## A load above a store on a *different* base pins the source order (_dryfieldWaterTowerApplyPropCommand, 2026-09-15)
 
 The two entries above on permuting independent struct stores both end in the
 same warning: stores through one base at different constant offsets are
@@ -89925,7 +89925,7 @@ were written in. That is a statement about *equal base* addresses. Change the
 base register and the proof disappears, and the emitted order becomes evidence
 you can rely on.
 
-`func_dryfield_water_tower_8017F808` is nine instructions in one basic block and
+`_dryfieldWaterTowerApplyPropCommand` is nine instructions in one basic block and
 stalled at 77.778% with `insert=1 delete=1` and every other penalty zero. The
 whole diff was the order of two instructions:
 
@@ -89941,7 +89941,7 @@ against `(mem (reg $a0) 0x2A)` are two register bases with no offset
 relationship, so `rtxanal.c`'s `memrefs_conflict_p` proves nothing, the
 `true_dependence` edge stands, and no scheduler pass may lift the load above the
 store. Only a source whose statements are in the target's order emits it. Moving
-`task->state = msg->field_2;` above `task->killCountdown = 0;` scored 100.000%.
+`task->state = command->command;` above `task->killCountdown = 0;` scored 100.000%.
 
 So: when the residue is one load passing one store and the two use *different*
 base registers, reach for the statement order before the scheduler, the
@@ -89952,7 +89952,7 @@ not "load vs store". Compare bases in `objdump` rather than assuming both are
 
 The other half of the same seed was arity: the payload pointer arrived in `$a1`
 because m2c had dropped the unused middle parameter, so the fix was the
-`(Task*, s32 msgId, payload*)` handler signature the "unread parameter" entry
+`(Task*, s32 messageId, payload*)` handler signature the "unread parameter" entry
 describes. Both edits are needed; neither alone moves the score.
 
 Inputs: `base.c` (listing order, 77.778%)
@@ -89960,9 +89960,9 @@ Inputs: `base.c` (listing order, 77.778%)
 `base_1.c` (target order, 100.000%)
 `549cd4b5208239a783578467e8245f9bf86e3437a335e5a320989f3a67c4edf7`.
 
-## An array subscript keeps its `- 1` on the index; pointer arithmetic folds it into the symbol (func_dryfield_water_tower_80180348, 2026-09-15)
+## An array subscript keeps its `- 1` on the index; pointer arithmetic folds it into the symbol (dryfieldWaterTowerUpdateViewEffectGateTask, 2026-09-15)
 
-`gRoomEffectState->roomEffectMode = D_..._801827A0[(viewGetMappedIndex() & 0xFF) - 1]` - one
+`gRoomEffectState->roomEffectMode = D_..._801827A0[(u8)viewGetMappedIndex() - 1]` - one
 call, one table read, one halfword store. The target keeps the subtraction on
 the *index*:
 
@@ -90140,7 +90140,7 @@ target's single `jal` as one local assigned in each arm of the if-chain:
 ```c
 temp_v0 = gameFlagGetNibble(0x55);
 if ((temp_v0 >= 0) && ((var_a0 = 1, ((temp_v0 < 2) != 0)) || (var_a0 = 0, ((temp_v0 < 4) != 0)))) {
-    func_dryfield_water_tower_801802D8(var_a0);
+    dryfieldWaterTowerSetMechanismSpriteVisible(var_a0);
 }
 ```
 
@@ -90157,9 +90157,9 @@ if (mode < 0) {
     return;
 }
 if (mode < 2) {
-    func_dryfield_water_tower_801802D8(1);
+    dryfieldWaterTowerSetMechanismSpriteVisible(1);
 } else if (mode < 4) {
-    func_dryfield_water_tower_801802D8(0);
+    dryfieldWaterTowerSetMechanismSpriteVisible(0);
 }
 ```
 
@@ -94443,9 +94443,9 @@ register. `main/session.h` already models the sub-object as `GameSession.locatio
 union at 0x4 whose `loc` is the place key, declared for exactly this shape:
 
 ```c
-GameLocationKey* sess = &gGameSession->location.loc;
-if (sess->stage == 2) {
-    ... sess->area ...
+GameLocationKey* location = &gGameSession->location.loc;
+if (location->stage == 2) {
+    ... location->area ...
 }
 ```
 
@@ -94453,7 +94453,7 @@ The session pointer then stays in `$v0` and the byte loads become `0x3($a1)` /
 `0x2($a1)`. `gMcSaveData` has the same overlay in use. The prologue recurs
 across the rooms (the dryfield night motel balcony's
 `func_dryfield_night_motel_balcony_8017E4B8` opens with it), and
-`func_dryfield_water_tower_801802D8` is the worked example: the m2c baseline sat
+`dryfieldWaterTowerSetMechanismSpriteVisible` is the worked example: the m2c baseline sat
 at 96% with `branch=2 regs=1 delete=1` and the overlay struct alone took it to
 100% on the first edit. Read the shape-similar matched siblings for the rest of
 the body -- `Room_Util16` / `Room_Util17` carry the same `Gp_SprtTables`
