@@ -621,69 +621,54 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            SetDispMask(0);
+            Mem_AllocAuxWithImages(1);
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            key          = gGameSession->location;
+            key.loc.view = 0x64;
+            slot         = streamFindMovieSlot(&key.loc, 0, 0);
+            slotParam[0] = slot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            task->state++;
+            break;
         case 2:
-            goto L_case2;
+            if (queue->movieReady != 0) {
+                SetDispMask(1);
+                task->state++;
+                break;
+            }
+            break;
         case 3:
-            goto L_case3;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                SetDispMask(0);
+                task->state++;
+                break;
+            }
+            if (Pad_CheckFlag800() != 0) {
+                SetDispMask(0);
+                CdCmd_ActivatePhase1();
+                task->state++;
+                break;
+            }
+            break;
         case 4:
-            goto L_case4;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                Stream_ResetRestoreState();
+                task->state++;
+                break;
+            }
+            break;
         case 5:
-            goto L_case5;
+            if (Stream_RestoreAfterLoad(0, 0) & 0xFFFF) {
+                memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
+                SetDispMask(1);
+                taskKill(task);
+                displayResumeGameLoop();
+            }
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key          = gGameSession->location;
-    key.loc.view = 0x64;
-    slot         = streamFindMovieSlot(&key.loc, 0, 0);
-    slotParam[0] = slot;
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case2:
-    if (queue->movieReady == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
-        return;
-    }
-    memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
-    SetDispMask(1);
-    taskKill(task);
-    displayResumeGameLoop();
 }
 
 void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
