@@ -149942,3 +149942,39 @@ attempts; left as it was.
   condition, `(a >= d && p == 2) || (d >= b && p == 1)`. Its third jump goes
   from the follow states back into state 0's `else` arm and then falls
   through into the follow states again; that is a re-dispatch and was left.
+
+### Goto removal, batch 23: a cap applied twice, a range switch, a cue ladder that stays (2026-10-06)
+
+- **`if (H) { if (in range) goto add; clamp; } if (in range) goto add; clamp;
+  add:`** (`func_actor_401000_80135374`, the Y cap of the capped push) is a
+  `static inline void` with two early `return`s. Writing the cap as two plain
+  `if (abs(vy) > K) s->step.vy = ...;` statements does not give the first
+  test's jump past the second: `thread_jumps` cannot see through the `abs`
+  (it has a branch of its own), so the in-range arm lands on the second test.
+  The inline's pre-existing `clamped` temporary is still needed (`$s0`/`$s1`
+  swap without it).
+- **`if (x >= 2) goto kill; if (x < 0) goto kill; t->arg = x; return; kill:`**
+  is `switch (x) { case 0: case 1: ...; break; default: kill; }`: one range
+  node, tested `slti 2; beqz; bltz` (three room setters, first try).
+- **`id = K; goto play;` in every case with `play: f(id, 0, 0)` in the last**
+  is the call written in each case; cross-jumping merges `move a1,zero; jal;
+  move a2,a1` and leaves each case its `lui/ori` and a jump
+  (`gasStationCueSoundMsg`, 8 gotos, first try).
+- **A flag local set to 1 in three arms and 0 at the end, passed to one call**
+  (`Gp_ApplyNpcRoomSnd`) is a `static inline s32` with three `return 1` and a
+  final `return 0` as the call's argument: the returns go straight into `$a0`.
+- **A constant local survives a switch conversion when the constant is also a
+  call argument past a second dispatch.** `Actor07000_Fn03164` passes `one` to
+  two cases of an inner jump-table switch; with literals the mode switch still
+  compares against `li a2,1`, but each call reloads it (cse does not carry
+  the register through the table jump). The mode ladder is a `switch`, `one`
+  stays.
+- Not converted: **`Actor01200_Fn00990`**, whose case 3 jumps back into
+  case 2's `check:` body. Three written-out copies of the body merge only
+  their `sh; return` ends (cross-jumping stops at the conditional branch in
+  front), and inside an `if (v == 0x15)` arm the zero-extension of the cue
+  index becomes a `move`. With the `check`/`same` gotos kept and only the
+  cleared tail duplicated, cross-jumping merges case 2's `beq v1,v0; clear`
+  into case 3's although the compared constants differ (each is loaded in a
+  delay slot ahead), 4 insns short. The original keeps both because
+  `goto clear` shares the store only.
