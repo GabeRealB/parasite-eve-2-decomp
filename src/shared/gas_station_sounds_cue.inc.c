@@ -6,41 +6,37 @@
 /// sound are ignored. Always returns 0.
 s32 gasStationCueSoundMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32 id;
-
     switch (arg2) {
         case 5:
-            id = 0x52010005;
-            goto play;
+            Gp_EnqueueStageSnd6(0x52010005, 0, 0);
+            break;
         case 7:
-            id = 0x52010007;
-            goto play;
+            Gp_EnqueueStageSnd6(0x52010007, 0, 0);
+            break;
         case 0xA:
-            id = 0x5201000A;
-            goto play;
+            Gp_EnqueueStageSnd6(0x5201000A, 0, 0);
+            break;
         case 0xD:
-            id = 0x5201000D;
-            goto play;
+            Gp_EnqueueStageSnd6(0x5201000D, 0, 0);
+            break;
         case 0x11:
-            id = 0x52010011;
-            goto play;
+            Gp_EnqueueStageSnd6(0x52010011, 0, 0);
+            break;
         case 0x13:
-            id = 0x52010013;
-            goto play;
+            Gp_EnqueueStageSnd6(0x52010013, 0, 0);
+            break;
         case 0x6D:
         case 0x82:
-            id = 0x5201000B;
-            goto play;
+            Gp_EnqueueStageSnd6(0x5201000B, 0, 0);
+            break;
         case 0x73:
-            id = 0x5201000E;
-            goto play;
+            Gp_EnqueueStageSnd6(0x5201000E, 0, 0);
+            break;
         case 0x83:
             if (Gp_GetCapEventKey() == 0) {
                 break;
             }
-            id = 0x52010012;
-        play:
-            Gp_EnqueueStageSnd6(id, 0, 0);
+            Gp_EnqueueStageSnd6(0x52010012, 0, 0);
             break;
     }
     return 0;
