@@ -610,6 +610,22 @@ static s32 func_actor_311500_801630A4(Task* arg0)
     return 0;
 }
 
+/// Composes the body coordinate and updates the actor's colour from the
+/// model's position.
+static inline void _actor311500Draw(Task* actor)
+{
+    Enemy* enemy;
+    VECTOR pos;
+
+    enemy = actor->spawnArg2.pointer;
+    actorRenderComposeCoord(&actor->extra.tmd->coords[1]);
+    pos.vx = actor->extra.tmd->coords->workm.t[0];
+    pos.vy = actor->extra.tmd->coords->workm.t[1];
+    pos.vz = actor->extra.tmd->coords->workm.t[2];
+    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
 /// Per-frame update. `Task::state` is the actor's phase: 0 sets the actor up,
 /// 1 idles until it is hit, 2 plays the hit reaction and returns to 1 or, once
 /// the hit points are gone, goes on to 3, which runs the death sequence; 4
@@ -618,106 +634,83 @@ void func_actor_311500_80163334(Task* arg0)
 {
     Task*             actor = arg0;
     _Actor311500Work* work;
-    Enemy*            enemy;
     TmdObject*        obj;
-    VECTOR            pos;
-    s32               state;
     s32               pan;
 
-    work  = actor->work;
-    obj   = actor->extra.tmd;
-    state = gSceneCombatState.actorControl;
-    if (state == 1) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto case1;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto case1;
-
-case0:
-    if (work->prevActorControl != 0) {
-        obj->flags = work->savedModelFlags;
-    }
-    switch (actor->state) {
+    work = actor->work;
+    obj  = actor->extra.tmd;
+    switch (gSceneCombatState.actorControl) {
         case 0:
-            memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, sizeof(D_actor_311500_80169304));
-            memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, sizeof(D_actor_311500_801692FC));
-            memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
-            func_actor_311500_801629D8(actor);
-            work = actor->work;
-            _actor311500TickAnim(actor);
-            actor->state += 1;
-            goto case1;
-
-        case 1:
-            func_actor_311500_80162C34(actor, obj);
-            if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
-                pan = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
-                sndEvtRequestScriptStart(SOUND_ACTOR_311500_HURT, pan,
-                                         (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
-                work->step    = 0;
-                actor->state += 1;
+            if (work->prevActorControl != 0) {
+                obj->flags = work->savedModelFlags;
             }
-            worldCollisionClearContacts(work->hitContacts);
-            goto case1;
+            switch (actor->state) {
+                case 0:
+                    memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, sizeof(D_actor_311500_80169304));
+                    memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, sizeof(D_actor_311500_801692FC));
+                    memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
+                    func_actor_311500_801629D8(actor);
+                    work = actor->work;
+                    _actor311500TickAnim(actor);
+                    actor->state += 1;
+                    break;
+
+                case 1:
+                    func_actor_311500_80162C34(actor, obj);
+                    if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
+                        pan = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
+                        sndEvtRequestScriptStart(SOUND_ACTOR_311500_HURT, pan,
+                                                 (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
+                        work->step    = 0;
+                        actor->state += 1;
+                    }
+                    worldCollisionClearContacts(work->hitContacts);
+                    break;
+
+                case 2:
+                    if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
+                        work->step = 0;
+                    }
+                    if ((func_actor_311500_80162F28(actor) << 0x10) > 0) {
+                        work->step    = 0;
+                        actor->state -= 1;
+                        break;
+                    }
+                    if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
+                        memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, 0x20);
+                        memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, 8);
+                        memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
+                        work->present = 0;
+                        work->step    = 0;
+                        actor->state += 1;
+                    }
+                    break;
+
+                case 3:
+                    if ((func_actor_311500_801630A4(actor) << 0x10) != 0) {
+                        actor->state += 1;
+                        return;
+                    }
+                    _actor311500Draw(actor);
+                    return;
+
+                case 4:
+                    return;
+            }
+            break;
 
         case 2:
-            if ((func_actor_311500_80162DDC(actor) << 0x10) != 0) {
-                work->step = 0;
+            if (work->prevActorControl != 2) {
+                work->savedModelFlags = obj->flags;
             }
-            if ((func_actor_311500_80162F28(actor) << 0x10) > 0) {
-                work->step    = 0;
-                actor->state -= 1;
-                goto case1;
-            }
-            if ((func_actor_311500_80162F28(actor) << 0x10) < 0) {
-                memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, 0x20);
-                memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, 8);
-                memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
-                work->present = 0;
-                work->step    = 0;
-                actor->state += 1;
-            }
-            goto case1;
+            actor->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            break;
 
-        case 3:
-            if ((func_actor_311500_801630A4(actor) << 0x10) != 0) {
-                actor->state += 1;
-                return;
-            }
-            goto tail;
-
-        case 4:
-            return;
+        case 1:
+            break;
     }
-    goto case1;
-
-case2:
-    if (work->prevActorControl != state) {
-        work->savedModelFlags = obj->flags;
-    }
-    actor->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    goto case1;
-
-case1:
     work->prevActorControl = gSceneCombatState.actorControl;
-tail:
-    enemy = actor->spawnArg2.pointer;
-    actorRenderComposeCoord(&actor->extra.tmd->coords[1]);
-    pos.vx = actor->extra.tmd->coords->workm.t[0];
-    pos.vy = actor->extra.tmd->coords->workm.t[1];
-    pos.vz = actor->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
-    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor311500Draw(actor);
 }
 
 s32 func_actor_311500_801636A0(Task* arg0, s32 arg1, s32 arg2, u32* arg3)
