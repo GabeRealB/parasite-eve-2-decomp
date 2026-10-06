@@ -905,17 +905,20 @@ void dryfieldNightTrailerCoachDrawGlowsTask(Task* unusedTask)
 
 #include "../../shared/glow_draw_pulsing_disc.inc.c"
 
-/// Prepares a Gouraud capsule cap with a grey centre and a black rim.
+/// Initializes a grey-to-black Gouraud wedge for a capsule end cap.
 ///
-/// Borrows one writable quad; the caller supplies coordinates, DMA linkage
-/// and the additive blend command. Colour stores use the low intensity byte.
-static inline void _dryfieldNightTrailerCoachInitCapsuleCap(POLY_G4* quad, s32 intensity)
+/// Borrows one writable `POLY_G4`. Vertex 2 receives `centreIntensity`
+/// (0..255) in all three RGB channels; rim vertices 0, 1 and 3 are black.
+/// Sets the packet length and opaque, untextured Gouraud-quad command.
+/// The caller supplies screen coordinates, the ordering-table link and
+/// semitransparency with its blend draw mode before GPU submission.
+static inline void _dryfieldNightTrailerCoachInitGreyCapsuleWedge(POLY_G4* wedge, u8 centreIntensity)
 {
-    setPolyG4(quad);
-    setRGB0(quad, 0, 0, 0);
-    setRGB1(quad, 0, 0, 0);
-    setRGB2(quad, intensity, intensity, intensity);
-    setRGB3(quad, 0, 0, 0);
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, centreIntensity, centreIntensity, centreIntensity);
+    setRGB3(wedge, 0, 0, 0);
 }
 
 /// Draws a flickering grey capsule aligned with two projected world points.
@@ -982,7 +985,7 @@ static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[
                 do {
                     quad           = gGpuPrimCursor;
                     gGpuPrimCursor = quad + 1;
-                    _dryfieldNightTrailerCoachInitCapsuleCap(quad, intensity);
+                    _dryfieldNightTrailerCoachInitGreyCapsuleWedge(quad, intensity);
                     quad->x0       = block->sx0 + ((block->radius0 * rsin(sweepAngle)) >> GLOW_TRIG_SHIFT);
                     rimAngle       = sweepAngle + GLOW_EIGHTH_TURN;
                     quad->y0       = block->sy0 + ((block->radius0 * rcos(sweepAngle)) >> GLOW_TRIG_SHIFT);
@@ -1021,7 +1024,7 @@ static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[
                     farCapAngle    = sweepAngle + GLOW_HALF_TURN;
                     rimAngle       = farCapAngle;
                     gGpuPrimCursor = quad + 1;
-                    _dryfieldNightTrailerCoachInitCapsuleCap(quad, intensity);
+                    _dryfieldNightTrailerCoachInitGreyCapsuleWedge(quad, intensity);
                     quad->x0 = block->sx1 + ((block->radius1 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
                     quad->y0 = block->sy1 + ((block->radius1 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
                     rimAngle = sweepAngle + (GLOW_HALF_TURN + GLOW_EIGHTH_TURN);
