@@ -12,13 +12,13 @@ void madChaserWavePairSpawn(Task* arg0)
 
     work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
-        goto kill;
+        taskKill(arg0);
+        return;
     }
     arg0->work   = work;
     work->enemy0 = Gp_SpawnEnemyFromTable(&D_actor_207000_80151E60, 1, 1, 0);
     work->enemy1 = Gp_SpawnEnemyFromTable(&D_actor_207000_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
-    kill:
         taskKill(arg0);
         return;
     }
