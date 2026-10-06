@@ -21,7 +21,6 @@ void gluttonEscortState(Task* arg0)
 #endif
     s16 i;
     s16 j;
-    s16 angle;
     s32 sfx;
     s32 pan;
 
@@ -114,9 +113,7 @@ void gluttonEscortState(Task* arg0)
     v->vy               = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     v->vz               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     rot                 = arg0->extra.tmd->coords;
-    angle               = ratan2(v->vx, v->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
-    work->neckYawTarget = angle;
+    work->neckYawTarget = actorYawTo(rot, v->vx, v->vz);
     gluttonTickAnim(arg0);
     if (work->animId == 0x10 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->animId   = 0xE;
