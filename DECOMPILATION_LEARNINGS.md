@@ -149007,3 +149007,51 @@ bytes but left one address-add instruction different. Repeated indirect member
 accesses matched all 1692 bytes and removed both pointer conversions. The
 `const EffectWork*` parameter also matched; the scratch block stays 36 bytes,
 and the translated components retain their unsigned sum and 16-bit narrowing.
+### Where the surviving copy of a duplicated tail sits (gameplay effect tasks, 2026-10-06)
+
+Cross-jumping keeps the *last* copy of a duplicated tail, so the source has to
+put the last copy where the image has the block:
+
+- **Tail after the `switch`, reached from several cases** (`goto kill;` with
+  `return; kill: effectKillTask(...)` after the switch): the cases that kill
+  `break`, every other path `return`s, a `default: return;` keeps unknown
+  states out, and the call is written once after the switch
+  (`effectControlTaskAE`). Writing `effectKillTask(); return;` in each case
+  merged them into the last *case* and cost one `j`.
+- **`nextState = K; goto setState;` ... `setState: task->state = nextState;`**
+  is `task->state = K; break;` in each arm. The merged store ends up in the
+  last arm, so that arm is written with the assignment textually last
+  (`if (period >= 11) { period -= 10; break; } task->state = RELEASE; break;`
+  rather than `if (period < 11) { ...; break; } period -= 10; break;`); with
+  that, the one arm storing a different constant also merges its `sw`
+  (`effectSpriteTask32`, second try).
+- **Guard at the top and the same kill later** (`if (flag < MIN) { ...; if
+  (age < period) goto spawn; } kill(); return; spawn:`) is an early
+  `if (flag >= MIN) { kill(); return; }` plus `if (age >= period) { kill();
+  return; }` at the later site (`func_800F91AC`, `Gp_EffCtlTask9B`,
+  `Gp_EffCtlTask7F`, `Gp_EffCtlTaskA6`, `effectSpriteTaskF4`, first try each).
+- **A tail with its own branches merges too** when it is a `static inline`
+  called in both arms (`Gp_EffSprTask81`: guard, LCG step, conditional spawn).
+- **`if (a) goto body; <statements>; if (b) { body: ... }`** where the
+  statements are asm macros (`gte_*`), so they cannot sit in a condition: a
+  value-returning `static inline` holding them, `if (a || helper(...) < 0)`
+  (`tmdDrawStreamPrimF4PreXform`, `tmdDrawStreamPrimGt4PreXformOffsetLayer`).
+  The helper must read the result through the same expression as the caller
+  (`workspace->gteResult`, not `*facingArea`).
+- **`goto next;` to the step of a hand-rotated `if (n-- > 0) { do { ...; next:
+  step; } while (n-- > 0); }`** is `continue` with the step moved into the
+  condition, `while (p++, e += stride, n-- > 0)`
+  (`tmdDrawStreamPrimGt4PreXformEnvLayer`). Two forms that fail: a plain `for`
+  with the pre-loop constant locals replaced by literals reproduces every
+  hoisted constant except one used once in the loop (`li t9,60` stays in the
+  body; loop.c does not move a constant with a single use, the `12` used twice
+  is moved), and an inline returning 0/1 for "culled" is not threaded
+  (`li v0,1; beqz v0`).
+
+Not converted: `Gp_SpawnWeaponEff` keeps the *earlier* copy of its success
+block and reaches it with a backward `bnez` from the shared call, like
+`Gp_PlayerMode2State3`; an if/else chain with the call and success in each arm
+puts the success after the call and also turns the reload of `cfg->weapon`
+into `move a2,v0` (the image reloads it because the weapon id variable was
+overwritten with the effect id first). Its early-outs and the 0x19/0x1C choice
+nest normally, and `kind = 0x16` was not needed (10 gotos -> 5).
