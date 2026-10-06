@@ -218,10 +218,11 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(2);
-            goto next;
+            task->state++;
+            break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                goto next;
+                task->state++;
             }
             break;
         case 2:
@@ -239,7 +240,6 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
             if (Task_PollKill(D_shelter_1f_guardroom_8017E014, &poll) == 0) {
                 break;
             }
-        next:
             task->state++;
             break;
         case 4:
