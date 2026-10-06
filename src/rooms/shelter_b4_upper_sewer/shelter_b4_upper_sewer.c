@@ -125,9 +125,9 @@ extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task);
 static void func_shelter_b4_upper_sewer_8017DC28(Task* task);
-static void func_shelter_b4_upper_sewer_8017DD98(Task* task, _ShelterB4UpperSewerWaterSurface* surface, s16 y, u8 c);
-static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0);
-static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0);
+static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4UpperSewerWaterSurface* surface, s16 waterY, u8 blueIntensity);
+static void _shelterB4UpperSewerInitializeWater(Task* task);
+static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden);
 #include "../../shared/room_visual_effects.h"
 
 static RoomFxShade _gRoomEffectHaloShades[3];
@@ -142,21 +142,23 @@ static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
 
 void func_shelter_b4_upper_sewer_8017E4F4(Task*);
 
-s32  func_shelter_b4_upper_sewer_8017D9BC(Task*, s32, s32, s32);
-s32  func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, s32);
-s32  func_shelter_b4_upper_sewer_8017DB50(Task*, s32, s32, s32);
-s32  func_shelter_b4_upper_sewer_8017DB58(Task*, s32, s32, s32);
-void func_shelter_b4_upper_sewer_8017D660(Task*);
-void func_shelter_b4_upper_sewer_8017D80C(Task*);
-void func_shelter_b4_upper_sewer_8017DB94(void);
+static s32 _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+s32        func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, s32);
+static s32 _shelterB4UpperSewerIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+s32        func_shelter_b4_upper_sewer_8017DB58(Task*, s32, s32, s32);
+void       func_shelter_b4_upper_sewer_8017D660(Task*);
+void       func_shelter_b4_upper_sewer_8017D80C(Task*);
+void       func_shelter_b4_upper_sewer_8017DB94(void);
 
 extern TaskDesc D_actor_100400_80147E48;
 
+enum { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
 TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_upper_sewer_8017D9C4 },
-    { 5105, func_shelter_b4_upper_sewer_8017D9BC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_upper_sewer_8017DB50 },
+    { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM, _shelterB4UpperSewerRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4UpperSewerIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, func_shelter_b4_upper_sewer_8017DAB0 },
     { ROOM_MESSAGE_SOUND, func_shelter_b4_upper_sewer_8017DB58 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -801,13 +803,13 @@ u8 D_shelter_b4_upper_sewer_80188D2C[4] = {
 
 u8* D_shelter_b4_upper_sewer_80188D30;
 
-static void func_shelter_b4_upper_sewer_8017DC88(Task* task);
+static void _shelterB4UpperSewerUpdateWater(Task* task);
 
 void func_shelter_b4_upper_sewer_8017D660(Task* task)
 {
     switch (task->state) {
         case 0:
-            func_shelter_b4_upper_sewer_8017E59C(0);
+            _shelterB4UpperSewerSetView13SpriteHidden(0);
             gGameSession->eventState = 1;
             task->state++;
             break;
@@ -905,9 +907,14 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
     }
 }
 
-s32 func_shelter_b4_upper_sewer_8017D9BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this room without consuming the item.
+///
+/// All arguments are ignored. The zero result selects the item menu's refusal notice.
+static s32 _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    return 0;
+    enum { SHELTER_B4_UPPER_SEWER_KEY_ITEM_REFUSED = 0 };
+
+    return SHELTER_B4_UPPER_SEWER_KEY_ITEM_REFUSED;
 }
 
 s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
@@ -957,7 +964,10 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, s32 ar
     return 0;
 }
 
-s32 func_shelter_b4_upper_sewer_8017DB50(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the room action supplied by a direction trigger and returns zero.
+///
+/// All arguments are unused; the borrowed request is neither read nor retained.
+static s32 _shelterB4UpperSewerIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -965,7 +975,7 @@ s32 func_shelter_b4_upper_sewer_8017DB50(Task* task, s32 msgId, s32 arg2, s32 ar
 s32 func_shelter_b4_upper_sewer_8017DB58(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
-        func_shelter_b4_upper_sewer_8017E59C(1);
+        _shelterB4UpperSewerSetView13SpriteHidden(1);
         sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 4), 0, 0);
     }
     return 0;
@@ -1001,56 +1011,100 @@ void func_shelter_b4_upper_sewer_8017DC30(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Water state of the room's water task: clamps the water level
-/// `D_shelter_b4_upper_sewer_80186438` to -0x640..0, publishes it as the
-/// session's water height, and draws the surfaces of the current camera view at
-/// that height, in a blue that brightens as the level moves away from 0.
-static void func_shelter_b4_upper_sewer_8017DC88(Task* task)
+/// Clamps and publishes the water height, then draws the current view's flat water.
+///
+/// Height is in world units, limited to -1600..0. Blue intensity is
+/// (-height * 16) / 225. The current display half of an unused actor-load
+/// buffer supplies packet storage; view 12 omits the first water rectangle.
+static void _shelterB4UpperSewerUpdateWater(Task* task)
 {
-    s16 w;
-    u8  c;
-    s32 h;
+    enum {
+        SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES     = 0xC000,
+        SHELTER_B4_UPPER_SEWER_WATER_MIN_Y                 = -1600,
+        SHELTER_B4_UPPER_SEWER_WATER_MAX_Y                 = 0,
+        SHELTER_B4_UPPER_SEWER_WATER_VIEW_SKIP_FIRST_PATCH = 12
+    };
+    s16 clampedWaterY;
+    u8  blueIntensity;
+    s32 waterY;
 
+    // Borrow the unused actor-load buffer, with one packet area per display buffer.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
     } else {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
     }
-    if (D_shelter_b4_upper_sewer_80186438 < -0x640) {
-        D_shelter_b4_upper_sewer_80186438 = -0x640;
-    } else if (D_shelter_b4_upper_sewer_80186438 > 0) {
-        D_shelter_b4_upper_sewer_80186438 = 0;
+    if (D_shelter_b4_upper_sewer_80186438 < SHELTER_B4_UPPER_SEWER_WATER_MIN_Y) {
+        D_shelter_b4_upper_sewer_80186438 = SHELTER_B4_UPPER_SEWER_WATER_MIN_Y;
+    } else if (D_shelter_b4_upper_sewer_80186438 > SHELTER_B4_UPPER_SEWER_WATER_MAX_Y) {
+        D_shelter_b4_upper_sewer_80186438 = SHELTER_B4_UPPER_SEWER_WATER_MAX_Y;
     }
-    w                    = D_shelter_b4_upper_sewer_80186438;
-    gGameSession->waterY = w;
-    h                    = w;
-    c                    = (-h * 16) / 225;
-    if (gGameSession->location.loc.view != 0xC) {
-        func_shelter_b4_upper_sewer_8017DD98(task, D_shelter_b4_upper_sewer_80186448, h, c);
+    clampedWaterY        = D_shelter_b4_upper_sewer_80186438;
+    gGameSession->waterY = clampedWaterY;
+    waterY               = clampedWaterY;
+    blueIntensity        = (-waterY * 16) / 225;
+    if (gGameSession->location.loc.view != SHELTER_B4_UPPER_SEWER_WATER_VIEW_SKIP_FIRST_PATCH) {
+        _shelterB4UpperSewerDrawWaterSurfaces(task, D_shelter_b4_upper_sewer_80186448, waterY, blueIntensity);
     } else {
-        func_shelter_b4_upper_sewer_8017DD98(task, D_shelter_b4_upper_sewer_80186454, h, c);
+        _shelterB4UpperSewerDrawWaterSurfaces(task, D_shelter_b4_upper_sewer_80186454, waterY, blueIntensity);
     }
 }
 
-/// Draws each surface in the list at `surface`, up to its terminator, at
-/// height `y` as a strip of `segmentCount` flat semi-transparent quads
-/// coloured (0, `c` / 4, `c`), projected through the view matrix and each
-/// followed by a draw-mode packet selecting blend mode 2.
-/// Quads are linked 0x60 deeper in the ordering table than their projected
-/// depth, and those the projection flags as invalid are skipped. The
-/// per-surface values live in a work block pushed on the scratchpad stack for
-/// the duration of the call. `task` is unused.
-static void func_shelter_b4_upper_sewer_8017DD98(Task* task, _ShelterB4UpperSewerWaterSurface* surface, s16 y, u8 c)
+/// Draws a terminated list of flat water rectangles at a shared world-unit height.
+///
+/// Borrows the list through `WATER_SURFACE_LIST_END`; every drawable entry
+/// needs a positive segment count. Each valid projected strip quad has RGB
+/// (0, blueIntensity / 4, blueIntensity), subtractive blending and an ordering
+/// depth bias of 96. The byte cursor must have aligned storage for one POLY_F4
+/// and one DR_MODE per drawn quad (36 bytes, sending only its first command).
+/// Scratch storage is released before returning. `task` is unused, retained in the matched call interface.
+static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4UpperSewerWaterSurface* surface, s16 waterY, u8 blueIntensity)
 {
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
+    enum {
+        SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS      = 96,
+        SHELTER_B4_UPPER_SEWER_WATER_QUAD_CODE       = 0x2A,
+        SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE_WORDS = 1,
+        // GPU draw-mode opcode, subtractive blend and retained texture page 10.
+        SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE = 0xE1000000 | (GPU_BLEND_SUBTRACT << 5) | 10
+    };
+
+    /// Queues one flat water quad followed by its subtractive draw-mode command.
+    ///
+    /// Captures screenXY0..3, orderingDepth, blueIntensity, waterQuad and drawMode.
+    /// Uses the aligned byte cursor for 36 bytes of frame storage, retaining the
+    /// DR_MODE's unused second slot while sending one word. Call as a statement
+    /// after a valid projection inside braces; expands to a statement list that
+    /// updates the cursor and links both packets, with no additional control flow.
+#define SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD()                                                                                                                                                   \
+    waterQuad                         = (POLY_F4*)D_shelter_b4_upper_sewer_80188D30;                                                                                                               \
+    D_shelter_b4_upper_sewer_80188D30 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                       \
+    setcode(waterQuad, SHELTER_B4_UPPER_SEWER_WATER_QUAD_CODE);                                                                                                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                               \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                               \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                               \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                               \
+    waterQuad->r0                       = 0;                                                                                                                                                       \
+    waterQuad->g0                       = blueIntensity >> 2;                                                                                                                                      \
+    waterQuad->b0                       = blueIntensity;                                                                                                                                           \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            waterQuad);                                                                                                                                                                            \
+    drawMode                          = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;                                                                                                               \
+    D_shelter_b4_upper_sewer_80188D30 = (u8*)(drawMode + 1);                                                                                                                                       \
+    setlen(drawMode, SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE_WORDS);                                                                                                                                \
+    drawMode->code[0] = SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE;                                                                                                                                    \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            drawMode);
+
+    SVECTOR           corner0, corner1, corner2, corner3;
+    long              screenXY0, screenXY1, screenXY2, screenXY3;
+    long              depthCue, projectionFlags;
     WaterQuadScratch* scratch;
     WaterQuadScratch* scratchEnd;
-    POLY_F4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
+    POLY_F4*          waterQuad;
+    DR_MODE*          drawMode;
+    s32               orderingDepth;
+    s32               segmentIndex;
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
@@ -1060,49 +1114,31 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, _ShelterB4UpperSewe
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    scratch->y = y;
+    scratch->y = waterY;
     for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
         if (surface->segmentsAlongZ == 0) {
             scratch->dx = surface->width / surface->segmentCount;
             scratch->dz = surface->depth;
             scratch->x  = surface->x;
             scratch->z  = surface->z;
-            for (i = 0; i < surface->segmentCount; i++) {
-                v0.vx            = scratch->x + scratch->dx * i;
-                v0.vy            = scratch->y;
-                v0.vz            = scratch->z;
-                v1.vx            = scratch->x + scratch->dx * (i + 1);
-                v1.vy            = scratch->y;
-                v1.vz            = scratch->z;
+            for (segmentIndex = 0; segmentIndex < surface->segmentCount; segmentIndex++) {
+                corner0.vx       = scratch->x + scratch->dx * segmentIndex;
+                corner0.vy       = scratch->y;
+                corner0.vz       = scratch->z;
+                corner1.vx       = scratch->x + scratch->dx * (segmentIndex + 1);
+                corner1.vy       = scratch->y;
+                corner1.vz       = scratch->z;
                 scratch->yOffset = 0;
-                v2.vx            = scratch->x + scratch->dx * i;
-                v2.vy            = scratch->y + scratch->yOffset;
-                v2.vz            = scratch->z + scratch->dz;
+                corner2.vx       = scratch->x + scratch->dx * segmentIndex;
+                corner2.vy       = scratch->y + scratch->yOffset;
+                corner2.vz       = scratch->z + scratch->dz;
                 scratch->yOffset = 0;
-                v3.vx            = scratch->x + scratch->dx * (i + 1);
-                v3.vy            = scratch->y + scratch->yOffset;
-                v3.vz            = scratch->z + scratch->dz;
-                otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-                if (flag >= 0) {
-                    poly                              = (POLY_F4*)D_shelter_b4_upper_sewer_80188D30;
-                    D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
-                    setlen(poly, 5);
-                    setcode(poly, 0x2A);
-                    GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                    GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                    GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                    GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                    poly->r0                       = 0;
-                    poly->g0                       = c >> 2;
-                    poly->b0                       = c;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            poly);
-                    dr                                = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;
-                    D_shelter_b4_upper_sewer_80188D30 = (u8*)(dr + 1);
-                    setlen(dr, 1);
-                    dr->code[0] = 0xE100004A;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            dr);
+                corner3.vx       = scratch->x + scratch->dx * (segmentIndex + 1);
+                corner3.vy       = scratch->y + scratch->yOffset;
+                corner3.vz       = scratch->z + scratch->dz;
+                orderingDepth    = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &depthCue, &projectionFlags);
+                if (projectionFlags >= 0) {
+                    SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD();
                 }
             }
         } else {
@@ -1110,97 +1146,96 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, _ShelterB4UpperSewe
             scratch->dz = surface->depth / surface->segmentCount;
             scratch->x  = surface->x;
             scratch->z  = surface->z;
-            for (i = 0; i < surface->segmentCount; i++) {
-                v0.vx            = scratch->x;
-                v0.vy            = scratch->y;
-                v0.vz            = scratch->z + scratch->dz * i;
-                v1.vx            = scratch->x;
-                v1.vy            = scratch->y;
-                v1.vz            = scratch->z + scratch->dz * (i + 1);
+            for (segmentIndex = 0; segmentIndex < surface->segmentCount; segmentIndex++) {
+                corner0.vx       = scratch->x;
+                corner0.vy       = scratch->y;
+                corner0.vz       = scratch->z + scratch->dz * segmentIndex;
+                corner1.vx       = scratch->x;
+                corner1.vy       = scratch->y;
+                corner1.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
                 scratch->yOffset = 0;
-                v2.vx            = scratch->x + scratch->dx;
-                v2.vy            = scratch->y + scratch->yOffset;
-                v2.vz            = scratch->z + scratch->dz * i;
+                corner2.vx       = scratch->x + scratch->dx;
+                corner2.vy       = scratch->y + scratch->yOffset;
+                corner2.vz       = scratch->z + scratch->dz * segmentIndex;
                 scratch->yOffset = 0;
-                v3.vx            = scratch->x + scratch->dx;
-                v3.vy            = scratch->y + scratch->yOffset;
-                v3.vz            = scratch->z + scratch->dz * (i + 1);
-                otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-                if (flag >= 0) {
-                    poly                              = (POLY_F4*)D_shelter_b4_upper_sewer_80188D30;
-                    D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
-                    setlen(poly, 5);
-                    setcode(poly, 0x2A);
-                    GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                    GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                    GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                    GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                    poly->r0                       = 0;
-                    poly->g0                       = c >> 2;
-                    poly->b0                       = c;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            poly);
-                    dr                                = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;
-                    D_shelter_b4_upper_sewer_80188D30 = (u8*)(dr + 1);
-                    setlen(dr, 1);
-                    dr->code[0] = 0xE100004A;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            dr);
+                corner3.vx       = scratch->x + scratch->dx;
+                corner3.vy       = scratch->y + scratch->yOffset;
+                corner3.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
+                orderingDepth    = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &depthCue, &projectionFlags);
+                if (projectionFlags >= 0) {
+                    SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD();
                 }
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+#undef SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD
 }
 
-/// The room's water task: runs its state (`func_shelter_b4_upper_sewer_8017E55C`
-/// once, then `func_shelter_b4_upper_sewer_8017DC88` every frame) and publishes
+/// The room's water task: runs its state (`_shelterB4UpperSewerInitializeWater`
+/// once, then `_shelterB4UpperSewerUpdateWater` every frame) and publishes
 /// the water level as the session's water height.
 void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b4_upper_sewer_8017E55C, func_shelter_b4_upper_sewer_8017DC88 };
+    TaskFunc states[2] = { _shelterB4UpperSewerInitializeWater, _shelterB4UpperSewerUpdateWater };
 
     states[task->state](task);
     gGameSession->waterY = D_shelter_b4_upper_sewer_80186438;
 }
 
-static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
+/// Clears the selected actor-buffer session marker before water rendering begins.
+///
+/// No companion selects actor buffer 2; a companion selects buffer 1.
+/// The marker's nonzero meaning is unproven. Advances the water task to drawing.
+static void _shelterB4UpperSewerInitializeWater(Task* task)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
-/// Sets or clears `field_4` of the second sprite command in view 13 of the
-/// current room's sprite table, from the low byte of `arg0` (zero clears it,
-/// anything else sets it to 1).
-static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
+/// Sets whether the current area's view-13 sprite batch is hidden.
+///
+/// Only the low byte of `hidden` is tested (0 visible, nonzero hidden).
+/// Requires the loaded sprite directory for this room and its three-entry
+/// view-13 batch list; batch 1 covers the view's single source sprite.
+static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteBatch*     batches;
+    enum {
+        SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_VIEW  = 13,
+        SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_BATCH = 1
+    };
+    const GameLocationKey* location = &gGameSession->location.loc;
+    SpriteBatch*           batches;
 
-    batches = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1][12].batches;
-    if ((arg0 & 0xFF) == 0) {
-        batches[1].hidden = 0;
+    batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_VIEW - 1].batches;
+    if ((hidden & 0xFF) == 0) {
+        batches[SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_BATCH].hidden = 0;
     } else {
-        batches[1].hidden = 1;
+        batches[SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_BATCH].hidden = 1;
     }
 }
 
-/// Publishes the sewer's effect ids on the task's first tick - two extra ids
-/// only while `gameFlagGetNibble(0xB7)` is 1 - then draws the
-/// `_glowDrawCapsule` capsules the current camera view
-/// shows. Views 4 and 13 both end on
-/// `D_shelter_b4_upper_sewer_801864F0[12]`, and writing that address off the
-/// array (rather than through its own symbol) is what keeps view 4's array
-/// base live across the first call while the shared tail is cross-jumped.
-void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
+void shelterB4UpperSewerDrawGlowsTask(Task* task)
 {
-    if (arg0->state == 0) {
-        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
+    enum {
+        SHELTER_B4_UPPER_SEWER_GLOW_TASK_INITIALIZE = 0,
+        SHELTER_B4_UPPER_SEWER_GLOW_TASK_ACTIVE     = 1,
+        SHELTER_B4_UPPER_SEWER_RESERVOIR_COMPLETE   = 1,
+        SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE    = 0x200,
+        // RGB nibbles; the capsule drawer multiplies each channel by 16.
+        SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY = 0x444,
+        SHELTER_B4_UPPER_SEWER_GLOW_DIM_GRAY    = 0x222,
+        SHELTER_B4_UPPER_SEWER_GLOW_BLUE        = 0x124,
+        SHELTER_B4_UPPER_SEWER_GLOW_GREEN       = 0x343
+    };
+
+    // Install the package's effect callbacks before drawing the visible glow pairs.
+    if (task->state == SHELTER_B4_UPPER_SEWER_GLOW_TASK_INITIALIZE) {
+        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == SHELTER_B4_UPPER_SEWER_RESERVOIR_COMPLETE) {
             gRoomEffectWaterRippleId = EFFECT_SHELTER_B4_UPPER_SEWER_WATER_RIPPLE;
             gRoomEffectWaterSprayId  = EFFECT_SHELTER_B4_UPPER_SEWER_WATER_SPRAY;
         }
@@ -1214,62 +1249,62 @@ void func_shelter_b4_upper_sewer_8017E5F8(Task* arg0)
         gRoomEffectGlowDiscId     = EFFECT_SHELTER_B4_UPPER_SEWER_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B4_UPPER_SEWER_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_UPPER_SEWER_ORANGE_BURST_2;
-        arg0->state               = 1;
+        task->state               = SHELTER_B4_UPPER_SEWER_GLOW_TASK_ACTIVE;
     }
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 3:
-            _glowDrawCapsule(D_shelter_b4_upper_sewer_801864F0, 0x200, 0x444);
+            _glowDrawCapsule(D_shelter_b4_upper_sewer_801864F0, SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[0], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[0], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_DIM_GRAY);
+            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BLUE);
             break;
         case 8: {
-            SVECTOR* p = D_shelter_b4_upper_sewer_801864D0;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[2], 0x200, 0x444);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[6], 0x200, 0x444);
-            _glowDrawCapsule(&p[16], 0x200, 0x124);
+            const SVECTOR* glowPoints = D_shelter_b4_upper_sewer_801864D0;
+            _glowDrawCapsule(&glowPoints[0], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[2], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[4], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_DIM_GRAY);
+            _glowDrawCapsule(&glowPoints[6], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[16], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BLUE);
             break;
         }
         case 9: {
-            SVECTOR* p = D_shelter_b4_upper_sewer_801864D0;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[2], 0x200, 0x444);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[6], 0x200, 0x444);
-            _glowDrawCapsule(&p[16], 0x200, 0x124);
+            const SVECTOR* glowPoints = D_shelter_b4_upper_sewer_801864D0;
+            _glowDrawCapsule(&glowPoints[0], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[2], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[4], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_DIM_GRAY);
+            _glowDrawCapsule(&glowPoints[6], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[16], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BLUE);
             break;
         }
         case 10: {
-            SVECTOR* p = D_shelter_b4_upper_sewer_801864B0;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[2], 0x200, 0x444);
-            _glowDrawCapsule(&p[18], 0x200, 0x343);
+            const SVECTOR* glowPoints = D_shelter_b4_upper_sewer_801864B0;
+            _glowDrawCapsule(&glowPoints[0], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[2], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[18], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_GREEN);
             break;
         }
         case 11: {
-            SVECTOR* p = D_shelter_b4_upper_sewer_80186490;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[6], 0x200, 0x444);
-            _glowDrawCapsule(&p[18], 0x200, 0x444);
-            _glowDrawCapsule(&p[20], 0x200, 0x343);
+            const SVECTOR* glowPoints = D_shelter_b4_upper_sewer_80186490;
+            _glowDrawCapsule(&glowPoints[0], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[6], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[18], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
+            _glowDrawCapsule(&glowPoints[20], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_GREEN);
             break;
         }
         case 12:
-            _glowDrawCapsule(D_shelter_b4_upper_sewer_80186520, 0x200, 0x444);
+            _glowDrawCapsule(D_shelter_b4_upper_sewer_80186520, SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BRIGHT_GRAY);
             break;
         case 13:
-            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], 0x200, 0x124);
+            _glowDrawCapsule(&D_shelter_b4_upper_sewer_801864F0[12], SHELTER_B4_UPPER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_UPPER_SEWER_GLOW_BLUE);
             break;
     }
 }
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
+void shelterB4UpperSewerWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -1278,7 +1313,7 @@ void func_shelter_b4_upper_sewer_8017E8B8(Task* task)
 
 #include "../../shared/water_drift_task.inc.c"
 
-void func_shelter_b4_upper_sewer_8017ED40(Task* task)
+void shelterB4UpperSewerWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
@@ -1291,21 +1326,21 @@ void func_shelter_b4_upper_sewer_8017ED40(Task* task)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b4_upper_sewer_80180110(Task* task)
+void shelterB4UpperSewerRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b4_upper_sewer_80180E58(Task* arg0)
+void shelterB4UpperSewerRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b4_upper_sewer_801811F0(Task* arg0)
+void shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -1318,14 +1353,14 @@ void func_shelter_b4_upper_sewer_80182600(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b4_upper_sewer_80182734(Task* arg0)
+void shelterB4UpperSewerRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b4_upper_sewer_80183198(Task* task)
+void shelterB4UpperSewerRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -1345,16 +1380,16 @@ void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b4_upper_sewer_80184C20(Task* task)
+void shelterB4UpperSewerRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b4_upper_sewer_80185880(Task* arg0)
+void shelterB4UpperSewerRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

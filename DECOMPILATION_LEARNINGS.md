@@ -141376,7 +141376,7 @@ emits `addiu a0,s0,0xd0` and breaks the shared tail (97.8%).
 in the other case. The two tails become the same RTL (`%hi(A+0xd0)`), so jump2
 cross-jumps them, and the code keeps the shape above. The unlinked object
 differs from the target only in relocation addends (`A+0xd0` against `B`); the
-linked image is identical. `func_shelter_b4_upper_sewer_8017E5F8` is the same
+linked image is identical. `shelterB4UpperSewerDrawGlowsTask` is the same
 shape. A matched jump table in a later unit still needs the manifest `rodata`
 cut, and its `INCLUDE_RODATA` line must come out of the first unit's `.c` by
 hand.
