@@ -689,7 +689,7 @@ static u8 Fs_ProcessChunkHeader(void)
                 Fs_Streaming = 1;
                 break;
             }
-            SndLoad_BeginFromBuffer(0, Fs_CdSector.bytes);
+            sndLoadBeginChunkLoad(0, Fs_CdSector.bytes);
             status = SndLoad_FeedSector(Fs_CdSector.bytes);
             if (status == SOUND_LOAD_PHASE_DONE) {
                 if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
@@ -1937,7 +1937,7 @@ static void Fs_ReadNSyncCb(u8 status, u8* result)
             Fs_Streaming = false;
             CdReadyCallback(Fs_CdReadyCb);
         } else {
-            SndLoad_FromSectorMode8(&Fs_CdSector);
+            sndLoadBeginSectorLoad(&Fs_CdSector);
             CdReadyCallback(Fs_StreamReadyCb);
         }
 

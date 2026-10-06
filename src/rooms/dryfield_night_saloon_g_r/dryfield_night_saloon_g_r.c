@@ -2111,7 +2111,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     if (flags < 0xF1) {
         state = task->state;
         if (state == 1) {
-            if (Midi_IsBusy(0) == 0) {
+            if (midiIsSequenceBusy(0) == 0) {
                 param1[3] = 0;
                 param1[2] = 4;
                 param1[0] = flags;
@@ -2129,7 +2129,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
             }
         } else {
             if (cdCmdIsIdle() & 0xFFFF) {
-                SndEvt_EnqueueType1(flags, 0);
+                sndEvtRequestMidiStart(flags, 0);
                 sndEvtRequestMidiVolume(flags, (u8)D_8007A396);
                 ready          = 1;
                 gStageRoomSong = flags;

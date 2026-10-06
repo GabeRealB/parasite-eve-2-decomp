@@ -1906,7 +1906,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             taskCallExit(D_mist_shooting_gallery_8018E0C4);
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            SndEvt_EnqueueType2(0, 0x1E);
+            sndEvtRequestMidiStop(0, 0x1E);
             Gp_MsgPlayerWeapon(1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             taskKill(arg0);
@@ -1962,7 +1962,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
         case 2:
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            SndEvt_EnqueueType2(0, 0x1E);
+            sndEvtRequestMidiStop(0, 0x1E);
             actor->movementInputDisabled = 0;
             D_actor_215100_8014D038      = 0;
             Gp_MsgPlayerWeapon(1);
@@ -1988,7 +1988,7 @@ void func_actor_215100_8014A908(void)
     if (D_actor_215100_8015E670 < 4) {
         Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
     }
-    SndEvt_EnqueueType2(0, 0x1E);
+    sndEvtRequestMidiStop(0, 0x1E);
 }
 
 void func_actor_215100_8014A9A0(void)
@@ -1998,7 +1998,7 @@ void func_actor_215100_8014A9A0(void)
         func_mist_shooting_gallery_80180390(1);
         D_actor_215100_8014D03C          = 1;
         gGameSession->battleResetPending = 1;
-        SndEvt_EnqueueType2(0, 0x1E);
+        sndEvtRequestMidiStop(0, 0x1E);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }
     if (D_actor_215100_8015E670 < 3) {

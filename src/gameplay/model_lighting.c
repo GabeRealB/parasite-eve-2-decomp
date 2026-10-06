@@ -3103,7 +3103,7 @@ void Gp_RestartSessionTask(Task* arg0)
     if (gGameSession->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
         SetDispMask(0);
     }
-    SndEvt_EnqueueType2(0, 8);
+    sndEvtRequestMidiStop(0, 8);
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x78);
     sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x78);
     flag                  = 0xFF;

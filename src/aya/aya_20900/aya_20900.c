@@ -181,7 +181,7 @@ static s32 func_aya_20900_80115A14(Task* arg0)
             work->holdFrames += 1;
             if (work->holdFrames < AYA_20900_GAME_OVER_HOLD_FRAMES) {
                 if (Pad_CheckFlag800() != 0) {
-                    SndEvt_EnqueueType2(0x62, 1);
+                    sndEvtRequestMidiStop(0x62, 1);
                     work->phase += 1;
                 }
             } else {

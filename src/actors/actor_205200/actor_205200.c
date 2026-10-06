@@ -422,7 +422,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                 work->state = ACTOR_205200_CTRL_STOPPED;
                 // `state` is 2 here, which is also the B6 corridor's site.
                 if (work->site == state) {
-                    SndEvt_EnqueueType2(0, 0x3C);
+                    sndEvtRequestMidiStop(0, 0x3C);
                 }
                 break;
         }

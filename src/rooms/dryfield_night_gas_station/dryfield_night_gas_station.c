@@ -2655,7 +2655,7 @@ s32 func_dryfield_night_gas_station_8017F9E8(Task* task, s32 msgId, s32 arg2, s3
         Gp_ApplyAreaRecs(D_dryfield_night_gas_station_801907A0);
         gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, 0);
         gameFlagSetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED, 0);
-        SndEvt_EnqueueType2(0, 0x64);
+        sndEvtRequestMidiStop(0, 0x64);
     }
     return 0;
 }

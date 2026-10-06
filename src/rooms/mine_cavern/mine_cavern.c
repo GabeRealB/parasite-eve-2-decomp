@@ -490,7 +490,7 @@ void func_mine_cavern_8017E18C(Task* task)
 
 void func_mine_cavern_8017E2D8(void)
 {
-    SndEvt_EnqueueType2(0, 0x64);
+    sndEvtRequestMidiStop(0, 0x64);
 }
 
 /// Sets bit 0 of `Gp_StateC08.flags` and requests all-effect cancellation on `gRoomEffectState`.

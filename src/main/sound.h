@@ -162,7 +162,12 @@ void SndEvt_Process(void);
 /// recovery clears the pool.
 SndEvt* sndEvtAlloc(void);
 
-s32 Midi_IsChannelFree(u8 arg0);
+/// Returns one when the volume policy permits selecting a different sequence.
+///
+/// Reduced mode exactly equal to one rejects every selection. Otherwise 255
+/// is eligible, and other ids are eligible only when they differ from the
+/// resident song's loaded id. Playback phase and voice availability are ignored.
+s32 midiCanSelectSequence(u8 sequenceId);
 
 /// Appends one reserved sound-event slot to the deferred-command FIFO.
 ///
@@ -209,9 +214,24 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1);
 
 s32 SndLoad_ProcessSector(u32* arg0);
 
-void SndLoad_FromSectorMode8(void* arg0);
+/// Starts a whole-sector sound-bank load using a borrowed CD destination buffer.
+///
+/// `sectorBuffer` must remain live, word-aligned and writable for 2048-byte CD
+/// reads until streaming completes or is cancelled. No sector is consumed here.
+/// The caller must finish or tear down the previous load first: resetting drops
+/// its image and bank pointers without releasing them. Upload policy and saved
+/// bank-selection state are retained; the CD-ready feeder selects polling.
+void sndLoadBeginSectorLoad(void* sectorBuffer);
 
-void SndLoad_BeginFromBuffer(u8 arg0, void* arg1);
+/// Starts a file-chunk sound-bank load and saves the current bank-selection state.
+///
+/// `sectorBuffer` is borrowed for the load; subsequent sectors are supplied by
+/// the feeder, and this call consumes none. Feeds must provide word-aligned
+/// 2048-byte sectors. With `syncUpload` zero, the feeder skips a 16-byte prefix
+/// at each section start and polls the SPU DMA; nonzero uses whole sectors and
+/// waits for each DMA. The byte is retained without normalization. The caller
+/// must finish or tear down the previous load before its pointers are reset.
+void sndLoadBeginChunkLoad(u8 syncUpload, void* sectorBuffer);
 
 void SndLoad_Teardown(void);
 

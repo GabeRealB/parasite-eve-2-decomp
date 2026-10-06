@@ -1315,7 +1315,7 @@ static void Gp_StartStageLoad(Task* task)
     FsResourceSlot* resourceSlots;
     s32             fileId;
 
-    if (Midi_IsBusy(0) == 0) {
+    if (midiIsSequenceBusy(0) == 0) {
         gDisplayState.suppressDisconnectPause = 1;
         i                                     = 0;
         resourceSlots                         = D_8006C338;
@@ -1351,7 +1351,7 @@ static void Gp_FinishStageLoad(Task* task)
             taskKill(task);
         } else {
             task->spawnArg2.pointer = taskSpawnFromTable(D_aya_20900_80115D9C, 0, 0, 0);
-            SndEvt_EnqueueType1(0x62, 0);
+            sndEvtRequestMidiStart(0x62, 0);
         }
         task->state++;
     }

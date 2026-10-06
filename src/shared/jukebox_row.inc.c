@@ -39,7 +39,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
             if (obj->owner->spawnArg1.value != prompt->currentItemIndex) {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
                 if (obj->owner->status != track->sequenceId) {
-                    SndEvt_EnqueueType2(0, 0x3C);
+                    sndEvtRequestMidiStop(0, 0x3C);
                     obj->owner->state  = mode;
                     obj->owner->status = track->sequenceId;
                     cdCmdDropQueuedTail();

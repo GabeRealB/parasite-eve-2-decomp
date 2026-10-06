@@ -138,7 +138,7 @@ segments:
       - [0x472C, .rodata, ui] # Ui_ObjectStates
       - [0x4744, o, libc2/sprintf, .rdata]
       - [0x4824, o, libspu/sl_sva, .rdata]
-      # jtbl_80014064 (Midi_HandleMetaSysex) + absolute jtbl_800140A4 (SndLoad_ProcessSector
+      # jtbl_80014064 (_midiHandleSystemEvent) + absolute jtbl_800140A4 (SndLoad_ProcessSector
       # still asm) + jtbl_800140C4 (SndLoad_FeedSector), all from 410B0.c.
       - [0x4864, .rodata, "sndevt"]
       # jtbl_800140E8 + stageMusicSelectColumn's columnCounts template and jtbl + StopMatching / TickEnvelope jtbls

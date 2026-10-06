@@ -11292,7 +11292,7 @@ already declared `volatile s16`, read it directly:
 if (gSndVolumeReducedMode == SOUND_VOLUME_MODE_REDUCED) { ... }
 ```
 
-`Midi_IsChannelFree` gets this sequence from the declaration of
+`midiCanSelectSequence` gets this sequence from the declaration of
 `gSndVolumeReducedMode`; an address cast is redundant.
 
 ## Reuse formal parameters for live ranges that span early calls
@@ -11453,7 +11453,7 @@ void init_slots(s32* arg0) {
 }
 ```
 
-`Midi_InitChannelTable` (init of `_MidiSong::channels.entries[16]`) is the pure example.
+`_midiResetChannelTable` (init of `_MidiSong::channels.entries[16]`) is the pure example.
 
 ## Shared `return 0` via switch `break` (not early return)
 
@@ -13976,7 +13976,7 @@ Target often has `beq a0, v0` after `lbu v0, field(ptr)` (loaded value in
 if (arg0 == (&Midi_Song)[i].field_1) {
 ```
 
-`Midi_IsBusy` needed this (99.6% → 100%).
+`midiIsSequenceBusy` needed this (99.6% → 100%).
 
 ## Long-lived step in `$v1`: avoid intermediate field temps
 
@@ -14390,7 +14390,7 @@ Do **not** fix this by early `index &= 0xFF` on an `s32` parameter: that gets th
 equality branch (and the matching reload of `field_1` on the `index == 0` path).
 Keeping `u8` params and moving the table assignment is what preserves both.
 
-`Midi_SetVolumeScale` is the pure example. Pair with the one-iteration
+`_midiSetSequenceVolume` is the pure example. Pair with the one-iteration
 `for (i = 0; i <= 0; i++)` + `_MidiSong` array pattern for `Midi_Song`.
 
 ## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
@@ -15481,7 +15481,7 @@ path that builds a big-endian u32 then adds the base, write
 `offset = offset + (u32)ptr; return (void*)(offset + N);` to get
 `addu v0, v0, a2` (offset first).
 
-`Midi_ResolveTrackData` is the pure example (track data pointer resolve from
+`_midiResolveTrackData` is the pure example (track data pointer resolve from
 `_MidiSong` / `sequenceData`).
 
 ## Force `move aN, s0` for a known-zero live return value
@@ -21315,9 +21315,9 @@ epilogue:
     cleanup();
 ```
 
-`Task_AllocIdMap` is the pure example (`field_1 == 1` → `SndEvt_EnqueueType2` then
+`Task_AllocIdMap` is the pure example (`field_1 == 1` → `sndEvtRequestMidiStop` then
 shared `D_80062734 = 0xFF; taskKill`). Explicit `goto epilogue` on the
-`Midi_IsBusy != 0` path inverted the `field_1` branch to `beq` with the
+`midiIsSequenceBusy != 0` path inverted the `field_1` branch to `beq` with the
 bodies swapped.
 
 ## Force `lui a0` before `lh a1` for global+halfword call args
@@ -49862,7 +49862,7 @@ branch delay slot:
 ```c
 /* $s0, li s0,1 hoisted above the jal */      /* $v1, move v1,zero in the
 sent = 0;                                        delay slot */
-if (Midi_IsBusy(0) == 0) {                    if (Midi_IsBusy(0) == 0) {
+if (midiIsSequenceBusy(0) == 0) {                    if (midiIsSequenceBusy(0) == 0) {
     ...                                           ...
     sent = 1;                                     sent = 1;
 }                                             } else {
@@ -146658,7 +146658,7 @@ spelled through `stream` or `src`.
 copy loop (`stream->offset += base; src = (u8*)stream; dst = ...;`). The move
 then has only the copy loop as a user and keeps its source position.
 
-### Pointer operand behind the offset without a cast: add a constant first (Midi_ResolveTrackData, 2026-09-27)
+### Pointer operand behind the offset without a cast: add a constant first (_midiResolveTrackData, 2026-09-27)
 
 Target `addu v0,v0,a2; addiu v0,v0,0x10` (offset first, pointer `a2` second).
 `p + len + 16` emits `addu v0,a2,v0` (pointer first, 99.714%), and the tree's
@@ -147922,9 +147922,9 @@ base` of a plain element pointer, that no assignment spells. Targets with a
 an inline helper:
 
 ```c
-static inline void Midi_ResetNoteSlot(_MidiNoteSlot* slot) { ...word loop...; slot->channel = FREE; slot->voice = FREE; }
+static inline void _midiResetNoteSlot(_MidiNoteSlot* slot) { ...word loop...; slot->channel = FREE; slot->voice = FREE; }
 for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
-    Midi_ResetNoteSlot(&song->voiceSlots[i]);
+    _midiResetNoteSlot(&song->voiceSlots[i]);
 }
 ```
 

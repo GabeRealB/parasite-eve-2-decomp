@@ -1164,7 +1164,7 @@ void func_actor_335800_80162428(s8 arg0)
 
 void func_actor_335800_80162434(s32 arg0)
 {
-    SndEvt_EnqueueType2(gStageSceneMusicEntry, arg0 & 0xFFFF);
+    sndEvtRequestMidiStop(gStageSceneMusicEntry, arg0 & 0xFFFF);
 }
 
 void func_actor_335800_80162460(void)

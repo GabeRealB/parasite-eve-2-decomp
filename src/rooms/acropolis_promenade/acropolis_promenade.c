@@ -1831,7 +1831,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
         }
         if ((D_acropolis_promenade_80181144 == temp) && (f0 != D_acropolis_promenade_80181144)) {
             D_acropolis_promenade_80181144 = 2;
-            SndEvt_EnqueueType2(0, 0x3C);
+            sndEvtRequestMidiStop(0, 0x3C);
         }
         if ((D_acropolis_promenade_80181144 == 2) && (gGameSession->battleResetPending != 0)) {
             D_acropolis_promenade_80181144 = 0;

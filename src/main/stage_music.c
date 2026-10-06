@@ -152,7 +152,7 @@ static void Task_AllocIdMap(Task* task)
     }
     task->work = selection;
     if (gStageRoomSong != 0) {
-        SndEvt_EnqueueType2(0, 1);
+        sndEvtRequestMidiStop(0, 1);
         gStageRoomSong = 0;
     }
     temp_a0                    = gGameSession->location.loc.stage;
@@ -183,22 +183,22 @@ static void Task_AllocIdMap(Task* task)
     }
     temp_s1 = selection->table[selection->index].sequenceId;
     if (temp_s1 == STAGE_MUSIC_NO_SEQUENCE) {
-        SndEvt_EnqueueType2(gStageCurrentSong, gStageMusicParams.fadeOutTicks);
+        sndEvtRequestMidiStop(gStageCurrentSong, gStageMusicParams.fadeOutTicks);
         gStageMusicLoadState = temp_s1;
         taskKill(task);
         return;
     }
     gStageMusicLoadState = 0;
-    if (Midi_IsChannelFree(selection->table[selection->index].sequenceId) == 1) {
-        if ((gStageCurrentSong != 0) && (Midi_IsBusy(gStageCurrentSong) != 0)) {
-            SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
+    if (midiCanSelectSequence(selection->table[selection->index].sequenceId) == 1) {
+        if ((gStageCurrentSong != 0) && (midiIsSequenceBusy(gStageCurrentSong) != 0)) {
+            sndEvtRequestMidiStop(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
         }
         task->state = task->state + 1;
         return;
     }
     if (selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) {
-        SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
-    } else if (Midi_IsBusy(gStageCurrentSong) == 0) {
+        sndEvtRequestMidiStop(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
+    } else if (midiIsSequenceBusy(gStageCurrentSong) == 0) {
         task->state = task->state + 2;
         return;
     }
@@ -215,7 +215,7 @@ static void Stage_LoadOrCountdownTask(Task* task)
     u8                    flag;
 
     selection = task->work;
-    if (Midi_IsBusy(gStageCurrentSong) == 0) {
+    if (midiIsSequenceBusy(gStageCurrentSong) == 0) {
         param1[3] = 0;
         param1[2] = 4;
         param1[0] = selection->table[selection->index].sequenceId;
@@ -240,7 +240,7 @@ static void Stage_LoadOrCountdownTask(Task* task)
     if (flag == 0xFF) {
         Stage_MusicCountdownFrames = Stage_MusicCountdownFrames - 1;
         if (Stage_MusicCountdownFrames == 0x3C) {
-            SndEvt_EnqueueType2(gStageCurrentSong, 1);
+            sndEvtRequestMidiStop(gStageCurrentSong, 1);
         }
         if (Stage_MusicCountdownFrames <= 0) {
             gStageMusicLoadState = flag;
@@ -265,7 +265,7 @@ static inline void Stage_ApplyEntry(Task* task, _StageMusicSelection* selection,
                 }
             }
         }
-        SndEvt_EnqueueType1(entry->sequenceId, 0);
+        sndEvtRequestMidiStart(entry->sequenceId, 0);
         midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
     }
     gStageMusicLoadState = 0xFF;
@@ -298,7 +298,7 @@ void Stage_RequestFromAreaTable(s32 arg0)
     entry   = Stage_MusicTables[idx];
     if (entry[temp].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
         if (entry[temp].startMode != STAGE_MUSIC_START_NEVER) {
-            SndEvt_EnqueueType1(entry[temp].sequenceId, arg0 & 0xFFFF);
+            sndEvtRequestMidiStart(entry[temp].sequenceId, arg0 & 0xFFFF);
             gStageCurrentSong = entry[temp].sequenceId;
             midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
         }
@@ -319,8 +319,8 @@ void Stage_RequestMidiFromMap(s32 arg0)
     temp    = (gStageMusicRow + product) & 0xFFFF;
     entry   = Stage_MusicTables[idx];
     if (entry[temp].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
-        if (Midi_IsBusy(entry[temp].sequenceId) != 0) {
-            SndEvt_EnqueueType2(entry[temp].sequenceId, (arg0 + 1) & 0xFFFF);
+        if (midiIsSequenceBusy(entry[temp].sequenceId) != 0) {
+            sndEvtRequestMidiStop(entry[temp].sequenceId, (arg0 + 1) & 0xFFFF);
         }
     }
 }

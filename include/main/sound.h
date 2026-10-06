@@ -55,11 +55,42 @@ void sndOutputSetStereo(s32 enabled);
 
 s32 LinInterp_Apply(LinInterp* ramp, s32 arg1);
 
-s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1);
+/// Admission failures shared by MIDI start and stop requests.
+enum {
+    SOUND_EVENT_MIDI_REQUEST_POOL_FULL        = -2,
+    SOUND_EVENT_MIDI_REQUEST_INVALID_SEQUENCE = -3
+};
 
-s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1);
+/// Queues a sequence start with an optional fade-in and returns zero, or an admission failure.
+///
+/// The low byte of `sequenceId` selects an exact loaded id, including zero;
+/// 255 is rejected. Only the low halfword of `fadeTicks` is copied, in audio
+/// updates including extra PAL timer updates. Zero bypasses interpolation;
+/// other values request gain steps of 65535 / fadeTicks, with rounding that
+/// can extend the fade. A zero master gain also bypasses interpolation.
+/// Dispatch starts only an idle, matching song with a valid loaded image.
+/// Acceptance does not guarantee playback. A full pool drops the request;
+/// both arguments are copied and no caller storage is retained.
+s32 sndEvtRequestMidiStart(s32 sequenceId, s32 fadeTicks);
 
-s32 Midi_IsBusy(s32 arg0);
+/// Queues a sequence stop with an optional fade-out and returns zero, or an admission failure.
+///
+/// The low byte of `sequenceSelector` selects a loaded id; zero selects every
+/// sequence and 255 is rejected. `fadeTicks` is truncated to 16 bits and rounded
+/// down to a multiple of four audio updates, including extra PAL timer updates.
+/// A normally playing song fades with gain steps of 65535 / fadeTicks before
+/// stopping; other phases enter stopping immediately. Zero duration or zero
+/// master gain bypasses interpolation. Rounding can extend a nonzero fade.
+/// A selector with no match is ignored at dispatch. A full pool drops the
+/// request; both arguments are copied and no caller storage is retained.
+s32 sndEvtRequestMidiStop(s32 sequenceSelector, s32 fadeTicks);
+
+/// Returns one when a matching sequence is playing, muted, fading in or fading out.
+///
+/// Only the low byte of `sequenceSelector` matters: zero selects every sequence,
+/// and 255 always returns zero. Idle, stopping and unmuting phases return zero.
+/// This query reads the current playback phase; queued commands are not included.
+s32 midiIsSequenceBusy(s32 sequenceSelector);
 
 /// Returns the resident MIDI master gain (0 silent, 127 full).
 ///

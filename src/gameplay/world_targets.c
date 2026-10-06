@@ -1176,7 +1176,7 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
             combat->signals.bytes.enemyAlert            = 0;
             combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
-                SndEvt_EnqueueType2(0, 0xB4);
+                sndEvtRequestMidiStop(0, 0xB4);
             }
         }
         params = ((Enemy*)arg0->spawnArg2.pointer)->param;
@@ -1205,7 +1205,7 @@ void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
             combat->bpReward                            = 0;
             combat->mpReward                            = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
-                SndEvt_EnqueueType2(0, 0xB4);
+                sndEvtRequestMidiStop(0, 0xB4);
             }
         }
     }
@@ -1224,7 +1224,7 @@ void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
             combat->signals.bytes.enemyAlert            = 0;
             combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
-                SndEvt_EnqueueType2(0, 0xB4);
+                sndEvtRequestMidiStop(0, 0xB4);
             }
         }
     }
