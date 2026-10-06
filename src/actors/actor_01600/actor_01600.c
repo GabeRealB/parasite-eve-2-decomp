@@ -3747,14 +3747,15 @@ static void Actor01600_Fn04AD8(Task* arg0)
             work->targetAnchor.coord.t[0] = body->coord.t[0];
             work->targetAnchor.coord.t[2] = body->coord.t[2];
             ctx->coord                    = &work->targetAnchor;
-            goto advance;
+            work->targetAnchorTimer       = 0U;
+            work->targetAnchorPhase       = (u16)work->targetAnchorPhase + 1;
+            break;
         case ACTOR_01600_TARGET_ANCHOR_HOLD:
             count                   = work->targetAnchorTimer + 1;
             work->targetAnchorTimer = count;
             if ((s16)count < 8) {
                 break;
             }
-        advance:
             work->targetAnchorTimer = 0U;
             work->targetAnchorPhase = (u16)work->targetAnchorPhase + 1;
             break;
