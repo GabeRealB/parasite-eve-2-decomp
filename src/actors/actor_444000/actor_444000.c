@@ -4638,14 +4638,14 @@ body:
 
     dmg = sc->damage / 6;
     if (dmg == 0) {
-        dmg = 1;
         if (sc->damage == 0) {
             sc->damage = 0;
-            goto stored;
+        } else {
+            sc->damage = 1;
         }
+    } else {
+        sc->damage = dmg;
     }
-    sc->damage = dmg;
-stored:
     func_800E2C78(host, sc->attackKey, sc->damage, 0);
     host->hp             -= sc->damage;
     work->groups3To5Pool -= sc->damage;
@@ -4669,20 +4669,7 @@ stored:
             ratan2(-task->extra.tmd->coords->workm.m[2][0],
                    task->extra.tmd->coords->workm.m[2][2]);
     sc->contactYaw = angle;
-    if (angle < 0) {
-    wrapUp3:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp3;
-        }
-    } else {
-    wrapDown3:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown3;
-        }
-    }
-    sc->contactYaw = angle;
+    sc->contactYaw = actorWrapAngle(angle);
 
     if (work->animId != 4) {
         work->neckYaw       = 0;
