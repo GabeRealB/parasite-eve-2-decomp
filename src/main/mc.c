@@ -2600,8 +2600,9 @@ static void _mcStateFinishSectionRead(Task* task, McWork* work)
     s32 recordPairBytes;
 
     readResult = work->syncResult;
-    if (readResult < (u32)McErrNotFormat) {
-        if (readResult == McErrNone) {
+    // The compare tree has a case node above McErrNotFormat; which one is not recoverable.
+    switch (readResult) {
+        case McErrNone:
             // The file header is checksummed; other sections restore both resident copies.
             sectionIndex = MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining;
             if (sectionIndex == MEMORY_CARD_FILE_HEADER_SECTION) {
@@ -2613,13 +2614,15 @@ static void _mcStateFinishSectionRead(Task* task, McWork* work)
             }
             work->sectorOffset += Mc_BufferSlots[MEMORY_CARD_BUFFER_SLOT_COUNT - 1 - work->slotsRemaining].cardSectors;
             task->state         = MEMORY_CARD_LOAD_STATE_PREPARE_SECTION;
-        } else {
-            goto invalidateFilename;
-        }
-    } else {
-    invalidateFilename:
-        _mcInvalidateFileNameSuffixes();
-        task->state = MEMORY_CARD_LOAD_STATE_FAILED;
+            break;
+        case McErrCardNotExist:
+        case McErrCardInvalid:
+        case McErrNewCard:
+        case McErrFileNotExist:
+        default:
+            _mcInvalidateFileNameSuffixes();
+            task->state = MEMORY_CARD_LOAD_STATE_FAILED;
+            break;
     }
 
     memFree(work->buffer);
