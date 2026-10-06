@@ -355,38 +355,28 @@ s8                  Snd_BankSlotsByType[] = { 0, 1, 2, 3, 4, 7, 0xC, 0xD, -1, -1
 static u32          D_800680BC            = 0;
 static volatile u32 D_800680C0            = 0;
 
-static void Spu_InitSystem(s32 arg0)
+static inline void Spu_InitSystemLocked(s32 arg0)
 {
     s32* temp_v0;
 
-    D_800680C0 = 0;
-    if (arg0 == 1) {
-        goto wait_spu_transfer;
+    switch (arg0) {
+        case 0:
+            SpuInit();
+            D58028_SpuTimerEnabled = false;
+            D_800680BC             = 0;
+            Spu_ResetCommonAttr();
+            break;
+        case 1:
+            SpuIsTransferCompleted(1);
+            D_800680BC = 0;
+            Spu_ResetCommonAttr();
+            break;
+        case 2:
+            break;
+        default:
+            return;
     }
-    if (arg0 < 2) {
-        if (arg0 == 0) {
-            goto init_spu;
-        }
-        goto end;
-    }
-    if (arg0 == 2) {
-        goto setup_events;
-    }
-    goto end;
 
-init_spu:
-    SpuInit();
-    D58028_SpuTimerEnabled = false;
-    goto unknown;
-
-wait_spu_transfer:
-    SpuIsTransferCompleted(1);
-
-unknown:
-    D_800680BC = 0;
-    Spu_ResetCommonAttr();
-
-setup_events:
     SndHeap_Reset();
     sndEvtReset();
     AsyncCb_Reset();
@@ -423,8 +413,14 @@ setup_events:
     }
     D_800680A4 = 0;
     D_8007E0CC = 0;
+}
 
-end:
+/// Runs the initialisation with the audio frame work held off (`D_800680C0`
+/// is the flag `Audio_IrqFrameWork` tests).
+static void Spu_InitSystem(s32 arg0)
+{
+    D_800680C0 = 0;
+    Spu_InitSystemLocked(arg0);
     D_800680C0 = 1;
 }
 
