@@ -27,7 +27,11 @@ extern SpriteView D_neo_ark_eve_elevator_8017DB20[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_eve_elevator_8017DC30[];
 
-void func_neo_ark_eve_elevator_8017D71C(Task* unused);
+/// Leaves the EVE elevator's room-effect task idle.
+///
+/// Gameplay effect slot 0x150 selects this per-frame callback. It ignores its
+/// task and performs no drawing, state changes or cleanup.
+void neoArkEveElevatorIdleEffectTask(Task* unusedTask);
 
 void func_neo_ark_eve_elevator_8017D6C4(Task* task);
 

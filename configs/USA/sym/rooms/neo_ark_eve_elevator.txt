@@ -25,4 +25,8 @@ D_neo_ark_eve_elevator_8017DC20 = 0x8017DC20; // size:0x8 defined:True
 D_neo_ark_eve_elevator_8017DC28 = 0x8017DC28; // size:0x8 defined:True
 D_neo_ark_eve_elevator_8017DC30 = 0x8017DC30; // size:0x20 defined:True
 
-func_neo_ark_eve_elevator_8017D71C = 0x8017D71C; // type:func
+neoArkEveElevatorIdleEffectTask = 0x8017D71C; // type:func
+_neoArkEveElevatorRejectKeyItemUse = 0x8017d5d0; // type:func
+_neoArkEveElevatorIgnoreRoomCommand = 0x8017d668; // type:func
+_neoArkEveElevatorIgnoreRoomAction = 0x8017d670; // type:func
+_neoArkEveElevatorIdleRoomTask = 0x8017d6bc; // type:func
