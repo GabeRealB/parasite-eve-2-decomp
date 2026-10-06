@@ -653,76 +653,50 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
 static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1)
 {
     s16              temp_a1;
-    s16              temp_v0;
-    s16              temp_v0_2;
-    s32              state;
     Actor403600Work* work;
-    GfxCoord*        var_a0;
 
-    state = gSceneCombatState.actorControl;
-    work  = arg1->work;
-    if (state == 1) {
-        goto case1;
+    work = arg1->work;
+    switch (gSceneCombatState.actorControl) {
+        case 0:
+            if (work->pauseSoundSent != 0) {
+                work->pauseSoundSent = 0;
+                SndEvt_EnqueueType9(SOUND_AREA_BANK_ALL);
+            }
+            break;
+        case 1:
+            func_actor_403600_801412D0(arg0, arg1);
+            if (work->pauseSoundSent == 0) {
+                work->pauseSoundSent = 1;
+                SndEvt_EnqueueType8(SOUND_AREA_BANK_ALL);
+            }
+            return;
+        case 2:
+            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    if (work->pauseSoundSent != 0) {
-        work->pauseSoundSent = 0;
-        SndEvt_EnqueueType9(SOUND_AREA_BANK_ALL);
-    }
-    goto default_body;
-case1:
-    func_actor_403600_801412D0(arg0, arg1);
-    if (work->pauseSoundSent == 0) {
-        work->pauseSoundSent = state;
-        SndEvt_EnqueueType8(SOUND_AREA_BANK_ALL);
-    }
-    return;
-case2:
-    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-    return;
-default_body:
     if (((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) && (work->pauseSoundSent == 0)) {
         work->pauseSoundSent = 1;
         SndEvt_EnqueueType8(SOUND_AREA_BANK_ALL);
     }
     func_actor_403600_801396F8(arg1);
-    temp_v0 = work->mode;
-    if (temp_v0 != ACTOR_403600_MODE_PARKED) {
-        if (temp_v0 < ACTOR_403600_MODE_SCENE_POSE) {
+    if (work->mode != ACTOR_403600_MODE_PARKED) {
+        if (work->mode < ACTOR_403600_MODE_SCENE_POSE) {
             func_actor_403600_8013DC7C(arg1);
             func_actor_403600_8013955C(arg1);
             func_actor_403600_8013D15C(arg1);
         }
     }
     func_actor_403600_801411D4(arg1, 0x14);
-    temp_v0_2 = work->mode;
-    if (temp_v0_2 != ACTOR_403600_MODE_PARKED) {
-        var_a0 = &work->worldCoord;
-        if (temp_v0_2 < ACTOR_403600_MODE_SCENE_POSE) {
+    if (work->mode != ACTOR_403600_MODE_PARKED) {
+        if (work->mode < ACTOR_403600_MODE_SCENE_POSE) {
             func_actor_403600_80141338(arg1);
             func_actor_403600_8014161C(arg1);
             func_actor_403600_80141A34(arg1);
-            goto block_21;
         }
-    } else {
-    block_21:
-        var_a0 = &work->worldCoord;
     }
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(var_a0);
+    actorRenderComposeCoord(&work->worldCoord);
     func_actor_403600_801412D0(arg0, arg1);
     temp_a1 = work->ambientBoost;
     if (temp_a1 != 0) {
