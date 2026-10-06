@@ -1310,7 +1310,6 @@ void Gp_ItemPickupTilt(Task* arg0)
     CapActionRequest* request;
     u32               stageAreaKey;
     s32               room;
-    s32               check;
     u16               item;
 
     extra        = arg0->extra.tmd;
@@ -1332,12 +1331,11 @@ void Gp_ItemPickupTilt(Task* arg0)
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     } else if (stageAreaKey == GAME_LOCATION_KEY(4, 31, 0, 0)) {
-        check = 3;
-        goto compare_room;
+        if (room != 3) {
+            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        }
     } else if (stageAreaKey == GAME_LOCATION_KEY(4, 20, 0, 0)) {
-        check = 0x11;
-    compare_room:
-        if (room != check) {
+        if (room != 0x11) {
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
