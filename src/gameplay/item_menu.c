@@ -949,7 +949,6 @@ void func_800BDF6C(Task* task)
     s32                     width;
     s32                     widthM2;
     s32                     half;
-    InventoryItemRange*     consumeScan;
     LINE_F2*                line;
     UiObject*               obj;
     s16                     panelY;
@@ -1047,7 +1046,7 @@ void func_800BDF6C(Task* task)
                     if (srcLimit < srcAfterMove) {
                         split->containerQty = srcLimit;
                         split->carriedQty   = split->carriedQty + (srcAfterMove - srcLimit);
-                        goto step_at_capacity;
+                        task->status        = 2U;
                     }
                 } else if (equipped > 0) {
                     task->status = (u8)status;
@@ -1074,8 +1073,7 @@ void func_800BDF6C(Task* task)
                 if (dstLimit < destAfterClamp) {
                     split->carriedQty   = dstLimit;
                     split->containerQty = split->containerQty + (destAfterClamp - dstLimit);
-                step_at_capacity:
-                    task->status = 2U;
+                    task->status        = 2U;
                 }
             }
         }
@@ -1119,32 +1117,21 @@ void func_800BDF6C(Task* task)
             if (transferQty > 0) {
                 sourceScan = &Gp_MoveScanSrc;
                 Gp_GiveItem(sourceScan, task->spawnArg1.value, transferQty);
-                consumeScan = sourceScan + 1;
-                goto consume_transfer;
-            }
-            result = USER_INTERFACE_RESULT_DISMISS;
-            if (transferQty < 0) {
+                Gp_ConsumeScanQty(sourceScan + 1, task->spawnArg1.value, transferQty);
+            } else if (transferQty < 0) {
                 transferQty = -transferQty;
                 dstScan     = &Gp_MoveScanDst;
                 Gp_GiveItem(dstScan, task->spawnArg1.value, transferQty);
-                consumeScan = dstScan - 1;
-            consume_transfer:
-                Gp_ConsumeScanQty(consumeScan, task->spawnArg1.value, transferQty);
-                result = USER_INTERFACE_RESULT_DISMISS;
+                Gp_ConsumeScanQty(dstScan - 1, task->spawnArg1.value, transferQty);
             }
-            goto set_result;
-        }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+            obj->result = USER_INTERFACE_RESULT_DISMISS;
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            result                  = USER_INTERFACE_RESULT_CANCEL;
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            goto set_result;
-        }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+            obj->result             = USER_INTERFACE_RESULT_CANCEL;
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            result = USER_INTERFACE_RESULT_DISMISS;
-        set_result:
-            obj->result = result;
+            obj->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
     destQty = split->carriedQty;
