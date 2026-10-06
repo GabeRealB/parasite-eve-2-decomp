@@ -540,38 +540,61 @@ RoomEventReq gRoomEventReq;
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
-void func_shelter_b1_armory_801807E4(Task* unused)
+/// Draws the red or green lock indicator at its corresponding world point.
+///
+/// The outer pixel radius is `radiusScale * 64 / (camera Z / 4 + 1)`.
+/// Requires the same current-view and frame drawing context as the task.
+static inline void _shelterB1ArmoryDrawLockGlow(s32 radiusScale)
 {
-    u8 view;
+    // RGB nibbles with a 32-level brightening on odd animation frames.
+    enum {
+        SHELTER_B1_ARMORY_UNLOCKED_GLOW_COLOR = 0x50C0,
+        SHELTER_B1_ARMORY_LOCKED_GLOW_COLOR   = 0x5C00,
+    };
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
+        _glowDrawTintedDisc(D_shelter_b1_armory_80182570, radiusScale, SHELTER_B1_ARMORY_UNLOCKED_GLOW_COLOR);
+    } else {
+        _glowDrawTintedDisc(D_shelter_b1_armory_80182578, radiusScale, SHELTER_B1_ARMORY_LOCKED_GLOW_COLOR);
+    }
+}
+
+void shelterB1ArmoryDrawGlowsTask(Task* unusedTask)
+{
+    enum {
+        // Pixel radius is the scale * 64 / (camera Z / 4), biased by one for lock glows.
+        SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE       = 0x200,
+        SHELTER_B1_ARMORY_CYAN_DISC_RADIUS_SCALE  = 0x300,
+        SHELTER_B1_ARMORY_VIEW3_LOCK_RADIUS_SCALE = 0x100,
+        SHELTER_B1_ARMORY_VIEW9_LOCK_RADIUS_SCALE = 0x60,
+        // Red-byte and green/blue-bit factors multiplying the 32/40 frame intensity.
+        SHELTER_B1_ARMORY_GREEN_BEAM_COLOR = 0x10,
+        SHELTER_B1_ARMORY_WHITE_BEAM_COLOR = 0x111,
+        SHELTER_B1_ARMORY_CYAN_DISC_COLOR  = 0x11,
+    };
+    u8 mappedViewIndex;
+
+    // Draw only the glows selected for this mapped camera view.
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[0], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[2], 0x200, 0x800, 0x111);
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[4], 0x200, 0x800, 0x111);
+            _glowDrawBeam(&D_shelter_b1_armory_80182528[0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, 0, SHELTER_B1_ARMORY_GREEN_BEAM_COLOR);
+            _glowDrawBeam(&D_shelter_b1_armory_80182528[2], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
+            _glowDrawBeam(&D_shelter_b1_armory_80182528[4], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
             break;
         case 3:
-            _glowDrawBeam(&D_shelter_b1_armory_80182558[0], 0x200, 0, 0x111);
-            _glowDrawBitDisc(&D_shelter_b1_armory_80182558[2], 0x300, 0x11);
-            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(&D_shelter_b1_armory_80182558[3], 0x100, 0x50C0);
-            } else {
-                _glowDrawTintedDisc(&D_shelter_b1_armory_80182558[4], 0x100, 0x5C00);
-            }
+            _glowDrawBeam(&D_shelter_b1_armory_80182558[0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, 0, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
+            _glowDrawBitDisc(&D_shelter_b1_armory_80182558[2], SHELTER_B1_ARMORY_CYAN_DISC_RADIUS_SCALE, SHELTER_B1_ARMORY_CYAN_DISC_COLOR);
+            _shelterB1ArmoryDrawLockGlow(SHELTER_B1_ARMORY_VIEW3_LOCK_RADIUS_SCALE);
             break;
         case 8:
-            _glowDrawBeam(D_shelter_b1_armory_80182538, 0x200, 0x800, 0x111);
+            _glowDrawBeam(D_shelter_b1_armory_80182538, SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
             break;
         case 9:
-            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(D_shelter_b1_armory_80182570, 0x60, 0x50C0);
-            } else {
-                _glowDrawTintedDisc(D_shelter_b1_armory_80182578, 0x60, 0x5C00);
-            }
+            _shelterB1ArmoryDrawLockGlow(SHELTER_B1_ARMORY_VIEW9_LOCK_RADIUS_SCALE);
             break;
         case 13:
-            _glowDrawBitDisc(D_shelter_b1_armory_80182568, 0x300, 0x11);
+            _glowDrawBitDisc(D_shelter_b1_armory_80182568, SHELTER_B1_ARMORY_CYAN_DISC_RADIUS_SCALE, SHELTER_B1_ARMORY_CYAN_DISC_COLOR);
             break;
     }
 }

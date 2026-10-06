@@ -39,6 +39,13 @@ extern WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[];
 
 void func_shelter_b1_armory_8018078C(Task* task);
 
-void func_shelter_b1_armory_801807E4(Task* unused);
+/// Draws the armory's view-dependent beams and glows for the current frame.
+///
+/// The lock indicator is green when the armory is unlocked and red otherwise.
+/// The task argument is unused; no task state or spawn arguments are read.
+/// Requires this room overlay to be loaded, a valid current view mapping and
+/// composed view matrices, plus an initialized scratch stack and enough space
+/// in the current frame's GPU packet arena and depth ordering table.
+void shelterB1ArmoryDrawGlowsTask(Task* unusedTask);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_ARMORY_H

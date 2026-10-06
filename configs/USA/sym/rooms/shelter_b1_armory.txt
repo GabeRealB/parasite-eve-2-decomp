@@ -147,7 +147,7 @@ gRoomEventTaskDesc = 0x801824DC; // size:0xC defined:True
 D_shelter_b1_armory_801824E8 = 0x801824E8; // size:0x18 defined:True
 D_shelter_b1_armory_80182500 = 0x80182500; // size:0x28 defined:True
 
-func_shelter_b1_armory_801807E4 = 0x801807E4; // type:func
+shelterB1ArmoryDrawGlowsTask = 0x801807E4; // type:func
 Shop_SelectStock = 0x8017D768; // type:func
 Shop_ItemRow = 0x8017DDD8; // type:func
 Shop_AddItem = 0x8017E264; // type:func
