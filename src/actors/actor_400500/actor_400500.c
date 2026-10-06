@@ -2479,7 +2479,12 @@ static void func_actor_400500_80133B14(Task* arg0)
     u8                           end0;
     u8                           start1;
     u8                           end1;
-    s32                          start0;
+    /* The first window starts at frame 0. `start0` is a `u8` bound like the
+     * other three, set before them; it is widened once into `first`, which
+     * both of its tests read. The image shows a register zeroed between the
+     * frame load and the first test; why the copy sits there is unknown. */
+    u8  start0;
+    s32 first;
 
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -2487,6 +2492,7 @@ static void func_actor_400500_80133B14(Task* arg0)
         _actor400500SetAnim(arg0, 2, work->animRate);
         _actor400500TickAnim(arg0);
     }
+    start0 = 0;
     if (((_Actor400500GrayStalkerWork*)arg0->work)->animRate == 0) {
         tmp0 = 0;
     } else {
@@ -2508,10 +2514,8 @@ static void func_actor_400500_80133B14(Task* arg0)
     if (_actor400500HitFlagged(arg0)) {
         work->animFrames = 0;
     }
-    /* The first window starts at frame 0, which the original compares against
-     * in a register; a literal 0 is folded into `$zero`. */
-    SOFT_MOVE_ZERO(start0);
-    if (work->animFrames == start0) {
+    first = start0;
+    if (work->animFrames == first) {
         _actor400500SampleView(arg0, 0xB, &work->anchorPos);
         _actor400500PlaySound(arg0, 0x40050001);
     }
@@ -2519,7 +2523,7 @@ static void func_actor_400500_80133B14(Task* arg0)
         _actor400500SampleView(arg0, 8, &work->anchorPos);
         _actor400500PlaySound(arg0, 0x40050002);
     }
-    if (work->animFrames >= start0 && work->animFrames <= end0) {
+    if (work->animFrames >= first && work->animFrames <= end0) {
         _actor400500AnchorPart(arg0, 0xB, &work->anchorPos);
     }
     if (work->animFrames >= start1 && work->animFrames <= end1) {
