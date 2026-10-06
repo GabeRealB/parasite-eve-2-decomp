@@ -2337,7 +2337,6 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
     SndBankLayer* bankLayer;
     s32           base;
     void*         temp;
-    s32           end;
 
     bank = load->bank;
     if (D_800689E8 != 0 || (index = bank->bankId) == SOUND_BANK_ID_FREE) {
@@ -2353,16 +2352,11 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
     song->sequenceData  = temp;
     song->waveBytes     = load->payload.header.waveBytes;
     i                   = load->payload.header.layerCount;
-    base                = ((volatile SndBank*)bank)->spuAddr;
-    bankLayer           = ((volatile SndBank*)bank)->layers;
-    i                   = i - 1;
-    if (i != -1) {
-        end = -1;
-        do {
-            i                   -= 1;
-            bankLayer->waveAddr += base;
-            bankLayer++;
-        } while (i != end);
+    base                = bank->spuAddr;
+    bankLayer           = bank->layers;
+    for (i--; i != -1; i--) {
+        bankLayer->waveAddr += base;
+        bankLayer++;
     }
     Snd_BuildGroupIndex(song->bank);
     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
