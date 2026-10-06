@@ -5101,6 +5101,23 @@ static void func_actor_403200_8013C84C(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x3C);
 }
 
+/// Whether one of the leading `count` contact records, up to the first empty
+/// one, is of kind 0x10000 (the player's body).
+static inline s32 _gluttonHasPlayerContact(WorldCollisionContact* records, s16 count)
+{
+    s16 i;
+
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /// State-change reset for the enemy's stand-up, plus the swipe tick that runs
 /// on every step afterwards. The reset half is `func_actor_403200_8013B23C`'s
 /// with the buffer allocator on the second walk in place of the release: it
@@ -5136,30 +5153,27 @@ static void func_actor_403200_8013C84C(Task* arg0)
 /// `sll`/`sra` re-extension pair the original does not have.
 static void func_actor_403200_8013D028(Task* arg0)
 {
-    GluttonWork*           work;
-    GluttonWork*           escorts;
-    GluttonWork*           dying;
-    WorldCollisionContact* recs;
-    Enemy*                 enemy;
-    Task*                  task;
-    Task*                  target;
-    s16                    i;
-    s16                    j;
-    s16                    k;
-    s16                    frame;
-    s16                    frame2;
-    s16                    reply;
-    s32                    found;
-    s32                    resetId;
-    s32                    resetPan;
-    s32                    swipeId;
-    s32                    swipePan;
-    s32                    swipe2Id;
-    s32                    swipe2Pan;
-    s32                    hitId;
-    s32                    hitPan;
-    s32                    cueId;
-    s32                    cuePan;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* dying;
+    Enemy*       enemy;
+    Task*        task;
+    Task*        target;
+    s16          i;
+    s16          j;
+    s16          frame;
+    s16          frame2;
+    s16          reply;
+    s32          resetId;
+    s32          resetPan;
+    s32          swipeId;
+    s32          swipePan;
+    s32          swipe2Id;
+    s32          swipe2Pan;
+    s32          hitId;
+    s32          hitPan;
+    s32          cueId;
+    s32          cuePan;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -5288,20 +5302,7 @@ static void func_actor_403200_8013D028(Task* arg0)
 
     gluttonTickAnim(arg0);
 
-    recs = work->swipeContacts;
-    for (k = 0; k < ARRAY_SIZE(work->swipeContacts); k++) {
-        if (recs[k].key.value == 0) {
-            goto missed;
-        }
-        if ((recs[k].key.value & 0xFFFF0000) == 0x10000) {
-            found = 1;
-            goto scanned;
-        }
-    }
-missed:
-    found = 0;
-scanned:
-    if (found != 0 && enemy->hp > 0 &&
+    if (_gluttonHasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) != 0 && enemy->hp > 0 &&
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0) {
         target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         reply                  = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
