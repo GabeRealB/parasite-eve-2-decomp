@@ -3454,7 +3454,8 @@ void dryfieldNightMotelBalconyDebrisTask(Task* task)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
 
     // Probe and draw the composed starting position; local movement dirties the next cache.
@@ -3577,7 +3578,6 @@ void dryfieldNightMotelBalconyDebrisTask(Task* task)
                 fadeRgb[0] = fadeRgb[1] = fadeRgb[2] = (DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_LIFETIME - work->age) * DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_FADE_STEP;
                 _dryfieldNightMotelBalconyDrawDebris(task, fadeRgb, task->spawnArg1.value);
             } else {
-            release:
                 effectKillTask(work, task);
             }
             break;
