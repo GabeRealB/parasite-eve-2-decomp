@@ -1059,8 +1059,14 @@ void shelterB2OperatingRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Selects this room's glow-disc, flying-spark and orange-burst implementations.
-static __inline__ void _shelterB2OperatingRoomInitGlowEffects(void)
+/// Binds this room's charge-disc, flying-spark and projectile-burst effect IDs.
+///
+/// Installs bank-6 task IDs in `gRoomEffectGlowDiscId`,
+/// `gRoomEffectFlyingSparkId` and `gRoomEffectOrangeBurst2Id` for the fireball
+/// attack. Call during room setup before spawning these effects. The bindings
+/// persist until replaced or cleared by the room-effect controller;
+/// keep this room overlay loaded while the selected effect tasks can run.
+static __inline__ void _shelterB2OperatingRoomBindFireballEffects(void)
 {
     gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_OPERATING_ROOM_GLOW_DISC;
     gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_OPERATING_ROOM_FLYING_SPARK;
@@ -1082,7 +1088,7 @@ void shelterB2OperatingRoomDrawGlowsTask(Task* task)
     };
 
     if (task->state == SHELTER_B2_OPERATING_ROOM_GLOW_INITIALIZE) {
-        _shelterB2OperatingRoomInitGlowEffects();
+        _shelterB2OperatingRoomBindFireballEffects();
         task->state = SHELTER_B2_OPERATING_ROOM_GLOW_DRAW;
     }
 
