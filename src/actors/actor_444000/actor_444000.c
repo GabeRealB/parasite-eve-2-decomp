@@ -5376,6 +5376,23 @@ static void func_actor_444000_8013EC84(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor444000CatchScratch);
 }
 
+/// Whether any of the leading `count` contact records is a kind 0x10000
+/// (player) contact, stopping at the first empty record.
+static inline s32 _actor444000HasPlayerContact(WorldCollisionContact* records, s16 count)
+{
+    s16 i;
+
+    for (i = 0; i < count; i++) {
+        if (records[i].key.value == 0) {
+            break;
+        }
+        if ((records[i].key.value & 0xFFFF0000) == 0x10000) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /// Tick of the arena fight that runs the boss' two swipes and keeps the player
 /// pinned in the scripted animation.
 ///
@@ -5407,34 +5424,31 @@ static void func_actor_444000_8013EC84(Task* arg0)
 /// cancels the animation with message 0x3F1 and drops the hold.
 static void func_actor_444000_8013FB74(Task* arg0)
 {
-    GluttonWork*           work;
-    GluttonWork*           escorts;
-    GluttonWork*           buffers;
-    Enemy*                 enemy;
-    Task*                  player;
-    Task*                  target;
-    TmdObject*             tmd;
-    TmdObject*             escortTmd;
-    GfxCoord*              coord;
-    WorldCollisionContact* recs;
-    s16                    i;
-    s16                    j;
-    s16                    k;
-    s16                    mode;
-    s32                    found;
-    s32                    frame;
-    s32                    frame2;
-    s32                    resetId;
-    s32                    resetPan;
-    s32                    swipeId;
-    s32                    swipePan;
-    s32                    swipe2Id;
-    s32                    swipe2Pan;
-    s32                    hitId;
-    s32                    hitPan;
-    s32                    cueId;
-    s32                    cuePan;
-    u16                    count;
+    GluttonWork* work;
+    GluttonWork* escorts;
+    GluttonWork* buffers;
+    Enemy*       enemy;
+    Task*        player;
+    Task*        target;
+    TmdObject*   tmd;
+    TmdObject*   escortTmd;
+    GfxCoord*    coord;
+    s16          i;
+    s16          j;
+    s16          mode;
+    s32          frame;
+    s32          frame2;
+    s32          resetId;
+    s32          resetPan;
+    s32          swipeId;
+    s32          swipePan;
+    s32          swipe2Id;
+    s32          swipe2Pan;
+    s32          hitId;
+    s32          hitPan;
+    s32          cueId;
+    s32          cuePan;
+    u16          count;
 
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
@@ -5564,20 +5578,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
 
     gluttonTickAnim(arg0);
 
-    recs = work->swipeContacts;
-    for (k = 0; k < ARRAY_SIZE(work->swipeContacts); k++) {
-        if (recs[k].key.value == 0) {
-            goto missed;
-        }
-        if ((recs[k].key.value & 0xFFFF0000) == 0x10000) {
-            found = 1;
-            goto scanned;
-        }
-    }
-missed:
-    found = 0;
-scanned:
-    if (found != 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
+    if (_actor444000HasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
         target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         work->swipeDamageReply = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_PackObjPair(enemy, 4), 0);
         if (work->swipeDamageReply == 1) {
