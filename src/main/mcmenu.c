@@ -408,23 +408,18 @@ static void _mcMenuUpdatePromptChoices(Task* owningTask)
 
     promptMode   = owningTask->spawnArg1.value;
     promptObject = owningTask->spawnArg2.pointer;
-    if (promptMode == MEMORY_CARD_MENU_PROMPT_CANCEL) {
-        goto cancelChoices;
+    switch (promptMode) {
+        case MEMORY_CARD_MENU_PROMPT_OK:
+            choiceList = &Mc_OkList;
+            break;
+        case MEMORY_CARD_MENU_PROMPT_CANCEL:
+            choiceList = &Mc_YesList;
+            break;
+        case MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO:
+        default:
+            choiceList = &Mc_YesNoList;
+            break;
     }
-    if (promptMode >= MEMORY_CARD_MENU_PROMPT_YES_NO_INITIAL_NO) {
-        goto yesNoChoices;
-    }
-    if (promptMode != MEMORY_CARD_MENU_PROMPT_OK) {
-        goto yesNoChoices;
-    }
-    choiceList = &Mc_OkList;
-    goto choicesSelected;
-cancelChoices:
-    choiceList = &Mc_YesList;
-    goto choicesSelected;
-yesNoChoices:
-    choiceList = &Mc_YesNoList;
-choicesSelected:
     if (owningTask->state == MEMORY_CARD_MENU_PROMPT_INITIAL) {
         // Override the saved cursor preference only after fitting the viewport.
         _mcMenuInitPromptChoices(owningTask, &promptObject->panel, choiceList);
