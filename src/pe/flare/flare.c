@@ -31,6 +31,24 @@
 #include "main/tmd_types.h"
 #include "../../shared/sprite_quad.h"
 
+/// Copies the nine rotation coefficients without changing the spark's translation.
+///
+/// Both matrices must be live and word-aligned. Four word accesses and one
+/// halfword access cover 18 bytes, leaving the alignment halfword untouched.
+static inline void _flareCopySparkRotation(MATRIX* sparkMatrix, const MATRIX* playerMatrix)
+{
+    GfxRotationWords*       sparkRotation;
+    const GfxRotationWords* playerRotation;
+
+    sparkRotation         = (GfxRotationWords*)sparkMatrix;
+    playerRotation        = (const GfxRotationWords*)playerMatrix;
+    sparkRotation->m00M01 = playerRotation->m00M01;
+    sparkRotation->m02M10 = playerRotation->m02M10;
+    sparkRotation->m11M12 = playerRotation->m11M12;
+    sparkRotation->m20M21 = playerRotation->m20M21;
+    sparkRotation->m22    = playerRotation->m22;
+}
+
 /// This overlay's id, the `u16` every package opens with.
 
 /// PROVISIONAL: written before `Task` was processed, so the statements
@@ -85,67 +103,65 @@ void flareEffectTask(Task* arg0)
     }
 }
 
-/// PROVISIONAL: written before `Task` was processed, so the statements
-/// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
-/// Flies one spark away from the player and draws it.
-///
-/// On the first frame it starts from the player's position, picks a random
-/// heading and pitch, and turns those into a velocity in the player's frame of
-/// reference. Every frame after that it advances by that velocity and draws the
-/// next sprite frame, stepping the frame on every second tick. Releases once
-/// all eight frames have been drawn.
-void flareSparkTask(Task* arg0)
+void flareSparkTask(Task* task)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    GfxCoord*         player;
-    GfxRotationWords* destinationRotation;
-    GfxRotationWords* sourceRotation;
-    u32               rng;
-    s32               temp_lo;
+    enum {
+        FLARE_SPARK_STATE_INITIALIZE    = 0,
+        FLARE_SPARK_STATE_FLYING        = 1,
+        FLARE_SPARK_SIZE_MASK           = 0xFFF,
+        FLARE_SPARK_ANGLE_TURN          = 0x1000,
+        FLARE_SPARK_SIZE_TO_SPEED_SHIFT = 5,
+        FLARE_SPARK_TRIG_FRACTION_BITS  = 12,
+        FLARE_SPARK_FORWARD_SPEED       = 0x100,
+        FLARE_SPARK_TEXTURE_FRAME_COUNT = 8
+    };
+    EffectWork*     work;
+    GfxCoord*       sparkCoord;
+    const GfxCoord* playerCoord;
+    u32             directionRng;
+    s32             verticalProduct;
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    if (arg0->state == 0) {
-        player                      = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-        destinationRotation         = (GfxRotationWords*)&coord->coord;
-        sourceRotation              = (GfxRotationWords*)&player->coord;
-        destinationRotation->m00M01 = sourceRotation->m00M01;
-        destinationRotation->m02M10 = sourceRotation->m02M10;
-        destinationRotation->m11M12 = sourceRotation->m11M12;
-        destinationRotation->m20M21 = sourceRotation->m20M21;
-        destinationRotation->m22    = sourceRotation->m22;
-        coord->composeStamp         = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->period     = arg0->spawnArg1.value & 0xFFF;
-        mem->scale      = (rng >> 16) & 0xFFF;
-        gRandomLcgState = rng;
-        mem->angle      = mem->period >> 5;
-        mem->move.vx    = (rsin(mem->scale) * mem->angle) >> 12;
-        temp_lo         = rcos(mem->scale) * mem->angle;
-        mem->move.vz    = 0x100;
-        mem->move.vy    = temp_lo >> 12;
-        gte_SetRotMatrix(&player->coord);
-        gte_ldv0(&mem->move);
+    work       = task->spawnArg2.pointer;
+    sparkCoord = task->extra.coordBody->coord;
+    work->age  = work->age + 1;
+    if (task->state == FLARE_SPARK_STATE_INITIALIZE) {
+        // Keep the spawn translation and orient the spark in the player's local frame.
+        playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+        _flareCopySparkRotation(&sparkCoord->coord, &playerCoord->coord);
+        sparkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(sparkCoord);
+
+        // Reuse the effect parameters for sprite size, bearing and transverse speed.
+        directionRng    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->period    = task->spawnArg1.value & FLARE_SPARK_SIZE_MASK;
+        work->scale     = (directionRng >> 16) & (FLARE_SPARK_ANGLE_TURN - 1);
+        gRandomLcgState = directionRng;
+        work->angle     = work->period >> FLARE_SPARK_SIZE_TO_SPEED_SHIFT;
+        work->move.vx   = (rsin(work->scale) * work->angle) >> FLARE_SPARK_TRIG_FRACTION_BITS;
+        verticalProduct = rcos(work->scale) * work->angle;
+        work->move.vz   = FLARE_SPARK_FORWARD_SPEED;
+        work->move.vy   = verticalProduct >> FLARE_SPARK_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&playerCoord->coord);
+        gte_ldv0(&work->move);
         gte_rtv0();
-        gte_stsv(&mem->move);
-        arg0->state = 1;
+        gte_stsv(&work->move);
+        task->state = FLARE_SPARK_STATE_FLYING;
     }
-    coord->coord.t[0]  += mem->move.vx;
-    coord->coord.t[1]  += mem->move.vy;
-    coord->coord.t[2]  += mem->move.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    if (!(mem->age & 1)) {
-        mem->index = mem->index + 1;
+
+    // Move even on initialization; refresh the cached translation before drawing.
+    sparkCoord->coord.t[0]  += work->move.vx;
+    sparkCoord->coord.t[1]  += work->move.vy;
+    sparkCoord->coord.t[2]  += work->move.vz;
+    sparkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(sparkCoord);
+    if (!(work->age & 1)) {
+        work->index = work->index + 1;
     }
-    if (mem->index < 8) {
-        spriteQuadDraw(coord, mem->index, mem->period, mem->scale);
+    if (work->index < FLARE_SPARK_TEXTURE_FRAME_COUNT) {
+        spriteQuadDraw(sparkCoord, work->index, work->period, work->scale);
         return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 /// Spark palette: VRAM X=272 words, Y=268 scanlines.

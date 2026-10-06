@@ -5829,7 +5829,7 @@ ang         = ang & 0xFFF;
 ```
 
 This is a CFG fence, not a wrapper around `TOUCH_REG` / `SCHED_BARRIER`.
-`func_flare_8012F0B8` is the example.
+`flareSparkTask` is the example.
 
 ## `SCHED_BARRIER` then `TOUCH_REG` on first-call `$a0`/`$a3` copies
 
