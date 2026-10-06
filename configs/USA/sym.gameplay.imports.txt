@@ -1205,19 +1205,19 @@ shelterB2SepticTankRoomVisualEffectsTwinTrailTask = 0x80181644; // type:func abs
 
 func_shelter_b2_septic_tank_80181F2C = 0x80181F2C; // type:func absolute:True owner=shelter_b2_septic_tank
 
-func_shelter_b2_south_maintenance_walkway_8017DCC4 = 0x8017DCC4; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
+shelterB2SouthMaintenanceWalkwayDrawGlowsTask = 0x8017DCC4; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
 
-func_shelter_b2_south_maintenance_walkway_8017E99C = 0x8017E99C; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
+shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x8017E99C; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
 
-func_shelter_b2_south_maintenance_walkway_8017F400 = 0x8017F400; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
+shelterB2SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x8017F400; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
 
 func_shelter_b2_south_maintenance_walkway_8017FCE8 = 0x8017FCE8; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 
 func_shelter_b2_south_maintenance_walkway_80180930 = 0x80180930; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
 
-func_shelter_b2_south_maintenance_walkway_80180E88 = 0x80180E88; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
+shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask = 0x80180E88; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
 
-func_shelter_b2_south_maintenance_walkway_80181AE8 = 0x80181AE8; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
+shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask = 0x80181AE8; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway
 
 func_shelter_b3_dumping_hole_80183F84 = 0x80183F84; // type:func absolute:True owner=shelter_b3_dumping_hole
 
