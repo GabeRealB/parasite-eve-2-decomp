@@ -332,52 +332,48 @@ void Gp_DrawHudSprites(HudState* hud)
     node  = gWorldTargetListHead;
     block = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
     mode  = func_800B9D80(0x400);
-    if (node != NULL) {
-        do {
-            if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
-                block->position.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
-                block->position.vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
-                block->position.vy = 0;
-                if (mode == 0) {
-                    gte_lddp(0x1555);
-                    gte_ldsv(&block->position);
-                    gte_gpf12();
-                    gte_stsv(&block->position);
-                } else {
-                    gte_lddp(0xAAA);
-                    gte_ldsv(&block->position);
-                    gte_gpf12();
-                    gte_stsv(&block->position);
-                }
-                if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
-                    goto next;
-                }
-                vx = block->position.vx;
-                if (vx < -0x1300 || vx > 0x1300) {
-                    goto next;
-                }
-                vz = block->position.vz;
-                if (vz > 0x1300) {
-                    goto next;
-                }
-                if (vz < -0x1300) {
-                    goto next;
-                }
-                if (vx * vx + vz * vz > 0x168FFFF) {
-                    goto next;
-                }
-                block->position.vx = (s16)(vx + 0x80) >> 8;
-                vz                 = (s16)(block->position.vz + 0x80) >> 8;
-                block->position.vz = vz;
-                if (node->state.parts.targeted != 0) {
-                    func_800A63B4(cx + block->position.vx, cy - vz, 2);
-                } else {
-                    func_800A63B4(cx + block->position.vx, cy - vz, 1);
-                }
+    for (; node != NULL; node = node->next) {
+        if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
+            block->position.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
+            block->position.vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
+            block->position.vy = 0;
+            if (mode == 0) {
+                gte_lddp(0x1555);
+                gte_ldsv(&block->position);
+                gte_gpf12();
+                gte_stsv(&block->position);
+            } else {
+                gte_lddp(0xAAA);
+                gte_ldsv(&block->position);
+                gte_gpf12();
+                gte_stsv(&block->position);
             }
-        next:
-            node = node->next;
-        } while (node != NULL);
+            if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
+                continue;
+            }
+            vx = block->position.vx;
+            if (vx < -0x1300 || vx > 0x1300) {
+                continue;
+            }
+            vz = block->position.vz;
+            if (vz > 0x1300) {
+                continue;
+            }
+            if (vz < -0x1300) {
+                continue;
+            }
+            if (vx * vx + vz * vz > 0x168FFFF) {
+                continue;
+            }
+            block->position.vx = (s16)(vx + 0x80) >> 8;
+            vz                 = (s16)(block->position.vz + 0x80) >> 8;
+            block->position.vz = vz;
+            if (node->state.parts.targeted != 0) {
+                func_800A63B4(cx + block->position.vx, cy - vz, 2);
+            } else {
+                func_800A63B4(cx + block->position.vx, cy - vz, 1);
+            }
+        }
     }
     range = hud->radarRange;
     if (mode == 0) {
