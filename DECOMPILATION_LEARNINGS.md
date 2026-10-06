@@ -1659,7 +1659,7 @@ They reach it differently because the original wrote the helper as a function.
 GCC 2.8.1 inlining materialises each parameter as its own pseudo initialised
 from the argument, and the `range` pseudo is still a register when combine
 runs, so the `GT` cannot absorb it; `-range` is negated into a fresh constant
-that folds into `slti` as usual. Calling the existing `Actor00400_TurnToward`
+that folds into `slti` as usual. Calling the existing `_actor00400TurnTowardPoint`
 inline with `(0x2C, 0x100)` instead of expanding it matched exactly.
 
 Passing the point as an argument fixes a second thing at the same time. The
@@ -3874,14 +3874,14 @@ The symptom is small - the object is short two instructions (`lw`/`nop`) and the
 block addresses shift, so `branch` is non-zero - and it reads like an allocation
 problem: the m2c seed also puts the work pointer in `$v0` where the target has
 `$v1`, and writing the tests singly fixes that too, for free.
-`Actor00400_Fn08908` scored 79.6% with both reads narrow (`base.c`) and 100% on
+`_actor00400ClipEnded` scored 79.6% with both reads narrow (`base.c`) and 100% on
 the member split (`base_1.c`, preprocessed
 `01e987369b28842bf141cdbadec42d1ac945647af4b36a4c14cdc356d0310c37`). That
 split was a union laying a `u32 word` view over the flags and the unrelated
 halfword after them; the three-test form on the plain field has since replaced
 it at all 18 sites of the file, and at the Sea Diver's three. Seventeen of
 those and the Sea Diver's three now make the test through the Diver library's
-inlined `diverClipEnded`; `Actor00400_Fn08908` is the eighteenth, the same test
+inlined `diverClipEnded`; `_actor00400ClipEnded` is the eighteenth, the same test
 compiled out of line.
 
 The idiom is common here: `actors_shared_8013a0b0.c` and
@@ -90957,7 +90957,7 @@ store. Holding the read in a local (`s32 state = work->hitTaken;`, then
 `lhu` re-read.
 
 The surrounding `v0 = 0; ...; v0 = 1; bnez v0` came from an inline helper
-returning `s32` (the same shape as the sibling `Actor00400_Fn02154` call, but
+returning `s32` (the same shape as the sibling `_actor00400ApplyHitReaction` call, but
 without the `<< 16`). The helper takes `work` rather than `index` because the
 target does not reload `field_1C`. The last register swap (`work` in `a0`
 instead of `v1`) went away when the later `index->field_1C` reload was assigned
@@ -91055,18 +91055,18 @@ parameter used in plain arithmetic *does* fold in the same function, because
 idiom and call it with the constants, rather than open-coding the comparison.
 
 ```c
-static inline void Actor00400_TurnToward(Actor100400* arg0, SVECTOR* target, s32 step, s32 range)
+static inline void _actor00400TurnTowardPoint(Task* task, SVECTOR* target, s32 yawStep, s32 deadband)
 {
     ...
-    diff = ((angle - yaw) << 20) >> 20;
-    if (diff > range) {
-        work->rotation.vy = angle - step;   /* step folds: addiu $v0,$a0,-0x10 */
-    } else if (diff < -range) {           /* range does not: li $v1,0x20; slt */
-        work->rotation.vy = angle + step;
+    yawDifference = ((currentYaw - targetYaw) << 20) >> 20;
+    if (yawDifference > deadband) {
+        work->rotation.vy = currentYaw - yawStep;   /* yawStep folds: addiu $v0,$a0,-0x10 */
+    } else if (yawDifference < -deadband) {         /* deadband does not: li $v1,0x20; slt */
+        work->rotation.vy = currentYaw + yawStep;
     }
 }
 
-Actor00400_TurnToward(arg0, &work->targetPos, 0x10, 0x20);
+_actor00400TurnTowardPoint(arg0, &work->targetPos, 0x10, 0x20);
 ```
 
 So the asymmetry — one argument folded to an immediate, the other stranded in a
@@ -93383,7 +93383,7 @@ SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
 ## Grep the rare callee when the similarity index finds nothing
 
-`Actor00400_Fn03318`'s brief reported "no similar matched bodies above 0.80",
+`_actor00400DrawGroundStain`'s brief reported "no similar matched bodies above 0.80",
 so `overlay_dup_index.py similar` handed over no template. But the m2c output
 named `RotTransPers4`, and `grep -rn RotTransPers4 src/` found six matched call
 sites - one of which, `ActorsShared80163354` in
@@ -93475,7 +93475,7 @@ more.
 ## An inline function's stack temp survives a later inline expansion, but an ordinary block-scope local recycles it (Actor00400_Fn064B0, 2026-09-16)
 
 `Actor00400_Fn064B0` needs four 8-byte `SVECTOR` slots in a 0x50 frame, in the
-order `vec` 0x10 (the scratch of the inlined `Actor00400_TurnToward` at the top
+order `vec` 0x10 (the scratch of the inlined `_actor00400TurnTowardPoint` at the top
 of the function), then `pos` 0x18, `base` 0x20, `tip` 0x28 for the marker task
 it spawns near the end. Three arrangements of the same source give three
 different frames:
@@ -93520,7 +93520,7 @@ callee-saved register and addresses the vector as `0($s0)` / `2($s0)` /
 `4($s0)`, and sign-extends a field read after the call with `lhu` + `sll` +
 `sra` instead of `lh`.
 
-## A loop the tail re-reads from needs `goto` out of `for (;;)`, not `break` and not a bare `goto` loop (Actor00400_Fn02FF8, 2026-09-16)
+## A loop the tail re-reads from needs `goto` out of `for (;;)`, not `break` and not a bare `goto` loop (_actor00400ClaimNearestSurfaceSpot, 2026-09-16)
 
 > Corrected 2026-10-06: the `goto` is not needed. `for (;;) { ...; if (kind !=
 > -1) { body; step; } else { break; } }` matches: with the `break` in the
@@ -93529,7 +93529,7 @@ callee-saved register and addresses the vector as `0($s0)` / `2($s0)` /
 > cse. The table below is right about plain `break` and about the bare `goto`
 > loop.
 
-`Actor00400_Fn02FF8` walks a waypoint array to the `-1` terminator and then, in
+`_actor00400ClaimNearestSurfaceSpot` walks a surface-spot array to the `-1` terminator and then, in
 the code after the loop, reloads the array base it had just loaded at the loop
 top:
 
@@ -93661,7 +93661,7 @@ gives the target exactly — one slot for all three expansions:
 static inline void Actor00400_SpawnRing(Actor100400* arg0, _Actor00400Work* work,
                                         GfxCoord* coord)
 {
-    SVECTOR vec;    /* shares sp+0x10 with Actor00400_TurnToward's vec */
+    SVECTOR vec;    /* shares sp+0x10 with _actor00400TurnTowardPoint's direction */
     ...
 }
 ```
@@ -104258,7 +104258,7 @@ directly to the body, no 0/1, no second branch - so it cannot reach this target
 at all. Two matched siblings in the same TU pin both forms down:
 
 ```c
-/* Actor00400_Fn08908: direct branches, no materialization (matched) */
+/* _actor00400ClipEnded: direct branches, no materialization (matched) */
 if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (work->animStatus & ANIMATION_SLOT_SETTLED)) {
     return 1;
 }
@@ -104553,9 +104553,9 @@ Inputs: `base_1.i` (100.000%, first distinct build) SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn0962C-vacuum`.
 
-## Two nested arms with a store each versus one shared body: the live-length half of `pri` is a control-flow knob (Actor00400_Fn0875C, 2026-09-16)
+## Two nested arms with a store each versus one shared body: the live-length half of `pri` is a control-flow knob (_actor00400TurnTowardPointMaskedRange, 2026-09-16)
 
-**Problem.** `Actor00400_Fn0875C` (actors, `actor_100400_fn0805c`) turns a
+**Problem.** `_actor00400TurnTowardPointMaskedRange` (actors, `actor_100400_fn0805c`) turns a
 heading toward a waypoint: normalise the XZ delta, take `ratan2`, wrap the
 difference to 12 bits with `((angle - yaw) << 20) >> 20`, and step the heading
 once the wrapped difference leaves the `arg3 & 0x7FF` deadband. Written the way
@@ -104616,7 +104616,7 @@ Inputs: `base_2.i` (99.348%, nested) SHA256
 (100%) SHA256 `c6ef7843f7fe5f7e5a4fdf9ec43e3d969f12347204ce70b8dbe157d2dd8d88c0`;
 target SHA256 `8164ce6714022f1130ef12a98fba523bbddbd662052aa50ca51bf4bcdc637c38`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn0875C-vacuum`.
+Scratch `nonmatchings/_actor00400TurnTowardPointMaskedRange-vacuum`.
 
 ## A merge-block flag copy is a global allocno until every edge reaches it; cse then bypasses the redundant edge and reorg fills the delay slot (Actor00400_Fn09124, 2026-09-16)
 
@@ -113253,7 +113253,7 @@ SHA256 `6396102f5c97dd87a812090f2aff1639afa455d2fc8cb4aaee05ad6f5504751f`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_356100_80168AFC-vacuum`. Related: the
-`Actor00400_Fn0875C` entry above, where the same tie was *manufactured* by a
+`_actor00400TurnTowardPointMaskedRange` entry above, where the same tie was *manufactured* by a
 control-flow change and then won with declaration order.
 
 ## An aggregate copy is one assignment, not eight `M2C_FIELD` pairs
@@ -147427,7 +147427,7 @@ function already holds, is what an inlined `if (...) return 1; return 0;`
 leaves. One `static __inline__ s32 diverClipEnded(Task* task)` in
 `src/shared/diver_inlines.inc.c`, taking the task and loading the work block
 itself, replaced all twenty and both packages still match. The Bog Diver also
-carries the test out of line (`Actor00400_Fn08908`, an `s16` return), which is
+carries the test out of line (`_actor00400ClipEnded`, an `s16` return), which is
 the other half of the evidence that it was a routine in the original.
 
 Two sites did not match on the mechanical substitution, and both failures are
@@ -150045,7 +150045,7 @@ attempts; left as it was.
 
 - **An equality chain that picks a constant and jumps to one shared store
   block, `other:` behind it, `ok: return 1; fail: return 0;` last**
-  (`Actor00400_Fn02154`: `if (req == A) state = 7; else if ... else goto
+  (`_actor00400ApplyHitReaction`: `if (reaction == A) state = 7; else if ... else goto
   other; work->state = state; ...; goto ok;`) is the stores written out in
   every arm of an `if / else if` chain, `return 1;` after the chain and
   `return 0;` at the end of the function. Cross-jumping merges the arms into
@@ -150056,7 +150056,7 @@ attempts; left as it was.
   the `else` arms. First try.
 - **`if (r == A) goto set; if (r == B) goto set; if (r == C) goto set; if (r !=
   D) goto other; set: do { stores } while (0); other:`**
-  (`Actor00400_ConsumeStateRequest`, an inline with four callers) is not
+  (`_actor00400ConsumeWoundedHitReaction`, an inline with four callers) is not
   `A || B || C || D`: for contiguous values that folds to a range test
   (`addiu -1; sltiu 4`). It is four `else if` arms with the same two stores;
   they merge and the equality chain stays. The `do { } while (0)` documented

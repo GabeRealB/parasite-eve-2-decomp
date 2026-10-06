@@ -2446,7 +2446,7 @@ static const TaskFuncTable4 D_actor_206100_80149EC0 = {
 ///   every later value moves up one.
 /// - the deadband is a variable, not the literal 0x28 -- which is what makes
 ///   `diff`'s comparison a register-register `slt` against a `li`'d `$v1`, the
-///   same `li` + `slt` shape `Actor00400_TurnToward`'s range parameter forces.
+///   same `li` + `slt` shape `_actor00400TurnTowardPoint`'s deadband parameter forces.
 ///   Written as a literal the test becomes `slti $a0,0x29` + `bnez` instead:
 ///   the literal is folded away into `!(diff < 0x29)`, where a register operand
 ///   reaches `gen_int_relational`'s `reverse_regs` arm and its constant is
