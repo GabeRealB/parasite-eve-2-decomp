@@ -865,14 +865,14 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0) {
         for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
             if (D_neo_ark_altar_8017F050[i] != D_neo_ark_altar_801800B0[i]) {
-                goto fail1;
+                bad1 = 1;
+                break;
             }
             if (i == 11) {
                 return 1;
             }
         }
     } else {
-    fail1:
         bad1 = 1;
     }
     if (work->enteredTile != 0) {
@@ -907,7 +907,8 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) == 0) {
         for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
             if (D_neo_ark_altar_8017F068[i] != D_neo_ark_altar_801800B0[i]) {
-                goto fail2;
+                bad2 = 1;
+                break;
             }
             if (i == 15) {
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 0, 0);
@@ -915,7 +916,6 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
             }
         }
     } else {
-    fail2:
         bad2 = 1;
     }
     if (work->enteredTile != 0) {
