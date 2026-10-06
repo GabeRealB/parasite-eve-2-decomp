@@ -5084,19 +5084,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         coord   = arg0->extra.tmd->coords;
         yaw     = ratan2(posp->vx, posp->vz) -
               ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (yaw < 0) {
-        wrapUp:
-            if (yaw < -0x800) {
-                yaw += 0x1000;
-                goto wrapUp;
-            }
-        } else {
-        wrapDown:
-            if (yaw > 0x800) {
-                yaw -= 0x1000;
-                goto wrapDown;
-            }
-        }
+        yaw                                       = actorWrapAngle(yaw);
         work->neckYawTarget                       = yaw;
         D_actor_403200_8015F8E0[0]                = 0;
         D_actor_403200_8015F8F4.context.loc.stage = 0;
