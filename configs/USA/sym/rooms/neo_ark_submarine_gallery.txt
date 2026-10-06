@@ -63,9 +63,9 @@ D_neo_ark_submarine_gallery_801818BC = 0x801818BC; // size:0xC defined:True
 
 func_neo_ark_submarine_gallery_8017EFEC = 0x8017EFEC; // type:func
 
-func_neo_ark_submarine_gallery_8017F288 = 0x8017F288; // type:func
+neoArkSubmarineGalleryWaterRippleTask = 0x8017F288; // type:func
 
-func_neo_ark_submarine_gallery_8017F710 = 0x8017F710; // type:func
+neoArkSubmarineGalleryWaterDriftTaskU16 = 0x8017F710; // type:func
 _waterDrawSplash = 0x8017F3DC; // type:func
 waterDistortBandTask = 0x8017E2CC; // type:func
 waterRefractionTask = 0x8017D678; // type:func
@@ -73,3 +73,4 @@ _waterDrawSpinU16 = 0x8017FBCC; // type:func
 _waterDrawTileU16 = 0x8017FFB8; // type:func
 _glowDrawCapsule = 0x80180254; // type:func
 glowDrawDisc = 0x80180AC8; // type:func
+_neoArkSubmarineGalleryDrawLightPrism = 0x80180e80; // type:func

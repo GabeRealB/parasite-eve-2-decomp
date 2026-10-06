@@ -139934,11 +139934,11 @@ which also claims a callee-saved register and shuffles every other allocation
 sibling bodies do:
 
 ```c
-far = i + 4;
-gte_ldv0(&tbl[arg1 + far]);
+farCorner = cornerIndex + 4;
+gte_ldv0(&tbl[firstVertex + farCorner]);
 ```
 
-Seen in `func_neo_ark_submarine_gallery_80180E80` (98.66% to 100% with that
+Seen in `_neoArkSubmarineGalleryDrawLightPrism` (98.66% to 100% with that
 change alone); `_dryfieldDilapidatedHouseDrawLightPrism` has the same shape.
 
 ## An empty `case 0: break;` is what puts `slti v,2` between `== 1` and `== 2` in a two-case switch

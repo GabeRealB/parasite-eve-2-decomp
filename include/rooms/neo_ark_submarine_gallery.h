@@ -56,9 +56,38 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[];
 
 void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0);
 
-void func_neo_ark_submarine_gallery_8017F288(Task* task);
+/// Advances and draws one expanding, fading water-surface ripple in this room.
+///
+/// `task` must be a counted effect with owned `EffectWork` in
+/// `spawnArg2.pointer`, a coordinate body and initial state zero.
+/// `spawnArg1` bits 0..11 give the local half-side in game units (0..4095).
+/// Running updates grow it by 32 and fade brightness from 64 by 2 per update;
+/// a fresh ripple lasts 32 running updates. The first update selects a random
+/// surface yaw, applied after that update's coordinate composition.
+/// Non-running updates redraw without aging; cancellation redraws once before
+/// retirement. Retirement frees the work and destroys the task and body,
+/// decrementing the room's effect count. Pointers to retired objects expire.
+void neoArkSubmarineGalleryWaterRippleTask(Task* task);
 
-void func_neo_ark_submarine_gallery_8017F710(Task* task);
+/// Advances and draws one eight-cell water-spray particle in this room.
+///
+/// `task` must be a counted effect with owned `EffectWork` in
+/// `spawnArg2.pointer`, a coordinate body, initial state zero and cell index zero.
+/// `spawnArg1` bits 0..11 give perspective size (0..4095), bits 12..15 updates
+/// per cell (0 selects 1), and bits 16..23 launch speed in parent-coordinate
+/// units per update (0 selects 64). Bits 24..27 select velocity: 0 stationary,
+/// 1 upward burst, 2 all-axis spray, 3 narrow upward jet, 5 copied spawn-offset
+/// direction; other values normalize the zero direction. Nonzero bits 28..31
+/// select upright drawing; otherwise the sprite keeps a random rotation.
+/// A supplied nonzero `EffectWork::move` bypasses velocity generation.
+///
+/// The first running update initializes without drawing or moving. Later
+/// updates draw, move and add 6 to Y velocity, narrowing it to s16; stationary
+/// particles skip movement and gravity. Cells 0..7 each last the decoded period.
+/// Suspended updates redraw without aging; cancellation retires without drawing.
+/// Retirement frees the work and destroys the task and body, decrementing the
+/// room's effect count. Pointers to retired objects expire.
+void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task);
 
 void func_neo_ark_submarine_gallery_8017EBCC(Task* task);
 

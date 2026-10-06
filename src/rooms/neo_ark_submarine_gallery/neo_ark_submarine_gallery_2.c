@@ -55,7 +55,9 @@
 #define D_neo_ark_submarine_gallery_801818F8 (D_neo_ark_submarine_gallery_801818C8 + 6)
 #define D_neo_ark_submarine_gallery_80181928 (D_neo_ark_submarine_gallery_801818C8 + 12)
 
-static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1);
+enum { NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX = 32 };
+
+static void _neoArkSubmarineGalleryDrawLightPrism(const GfxCoord* coord, s16 firstVertex);
 
 // Indexed views below share one contiguous table.
 extern TaskDesc D_actor_100400_80147E48;
@@ -931,7 +933,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 /// latches the two effect ids the display cases animate with; every later run
 /// draws one fixed set of positions for the current camera view. Views 2 to 6
 /// each cover a run of `D_neo_ark_submarine_gallery_801818*` entries, and view 2
-/// also hands the task's own coordinate to `func_neo_ark_submarine_gallery_80180E80`.
+/// also hands the task's own coordinate to `_neoArkSubmarineGalleryDrawLightPrism`.
 void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 {
     SVECTOR*  pos;
@@ -954,7 +956,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[17], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[18], 0x200, 0x444);
             glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[31], 0x200, 0x444);
-            func_neo_ark_submarine_gallery_80180E80(coord, 0x20);
+            _neoArkSubmarineGalleryDrawLightPrism(coord, NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX);
             break;
         case 3:
             _glowDrawCapsule(&D_neo_ark_submarine_gallery_80181928[0], 0x200, 0x444);
@@ -995,7 +997,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_neo_ark_submarine_gallery_8017F288(Task* task)
+void neoArkSubmarineGalleryWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -1004,7 +1006,7 @@ void func_neo_ark_submarine_gallery_8017F288(Task* task)
 
 #include "../../shared/water_drift_task_u16.inc.c"
 
-void func_neo_ark_submarine_gallery_8017F710(Task* task)
+void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
@@ -1019,117 +1021,15 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
 #define GLOW_DRAW_DISC_PULL 0x40
 #include "../../shared/glow_draw_disc.inc.c"
 
-/// Draws one prism from `D_neo_ark_submarine_gallery_801818C8[arg1..arg1 + 7]`
-/// as five `POLY_G4` quads: entries 0..3 are one ring of corners and 4..7 the
-/// opposite ring. Each corner is rotated by `coord->workm` and moved by its
-/// translation before projection through `GsWSMATRIX`. The four side quads fade
-/// from a pulsing grey on the first ring to black on the second; the closing
-/// cap over the first ring is flat grey. The grey swings a couple of steps
-/// around 0x18 with `gDisplayState.animFrame`.
-static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
+/// Projects a prepared prism quad and records its final visibility flags.
+///
+/// Borrows a live, word-aligned `EffectQuadScratch` with all corner XYZ values
+/// initialized in `GsWSMATRIX`'s input space. Its translation and the GTE
+/// projection must already be loaded. Writes all screen corners and the RTPT
+/// FLAG, discarding the first corner's RTPS FLAG. Leaves corner 3's SZ3 in the
+/// GTE for the caller's depth read; changes GTE state and retains no pointer.
+static inline void _neoArkSubmarineGalleryProjectPrismQuad(EffectQuadScratch* quadScratch)
 {
-    EffectQuadScratch* quadScratch;
-    POLY_G4*           prim;
-    s32                i;
-    s32                next;
-    s32                far;
-    s32                farNext;
-    u8                 shade;
-
-    SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-    quadScratch = SCRATCH_STACK_CURSOR(EffectQuadScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
-    for (i = 0; i < 4; i++) {
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + i]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[0]);
-        quadScratch->vertices[0].vx = (u16)quadScratch->vertices[0].vx + (u16)coord->workm.t[0];
-        quadScratch->vertices[0].vy = (u16)quadScratch->vertices[0].vy + (u16)coord->workm.t[1];
-        quadScratch->vertices[0].vz = (u16)quadScratch->vertices[0].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        next = (i + 1) & 3;
-        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + next]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[1]);
-        quadScratch->vertices[1].vx = (u16)quadScratch->vertices[1].vx + (u16)coord->workm.t[0];
-        quadScratch->vertices[1].vy = (u16)quadScratch->vertices[1].vy + (u16)coord->workm.t[1];
-        quadScratch->vertices[1].vz = (u16)quadScratch->vertices[1].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        far = i + 4;
-        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + far]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[2]);
-        quadScratch->vertices[2].vx = (u16)quadScratch->vertices[2].vx + (u16)coord->workm.t[0];
-        quadScratch->vertices[2].vy = (u16)quadScratch->vertices[2].vy + (u16)coord->workm.t[1];
-        quadScratch->vertices[2].vz = (u16)quadScratch->vertices[2].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        farNext = next + 4;
-        gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + farNext]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[3]);
-        quadScratch->vertices[3].vx = (u16)quadScratch->vertices[3].vx + (u16)coord->workm.t[0];
-        quadScratch->vertices[3].vy = (u16)quadScratch->vertices[3].vy + (u16)coord->workm.t[1];
-        quadScratch->vertices[3].vz = (u16)quadScratch->vertices[3].vz + (u16)coord->workm.t[2];
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&quadScratch->vertices[0]);
-        gte_rtps();
-        gte_stsxy(&quadScratch->screenCorners[0]);
-        gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
-        gte_rtpt();
-        gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
-        gte_stflg(&quadScratch->projectionFlags);
-        if (quadScratch->projectionFlags >= 0) {
-            gte_stszotz(&quadScratch->depth);
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, shade, shade, shade);
-            setRGB1(prim, shade, shade, shade);
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            prim->x0 = quadScratch->screenCorners[0].vx;
-            prim->y0 = quadScratch->screenCorners[0].vy;
-            prim->x1 = quadScratch->screenCorners[1].vx;
-            prim->y1 = quadScratch->screenCorners[1].vy;
-            prim->x2 = quadScratch->screenCorners[2].vx;
-            prim->y2 = quadScratch->screenCorners[2].vy;
-            prim->x3 = quadScratch->screenCorners[3].vx;
-            prim->y3 = quadScratch->screenCorners[3].vy;
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, quadScratch->depth);
-        }
-    }
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1]);
-    gte_rtv0();
-    gte_stsv(&quadScratch->vertices[0]);
-    quadScratch->vertices[0].vx = (u16)quadScratch->vertices[0].vx + (u16)coord->workm.t[0];
-    quadScratch->vertices[0].vy = (u16)quadScratch->vertices[0].vy + (u16)coord->workm.t[1];
-    quadScratch->vertices[0].vz = (u16)quadScratch->vertices[0].vz + (u16)coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 1]);
-    gte_rtv0();
-    gte_stsv(&quadScratch->vertices[1]);
-    quadScratch->vertices[1].vx = (u16)quadScratch->vertices[1].vx + (u16)coord->workm.t[0];
-    quadScratch->vertices[1].vy = (u16)quadScratch->vertices[1].vy + (u16)coord->workm.t[1];
-    quadScratch->vertices[1].vz = (u16)quadScratch->vertices[1].vz + (u16)coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 3]);
-    gte_rtv0();
-    gte_stsv(&quadScratch->vertices[2]);
-    quadScratch->vertices[2].vx = (u16)quadScratch->vertices[2].vx + (u16)coord->workm.t[0];
-    quadScratch->vertices[2].vy = (u16)quadScratch->vertices[2].vy + (u16)coord->workm.t[1];
-    quadScratch->vertices[2].vz = (u16)quadScratch->vertices[2].vz + (u16)coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[arg1 + 2]);
-    gte_rtv0();
-    gte_stsv(&quadScratch->vertices[3]);
-    quadScratch->vertices[3].vx = (u16)quadScratch->vertices[3].vx + (u16)coord->workm.t[0];
-    quadScratch->vertices[3].vy = (u16)quadScratch->vertices[3].vy + (u16)coord->workm.t[1];
-    quadScratch->vertices[3].vz = (u16)quadScratch->vertices[3].vz + (u16)coord->workm.t[2];
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
@@ -1138,25 +1038,126 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
     gte_rtpt();
     gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
     gte_stflg(&quadScratch->projectionFlags);
+}
+
+/// Draws a pulsing additive light prism with four fading sides and a lit cap.
+///
+/// `firstVertex` selects eight consecutive entries in the room's corner table;
+/// the only caller selects entries 32..39. The first four form the lit ring,
+/// the next four its dark counterpart. `coord` is borrowed read-only with
+/// `workm` already composed in the input space of `GsWSMATRIX`. Rotation is
+/// Q12; rotated corners and translated positions retain their low 16 bits as
+/// signed GTE coordinates. Brightness is 22..26 on a four-frame sine cycle.
+///
+/// Each nonnegative final RTPT FLAG emits one `POLY_G4`, ordered by its last
+/// corner's SZ3 / 4; the preceding RTPS FLAG is discarded. Requires room for
+/// five quad packets and their blend commands in the frame primitive arena,
+/// and one word-aligned `EffectQuadScratch` on the initialized scratch stack.
+/// The scratch block is released on return; no pointer is retained and GTE
+/// state is overwritten.
+static void _neoArkSubmarineGalleryDrawLightPrism(const GfxCoord* coord, s16 firstVertex)
+{
+    /// Rotates and translates one prism corner into the scratch quad.
+    ///
+    /// Captures `coord` (borrowed, composed const GfxCoord*) and `quadScratch`
+    /// (live EffectQuadScratch*). The GTE rotation must already be `coord->workm`.
+    /// Arguments have no side effects: vertexIndex is a table index evaluated
+    /// once; cornerSlot is 0..3 and evaluated repeatedly. Each axis retains its
+    /// low 16 bits as a signed projection coordinate. Use only as a standalone
+    /// statement sequence here, never as an unbraced branch body.
+#define NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(vertexIndex, cornerSlot)                                  \
+    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[(vertexIndex)]);                                                \
+    gte_rtv0();                                                                                                    \
+    gte_stsv(&quadScratch->vertices[(cornerSlot)]);                                                                \
+    quadScratch->vertices[(cornerSlot)].vx = (u16)quadScratch->vertices[(cornerSlot)].vx + (u16)coord->workm.t[0]; \
+    quadScratch->vertices[(cornerSlot)].vy = (u16)quadScratch->vertices[(cornerSlot)].vy + (u16)coord->workm.t[1]; \
+    quadScratch->vertices[(cornerSlot)].vz = (u16)quadScratch->vertices[(cornerSlot)].vz + (u16)coord->workm.t[2]
+
+    enum {
+        PRISM_RING_CORNERS          = 4,
+        PRISM_PULSE_ANGLE_SHIFT     = 10,
+        PRISM_PULSE_INTENSITY_SHIFT = 11,
+        PRISM_BASE_INTENSITY        = 24,
+    };
+
+    EffectQuadScratch* quadScratch;
+    POLY_G4*           quad;
+    s32                cornerIndex;
+    s32                nextCorner;
+    s32                farCorner;
+    s32                farNextCorner;
+    u8                 intensity;
+
+    SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+    quadScratch = SCRATCH_STACK_CURSOR(EffectQuadScratch);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    intensity = (rsin(gDisplayState.animFrame << PRISM_PULSE_ANGLE_SHIFT) >> PRISM_PULSE_INTENSITY_SHIFT) + PRISM_BASE_INTENSITY;
+    // Join each adjacent pair of lit corners to the corresponding dark pair.
+    for (cornerIndex = 0; cornerIndex < PRISM_RING_CORNERS; cornerIndex++) {
+        gte_SetRotMatrix(&coord->workm);
+        NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex + cornerIndex, 0);
+        gte_SetRotMatrix(&coord->workm);
+        nextCorner = (cornerIndex + 1) & (PRISM_RING_CORNERS - 1);
+        NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex + nextCorner, 1);
+        gte_SetRotMatrix(&coord->workm);
+        farCorner = cornerIndex + PRISM_RING_CORNERS;
+        NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex + farCorner, 2);
+        gte_SetRotMatrix(&coord->workm);
+        farNextCorner = nextCorner + PRISM_RING_CORNERS;
+        NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex + farNextCorner, 3);
+        _neoArkSubmarineGalleryProjectPrismQuad(quadScratch);
+        if (quadScratch->projectionFlags >= 0) {
+            gte_stszotz(&quadScratch->depth);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, intensity, intensity, intensity);
+            setRGB1(quad, intensity, intensity, intensity);
+            setRGB2(quad, 0, 0, 0);
+            setRGB3(quad, 0, 0, 0);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            quad->x0 = quadScratch->screenCorners[0].vx;
+            quad->y0 = quadScratch->screenCorners[0].vy;
+            quad->x1 = quadScratch->screenCorners[1].vx;
+            quad->y1 = quadScratch->screenCorners[1].vy;
+            quad->x2 = quadScratch->screenCorners[2].vx;
+            quad->y2 = quadScratch->screenCorners[2].vy;
+            quad->x3 = quadScratch->screenCorners[3].vx;
+            quad->y3 = quadScratch->screenCorners[3].vy;
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, quadScratch->depth);
+        }
+    }
+    // Close the lit ring in the GPU quad's strip order, 0, 1, 3, 2.
+    gte_SetRotMatrix(&coord->workm);
+    NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex, 0);
+    gte_SetRotMatrix(&coord->workm);
+    NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex + 1, 1);
+    gte_SetRotMatrix(&coord->workm);
+    NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex + 3, 2);
+    gte_SetRotMatrix(&coord->workm);
+    NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(firstVertex + 2, 3);
+    _neoArkSubmarineGalleryProjectPrismQuad(quadScratch);
     if (quadScratch->projectionFlags >= 0) {
         gte_stszotz(&quadScratch->depth);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG4(prim);
-        setRGB0(prim, shade, shade, shade);
-        setRGB1(prim, shade, shade, shade);
-        setRGB2(prim, shade, shade, shade);
-        setRGB3(prim, shade, shade, shade);
-        prim->x0 = quadScratch->screenCorners[0].vx;
-        prim->y0 = quadScratch->screenCorners[0].vy;
-        prim->x1 = quadScratch->screenCorners[1].vx;
-        prim->y1 = quadScratch->screenCorners[1].vy;
-        prim->x2 = quadScratch->screenCorners[2].vx;
-        prim->y2 = quadScratch->screenCorners[2].vy;
-        prim->x3 = quadScratch->screenCorners[3].vx;
-        prim->y3 = quadScratch->screenCorners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, quadScratch->depth);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyG4(quad);
+        setRGB0(quad, intensity, intensity, intensity);
+        setRGB1(quad, intensity, intensity, intensity);
+        setRGB2(quad, intensity, intensity, intensity);
+        setRGB3(quad, intensity, intensity, intensity);
+        quad->x0 = quadScratch->screenCorners[0].vx;
+        quad->y0 = quadScratch->screenCorners[0].vy;
+        quad->x1 = quadScratch->screenCorners[1].vx;
+        quad->y1 = quadScratch->screenCorners[1].vy;
+        quad->x2 = quadScratch->screenCorners[2].vx;
+        quad->y2 = quadScratch->screenCorners[2].vy;
+        quad->x3 = quadScratch->screenCorners[3].vx;
+        quad->y3 = quadScratch->screenCorners[3].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, quadScratch->depth);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
+#undef NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER
 }

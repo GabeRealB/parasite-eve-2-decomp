@@ -938,9 +938,9 @@ func_neo_ark_south_promenade_8017EA6C = 0x8017EA6C; // type:func absolute:True o
 
 func_neo_ark_submarine_gallery_8017EFEC = 0x8017EFEC; // type:func absolute:True owner=neo_ark_submarine_gallery
 
-func_neo_ark_submarine_gallery_8017F288 = 0x8017F288; // type:func absolute:True owner=neo_ark_submarine_gallery
+neoArkSubmarineGalleryWaterRippleTask = 0x8017F288; // type:func absolute:True owner=neo_ark_submarine_gallery
 
-func_neo_ark_submarine_gallery_8017F710 = 0x8017F710; // type:func absolute:True owner=neo_ark_submarine_gallery
+neoArkSubmarineGalleryWaterDriftTaskU16 = 0x8017F710; // type:func absolute:True owner=neo_ark_submarine_gallery
 
 func_neo_ark_submarine_tunnel_8017F4DC = 0x8017F4DC; // type:func absolute:True owner=neo_ark_submarine_tunnel
 
