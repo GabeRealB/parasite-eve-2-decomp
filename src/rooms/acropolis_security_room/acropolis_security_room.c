@@ -351,9 +351,13 @@ extern AreaApplyRec D_acropolis_security_room_80184F80[];
 
 /// Seeds the falling quad's tumble rates and parent-space displacement per frame.
 ///
-/// X/Z rates are -240..256/-112..128 in steps of 16, using 4096 angle units
-/// per turn. XYZ displacement is -15..16 coordinate units. Consumes five
-/// ordered LCG draws, borrowing work and leaving the other fields intact.
+/// `work` is borrowed, writable effect state. `period` receives the X tumble
+/// rate (-240..256) and `step` the Z rate (-112..128), in multiples of 16
+/// angle units per frame; one turn is 4096 units. Each `move` component
+/// receives -15..16 parent-coordinate units per frame.
+/// Advances the shared random sequence exactly five times, ordered X/Z
+/// tumble then X/Y/Z displacement. Other fields, including `move.pad`, stay
+/// intact; this call does not allocate or retain the work block.
 static inline void _acropolisSecurityRoomSeedQuadMotion(EffectWork* work)
 {
     enum {
@@ -376,34 +380,40 @@ static inline void _acropolisSecurityRoomSeedQuadMotion(EffectWork* work)
     work->move.vz   = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
 }
 
-/// Builds one XZ corner and transforms it to signed 16-bit view coordinates.
+/// Places one corner of the falling quad's local XZ square in its composed coordinate space.
 ///
-/// cornerIndex is 0..3 and work->scale is the half-side in coordinate units.
-/// Borrows a live scratch block and composed coordinate; changes GTE state.
-/// Writes only the selected vertex's XYZ, narrowing local products and view-space
-/// translations and leaving the vector's fourth halfword intact.
-static inline void _acropolisSecurityRoomTransformQuadCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, EffectWork* work, const GfxCoord* coord)
+/// `cornerIndex` is 0..3 in GPU quad strip order; `work->scale` is the signed
+/// half-side in coordinate units (the task supplies 32). `quadScratch` must
+/// be a live, word-aligned block, and `coord->workm` must already be composed
+/// with 12-fractional-bit rotation.
+/// Local products narrow to signed 16 bits, rotation stores the GTE's signed
+/// IR results, and unsigned translation sums retain their low 16 bits.
+/// Only the selected vertex's XYZ changes; its fourth halfword stays intact.
+/// Loads GTE rotation/V0 and overwrites IR/FLAG, without loading translation
+/// or projecting. All pointers are borrowed for this call.
+static inline void _acropolisSecurityRoomTransformQuadCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, const EffectWork* work, const GfxCoord* coord)
 {
-    SVECTOR* corner;
-    // Aliases vertices[cornerIndex]; distinct store/GTE addresses must survive CSE.
-    corner                                = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
-    quadScratch->vertices[cornerIndex].vx = D_acropolis_security_room_801839C0[cornerIndex].axis0Sign * work->scale;
-    corner->vy                            = 0;
-    corner->vz                            = D_acropolis_security_room_801839C0[cornerIndex].axis1Sign * work->scale;
+    quadScratch->vertices[cornerIndex].vx     = D_acropolis_security_room_801839C0[cornerIndex].axis0Sign * work->scale;
+    (&quadScratch->vertices[cornerIndex])->vy = 0;
+    (&quadScratch->vertices[cornerIndex])->vz = D_acropolis_security_room_801839C0[cornerIndex].axis1Sign * work->scale;
+    // Rotate the local corner before adding the composition-root translation.
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&quadScratch->vertices[cornerIndex]);
     gte_rtv0();
     gte_stsv(&quadScratch->vertices[cornerIndex]);
-    quadScratch->vertices[cornerIndex].vx += (u32)coord->workm.t[0];
-    corner->vy                            += (u32)coord->workm.t[1];
-    corner->vz                            += (u32)coord->workm.t[2];
+    quadScratch->vertices[cornerIndex].vx     += (u32)coord->workm.t[0];
+    (&quadScratch->vertices[cornerIndex])->vy += (u32)coord->workm.t[1];
+    (&quadScratch->vertices[cornerIndex])->vz += (u32)coord->workm.t[2];
 }
 
-/// Initializes a reserved glow quad with a lit centre and black rim.
+/// Initializes one monitor-glow wedge's Gouraud quad with a lit centre and black outer vertices.
 ///
-/// Borrows a writable packet; redFactor and greenFactor are 0 or 1, and
-/// brightness is 64..176. Only the header and colour bytes are written;
-/// the caller supplies geometry, linkage and additive blending.
+/// `quad` is a borrowed, writable packet. `brightness` is 64..176 in steps
+/// of 16; `redFactor` and `greenFactor` enable their channel with 0 or 1.
+/// Vertex 2 is the lit centre; vertices 0, 1 and 3 are black, and blue is zero
+/// throughout. Sets packet length/opcode and RGB bytes; the caller supplies
+/// screen geometry, linkage and additive semitransparency. Does not allocate
+/// or retain the packet.
 static inline void _acropolisSecurityRoomInitGlowQuad(POLY_G4* quad, s16 brightness, s16 redFactor, s16 greenFactor)
 {
     setPolyG4(quad);
@@ -413,11 +423,14 @@ static inline void _acropolisSecurityRoomInitGlowQuad(POLY_G4* quad, s16 brightn
     setRGB3(quad, 0, 0, 0);
 }
 
-/// Initializes a reserved glow line with a lit centre and black rim.
+/// Initializes one monitor-glow streak's Gouraud polyline with a lit centre and black ends.
 ///
-/// Borrows a writable packet; redFactor and greenFactor are 0 or 1, and
-/// brightness is 64..176. Only the header and colour bytes are written;
-/// the caller supplies geometry, linkage and additive blending.
+/// `line` is a borrowed, writable three-vertex packet. `brightness` is 64..176
+/// in steps of 16; `redFactor` and `greenFactor` enable their channel with 0
+/// or 1. Vertex 1 is the lit centre; vertices 0 and 2 are black, and blue is
+/// zero throughout. Sets packet length/opcode, RGB bytes, the GPU polyline
+/// terminator and cleared `p2` byte. The caller supplies screen geometry,
+/// linkage and additive semitransparency. Does not allocate or retain the packet.
 static inline void _acropolisSecurityRoomInitGlowLine(LINE_G3* line, s16 brightness, s16 redFactor, s16 greenFactor)
 {
     setLineG3(line);

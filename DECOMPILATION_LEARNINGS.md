@@ -148969,3 +148969,21 @@ It fails in two ways:
   duplicated `routeComplete = 1` reuses the register that held 1 for an
   earlier store, across a call (`li s4,1`), where the shared block reloads
   it. A label with two users ends the cse path; a duplicated block does not.
+
+## Typed indirect member stores can preserve separate store and GTE addresses (_acropolisSecurityRoomTransformQuadCorner, 2026-10-06)
+
+An indexed `SVECTOR` used for both halfword stores and GTE operands does not
+always need a byte-offset alias. In this helper, keep the X store as
+`quadScratch->vertices[cornerIndex].vx`, and write the Y/Z stores and compound
+translation additions through `(&quadScratch->vertices[cornerIndex])->vy`
+and `->vz`. The GTE operands remain `&quadScratch->vertices[cornerIndex]`.
+These typed expressions preserve the target's separate store and GTE address
+calculations without a cached corner pointer or register constraint.
+
+A cached typed element pointer reduced the containing
+`acropolisSecurityRoomFallingQuadTask` from 1692 to 1688 bytes. Moving its
+initialization after the X store and applying `SOFT_TOUCH_REG` restored 1692
+bytes but left one address-add instruction different. Repeated indirect member
+accesses matched all 1692 bytes and removed both pointer conversions. The
+`const EffectWork*` parameter also matched; the scratch block stays 36 bytes,
+and the translated components retain their unsigned sum and 16-bit narrowing.
