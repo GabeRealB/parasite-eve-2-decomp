@@ -775,8 +775,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainExpandingGlowBandTask, { NULL } },                                         // 0x0EA
     { { { TASK_BODY_COORD, 0x70 } }, mineMesaRoomVisualEffectsTwinTrailTask, { NULL } },                                 // 0x0EB
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8018057C, { NULL } },                                                // 0x0EC
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017FEB0, { NULL } },                                   // 0x0ED
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_80180914, { NULL } },                                   // 0x0EE
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerRoomVisualEffectsFlashTask, { NULL } },                          // 0x0ED
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x0EE
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_801811FC, { NULL } },                                   // 0x0EF
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80182734, { NULL } },                                   // 0x0F0
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80183198, { NULL } },                                   // 0x0F1
@@ -865,7 +865,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorDrawLightsTask, { NULL } },                              // 0x144
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_incinerator_control_room_8017FD10, { NULL } },                      // 0x145
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallDrawGlowsTask, { NULL } },                                     // 0x146
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017E400, { NULL } },                                   // 0x147
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerDrawGlowsTask, { NULL } },                                       // 0x147
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_8017E5F8, { NULL } },                                   // 0x148
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_8017FB84, { NULL } },                                     // 0x149
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_8017EE54, { NULL } },                                  // 0x14A
@@ -904,8 +904,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, waterDriftTaskNoUpdate, { NULL } },                                                 // 0x16B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankWaterRippleTask, { NULL } },                                     // 0x16C
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankWaterDriftTask, { NULL } },                                      // 0x16D
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017EEE4, { NULL } },                                   // 0x16E
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_lower_sewer_8017F36C, { NULL } },                                   // 0x16F
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerWaterRippleTask, { NULL } },                                     // 0x16E
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerWaterDriftTaskU16, { NULL } },                                   // 0x16F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_8017E8B8, { NULL } },                                   // 0x170
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_8017ED40, { NULL } },                                   // 0x171
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirWaterRippleTask, { NULL } },                                      // 0x172

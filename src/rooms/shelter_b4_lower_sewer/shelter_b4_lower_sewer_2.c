@@ -506,90 +506,100 @@ u8* D_shelter_b4_lower_sewer_80183E14 = NULL;
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Per-frame task drawing the room's glowing capsules. On its first tick it
-/// stores the values 0x600ED, 0x600EE and 0x600EF in three gameplay globals,
-/// and 0x6016E and 0x6016F in two more when GameFlag nibble 0xB7 is 1. Each
-/// tick it then draws, through `_glowDrawCapsule`, the
-/// capsules visible from the current camera view, picked from the point-pair
-/// lists `D_shelter_b4_lower_sewer_80181EA4`, `D_shelter_b4_lower_sewer_80181F04`
-/// and `D_shelter_b4_lower_sewer_80181F14`.
-void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
+/// Installs the lower sewer's actor effects, enabling water effects after reservoir completion.
+static inline void _shelterB4LowerSewerInstallActorEffects(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectFlashId      = EFFECT_SHELTER_B4_LOWER_SEWER_FLASH;
-        gRoomEffectTwinTrailId  = EFFECT_SHELTER_B4_LOWER_SEWER_TWIN_TRAIL;
-        gRoomEffectSparkBurstId = EFFECT_SHELTER_B4_LOWER_SEWER_SPARK_BURST;
-        if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
-            gRoomEffectWaterRippleId = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_RIPPLE;
-            gRoomEffectWaterSprayId  = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_SPRAY;
-        }
-        arg0->state = 1;
+    enum { SHELTER_B4_LOWER_SEWER_RESERVOIR_COMPLETE = 1 };
+
+    gRoomEffectFlashId      = EFFECT_SHELTER_B4_LOWER_SEWER_FLASH;
+    gRoomEffectTwinTrailId  = EFFECT_SHELTER_B4_LOWER_SEWER_TWIN_TRAIL;
+    gRoomEffectSparkBurstId = EFFECT_SHELTER_B4_LOWER_SEWER_SPARK_BURST;
+    if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == SHELTER_B4_LOWER_SEWER_RESERVOIR_COMPLETE) {
+        gRoomEffectWaterRippleId = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_RIPPLE;
+        gRoomEffectWaterSprayId  = EFFECT_SHELTER_B4_LOWER_SEWER_WATER_SPRAY;
+    }
+}
+
+void shelterB4LowerSewerDrawGlowsTask(Task* task)
+{
+    enum {
+        SHELTER_B4_LOWER_SEWER_GLOW_INITIALIZE   = 0,
+        SHELTER_B4_LOWER_SEWER_GLOW_ACTIVE       = 1,
+        SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE = 0x200, // Radius numerator before 64 / depth projection
+        SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES  = 0x222  // RGB 32/32/32 before frame flicker
+    };
+
+    if (task->state == SHELTER_B4_LOWER_SEWER_GLOW_INITIALIZE) {
+        _shelterB4LowerSewerInstallActorEffects();
+        task->state = SHELTER_B4_LOWER_SEWER_GLOW_ACTIVE;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Select world-space endpoint pairs visible from the mapped camera.
+    // The matched base-relative offsets span the three adjacent endpoint tables.
+    switch ((u8)viewGetMappedIndex()) {
         case 2:
         case 6: {
-            SVECTOR* p = D_shelter_b4_lower_sewer_80181F14;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x222);
+            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181F14;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 3: {
-            SVECTOR* p = D_shelter_b4_lower_sewer_80181F04;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x222);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[6], 0x200, 0x222);
+            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181F04;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[6], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 4: {
-            SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x222);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[6], 0x200, 0x222);
-            _glowDrawCapsule(&p[24], 0x200, 0x222);
-            _glowDrawCapsule(&p[26], 0x200, 0x222);
-            _glowDrawCapsule(&p[28], 0x200, 0x222);
+            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[6], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[24], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[26], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[28], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 5: {
-            SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x222);
-            _glowDrawCapsule(&p[28], 0x200, 0x222);
+            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[28], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 7: {
-            SVECTOR* p = D_shelter_b4_lower_sewer_80181F04;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x222);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[6], 0x200, 0x222);
-            _glowDrawCapsule(&p[8], 0x200, 0x222);
+            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181F04;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[6], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[8], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 8: {
-            SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x222);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[6], 0x200, 0x222);
-            _glowDrawCapsule(&p[8], 0x200, 0x222);
-            _glowDrawCapsule(&p[22], 0x200, 0x222);
-            _glowDrawCapsule(&p[24], 0x200, 0x222);
-            _glowDrawCapsule(&p[26], 0x200, 0x222);
-            _glowDrawCapsule(&p[28], 0x200, 0x222);
+            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[6], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[8], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[22], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[24], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[26], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[28], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
         case 9: {
-            SVECTOR* p = D_shelter_b4_lower_sewer_80181EA4;
-            _glowDrawCapsule(&p[0], 0x200, 0x222);
-            _glowDrawCapsule(&p[2], 0x200, 0x222);
-            _glowDrawCapsule(&p[4], 0x200, 0x222);
-            _glowDrawCapsule(&p[24], 0x200, 0x222);
-            _glowDrawCapsule(&p[26], 0x200, 0x222);
-            _glowDrawCapsule(&p[28], 0x200, 0x222);
+            const SVECTOR* capsulePoints = D_shelter_b4_lower_sewer_80181EA4;
+            _glowDrawCapsule(&capsulePoints[0], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[2], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[4], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[24], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[26], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
+            _glowDrawCapsule(&capsulePoints[28], SHELTER_B4_LOWER_SEWER_GLOW_RADIUS_SCALE, SHELTER_B4_LOWER_SEWER_GLOW_RGB_NIBBLES);
             break;
         }
     }
@@ -599,7 +609,7 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_shelter_b4_lower_sewer_8017EEE4(Task* task)
+void shelterB4LowerSewerWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -608,7 +618,7 @@ void func_shelter_b4_lower_sewer_8017EEE4(Task* task)
 
 #include "../../shared/water_drift_task_u16.inc.c"
 
-void func_shelter_b4_lower_sewer_8017F36C(Task* task)
+void shelterB4LowerSewerWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
@@ -621,14 +631,14 @@ void func_shelter_b4_lower_sewer_8017F36C(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b4_lower_sewer_8017FEB0(Task* arg0)
+void shelterB4LowerSewerRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b4_lower_sewer_80180914(Task* task)
+void shelterB4LowerSewerRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

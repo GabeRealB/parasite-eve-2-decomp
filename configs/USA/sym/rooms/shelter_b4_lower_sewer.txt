@@ -71,17 +71,17 @@ D_actor_207200_8014E7A4 = 0x8014E7A4; // absolute:True owner=actor_207200
 D_actor_207200_80153EC8 = 0x80153EC8; // absolute:True owner=actor_207200
 D_actor_201100_8015F400 = 0x8015F400; // absolute:True owner=actor_201100
 
-func_shelter_b4_lower_sewer_8017FEB0 = 0x8017FEB0; // type:func
+shelterB4LowerSewerRoomVisualEffectsFlashTask = 0x8017FEB0; // type:func
 
-func_shelter_b4_lower_sewer_80180914 = 0x80180914; // type:func
+shelterB4LowerSewerRoomVisualEffectsTwinTrailTask = 0x80180914; // type:func
 
 func_shelter_b4_lower_sewer_801811FC = 0x801811FC; // type:func
 
-func_shelter_b4_lower_sewer_8017EEE4 = 0x8017EEE4; // type:func
+shelterB4LowerSewerWaterRippleTask = 0x8017EEE4; // type:func
 
-func_shelter_b4_lower_sewer_8017F36C = 0x8017F36C; // type:func
+shelterB4LowerSewerWaterDriftTaskU16 = 0x8017F36C; // type:func
 
-func_shelter_b4_lower_sewer_8017E400 = 0x8017E400; // type:func
+shelterB4LowerSewerDrawGlowsTask = 0x8017E400; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180154; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x80180580; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80180E04; // type:func

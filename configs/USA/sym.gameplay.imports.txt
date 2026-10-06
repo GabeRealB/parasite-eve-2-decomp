@@ -1249,13 +1249,13 @@ shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed = 0x80182368; // type:func
 
 shelterB3GarbageIncineratorEffectSpriteDebrisTask = 0x80183364; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
-func_shelter_b4_lower_sewer_8017EEE4 = 0x8017EEE4; // type:func absolute:True owner=shelter_b4_lower_sewer
+shelterB4LowerSewerWaterRippleTask = 0x8017EEE4; // type:func absolute:True owner=shelter_b4_lower_sewer
 
-func_shelter_b4_lower_sewer_8017F36C = 0x8017F36C; // type:func absolute:True owner=shelter_b4_lower_sewer
+shelterB4LowerSewerWaterDriftTaskU16 = 0x8017F36C; // type:func absolute:True owner=shelter_b4_lower_sewer
 
-func_shelter_b4_lower_sewer_8017FEB0 = 0x8017FEB0; // type:func absolute:True owner=shelter_b4_lower_sewer
+shelterB4LowerSewerRoomVisualEffectsFlashTask = 0x8017FEB0; // type:func absolute:True owner=shelter_b4_lower_sewer
 
-func_shelter_b4_lower_sewer_80180914 = 0x80180914; // type:func absolute:True owner=shelter_b4_lower_sewer shared=rooms
+shelterB4LowerSewerRoomVisualEffectsTwinTrailTask = 0x80180914; // type:func absolute:True owner=shelter_b4_lower_sewer shared=rooms
 
 func_shelter_b4_lower_sewer_801811FC = 0x801811FC; // type:func absolute:True owner=shelter_b4_lower_sewer
 
@@ -1889,7 +1889,7 @@ shelterB2PodAccessTunnelDrawLightBeamsTask = 0x8017DC6C; // type:func absolute:T
 
 func_shelter_b3_incinerator_control_room_8017FD10 = 0x8017FD10; // type:func absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 
-func_shelter_b4_lower_sewer_8017E400 = 0x8017E400; // type:func absolute:True owner=shelter_b4_lower_sewer shared=rooms
+shelterB4LowerSewerDrawGlowsTask = 0x8017E400; // type:func absolute:True owner=shelter_b4_lower_sewer shared=rooms
 
 func_shelter_r47_801858BC = 0x801858BC; // type:func absolute:True owner=shelter_r47
 
