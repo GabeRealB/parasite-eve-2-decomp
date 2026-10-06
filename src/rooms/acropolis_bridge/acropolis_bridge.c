@@ -2760,9 +2760,13 @@ static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, 
 static void            func_acropolis_bridge_801876A8(Task* task, u32 attackId);
 static void            _acropolisBridgeEnemyRelightModel(Task* task, s16 recomposeRoot);
 
-/// Reserves and initializes one textured-quad packet from the frame's primitive cursor.
+/// Reserves a textured-quad packet for the bridge's ground glow.
 ///
-/// Requires room for a complete `POLY_FT4`; the caller fills and queues it.
+/// Requires word-aligned space for `sizeof(POLY_FT4)` bytes at `gGpuPrimCursor`.
+/// Advances the cursor by one packet without checking capacity and initializes
+/// only the DMA length and textured-quad opcode. The caller fills and links it.
+/// A clipped glow still consumes the reservation; the packet is borrowed until
+/// the frame arena is reused after GPU completion.
 static __inline__ POLY_FT4* _acropolisBridgeReserveGroundGlowQuad(void)
 {
     POLY_FT4* quad;
@@ -4290,6 +4294,7 @@ void acropolisBridgeGroundGlowTask(Task* task)
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
+    // Reserve before the depth test; a clipped glow still consumes its packet.
     quad = _acropolisBridgeReserveGroundGlowQuad();
     gte_stsxy(&quad->x0);
     gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
