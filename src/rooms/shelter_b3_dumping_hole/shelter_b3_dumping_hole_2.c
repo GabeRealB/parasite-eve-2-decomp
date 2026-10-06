@@ -3888,21 +3888,21 @@ static void func_shelter_b3_dumping_hole_801833EC(Task* arg0)
     }
 }
 
-/// Latches the encounter stop command and returns `OVERLAY_ENCOUNTER_COMMAND_STOP`.
+/// Latches the encounter stop command.
 ///
 /// Installed for `ACTOR_COMMAND_MESSAGE_APPLY`; borrows `request` for this
-/// call. Other commands do not change the controller, but still return 4.
+/// call. Other commands do not change the controller. It is declared to return
+/// a value, as message handlers are, but has no return statement.
 /// `messageId` and the second payload word are unused.
 static s32 _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused)
 {
     OverlayEncounterControllerWork* work = task->work;
-    // The comparison value is also the callback result on either path.
-    register s32 stopCommand __asm__("$2") = OVERLAY_ENCOUNTER_COMMAND_STOP;
 
-    if (request->command == stopCommand) {
+    if (request->command == OVERLAY_ENCOUNTER_COMMAND_STOP) {
         work->stop = request->command;
     }
-    return stopCommand;
+    // No return statement: the handler falls off its end, as the binary does.
+    // What the dispatcher then reads is whatever the comparison left behind.
 }
 
 /// States of the task that works through the room's 16 enemy slots: set-up,
