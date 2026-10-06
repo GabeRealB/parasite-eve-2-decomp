@@ -148435,6 +148435,11 @@ source.
   barrier keeps the constant's `lui` first in the block so that its quantity
   is long enough (2 refs over 30 or more half-insns) to rank below
   `%hi(gRandomLcgState)` and take `$a2`.
+  *2026-10-06: two of the three pins, the barrier, the hand-split constant
+  and the `MATRIX_PAIR` word stores were not needed; one pin on the old state
+  remains. See "One pin was carrying three" at the end of this file, which
+  also corrects the dependence argument above: sched1 does not need it, only
+  sched2 does, and sched2 gets it from the shared hard register.*
 ### A pin on a value merged in the call's delay slot was one inline called in every arm (func_actor_403100_8013CBE0, 2026-10-05)
 
 **Supersedes** "An earlier call argument can change sched1 birth promotion
@@ -151379,3 +151384,90 @@ No instruction changes; only the order of allocation does.
 - The `.sched` dump prints each ready list with priorities
   (`7f000001` = a boosted birth) and ends with `register N life shortened from
   A to B`; here the `.lreg` header already showed B.
+
+## One pin was carrying three, a barrier and two contortions (func_800FF710, 2026-10-06)
+
+**Problem.** The `state == 0` block needed `one`/`old` pinned to `$v1`, `k`
+pinned to `$a2`, a `TOUCH_REG(k)`, the LCG increment split by hand into
+`lui`/`ori` halves and the identity matrix written as `MATRIX_PAIR` word stores
+in target order.
+
+**What the natural form gives.** `gfxSetRotIdentity(&coord->coord)` plus the
+plain `gRandomLcgState = gRandomLcgState * 5 + INCREMENT` is 20 lines off and
+every one of them is the same swap: the old state in `$a0` and the new one in
+`$v1` instead of `$v1`/`$a0`. Everything else the old body forced by hand falls
+out of that one assignment in sched2: with the old state in the register `ONE`
+just left, the load cannot move above the last `ONE` store, the two zero stores
+can, the `ori` fills the gap a load needs before a memory insn, and the
+constant's `lui` rises to the top of the block. The first identity store going
+through the coordinate (`sw 4(s5)`) and the rest through `s5 + 4` is what cse
+makes of the inline, not something to spell.
+
+**Fix (partial).** One pin, on a local that has a meaning:
+
+```c
+register s32 old asm("v1");
+...
+gfxSetRotIdentity(&coord->coord);
+...
+old             = gRandomLcgState;
+gRandomLcgState = old * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+mem->index      = (gRandomLcgState >> 16) & 0xFFF;
+```
+
+**Why the last pin is still there, with the numbers** (`tools/trace_gcc.py`
+on the pin-free body, block 4). All of the block's values are local-alloc
+quantities, allocated by `floor_log2(refs) * refs / span`, ties by quantity
+number (birth order), each taking the lowest free register:
+
+| quantity | refs | span | priority | gets |
+|---|---|---|---|---|
+| identity pointer `s5 + 4` | 5 | 8 | 12500 | `$v0` |
+| the `1` for `state` | 2 | 2 | 10000 | `$v0` |
+| new state (`sll`, `addu`, `addu` tied) | 7 | 14 | 10000 | `$v1` |
+| `ONE` | 4 | 14 | 5714 | `$v1` |
+| old state | 3 | 8 | 3750 | `$a0` |
+| `%hi(gRandomLcgState)` | 3 | 22 | 1363 | `$a1` |
+| the increment | 2 | 24 | 833 | `$a2` |
+
+The target needs the old state allocated before the new one, with `$v0` taken
+over its life. In this schedule that has no solution for a separate old-state
+register: sched1 launches the single-set load two insns above the `sll`
+(`lw; li 1; sw state; sll; addu`), the only `$v0` holder over it is the `1`
+(10000, born after it), and the new state is at 10000 too, so the old state
+would have to rank at least 10000 and below 10000 at once. Ruled out, each by
+a build:
+- *Statement order.* 132 orderings of the block's statements (LCG first or
+  in place, the store before or after each later statement, locals or direct
+  field reads) never come closer than the same 20-line difference: these
+  insns do not depend on each other, so sched1 places them by priority.
+- *More references on the old state* (a local reused for a value whose set and
+  use combine merges, the `Gp_UpdatePlayerMove` mechanism): 5 references give
+  12500, which outranks the `1` and takes `$v0`.
+- *One local for `ONE` and the old state.* The schedule becomes the target's,
+  but the register has two deaths, so `local_alloc` skips it
+  (`REG_N_DEATHS == 1`), the new state takes the free `$v1` and global-alloc
+  puts the shared local in `$a2`. A use and a set in one insn would not count
+  as a death (`flow.c`, `! dead_or_set_p`), but no insn here can do both.
+- *The new state accumulated in one variable* (`lcg = old << 2; lcg += old;
+  lcg += INCREMENT`): its insns stop being births, sched1 uses them to fill the
+  load gaps of the translation copy and puts the constant's `lui`/`ori` first,
+  which is the target's layout; its priority drops to 4666 (span 30), but the
+  old state is at 3000 (span 10) and still loses.
+- *The store to `gRandomLcgState` scheduled late* (so that the new state
+  overlaps the `halves.high` value in `$v1`): the permuter found this by
+  re-reading `halves.high`, which costs a load; a fixed scalar store has no
+  dependence on the struct loads, so its place is the first stall sched1 finds
+  going backwards, not its place in the source.
+
+**Use.**
+- Before spelling out what a pin forces, remove everything else and keep only
+  the pin: here three pins, a barrier, a split constant and five cast stores
+  were one allocation decision, and sched2 derived the rest.
+- `trace_gcc.py` prints the quantities with their priorities; when two values
+  must swap, write down the interval the loser's priority has to fall in. An
+  empty interval means the schedule is not the original's, not that a spelling
+  is missing.
+- A reused local helps local-alloc only if combine deletes the second set
+  (references stay, `REG_N_SETS` returns to 1). A local with two live ranges
+  that both survive is a global-alloc register.

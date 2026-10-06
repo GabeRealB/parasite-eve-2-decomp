@@ -4303,12 +4303,8 @@ void func_800FF710(Task* arg0)
 {
     EffectWork*  mem;
     GfxCoord*    coord;
-    MATRIX*      m;
     s16          flag;
     register s32 old asm("v1");
-    register s32 k asm("a2");
-    s32          lcg;
-    register s32 one asm("v1");
     s32          temp;
     s32          temp2;
     s32          i;
@@ -4327,33 +4323,23 @@ void func_800FF710(Task* arg0)
         effectKillTask(mem, arg0);
     } else {
         if (arg0->state == 0) {
-            one = ONE;
-            k   = RANDOM_LCG_INCREMENT & ~0xFFFF;
-            /* Keep the LCG upper half ahead of the coordinate stores. */
-            TOUCH_REG(k);
-            m                    = &coord->coord;
-            coord->parent        = mem->parent;
-            *(s32*)&coord->coord = one;
-            MATRIX_PAIR(m, 1, 1) = one;
-            m->m[2][2]           = one;
-            old                  = gRandomLcgState;
-            k                   |= RANDOM_LCG_INCREMENT & 0xFFFF;
-            MATRIX_PAIR(m, 0, 2) = 0;
-            MATRIX_PAIR(m, 2, 0) = 0;
-            coord->coord.t[0]    = mem->pos.vx;
-            coord->coord.t[1]    = mem->pos.vy;
-            coord->coord.t[2]    = mem->pos.vz;
-            coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-            arg0->state          = 1;
-            lcg                  = old * RANDOM_LCG_MULTIPLIER + k;
-            mem->index           = ((u32)lcg >> 16) & 0xFFF;
-            temp                 = arg0->spawnArg1.halves.low;
-            gRandomLcgState      = lcg;
-            mem->scale           = temp;
-            temp2                = arg0->spawnArg1.halves.high;
-            mem->step            = ((s16)temp >> 10) + 1;
-            mem->angle           = temp2;
-            mem->period          = temp2 << 2;
+            coord->parent = mem->parent;
+            gfxSetRotIdentity(&coord->coord);
+            coord->coord.t[0]   = mem->pos.vx;
+            coord->coord.t[1]   = mem->pos.vy;
+            coord->coord.t[2]   = mem->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state         = 1;
+            /* The previous random state shares $v1 with the identity's ONE. */
+            old             = gRandomLcgState;
+            gRandomLcgState = old * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->index      = (gRandomLcgState >> 16) & 0xFFF;
+            temp            = arg0->spawnArg1.halves.low;
+            mem->scale      = temp;
+            temp2           = arg0->spawnArg1.halves.high;
+            mem->step       = ((s16)temp >> 10) + 1;
+            mem->angle      = temp2;
+            mem->period     = temp2 << 2;
         }
         actorRenderComposeCoord(coord);
         _effectDrawSparkBurstBillboard(coord, (u16)(mem->age >> 1), mem->scale - 0x40, mem->index);
