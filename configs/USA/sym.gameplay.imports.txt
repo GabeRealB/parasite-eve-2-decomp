@@ -1115,9 +1115,9 @@ func_shelter_b1_transfer_tunnel_80181C78 = 0x80181C78; // type:func absolute:Tru
 
 func_shelter_b2_breeding_room_8017E774 = 0x8017E774; // type:func absolute:True owner=shelter_b2_breeding_room
 
-func_shelter_b2_breeding_room_8017ECCC = 0x8017ECCC; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
+shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask = 0x8017ECCC; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
 
-func_shelter_b2_breeding_room_8017F92C = 0x8017F92C; // type:func absolute:True owner=shelter_b2_breeding_room
+shelterB2BreedingRoomRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F92C; // type:func absolute:True owner=shelter_b2_breeding_room
 
 func_shelter_b2_elevator_hall_8017F1D8 = 0x8017F1D8; // type:func absolute:True owner=shelter_b2_elevator_hall
 

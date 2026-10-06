@@ -48,9 +48,26 @@ void func_shelter_b2_breeding_room_8017D840(Task* task);
 
 void func_shelter_b2_breeding_room_8017E774(Task* arg0);
 
-void func_shelter_b2_breeding_room_8017ECCC(Task* task);
+/// Runs the Breeding Room's animated spark along its initial target displacement.
+///
+/// Requires a counted `Gp_SpawnEff` task with a `TASK_BODY_COORD` body and owned
+/// `EffectWork` in `spawnArg2.pointer`. `spawnArg1.pointer` borrows a target
+/// `GfxCoord`; both world matrices must be composed on the first active tick.
+/// That tick fixes a flight step in parent axes using a Q12 factor of 204;
+/// the target is not sampled again. Draws on odd ages and releases the work
+/// at age 20. Room effect control 0 runs, other values below 4 pause, and
+/// values at least 4 cancel and release the work.
+void shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_shelter_b2_breeding_room_8017F92C(Task* arg0);
+/// Runs the Breeding Room's expanding orange burst, ground glow and fading ring.
+///
+/// Requires a counted `Gp_SpawnEff` task with a `TASK_BODY_COORD` body and owned
+/// `EffectWork` in `spawnArg2.pointer`; `spawnArg1` is unused. The glow grows
+/// by 16 world units per active tick. The expanding ring fades first, then
+/// the central burst fades and releases the work. Each draw refreshes the
+/// shared transient orange point light. Room effect control 0 runs, other
+/// values below 4 pause, and values at least 4 cancel and release the work.
+void shelterB2BreedingRoomRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
 /// Draws the breeding room's fixed disc and capsule glows for the active camera.
 ///
