@@ -876,24 +876,27 @@ void func_dryfield_gas_station_80180B2C(s16 arg0)
 #define GLOW_DRAW_RAY_STAR_RAY(p, c)      setRGB2(p, 0, c, c)
 #include "../../shared/glow_draw_ray_star.inc.c"
 
-/// Per-frame effect: draws the gas station's shaft with the task's own
-/// coordinate, then enables `gRoomEffectState->roomEffectMode`.
-/// `Task::extra.coordBody->coord` is the coordinate both draws share. The
-/// stage-visit byte `gGameSession->location.loc.view` is used as a bit index: bits 4, 6,
-/// 11 and 12 (`0x1850`) select `_glowDrawStarLocal` with radius scale 0x80,
-/// and any other non-zero bit selects `_glowDrawRayStar`
-/// with 0x40.
-void func_dryfield_gas_station_80181A78(Task* arg0)
+void dryfieldGasStationCyanGlowTask(Task* task)
 {
-    s32       mask;
-    GfxCoord* coord;
+    enum {
+        DRYFIELD_GAS_STATION_GLOW_DIAMOND_VIEWS        = (1 << 4) | (1 << 6) | (1 << 11) | (1 << 12),
+        DRYFIELD_GAS_STATION_GLOW_PULSE_RATE           = 96, // 4096 angle units per turn, per animation frame
+        DRYFIELD_GAS_STATION_GLOW_DIAMOND_RADIUS_SCALE = 128,
+        DRYFIELD_GAS_STATION_GLOW_DISC_RADIUS_SCALE    = 64,
+    };
 
-    mask  = 1 << gGameSession->location.loc.view;
-    coord = arg0->extra.coordBody->coord;
-    if (mask & 0x1850) {
-        _glowDrawStarLocal(coord, &D_dryfield_gas_station_80183144, 0x60, 0x80);
-    } else if (mask != 0) {
-        _glowDrawRayStar(coord, &D_dryfield_gas_station_80183144, 0x60, 0x40);
+    s32       viewBit;
+    GfxCoord* glowCoord;
+
+    viewBit   = 1 << gGameSession->location.loc.view;
+    glowCoord = task->extra.coordBody->coord;
+    // The diamond and disc scales give the same nominal screen radius.
+    if (viewBit & DRYFIELD_GAS_STATION_GLOW_DIAMOND_VIEWS) {
+        _glowDrawStarLocal(glowCoord, &D_dryfield_gas_station_80183144,
+                           DRYFIELD_GAS_STATION_GLOW_PULSE_RATE, DRYFIELD_GAS_STATION_GLOW_DIAMOND_RADIUS_SCALE);
+    } else if (viewBit != 0) {
+        _glowDrawRayStar(glowCoord, &D_dryfield_gas_station_80183144,
+                         DRYFIELD_GAS_STATION_GLOW_PULSE_RATE, DRYFIELD_GAS_STATION_GLOW_DISC_RADIUS_SCALE);
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

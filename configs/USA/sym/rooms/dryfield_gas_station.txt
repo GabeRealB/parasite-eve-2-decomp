@@ -123,7 +123,7 @@ _gDryfieldGasStationAnimation05848 = 0x80182E08; // size:0x28 defined:True
 D_dryfield_gas_station_80182E30 = 0x80182E30; // size:0x14 defined:True
 D_dryfield_gas_station_80181E7C = 0x80181E7C; // size:0x24 defined:True
 
-func_dryfield_gas_station_80181A78 = 0x80181A78; // type:func
+dryfieldGasStationCyanGlowTask = 0x80181A78; // type:func
 
 func_dryfield_gas_station_8017EA90 = 0x8017EA90; // type:func
 Telephone_DrawPlayDataRow = 0x8017D6F8; // type:func
