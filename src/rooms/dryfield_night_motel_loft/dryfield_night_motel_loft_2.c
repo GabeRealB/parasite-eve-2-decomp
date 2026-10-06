@@ -622,7 +622,8 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
                 case DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FADING:
                     work->period -= DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FADE_STEP;
                     if (work->period < DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_SHADE) {
-                        goto release;
+                        effectKillTask(work, task);
+                        break;
                     }
                     DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD();
                     // The fading shard can still bounce and lose half its velocity.
@@ -640,7 +641,6 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
             }
         }
     } else {
-    release:
         effectKillTask(work, task);
     }
 }
