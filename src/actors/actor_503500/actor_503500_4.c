@@ -827,8 +827,8 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
@@ -1333,8 +1333,8 @@ static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPar
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
@@ -1692,8 +1692,8 @@ static inline void _actor503500ChainBaseHandleHit(Task* arg0, _Actor503500ChainB
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
@@ -2246,8 +2246,8 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
@@ -2703,8 +2703,8 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
@@ -3566,8 +3566,8 @@ static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500Lun
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
@@ -4559,8 +4559,8 @@ static inline void _actor503500ArmHandleHit(Task* arg0, _Actor503500ArmWork* wor
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), crit, crit);
-    if (Gp_RollEnemyChance(enemy, id, crit) != 0) {
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
     }
