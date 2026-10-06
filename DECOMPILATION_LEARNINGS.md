@@ -58580,7 +58580,7 @@ preheader (`addiu $a1, $v1, -0x20`). The constant ends up last only when it is
 the offset of a member of an object the index has already located.
 
 A read-modify-write does have a typed spelling, because it needs no pointer
-local at all. `func_acropolis_plaza_801802C0` adds a translation to each rotated
+local at all. `acropolisPlazaSirenLightTask` adds a translation to each rotated
 vertex after the same pair of GTE operands, and the target is the same split:
 `0x24($a2)` for `vx`, then `addiu $a0, $a2, 0x24` and `2($a0)` / `4($a0)`.
 Dereferencing the element's address in each compound assignment produces it:
@@ -61107,7 +61107,7 @@ prim->y0 = blk->sxy[i] >> 16;           /* sign-extending extract -> lh  2(p) */
 `>> 16` on a *signed* word is what produces `lh`; an unsigned word would give
 `lhu` again. This shape is common for `gte_stsxy` / `getScratchAddr` blocks,
 where the GTE writes one word and the C reads the two screen coordinates back
-out of it. In `func_acropolis_plaza_801802C0` this alone was worth ~1.5%.
+out of it. In `acropolisPlazaSirenLightTask` this alone was worth ~1.5%.
 
 ## Put the loop increment before the call, or `i` never reaches a callee-saved register
 
@@ -61140,7 +61140,7 @@ for (i = 0; i < 2;) {
 
 leaves `i` live across the call, so it takes `$s1` and one more long-lived
 pointer gets spilled instead. That is not cosmetic: it decides *which* pseudo
-loses. In `func_acropolis_plaza_801802C0` the target spills the
+loses. In `acropolisPlazaSirenLightTask` the target spills the
 `&gWorldCoordTransientPointLights[n]` pointer to `0x10($sp)`; with the increment in the default
 place a colour component spilled instead and the whole `$s0`-`$s8` assignment
 came out shifted. The single edit moved the score 88.99% -> 90.57% and dropped
@@ -61247,9 +61247,9 @@ arm of the `if` that keeps the temp distinct from both colours.
 Six ring-vertex reads out of the same 16-entry sine table,
 
 ```c
-prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_plaza_801987E0[i + 4]) >> 12);
-prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_plaza_801987E0[i]) >> 12);
-prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_plaza_801987E0[i + 5]) >> 12);
+primitive->x0 = flare->screenPos.vx + ((flare->outerRadius * D_acropolis_plaza_801987E0[i + 4]) >> 12);
+primitive->y0 = flare->screenPos.vy + ((flare->outerRadius * D_acropolis_plaza_801987E0[i]) >> 12);
+primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * D_acropolis_plaza_801987E0[i + 5]) >> 12);
 ...
 ```
 
@@ -61259,7 +61259,7 @@ table's `lui`/`addiu` hoisted into the loop preheader. Copy the symbol into a
 local first (`s16* tbl = D_acropolis_plaza_801987E0;`) and GCC 2.8.1 computes
 `i * 2 + tbl` once and folds every `+ K` into the load displacement
 (`lh $v1, 8($a0)`), rematerialising the symbol *inside* the loop. On
-`func_acropolis_plaza_801811D0` that one difference is 71.2% against 98.6%.
+`acropolisPlazaLightFlareTask` that one difference is 71.2% against 98.6%.
 
 The loop spelling does not matter here — `for (i = 0; i < 0x10; i += 2)` and
 `do { … i = i + 2; } while (i < 0x10)` both give the unfolded form as long as
@@ -66752,7 +66752,7 @@ was never going to be hoisted anyway.
 
 ## Signed-halfword pulse locals can restore color register priority
 
-`func_acropolis_plaza_80182054` reached 99.837% with only `regs=10` left.
+`acropolisPlazaLightGlowTask` reached 99.837% with only `regs=10` left.
 The three RGB locals were `s16`, but the triangular pulse result feeding red
 was `s32`. `.lreg` showed all three channels had four references; `.greg`
 ranked blue, green, red by live length. CSE also shifted the wider pulse
@@ -67109,12 +67109,12 @@ were dead and removed.
 
 ## Flare scratch copies: an empty asm can occupy the load-delay scheduler slot
 
-`func_acropolis_plaza_801811D0` needs `addiu v0,head,-0x4C; lhu v1,56(coord);
-move s5,v0; sh v1,32(s5)`. With `SOFT_TOUCH_REG(raw); blk = raw`, `.lreg`
+`acropolisPlazaLightFlareTask` needs `addiu v0,head,-0x4C; lhu v1,56(coord);
+move s5,v0; sh v1,32(s5)`. With `SOFT_TOUCH_REG(raw); flare = raw`, `.lreg`
 puts the load before the empty asm, but reload inserts the `move` before the
 load. `.sched2` treats the empty asm as the intervening instruction; the final
 assembler must insert a `nop` because that asm emits nothing. A non-volatile
-`__asm__("move %0, %1" : "=r"(blk) : "r"(raw))` makes the scheduled copy real
+`__asm__("move %0, %1" : "=r"(flare) : "r"(raw))` makes the scheduled copy real
 and matches without hard-register pins. Removing the asm folds the calculation
 straight into the saved register and loses the required copy.
 
@@ -145602,7 +145602,7 @@ local is only ever assigned from an argument.
 
 Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `value[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_STACK_CURSOR = scratch`, and `TOUCH_REG` on a copy of the first coordinate. `scratch = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* endOffset` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is a `const SVECTOR*`. With `endOffset->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `scratch->worldEnd.vx += endOffset->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
 
-### Nested `goto`s storing one field in several arms are a threshold ternary, and its orientation matters (func_acropolis_plaza_801802C0, 2026-09-26)
+### Nested `goto`s storing one field in several arms are a threshold ternary, and its orientation matters (acropolisPlazaSirenLightTask, 2026-09-26)
 
 A `sh` of `0x200` or `0x800` reached through an abs-style split (`x >= 0` then
 `x <= lim`, else `-x <= lim`) with a store in the delay slot of a `j` and

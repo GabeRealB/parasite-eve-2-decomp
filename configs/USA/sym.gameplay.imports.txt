@@ -599,11 +599,11 @@ acropolisPatioFountainJetTask = 0x8017E324; // type:func absolute:True owner=acr
 
 acropolisPatioFountainMistTask = 0x8017E730; // type:func absolute:True owner=acropolis_patio
 
-func_acropolis_plaza_801802C0 = 0x801802C0; // type:func absolute:True owner=acropolis_plaza shared=rooms
+acropolisPlazaSirenLightTask = 0x801802C0; // type:func absolute:True owner=acropolis_plaza shared=rooms
 
-func_acropolis_plaza_801811D0 = 0x801811D0; // type:func absolute:True owner=acropolis_plaza
+acropolisPlazaLightFlareTask = 0x801811D0; // type:func absolute:True owner=acropolis_plaza
 
-func_acropolis_plaza_80182054 = 0x80182054; // type:func absolute:True owner=acropolis_plaza
+acropolisPlazaLightGlowTask = 0x80182054; // type:func absolute:True owner=acropolis_plaza
 
 func_acropolis_plaza_8018251C = 0x8018251C; // type:func absolute:True owner=acropolis_plaza
 

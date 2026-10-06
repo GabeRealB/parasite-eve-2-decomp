@@ -271,11 +271,13 @@ D_map_akropolis_8017AFEC = 0x8017AFEC; // absolute:True owner=map_akropolis
 
 func_acropolis_plaza_8018251C = 0x8018251C; // type:func
 
-func_acropolis_plaza_80182054 = 0x80182054; // type:func
+acropolisPlazaLightGlowTask = 0x80182054; // type:func
 
-func_acropolis_plaza_801802C0 = 0x801802C0; // type:func
+acropolisPlazaSirenLightTask = 0x801802C0; // type:func
 
-func_acropolis_plaza_801811D0 = 0x801811D0; // type:func
+acropolisPlazaLightFlareTask = 0x801811D0; // type:func
 
 func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func
 screenFadeInTileTask = 0x8017DA58; // type:func
+_acropolisPlazaFadeToWhiteTask = 0x8017d8ac; // type:func
+_acropolisPlazaLetterboxTask = 0x8017ff18; // type:func
