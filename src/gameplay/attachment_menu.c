@@ -331,11 +331,6 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
     s32       val;
     s32       flags;
     Task*     parent;
-    s32*      table;
-    s32       i;
-    s32       slot;
-    s32       minusOne;
-    s32*      p;
 
     menu       = &D_8010E9CC;
     obj        = arg0->spawnArg2.pointer;
@@ -365,23 +360,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             flags = 0x112;
         } else {
             if (((obj->panel.control.word >> 16) == state) || (obj->panel.control.word == state)) {
-                table = Gp_PreviewItems;
-                if (val != table[2]) {
-                    i = 0;
-                    do {
-                        slot     = 2;
-                        minusOne = -1;
-                        p        = table;
-                    } while (0);
-                    for (; i < 3; i++, p++) {
-                        if (i == slot) {
-                            *p = val;
-                        } else {
-                            *p = minusOne;
-                        }
-                    }
-                    Gp_EnqueueItemPreviewCd(val, 2);
-                }
+                GP_SET_PREVIEW_ITEM(val, 2);
             }
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 flags |= 0x100;
