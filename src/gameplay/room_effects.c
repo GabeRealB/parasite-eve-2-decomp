@@ -793,7 +793,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012FAC8, { NULL } },                                   // 0x0FC
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_hole_8017EC90, { NULL } },                           // 0x0FD
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_hole_8017F118, { NULL } },                           // 0x0FE
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_hole_8017F254, { NULL } },                     // 0x0FF
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterRippleTask, { NULL } },                       // 0x0FF
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_gas_station_80180E9C, { NULL } },                    // 0x100
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_8017E484, { NULL } },                    // 0x101
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGeneralStoreDrawLightShaftsTask, { NULL } },                // 0x102
@@ -825,7 +825,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_hole_8017E6D0, { NULL } },                     // 0x11C
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightCellarDrawGlowsTask, { NULL } },                            // 0x11D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightUnderpassDrawFlaresTask, { NULL } },                        // 0x11E
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_water_hole_8017F6DC, { NULL } },                     // 0x11F
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterDriftTaskU16, { NULL } },                     // 0x11F
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017ED08, { NULL } },                                     // 0x120
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_8017E474, { NULL } },                                   // 0x121
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_tunnel_entrance_8017D720, { NULL } },                          // 0x122

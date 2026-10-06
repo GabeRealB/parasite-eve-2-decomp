@@ -85,5 +85,5 @@ _waterDrawSpinU16 = 0x8017F5D4; // type:func
 _waterDrawTileU16 = 0x8017F9C0; // type:func
 waterHoleDoorMsg = 0x8017D5F0; // type:func
 waterHoleWaterTask = 0x8017DFA0; // type:func
-waterHoleWaterStart = 0x8017E000; // type:func
+_waterHoleWaterStart = 0x8017E000; // type:func
 waterHoleDrawSurfaces = 0x8017D898; // type:func

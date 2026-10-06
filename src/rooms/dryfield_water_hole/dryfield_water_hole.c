@@ -1392,17 +1392,7 @@ void func_dryfield_water_hole_8017D840(Task* task)
 
 #include "../../shared/water_hole_water_task.inc.c"
 
-/// The water task's first state: clears the session halfword `field_80`, or
-/// `field_7E` while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` is set, then advances to the drawing state.
-void waterHoleWaterStart(Task* arg0)
-{
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        gGameSession->field_80 = 0;
-    } else {
-        gGameSession->field_7E = 0;
-    }
-    arg0->state = (s32)(arg0->state + 1);
-}
+#include "../../shared/water_hole_water_start.inc.c"
 
 /// Room task. State 0 installs effect ids 0x600FD / 0x600FE in the two shared
 /// effect-id slots, records the world positions of parts 14 and 17 of the

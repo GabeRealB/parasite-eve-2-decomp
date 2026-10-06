@@ -114,9 +114,9 @@ gWaterHoleWaveScroll = 0x8018362C; // size:0x2 defined:True
 D_dryfield_night_water_hole_8018362E = 0x8018362E; // size:0x2 defined:True
 gRoomDeparture = 0x80183630; // size:0xC defined:True
 
-func_dryfield_night_water_hole_8017F6DC = 0x8017F6DC; // type:func
+dryfieldNightWaterHoleWaterDriftTaskU16 = 0x8017F6DC; // type:func
 
-func_dryfield_night_water_hole_8017F254 = 0x8017F254; // type:func
+dryfieldNightWaterHoleWaterRippleTask = 0x8017F254; // type:func
 
 func_dryfield_night_water_hole_8017E6D0 = 0x8017E6D0; // type:func
 _glowDrawShaft = 0x8017EA6C; // type:func
@@ -127,5 +127,7 @@ _waterDrawTileU16 = 0x8017FF84; // type:func
 roomVariantResolveShelter = 0x8017D6AC; // type:func
 waterHoleDoorMsg = 0x8017DADC; // type:func
 waterHoleWaterTask = 0x8017E630; // type:func
-waterHoleWaterStart = 0x8017E690; // type:func
+_waterHoleWaterStart = 0x8017E690; // type:func
 waterHoleDrawSurfaces = 0x8017DF28; // type:func
+_dryfieldNightWaterHoleRejectKeyItemUse = 0x8017dad4; // type:func
+_dryfieldNightWaterHoleRoomIdle = 0x8017de20; // type:func

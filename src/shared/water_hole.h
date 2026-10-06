@@ -1,6 +1,5 @@
 /* The Dryfield water hole's door handler and water task, the same in the day and night
- * builds: the task's first state is the room's own, then it draws the room's
- * water surfaces.
+ * builds: the task prepares its actor buffer, then draws the room's water surfaces.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -32,10 +31,10 @@ typedef struct {
 } WaterHoleSurface;
 STATIC_ASSERT_SIZEOF(WaterHoleSurface, 0xC);
 
-s32  waterHoleDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
-void waterHoleWaterTask(Task* task);
-void waterHoleWaterStart(Task* arg0);
-void waterHoleDrawSurfaces(Task* task);
+s32         waterHoleDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+void        waterHoleWaterTask(Task* task);
+static void _waterHoleWaterStart(Task* task);
+void        waterHoleDrawSurfaces(Task* task);
 
 /// The room's water surfaces, ended by an entry whose `y` is `WATER_SURFACE_LIST_END`.
 extern WaterHoleSurface gWaterHoleSurfaces[];

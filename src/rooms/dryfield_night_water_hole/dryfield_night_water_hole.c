@@ -125,7 +125,7 @@ extern _DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835
 /// The staged event descriptor, read by the room's event task.
 extern RoomDeparture gRoomDeparture;
 
-static void func_dryfield_night_water_hole_8017DE20(Task* task);
+static void _dryfieldNightWaterHoleRoomIdle(Task* task);
 static void func_dryfield_night_water_hole_8017DE88(_DryfieldNightWaterHoleSurfaceOverride* list);
 
 extern WorldCollisionGrid         D_dryfield_night_water_hole_80180F50[1];
@@ -146,9 +146,13 @@ extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B0[1];
 extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835B8[1];
 extern WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835C0[1];
 
-s32 func_dryfield_night_water_hole_8017DAD4(Task*, s32, s32, s32);
-s32 func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
-s32 func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+s32        func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
+s32        func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+
+enum {
+    DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
+};
 
 static AnimationPackedPose _gDryfieldNightWaterHoleAnimation03004Bank1[6] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank1.inc"
@@ -176,7 +180,7 @@ TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, ro
 
 TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, waterHoleDoorMsg },
-    { 5105, func_dryfield_night_water_hole_8017DAD4 },
+    { DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_water_hole_8017DD5C },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_water_hole_8017DC28 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1074,14 +1078,19 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
 /// `func_dryfield_night_water_hole_8017DE30`: the entry tick, the idle state,
 /// then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_water_hole_8017D688 = {
-    { func_dryfield_night_water_hole_8017D958, func_dryfield_night_water_hole_8017DE20, taskKill },
+    { func_dryfield_night_water_hole_8017D958, _dryfieldNightWaterHoleRoomIdle, taskKill },
 };
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_night_water_hole_8017DAD4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room without consuming the item.
+///
+/// Message `DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM` carries the inventory
+/// item ID in `itemId`; the receiver and second argument are unused. Returns
+/// zero so the item menu displays its refusal notice.
+static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_NIGHT_WATER_HOLE_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_NIGHT_WATER_HOLE_KEY_ITEM_REFUSED;
 }
 
 #include "../../shared/water_hole_door_msg.inc.c"
@@ -1157,11 +1166,11 @@ s32 func_dryfield_night_water_hole_8017DD5C(Task* arg0, s32 arg1, RoomEventMsg* 
     return 0;
 }
 
-/// The room task's idle state, entry 1 of its three-state table: does nothing.
-/// The 0x10-byte local is never used, but the original reserved the frame.
-static void func_dryfield_night_water_hole_8017DE20(Task* task)
+/// Keeps the initialized room task idle until its state changes externally.
+static void _dryfieldNightWaterHoleRoomIdle(Task* task)
 {
-    char pad[0x10];
+    // Retain the idle state's unused 16-byte stack frame.
+    u8 unusedStackBytes[16];
 }
 
 /// The room task: copies the three-state table
@@ -1196,17 +1205,7 @@ static void func_dryfield_night_water_hole_8017DE88(_DryfieldNightWaterHoleSurfa
 
 #include "../../shared/water_hole_water_task.inc.c"
 
-/// The water task's first state: clears the session halfword `field_80`, or
-/// `field_7E` while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` is set, then advances to the drawing state.
-void waterHoleWaterStart(Task* arg0)
-{
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        gGameSession->field_80 = 0;
-    } else {
-        gGameSession->field_7E = 0;
-    }
-    arg0->state = (s32)(arg0->state + 1);
-}
+#include "../../shared/water_hole_water_start.inc.c"
 
 /// Room task. State 0 installs effect ids 0x600FF / 0x6011F in the two shared
 /// effect-id slots while progress nibble 0xB8 is clear, records the world
@@ -1301,7 +1300,7 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_dryfield_night_water_hole_8017F254(Task* task)
+void dryfieldNightWaterHoleWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -1310,7 +1309,7 @@ void func_dryfield_night_water_hole_8017F254(Task* task)
 
 #include "../../shared/water_drift_task_u16.inc.c"
 
-void func_dryfield_night_water_hole_8017F6DC(Task* task)
+void dryfieldNightWaterHoleWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
