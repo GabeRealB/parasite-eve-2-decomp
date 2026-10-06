@@ -32350,6 +32350,8 @@ register PlayerStatus* cfg asm("t4");
 
 `Gp_CountAmmoRows` is the example.
 
+**2026-10-06.** `Gp_CountAmmoRows` no longer uses this; the project has no instruction-emitting `asm` left. See "A conditional block that is empty by local-alloc" at the end of this file.
+
 ## Assign the LCG back onto `gRandomLcgState`; split `t[1] +=` so `composeStamp = 0` fills the load delay
 
 Two in-block `gRandomLcgState * 5 + 0x71357911` steps that both feed field
@@ -68355,6 +68357,8 @@ for `cfg = &gPlayerStatus;` (first, after `count = 0`, between the two
 destination *is* `$v1` - remain the only known handles, and the first of those is
 an instruction-emitting asm rather than a match. What actually produced the
 overlap in the original build is unresolved.
+
+**2026-10-06.** Resolved for `Gp_CountAmmoRows`: the overlap is with the *limit load*, not with another `high`. Once the pre-test keeps its `slt`, sched1 leaves `lbu limit` between the `high` and its `lo_sum`. See "A conditional block that is empty by local-alloc" at the end of this file.
 
 ## A pinned local fed by a parameter deletes the copy; `USE_REG` on the parameter brings it back
 
@@ -148564,6 +148568,8 @@ keep their own `move` and the test stays. Reading `frames` before the call
 test and it leaves `$v0`. 168 inline shapes (five bodies, two numerators,
 return / local / `start0` types) gave nothing closer. The target needs the zero
 set in the same block as the compare and after the `lh`, yet unknown to cse2.
+
+**2026-10-06, `Gp_CountAmmoRows` resolved.** The read of `count` that keeps the `slt` is not needed: a basic-block boundary between `count = 0` and the pre-test does it, and the giv's missing reference is a second `idx++`. See "A conditional block that is empty by local-alloc" at the end of this file. The other three functions are unchanged.
 ## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
 
 **Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
@@ -150729,3 +150735,113 @@ three-statement form on the same local a defensible reading, not a proof.
 Not found: a fence that is ordinary C. Do not retry `volatile`, a
 `for (i = 0; i < 1; i++)` around the call (leaves the counter and its
 branch), or any single-statement spelling of the increment.
+
+## A conditional block that is empty by local-alloc: the surviving `slt count,limit`, `lui $v1`, and a giv ranked by duplicated increments (Gp_CountAmmoRows, 2026-10-06)
+
+**Was.** Four pins, a barrier, a `goto` and the project's only
+instruction-emitting `asm` (`lui %1, %hi(gPlayerStatus)`). Three earlier
+passes named three independent residues: the pre-test `slt v0,t0,v0` folds to
+`beqz limit`, the second `%hi` takes `$v0`, and `$a3/$t0/$t1` rotate. They are
+two causes, and neither is a register.
+
+**1. One missing basic block explains the `slt`, the `lui $v1` and
+`table`/`idx` in `$a2`/`$v1`.** combine folds `count = 0` / `slt` / branch
+through the `LOG_LINK` from the `slt` to `count = 0`, and `flow.c` only makes
+that link inside one basic block. So the target had a block boundary between
+the two that is gone from the listing. An `if` whose body disappears *after*
+combine leaves exactly that:
+
+```c
+count = 0;
+i     = 0;
+if (arg1 == 0) {
+    visibleRows = 4;             /* set once, used once, in the tail */
+}
+table = ...; scan = ...; cfg = &gPlayerStatus; idx = scan->firstRow;
+for (; i < scan->rowCount; i++) { ... }
+...
+if (arg1 == 0) {
+    arg0->rowHeight                     = 0xF;
+    arg0->visibleRowCount.unsignedValue = visibleRows;
+} else { ... }
+```
+
+- `visibleRows = 4` is a set-once pseudo with a `REG_EQUIV` constant and two
+  references, the use in another block. `update_equiv_regs` (local-alloc)
+  moves the initialisation to just before the use: `li v0,4` / `sb v0,5(a0)`
+  in the tail, byte for byte what the literal gave. The `if` body is then
+  empty, jump2 deletes `bnez a1` to the next insn, and a branch on a register
+  against zero leaves no compare behind.
+- Until then it is a real block: cse1 still knows `count == 0` across it
+  (`-fcse-skip-blocks` walks around a short `if` body) and writes the
+  duplicated exit test as `(lt count limit)`, but combine has no link and the
+  `slt` stays.
+- With the `slt` alive sched1 orders the block `high(gPlayerStatus)`,
+  `lbu limit`, `lo_sum`, `slt`, `lbu idx`: the limit sits in `$v0` across the
+  pair, so the `high` gets `$v1`, `table` (global) is refused both and takes
+  `$a2`, and `idx` takes `$v1` after the `high` dies. sched2 then sinks the
+  load again, which is why the listing shows the pair adjacent with `$v0`
+  apparently free. No statement order of `cfg = &gPlayerStatus` produces
+  this, because the cause is the `slt`.
+- `i = 0` has to be written with `count = 0`, before the `if`
+  (`for (; i < ...; i++)`): `reload_cse_regs` forgets everything at a label,
+  so only a zero in the same block as `count`'s becomes `move t3,t0`. As
+  `for (i = 0; ...)` the one difference left is `move t3,zero` (built).
+- A dead store does not work as the body: `if (c) x = k;` with `x` never
+  read is already gone from the `.jump` dump, branch and all (built).
+  The body must survive to flow and vanish later; a set-once constant read
+  once elsewhere is what local-alloc relocates. The block must come before
+  `cfg = &gPlayerStatus` (after it: `lui v0` again, built).
+
+`visibleRows` is an honest value (the weapon list shows four rows) but its
+*position* is what matters, and nothing in the bytes says what the original
+block held. Any body that is real at flow and empty by jump2 would do.
+
+**2. The giv's rank came from `idx++` written three times.** global-alloc
+needs `&table[idx]` (the reduced giv, `$a3`) before `count` (`$t0`) before
+the hoisted `(id - 0x80) * 4` (`$t1`). With one `idx++` the giv has 15
+weighted refs over 52 (8653) against 11111 for the other two. loop.c emits one
+`giv += 4` for **every source increment of the biv**, each worth 4 refs at
+depth 2, and jump2 cross-jumps the identical tails back into the single
+`addiu a3,a3,4` of the target:
+
+```c
+for (; i < scan->rowCount; i++) {
+    if ((u8)(table[idx].itemId - FIRST) >= 0x20) { idx++; continue; }
+    if (arg1 == 0) { count++; idx++; continue; }
+    for (j ...) { if (accepted[j] == arg1) {
+        if (slot > NONE) count++; else if (weapon == id - 0x7F) count++;
+        break; } }
+    for (j ...) { ... same on the second table ... }
+    idx++;
+}
+```
+
+Measured (`refs/len` -> priority): giv 23/59 -> 15593, `count` 28/79 -> 14177,
+offsets 5/9 -> 11111. The grid that was built, same 94 instructions unless
+noted:
+
+| guard clauses | hit test in loop 1 / loop 2 | giv | count | result |
+|---|---|---|---|---|
+| none (`if (weapon) { if (!arg1) count++; else {...} } idx++;`) | `\|\|` / `\|\|` | 8653 | 11111 | `$a3/$t0/$t1` rotated |
+| `arg1 == 0` only | `\|\|` / `\|\|` | 14339 | 10958 | `count`/offset swapped |
+| `arg1 == 0` only | `\|\|` / `if-else if` | 13818 | 12800 | **match** |
+| `arg1 == 0` only | `if-else if` / `\|\|` | - | - | 95 insns |
+| both | `\|\|` / `\|\|` | 16727 | 10666 | `count`/offset swapped |
+| both | `if-else if` / `if-else if` | 15593 | 14177 | **match** (used: symmetric) |
+
+`if (a) count++; else if (b) count++;` gives `count` a second depth-3
+increment (6 refs) that cross-jumping removes; `a || b` gives one.
+`for (...; i++, idx++)` with the same `continue`s has one increment and does
+not match (built: 96 instructions, `count` ranked first at 14736).
+
+**Use.**
+- A compare against a register known to be zero that combine "should" have
+  folded, or a `lui` in `$v1` with `$v0` visibly free: suspect a block
+  boundary that existed through sched1, before suspecting the statement. Look
+  for a constant stored under a condition the function tests twice.
+- When a strength-reduced pointer has to outrank a counter, count the source
+  increments of its index: each path that ends in `idx++; continue;` is
+  another `giv += k`, free in the output.
+- Duplicated arms that cross-jump are references the listing cannot show;
+  REG_N_REFS is taken at flow, the listing after jump2.
