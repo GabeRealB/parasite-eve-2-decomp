@@ -562,7 +562,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_healing_8012F5E4, { NULL } },                                     // 0x017
     { { { TASK_BODY_COORD, 0x70 } }, func_necrosis_8012EF34, { NULL } },                                    // 0x018
     { { { TASK_BODY_COORD, 0x70 } }, func_necrosis_8012F52C, { NULL } },                                    // 0x019
-    { { { TASK_BODY_COORD, 0x70 } }, func_necrosis_8012FAF8, { NULL } },                                    // 0x01A
+    { { { TASK_BODY_COORD, 0x70 } }, necrosisMistPuffTask, { NULL } },                                      // 0x01A
     { { { TASK_BODY_COORD, 0x70 } }, func_combustion_8012EF34, { NULL } },                                  // 0x01B
     { { { TASK_BODY_COORD, 0x70 } }, func_combustion_8012F2BC, { NULL } },                                  // 0x01C
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadPerimeterLightsTask, { NULL } },          // 0x01D

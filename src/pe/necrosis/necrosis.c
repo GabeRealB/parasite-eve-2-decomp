@@ -86,8 +86,77 @@ static _NecrosisLevelTuning D_necrosis_801306BC[] = {
 /// The `sndEvtRequestScriptStart` id for each `D_necrosis_801306BC` row.
 static s32 D_necrosis_801306C8[] = { 0xE0150001, 0xE0180001, 0xE01B0001 };
 
-static void func_necrosis_8012FE64(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+/// Packed sprite-frame bits and fixed-point units shared by the mist puff task and drawers.
+enum {
+    NECROSIS_PUFF_BLEND_ADD_FLAG     = 0x1000, // Set: additive blend and its palette; clear: subtractive blend and its palette
+    NECROSIS_PUFF_FRAME_MASK         = 0xF,
+    NECROSIS_PUFF_SMALL_CELL_WIDTH   = 32,
+    NECROSIS_PUFF_LARGE_CELL_WIDTH   = 40,
+    NECROSIS_PUFF_ANGLE_MASK         = 0xFFF, // One turn is 0x1000 angle units
+    NECROSIS_PUFF_QUARTER_TURN       = 0x400,
+    NECROSIS_PUFF_TRIG_FRACTION_BITS = 12,
+};
+
+static void _necrosisDrawMistPuff(const GfxCoord* coord, s16 frameAndBlend, s16 size, s16 angle);
+static void _necrosisDrawLargeMistPuff(const GfxCoord* coord, s16 frameAndBlend, s16 size, s16 angle);
+
+/// Applies one puff displacement in parent-coordinate units and refreshes its view-space cache.
+static inline void _necrosisAdvanceMistPuff(GfxCoord* coord, const EffectWork* effect)
+{
+    coord->coord.t[0]  += effect->move.vx;
+    coord->coord.t[1]  += effect->move.vy;
+    coord->coord.t[2]  += effect->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+/// Places the corners of a rotated 32-texel puff around its projected centre.
+///
+/// Size is in game-coordinate units, angle in 0x1000 units per turn and depth
+/// is SZ3 / 4 + 1. Corners use the inclusive cell span in texels. Signed integer
+/// division and Q12 shifts retain the original rounding and narrowing.
+static inline void _necrosisSetMistPuffCorners(EffectShapeScratch* scratch, POLY_FT4* quad, s16 size, s16 angle)
+{
+    s32 perpendicularAngle;
+
+    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rsin(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rcos(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    quad->x0                 = scratch->screenX + scratch->extent.corner.x;
+    quad->x3                 = scratch->screenX - scratch->extent.corner.x;
+    quad->y0                 = scratch->screenY - scratch->extent.corner.y;
+    quad->y3                 = scratch->screenY + scratch->extent.corner.y;
+    perpendicularAngle       = angle + NECROSIS_PUFF_QUARTER_TURN;
+    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    quad->x1                 = scratch->screenX + scratch->extent.corner.x;
+    quad->x2                 = scratch->screenX - scratch->extent.corner.x;
+    quad->y1                 = scratch->screenY - scratch->extent.corner.y;
+    quad->y2                 = scratch->screenY + scratch->extent.corner.y;
+}
+
+/// Places the corners of a rotated 40-texel puff around its projected centre.
+///
+/// Size is in game-coordinate units, angle in 0x1000 units per turn and depth
+/// is SZ3 / 4 + 1. Corners use the inclusive cell span in texels. Signed integer
+/// division and Q12 shifts retain the original rounding and narrowing.
+static inline void _necrosisSetLargeMistPuffCorners(EffectShapeScratch* scratch, POLY_FT4* quad, s16 size, s16 angle)
+{
+    s32 perpendicularAngle;
+
+    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rsin(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rcos(angle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    quad->x0                 = scratch->screenX + scratch->extent.corner.x;
+    quad->x3                 = scratch->screenX - scratch->extent.corner.x;
+    quad->y0                 = scratch->screenY - scratch->extent.corner.y;
+    quad->y3                 = scratch->screenY + scratch->extent.corner.y;
+    perpendicularAngle       = angle + NECROSIS_PUFF_QUARTER_TURN;
+    scratch->extent.corner.x = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((size * (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+    quad->x1                 = scratch->screenX + scratch->extent.corner.x;
+    quad->x2                 = scratch->screenX - scratch->extent.corner.x;
+    quad->y1                 = scratch->screenY - scratch->extent.corner.y;
+    quad->y2                 = scratch->screenY + scratch->extent.corner.y;
+}
 
 /// Runs one frame of the necrosis cast. State 0 copies the player rotation onto
 /// the effect coordinate, rotates a (0, 0, 0x90) offset into that frame, and
@@ -286,211 +355,210 @@ void func_necrosis_8012F52C(Task* arg0)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
-void func_necrosis_8012FAF8(Task* arg0)
+void necrosisMistPuffTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        NECROSIS_PUFF_STATE_INIT            = 0,
+        NECROSIS_PUFF_STATE_SMALL           = 1,
+        NECROSIS_PUFF_STATE_LARGE           = 2,
+        NECROSIS_PUFF_SMALL_FRAME_LIMIT     = 8, // Frames 1..7 draw; frame 8 moves once more, then releases
+        NECROSIS_PUFF_LARGE_FRAME_LIMIT     = 6, // Frames 1..5 draw; frame 6 moves once more, then releases
+        NECROSIS_PUFF_LARGE_MIN_LEVEL_INDEX = 2, // Level digit minus one
+        NECROSIS_PUFF_BLEND_RANDOM_MASK     = 3, // Two-bit draw compared with the level index
+        NECROSIS_PUFF_SIZE_TO_DRIFT_DIVISOR = 20,
+        NECROSIS_PUFF_SPAWN_SIZE_MASK       = 0xFFF,
+    };
+    EffectWork* effect;
     GfxCoord*   coord;
-    s16         tick;
-    s32         rng1;
-    s32         rng2;
-    s32         rng3;
-    s32         temp_lo;
-    s32         var_v1;
-    u16         temp_v0;
+    s16         frame;
+    s32         bearingRoll;
+    s32         depthRoll;
+    s32         blendRoll;
+    s32         verticalProduct;
+    s32         nextState;
+    u16         spawnSizeBits;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    effect = task->spawnArg2.pointer;
+    coord  = task->extra.coordBody->coord;
     if (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
 
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            mem->age        = 0;
-            temp_v0         = arg0->spawnArg1.value;
-            mem->period     = temp_v0 & 0xFFF;
-            rng1            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            mem->scale      = ((u32)rng1 >> 16) & 0xFFF;
-            gRandomLcgState = rng1;
-            mem->angle      = mem->period / 20;
-            mem->move.vx    = (rsin(mem->scale) * mem->angle) >> 12;
-            temp_lo         = rcos(mem->scale) * mem->angle;
-            rng2            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng2;
-            mem->move.vy    = temp_lo >> 12;
-            mem->move.vz    = (rsin(((u32)rng2 >> 16) & 0xFFF) * mem->move.vx) >> 12;
-            rng3            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng3;
-            if ((s32)(((u32)rng3 >> 16) & 3) < ((u16)(Gp_StateC08.attachId % 10U) - 1)) {
-                mem->step = 0x1000;
+    effect->age = effect->age + 1;
+    switch (task->state) {
+        case NECROSIS_PUFF_STATE_INIT:
+            // Retain size in period, sprite bearing in scale, and drift magnitude in angle.
+            // Divide the stored signed size before narrowing the Q12 displacement components.
+            effect->age     = 0;
+            spawnSizeBits   = task->spawnArg1.value;
+            effect->period  = spawnSizeBits & NECROSIS_PUFF_SPAWN_SIZE_MASK;
+            bearingRoll     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            effect->scale   = ((u32)bearingRoll >> 16) & NECROSIS_PUFF_ANGLE_MASK;
+            gRandomLcgState = bearingRoll;
+            effect->angle   = effect->period / NECROSIS_PUFF_SIZE_TO_DRIFT_DIVISOR;
+            effect->move.vx = (rsin(effect->scale) * effect->angle) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+            verticalProduct = rcos(effect->scale) * effect->angle;
+            depthRoll       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = depthRoll;
+            effect->move.vy = verticalProduct >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+            effect->move.vz = (rsin(((u32)depthRoll >> 16) & NECROSIS_PUFF_ANGLE_MASK) * effect->move.vx) >> NECROSIS_PUFF_TRIG_FRACTION_BITS;
+            blendRoll       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = blendRoll;
+            // The spawner clears step; only selected puffs switch to additive blending.
+            if ((s32)(((u32)blendRoll >> 16) & NECROSIS_PUFF_BLEND_RANDOM_MASK) < ((u16)(Gp_StateC08.attachId % 10U) - 1)) {
+                effect->step = NECROSIS_PUFF_BLEND_ADD_FLAG;
             }
-            if ((u16)(Gp_StateC08.attachId % 10U) - 1 < 2) {
-                arg0->state = 1;
+            if ((u16)(Gp_StateC08.attachId % 10U) - 1 < NECROSIS_PUFF_LARGE_MIN_LEVEL_INDEX) {
+                task->state = NECROSIS_PUFF_STATE_SMALL;
                 return;
             }
-            var_v1 = 2;
-            if (mem->step != 0) {
-                var_v1 = 1;
+            nextState = NECROSIS_PUFF_STATE_LARGE;
+            if (effect->step != 0) {
+                nextState = NECROSIS_PUFF_STATE_SMALL;
             }
-            arg0->state = var_v1;
+            task->state = nextState;
             return;
-        case 1:
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            coord->coord.t[2]  += mem->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            tick       = mem->index + 1;
-            mem->index = tick;
-            if (tick < 8) {
-                func_necrosis_8012FE64(coord, (s16)(tick | mem->step), mem->period,
-                                       mem->scale);
+        case NECROSIS_PUFF_STATE_SMALL:
+            // Move before testing expiry, including the final update that draws no frame.
+            _necrosisAdvanceMistPuff(coord, effect);
+            frame         = effect->index + 1;
+            effect->index = frame;
+            if (frame < NECROSIS_PUFF_SMALL_FRAME_LIMIT) {
+                _necrosisDrawMistPuff(coord, (s16)(frame | effect->step), effect->period,
+                                      effect->scale);
                 return;
             }
-            effectKillTask(mem, arg0);
+            effectKillTask(effect, task);
             return;
-        case 2:
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            coord->coord.t[2]  += mem->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            tick       = mem->index + 1;
-            mem->index = tick;
-            if (tick < 6) {
-                func_necrosis_80130288(coord, (s16)(tick | mem->step), mem->period,
-                                       mem->scale);
+        case NECROSIS_PUFF_STATE_LARGE:
+            _necrosisAdvanceMistPuff(coord, effect);
+            frame         = effect->index + 1;
+            effect->index = frame;
+            if (frame < NECROSIS_PUFF_LARGE_FRAME_LIMIT) {
+                _necrosisDrawLargeMistPuff(coord, (s16)(frame | effect->step), effect->period,
+                                           effect->scale);
                 return;
             }
-            effectKillTask(mem, arg0);
+            effectKillTask(effect, task);
             return;
     }
 }
 
-/// Draws one frame of the necrosis mist puff. `arg0`'s world position is
-/// projected through `GsWSMATRIX` by a single `RTPS` and the quad is dropped
-/// when that sets a negative `gte_stflg`. `arg1` is packed by the caller: the
-/// low nibble picks one of the 0x20-wide texture cells on row 0x18..0x37, and
-/// bit 0x1000 swaps the pale tpage/CLUT pair (0x2A / 0x428F) for the dark one
-/// (0x4A / 0x42C2). `arg3` spins the quad and `arg2` sizes it: the corners sit
-/// `arg2 * 31 / otz` from the projected centre along `arg3` and `arg3 + 0x400`,
-/// so the puff shrinks with depth. Same shape as `spriteQuadDraw`.
-static void func_necrosis_8012FE64(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Draws a 32-texel Necrosis mist cell as a rotated camera-facing quad.
+///
+/// `coord->workm` must contain the composed view-space transform. Translation
+/// components are narrowed to signed 16-bit coordinate units before projection.
+/// The caller supplies frames 1..7 in the low nibble of `frameAndBlend` and
+/// `NECROSIS_PUFF_BLEND_ADD_FLAG` selects additive blending and its palette;
+/// clear selects subtractive blending and its palette. `size` is 0..4095
+/// game-coordinate units and `angle` uses 0x1000 units per turn.
+/// Requires one available scratch block and space for one GPU `POLY_FT4`.
+/// A negative GTE FLAG rejects the quad; otherwise its corner distance is
+/// `size * 31 / (SZ3 / 4 + 1)`. Scratch is released before return; the queued
+/// packet remains live until GPU drawing completes.
+static void _necrosisDrawMistPuff(const GfxCoord* coord, s16 frameAndBlend, s16 size, s16 angle)
 {
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    s32                 u0;
-    s32                 u1;
-    s32                 ang2;
+    enum { NECROSIS_PUFF_TOP_V = 0x18 };
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    s32                 uStart;
+    s32                 uEnd;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    // Project the narrowed view-space centre and reject GTE projection errors.
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        if (arg1 & 0x1000) {
-            prim->tpage = 0x2A;
-            prim->clut  = 0x428F;
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        if (frameAndBlend & NECROSIS_PUFF_BLEND_ADD_FLAG) {
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
+            quad->clut  = getClut(240, 266);
         } else {
-            prim->tpage = 0x4A;
-            prim->clut  = 0x42C2;
+            quad->tpage = getTPage(0, GPU_BLEND_SUBTRACT, 640, 0);
+            quad->clut  = getClut(32, 267);
         }
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        u0 = (arg1 & 0xF) << 5;
-        u1 = u0 + 0x1F;
-        setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
-        block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(arg3)) >> 12;
-        block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(arg3)) >> 12;
-        prim->x0               = block->screenX + block->extent.corner.x;
-        prim->x3               = block->screenX - block->extent.corner.x;
-        prim->y0               = block->screenY - block->extent.corner.y;
-        prim->y3               = block->screenY + block->extent.corner.y;
-        ang2                   = arg3 + 0x400;
-        block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + block->extent.corner.x;
-        prim->x2               = block->screenX - block->extent.corner.x;
-        prim->y1               = block->screenY - block->extent.corner.y;
-        prim->y2               = block->screenY + block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        setSemiTrans(quad, true);
+        setShadeTex(quad, true);
+        uStart = (frameAndBlend & NECROSIS_PUFF_FRAME_MASK) * NECROSIS_PUFF_SMALL_CELL_WIDTH;
+        uEnd   = uStart + (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1);
+        setUV4(quad, uStart, NECROSIS_PUFF_TOP_V, uEnd, NECROSIS_PUFF_TOP_V,
+               uStart, NECROSIS_PUFF_TOP_V + (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1),
+               uEnd, NECROSIS_PUFF_TOP_V + (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1));
+        // Scale the rotated corners by projection depth, then queue the raw textured quad.
+        _necrosisSetMistPuffCorners(scratch, quad, size, angle);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-/// Draws one frame of the necrosis spore cloud. Same shape as
-/// `func_necrosis_8012FE64`: `arg0`'s world position is projected through
-/// `GsWSMATRIX` by a single `RTPS` and the quad is dropped when that sets a
-/// negative `gte_stflg`. `arg1` is packed by the caller: the low nibble picks
-/// one of the 0x28-wide texture cells on row 0x50..0x77, and bit 0x1000 swaps
-/// the dark tpage/CLUT pair (0x49 / 0x42C2) for the pale one (0x29 / 0x428F).
-/// `arg3` spins the quad and `arg2` sizes it: the corners sit `arg2 * 39 / otz`
-/// from the projected centre along `arg3` and `arg3 + 0x400`, so the cloud
-/// shrinks with depth.
-static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Draws a 40-texel Necrosis mist cell as a rotated camera-facing quad.
+///
+/// `coord->workm` must contain the composed view-space transform. Translation
+/// components are narrowed to signed 16-bit coordinate units before projection.
+/// The caller supplies frames 1..5 in the low nibble of `frameAndBlend`.
+/// `NECROSIS_PUFF_BLEND_ADD_FLAG` selects additive blending and its palette;
+/// clear selects subtractive blending and its palette. The task uses this
+/// larger strip only for subtractive puffs at PE level 3. `size` is 0..4095
+/// game-coordinate units and `angle` uses 0x1000 units per turn.
+/// Requires one available scratch block and space for one GPU `POLY_FT4`.
+/// A negative GTE FLAG rejects the quad; otherwise its corner distance is
+/// `size * 39 / (SZ3 / 4 + 1)`. Scratch is released before return; the queued
+/// packet remains live until GPU drawing completes.
+static void _necrosisDrawLargeMistPuff(const GfxCoord* coord, s16 frameAndBlend, s16 size, s16 angle)
 {
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    s32                 u0;
-    s32                 u1;
-    s32                 ang2;
+    enum { NECROSIS_PUFF_TOP_V = 0x50 };
+    EffectShapeScratch* scratch;
+    POLY_FT4*           quad;
+    s32                 uStart;
+    s32                 uEnd;
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+    // Project the narrowed view-space centre and reject GTE projection errors.
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        if (arg1 & 0x1000) {
-            prim->tpage = 0x29;
-            prim->clut  = 0x428F;
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        if (frameAndBlend & NECROSIS_PUFF_BLEND_ADD_FLAG) {
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 576, 0);
+            quad->clut  = getClut(240, 266);
         } else {
-            prim->tpage = 0x49;
-            prim->clut  = 0x42C2;
+            quad->tpage = getTPage(0, GPU_BLEND_SUBTRACT, 576, 0);
+            quad->clut  = getClut(32, 267);
         }
-        setSemiTrans(prim, 1);
-        setShadeTex(prim, 1);
-        u0 = (arg1 & 0xF) * 40;
-        u1 = u0 + 0x27;
-        setUV4(prim, u0, 0x50, u1, 0x50, u0, 0x77, u1, 0x77);
-        block->extent.corner.x = (((arg2 * 39) / block->depth) * rsin(arg3)) >> 12;
-        block->extent.corner.y = (((arg2 * 39) / block->depth) * rcos(arg3)) >> 12;
-        prim->x0               = block->screenX + block->extent.corner.x;
-        prim->x3               = block->screenX - block->extent.corner.x;
-        prim->y0               = block->screenY - block->extent.corner.y;
-        prim->y3               = block->screenY + block->extent.corner.y;
-        ang2                   = arg3 + 0x400;
-        block->extent.corner.x = (((arg2 * 39) / block->depth) * rsin(ang2)) >> 12;
-        block->extent.corner.y = (((arg2 * 39) / block->depth) * rcos(ang2)) >> 12;
-        prim->x1               = block->screenX + block->extent.corner.x;
-        prim->x2               = block->screenX - block->extent.corner.x;
-        prim->y1               = block->screenY - block->extent.corner.y;
-        prim->y2               = block->screenY + block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        setSemiTrans(quad, true);
+        setShadeTex(quad, true);
+        uStart = (frameAndBlend & NECROSIS_PUFF_FRAME_MASK) * NECROSIS_PUFF_LARGE_CELL_WIDTH;
+        uEnd   = uStart + (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1);
+        setUV4(quad, uStart, NECROSIS_PUFF_TOP_V, uEnd, NECROSIS_PUFF_TOP_V,
+               uStart, NECROSIS_PUFF_TOP_V + (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1),
+               uEnd, NECROSIS_PUFF_TOP_V + (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1));
+        // Scale the rotated corners by projection depth, then queue the raw textured quad.
+        _necrosisSetLargeMistPuffCorners(scratch, quad, size, angle);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }

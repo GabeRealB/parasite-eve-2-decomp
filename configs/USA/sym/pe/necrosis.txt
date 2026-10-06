@@ -1,7 +1,9 @@
 
 func_necrosis_8012F52C = 0x8012F52C; // type:func
 
-func_necrosis_8012FAF8 = 0x8012FAF8; // type:func
+necrosisMistPuffTask = 0x8012FAF8; // type:func
 
 func_necrosis_8012EF34 = 0x8012EF34; // type:func
 spriteQuadDraw = 0x8012F6EC; // type:func
+_necrosisDrawMistPuff = 0x8012fe64; // type:func
+_necrosisDrawLargeMistPuff = 0x80130288; // type:func

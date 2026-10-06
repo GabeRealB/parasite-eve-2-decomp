@@ -5670,16 +5670,16 @@ into `$v1`, so the `*5` dest cannot reuse the divide-magic `$v1`.
 Split the rolls so each live range can pick `$v0` / `$v1` on its own:
 
 ```c
-rng1 = gRandomLcgState * 5 + 0x71357911;
-mem->field_24 = ((u32)rng1 >> 16) & 0xFFF;
-gRandomLcgState   = rng1;
+bearingRoll = gRandomLcgState * 5 + 0x71357911;
+effect->scale = ((u32)bearingRoll >> 16) & 0xFFF;
+gRandomLcgState   = bearingRoll;
 /* rsin / rcos */
-rng2 = gRandomLcgState * 5 + 0x71357911;
-gRandomLcgState   = rng2;
-/* rsin((rng2 >> 16) & 0xFFF) */
-rng3 = gRandomLcgState * 5 + 0x71357911;
-gRandomLcgState   = rng3;
-if ((s32)(((u32)rng3 >> 16) & 3) < combo)
+depthRoll = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState   = depthRoll;
+/* rsin((depthRoll >> 16) & 0xFFF) */
+blendRoll = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState   = blendRoll;
+if ((s32)(((u32)blendRoll >> 16) & 3) < combo)
 ```
 
 The first and third then land in `$v1` (store, then `srl` the same reg) and
@@ -5689,15 +5689,15 @@ The `/ 20` of the same `andi 0xFFF` value is a related trap. `s16 ang =
 (u16)spawnArg1 & 0xFFF; ang / 20` is proven non-negative, so GCC multiplies
 the `andi` result by `0x66666667` and drops `sll 16` / `sra 16` / `sra 31` /
 `subu`. `TOUCH_REG(ang)` brings the sign sequence back but delays `sh
-field_28` and blocks `lui 0x7135` from the incoming switch delay. Store the
+period` and blocks `lui 0x7135` from the incoming switch delay. Store the
 mask, then divide the `s16` field:
 
 ```c
-mem->field_28 = temp_v0 & 0xFFF;
-mem->field_26 = mem->field_28 / 20;
+effect->period = spawnSizeBits & 0xFFF;
+effect->angle = effect->period / 20;
 ```
 
-`func_necrosis_8012FAF8` is the example.
+`necrosisMistPuffTask` is the example.
 
 ## Roll the LCG through the global, not an m2c temp, to hoist its `lw`
 
@@ -62909,7 +62909,7 @@ Write `prim->code |= 3;` when the ROM has one.
 
 ## Place a stranded `move $a0, $sN` with an `asm("a0")` local, not with a barrier
 
-`func_necrosis_8012FE64` is the dark twin of `func_necrosis_8012F6EC`, so the
+`_necrosisDrawMistPuff` is the two-blend-mode twin of `func_necrosis_8012F6EC`, so the
 body came straight from the sibling, but its `$a1` prologue needed the
 `func_apobiosis_8012F9D0` pin set (`register void** scratch asm("a1")`, the
 `register u16 vx asm("v0")` / `register u8* tmp asm("v0")` blocks, `USE_REG(head)`
@@ -62927,11 +62927,11 @@ site and its position is the scheduler's alone. Give it a statement instead:
 ```c
 register s32 sinArg asm("a0");
 ...
-ang    = arg3;
+ang    = angle;
 sinArg = ang;                 /* the ROM's addu $a0, $s1, $zero, right here */
 ...
-block->extent.corner.x = (((arg2 * 31) / block->depth) * rsin(sinArg)) >> 12;
-block->extent.corner.y = (((arg2 * 31) / block->depth) * rcos(ang)) >> 12;   /* copies again */
+scratch->extent.corner.x = (((size * 31) / scratch->depth) * rsin(sinArg)) >> 12;
+scratch->extent.corner.y = (((size * 31) / scratch->depth) * rcos(ang)) >> 12;   /* copies again */
 ```
 
 Only the *first* call takes the pinned name; the later `rsin`/`rcos` calls take
@@ -62946,14 +62946,14 @@ assignment gives the copy an early home the scheduler will not move.
 ## Two function-scope `asm("a1")` locals can share the register when their ranges are disjoint
 
 Contrary to "Only one `register ... asm(\"rN\")` variable per hard register per
-function", `func_necrosis_8012FE64` needs two, and GCC 2.8.1 honours both:
+function", `_necrosisDrawMistPuff` needs two, and GCC 2.8.1 honours both:
 
 ```c
 register void** scratch asm("a1");   /* lui/ori $a1, lw $t0, 0($a1), sw $s2, 0($a1) */
 register s16    frame   asm("a1");   /* addu $a1, $t1, $zero, then andi $v0, $a1, 0xF */
 ...
 *scratch = block;
-frame    = arg1;                     /* placed exactly where the ROM restores $a1 */
+frame    = frameAndBlend;             /* placed exactly where the ROM restores $a1 */
 ```
 
 The ROM copies `value` to `$t1` in the prologue so `$a1` can hold `0x1F8003FC`,
@@ -62970,7 +62970,7 @@ When you port a matched sibling's body onto a near-identical function, the
 sibling's `register T x asm("aN")` locals come along with it — and a pin that
 was load-bearing there can be the one thing that blocks the new match.
 
-`func_necrosis_80130288` is `func_necrosis_8012FE64` with different constants;
+`_necrosisDrawLargeMistPuff` is `_necrosisDrawMistPuff` with different constants;
 the only real change is the texture cell width, `<< 5` (32) becoming `* 40`.
 The sibling needed `register s16 frame asm("a1")` to keep `value` in `$a1`, and
 the ported body scored 99.944% with `regs=3` on exactly the multiply:
@@ -62990,7 +62990,7 @@ cost 4 more registers elsewhere (99.870%). Unpin instead:
 
 ```c
 s16 frame;          /* was: register s16 frame asm("a1") */
-frame = arg1;
+frame = frameAndBlend;
 ```
 
 Now the `andi` source is a pseudo at local-alloc time, so there is no hard-reg
@@ -143284,7 +143284,7 @@ mem->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
 `static inline` helper taking `u8* rgb` does *not* match (95%): the parameter
 is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
 addressed `n($s0)`.
-## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_STACK_RESERVE_BLOCK(T)` (func_necrosis_8012FE64, 2026-09-26)
+## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_STACK_RESERVE_BLOCK(T)` (_necrosisDrawMistPuff, 2026-09-26)
 
 Symptom: the `EffectShapeScratch` quad drawers (necrosis, apobiosis, energyball)
 store `worldPoint.vx` at `-0x1C(head)` before the block pointer exists, carve it into
@@ -143296,10 +143296,10 @@ store, plus `$a1` pins on the scratch address and a copy of `value`.
 Fix: the compound push, written the obvious way:
 
 ```c
-block         = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-block->worldPoint.vx = arg0->workm.t[0];
+scratch         = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+scratch->worldPoint.vx = coord->workm.t[0];
 ...
-gte_stsxy(&block->screenX);
+gte_stsxy(&scratch->screenX);
 ```
 
 The value of `*G -= 1` is a short-lived pseudo that local-alloc colours `$v0`

@@ -1983,7 +1983,7 @@ func_healing_8012F5E4 = 0x8012F5E4; // type:func absolute:True owner=healing
 
 func_necrosis_8012F52C = 0x8012F52C; // type:func absolute:True owner=necrosis
 
-func_necrosis_8012FAF8 = 0x8012FAF8; // type:func absolute:True owner=necrosis shared=pe
+necrosisMistPuffTask = 0x8012FAF8; // type:func absolute:True owner=necrosis shared=pe
 
 func_combustion_8012EF34 = 0x8012EF34; // type:func absolute:True owner=combustion shared=pe
 
