@@ -149455,3 +149455,48 @@ attempts; left as it was.
   in front of the loop, which has the barrier in the right place in the raw
   RTL, but the first jump pass inverts the test and moves the `return 1`
   block up, so the block lands before `anim` (same length, 12 insns differ).
+### Goto forms from the bridge room, the factory scenes and the item menu (batch 10, 2026-10-06)
+
+- **`code = K; obj->result = code; code = 0x34; ...; goto end;` ... `code =
+  0x34; end: obj->resultValue = code;`** (`Gp_ItemMoveTask`) is the store
+  written at both sites with a `return` in the early one. The value local
+  that was reassigned between two stores only reproduced cse's reuse of one
+  register.
+- **`result = K; goto set_result;` from three arms** (`func_800BDF6C`) is
+  `obj->result = K;` in each arm of an `if / else if` chain, as in the effect
+  tasks. An arm that stores a second field has to store it *first*
+  (`control.word = INACTIVE; result = CANCEL;`): the merged `sh` is the arm's
+  last insn, and the image has the other store in the jump's delay slot. The
+  two `Gp_GiveItem` / `Gp_ConsumeScanQty` pairs sharing the consume call
+  through `consumeScan = ...; goto consume_transfer;` are the two calls written
+  in each arm; the image's `j; addiu a0,s0,4` is the cross-jump.
+- **`check = 3; goto compare_room; ... check = 0x11; compare_room: if (room !=
+  check)`** (`Gp_ItemPickupTilt`) is `if (room != 3)` and `if (room != 0x11)`
+  with the body in each arm. Both constants load into the same register, so
+  the compare and the body merge and leave `j; li v0,3`.
+- **`if (a) { if (p) goto act; } if (b) { if (q) goto act; } if (!r) goto
+  out; act:`** is `if ((a && p) || (b && q) || r)` (`Gp_ItemPaneTask`, both
+  copies, including the one whose three arms each stored `result = 0xA`
+  before `goto children`).
+- **A view dispatch with `goto drop` from one case into the next and `goto
+  draw` into the default** (`func_acropolis_bridge_80187850`) is each tail
+  written in each case; with the mode ladder as `switch` (cases 1 and 2
+  return, the scan follows the switch) and the contact scan as the counted
+  find-hit inline, 13 gotos went on the first build.
+- The desert chaser's hand-expanded turns (`facing = coords; angle = ratan2;
+  delta = angle - ratan2(...); wrapped = delta; <wrap loops>`) are
+  `actorYawTo(coords, x, z)`; all seven sites of `desertChaserRoam`,
+  `desertChaserTurnStep` and `desertChaserTurnStepProbe` matched with the
+  call, and 22 locals went.
+- Not converted: `func_acropolis_bridge_801856E0`. Its switch has
+  `if (enough) break; state = 0; goto hide;` in cases 0 and 1,
+  `if (!enough) goto reset; break;` in case 2, the wake code after the switch
+  and `reset: state = 0; hide: flags = SKIP;` after that. The image keeps a
+  `bnez wake; j hide` pair per case. Four forms (wake as an inline with
+  `return 1` in each case; the whole handler as an inline with the wake and a
+  `return` per case, tested either way round; sleep and wake both written in
+  cases 0 and 1) give the image's block order but merge further: case 1's
+  test is cross-jumped into case 2's and case 0 becomes `beqz hide; j wake`,
+  4 insns shorter. A function with no frame returns with a bare `jr ra`, so
+  `return 1` in an arm is not a jump to a shared label and nothing merges
+  with it (attempt 1, 2 insns shorter with the wake copied).
