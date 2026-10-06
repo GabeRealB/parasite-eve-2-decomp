@@ -526,39 +526,38 @@ void shelterB6TrainingRoomOrangeBurstTask(Task* task)
         if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto kill;
-    } else {
-        work->age++;
-        if (task->state == SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_INIT) {
-            work->age    = 1;
-            work->scale  = 0xE0;
-            work->angle  = 0x100;
-            work->period = 0xE0;
-            work->step   = 0x100;
-            task->state  = SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_FADE;
-        }
-        rgb[0]      = work->scale;
-        rgb[1]      = work->scale >> 1;
-        rgb[2]      = work->scale >> 2;
-        radiusScale = work->angle + 0x10;
-        work->angle = radiusScale;
-        effectDrawGouraudDisc(coord, (s16)(radiusScale * 2), rgb);
-        _roomVisualEffectsDrawHaloBurstGlow(coord, work->angle);
-        // Exhaust the expanding outer band before fading the inner disc.
-        if (work->period >= 0x19) {
-            rgb[0] = work->period;
-            rgb[1] = work->period >> 1;
-            rgb[2] = work->period >> 2;
-            effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
-            work->period -= 0x18;
-            work->step   += 0x80;
-            return;
-        }
-        work->scale -= 0x10;
-        if (work->scale < 0x10) {
-        kill:
-            effectKillTask(work, task);
-        }
+        effectKillTask(work, task);
+        return;
+    }
+    work->age++;
+    if (task->state == SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_INIT) {
+        work->age    = 1;
+        work->scale  = 0xE0;
+        work->angle  = 0x100;
+        work->period = 0xE0;
+        work->step   = 0x100;
+        task->state  = SHELTER_B6_TRAINING_ROOM_ORANGE_BURST_FADE;
+    }
+    rgb[0]      = work->scale;
+    rgb[1]      = work->scale >> 1;
+    rgb[2]      = work->scale >> 2;
+    radiusScale = work->angle + 0x10;
+    work->angle = radiusScale;
+    effectDrawGouraudDisc(coord, (s16)(radiusScale * 2), rgb);
+    _roomVisualEffectsDrawHaloBurstGlow(coord, work->angle);
+    // Exhaust the expanding outer band before fading the inner disc.
+    if (work->period >= 0x19) {
+        rgb[0] = work->period;
+        rgb[1] = work->period >> 1;
+        rgb[2] = work->period >> 2;
+        effectDrawOuterGlowBand(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
+        work->period -= 0x18;
+        work->step   += 0x80;
+        return;
+    }
+    work->scale -= 0x10;
+    if (work->scale < 0x10) {
+        effectKillTask(work, task);
     }
 }
 
