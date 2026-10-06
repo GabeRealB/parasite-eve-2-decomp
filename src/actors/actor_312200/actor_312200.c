@@ -334,16 +334,16 @@ static void func_actor_312200_80162FB4(Task* task)
                                        D_actor_312200_80169F28[start->appliedAnim][start->animId]);
         }
         start->appliedAnim = start->animId;
-        goto advance;
-    }
-    if (work->animRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
+        work->animRequest  = ACTOR_312200_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+        work->lastCueFrame = 0;
+    } else if (work->animRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
         reset = task->work;
         for (j = 1; j < ARRAY_SIZE(reset->rig.slots); j++) {
             reset->rig.slots[j].rate = reset->animRate;
             animationResetSlot(&reset->rig.anim, j, reset->animId);
         }
         reset->appliedAnim = reset->animId;
-    advance:
         work->animRequest  = ACTOR_312200_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
