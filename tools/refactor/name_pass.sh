@@ -1052,6 +1052,11 @@ BARRIER
   if (( ${#review_order[@]} > 0 )); then
     landed_order=("${review_order[@]}")
     joined=1
+    # The point a failed join rewinds to is the branch as it stands now, not as
+    # it stood when the round was forked: anything landed on it while the
+    # workers ran - by hand, or by another tool between rounds - stays. A join
+    # that fell back to one step at a time once dropped four such commits.
+    (( WORKERS == 1 )) || pre="$(git rev-parse HEAD)"
     if ! { (( WORKERS == 1 || ${#commits[@]} == 0 )) || join_round "$pre" "${commits[@]}"; }; then
       joined=0
       echo "--- the round could not be joined; landing its steps one at a time" | tee -a "$LOG"
