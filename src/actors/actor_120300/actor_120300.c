@@ -46,6 +46,8 @@
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
+static void _screenFadeOutTask(Task* task);
+
 /// Values of `_Actor120300Work::interaction`: what the player's action button
 /// started.
 enum {
@@ -1300,7 +1302,7 @@ TaskDesc D_actor_120300_80141B6C[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_120300_80133F14, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_80132004, { .model = &_gActor120300GaryDouglasHeadHat } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_801321C8, { .model = &_gActor120300Model082F8 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
 };
 
 Task* D_actor_120300_80141BA8;

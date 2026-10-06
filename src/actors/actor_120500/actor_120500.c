@@ -45,6 +45,8 @@
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
+static void _screenFadeOutTask(Task* task);
+
 /// Requests the event script posts in `_Actor120500Work::playerRequest`.
 ///
 /// Any other nonzero code is cleared without effect.
@@ -333,7 +335,7 @@ TaskMessageEntry D_actor_120500_80138408[2] = {
 TaskDesc D_actor_120500_80138418[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_120500_80131E58, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
 };
 
 TaskDesc D_actor_120500_8013843C = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };

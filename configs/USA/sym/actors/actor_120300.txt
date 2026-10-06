@@ -214,5 +214,5 @@ gDryfieldGarageCollision0108CNormals = 0x8017DD6C; // absolute:True owner=dryfie
 gDryfieldGarageCollision0108CVerts = 0x8017DEA4; // absolute:True owner=dryfield_garage shared=rooms
 
 gDryfieldGarageCollision0108CFaces = 0x8017E1F4; // absolute:True owner=dryfield_garage shared=rooms
-screenFadeOutTask = 0x80133B5C; // type:func
+_screenFadeOutTask = 0x80133B5C; // type:func
 actorMsgPlaceInView = 0x80133C6C; // type:func

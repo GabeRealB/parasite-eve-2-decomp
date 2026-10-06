@@ -1,63 +1,78 @@
 /* Part of the screen fade library; see screen_fade.h. */
 
-/// `screenFadeInTask` with the overlay drawn in place: the same subtractive
-/// ramp from white, but each frame links its own semi-transparent full-screen
-/// `TILE` (-0xA0,-0x78, 0x140 by 0xF0) and the `0xE1000240` `DR_TPAGE` into
-/// `gGpuCurrentOt[-16]`, tinted `r`/`g`/`r`, instead of calling
-/// `fadeDrawOverlay`. State 0 allocates the `ScreenFadeWork` at `Task::work`
-/// with all three channels at 0xFF (a failed allocation kills the task); state 1
-/// steps them down by `Task::spawnArg1` and kills the task once `r` is below 0.
-void screenFadeInTileTask(Task* arg0)
-{
-    ScreenFadeWork* fade;
-    ScreenFadeWork* alloc;
-    u8              r;
-    u8              g;
-    TILE*           tile;
-    DR_TPAGE*       dr;
+#include "screen_fade_step_down.inc.c"
 
-    fade = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+/// Queues a centred subtractive tile from the low red/green/red fade bytes.
+///
+/// Requires a word-aligned frame arena with space for a TILE and DR_TPAGE,
+/// and foreground tag -16 in the current ordering table. Packets borrow the
+/// arena until GPU drawing completes. The draw mode enables dithering and
+/// disables drawing into the displayed area; its texture page is not sampled.
+static inline void _screenFadeDrawTileOverlay(const ScreenFadeWork* fade)
+{
+    enum {
+        SCREEN_FADE_TILE_WIDTH_PIXELS   = 320,
+        SCREEN_FADE_TILE_HEIGHT_PIXELS  = 240,
+        SCREEN_FADE_TILE_FOREGROUND_TAG = -16,
+    };
+    u8        red;
+    u8        green;
+    TILE*     tile;
+    DR_TPAGE* drawMode;
+
+    red            = fade->r;
+    green          = fade->g;
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setTile(tile);
+    setSemiTrans(tile, true);
+    tile->r0 = red;
+    tile->g0 = green;
+    tile->b0 = red;
+    tile->x0 = -SCREEN_FADE_TILE_WIDTH_PIXELS / 2;
+    tile->y0 = -SCREEN_FADE_TILE_HEIGHT_PIXELS / 2;
+    tile->w  = SCREEN_FADE_TILE_WIDTH_PIXELS;
+    tile->h  = SCREEN_FADE_TILE_HEIGHT_PIXELS;
+    addPrim(gGpuCurrentOt + SCREEN_FADE_TILE_FOREGROUND_TAG, tile);
+
+    // Insertion prepends: queue the mode last so the GPU applies it to the tile.
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
+    addPrim(gGpuCurrentOt + SCREEN_FADE_TILE_FOREGROUND_TAG, drawMode);
+}
+
+void screenFadeInTileTask(Task* task)
+{
+    enum {
+        SCREEN_FADE_IN_TILE_STATE_INITIALIZE = 0,
+        SCREEN_FADE_IN_TILE_STATE_RAMP       = 1,
+        SCREEN_FADE_IN_TILE_MAX_INTENSITY    = 255,
+    };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
+
+    fade = task->work;
+    switch (task->state) {
+        case SCREEN_FADE_IN_TILE_STATE_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 break;
             }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
+            fade         = allocatedFade;
+            fade->b      = SCREEN_FADE_IN_TILE_MAX_INTENSITY;
+            fade->g      = SCREEN_FADE_IN_TILE_MAX_INTENSITY;
+            fade->r      = SCREEN_FADE_IN_TILE_MAX_INTENSITY;
+            task->state += 1;
+            // Draw immediately so initialization does not expose an unfaded frame.
             /* fallthrough */
-        case 1:
-            r              = fade->r;
-            g              = fade->g;
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            setlen(tile, 3);
-            setcode(tile, 0x62);
-            tile->r0 = r;
-            tile->g0 = g;
-            tile->b0 = r;
-            tile->x0 = -0xA0;
-            tile->y0 = -0x78;
-            tile->w  = 0x140;
-            tile->h  = 0xF0;
-            addPrim(gGpuCurrentOt - 16, tile);
-
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000240;
-            addPrim(gGpuCurrentOt - 16, dr);
-
-            fade->r -= (u16)arg0->spawnArg1.value;
-            fade->g -= (u16)arg0->spawnArg1.value;
-            fade->b -= (u16)arg0->spawnArg1.value;
+        case SCREEN_FADE_IN_TILE_STATE_RAMP:
+            _screenFadeDrawTileOverlay(fade);
+            _screenFadeStepDown(fade, task);
             if (fade->r < 0) {
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }

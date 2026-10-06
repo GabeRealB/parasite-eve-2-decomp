@@ -61,6 +61,8 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/water_tower.h"
 
+static void _screenFadeOutTask(Task* task);
+
 extern ActorTransform D_dryfield_water_tower_80181A70[3];
 
 extern ActorTransform D_dryfield_water_tower_80181A40[2];
@@ -375,7 +377,7 @@ extern TaskMessageEntry D_dryfield_water_tower_80182374[2];
 
 /// The room script's task table: entry 0 is the room task
 /// `func_dryfield_water_tower_8017FD64` itself, which the cap script spawns in
-/// its state 3, entry 1 the fade-out task `screenFadeOutTask`
+/// its state 3, entry 1 the fade-out task `_screenFadeOutTask`
 /// and entry 2 the fade-in task `screenFadeInTask`, which the
 /// room task's state 1 starts with the fade rate 8.
 extern TaskDesc D_dryfield_water_tower_8018277C[];
@@ -771,7 +773,7 @@ EvsCommand D_dryfield_water_tower_80182674[11] = {
 
 TaskDesc D_dryfield_water_tower_8018277C[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tower_8017FD64, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
 };
 

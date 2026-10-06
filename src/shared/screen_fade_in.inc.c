@@ -1,12 +1,6 @@
 /* Part of the screen fade library; see screen_fade.h. */
 
-/// Lowers the three signed channel counters by the task's unsigned halfword rate.
-static inline void _screenFadeStepDown(ScreenFadeWork* fade, Task* task)
-{
-    fade->r -= task->spawnArg1.halves.low;
-    fade->g -= task->spawnArg1.halves.low;
-    fade->b -= task->spawnArg1.halves.low;
-}
+#include "screen_fade_step_down.inc.c"
 
 /// Reveals the screen by reducing a subtractive full-screen overlay each update.
 ///
