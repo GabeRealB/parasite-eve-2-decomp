@@ -523,6 +523,17 @@ static void func_actor_205200_8014BD4C(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
+static inline void _actor205200TickFidget(_Actor205200Work* work)
+{
+    if (--work->fidgetTimer <= 0) {
+        work->fidgetTimer = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0xF;
+        if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7)) {
+            work->actionStep = ACTOR_205200_IDLE_FIDGET;
+            work->anim       = ACTOR_205200_ANIM_FIDGET;
+        }
+    }
+}
+
 /// `ACTOR_205200_ACTION_IDLE`, stepped by `actionStep`. `IDLE_READY` takes a
 /// pending heal request and `IDLE_COOLDOWN` runs `healCooldown` down first;
 /// both share the fidget draw: every 15-46 ticks a 1-in-8 draw starts
@@ -543,14 +554,7 @@ static void func_actor_205200_8014BF28(Task* arg0)
                 gSceneCombatState.pairedEnemySignals &= (0xFF ^ SCENE_COMBAT_PAIRED_HEAL_REQUEST);
                 work->actionStep                      = ACTOR_205200_IDLE_HEAL_BEGIN;
             }
-        tick:
-            if (--work->fidgetTimer <= 0) {
-                work->fidgetTimer = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0xF;
-                if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7)) {
-                    work->actionStep = ACTOR_205200_IDLE_FIDGET;
-                    work->anim       = ACTOR_205200_ANIM_FIDGET;
-                }
-            }
+            _actor205200TickFidget(work);
             break;
         case ACTOR_205200_IDLE_HEAL_BEGIN:
             work->anim       = ACTOR_205200_ANIM_HEAL;
@@ -570,7 +574,8 @@ static void func_actor_205200_8014BF28(Task* arg0)
             if (--work->healCooldown <= 0) {
                 work->actionStep = ACTOR_205200_IDLE_READY;
             }
-            goto tick;
+            _actor205200TickFidget(work);
+            break;
         case ACTOR_205200_IDLE_FIDGET:
             if (work->animFrame >= 0x40) {
                 next = ACTOR_205200_IDLE_READY;
