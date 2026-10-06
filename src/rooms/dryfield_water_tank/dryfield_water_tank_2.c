@@ -906,7 +906,8 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
             alloc      = memMalloc(sizeof(*alloc), false);
             arg0->work = alloc;
             if (alloc == NULL) {
-                goto kill;
+                taskKill(arg0);
+                break;
             }
             fade         = alloc;
             fade->b      = 0;
@@ -940,7 +941,6 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
             fade->g += (u16)arg0->spawnArg1.value;
             fade->b += (u16)arg0->spawnArg1.value;
             if (fade->r >= 0x100) {
-            kill:
                 taskKill(arg0);
             }
             break;
