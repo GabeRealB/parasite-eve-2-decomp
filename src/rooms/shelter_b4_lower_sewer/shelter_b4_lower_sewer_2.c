@@ -506,7 +506,11 @@ u8* D_shelter_b4_lower_sewer_80183E14 = NULL;
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Installs the lower sewer's actor effects, enabling water effects after reservoir completion.
+/// Selects the lower sewer's effect task IDs for actor spawns.
+///
+/// Called once when the room's glow task initializes. Flash, twin trail and
+/// spark burst are always selected. Water ripple and spray are selected only
+/// when `GAME_FLAG_B4_RESERVOIR_EVENT_DONE` equals 1; otherwise their IDs are unchanged.
 static inline void _shelterB4LowerSewerInstallActorEffects(void)
 {
     enum { SHELTER_B4_LOWER_SEWER_RESERVOIR_COMPLETE = 1 };
