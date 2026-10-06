@@ -1778,7 +1778,7 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
         case SOUND_VOICE_ENVELOPE_DELAY:
             if (player->stageUpdates < envelope->delayUpdates) {
                 player->stageUpdates++;
-                break;
+                return;
             }
             player->stage        = SOUND_VOICE_ENVELOPE_ATTACK;
             player->stageUpdates = 0;
@@ -1789,7 +1789,7 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
             if (player->stageUpdates < envelope->attackUpdates) {
                 player->stageUpdates++;
                 player->rampOffset = player->attackOffset += envelope->attackSlope;
-                goto apply;
+                break;
             }
             player->stage        = SOUND_VOICE_ENVELOPE_HOLD;
             player->stageUpdates = 0;
@@ -1797,7 +1797,7 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
             pitch = (player->keyedPitch << 1) + envelope->attackLevel;
             if (player->stageUpdates < envelope->holdUpdates) {
                 player->stageUpdates++;
-                goto apply;
+                break;
             }
             player->stage        = SOUND_VOICE_ENVELOPE_DECAY;
             player->decayOffset  = envelope->attackLevel;
@@ -1809,12 +1809,12 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
             if (player->stageUpdates < envelope->decayUpdates) {
                 player->stageUpdates++;
                 player->rampOffset = player->decayOffset += envelope->decaySlope;
-                goto apply;
+                break;
             }
             player->stage = SOUND_VOICE_ENVELOPE_SUSTAIN;
         case SOUND_VOICE_ENVELOPE_SUSTAIN:
             pitch = (player->keyedPitch << 1) + envelope->sustainLevel;
-            goto apply;
+            break;
         case SOUND_VOICE_ENVELOPE_RELEASE:
             temp = (player->rampOffset - envelope->releaseLevel) * envelope->releaseSlope;
             if (temp >= 0) {
@@ -1823,16 +1823,13 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
                 player->rampOffset = player->releaseOffset += player->releaseStep;
             }
             pitch = (player->keyedPitch << 1) + player->releaseOffset;
-            goto apply;
+            break;
         case SOUND_VOICE_ENVELOPE_RELEASE_HOLD:
             pitch = (player->keyedPitch << 1) + envelope->releaseLevel;
-            goto apply;
-        default:
             break;
+        default:
+            return;
     }
-    return;
-
-apply:
     Spu_GetVoiceRef(voice->spuVoice, &voiceRef);
     attr = voiceRef.attr;
     attr->pitch =
