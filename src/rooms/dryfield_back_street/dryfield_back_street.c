@@ -59,13 +59,12 @@ extern TaskDesc         D_dryfield_back_street_8017F98C[];
 /// same task.
 extern s32 D_dryfield_back_street_80181054;
 
-/// The beam's two anchors, offsets on the effect's parent frame. The code
-/// reaches the second both as element 1 and under its own label.
+void       func_dryfield_back_street_8017D5D0(Task*);
+static s32 _dryfieldBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32 _dryfieldBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode);
+static s32 _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
-void func_dryfield_back_street_8017D5D0(Task*);
-s32  func_dryfield_back_street_8017D89C(Task*, s32, s32, s32);
-s32  func_dryfield_back_street_8017D8A4(Task*, s32, s32, s32);
-s32  func_dryfield_back_street_8017D8AC(Task*, s32, s32, s32);
+enum { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid    D_dryfield_back_street_80180284[1];
 extern WorldCollisionTrigger D_dryfield_back_street_801804C0[6];
@@ -76,9 +75,9 @@ extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, backStreetEventMsg },
-    { 5105, func_dryfield_back_street_8017D89C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_back_street_8017D8AC },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_back_street_8017D8A4 },
+    { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldBackStreetRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldBackStreetIgnoreRoomActionMessage },
+    { ROOM_MESSAGE_COMMAND, _dryfieldBackStreetIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -540,7 +539,6 @@ WorldCollisionSurfaceProperties* D_dryfield_back_street_80181034[8] = {
 s32 D_dryfield_back_street_80181054 = 0;
 
 static void func_dryfield_back_street_8017D8B4(Task* task);
-static void func_dryfield_back_street_8017D910(Task* task);
 
 /// Back street ambience: state 0 clears the recorded volume and advances, state
 /// 1 maps the current camera view to a target volume and stereo pan - 0x1E/+4,
@@ -598,17 +596,26 @@ void func_dryfield_back_street_8017D5D0(Task* task)
 
 #include "../../shared/back_street_event_msg.inc.c"
 
-s32 func_dryfield_back_street_8017D89C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in Back Street, returning the menu's unusable result.
+///
+/// The item ID and zero second payload are ignored; no item is consumed.
+static s32 _dryfieldBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg)
+{
+    enum { DRYFIELD_BACK_STREET_KEY_ITEM_UNUSABLE = 0 };
+
+    return DRYFIELD_BACK_STREET_KEY_ITEM_UNUSABLE;
+}
+
+/// Ignores room commands and their execution modes, returning zero.
+static s32 _dryfieldBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode)
 {
     return 0;
 }
 
-s32 func_dryfield_back_street_8017D8A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-s32 func_dryfield_back_street_8017D8AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests and returns zero.
+///
+/// The request is borrowed for synchronous dispatch; no payload is read or retained.
+static s32 _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg)
 {
     return 0;
 }
@@ -625,14 +632,14 @@ static void func_dryfield_back_street_8017D8B4(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// The room entry task's idle state.
-static void func_dryfield_back_street_8017D910(Task* task)
+/// Keeps the initialized room task available for messages until its state changes.
+static void _dryfieldBackStreetIdleState(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_back_street_8017D5C4 = {
-    { func_dryfield_back_street_8017D8B4, func_dryfield_back_street_8017D910, taskKill },
+    { func_dryfield_back_street_8017D8B4, _dryfieldBackStreetIdleState, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
@@ -645,16 +652,16 @@ void func_dryfield_back_street_8017D918(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Per-frame room task. On its first run it stores the effect ids 0x60296,
-/// 0x60297 and 0x60298 in three gameplay globals; every run it sets
-/// `roomEffectMode` to 2.
-void func_dryfield_back_street_8017D970(Task* task)
+void dryfieldBackStreetConfigureEffectsTask(Task* task)
 {
-    if (task->state == 0) {
+    enum { DRYFIELD_BACK_STREET_EFFECTS_INITIALIZE,
+           DRYFIELD_BACK_STREET_EFFECTS_ACTIVE };
+
+    if (task->state == DRYFIELD_BACK_STREET_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_DRYFIELD_BACK_STREET_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_BACK_STREET_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_DRYFIELD_BACK_STREET_SPARK_BURST;
-        task->state             = 1;
+        task->state             = DRYFIELD_BACK_STREET_EFFECTS_ACTIVE;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }
@@ -663,14 +670,14 @@ void func_dryfield_back_street_8017D970(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_dryfield_back_street_8017D9D0(Task* arg0)
+void dryfieldBackStreetRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_dryfield_back_street_8017E434(Task* task)
+void dryfieldBackStreetRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

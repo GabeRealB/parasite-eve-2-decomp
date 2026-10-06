@@ -44,15 +44,19 @@ D_map_dryfield_8017AEA4 = 0x8017AEA4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017AED4 = 0x8017AED4; // absolute:True owner=map_dryfield
 RoomFx_TrailOffsets = 0x8017F9A4; // size:0x10 defined:True
 
-func_dryfield_back_street_8017D9D0 = 0x8017D9D0; // type:func
+dryfieldBackStreetRoomVisualEffectsFlashTask = 0x8017D9D0; // type:func
 
-func_dryfield_back_street_8017E434 = 0x8017E434; // type:func
+dryfieldBackStreetRoomVisualEffectsTwinTrailTask = 0x8017E434; // type:func
 
 func_dryfield_back_street_8017ED1C = 0x8017ED1C; // type:func
 
-func_dryfield_back_street_8017D970 = 0x8017D970; // type:func
+dryfieldBackStreetConfigureEffectsTask = 0x8017D970; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017DC74; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017E0A0; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017E924; // type:func
 _roomVisualEffectsDrawBurstStar = 0x8017EFA4; // type:func
 backStreetEventMsg = 0x8017D748; // type:func
+_dryfieldBackStreetRejectKeyItemUse = 0x8017d89c; // type:func
+_dryfieldBackStreetIgnoreCommandMessage = 0x8017d8a4; // type:func
+_dryfieldBackStreetIgnoreRoomActionMessage = 0x8017d8ac; // type:func
+_dryfieldBackStreetIdleState = 0x8017d910; // type:func

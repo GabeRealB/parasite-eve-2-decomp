@@ -655,9 +655,9 @@ acropolisWestElevatorHallScanlineDistortionTask = 0x8017FE18; // type:func absol
 
 acropolisWestElevatorHallLightGlowTask = 0x8017FFE4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 
-func_dryfield_back_street_8017D9D0 = 0x8017D9D0; // type:func absolute:True owner=dryfield_back_street shared=rooms
+dryfieldBackStreetRoomVisualEffectsFlashTask = 0x8017D9D0; // type:func absolute:True owner=dryfield_back_street shared=rooms
 
-func_dryfield_back_street_8017E434 = 0x8017E434; // type:func absolute:True owner=dryfield_back_street
+dryfieldBackStreetRoomVisualEffectsTwinTrailTask = 0x8017E434; // type:func absolute:True owner=dryfield_back_street
 
 func_dryfield_back_street_8017ED1C = 0x8017ED1C; // type:func absolute:True owner=dryfield_back_street
 
@@ -1771,7 +1771,7 @@ func_dryfield_main_street_8017E4B0 = 0x8017E4B0; // type:func absolute:True owne
 
 func_dryfield_general_store_8017E150 = 0x8017E150; // type:func absolute:True owner=dryfield_general_store shared=rooms
 
-func_dryfield_back_street_8017D970 = 0x8017D970; // type:func absolute:True owner=dryfield_back_street shared=rooms
+dryfieldBackStreetConfigureEffectsTask = 0x8017D970; // type:func absolute:True owner=dryfield_back_street shared=rooms
 
 func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func absolute:True owner=dryfield_souvenir_shop
 

@@ -735,7 +735,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_gas_station_80181A78, { NULL } },                        // 0x0C2
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_8017E4B0, { NULL } },                        // 0x0C3
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_general_store_8017E150, { NULL } },                      // 0x0C4
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017D970, { NULL } },                        // 0x0C5
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetConfigureEffectsTask, { NULL } },                    // 0x0C5
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_souvenir_shop_8017DFD4, { NULL } },                      // 0x0C6
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWarehouseDrawGlowsTask, { NULL } },                            // 0x0C7
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseLightPrismTask, { NULL } },                    // 0x0C8
@@ -1200,8 +1200,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_8017EEE8, { NULL } },                        // 0x293
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_8017F94C, { NULL } },                        // 0x294
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_main_street_80180234, { NULL } },                        // 0x295
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017D9D0, { NULL } },                        // 0x296
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017E434, { NULL } },                        // 0x297
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsFlashTask, { NULL } },              // 0x296
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },          // 0x297
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017ED1C, { NULL } },                        // 0x298
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_corridor_8017ECA8, { NULL } },                         // 0x299
     { { { TASK_BODY_COORD, 0x70 } }, func_gunblade_8011DAA4, { NULL } },                                    // 0x29A
