@@ -1113,7 +1113,6 @@ static void Gp_DrawMapCursor(Task* arg0)
     s32                    base;
     SPRT_16*               p;
     DR_TPAGE*              dr;
-    s32                    u0;
     s32                    ang;
 
     obj   = arg0->spawnArg2.pointer;
@@ -1149,29 +1148,33 @@ static void Gp_DrawMapCursor(Task* arg0)
 
     ang = (u16)actor->rotation.vy;
     if (((ang - 0xF00) & 0xFFFF) < 0x100U) {
-        u0 = 0x40;
+        p->u0 = 0x40;
+        p->v0 = 0x10;
     } else if (ang < 0x100U) {
-        u0 = 0x40;
+        p->u0 = 0x40;
+        p->v0 = 0x10;
     } else if (((ang - 0x100) & 0xFFFF) < 0x200U) {
-        u0 = 0x50;
+        p->u0 = 0x50;
+        p->v0 = 0x10;
     } else if (((ang - 0x300) & 0xFFFF) < 0x200U) {
-        u0 = 0x60;
+        p->u0 = 0x60;
+        p->v0 = 0x10;
     } else if (((ang - 0x500) & 0xFFFF) < 0x200U) {
-        u0 = 0x70;
+        p->u0 = 0x70;
+        p->v0 = 0x10;
     } else if (((ang - 0x700) & 0xFFFF) < 0x200U) {
-        u0 = 0x80;
+        p->u0 = 0x80;
+        p->v0 = 0x10;
     } else if (((ang - 0x900) & 0xFFFF) < 0x200U) {
-        u0 = 0x90;
+        p->u0 = 0x90;
+        p->v0 = 0x10;
     } else if (((ang - 0xB00) & 0xFFFF) < 0x200U) {
-        u0 = 0xA0;
+        p->u0 = 0xA0;
+        p->v0 = 0x10;
     } else if (((ang - 0xD00) & 0xFFFF) < 0x200U) {
-        u0 = 0xB0;
-    } else {
-        goto noDir;
+        p->u0 = 0xB0;
+        p->v0 = 0x10;
     }
-    p->u0 = u0;
-    p->v0 = 0x10;
-noDir:
 
     p->x0 = centre->x - 8;
     p->y0 = centre->y - 8;
