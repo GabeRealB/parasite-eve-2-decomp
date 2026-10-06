@@ -62,7 +62,8 @@ void Gp_EffAttachTask37(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(mem, arg0);
+        return;
     }
     actorRenderComposeCoord(coord);
     mem->age++;
@@ -158,7 +159,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 return;
             }
             if (mem->age >= 0x4C) {
-                goto release;
+                break;
             }
             if (player->coord.t[1] + 0x100 < coord->coord.t[1]) {
                 mem->age += 0xA;
@@ -192,7 +193,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
             }
             if (mem->age >= 0x10) {
-                goto release;
+                break;
             }
             memset(&scale, 0, 0x10);
             scale.vx = 0x1000;
@@ -210,8 +211,8 @@ void Gp_EffAttachTask37(Task* arg0)
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, mem->angle >= 0x100, 0);
             }
             return;
+        default:
+            return;
     }
-    return;
-release:
     effectKillTask(mem, arg0);
 }
