@@ -388,30 +388,27 @@ static s32 func_actor_342100_801629B8(Task* arg0)
 
     work = arg0->work;
     if (work->playerTask == NULL) {
-    ret1:
         return 1;
     }
-    if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
-        return 0;
+    if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+        if (work->animationId >= ANIMATION_BANK_BASE_SET_COUNT) {
+            if (D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] >= 0) {
+                anim                     = D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
+                msgWork                  = arg0->work;
+                weaponId                 = gPlayerStatus.weapon;
+                setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.source.index         = setId;
+                msgWork->animationId     = anim;
+                msg.animationId          = anim;
+                msg.blend                = ANIMATION_BLEND_INTERPOLATE;
+                msg.blendFrames          = 0xA;
+                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
+            }
+        }
+        return 1;
     }
-    if (work->animationId < ANIMATION_BANK_BASE_SET_COUNT) {
-        goto ret1;
-    }
-    if (D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] < 0) {
-        goto ret1;
-    }
-    anim                     = D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
-    msgWork                  = arg0->work;
-    weaponId                 = gPlayerStatus.weapon;
-    setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.source.index         = setId;
-    msgWork->animationId     = anim;
-    msg.animationId          = anim;
-    msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-    msg.blendFrames          = 0xA;
-    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
-    goto ret1;
+    return 0;
 }
 
 /// State 0 allocates the overlay's effect record -- `sizeof(EffectSpawnArg)`, scale 0x100,
