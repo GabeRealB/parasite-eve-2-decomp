@@ -2915,19 +2915,16 @@ static void func_actor_521100_80134658(Task* arg0)
 /// `subState` - or raise `resumeRoute` only, in the location's view 2 -
 /// and then clear `resumeRouteLeg`. Phase 1 aims at the player and falls back to
 /// waypoint 1 past 0x7D0, re-aiming at the player from 0x3C of that waypoint;
-/// the within-0x7D0 path and the re-aim one share the epilogue that stops the
-/// actor (`targetYaw` re-aimed, `forwardSpeed` 0, `turnSpeed` 0x78, `state` 1,
-/// `subState` 0), while the far one goes to `game`, where the phase steps to 2
-/// and both `resumeRoute` / `resumeRouteLeg` are cleared, or both raised in
-/// view 2. Phase 2 aims at waypoint 2 and, from the coordinate's X past
-/// -0xFA0, clears `state` and `subState` (the session check there only
-/// clears `subState`), then drops both flags.
+/// the within-0x7D0 path and the re-aim one both stop the actor (`targetYaw`
+/// re-aimed, `forwardSpeed` 0, `turnSpeed` 0x78, `state` 1, `subState` 0),
+/// while on the far one the phase steps to 2 and both `resumeRoute` /
+/// `resumeRouteLeg` are cleared, or both raised in view 2. Phase 2 aims at
+/// waypoint 2 and, from the coordinate's X past -0xFA0, clears `state` and
+/// `subState` (the session check there only clears `subState`), then drops
+/// both flags.
 ///
 /// `sc2` is a second view of the same scratch that only phase 0's else branch
-/// reads: CSE folds its initialisation into a copy of `sc`, and the
-/// `do { ... } while (0)` around phase 1's `ratan2` is what keeps `head` ahead
-/// of that copy in the register allocator's order - see
-/// `DECOMPILATION_LEARNINGS.md`, "loop_depth as an allocation weight".
+/// reads: CSE folds its initialisation into a copy of `sc`.
 static void func_actor_521100_80134774(Task* arg0)
 {
     Actor521100Work*  work;
@@ -2984,34 +2981,34 @@ static void func_actor_521100_80134774(Task* arg0)
             sc->delta.vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             sc->delta.vy       = 0;
             sc->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) >= 0x7D0) {
-                sc->delta.vx = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
-                sc->delta.vy = 0;
-                sc->delta.vz = D_actor_521100_8015F654[1].vz - coord->coord.t[2];
-                do {
-                    work->targetYaw = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-                    if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) >= 0x3C) {
-                        goto game;
-                    }
-                } while (0);
-                sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                sc->delta.vy = 0;
-                sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            }
-            work->targetYaw    = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-            work->forwardSpeed = 0;
-            work->turnSpeed    = 0x78;
-            work->state        = ACTOR_521100_STATE_ATTACK;
-            work->subState     = 0;
-            break;
-        game:
-            if (gGameSession->location.loc.view != 2) {
-                work->subState       = 2;
-                work->resumeRoute    = 0;
-                work->resumeRouteLeg = 0;
+            if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x7D0) {
+                work->targetYaw    = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+                work->forwardSpeed = 0;
+                work->turnSpeed    = 0x78;
+                work->state        = ACTOR_521100_STATE_ATTACK;
+                work->subState     = 0;
             } else {
-                work->resumeRoute    = 1;
-                work->resumeRouteLeg = 1;
+                sc->delta.vx    = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
+                sc->delta.vy    = 0;
+                sc->delta.vz    = D_actor_521100_8015F654[1].vz - coord->coord.t[2];
+                work->targetYaw = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+                if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x3C) {
+                    sc->delta.vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                    sc->delta.vy       = 0;
+                    sc->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+                    work->targetYaw    = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+                    work->forwardSpeed = 0;
+                    work->turnSpeed    = 0x78;
+                    work->state        = ACTOR_521100_STATE_ATTACK;
+                    work->subState     = 0;
+                } else if (gGameSession->location.loc.view != 2) {
+                    work->subState       = 2;
+                    work->resumeRoute    = 0;
+                    work->resumeRouteLeg = 0;
+                } else {
+                    work->resumeRoute    = 1;
+                    work->resumeRouteLeg = 1;
+                }
             }
             break;
         case 2:
