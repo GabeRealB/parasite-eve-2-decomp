@@ -12,7 +12,8 @@ void factoryLampScene(Task* task)
             Gp_MsgPlayerWeapon(0);
             Gp_MsgAllyWeapon(0);
             Gp_RunCapCmd(task->spawnArg1.value, 0);
-            goto advance;
+            task->state++;
+            return;
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) < 2) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
@@ -23,7 +24,6 @@ void factoryLampScene(Task* task)
             if (Gp_CapBusy() != 0) {
                 return;
             }
-        advance:
             task->state++;
             return;
         case 3:
