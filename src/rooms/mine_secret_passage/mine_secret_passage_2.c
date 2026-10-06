@@ -647,7 +647,11 @@ WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[8] = {
 
 RoomFadeStorage D_mine_secret_passage_80183440;
 
-/// Installs the loaded passage's callbacks for effects spawned by actors.
+/// Selects the passage's mote, halo, orange burst and spark emitter for actor spawns.
+///
+/// Installs packed bank-6 task IDs in the shared room-effect slots. Call during
+/// room initialization after the controller clears these slots. The passage
+/// overlay must stay loaded while the selections are used and their tasks run.
 static inline void _mineSecretPassageRegisterRoomEffects(void)
 {
     gRoomEffectMoteId         = EFFECT_MINE_SECRET_PASSAGE_MOTE;
@@ -670,7 +674,7 @@ void mineSecretPassageDrawLightGlowsTask(Task* task)
         GLOWS_ORANGE_RGB      = 0x421
     };
 
-    // Select this loaded room's effect callbacks before drawing its fixed lights.
+    // Select this loaded room's effect IDs before drawing its fixed lights.
     if (task->state == GLOWS_INITIALIZE) {
         _mineSecretPassageRegisterRoomEffects();
         task->state = GLOWS_REGISTERED;
