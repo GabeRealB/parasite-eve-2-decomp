@@ -150169,3 +150169,59 @@ attempts; left as it was.
   form puts the `done = 0` block behind the `return 1` jump; the image has it
   between the `bodyAnimation` store and the seek loop's `i = 1`, where no
   structured form leaves an unconditional jump.
+## Goto removal, batch 22: the `ret1:` chain, the companion's drive states, a stop tail (2026-10-06)
+
+- **`if (!p) { ret1: return 1; } if (busy) return 0; if (a) goto ret1; if (b)
+  goto ret1; ...send...; goto ret1;`** (`func_actor_342100_801629B8`,
+  `func_actor_136100_80131EC4`; the 2026-09-17 / 09-27 entries for the first
+  kept the gotos) is positive nesting with `return 0` *last*:
+  `if (!p) return 1; if (!busy) { if (a') { if (b') { send } } return 1; }
+  return 0;`. Why: a `[v0=1; j end]` block is first compared with the code in
+  front of the return label (`find_cross_jump`, minimum 1). With `return 1` as
+  the function's last statement every earlier `return 1` merges into it and
+  the first test is inverted to point at the end (the 92% shape). With
+  `return 0` in front of the label that comparison fails; the first block,
+  processed first, finds no partner (the other is `[call; v0=1; j]`, and a
+  jump-to-jump merge needs two insns unless the block is entered by a label),
+  and the inner `return 1`, which *is* entered by a label, then merges into
+  it. `jump2` ends as the goto form does: one `v0=1; j end` after the first
+  test, the two inner tests branching back to it, and a `j` to it at the end
+  that reorg turns into the final `li v0,1`. Separate `if (a) return 1;`
+  guards inside the block instead leave the survivor at the *second* return.
+- **A `case 1: case 2: case 3: x = 1; goto drive; case 0: ...; x = 1; drive:`**
+  (`func_actor_800100_80164184`) is `case 0: ...; /* fallthrough */ case 1:
+  case 2: case 3: x = 1; drive...`. The image's second copy of `li v0,1; sb`
+  in front of the dispatch `j` is reorg filling the branch and the jump from
+  the target thread, not source. Same file, `default: goto tail;` after
+  `case 1: case 2: break;` (`_80164B9C`) is the code after the switch moved
+  into the `case 1: case 2:` body.
+- **`if (a) { if (b) goto other; } first; break; other: second; break;`** is
+  `if (!a' || !b') { first } else { second }` with the conditions inverted so
+  `first` stays the then-arm (`_80165010`). Where `a` guards several
+  statements before `b` (`_80164580`: fetch the lock position, then test the
+  turn) those statements are a `static inline s32` returning the tested value
+  and the condition is `node == NULL || turn(...) < 0x201`; an inline
+  returning the whole predicate materialises it (`li v1,1 / move v1,zero`).
+- **A stop tail shared by a near arm and a far-then-near arm, with a third
+  arm jumped to out of a `do { } while (0)`** (`func_actor_521100_80134774`):
+  write the tail out in both arms, near arm first:
+  `if (near) { stop } else { ...; if (close) { re-aim; stop } else { third } }`.
+  The later copy survives, which is the image's order; with the far arm first
+  the copy behind `third` survives and the block order is wrong. The
+  `do { } while (0)` went with the goto.
+- **A mode ladder whose `case 1` jumps to the two calls that end the
+  function** (`func_actor_521100_80135478`) is `case 1: f(); g(); return;`
+  written out; it merges into the function's tail.
+- Not converted: the re-fire jump of `func_actor_800100_80165F50` (`case 4`
+  back to `case 1`'s body). One attempt, with the two bodies as inlines called
+  in both places: same length, but the merged body is kept in `case 4`'s
+  position, so cases 3/4 are emitted ahead of case 1.
+- Not converted: `func_actor_136100_80131FBC` / `func_actor_121300_80132818`
+  (`goto fail` out of the settle scan, with `fail: done = 0; goto check;`
+  written between the store and the seek loop). `done = 0; break;` is the
+  same code, but loop.c moves that block to the first `BARRIER` after the
+  loop at its depth, which in structured code is the one after `return 1`;
+  the image has it between the store and the seek loop's `i = 1`, where only
+  an unconditional jump puts a barrier. `if (t >= 0) { store } else { return
+  1; }` in front of the loop does not help: jump.c's "if (foo) bar; else
+  break;" swap moves the return in front of the store.
