@@ -7,7 +7,7 @@ void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos)
 {
     BossStrangerTurnTowardScratch* s;
     GfxCoord*                      coord;
-    s16                            diff, t;
+    s16                            diff;
     s32                            angle;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.unknown_5C0 == 1)
@@ -16,21 +16,7 @@ void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos)
     coord = work->coord;
     diff  = overlayCoordBearingXZ(pos, coord) -
            ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    t = diff;
-    if (diff < 0) {
-    wrapUp:
-        if (t < -0x800) {
-            t += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (t > 0x800) {
-            t -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    angle    = t;
+    angle    = overlayWrapAngle(diff);
     s->angle = angle;
     if (angle != 0)
         work->turnRun++;
