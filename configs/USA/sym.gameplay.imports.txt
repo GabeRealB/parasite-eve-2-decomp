@@ -371,7 +371,7 @@ D_map_dryfield_full_8017D1CC = 0x8017D1CC; // absolute:True
 D_map_shelter_8017BD8C = 0x8017BD8C; // absolute:True owner=map_shelter shared=mapui
 D_map_neo_ark_8017CB0C = 0x8017CB0C; // absolute:True owner=map_neo_ark
 acropolisEastElevatorHallPointTileTask = 0x8017FAAC; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
-func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons
+func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons effect-bank slots 0xBB/0xBD, owner unproven
 D_map_akropolis_8017A8AC = 0x8017A8AC; // absolute:True owner=map_akropolis
 D_map_dryfield_8017A6A4 = 0x8017A6A4; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017A5AC = 0x8017A5AC; // absolute:True owner=map_dryfield_full

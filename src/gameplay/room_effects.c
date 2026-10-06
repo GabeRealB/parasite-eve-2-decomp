@@ -529,7 +529,12 @@ static void _gpuSetPrimitiveBlendModeFixedDepth(void* primitive, s32 blendMode, 
 // Retained effect slots without a proven owning room. See the local type audit.
 void func_mist_parking_8018345C(Task* task);
 
-void func_8011D1E0(Task* task);
+/// Unresolved weapon-overlay callback for effect-bank slots 0xBB and 0xBD.
+///
+/// Both slots allocate a single-coordinate body and pass a live `task`.
+/// The code at this imported address depends on the loaded weapon overlay;
+/// its owner, behavior and spawn-argument contract are unproven.
+extern void func_8011D1E0(Task* task);
 
 /// Task bank 6: effects and loaded-overlay task entry points.
 TaskDesc D_8010FC2C[667] = {
