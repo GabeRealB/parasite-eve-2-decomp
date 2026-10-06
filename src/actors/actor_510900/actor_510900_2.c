@@ -1385,16 +1385,12 @@ static s32 func_actor_510900_8013691C(Task* arg0)
             work->state       = ACTOR_510900_STATE_SLASH;
             work->subState    = 0;
             work->animationId = 0xA;
-            goto done;
-        }
-        if (dist < 0xED8) {
+        } else if (dist < 0xED8) {
             ret               = 1;
             work->state       = ACTOR_510900_STATE_FLAME_LUNGE;
             work->subState    = 0;
             work->animationId = 0xE;
-            goto done;
-        }
-        if (dist < 0x12C0) {
+        } else if (dist < 0x12C0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 0x10) & 1) {
                 work->state       = ACTOR_510900_STATE_FLAME_LUNGE;
@@ -1405,6 +1401,7 @@ static s32 func_actor_510900_8013691C(Task* arg0)
                 work->subState    = 0;
                 work->animationId = 0x1B;
             }
+            ret = 1;
         } else {
             ret = 0;
             if (work->grenadeLive == 0) {
@@ -1413,7 +1410,6 @@ static s32 func_actor_510900_8013691C(Task* arg0)
                 work->subState    = 0;
                 work->animationId = 0x1B;
             }
-            goto done;
         }
     } else {
         if (work->playerDistance < 0xAF0) {
@@ -1432,9 +1428,8 @@ static s32 func_actor_510900_8013691C(Task* arg0)
                 work->animationId = 0xB;
             }
         }
+        ret = 1;
     }
-    ret = 1;
-done:
     return ret;
 }
 
