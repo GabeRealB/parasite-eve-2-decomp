@@ -1439,6 +1439,31 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
+// A stored reward as the status panel shows and awards it: divided by the
+// game mode's factor and capped at six digits; nothing in mode 3.
+static inline s32 _mistShootingGalleryScaleReward(s32 raw)
+{
+    s32 scaled;
+
+    switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
+        case 3:
+            return 0;
+        case 2:
+            scaled = raw / 100;
+            break;
+        case 1:
+            scaled = raw / 20;
+            break;
+        default:
+            scaled = raw / 10;
+            break;
+    }
+    if (scaled > 999999) {
+        scaled = 999999;
+    }
+    return scaled;
+}
+
 void func_mist_shooting_gallery_8017EC58(Task* task)
 {
     u8          buf[0x20];
@@ -1720,10 +1745,6 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
 {
     UiObject*     obj;
     PlayerStatus* cfg = &gPlayerStatus;
-    s32           savedBp;
-    s32           savedExp;
-    s32           bp;
-    s32           exp;
 
     if (task->state == 0) {
         obj = uiSpawnObject(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
@@ -1742,47 +1763,8 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             Gp_RecalcMaxHp();
             Gp_RecalcMaxMp();
 
-            savedBp = D_mist_shooting_gallery_8018E0BC;
-            switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-                case 3:
-                    bp = 0;
-                    goto store_bp;
-                case 2:
-                    bp = savedBp / 100;
-                    break;
-                case 1:
-                    bp = savedBp / 20;
-                    break;
-                default:
-                    bp = savedBp / 10;
-                    break;
-            }
-            if (bp > 999999) {
-                bp = 999999;
-            }
-        store_bp:
-            cfg->exp = bp;
-
-            savedExp = D_mist_shooting_gallery_8018E0C0;
-            switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-                case 3:
-                    exp = 0;
-                    goto store_exp;
-                case 2:
-                    exp = savedExp / 100;
-                    break;
-                case 1:
-                    exp = savedExp / 20;
-                    break;
-                default:
-                    exp = savedExp / 10;
-                    break;
-            }
-            if (exp > 999999) {
-                exp = 999999;
-            }
-        store_exp:
-            cfg->bp = exp;
+            cfg->exp = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
+            cfg->bp  = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
             Gp_FillHpMp();
             task->state = task->state + 1;
         }
