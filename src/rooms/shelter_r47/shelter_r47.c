@@ -602,19 +602,26 @@ static void func_shelter_r47_8017FCC0(Task* task)
     }
 }
 
-static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
+static inline void _shelterR47SwapEntryTriggers(void)
 {
-    Task*                  spawned_p;
-    Task*                  spawned_p6;
-    Task*                  spawned_a;
-    Task*                  spawned_a0;
-    Task*                  spawned_a1;
-    s32                    flag_a;
-    s32                    flag_b;
-    s32                    kind;
-    u8                     field9;
     WorldCollisionTrigger* p;
     WorldCollisionTrigger* q;
+
+    p         = (D_shelter_r47_8018787C + 3);
+    q         = p + 9;
+    p->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    q->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+}
+
+static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
+{
+    Task* spawned_p;
+    Task* spawned_p6;
+    Task* spawned_a;
+    Task* spawned_a0;
+    Task* spawned_a1;
+    Task* spawned_a2;
+    u8    field9;
 
     field9 = gGameSession->location.loc.variant;
     if (field9 == 1) {
@@ -633,11 +640,9 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     func_800E8634(D_actor_443500_8014152C, 0, D_actor_443500_80141C1C);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 1);
                     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165) == 0) {
-                        flag_a = 0x165;
-                        flag_b = 1;
-                        goto set_and_toggle;
+                        gameFlagSetNibble(GAME_FLAG_SHELTER_R47_165, 1);
                     }
-                    goto toggle_only;
+                    _shelterR47SwapEntryTriggers();
                 }
                 break;
             case 4:
@@ -667,10 +672,9 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 break;
         }
     } else if (field9 == 2) {
-        kind = arg2->warp;
-        if (kind < 6) {
-            if (kind < 4) {
-                if ((kind == 1) && (gameFlagGetNibble(GAME_FLAG_083) == 0) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0)) {
+        switch (arg2->warp) {
+            case 1:
+                if ((gameFlagGetNibble(GAME_FLAG_083) == 0) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0)) {
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         func_800E8634(D_actor_143400_801350BC, 0, D_actor_143400_801359D4);
                     }
@@ -680,17 +684,12 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     gameFlagSetNibble(GAME_FLAG_0D1, 2);
                     Gp_FillAllyHp();
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    flag_a = 0x155;
-                    flag_b = 4;
-                set_and_toggle:
-                    gameFlagSetNibble(flag_a, flag_b);
-                toggle_only:
-                    p         = (D_shelter_r47_8018787C + 3);
-                    q         = p + 9;
-                    p->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-                    q->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
+                    _shelterR47SwapEntryTriggers();
                 }
-            } else {
+                break;
+            case 4:
+            case 5:
                 spawned_a0             = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_a0;
                 if (spawned_a0 != NULL) {
@@ -702,12 +701,20 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     }
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
-                goto done;
-            }
-        } else {
-            if (kind == 6) {
-                goto spawn_six;
-            }
+                break;
+            case 6:
+                spawned_a2             = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                D_shelter_r47_8018A690 = spawned_a2;
+                if (spawned_a2 != NULL) {
+                    Gp_MsgPlayer3F3(0);
+                    Gp_MsgPlayerWeapon(0);
+                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
+                        Gp_MsgAlly3F3(0);
+                        Gp_MsgAllyWeapon(0);
+                    }
+                    taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
+                }
+                break;
         }
     } else {
         switch (arg2->warp) {
@@ -724,9 +731,8 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     }
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
-                goto done;
+                break;
             case 6:
-            spawn_six:
                 spawned_a              = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_a;
                 if (spawned_a != NULL) {
@@ -741,7 +747,6 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 break;
         }
     }
-done:
     return 0;
 }
 
