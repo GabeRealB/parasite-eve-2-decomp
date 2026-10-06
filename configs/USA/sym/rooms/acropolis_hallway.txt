@@ -52,6 +52,8 @@ D_map_akropolis_8017B0DC = 0x8017B0DC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B0FC = 0x8017B0FC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017B11C = 0x8017B11C; // absolute:True owner=map_akropolis
 
-func_acropolis_hallway_8017D828 = 0x8017D828; // type:func
+acropolisHallwayEffectControlTask84 = 0x8017D828; // type:func
 ActorContact_PushContact = 0x8017D830; // type:func
 ActorContact_Push = 0x8017D9D4; // type:func
+_acropolisHallwayRejectKeyItemUse = 0x8017d72c; // type:func
+_acropolisHallwayIdleRoomTask = 0x8017d7c8; // type:func

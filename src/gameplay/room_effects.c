@@ -670,7 +670,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask81, { NULL } },                                           // 0x081
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                   // 0x082
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_patio_8017E100, { NULL } },                             // 0x083
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_hallway_8017D828, { NULL } },                           // 0x084
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisHallwayEffectControlTask84, { NULL } },                       // 0x084
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_forked_road_8017E298, { NULL } },                       // 0x085
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_roof_garden_8017DCDC, { NULL } },                       // 0x086
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_patio_8017E324, { NULL } },                             // 0x087

@@ -33,7 +33,11 @@ extern ViewCamera D_acropolis_hallway_8017EC68[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_hallway_8017ED40[];
 
-void func_acropolis_hallway_8017D828(Task* unused);
+/// Inert task callback for the hallway's effect-bank-6 slot 0x84.
+///
+/// Leaves the live task and its coordinate body untouched, including its state
+/// and lifetime. Keep the hallway overlay loaded while this callback can run.
+void acropolisHallwayEffectControlTask84(Task* unusedTask);
 
 void func_acropolis_hallway_8017D7D0(Task* task);
 

@@ -51,11 +51,14 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 }
 
 static void func_acropolis_hallway_8017D784(Task* task);
-static void func_acropolis_hallway_8017D7C8(Task* task);
+static void _acropolisHallwayIdleRoomTask(Task* unusedTask);
+
+/// Room message carrying the selected inventory item ID in its first argument.
+enum { ACROPOLIS_HALLWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 /// State handlers of the room task: set-up, an idle tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_hallway_8017D5C4 = {
-    { func_acropolis_hallway_8017D784, func_acropolis_hallway_8017D7C8, taskKill },
+    { func_acropolis_hallway_8017D784, _acropolisHallwayIdleRoomTask, taskKill },
 };
 
 static u32     _gAcropolisHallwayModel023C0PartVerts[1];
@@ -69,12 +72,12 @@ extern WorldCollisionTrigger D_acropolis_hallway_8017E5F4[4];
 extern WorldCollisionTrigger D_acropolis_hallway_8017E724[9];
 extern WorldCoordRoomLights  D_acropolis_hallway_8017EBC4[1];
 s32                          func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_acropolis_hallway_8017D72C(Task*, s32, s32, s32);
+static s32                   _acropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
 s32                          func_acropolis_hallway_8017D734(Task*, s32, s32, s32);
 
 TaskMessageEntry D_acropolis_hallway_8017E238[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
-    { 5105, func_acropolis_hallway_8017D72C },
+    { ACROPOLIS_HALLWAY_MESSAGE_USE_KEY_ITEM, _acropolisHallwayRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, func_acropolis_hallway_8017D734 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -408,10 +411,15 @@ s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     return 1;
 }
 
-/// Message handler that accepts the message and does nothing else.
-s32 func_acropolis_hallway_8017D72C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in the hallway.
+///
+/// All arguments are ignored. Returning 0 selects the inventory's "No use now"
+/// notice without consuming the selected item or starting a room event.
+static s32 _acropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { ACROPOLIS_HALLWAY_KEY_ITEM_USE_REFUSED = 0 };
+
+    return ACROPOLIS_HALLWAY_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -436,8 +444,8 @@ static void func_acropolis_hallway_8017D784(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room task: does nothing.
-static void func_acropolis_hallway_8017D7C8(Task* task)
+/// Leaves the hallway room task untouched in its idle state (state 1).
+static void _acropolisHallwayIdleRoomTask(Task* unusedTask)
 {
 }
 
@@ -451,7 +459,7 @@ void func_acropolis_hallway_8017D7D0(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_acropolis_hallway_8017D828(Task* unused)
+void acropolisHallwayEffectControlTask84(Task* unusedTask)
 {
 }
 
