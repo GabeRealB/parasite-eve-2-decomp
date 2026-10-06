@@ -650,6 +650,19 @@ void func_dryfield_driveway_8017DC64(u8 arg0)
 
 #include "../../shared/dryfield_driveway_script_sound.inc.c"
 
+/// Answers 1 when a pending room-action trigger with `parameter0` 0xFF was hit.
+static inline s32 _dryfieldDrivewayRoomTriggerHit(void)
+{
+    WorldCollisionTrigger* node;
+
+    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
+        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /// Message handler for message 0x114: while flag nibble 0x3A is 1, looks for a
 /// room-action trigger with `parameter0` 0xFF and a non-zero `hit`;
 /// when one exists it advances the nibble to 2, spawns the first cutscene task
@@ -657,22 +670,9 @@ void func_dryfield_driveway_8017DC64(u8 arg0)
 /// hidden and an event running, and reports the message handled.
 s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    WorldCollisionTrigger* node;
-    s32                    found;
-
     if (arg2 == 0x114) {
         if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) == 1) {
-            node = Gp_PendingObj4C;
-            while (node != NULL) {
-                if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-                    found = 1;
-                    goto check;
-                }
-                node = node->next;
-            }
-            found = 0;
-        check:
-            if (found != 0) {
+            if (_dryfieldDrivewayRoomTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 2);
                 taskSpawnFromTableOnDefaultList(gDrivewayCutsceneTasks, 0, 0, 0);
                 gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
