@@ -6198,26 +6198,14 @@ static void func_actor_444000_80141618(Task* task)
     } else {
         work->hostExposed = 0;
     }
-    cfg             = &gPlayerStatus;
-    coord           = task->extra.tmd->coords;
-    sc->toPlayer.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
-    sc->toPlayer.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
-    sc->toPlayer.vz = cfg->coordMtx->t[2] - coord->coord.t[2];
-    facing          = task->extra.tmd->coords;
-    angle           = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
+    cfg                 = &gPlayerStatus;
+    coord               = task->extra.tmd->coords;
+    sc->toPlayer.vx     = cfg->coordMtx->t[0] - coord->coord.t[0];
+    sc->toPlayer.vy     = cfg->coordMtx->t[1] - coord->coord.t[1];
+    sc->toPlayer.vz     = cfg->coordMtx->t[2] - coord->coord.t[2];
+    facing              = task->extra.tmd->coords;
+    angle               = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    angle               = actorWrapAngle(angle);
     work->neckYawTarget = angle;
     if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0x13) {
         work->animId   = 1;
@@ -6240,80 +6228,78 @@ static void func_actor_444000_80141618(Task* task)
         work->shakeLevel = GLUTTON_SHAKE_LONG;
         Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
     }
-    if (work->stateTicks != 0x46 && work->stateTicks != 0x78) {
-        goto out;
-    }
-    if (work->stateTicks == 0x46) {
-        sc->slot = 0;
-    } else {
-        sc->slot = 1;
-    }
-    if (work->summons[sc->slot] != NULL && work->phase < 6) {
-        D_actor_444000_80161888.command.context.loc.stage = 0;
-        D_actor_444000_80161888.command.context.loc.area  = 0x2C;
-        switch (work->phase) {
-            case 0:
-            case 1:
-                if (sc->slot == 0) {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.command.command = 3;
-                    } else {
-                        D_actor_444000_80161888.command.command = 4;
-                    }
-                } else {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.command.command = 5;
-                    } else {
-                        D_actor_444000_80161888.command.command = 6;
-                    }
-                }
-                break;
-            case 2:
-            case 3:
-                if (sc->slot == 0) {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.command.command = 0xd;
-                    } else {
-                        D_actor_444000_80161888.command.command = 8;
-                    }
-                } else {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.command.command = 7;
-                    } else {
-                        D_actor_444000_80161888.command.command = 0xe;
-                    }
-                }
-                break;
-            case 4:
-            case 5:
-                if (sc->slot == 0) {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.command.command = 9;
-                    } else {
-                        D_actor_444000_80161888.command.command = 0xf;
-                    }
-                } else {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_444000_80161888.command.command = 9;
-                    } else {
-                        D_actor_444000_80161888.command.command = 0xf;
-                    }
-                }
-                break;
+    if (work->stateTicks == 0x46 || work->stateTicks == 0x78) {
+        if (work->stateTicks == 0x46) {
+            sc->slot = 0;
+        } else {
+            sc->slot = 1;
         }
-        D_actor_444000_80161888.command.command <<= 8;
-        rnd                                       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        D_actor_444000_80161888.command.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
-        gRandomLcgState                           = rnd;
-        TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.command, 0);
+        if (work->summons[sc->slot] != NULL && work->phase < 6) {
+            D_actor_444000_80161888.command.context.loc.stage = 0;
+            D_actor_444000_80161888.command.context.loc.area  = 0x2C;
+            switch (work->phase) {
+                case 0:
+                case 1:
+                    if (sc->slot == 0) {
+                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        if (!((gRandomLcgState >> 16) & 1)) {
+                            D_actor_444000_80161888.command.command = 3;
+                        } else {
+                            D_actor_444000_80161888.command.command = 4;
+                        }
+                    } else {
+                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        if (!((gRandomLcgState >> 16) & 1)) {
+                            D_actor_444000_80161888.command.command = 5;
+                        } else {
+                            D_actor_444000_80161888.command.command = 6;
+                        }
+                    }
+                    break;
+                case 2:
+                case 3:
+                    if (sc->slot == 0) {
+                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        if (!((gRandomLcgState >> 16) & 1)) {
+                            D_actor_444000_80161888.command.command = 0xd;
+                        } else {
+                            D_actor_444000_80161888.command.command = 8;
+                        }
+                    } else {
+                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        if (!((gRandomLcgState >> 16) & 1)) {
+                            D_actor_444000_80161888.command.command = 7;
+                        } else {
+                            D_actor_444000_80161888.command.command = 0xe;
+                        }
+                    }
+                    break;
+                case 4:
+                case 5:
+                    if (sc->slot == 0) {
+                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        if (((gRandomLcgState >> 16) & 1)) {
+                            D_actor_444000_80161888.command.command = 9;
+                        } else {
+                            D_actor_444000_80161888.command.command = 0xf;
+                        }
+                    } else {
+                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        if (!((gRandomLcgState >> 16) & 1)) {
+                            D_actor_444000_80161888.command.command = 9;
+                        } else {
+                            D_actor_444000_80161888.command.command = 0xf;
+                        }
+                    }
+                    break;
+            }
+            D_actor_444000_80161888.command.command <<= 8;
+            rnd                                       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            D_actor_444000_80161888.command.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
+            gRandomLcgState                           = rnd;
+            TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.command, 0);
+        }
     }
-out:
     SCRATCH_STACK_RELEASE_BLOCK(GluttonSummonScratch);
 }
 
