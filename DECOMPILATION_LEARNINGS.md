@@ -88398,10 +88398,10 @@ appeared but the `lhu` stayed below it (`reorder=2`, 99.46%). Reading it into a
 local first - `vx = ...; tmp = head - 0x18; SOFT_USE_REG(tmp); block = tmp;
 block->vec.vx = vx;` - and holding the last half in a local until after
 `*scratch = block` matched. Only hold it when the target loads it *before* the
-head store: `func_acropolis_fire_escape_80180154` loads `workm.t[2]` into `$v0`
+head store: `acropolisFireEscapeFlickerLightTask` loads `workm.t[2]` into `$v0`
 after `sw s7,0(a1)`, and there the `vz` local pulled the loads into `$a1` and
 swapped the head/scratch registers (99.86%, `regs=17`); writing
-`block->worldPos.vz = coord->workm.t[2]` straight after the store matched.
+`projection->worldPos.vz = coord->workm.t[2]` straight after the store matched.
 
 
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
@@ -142845,7 +142845,7 @@ came out with its loads swapped.
   function-scope pointer. The shared one made the two tests allocate alike,
   so jump2 merged more than the compare.
 
-### A phony loop can act as a CSE boundary, not a weight: only loop constructs reproduce it (func_acropolis_fire_escape_80180B20, 2026-09-26)
+### A phony loop can act as a CSE boundary, not a weight: only loop constructs reproduce it (acropolisFireEscapeFlareTask, 2026-09-26)
 
 **Problem.** A glow routine draws two `POLY_G4` wedges per iteration of a
 short loop. Its seed wrapped the first wedge and the second wedge's header in
@@ -142902,7 +142902,7 @@ the original wrote it.
 
 ### After an earlier call in the same block, argument moves tie on priority and source order decides (acropolisSquareBeaconGlowTask, 2026-09-26)
 
-**Problem.** The twin of `func_acropolis_fire_escape_80180B20`. With every
+**Problem.** The twin of `acropolisFireEscapeFlareTask`. With every
 barrier stripped and one empty `do {} while (0)` after the second wedge's
 `setPolyG4`, the whole function matches except the second wedge's call:
 ours hoists `move a0,t3` above the `addPrim` and keeps `li a1,1` by the
@@ -147669,11 +147669,11 @@ the assignment has to sit before it. The inline subscript also gives
 pointer first.
 
 Two notes for the scratch loop. Compile with the build's `-gcoff`: without it
-`func_acropolis_fire_escape_80180B20` allocated a different frame, and a
+`acropolisFireEscapeFlareTask` allocated a different frame, and a
 candidate that diffed clean failed the real build. And a `"+r"` asm on a byte
 offset blocks `combine` from seeing its low bits, so `off / 4` behind it costs
 `srl 2; sll 2`; move the asm up to the shifted depth and mask after it
-(`shiftedDepth = (u32)blk->otz << shift; asm; ...[(shiftedDepth >> 2 & 0xFFC) / 4]`).
+(`shiftedDepth = (u32)projection->otz << shift; asm; ...[(shiftedDepth >> 2 & 0xFFC) / 4]`).
 
 ## An OT index form that changes code far from the `addPrim`: the scale insn pushed the loop over a hoist threshold (func_actor_403600_80134398, 2026-10-05)
 
@@ -148025,7 +148025,7 @@ integer address both go. The `register ... asm("s1")` on the typed pointer
 stays: a pseudo for the sum is block-local and local-alloc puts it and the
 half in `$v0`.
 
-### A hoisted mask next to an in-loop `lui`: count the moves loop.c makes before it, and check the type of the loop's invariant locals (func_acropolis_fire_escape_80180B20, 2026-10-05)
+### A hoisted mask next to an in-loop `lui`: count the moves loop.c makes before it, and check the type of the loop's invariant locals (acropolisFireEscapeFlareTask, 2026-10-05)
 
 **Symptom.** A loop body drawing two `POLY_G4` rays, a call after each. The
 target hoists the `0x00FFFFFF` link mask (`lui a3,0xff; ori` before the
@@ -148048,8 +148048,8 @@ seven (`%hi(gGpuPrimCursor)`, the `8` and `0x38` of `setPolyG4`, the table
 address and `&gDisplayState` as `high` + `lo_sum` each), leaving 8.
 
 The two missing moves are a sign extension. The seed declared
-`s32 ampHalf = amp >> 1` before the loop. Declared `s16`, each use in
-`ampHalf * (flip ^ 1)` needs `ashift 16` / `ashiftrt 16` inside the loop,
+`s32 halfIntensity = intensity >> 1` before the loop. Declared `s16`, each use in
+`halfIntensity * (cyan ^ 1)` needs `ashift 16` / `ashiftrt 16` inside the loop,
 cse1 shares the pair, and loop.c hoists it (`regno 462 (life 9), savings 2
 moved`, `regno 461 ... cond forces 854 ... moved`). Combine then folds the
 hoisted pair into the `sll 16; sra 17` in front of the loop, so the final
@@ -148061,21 +148061,21 @@ shortened the lifetimes and added insns. It matched, so it looked original.
 **Fix.**
 
 ```c
-s16 ampHalf;
+s16 halfIntensity;
 ...
-ampHalf = amp >> 1;
-for (i = 2; i < 0x10; i += 8) {
+halfIntensity = intensity >> 1;
+for (partIndex = 2; partIndex < 0x10; partIndex += 8) {
     ...
-    setRGB2(prim, ampHalf * (flip ^ 1), flip * ampHalf, flip * ampHalf);
+    setRGB2(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
     ...
-    addPrim(..., prim);
-    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+    addPrim(..., quad);
+    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz);
     ... /* second ray, same form */
 }
 ```
 
-The same change removed an `ampSi = amp;` copy the first loop carried inside
-its body: `amp` used directly gives the same hoisted extension.
+The same change removed an `intensitySi = intensity;` copy the first loop carried inside
+its body: `intensity` used directly gives the same hoisted extension.
 `acropolisSquareBeaconGlowTask` and `func_acropolis_roof_garden_8017E29C`
 take the same form.
 

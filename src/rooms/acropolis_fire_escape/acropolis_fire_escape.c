@@ -64,6 +64,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
+#include "../../shared/glow_draw.h"
 
 extern WorldCollisionTrigger D_acropolis_fire_escape_8018252C[12];
 
@@ -153,13 +154,30 @@ extern RoomCutsceneRec D_acropolis_fire_escape_80183048;
 #define TELEPHONE_TITLE_BYTES "Telephone\0\1\0"
 #include "../../shared/telephone.h"
 
+/// Key-item request handled by this room; the payload is an item ID.
+enum { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Initializes a glow quad with RGB at vertex 2 and a black rim elsewhere.
+///
+/// `quad` must be a stable, side-effect-free pointer to a writable POLY_G4;
+/// SDK setters evaluate it repeatedly. Each colour expression is evaluated
+/// once and narrows to a byte on assignment. This void expression sequences
+/// the header and rim stores before reading the centre colour. Geometry and
+/// queueing remain the caller's responsibility; no identifiers are captured.
+#define ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, red, green, blue) \
+    ((void)(setPolyG4((quad)),                                       \
+            setRGB0((quad), 0, 0, 0),                                \
+            setRGB1((quad), 0, 0, 0),                                \
+            setRGB2((quad), (red), (green), (blue)),                 \
+            setRGB3((quad), 0, 0, 0)))
+
 static void func_acropolis_fire_escape_8017FE50(Task* task);
 static void func_acropolis_fire_escape_8017FECC(Task* task);
 
-s32 func_acropolis_fire_escape_8017F9F8(Task*, s32, s32, s32);
-s32 func_acropolis_fire_escape_8017FD98(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_fire_escape_8017FE40(Task*, s32, s32, s32);
-s32 func_acropolis_fire_escape_8017FE48(Task*, s32, s32, s32);
+s32        func_acropolis_fire_escape_8017F9F8(Task*, s32, s32, s32);
+s32        func_acropolis_fire_escape_8017FD98(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisFireEscapeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 unusedArg);
 
 void func_acropolis_fire_escape_8017FB40(Task*);
 
@@ -193,9 +211,9 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 
 TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fire_escape_8017FD98 },
-    { 5105, func_acropolis_fire_escape_8017FE40 },
+    { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM, _acropolisFireEscapeRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_acropolis_fire_escape_8017F9F8 },
-    { ROOM_MESSAGE_SOUND, func_acropolis_fire_escape_8017FE48 },
+    { ROOM_MESSAGE_SOUND, _acropolisFireEscapeIgnoreSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -735,16 +753,18 @@ s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, RoomEventMsg* src
     return 1;
 }
 
-/// The `0x13F1` message handler of `D_acropolis_fire_escape_80181D3C`: ignores
-/// the message.
-s32 func_acropolis_fire_escape_8017FE40(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room, returning zero without consuming it.
+///
+/// The receiver, message ID, item ID and unused second argument are ignored.
+static s32 _acropolisFireEscapeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { ACROPOLIS_FIRE_ESCAPE_KEY_ITEM_USE_REFUSED = 0 };
+
+    return ACROPOLIS_FIRE_ESCAPE_KEY_ITEM_USE_REFUSED;
 }
 
-/// The `0x13F2` message handler of `D_acropolis_fire_escape_80181D3C`: ignores
-/// the message.
-s32 func_acropolis_fire_escape_8017FE48(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room sound commands and returns zero without starting a sound.
+static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 unusedArg)
 {
     return 0;
 }
@@ -814,338 +834,328 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, 0x60E, &work->move);
+                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, (6 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
                 }
                 if (gGameSession->location.loc.view == 8) {
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, 0x8000030E, &work->move);
+                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (3 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
                 }
                 if (gGameSession->location.loc.view == 6) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, 0x10408, &work->move);
+                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (4 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
                 }
                 if (gGameSession->location.loc.view == 9) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, 0x80010208, &work->move);
+                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (2 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
                 }
             }
             break;
     }
 }
 
-/// Draws a flickering glow at the task's coordinate while the scene is not in
-/// a cutscene and the camera is on views 2, 3 or 7. The coordinate is
-/// projected through `GsWSMATRIX` and nothing is drawn unless its biased depth
-/// stays beyond 0x10. Every 32 frames `index` picks one of four flicker
-/// modes, which set the brightness `scale` each frame: random 0/0x10/0x20/0x30,
-/// the same but changing only on odd frames, a steady 0x30, or random 0/0x10.
-/// Rising from 0x10 or less to 0x20 or more plays sound event 0x510F0006 panned
-/// to the coordinate. The glow is eight `POLY_G4` wedges around the projected
-/// point, taken two steps at a time from the circle table, each lit at the
-/// centre and black at the rim; it is drawn three times, at the full radius
-/// with half the brightness, at half the radius with the brightness, and at an
-/// eighth of the radius with four times the brightness (wrapping in a byte).
-/// Every wedge takes the semi-transparent tpage of `gpuSetPrimitiveBlendMode`.
-void func_acropolis_fire_escape_80180154(Task* task)
+/// Queues a fire-escape glow quad and prepends its additive draw-mode packet.
+///
+/// `quad` borrows a writable initialized packet in the frame arena.
+/// `sortingDepth` borrows a signed camera-Z/4 word (at least GLOW_MIN_DEPTH),
+/// optionally already biased. The depth maps to a wrapped tag in 0..1023.
+/// Requires the current ordering table and arena space for one DR_TPAGE.
+/// Neither argument is retained; both packets stay live until GPU completion.
+static inline void _acropolisFireEscapeQueueGlow(POLY_G4* quad, const s32* sortingDepth)
 {
-    EffectWork*           work;
-    GfxCoord*             coord;
-    RoomGlowRadiiScratch* block;
-    POLY_G4*              prim;
-    s32                   play;
-    s32                   i;
-    u16                   level;
+    enum { ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT = 2 };
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    play  = 0;
-    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x46 >> (gGameSession->location.loc.view - 1)) & 1)) {
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+                ((((u32)*sortingDepth << gDisplayState.otDepthShift) >> ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            quad);
+    // Prepending the draw mode after the quad makes the GPU apply it first.
+    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, *sortingDepth);
+}
+
+void acropolisFireEscapeFlickerLightTask(Task* task)
+{
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_VIEW_MASK           = (1 << (2 - 1)) | (1 << (3 - 1)) | (1 << (7 - 1)),
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_DEPTH_BIAS          = 32,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_MODE_FRAME_MASK     = 31,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_MODE_MASK           = 3,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SHIFT        = 8,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_MASK         = 0xFF,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_DIM_MAX             = 16,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_SOUND_MIN           = 32,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK     = 0x30,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_LOW_BRIGHTNESS_MASK = 0x10,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM              = 0,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM_ODD_FRAMES   = 1,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_STEADY              = 2,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_DIM_RANDOM          = 3,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SCALE        = 0x600,
+        ACROPOLIS_FIRE_ESCAPE_FLICKER_INNER_RADIUS_SCALE  = 0xC0,
+        ACROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS           = 16,
+    };
+
+    EffectWork*           effectWork;
+    GfxCoord*             coord;
+    RoomGlowRadiiScratch* projection;
+    POLY_G4*              quad;
+    s32                   wasDim;
+    s32                   cornerIndex;
+    u16                   brightness;
+
+    effectWork = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    wasDim     = 0;
+    // The installed room has 1-based view IDs; only views 2, 3 and 7 show the lamp.
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((ACROPOLIS_FIRE_ESCAPE_FLICKER_VIEW_MASK >> (gGameSession->location.loc.view - 1)) & 1)) {
+        // Project the lamp and pull its sorting depth forward before sizing it.
         actorRenderComposeCoord(coord);
-        block              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
-        block->worldPos.vx = coord->workm.t[0];
-        block->worldPos.vy = coord->workm.t[1];
-        block->worldPos.vz = coord->workm.t[2];
+        projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
+        projection->worldPos.vx = coord->workm.t[0];
+        projection->worldPos.vy = coord->workm.t[1];
+        projection->worldPos.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPos);
+        gte_ldv0(&projection->worldPos);
         gte_rtps();
-        gte_stsxy(&block->screenPos);
-        gte_stszotz(&block->otz);
-        block->otz -= 0x20;
-        if (block->otz > 0x10) {
-            if (!(gDisplayState.animFrame & 0x1F)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index     = (gRandomLcgState >> 16) & 3;
+        gte_stsxy(&projection->screenPos);
+        gte_stszotz(&projection->otz);
+        projection->otz -= ACROPOLIS_FIRE_ESCAPE_FLICKER_DEPTH_BIAS;
+        if (projection->otz >= GLOW_MIN_DEPTH) {
+            if (!(gDisplayState.animFrame & ACROPOLIS_FIRE_ESCAPE_FLICKER_MODE_FRAME_MASK)) {
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                effectWork->index = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_MODE_MASK;
             }
-            level = work->scale;
-            if (work->scale < 0x11) {
-                play = 1;
+            // Choose flicker brightness, then sound only a dim-to-bright transition.
+            brightness = effectWork->scale;
+            if (effectWork->scale <= ACROPOLIS_FIRE_ESCAPE_FLICKER_DIM_MAX) {
+                wasDim = 1;
             }
-            switch (work->index) {
-                case 0:
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->scale     = (gRandomLcgState >> 16) & 0x30;
+            switch (effectWork->index) {
+                case ACROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM:
+                    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    effectWork->scale = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
                     break;
-                case 1:
+                case ACROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM_ODD_FRAMES:
                     if (gDisplayState.animFrame & 1) {
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        level           = (gRandomLcgState >> 16) & 0x30;
+                        brightness      = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
                     }
-                    work->scale = level;
+                    effectWork->scale = brightness;
                     break;
-                case 2:
-                    work->scale = 0x30;
+                case ACROPOLIS_FIRE_ESCAPE_FLICKER_STEADY:
+                    effectWork->scale = ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
                     break;
-                case 3:
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->scale     = (gRandomLcgState >> 16) & 0x10;
+                case ACROPOLIS_FIRE_ESCAPE_FLICKER_DIM_RANDOM:
+                    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    effectWork->scale = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_LOW_BRIGHTNESS_MASK;
                     break;
             }
-            if (play && work->scale >= 0x20) {
+            if (wasDim && effectWork->scale >= ACROPOLIS_FIRE_ESCAPE_FLICKER_SOUND_MIN) {
                 sndEvtRequestScriptStart(SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            block->outerRadius = (((task->spawnArg1.value >> 8) & 0xFF) * 0x600) / block->otz;
-            block->innerRadius = (((task->spawnArg1.value >> 8) & 0xFF) * 0xC0) / block->otz;
-            for (i = 0; i < 0x10; i += 2) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setlen(prim, 8);
-                setcode(prim, 0x38);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, work->scale >> 1, work->scale >> 1, work->scale >> 1);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
-                prim->y0 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 12);
-                prim->x1 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 5]) >> 12);
-                prim->y1 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 1]) >> 12);
-                prim->x2 = block->screenPos.vx;
-                prim->y2 = block->screenPos.vy;
-                prim->x3 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 12);
-                prim->y3 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            projection->outerRadius = (((task->spawnArg1.value >> ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SHIFT) & ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_MASK) * ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SCALE) / projection->otz;
+            projection->innerRadius = (((task->spawnArg1.value >> ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SHIFT) & ACROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_MASK) * ACROPOLIS_FIRE_ESCAPE_FLICKER_INNER_RADIUS_SCALE) / projection->otz;
+            // Eight wedges in each of three concentric intensity layers.
+            for (cornerIndex = 0; cornerIndex < ACROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS; cornerIndex += 2) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, effectWork->scale >> 1, effectWork->scale >> 1, effectWork->scale >> 1);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 5]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 1]) >> GLOW_TRIG_SHIFT);
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 6]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 2]) >> GLOW_TRIG_SHIFT);
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setlen(prim, 8);
-                setcode(prim, 0x38);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, work->scale, work->scale, work->scale);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 13);
-                prim->y0 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 13);
-                prim->x1 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 5]) >> 13);
-                prim->y1 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 1]) >> 13);
-                prim->x2 = block->screenPos.vx;
-                prim->y2 = block->screenPos.vy;
-                prim->x3 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 13);
-                prim->y3 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, effectWork->scale, effectWork->scale, effectWork->scale);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setlen(prim, 8);
-                setcode(prim, 0x38);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, (u8)work->scale * 4, (u8)work->scale * 4, (u8)work->scale * 4);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 15);
-                prim->y0 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 15);
-                prim->x1 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 5]) >> 15);
-                prim->y1 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 1]) >> 15);
-                prim->x2 = block->screenPos.vx;
-                prim->y2 = block->screenPos.vy;
-                prim->x3 = block->screenPos.vx + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 15);
-                prim->y3 = block->screenPos.vy + ((block->outerRadius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 15);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 1]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 6]) >> (GLOW_TRIG_SHIFT + 3));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[cornerIndex + 2]) >> (GLOW_TRIG_SHIFT + 3));
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
         }
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowRadiiScratch);
     }
 }
 
-/// Draws a pulsing flare at the task's coordinate, projected through
-/// `GsWSMATRIX`, and nothing when its depth is 0x10 or less. The brightness is
-/// a triangle wave of `gDisplayState.animFrame` times the low byte of `spawnArg1`; bit 16
-/// tints it cyan instead of red, and bits 8-15 size it, divided by the depth.
-/// A negative `spawnArg1` draws a radial glow of `POLY_G4` wedges with four
-/// longer rays; otherwise a flat diamond of two `POLY_G4`s, with two crossed
-/// `LINE_G3` streaks when bit 28 is set. Every primitive takes the
-/// semi-transparent tpage of `gpuSetPrimitiveBlendMode`. Finally `spawnArg2` goes to
-/// `effectKillTask`.
-void func_acropolis_fire_escape_80180B20(Task* task)
+void acropolisFireEscapeFlareTask(Task* task)
 {
-    RoomGlowRadiiScratch* blk;
-    POLY_G4*              prim;
-    LINE_G3*              line;
-    GfxCoord*             coord;
-    void*                 mem;
-    s32                   i;
-    s32                   pulse;
-    s32                   level;
-    s32                   height;
-    s16                   amp;
-    s16                   flip;
-    s16                   ampHalf;
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_FLARE_PULSE_FALLING_BIT    = 0x80,
+        ACROPOLIS_FIRE_ESCAPE_FLARE_PULSE_LEVEL_MASK     = 0x7F,
+        ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL_RADIUS_SHIFT  = 10,
+        ACROPOLIS_FIRE_ESCAPE_FLARE_INNER_RADIUS_SHIFT   = 7,
+        ACROPOLIS_FIRE_ESCAPE_FLARE_DIAMOND_RADIUS_SHIFT = 9,
+        ACROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS          = 16,
+        ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_SHIFT    = 4,
+        ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TAG_MASK        = GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt),
+    };
 
-    coord = task->extra.coordBody->coord;
-    mem   = task->spawnArg2.pointer;
+    RoomGlowRadiiScratch* projection;
+    POLY_G4*              quad;
+    LINE_G3*              streak;
+    GfxCoord*             coord;
+    EffectWork*           effectWork;
+    s32                   partIndex;
+    s32                   pulsePhase;
+    s32                   pulseOrOptions; // Folded pulse level, then the packed spawn options
+    s32                   radiusScale;
+    s16                   intensity;
+    s16                   cyan;
+    s16                   halfIntensity;
+
+    coord      = task->extra.coordBody->coord;
+    effectWork = task->spawnArg2.pointer;
+    // Each invocation projects and draws one frame before retiring its counted work.
     actorRenderComposeCoord(coord);
-    blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
-    blk->worldPos.vx = (u16)coord->workm.t[0];
-    blk->worldPos.vy = (u16)coord->workm.t[1];
-    blk->worldPos.vz = (u16)coord->workm.t[2];
+    projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
+    projection->worldPos.vx = (u16)coord->workm.t[0];
+    projection->worldPos.vy = (u16)coord->workm.t[1];
+    projection->worldPos.vz = (u16)coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->worldPos);
+    gte_ldv0(&projection->worldPos);
     gte_rtps();
-    gte_stsxy(&blk->screenPos);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
-        pulse  = gDisplayState.animFrame;
-        pulse *= task->spawnArg1.value & 0xFF;
-        flip   = (task->spawnArg1.value >> 16) & 1;
-        if (pulse & 0x80) {
-            level = ~pulse & 0x7F;
+    gte_stsxy(&projection->screenPos);
+    gte_stszotz(&projection->otz);
+    if (projection->otz >= GLOW_MIN_DEPTH) {
+        // Fold the low-byte phase into a 0..127 triangle wave and select red or cyan.
+        pulsePhase  = gDisplayState.animFrame;
+        pulsePhase *= task->spawnArg1.value & ACROPOLIS_FIRE_ESCAPE_FLARE_PULSE_RATE_MASK;
+        cyan        = (task->spawnArg1.value >> ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN_SHIFT) & 1;
+        if (pulsePhase & ACROPOLIS_FIRE_ESCAPE_FLARE_PULSE_FALLING_BIT) {
+            pulseOrOptions = ~pulsePhase & ACROPOLIS_FIRE_ESCAPE_FLARE_PULSE_LEVEL_MASK;
         } else {
-            level = pulse & 0x7F;
+            pulseOrOptions = pulsePhase & ACROPOLIS_FIRE_ESCAPE_FLARE_PULSE_LEVEL_MASK;
         }
-        amp   = level * 2;
-        level = task->spawnArg1.value;
-        if (level < 0) {
-            height           = (level >> 8) & 0xFF;
-            blk->outerRadius = (height << 10) / blk->otz;
-            blk->innerRadius = (((task->spawnArg1.value >> 8) & 0xFF) << 7) / blk->otz;
-            for (i = 0; i < 0x10; i += 2) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, (amp * (flip ^ 1)) >> 1, (flip * amp) >> 1, (flip * amp) >> 1);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
-                prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 12);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 5]) >> 12);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 1]) >> 12);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 12);
-                prim->y3 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+        intensity      = pulseOrOptions * 2;
+        pulseOrOptions = task->spawnArg1.value;
+        if (pulseOrOptions < 0) {
+            radiusScale             = (pulseOrOptions >> ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK;
+            projection->outerRadius = (radiusScale << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL_RADIUS_SHIFT) / projection->otz;
+            projection->innerRadius = (((task->spawnArg1.value >> ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << ACROPOLIS_FIRE_ESCAPE_FLARE_INNER_RADIUS_SHIFT) / projection->otz;
+            for (partIndex = 0; partIndex < ACROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS; partIndex += 2) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, (intensity * (cyan ^ 1)) >> 1, (cyan * intensity) >> 1, (cyan * intensity) >> 1);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 5]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 1]) >> GLOW_TRIG_SHIFT);
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 6]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 2]) >> GLOW_TRIG_SHIFT);
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, amp * (flip ^ 1), flip * amp, flip * amp);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 13);
-                prim->y0 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 13);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 5]) >> 13);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 1]) >> 13);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 6]) >> 13);
-                prim->y3 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 2]) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
-            ampHalf = amp >> 1;
-            for (i = 2; i < 0x10; i += 8) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, ampHalf * (flip ^ 1), flip * ampHalf, flip * ampHalf);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 12);
-                prim->y0 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i - 4]) >> 12);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 11);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 11);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i + 8]) >> 12);
-                prim->y3 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            // Overlay four half-bright rays on the concentric disc.
+            halfIntensity = intensity >> 1;
+            for (partIndex = 2; partIndex < ACROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS; partIndex += 8) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex - 4]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
 
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, ampHalf * (flip ^ 1), flip * ampHalf, flip * ampHalf);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 13);
-                prim->y0 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i]) >> 13);
-                prim->x1 = blk->screenPos.vx + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 8]) >> 12);
-                prim->y1 = blk->screenPos.vy + ((blk->outerRadius * D_acropolis_fire_escape_80181D7C[i + 4]) >> 12);
-                prim->x2 = blk->screenPos.vx;
-                prim->y2 = blk->screenPos.vy;
-                prim->x3 = blk->screenPos.vx + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i + 0xC]) >> 13);
-                prim->y3 = blk->screenPos.vy + ((blk->innerRadius * D_acropolis_fire_escape_80181D7C[i + 8]) >> 13);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->x2 = projection->screenPos.vx;
+                quad->y2 = projection->screenPos.vy;
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 0xC]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * D_acropolis_fire_escape_80181D7C[partIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
+                _acropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
         } else {
-            blk->outerRadius = (((level >> 8) & 0xFF) << 9) / blk->otz;
-            blk->innerRadius = (((task->spawnArg1.value >> 8) & 0xFF) << 9) / blk->otz;
-            for (i = 0; i < 2; i++) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, amp * (flip ^ 1), flip * amp, flip * amp);
-                setRGB3(prim, 0, 0, 0);
-                prim->x0 = blk->screenPos.vx - blk->outerRadius;
-                prim->x1 = prim->x2 = blk->screenPos.vx;
-                prim->x3            = blk->screenPos.vx + blk->outerRadius;
-                prim->y0 = prim->y2 = prim->y3 = blk->screenPos.vy;
-                prim->y1                       = (blk->screenPos.vy - blk->innerRadius) + blk->innerRadius * (i + i);
-                addPrim((&gGpuCurrentOt[((u32)blk->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            projection->outerRadius = (((pulseOrOptions >> ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << ACROPOLIS_FIRE_ESCAPE_FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
+            projection->innerRadius = (((task->spawnArg1.value >> ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << ACROPOLIS_FIRE_ESCAPE_FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
+            for (partIndex = 0; partIndex < 2; partIndex++) {
+                quad           = gGpuPrimCursor;
+                gGpuPrimCursor = quad + 1;
+                ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                quad->x0 = projection->screenPos.vx - projection->outerRadius;
+                quad->x1 = quad->x2 = projection->screenPos.vx;
+                quad->x3            = projection->screenPos.vx + projection->outerRadius;
+                quad->y0 = quad->y2 = quad->y3 = projection->screenPos.vy;
+                quad->y1                       = (projection->screenPos.vy - projection->innerRadius) + projection->innerRadius * (partIndex + partIndex);
+                addPrim((&gGpuCurrentOt[((u32)projection->otz << gDisplayState.otDepthShift) >> ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_SHIFT & ACROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TAG_MASK]), quad);
+                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz);
             }
-            if (task->spawnArg1.value & 0x10000000) {
-                for (i = 0; i < 2; i++) {
-                    line           = gGpuPrimCursor;
-                    gGpuPrimCursor = line + 1;
-                    setLineG3(line);
-                    setRGB0(line, 0, 0, 0);
-                    setRGB1(line, amp * (flip ^ 1), flip * amp, flip * amp);
-                    setRGB2(line, 0, 0, 0);
-                    line->x0 = blk->screenPos.vx + blk->outerRadius * (i * 3 - 1);
-                    line->y0 = blk->screenPos.vy - blk->innerRadius * (i + 1);
-                    line->x1 = blk->screenPos.vx;
-                    line->y1 = blk->screenPos.vy;
-                    line->x2 = blk->screenPos.vx - blk->outerRadius * (i * 3 - 1);
-                    line->y2 = blk->screenPos.vy + blk->innerRadius * (i + 1);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->otz);
+            // Retained packet reuse: the lines are initialized but the last quad is linked again.
+            if (task->spawnArg1.value & ACROPOLIS_FIRE_ESCAPE_FLARE_STREAK_PACKETS) {
+                for (partIndex = 0; partIndex < 2; partIndex++) {
+                    streak         = gGpuPrimCursor;
+                    gGpuPrimCursor = streak + 1;
+                    setLineG3(streak);
+                    setRGB0(streak, 0, 0, 0);
+                    setRGB1(streak, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                    setRGB2(streak, 0, 0, 0);
+                    streak->x0 = projection->screenPos.vx + projection->outerRadius * (partIndex * 3 - 1);
+                    streak->y0 = projection->screenPos.vy - projection->innerRadius * (partIndex + 1);
+                    streak->x1 = projection->screenPos.vx;
+                    streak->y1 = projection->screenPos.vy;
+                    streak->x2 = projection->screenPos.vx - projection->outerRadius * (partIndex * 3 - 1);
+                    streak->y2 = projection->screenPos.vy + projection->innerRadius * (partIndex + 1);
+                    _acropolisFireEscapeQueueGlow(quad, &projection->otz);
                 }
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowRadiiScratch);
-    effectKillTask(mem, task);
+    effectKillTask(effectWork, task);
 }
+
+#undef ACROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD

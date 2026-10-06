@@ -565,9 +565,9 @@ func_acropolis_east_elevator_hall_8017F5B4 = 0x8017F5B4; // type:func absolute:T
 
 acropolisEastElevatorHallRedBeaconTask = 0x8017F77C; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
 
-func_acropolis_fire_escape_80180154 = 0x80180154; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
+acropolisFireEscapeFlickerLightTask = 0x80180154; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
 
-func_acropolis_fire_escape_80180B20 = 0x80180B20; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
+acropolisFireEscapeFlareTask = 0x80180B20; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
 
 func_acropolis_forked_road_8017E298 = 0x8017E298; // type:func absolute:True owner=acropolis_forked_road
 

@@ -90,9 +90,9 @@ D_acropolis_fire_escape_80183040 = 0x80183040; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x80183044; // size:0x4 defined:True
 D_acropolis_fire_escape_80183048 = 0x80183048; // size:0x18 defined:True
 
-func_acropolis_fire_escape_80180B20 = 0x80180B20; // type:func
+acropolisFireEscapeFlareTask = 0x80180B20; // type:func
 
-func_acropolis_fire_escape_80180154 = 0x80180154; // type:func
+acropolisFireEscapeFlickerLightTask = 0x80180154; // type:func
 
 func_acropolis_fire_escape_8017EA68 = 0x8017EA68; // type:func
 
@@ -118,3 +118,5 @@ Telephone_Data_8017D624 = 0x8017D624;
 Telephone_Data_8017D630 = 0x8017D630;
 roomCutsceneTask = 0x8017F48C; // type:func
 roomCutsceneSoundTask = 0x8017FD08; // type:func
+_acropolisFireEscapeRejectKeyItemUse = 0x8017fe40; // type:func
+_acropolisFireEscapeIgnoreSoundMessage = 0x8017fe48; // type:func
