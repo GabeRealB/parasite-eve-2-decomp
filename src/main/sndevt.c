@@ -2340,16 +2340,10 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
     s32           end;
 
     bank = load->bank;
-    if (D_800689E8 == 0) {
-        index = bank->bankId;
-        if (index != SOUND_BANK_ID_FREE) {
-            goto success;
-        }
+    if (D_800689E8 != 0 || (index = bank->bankId) == SOUND_BANK_ID_FREE) {
+        gSndLoadBankId = SOUND_LOAD_BANK_NONE;
+        return -1;
     }
-    gSndLoadBankId = SOUND_LOAD_BANK_NONE;
-    return -1;
-
-success:
     index              &= 0xFF;
     song                = Midi_GetSlot(index);
     song->sequenceId    = index;
