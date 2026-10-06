@@ -2067,66 +2067,48 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     work->effectArg.spawnArgLo = 0x100;
     work->effectArg.spawnArgHi = 2;
     kind                       = (arg1->spawnArg1.value >> 16) & 0xF;
-    if (kind == 1) {
-        goto state1;
+    switch (kind) {
+        case 1:
+            work->prevState = -1;
+            work->state     = 0;
+            break;
+        case 2:
+            work->prevState = -1;
+            work->state     = 0x21;
+            break;
+        case 3:
+            work->prevState = -1;
+            work->state     = 5;
+            break;
+        case 0:
+        default:
+            work->prevState = -1;
+            work->state     = 0x18;
+            tmdAllocPrimitiveBuffer(tmd);
+            break;
     }
-    if (kind < 2) {
-        goto stateStill;
-    }
-    if (kind == 2) {
-        goto state2;
-    }
-    if (kind == 3) {
-        goto state3;
-    }
-    work->prevState = -1;
-    work->state     = 0x18;
-    tmdAllocPrimitiveBuffer(tmd);
-    goto stateEnd;
-state1:
-    work->prevState = -1;
-    work->state     = 0;
-    goto stateEnd;
-state2:
-    work->prevState = -1;
-    work->state     = 0x21;
-    goto stateEnd;
-state3:
-    work->prevState = -1;
-    work->state     = 5;
-    goto stateEnd;
-stateStill:
-    work->prevState = -1;
-    work->state     = 0x18;
-    tmdAllocPrimitiveBuffer(tmd);
-stateEnd:
     kind = arg1->spawnArg1.value & 0xF;
-    if (kind == 1) {
-        goto variant2;
+    switch (kind) {
+        case 2:
+            work->windupFrames       = Actor00100_D0BDB4[0].windupFrames;
+            work->downFramesBase     = Actor00100_D0BDB4[0].downFramesBase;
+            work->roamLookDelay      = Actor00100_D0BDB4[0].roamLookDelay;
+            work->chaseHoldoffFrames = Actor00100_D0BDB4[0].chaseHoldoffFrames;
+            break;
+        case 1:
+            work->windupFrames       = Actor00100_D0BDB4[2].windupFrames;
+            work->downFramesBase     = Actor00100_D0BDB4[2].downFramesBase;
+            work->roamLookDelay      = Actor00100_D0BDB4[2].roamLookDelay;
+            work->chaseHoldoffFrames = Actor00100_D0BDB4[2].chaseHoldoffFrames;
+            break;
+        case 0:
+        default:
+            work->windupFrames       = Actor00100_D0BDB4[1].windupFrames;
+            work->downFramesBase     = Actor00100_D0BDB4[1].downFramesBase;
+            work->roamLookDelay      = Actor00100_D0BDB4[1].roamLookDelay;
+            work->chaseHoldoffFrames = Actor00100_D0BDB4[1].chaseHoldoffFrames;
+            break;
     }
-    if (kind < 2) {
-        goto variant1;
-    }
-    if (kind != 2) {
-        goto variant1;
-    }
-    work->windupFrames       = Actor00100_D0BDB4[0].windupFrames;
-    work->downFramesBase     = Actor00100_D0BDB4[0].downFramesBase;
-    work->roamLookDelay      = Actor00100_D0BDB4[0].roamLookDelay;
-    work->chaseHoldoffFrames = Actor00100_D0BDB4[0].chaseHoldoffFrames;
-    goto variantEnd;
-variant2:
-    work->windupFrames       = Actor00100_D0BDB4[2].windupFrames;
-    work->downFramesBase     = Actor00100_D0BDB4[2].downFramesBase;
-    work->roamLookDelay      = Actor00100_D0BDB4[2].roamLookDelay;
-    work->chaseHoldoffFrames = Actor00100_D0BDB4[2].chaseHoldoffFrames;
-    goto variantEnd;
-variant1:
-    work->windupFrames       = Actor00100_D0BDB4[1].windupFrames;
-    work->downFramesBase     = Actor00100_D0BDB4[1].downFramesBase;
-    work->roamLookDelay      = Actor00100_D0BDB4[1].roamLookDelay;
-    work->chaseHoldoffFrames = Actor00100_D0BDB4[1].chaseHoldoffFrames;
-variantEnd:
     sessionMode = gGameSession->location.loc.stage;
     if ((sessionMode - 2) < 2U) {
         if (gGameSession->location.loc.area == 0x18) {
