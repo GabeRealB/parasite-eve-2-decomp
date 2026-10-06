@@ -149564,3 +149564,50 @@ attempts; left as it was.
 - A mode ladder whose image loads `actorControl` between two other loads
   keeps the `state` local at that position (`maggotCaterpillarTick`);
   `switch (gSceneCombatState.actorControl)` moves the load down.
+### Goto removal, batch 12: a range test split by a goto, three mentions for a register, the generator (2026-10-06)
+
+- **`if (sx < -0xA0) goto kill; if (sx > 0xA0 || sy < -0x78 || sy > 0x78 ||
+  otz < 0) { kill: ... }`** (`func_shelter_b3_dumping_hole_8018005C`) is one
+  condition, but not the flat chain: as the two leading operands of one `||`
+  the x tests fold into an unsigned range compare (`addiu; sltiu`, one insn
+  shorter), while the image has `slti -160; slti 161`. `fold_truthop` only
+  pairs the two operands of the same `||` node, so
+  `sx < -0xA0 || (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0)` keeps the
+  signed tests. The y pair of the same chain is not folded either way: it is
+  never the two operands of one node.
+- **Where the kill is written decides who gets `$s3`.**
+  `func_plasma_8012EF34` had `goto release` from the cancel guard and
+  `effectKillTask(mem, arg0); return;` in cases 1 and 2. The kill at all three
+  sites keeps case 2's copy (every copy ends in a jump to the epilogue; the
+  image has the kill last, after case 2's draw). Both cases as `break` to one
+  kill after the switch puts it in the right place but leaves `arg0` one
+  mention short and it trades `$s3/$s4` with the `state` pointer. The form
+  that matches has three mentions and the last copy after the switch: the
+  guard and case 1 write the kill and `return`, case 2 `break`s, `default:
+  return;`.
+- **`if (cooldown) { ...; if (cooldown) goto end; } for (...) { } end:`**
+  (`generatorBodyHit`) is `if (cooldown) { ... } if (cooldown == 0) { for
+  (...) { } }`; the second test of a field just tested is threaded, no extra
+  insns. Its `generatorTickState` is the mode-ladder switch with a body in
+  `case 0` that `break`s into the frame code, and the `one = 1` local goes
+  (cse keeps the 1 of the dispatch for case 2's store).
+- **The `crit = 0; f(..., crit, crit); g(enemy, id, crit)` of the
+  `actor_503500` hit handlers was not needed**: plain `0` arguments match in
+  all nine inlines that had it once the per-record body is an inline. Three more of those
+  handlers (`_80134EAC`, `_80137C90`, `_80139A20`) took the batch 07 form on
+  the first build.
+- Not converted: `func_shelter_b3_garbage_incinerator_8017F318` (`ret1:` inside
+  the first `if`, three `goto ret1`). The image has one `li v0,1; j end` block
+  after the first test and later branches back to it. Any second `return 1`
+  (plain returns; the clip step as a `void` inline between the guards and a
+  final `return 1`) is cross-jumped with the final one, the first branch is
+  inverted to `beqz a0,<final>` and the function is 2 insns shorter. The same
+  body is `func_actor_342100_801629B8` and the one in `actor_136100.c`.
+- Not converted beyond one `goto move`: `func_m4a1_grenade_8011D994`
+  (`grenadeShellFly` has the same body). The detonation block as an inline
+  called at its four sites does not merge back: with four copies cse gives the
+  scratch cursor and `gPlayerStatus` addresses saved registers (52 insns
+  longer). The classify pair cannot be duplicated together with the surface
+  test either, because the image reloads `idx` from its stack slot at the
+  join, which needs a label between `idx = class(&idx)` and its use, and the
+  second contact test sits *after* the surface test with a backward branch.
