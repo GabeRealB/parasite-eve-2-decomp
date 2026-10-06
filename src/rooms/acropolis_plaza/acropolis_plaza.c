@@ -3713,7 +3713,6 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     _AcropolisPlazaSceneWork* work;
     _AcropolisPlazaSceneArg*  arg;
     Task*                     playerTask;
-    u16                       view;
     u16                       startFrame;
 
     q    = &gCdCmdQueue;
@@ -3736,199 +3735,170 @@ void func_acropolis_plaza_8017DFE0(Task* task)
 
     switch (task->state) {
         case 0:
-            goto L_case0;
+            block      = memMalloc(sizeof(*block), false);
+            task->work = block;
+            if (block == NULL) {
+                taskKill(task);
+                return;
+            }
+            memFillBytes(block, 0, sizeof(*block));
+            arg                   = task->spawnArg2.pointer;
+            work                  = (_AcropolisPlazaSceneWork*)task->work;
+            startFrame            = arg->startFrame;
+            q->plazaStreamSubId   = 0;
+            q->sceneFrame         = startFrame;
+            q->movieFrame         = startFrame;
+            work->prevReverse     = 0;
+            q->reverseSceneFrames = 0;
+            q->movieReady         = 0;
+            q->continueMovie      = 0;
+            // The argument is fetched from the task again after the queue stores.
+            arg = task->spawnArg2.pointer;
+            if (arg->skipStreamReset == 0) {
+                slot[0]   = streamFindMovieSlot(&gGameSession->location.loc, q->plazaStreamSubId, 0);
+                frameOfs  = (q->movieFrame - 1) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                openFrame = frameOfs & 0xFFFF;
+                slot[1]   = openFrame >> 8;
+                slot[2]   = openFrame & loMask;
+                cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
+            } else {
+                q->movieAtEnd = 0;
+            }
+            ((_AcropolisPlazaSceneWork*)task->work)->playerMtx = gPlayerStatus.coordMtx;
+            work->frameStep                                    = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
+            task->state                                        = task->state + 1;
+            break;
         case 1:
-            goto L_case1;
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                break;
+            }
+            playerTask       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            work->playerTask = playerTask;
+            work->player     = (GameActor*)playerTask->work;
+            SetDispMask(1);
+            task->state = task->state + 1;
+            break;
         case 2:
-            goto L_case2;
+        L_case2:
+            work->frameLimit = streamGetFrameLimit(q->plazaStreamSubId);
+            if (q->movieAtEnd != 0) {
+                task->state = 6;
+                break;
+            }
+            plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
+            if (work->fwd != ACROPOLIS_PLAZA_EDGE_NONE) {
+                work->prevReverse     = q->reverseSceneFrames;
+                q->reverseSceneFrames = 0;
+            }
+            if (work->back != ACROPOLIS_PLAZA_EDGE_NONE) {
+                work->prevReverse     = q->reverseSceneFrames;
+                q->reverseSceneFrames = 1;
+            }
+            if (work->fwd == ACROPOLIS_PLAZA_EDGE_NONE && work->back == ACROPOLIS_PLAZA_EDGE_NONE) {
+                break;
+            }
+            // Continuing counts from the movie frame; reversing counts back from the frame limit.
+            q->continueMovie = 1;
+            side             = q->reverseSceneFrames;
+            if (side == work->prevReverse) {
+                if (side == 0) {
+                    if (work->fwd == ACROPOLIS_PLAZA_EDGE_WALK) {
+                        q->plazaStreamSubId = work->forwardSubId;
+                        if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
+                            frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        } else {
+                            frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                        }
+                        work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
+                    }
+                } else if (side == 1) {
+                    if (work->back == side) {
+                        q->plazaStreamSubId = work->forwardSubId + 1;
+                        if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
+                            frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        } else {
+                            frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                        }
+                        work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
+                    }
+                }
+            } else {
+                if (side == 0) {
+                    if (work->fwd == ACROPOLIS_PLAZA_EDGE_WALK) {
+                        q->plazaStreamSubId = work->forwardSubId;
+                        if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
+                            frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        } else {
+                            frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                        }
+                        work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
+                    }
+                } else if (side == 1) {
+                    if (work->back == side) {
+                        q->plazaStreamSubId = work->forwardSubId + 1;
+                        if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
+                            frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        } else {
+                            frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                        }
+                        work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
+                    }
+                }
+            }
+            slot[0]   = streamFindMovieSlot(&gGameSession->location.loc, q->plazaStreamSubId, 0);
+            seekFrame = frameOfs & 0xFFFF;
+            slot[1]   = seekFrame >> 8;
+            slot[2]   = seekFrame;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, slot);
+            q->movieReady = 0;
+            task->state   = task->state + 1;
+            break;
         case 3:
-            goto L_case3;
+            if (q->movieReady != 0) {
+                task->state = task->state + 1;
+            }
+            break;
         case 4:
-            goto L_case4;
+            plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
+            if (q->movieAtEnd != 0) {
+                task->state = 6;
+                break;
+            }
+            if ((work->fwd == ACROPOLIS_PLAZA_EDGE_NONE && q->reverseSceneFrames == 0) ||
+                (work->back == ACROPOLIS_PLAZA_EDGE_NONE && q->reverseSceneFrames == 1) ||
+                work->fwd != work->prevFwd || work->back != work->prevBack) {
+                q->continueMovie = 0;
+                task->state      = task->state + 1;
+            }
+            break;
         case 5:
-            goto L_case5;
+            plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                break;
+            }
+            task->state = 2;
+            goto L_case2;
         case 6:
-            goto L_case6;
-    }
-    goto L_tail;
-
-L_case0:
-    block      = memMalloc(sizeof(*block), false);
-    task->work = block;
-    if (block == NULL) {
-        taskKill(task);
-        return;
-    }
-    memFillBytes(block, 0, sizeof(*block));
-    arg                   = task->spawnArg2.pointer;
-    work                  = (_AcropolisPlazaSceneWork*)task->work;
-    startFrame            = arg->startFrame;
-    q->plazaStreamSubId   = 0;
-    q->sceneFrame         = startFrame;
-    q->movieFrame         = startFrame;
-    work->prevReverse     = 0;
-    q->reverseSceneFrames = 0;
-    q->movieReady         = 0;
-    q->continueMovie      = 0;
-    // The argument is fetched from the task again after the queue stores.
-    arg = task->spawnArg2.pointer;
-    if (arg->skipStreamReset == 0) {
-        slot[0]   = streamFindMovieSlot(&gGameSession->location.loc, q->plazaStreamSubId, 0);
-        frameOfs  = (q->movieFrame - 1) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
-        openFrame = frameOfs & 0xFFFF;
-        slot[1]   = openFrame >> 8;
-        slot[2]   = openFrame & loMask;
-        cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
-    } else {
-        q->movieAtEnd = 0;
-    }
-    ((_AcropolisPlazaSceneWork*)task->work)->playerMtx = gPlayerStatus.coordMtx;
-    work->frameStep                                    = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
-    task->state                                        = task->state + 1;
-    goto L_tail;
-
-L_case1:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        goto L_tail;
-    }
-    playerTask       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work->playerTask = playerTask;
-    work->player     = (GameActor*)playerTask->work;
-    SetDispMask(1);
-    task->state = task->state + 1;
-    goto L_tail;
-
-L_case2:
-    work->frameLimit = streamGetFrameLimit(q->plazaStreamSubId);
-    if (q->movieAtEnd != 0) {
-        task->state = 6;
-        goto L_tail;
-    }
-    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
-    if (work->fwd != ACROPOLIS_PLAZA_EDGE_NONE) {
-        work->prevReverse     = q->reverseSceneFrames;
-        q->reverseSceneFrames = 0;
-    }
-    if (work->back != ACROPOLIS_PLAZA_EDGE_NONE) {
-        work->prevReverse     = q->reverseSceneFrames;
-        q->reverseSceneFrames = 1;
-    }
-    if (work->fwd == ACROPOLIS_PLAZA_EDGE_NONE && work->back == ACROPOLIS_PLAZA_EDGE_NONE) {
-        goto L_tail;
-    }
-    // Continuing counts from the movie frame; reversing counts back from the frame limit.
-    q->continueMovie = 1;
-    side             = q->reverseSceneFrames;
-    if (side == work->prevReverse) {
-        if (side == 0) {
-            if (work->fwd != ACROPOLIS_PLAZA_EDGE_WALK) {
-                goto L_enqueue;
-            }
-            view = work->forwardSubId;
-        L_eqShared:
-            q->plazaStreamSubId = view;
-            if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
-                frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
-                goto L_eqSetFlag;
-            }
-        } else {
-            if (side != 1) {
-                goto L_enqueue;
-            }
-            if (work->back != side) {
-                goto L_enqueue;
-            }
-            view = work->forwardSubId + 1;
-            goto L_eqShared;
-        }
-        frameOfs = q->movieFrame * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
-    L_eqSetFlag:
-        work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
-    } else {
-        if (side == 0) {
-            if (work->fwd != ACROPOLIS_PLAZA_EDGE_WALK) {
-                goto L_enqueue;
-            }
-            q->plazaStreamSubId = work->forwardSubId;
-            if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
-                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
-            } else {
-                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
-            }
-            work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
-        } else if (side == 1) {
-            if (work->back != side) {
-                goto L_enqueue;
-            }
-            q->plazaStreamSubId = work->forwardSubId + 1;
-            if (work->frameStep == ACROPOLIS_PLAZA_FRAME_STEP_COARSE) {
-                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
-            } else {
-                frameOfs = (work->frameLimit - q->movieFrame) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
-            }
-            work->frameStep = ACROPOLIS_PLAZA_FRAME_STEP_FINE;
-        }
-    }
-L_enqueue:
-    slot[0]   = streamFindMovieSlot(&gGameSession->location.loc, q->plazaStreamSubId, 0);
-    seekFrame = frameOfs & 0xFFFF;
-    slot[1]   = seekFrame >> 8;
-    slot[2]   = seekFrame;
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 0, slot);
-    q->movieReady = 0;
-    task->state   = task->state + 1;
-    goto L_tail;
-
-L_case3:
-    if (q->movieReady != 0) {
-        task->state = task->state + 1;
-    }
-    goto L_tail;
-
-L_case4:
-    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
-    if (q->movieAtEnd != 0) {
-        task->state = 6;
-        goto L_tail;
-    }
-    if ((work->fwd == ACROPOLIS_PLAZA_EDGE_NONE && q->reverseSceneFrames == 0) ||
-        (work->back == ACROPOLIS_PLAZA_EDGE_NONE && q->reverseSceneFrames == 1) ||
-        work->fwd != work->prevFwd || work->back != work->prevBack) {
-        q->continueMovie = 0;
-        task->state      = task->state + 1;
-    }
-    goto L_tail;
-
-L_case5:
-    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        goto L_tail;
-    }
-    task->state = 2;
-    goto L_case2;
-
-L_case6:
-    plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
-    switch (q->plazaStreamSubId) {
-        case 0:
-        case 2:
-            if (work->back == ACROPOLIS_PLAZA_EDGE_NONE) {
-                goto L_tail;
+            plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
+            switch (q->plazaStreamSubId) {
+                case 0:
+                case 2:
+                    if (work->back != ACROPOLIS_PLAZA_EDGE_NONE) {
+                        q->movieAtEnd = 0;
+                        task->state   = 2;
+                    }
+                    break;
+                case 1:
+                case 3:
+                    if (work->fwd != ACROPOLIS_PLAZA_EDGE_NONE) {
+                        q->movieAtEnd = 0;
+                        task->state   = 2;
+                    }
+                    break;
             }
             break;
-        case 1:
-        case 3:
-            if (work->fwd == ACROPOLIS_PLAZA_EDGE_NONE) {
-                goto L_tail;
-            }
-            break;
-        default:
-            goto L_tail;
     }
-    q->movieAtEnd = 0;
-    task->state   = 2;
 
-L_tail:
     if (q->movieReady != 0) {
         func_acropolis_plaza_8017DD90(task);
         func_acropolis_plaza_8017DE24(q->plazaStreamSubId);
