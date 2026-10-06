@@ -346,14 +346,19 @@ static void _actor311900TickPaletteGreying(Task* task, s32 clutRowOffset, s16 fi
     }
 }
 
-/// Records a reseeded clip and starts playback with a fresh update count.
+/// Completes a clip reseed and schedules playback with a fresh tick count.
 ///
-/// Both pointers must name the same live figure work block.
-static __inline__ void _actor311900CommitAnimationRequest(_Actor311900Work* work, _Actor311900Work* reseedWork)
+/// `playbackWork` and `reseedWork` must alias the same live writable figure
+/// work block, with its animated slots already reseeded for `animId`.
+/// `appliedAnimId` records that signed 16-bit animation-set table index.
+/// Entering `ACTOR_ENEMY_ANIM_TICK` clears `animFrames`, the wrapping 16-bit
+/// driver-tick count; the caller first advances the slots on its next update.
+/// Both pointers are borrowed for this call.
+static __inline__ void _actor311900CommitAnimationRequest(_Actor311900Work* playbackWork, _Actor311900Work* reseedWork)
 {
     reseedWork->appliedAnimId = reseedWork->animId;
-    work->animState           = ACTOR_ENEMY_ANIM_TICK;
-    work->animFrames          = 0;
+    playbackWork->animState   = ACTOR_ENEMY_ANIM_TICK;
+    playbackWork->animFrames  = 0;
 }
 
 /// Applies an animation request or advances the figure's nineteen animated parts.
