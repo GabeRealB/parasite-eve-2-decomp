@@ -798,7 +798,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_8017E484, { NULL } },                    // 0x101
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGeneralStoreDrawLightShaftsTask, { NULL } },                // 0x102
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetDrawGlowsTask, { NULL } },                        // 0x103
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_souvenir_shop_8017DFF4, { NULL } },                  // 0x104
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightSouvenirShopPrismLightTask, { NULL } },                     // 0x104
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWarehouseDrawGlowsTask, { NULL } },                         // 0x105
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightDilapidatedHouseDrawLightPrismsTask, { NULL } },            // 0x106
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelRoom1DrawGlowsTask, { NULL } },                        // 0x107
