@@ -148400,6 +148400,9 @@ source.
   scheduled later: it must precede the pad capture's first `sb`, and the two
   loads in front of that store have later luids. `vec`'s copy is held last in
   its block by the load-use gap before `bnez`.
+  *2026-10-06: resolved without a pin or a loop note. The local was reused for
+  the weapon's coordinate; see "A local reused for a second pointer keeps the
+  references combine deleted" at the end of this file.*
 - **Gp_UpdatePadInput**, `pressedButtons` pinned to `$s2`. Three allocnos:
   `%hi(Gp_PadSuppressMask)` 7 / 102 = 1372, `actor` 11 / 243 = 1358,
   `%hi(gGameSession)` 7 / 104 = 1346. The target needs `actor` last of the
@@ -151311,3 +151314,67 @@ D->animationRate     = ANIMATION_RATE_ONE;
   load.
 - Applies to the siblings only as a caution: they store `t[0], t[2], t[1]`
   after the pointer is already loaded, where the order is not observable.
+
+## A local reused for a second pointer keeps the references combine deleted (Gp_UpdatePlayerMove, 2026-10-06)
+
+**Problem.** Two call-crossing pointers, `coord` and `vec`, each with 14
+references; global priority `floor_log2(refs) * refs / length` put `vec`
+(78 insns, 5384) ahead of `coord` (80 insns, 5250), so they took `$s1`/`$s2`
+the wrong way round. The only sources known to match wrapped some `coord`
+references in a `do { } while (0)` (loop depth doubles them) or pinned `coord`.
+The permuter, run once on the pin-free body, found the same thing: a
+`do { } while (0)` around the three `coord->workm` reads.
+
+**What was ruled out, with the pass that rules it out.**
+- *Lengths.* sched1 gives every single-set register birth the maximum priority
+  (`adjust_priority` / `birthing_insn_p`), so `vec`'s copy is the last insn of
+  its block and `coord`'s load sits as late as its luid allows among the other
+  births. The only length levers found move one insn each (a non-birthing
+  `task`, i.e. a `task` assigned twice, hoists its load above `vec`'s last
+  read), and a tie needs two.
+- *A second pseudo sharing the register.* An inline parameter is mapped
+  straight onto a user-variable argument (`integrate.c`: a copy is made only
+  for a non-`REG_USERVAR_P` argument or a parameter the inline assigns), and a
+  plain `c2 = coord` survives cse1 but not cse2, whose path skips simple
+  `if` blocks (`flag_cse_skip_blocks`, after-loop pass only) and so reaches
+  every use.
+- *An address parameter* (`_fwd(vec, &coord->workm, actor)`) does flip the
+  allocation (`coord` dies at the `addiu`), but the parameter survives as its
+  own base register: 9 lines.
+
+**Fix.** The function has a second `GfxCoord*` further down, the weapon
+model's, which was written as one expression. Assign it to the same local:
+
+```c
+if (task != NULL) {
+    coord                       = task->extra.tmd->coords;
+    actor->weaponCollisionCoord = *coord;
+```
+
+**Why.** flow counts that as a second set and a use of `coord` (16
+references, two sets). combine then merges the load into the block move's
+address copy and deletes the set; `try_combine` decrements `reg_n_sets` but
+never `reg_n_refs`. So `coord` is a single-set register again by sched1 (still
+a birth, so the schedule is unchanged, and its second live range is gone), but
+it goes to global-alloc with 16 references: `4 * 16 / 80` = 8000 against 5384.
+No instruction changes; only the order of allocation does.
+
+**Use.**
+- A pointer that loses a callee-saved register by a few percent with equal
+  reference counts: look for another value of the same type later in the
+  function that is used once, straight after it is loaded, and assign it to
+  the same local. Each such reuse is worth +2 references and costs no length.
+  It is the reverse of "one local doing two jobs": here the original did reuse
+  the local, and the decompiled body had split it into an expression.
+- A `do { } while (0)` that fixes an allocation is telling you which register
+  is short of references, not that there was a loop. Count what it doubled
+  and look for a real source of the same number.
+- `vec = SCRATCH_STACK_RESERVE_BLOCK(T)` in one statement compiles the same as
+  the reserve followed by `vec = SCRATCH_STACK_CURSOR(T)`: the new cursor is a
+  temporary, `vec` a copy of it, and cse writes the first field through the
+  old cursor (`sh ...,-8(old)`) because the bare address has the older
+  equivalent. The `head[-1].vx` spelled out in `actorMoveForward` and its
+  siblings (`include/actors/actor.h`) may be this same artifact; not checked.
+- The `.sched` dump prints each ready list with priorities
+  (`7f000001` = a boosted birth) and ends with `register N life shortened from
+  A to B`; here the `.lreg` header already showed B.
