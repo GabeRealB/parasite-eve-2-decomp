@@ -3036,15 +3036,13 @@ void func_dryfield_night_gas_station_801807A0(void)
 /// clears the handle.
 void func_dryfield_night_gas_station_801807D4(s32 arg0)
 {
-    Task* t = D_dryfield_night_gas_station_801907A4;
-
-    if (t == NULL) {
+    if (D_dryfield_night_gas_station_801907A4 == NULL) {
         return;
     }
     switch (arg0) {
         case 0:
         case 1:
-            t->spawnArg1.value = arg0;
+            D_dryfield_night_gas_station_801907A4->spawnArg1.value = arg0;
             break;
         default:
             taskKill(D_dryfield_night_gas_station_801907A4);
