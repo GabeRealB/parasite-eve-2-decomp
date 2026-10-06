@@ -1516,7 +1516,8 @@ void func_acropolis_square_80181AEC(Task* task)
             D_acropolis_square_8018382C = 1;
             D_acropolis_square_80188898 = 0;
             func_800E8634(D_acropolis_square_80183834, 0, D_acropolis_square_801838DC);
-            goto advance;
+            task->state += 1;
+            return;
 
         case 3:
             D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
@@ -1527,7 +1528,8 @@ void func_acropolis_square_80181AEC(Task* task)
             pan = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
             sndEvtRequestScriptStart(
                 SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan, (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
-            goto advance;
+            task->state += 1;
+            return;
 
         case 4:
             count                       = D_acropolis_square_80188898 + 1;
@@ -1551,20 +1553,13 @@ void func_acropolis_square_80181AEC(Task* task)
 
         case 1:
         case 2:
-        advance:
             task->state += 1;
             return;
 
         case 5:
-            if ((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view - 5) >= 3U) {
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 9) {
-                    goto checkArmed;
-                }
-                goto handOff;
-            }
-        checkArmed:
-            if (D_acropolis_square_8018382C == 0) {
-            handOff:
+            if (((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view - 5) >= 3U &&
+                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 9) ||
+                D_acropolis_square_8018382C == 0) {
                 if (D_acropolis_square_8018382C != 0) {
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
