@@ -252,6 +252,32 @@ static inline void _taskStopForInlineBodyRelease(Task* task)
     task->killCountdown--;
 }
 
+/// Completes a non-deferred body teardown within the current call.
+///
+/// Stops the task's handlers, then releases whichever body the task holds
+/// once the synchronous countdown has reached zero, and marks the task for
+/// execution-list collection.
+static inline void _taskReleaseBodyInline(Task* task)
+{
+    TmdObject* model;
+
+    _taskStopForInlineBodyRelease(task);
+    if (task->killCountdown != 0) {
+        return;
+    }
+    switch (task->bodyKind) {
+        case TASK_BODY_TMD:
+            model = task->extra.tmd;
+            modelObjectUnlinkTmd(&model->link);
+            modelObjectFreeTmd(model);
+            break;
+        case TASK_BODY_COORD:
+            modelObjectFreeCoordBody(task->extra.coordBody);
+            break;
+    }
+    task->bodyKind = TASK_BODY_RELEASED;
+}
+
 void taskKill(Task* task)
 {
     /// Countdown callback ticks before a stopped TMD model is released.
@@ -262,14 +288,13 @@ void taskKill(Task* task)
     /// bypasses it.
     enum { TASK_MODEL_RELEASE_DELAY_TICKS = 2 };
 
-    Task*      firstChild;
-    Task*      ringCursor;
-    Task*      childHead;
-    TmdObject* model;
-    s32        bodyKind;
-    s32        immediateBodyKind;
-    Task*      parent;
-    Task*      nextSibling;
+    Task* firstChild;
+    Task* ringCursor;
+    Task* childHead;
+    s32   bodyKind;
+    s32   immediateBodyKind;
+    Task* parent;
+    Task* nextSibling;
 
     // Children lose their parent before dispatch so their exit handlers leave
     // this sibling ring intact. The successor is read after each handler returns.
@@ -310,65 +335,25 @@ void taskKill(Task* task)
 
     if (gDisplayState.immediateTaskFree == 0) {
         bodyKind = task->bodyKind;
-        if (bodyKind == TASK_BODY_TMD) {
-            goto scheduleModelRelease;
+        switch (bodyKind) {
+            case TASK_BODY_TMD:
+                // Suppress active model drawing during the deferred release window.
+                task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                task->killCountdown     = TASK_MODEL_RELEASE_DELAY_TICKS;
+                task->callback          = taskCountdownCallback;
+                task->state             = 0;
+                task->exitCallback      = taskNoopCallback;
+                break;
+            case TASK_BODY_COORD:
+                // Coordinate bodies leave their refresh list before inline release.
+                modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
+                _taskReleaseBodyInline(task);
+                break;
+            case TASK_BODY_NONE:
+            default:
+                _taskReleaseBodyInline(task);
+                break;
         }
-        if (bodyKind < TASK_BODY_COORD) {
-            goto stopBodylessTask;
-        }
-        if (bodyKind == TASK_BODY_COORD) {
-            goto unlinkCoordBody;
-        }
-        goto stopBodylessTask;
-
-    scheduleModelRelease:
-        // Suppress active model drawing during the deferred release window.
-        task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        task->killCountdown     = TASK_MODEL_RELEASE_DELAY_TICKS;
-        task->callback          = taskCountdownCallback;
-        task->state             = 0;
-        task->exitCallback      = taskNoopCallback;
-        return;
-
-    unlinkCoordBody:
-        // Coordinate bodies leave their refresh list before inline release.
-        modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
-        _taskStopForInlineBodyRelease(task);
-        if (task->killCountdown != 0) {
-            return;
-        }
-        if (task->bodyKind == TASK_BODY_TMD) {
-            goto releaseModel;
-        }
-        if (task->bodyKind != bodyKind) {
-            goto markBodyReleased;
-        }
-        goto releaseCoordBody;
-
-    stopBodylessTask:
-        _taskStopForInlineBodyRelease(task);
-        if (task->killCountdown != 0) {
-            return;
-        }
-        if (task->bodyKind == TASK_BODY_TMD) {
-            goto releaseModel;
-        }
-        if (task->bodyKind == TASK_BODY_COORD) {
-            goto releaseCoordBody;
-        }
-        goto markBodyReleased;
-
-    releaseModel:
-        model = task->extra.tmd;
-        modelObjectUnlinkTmd(&model->link);
-        modelObjectFreeTmd(model);
-        goto markBodyReleased;
-
-    releaseCoordBody:
-        modelObjectFreeCoordBody(task->extra.coordBody);
-
-    markBodyReleased:
-        task->bodyKind = TASK_BODY_RELEASED;
         return;
     }
 
