@@ -1189,14 +1189,13 @@ void Gp_PeListPanelTask(Task* arg0)
             childObj = child->spawnArg2.pointer;
             flag     = childObj->result;
             child    = child->nextSibling;
-            if (flag != USER_INTERFACE_RESULT_CANCEL) {
-                if (flag == USER_INTERFACE_RESULT_CONFIRM) {
+            switch (flag) {
+                case USER_INTERFACE_RESULT_CONFIRM:
                     obj->resultValue = 1;
-                    goto store_flag;
-                }
-            } else {
-            store_flag:
-                obj->result = flag;
+                    /* fallthrough */
+                case USER_INTERFACE_RESULT_CANCEL:
+                    obj->result = flag;
+                    break;
             }
         } while (child != arg0->firstChild);
     }
