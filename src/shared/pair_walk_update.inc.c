@@ -1,6 +1,13 @@
 /* Part of the pair walk library; see pair_walk.h. */
 
-/// Consumes an attempted movement tick and records the idle choice on arrival.
+/// Consumes one attempted walk step and records the idle choice when travel ends.
+///
+/// Borrows live, writable `work` with a nonzero signed-halfword `st.travel`
+/// count of remaining attempts. The caller counts a step even when actor
+/// freezing suppresses translation. Decrements without clamping; only a result
+/// of zero selects `PAIR_WALK_ANIM_IDLE` and records `PAIR_WALK_IDLE_BLEND_FRAMES`
+/// whole frames for a later blend. Leaves `st.state` and the playing tracks
+/// unchanged, so this records a choice without requesting an animation reseed.
 static __inline__ void _pairWalkCompleteTravelTick(PairWalkWork* work)
 {
     work->st.travel--;
