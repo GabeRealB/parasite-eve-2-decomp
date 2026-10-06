@@ -2636,6 +2636,18 @@ u32* actor403600DrawStreamGt3PreXformBottomFade(TmdStreamWorkspace* workspace, s
     return elements;
 }
 
+/// Tests a quad's second triangle once the first has failed the facing test.
+///
+/// The GTE screen FIFO must hold corners 1, 2 and 3. Stores their NCLIP result
+/// through `gteResult`, which must address `workspace->gteResult`, and returns
+/// nonzero when it is negative.
+static inline s32 _actor403600SecondHalfFacesViewer(const TmdStreamWorkspace* workspace, s32* gteResult)
+{
+    gte_nclip();
+    gte_stopz(gteResult);
+    return workspace->gteResult < 0;
+}
+
 u32* actor403600DrawStreamGt4BottomFade(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     CVECTOR       lightColor;
@@ -2680,13 +2692,7 @@ u32* actor403600DrawStreamGt4BottomFade(TmdStreamWorkspace* workspace, s32 objec
                 gte_rtps();
                 gte_stflg(gteFlag);
                 if (!(workspace->gteFlag & gteErrorMask)) {
-                    if (workspace->gteResult > 0) {
-                        goto draw;
-                    }
-                    gte_nclip();
-                    gte_stopz(gteResult);
-                    if (workspace->gteResult < 0) {
-                    draw:
+                    if (workspace->gteResult > 0 || _actor403600SecondHalfFacesViewer(workspace, gteResult)) {
                         gte_stsxy2(&packet->x3);
                         gte_avsz4();
                         // Fade from corner 0; every corner uses this same colour weight.
