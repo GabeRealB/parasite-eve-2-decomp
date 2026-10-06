@@ -44,7 +44,16 @@ void func_shelter_b1_sleeping_quarters_8017D608(Task* task);
 
 void func_shelter_b1_sleeping_quarters_8017D888(Task* task);
 
-void func_shelter_b1_sleeping_quarters_8017D8E0(Task* arg0);
+/// Draws the Sleeping Quarters' view-specific light beams and red glow disc.
+///
+/// Bank-6 effect task 0x12D. On state 0, selects this room's glow-disc,
+/// flying-spark and orange-burst effects and advances to state 1; drawing
+/// starts in the same tick and continues in every nonzero state. Uses the
+/// current mapped camera index; only views 2..10 emit lights.
+/// Requires a live task, the room overlay loaded, composed view matrices,
+/// and the current frame's scratch stack, primitive arena and ordering table.
+/// Queued primitives remain in the frame arena until GPU completion.
+void shelterB1SleepingQuartersDrawViewLightsTask(Task* task);
 
 void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0);
 

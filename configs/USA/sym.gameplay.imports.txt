@@ -1059,7 +1059,7 @@ shelterB1PodServiceGantryEffectSpriteRiseTask = 0x8017F8C8; // type:func absolut
 shelterB1PodServiceGantryInitEffectsTask = 0x8017FA7C; // type:func absolute:True owner=shelter_b1_pod_service_gantry
 
 
-func_shelter_b1_sleeping_quarters_8017D8E0 = 0x8017D8E0; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
+shelterB1SleepingQuartersDrawViewLightsTask = 0x8017D8E0; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 
 func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 

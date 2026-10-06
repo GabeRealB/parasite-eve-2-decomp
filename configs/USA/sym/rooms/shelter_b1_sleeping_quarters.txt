@@ -1,10 +1,7 @@
 // Overlay-local symbols for shelter_b1_sleeping_quarters.
 D_shelter_b1_sleeping_quarters_8018054C = 0x8018054C; // size:0x10 defined:True
 D_shelter_b1_sleeping_quarters_8018055C = 0x8018055C; // size:0x10 defined:True
-D_shelter_b1_sleeping_quarters_8018056C = 0x8018056C; // size:0x20 defined:True
-D_shelter_b1_sleeping_quarters_8018058C = 0x8018058C; // size:0x10 defined:True
-D_shelter_b1_sleeping_quarters_8018059C = 0x8018059C; // size:0x20 defined:True
-D_shelter_b1_sleeping_quarters_801805BC = 0x801805BC; // size:0x30 defined:True
+D_shelter_b1_sleeping_quarters_8018056C = 0x8018056C; // size:0x80 defined:True
 D_shelter_b1_sleeping_quarters_801805EC = 0x801805EC; // size:0x20 defined:True
 D_shelter_b1_sleeping_quarters_8018060C = 0x8018060C; // size:0x40 defined:True
 D_shelter_b1_sleeping_quarters_80180518 = 0x80180518; // size:0x28 defined:True
@@ -77,7 +74,7 @@ _gShelterB1SleepingQuartersModel02DFCPartVerts = 0x80180308; // size:0x4 defined
 _gShelterB1SleepingQuartersModel02DFCVerts = 0x8018030C; // size:0xB0 defined:True
 _gShelterB1SleepingQuartersModel02DFCStream = 0x801803BC; // size:0x138 defined:True
 
-func_shelter_b1_sleeping_quarters_8017D8E0 = 0x8017D8E0; // type:func
+shelterB1SleepingQuartersDrawViewLightsTask = 0x8017D8E0; // type:func
 
 func_shelter_b1_sleeping_quarters_8017D778 = 0x8017D778; // type:func
 
