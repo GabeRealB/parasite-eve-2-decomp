@@ -936,7 +936,7 @@ neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask = 0x8017E184; // type:func ab
 
 func_neo_ark_south_promenade_8017EA6C = 0x8017EA6C; // type:func absolute:True owner=neo_ark_south_promenade
 
-func_neo_ark_submarine_gallery_8017EFEC = 0x8017EFEC; // type:func absolute:True owner=neo_ark_submarine_gallery
+neoArkSubmarineGalleryDrawViewGlowsTask = 0x8017EFEC; // type:func absolute:True owner=neo_ark_submarine_gallery
 
 neoArkSubmarineGalleryWaterRippleTask = 0x8017F288; // type:func absolute:True owner=neo_ark_submarine_gallery
 

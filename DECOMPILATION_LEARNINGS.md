@@ -83538,7 +83538,7 @@ addiu $a0,$s0,0x98      # the differing constant, in the delay slot
 
 which looks like a source-level construct (an argument computed for a shared
 tail) and is not: it is the merge point plus delay-slot filling. The matching
-source is the plain sequence of calls per arm — `func_neo_ark_submarine_gallery_8017EFEC`
+source is the plain sequence of calls per arm — `neoArkSubmarineGalleryDrawViewGlowsTask`
 went 87.8% (m2c shape, `regs`/`insert` heavy) → 89.2% (structs sized so the
 table displacements were 8-byte strides) → 100% (gotos dropped). The `goto`
 form is not merely slower to converge, it is wrong: it fixes the shared block

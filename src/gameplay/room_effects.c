@@ -940,7 +940,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48RingWallTask, { NULL } },                                      // 0x18F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_801810B0, { NULL } },                                   // 0x190
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48ShockwaveRingsTask, { NULL } },                                // 0x191
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_gallery_8017EFEC, { NULL } },                     // 0x192
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineGalleryDrawViewGlowsTask, { NULL } },                     // 0x192
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineGalleryWaterRippleTask, { NULL } },                       // 0x193
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineGalleryWaterDriftTaskU16, { NULL } },                     // 0x194
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48PinkRingFlashTask, { NULL } },                                 // 0x195

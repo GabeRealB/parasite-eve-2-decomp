@@ -54,7 +54,20 @@ extern WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[];
 
-void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0);
+/// Draws the gallery's fixed glows for the current mapped camera view.
+///
+/// State zero selects this room's water-ripple and water-spray effects and
+/// changes to state one. Every invocation, including the first, draws the
+/// capsules and discs visible in mapped views 2..6; view 2 also draws a pulsing
+/// light prism. Other mapped views emit no primitives. The task remains live.
+///
+/// `task` must have a live coordinate body whose coordinate is already composed
+/// for the prism. Requires the loaded gallery overlay, current view matrices,
+/// initialized scratch stack and frame packet arena and ordering table with
+/// room for up to 39 Gouraud quads and their additive blend commands. Points and
+/// the coordinate are borrowed for this call; queued packets live until GPU
+/// completion. Drawing also runs while effects are suspended or cancelled.
+void neoArkSubmarineGalleryDrawViewGlowsTask(Task* task);
 
 /// Advances and draws one expanding, fading water-surface ripple in this room.
 ///

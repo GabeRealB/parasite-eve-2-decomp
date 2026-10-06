@@ -58,6 +58,7 @@
 enum { NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX = 32 };
 
 static void _neoArkSubmarineGalleryDrawLightPrism(const GfxCoord* coord, s16 firstVertex);
+static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
 // Indexed views below share one contiguous table.
 extern TaskDesc D_actor_100400_80147E48;
@@ -927,70 +928,75 @@ WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[8] = {
     D_neo_ark_submarine_gallery_801858D4,
 };
 
-static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
-
-/// Per-view draw callback for the gallery's display cases. The first state
-/// latches the two effect ids the display cases animate with; every later run
-/// draws one fixed set of positions for the current camera view. Views 2 to 6
-/// each cover a run of `D_neo_ark_submarine_gallery_801818*` entries, and view 2
-/// also hands the task's own coordinate to `_neoArkSubmarineGalleryDrawLightPrism`.
-void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
+/// Draws two capsules from consecutive endpoint pairs in a four-point run.
+///
+/// Borrows `worldPoints[0..3]` for the call and preserves their draw order.
+/// `radiusScale` and `packedColor` use the capsule drawer's perspective-size
+/// and RGB-nibble encoding. Requires the current view, initialized scratch
+/// stack and frame arena with room for twelve quads and their blend commands.
+static inline void _neoArkSubmarineGalleryDrawGlowPair(const SVECTOR worldPoints[4], s32 radiusScale, s32 packedColor)
 {
-    SVECTOR*  pos;
-    GfxCoord* coord;
-    s32       view;
+    _glowDrawCapsule(&worldPoints[0], radiusScale, packedColor);
+    _glowDrawCapsule(&worldPoints[2], radiusScale, packedColor);
+}
 
-    coord = arg0->extra.coordBody->coord;
-    if (arg0->state == 0) {
+void neoArkSubmarineGalleryDrawViewGlowsTask(Task* task)
+{
+    enum {
+        NEO_ARK_SUBMARINE_GALLERY_GLOWS_STATE_NEW   = 0,
+        NEO_ARK_SUBMARINE_GALLERY_GLOWS_STATE_READY = 1,
+        NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE = 0x200, // Pixel radius = scale * 64 / biased camera depth
+        NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR        = 0x444, // Packed RGB nibbles; channels 64, or 72 on odd frames
+    };
+    const GfxCoord* prismCoord;
+    u8              mappedViewIndex;
+
+    prismCoord = task->extra.coordBody->coord;
+    // Install this overlay's water-effect handlers once.
+    if (task->state == NEO_ARK_SUBMARINE_GALLERY_GLOWS_STATE_NEW) {
         gRoomEffectWaterRippleId = EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_RIPPLE;
         gRoomEffectWaterSprayId  = EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_SPRAY;
-        arg0->state              = 1;
+        task->state              = NEO_ARK_SUBMARINE_GALLERY_GLOWS_STATE_READY;
     }
-    view = viewGetMappedIndex() & 0xFF;
-    switch (view) {
+    // Each mapped camera sees its own subset of the fixed world-space glows.
+    mappedViewIndex = viewGetMappedIndex();
+    switch (mappedViewIndex) {
         case 2:
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[0], 0x200, 0x444);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[2], 0x200, 0x444);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[4], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[16], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[17], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[18], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[31], 0x200, 0x444);
-            _neoArkSubmarineGalleryDrawLightPrism(coord, NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX);
+            _neoArkSubmarineGalleryDrawGlowPair(D_neo_ark_submarine_gallery_801818C8, NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[4], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[16], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[17], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[18], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[31], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _neoArkSubmarineGalleryDrawLightPrism(prismCoord, NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX);
             break;
         case 3:
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_80181928[0], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[4], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[5], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[14], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[15], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[16], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[17], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[18], 0x200, 0x444);
-            pos = &D_neo_ark_submarine_gallery_80181928[19];
-            glowDrawDisc(pos, 0x200, 0x444);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_80181928[0], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[4], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[5], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[14], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[15], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[16], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[17], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[18], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_80181928[19], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
         case 4:
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[0], 0x200, 0x444);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[2], 0x200, 0x444);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[4], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[18], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[19], 0x200, 0x444);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[20], 0x200, 0x444);
-            pos = &D_neo_ark_submarine_gallery_801818F8[21];
-            glowDrawDisc(pos, 0x200, 0x444);
+            _neoArkSubmarineGalleryDrawGlowPair(D_neo_ark_submarine_gallery_801818F8, NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[4], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[18], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[19], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[20], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&D_neo_ark_submarine_gallery_801818F8[21], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
         case 5:
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[0], 0x200, 0x444);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[2], 0x200, 0x444);
-            pos = &D_neo_ark_submarine_gallery_801818D8[3];
-            _glowDrawCapsule(pos, 0x200, 0x444);
+            _neoArkSubmarineGalleryDrawGlowPair(D_neo_ark_submarine_gallery_801818D8, NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            // The final capsule starts at the preceding capsule's second endpoint.
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818D8[3], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
         case 6:
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[0], 0x200, 0x444);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[2], 0x200, 0x444);
-            pos = &D_neo_ark_submarine_gallery_801818F8[4];
-            _glowDrawCapsule(pos, 0x200, 0x444);
+            _neoArkSubmarineGalleryDrawGlowPair(D_neo_ark_submarine_gallery_801818F8, NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818F8[4], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
     }
 }

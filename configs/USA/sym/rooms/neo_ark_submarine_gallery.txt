@@ -61,7 +61,7 @@ D_neo_ark_submarine_gallery_801818AC = 0x801818AC; // size:0xC defined:True
 D_neo_ark_submarine_gallery_801818B8 = 0x801818B8; // size:0x2 defined:True
 D_neo_ark_submarine_gallery_801818BC = 0x801818BC; // size:0xC defined:True
 
-func_neo_ark_submarine_gallery_8017EFEC = 0x8017EFEC; // type:func
+neoArkSubmarineGalleryDrawViewGlowsTask = 0x8017EFEC; // type:func
 
 neoArkSubmarineGalleryWaterRippleTask = 0x8017F288; // type:func
 

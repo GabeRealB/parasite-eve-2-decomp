@@ -3092,7 +3092,7 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_submarine_gallery]
-label = "no map pool names this room; the 0x1A2C cut exists so neo_ark_submarine_gallery_2 owns func_neo_ark_submarine_gallery_8017EFEC's generated switch table from 0x88 - mid-object GCC pads it with .align 3 to 0x8C"
+label = "no map pool names this room; the 0x1A2C cut exists so neo_ark_submarine_gallery_2 owns neoArkSubmarineGalleryDrawViewGlowsTask's generated switch table from 0x88 - mid-object GCC pads it with .align 3 to 0x8C"
 id = 449
 objects = [
   { kind = "packageId" },
