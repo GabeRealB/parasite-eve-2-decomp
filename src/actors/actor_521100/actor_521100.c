@@ -1914,9 +1914,8 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                     pan                  = (s8)worldCoordGetOriginAudioPan(coord);
                     depth                = (s8)worldCoordGetOriginAudioDepth(coord);
                     sndEvtRequestScriptStart((s32)sound, pan, depth);
-                    goto damage_done;
                 }
-                goto damage_done;
+                break;
             case 1:
                 work->state    = ACTOR_521100_STATE_GUARD;
                 work->subState = 0;
@@ -1929,7 +1928,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 pan1  = (s8)worldCoordGetOriginAudioPan(coord);
                 depth = (s8)worldCoordGetOriginAudioDepth(coord);
                 sndEvtRequestScriptStart((s32)sound, pan1, depth);
-                goto damage_done;
+                break;
             case 2:
                 work->state      = ACTOR_521100_STATE_STAGGER;
                 work->subState   = 0;
@@ -1948,8 +1947,8 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 pan2  = (s8)worldCoordGetOriginAudioPan(coord);
                 depth = (s8)worldCoordGetOriginAudioDepth(coord);
                 sndEvtRequestScriptStart((s32)sound, pan2, depth);
+                break;
         }
-    damage_done:
         func_800E2C78(enemy, (s32)work->bodyContacts[i].key.value, (s32)damage, 0);
         func_800DA6E8(&enemy->node, (s32)damage, 0);
         enemy->hp = (u16)enemy->hp - damage;
