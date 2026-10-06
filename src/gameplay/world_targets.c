@@ -619,90 +619,80 @@ static void _worldTargetDrawReadouts(void)
     otIndex       = WORLD_TARGET_READOUT_OT_INDEX;
     do {
         bindingNode = readout->binding.node;
-        if (bindingNode == NULL) {
-            goto emptyReadout;
-        }
-        // Validate the binding against live entries before interpreting it as a node.
-        listedNode   = gWorldTargetListHead;
-        targetListed = 0;
-        if (listedNode != NULL) {
-            do {
+        if (bindingNode != NULL) {
+            // Validate the binding against live entries before interpreting it as a node.
+            targetListed = 0;
+            for (listedNode = gWorldTargetListHead; listedNode != NULL; listedNode = listedNode->next) {
                 if (bindingNode == listedNode) {
                     targetListed = 1;
-                    goto bindingChecked;
+                    break;
                 }
-                listedNode = listedNode->next;
-            } while (listedNode != NULL);
-        }
-    bindingChecked:
-        if (targetListed != 0) {
-            _worldTargetProjectReadout(readout);
-        } else {
-            // Keep the last projection after the target leaves, until the countdown ends.
-            readout->binding.word = WORLD_TARGET_READOUT_DEPARTED;
-        }
+            }
+            if (targetListed != 0) {
+                _worldTargetProjectReadout(readout);
+            } else {
+                // Keep the last projection after the target leaves, until the countdown ends.
+                readout->binding.word = WORLD_TARGET_READOUT_DEPARTED;
+            }
 
-        WORLD_TARGET_PLACE_READOUT(readout, displayAmount, frameX, baselineY);
+            WORLD_TARGET_PLACE_READOUT(readout, displayAmount, frameX, baselineY);
 #undef WORLD_TARGET_PLACE_READOUT
 
-        rightEdgeX         = frameX + WORLD_TARGET_READOUT_TEXT_RIGHT_OFFSET_X;
-        request.x          = rightEdgeX;
-        request.y          = baselineY;
-        request.otIndex    = otIndex;
-        request.colorRgb   = WORLD_TARGET_READOUT_DAMAGE_RGB;
-        request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        request.alignment  = TEXT_ALIGNMENT_RIGHT;
-        request.drawMode   = TEXT_DRAW_OUTLINED;
+            rightEdgeX         = frameX + WORLD_TARGET_READOUT_TEXT_RIGHT_OFFSET_X;
+            request.x          = rightEdgeX;
+            request.y          = baselineY;
+            request.otIndex    = otIndex;
+            request.colorRgb   = WORLD_TARGET_READOUT_DAMAGE_RGB;
+            request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+            request.alignment  = TEXT_ALIGNMENT_RIGHT;
+            request.drawMode   = TEXT_DRAW_OUTLINED;
 
-        displayAmount = readout->amount;
-        if (displayAmount < 0) {
-            request.colorRgb = WORLD_TARGET_READOUT_HEAL_RGB;
-            displayAmount    = -displayAmount;
-        }
-        if (displayAmount >= WORLD_TARGET_READOUT_DISPLAY_LIMIT) {
-            displayAmount = WORLD_TARGET_READOUT_DISPLAY_MAX;
-        }
-
-        // The largest displayed value has four digits plus NUL, within numberBuffer.
-        request.x        = rightEdgeX;
-        request.drawMode = TEXT_DRAW_FILL_ONLY;
-        textDrawString(numberRequest, textItoaSigned(numberText, displayAmount));
-        // Restore the right anchor; prepend the outline so it executes before the fill.
-        request.x        = rightEdgeX;
-        request.drawMode = TEXT_DRAW_OUTLINE_ONLY;
-        textDrawString(numberRequest, textItoaSigned(numberText, displayAmount));
-
-        frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_3_DIGITS;
-        frameRect.y = baselineY - WORLD_TARGET_READOUT_FRAME_TOP_INSET;
-        frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_3_DIGITS;
-        frameRect.h = WORLD_TARGET_READOUT_FRAME_HEIGHT;
-        if (displayAmount >= WORLD_TARGET_READOUT_4_DIGIT_MINIMUM) {
-            frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_4_DIGITS;
-            frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_4_DIGITS;
-        } else if (displayAmount < WORLD_TARGET_READOUT_3_DIGIT_MINIMUM) {
-            frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_2_DIGITS;
-            frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_2_DIGITS;
-        }
-        uiDrawRectFrame(&frameRect, WORLD_TARGET_READOUT_OT_INDEX, USER_INTERFACE_PANEL_TITLE_STYLE, NULL);
-
-        {
-            s16 framesLeft;
-            framesLeft = readout->framesLeft;
-            framesLeft--;
-            readout->framesLeft = framesLeft;
-            if (framesLeft > 0) {
-                goto nextReadout;
+            displayAmount = readout->amount;
+            if (displayAmount < 0) {
+                request.colorRgb = WORLD_TARGET_READOUT_HEAL_RGB;
+                displayAmount    = -displayAmount;
             }
-        }
-        readout->amount       = 0;
-        readout->framesLeft   = 0;
-        readout->binding.node = NULL;
-        goto nextReadout;
+            if (displayAmount >= WORLD_TARGET_READOUT_DISPLAY_LIMIT) {
+                displayAmount = WORLD_TARGET_READOUT_DISPLAY_MAX;
+            }
 
-    emptyReadout:
-        readout->amount     = 0;
-        readout->framesLeft = 0;
-    nextReadout:
+            // The largest displayed value has four digits plus NUL, within numberBuffer.
+            request.x        = rightEdgeX;
+            request.drawMode = TEXT_DRAW_FILL_ONLY;
+            textDrawString(numberRequest, textItoaSigned(numberText, displayAmount));
+            // Restore the right anchor; prepend the outline so it executes before the fill.
+            request.x        = rightEdgeX;
+            request.drawMode = TEXT_DRAW_OUTLINE_ONLY;
+            textDrawString(numberRequest, textItoaSigned(numberText, displayAmount));
+
+            frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_3_DIGITS;
+            frameRect.y = baselineY - WORLD_TARGET_READOUT_FRAME_TOP_INSET;
+            frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_3_DIGITS;
+            frameRect.h = WORLD_TARGET_READOUT_FRAME_HEIGHT;
+            if (displayAmount >= WORLD_TARGET_READOUT_4_DIGIT_MINIMUM) {
+                frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_4_DIGITS;
+                frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_4_DIGITS;
+            } else if (displayAmount < WORLD_TARGET_READOUT_3_DIGIT_MINIMUM) {
+                frameRect.x = frameX - WORLD_TARGET_READOUT_FRAME_LEFT_2_DIGITS;
+                frameRect.w = WORLD_TARGET_READOUT_FRAME_WIDTH_2_DIGITS;
+            }
+            uiDrawRectFrame(&frameRect, WORLD_TARGET_READOUT_OT_INDEX, USER_INTERFACE_PANEL_TITLE_STYLE, NULL);
+
+            {
+                s16 framesLeft;
+                framesLeft = readout->framesLeft;
+                framesLeft--;
+                readout->framesLeft = framesLeft;
+                if (framesLeft <= 0) {
+                    readout->amount       = 0;
+                    readout->framesLeft   = 0;
+                    readout->binding.node = NULL;
+                }
+            }
+        } else {
+            readout->amount     = 0;
+            readout->framesLeft = 0;
+        }
         readoutIndex++;
         readout++;
     } while (readoutIndex < ARRAY_SIZE(Gp_LockSlots));
