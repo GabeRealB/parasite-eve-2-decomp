@@ -1367,26 +1367,39 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_3_80180DC4[8] = {
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"
 
-/// Per-frame effect: queues the room's glowing discs for the visit
-/// `gGameSession->location.loc.view` selects - visit 3 the second point, visit 4 the
-/// second point then the first, visits 10 and 11 the first alone, visit 8 the
-/// third with a wider UV column and half-extent. Visits outside those draw
-/// nothing.
-void func_dryfield_night_motel_room_3_8017D9B4(Task* unused)
+void dryfieldNightMotelRoom3DrawFlaresTask(Task* task)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN = 1,
+        DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_8_FLARE_TEXTURE_COLUMN = 2,
+        // Screen half-extent is the signed scale * 39 / (camera Z / 4).
+        DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_3_4_FLARE_RADIUS_SCALE     = 0x240,
+        DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_4_10_11_FLARE_RADIUS_SCALE = 0x200,
+        DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_8_FLARE_RADIUS_SCALE       = 0x180,
+    };
+
+    // View 4 includes both flares, preserving their packet reservation order.
     switch (gGameSession->location.loc.view) {
         case 3:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA8C, 1, 0x240);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA8C,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_3_4_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA8C, 1, 0x240);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA8C,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_3_4_FLARE_RADIUS_SCALE);
             /* fallthrough */
         case 10:
         case 11:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA84, 1, 0x200);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA84,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_4_10_11_FLARE_RADIUS_SCALE);
             break;
         case 8:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA94, 2, 0x180);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA94,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_8_FLARE_TEXTURE_COLUMN,
+                                 DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_8_FLARE_RADIUS_SCALE);
             break;
     }
 }

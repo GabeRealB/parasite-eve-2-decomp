@@ -122152,7 +122152,7 @@ matched bodies in `_3` were preserved this way, and the unscoped build's
 
 Inputs: `base_7.i` (the goto/tail variant, 99.84%) and `base_9.i` (the
 array-index form, 99.66% by the scorer, byte-identical by the build).
-## An address the target reaches *by name* must be declared as its own object even when indexing it is byte-identical (func_dryfield_night_motel_room_3_8017D9B4, 2026-09-17)
+## An address the target reaches *by name* must be declared as its own object even when indexing it is byte-identical (dryfieldNightMotelRoom3DrawFlaresTask, 2026-09-17)
 
 Three consecutive `SVECTOR`s at `0x8017DA84` / `0x8017DA8C` / `0x8017DA94`, one
 visit each, and the target materialises every one of them whole into `$a0`:
