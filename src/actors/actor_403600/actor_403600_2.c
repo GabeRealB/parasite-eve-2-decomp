@@ -772,15 +772,12 @@ static void func_actor_403600_801396F8(Task* arg0)
     s16              temp_v1_2;
     s16              temp_v1_3;
     s16              temp_v1_6;
-    s16              var_v0_3;
     EffectWork*      temp_v0_5;
     EffectWork*      temp_v0_6;
     EffectWork*      temp_v0_7;
     EffectWork*      temp_v0_8;
     s32              temp_s2;
     s32              temp_v0_17;
-    s32              var_a0;
-    s32              var_v0;
     s32              temp_s0_2;
     s32              temp_s0_4;
     u16              temp_v0_22;
@@ -790,7 +787,6 @@ static void func_actor_403600_801396F8(Task* arg0)
     u16              temp_v0_2;
     u16              temp_v0_4;
     s32              temp_v1_4;
-    u16              var_v0_4;
     u32              temp_v0_10;
     u32              temp_v0_11;
     u8               temp_a0;
@@ -860,9 +856,28 @@ static void func_actor_403600_801396F8(Task* arg0)
                     work->animId = 0xF;
                     return;
                 }
-            } else {
-                var_v0 = work->phaseFrame < 0x11;
-                goto block_30;
+            } else if (work->phaseFrame >= 0x11) {
+                Actor403600Work* stunWork = arg0->work;
+
+                stunWork->animBlendFrames = 8;
+                stunWork->animRate        = 0x10;
+                stunWork->actionDelay     = 0xA;
+                stunWork->defeated        = 0;
+                stunWork->aimMode         = ACTOR_403600_AIM_PLAYER;
+                stunWork->ignorePushOut   = 0;
+                stunWork->ambientBoost    = 0U;
+                stunWork->committed       = 0;
+                stunWork->forwardSpeed    = 0;
+                stunWork->action          = ACTOR_403600_ACTION_CHOOSE;
+                stunWork->verticalSpeed   = 0;
+                stunWork->phaseFrame      = 0;
+                stunWork->turnRate        = 0x40;
+                stunWork->roll            = 0;
+                stunWork->diving          = 0;
+                stunWork->repositioning   = 0;
+                stunWork->pauseSoundSent  = 0;
+                work->mode                = ACTOR_403600_MODE_FIGHT;
+                return;
             }
             break;
         case ACTOR_403600_MODE_FREEZE:
@@ -876,7 +891,29 @@ static void func_actor_403600_801396F8(Task* arg0)
                 work->worldCoord.coord.t[1] += rsin(gDisplayState.animFrame << 9) >> 8;
                 return;
             }
-            goto block_31;
+            {
+                Actor403600Work* freezeWork = arg0->work;
+
+                freezeWork->animBlendFrames = 8;
+                freezeWork->animRate        = 0x10;
+                freezeWork->actionDelay     = 0xA;
+                freezeWork->defeated        = 0;
+                freezeWork->aimMode         = ACTOR_403600_AIM_PLAYER;
+                freezeWork->ignorePushOut   = 0;
+                freezeWork->ambientBoost    = 0U;
+                freezeWork->committed       = 0;
+                freezeWork->forwardSpeed    = 0;
+                freezeWork->action          = ACTOR_403600_ACTION_CHOOSE;
+                freezeWork->verticalSpeed   = 0;
+                freezeWork->phaseFrame      = 0;
+                freezeWork->turnRate        = 0x40;
+                freezeWork->roll            = 0;
+                freezeWork->diving          = 0;
+                freezeWork->repositioning   = 0;
+                freezeWork->pauseSoundSent  = 0;
+                work->mode                  = ACTOR_403600_MODE_FIGHT;
+            }
+            return;
         case ACTOR_403600_MODE_WEAKEN:
             func_actor_403600_80141B24(arg0);
             work->weakPhase     = 1;
@@ -921,31 +958,27 @@ static void func_actor_403600_801396F8(Task* arg0)
             if (work->phaseFrame < 0xF) {
                 work->forwardSpeed = -0xA;
             }
-            var_v0 = work->phaseFrame < 0x27;
-        block_30:
-            if (var_v0 != 0) {
-                return;
+            if (work->phaseFrame >= 0x27) {
+                temp_v0_3                  = arg0->work;
+                temp_v0_3->animBlendFrames = 8;
+                temp_v0_3->animRate        = 0x10;
+                temp_v0_3->actionDelay     = 0xA;
+                temp_v0_3->defeated        = 0;
+                temp_v0_3->aimMode         = ACTOR_403600_AIM_PLAYER;
+                temp_v0_3->ignorePushOut   = 0;
+                temp_v0_3->ambientBoost    = 0U;
+                temp_v0_3->committed       = 0;
+                temp_v0_3->forwardSpeed    = 0;
+                temp_v0_3->action          = ACTOR_403600_ACTION_CHOOSE;
+                temp_v0_3->verticalSpeed   = 0;
+                temp_v0_3->phaseFrame      = 0;
+                temp_v0_3->turnRate        = 0x40;
+                temp_v0_3->roll            = 0;
+                temp_v0_3->diving          = 0;
+                temp_v0_3->repositioning   = 0;
+                temp_v0_3->pauseSoundSent  = 0;
+                work->mode                 = ACTOR_403600_MODE_FIGHT;
             }
-        block_31:
-            temp_v0_3                  = arg0->work;
-            temp_v0_3->animBlendFrames = 8;
-            temp_v0_3->animRate        = 0x10;
-            temp_v0_3->actionDelay     = 0xA;
-            temp_v0_3->defeated        = 0;
-            temp_v0_3->aimMode         = ACTOR_403600_AIM_PLAYER;
-            temp_v0_3->ignorePushOut   = 0;
-            temp_v0_3->ambientBoost    = 0U;
-            temp_v0_3->committed       = 0;
-            temp_v0_3->forwardSpeed    = 0;
-            temp_v0_3->action          = ACTOR_403600_ACTION_CHOOSE;
-            temp_v0_3->verticalSpeed   = 0;
-            temp_v0_3->phaseFrame      = 0;
-            temp_v0_3->turnRate        = 0x40;
-            temp_v0_3->roll            = 0;
-            temp_v0_3->diving          = 0;
-            temp_v0_3->repositioning   = 0;
-            temp_v0_3->pauseSoundSent  = 0;
-            work->mode                 = ACTOR_403600_MODE_FIGHT;
             return;
         case ACTOR_403600_MODE_RECOVER:
             if (work->weakPhase == 1) {
@@ -1086,16 +1119,11 @@ static void func_actor_403600_801396F8(Task* arg0)
                     if (!((u16)work->phaseFrame & 1)) {
                         temp_v0_18         = (u16)work->forwardSpeed + 2;
                         work->forwardSpeed = temp_v0_18;
-                        var_a0             = 0x601BF;
                         if (temp_v0_18 >= -0x1E) {
                             work->forwardSpeed = -0x1E;
-                            goto block_71;
                         }
-                    } else {
-                    block_71:
-                        var_a0 = 0x601BF;
                     }
-                    Gp_SpawnEff(var_a0, &arg0->extra.tmd->coords[15], 0xC00, NULL);
+                    Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[15], 0xC00, NULL);
                     Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[19], 0xC00, NULL);
                     return;
                 case 1:
@@ -1114,8 +1142,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                                 work->actionCounter = temp_v0_22;
                                 if ((temp_v0_22 << 0x10) == 0) {
                                     work->actionCounter = 3U;
-                                    var_v0_3            = 0x19;
-                                    goto block_81;
+                                    work->actionDelay   = 0x19;
                                 }
                             }
                         } else {
@@ -1127,9 +1154,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                                 work->actionCounter = temp_v0_23;
                                 if ((temp_v0_23 << 0x10) == 0) {
                                     work->actionCounter = 3U;
-                                    var_v0_3            = -0x19;
-                                block_81:
-                                    work->actionDelay = var_v0_3;
+                                    work->actionDelay   = -0x19;
                                 }
                             }
                         }
@@ -1146,9 +1171,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                     }
                     work->actionTimer = (s16)((u16)work->actionTimer + 1);
                     if (work->phaseFrame >= 0xC8) {
-                        var_v0_4         = work->step;
                         work->phaseFrame = 0;
-                        goto block_116;
+                        work->step       = (s16)((u16)work->step + 1);
                     }
                     break;
                 case 2:
@@ -1215,7 +1239,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                     func_800E9BDC(1, 0xF9FF);
                     work->chainSweep          = 0;
                     gPlayerStatus.statusFlags = 0;
-                    goto block_115;
+                    work->step                = (s16)((u16)work->step + 1);
+                    break;
                 case 1:
                     if ((s16)work->whiteout == 0xFF) {
                         u8 param1[4];
@@ -1229,7 +1254,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                         param2[2] = 0;
                         param2[1] = 0;
                         cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-                        goto block_115;
+                        work->step = (s16)((u16)work->step + 1);
                     }
                     break;
                 case 2:
@@ -1239,18 +1264,12 @@ static void func_actor_403600_801396F8(Task* arg0)
                         }
                         taskSpawnFromTable(D_actor_303600_80162E98, 0, 0, 0);
                         func_800E9BDC(0, 0xF9FF);
-                        goto block_115;
+                        work->step = (s16)((u16)work->step + 1);
                     }
                     break;
             }
             break;
     }
-    return;
-
-block_115:
-    var_v0_4 = work->step;
-block_116:
-    work->step = (s16)(var_v0_4 + 1);
 }
 
 static void func_actor_403600_8013A444(Task* arg0)
