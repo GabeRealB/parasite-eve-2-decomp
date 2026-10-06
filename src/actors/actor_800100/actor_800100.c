@@ -1723,17 +1723,13 @@ static void func_actor_800100_80164184(Task* arg0)
                     actor->actionValue = (u16)actor->actionValue - 1;
                 } else {
                     r = rand() & 0x3FF;
-                    if ((0x1000 - r) < dist || actor->statePhase != 2) {
-                        if (dist < r + 0x1400 || actor->statePhase != 1) {
-                            goto done;
-                        }
+                    if (((0x1000 - r) >= dist && actor->statePhase == 2) || (dist >= r + 0x1400 && actor->statePhase == 1)) {
+                        actor->statePhase  = 0;
+                        actor->actionValue = 0x3C;
                     }
-                    actor->statePhase  = 0;
-                    actor->actionValue = 0x3C;
                 }
             }
     }
-done:
     func_8010BD88(arg0, MATRIX_TRANS(&target->coord));
     func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
 }
