@@ -2285,26 +2285,20 @@ static void func_actor_105100_801354E8(Enemy* arg0, Task* arg1)
     _Actor105100BeamWork* beam;
     _Actor105100Work*     parentWork;
     GfxCoord*             coord;
-    s32                   state;
-    s32                   one;
 
     beam       = arg1->work;
     parentWork = (arg1->parent)->work;
-    state      = gSceneCombatState.actorControl;
     coord      = arg1->extra.tmd->coords;
-    one        = 1;
-
-    if (state == one) {
-        func_shelter_b6_training_room_8017FC40(coord, 0x80, beam->colorIndex);
-        return;
+    switch (gSceneCombatState.actorControl) {
+        case 1:
+            func_shelter_b6_training_room_8017FC40(coord, 0x80, beam->colorIndex);
+            return;
+        case 2:
+            return;
+        case 0:
+        default:
+            break;
     }
-    if (state < 2) {
-        goto default_body;
-    }
-    if (state == 2) {
-        goto done;
-    }
-default_body:
     switch (beam->pattern) {
         case ACTOR_105100_BEAMS_PAIR:
             func_actor_105100_80135674(arg1);
@@ -2332,8 +2326,6 @@ default_body:
         parentWork->childCount = parentWork->childCount - 1;
         arg1->state            = 2;
     }
-done:
-    return;
 }
 
 /// Motion of a pair beam (`ACTOR_105100_BEAMS_PAIR`), which moves its end
