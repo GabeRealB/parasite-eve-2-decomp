@@ -43,7 +43,11 @@ extern SpriteView D_dryfield_garage_8017F5E8[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_garage_801801E4[];
 
-void func_dryfield_garage_8017DC68(Task* unused);
+/// Inert room-effect callback for bank 6, slot 0xD6, selected for daytime Garage.
+///
+/// Ignores `unusedTask` without drawing, advancing state or releasing resources.
+/// Keep the Dryfield Garage overlay loaded while this callback is scheduled.
+void dryfieldGarageEffectNoopTaskD6(Task* unusedTask);
 
 void func_dryfield_garage_8017DC10(Task* task);
 

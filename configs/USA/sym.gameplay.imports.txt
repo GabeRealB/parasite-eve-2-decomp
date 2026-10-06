@@ -1789,7 +1789,7 @@ func_dryfield_breezeway_8017FF7C = 0x8017FF7C; // type:func absolute:True owner=
 
 dryfieldFactoryDrawGlowsTask = 0x801825F0; // type:func absolute:True owner=dryfield_factory shared=rooms
 
-func_dryfield_garage_8017DC68 = 0x8017DC68; // type:func absolute:True owner=dryfield_garage
+dryfieldGarageEffectNoopTaskD6 = 0x8017DC68; // type:func absolute:True owner=dryfield_garage
 
 dryfieldDrivewayEnableAmbientEffectsTask = 0x8017DE6C; // type:func absolute:True owner=dryfield_driveway
 

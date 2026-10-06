@@ -65,7 +65,9 @@ D_dryfield_garage_8017FD04 = 0x8017FD04; // size:0x18 defined:True
 D_dryfield_garage_8017FD1C = 0x8017FD1C; // size:0x344 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 
-func_dryfield_garage_8017DC68 = 0x8017DC68; // type:func
+dryfieldGarageEffectNoopTaskD6 = 0x8017DC68; // type:func
 roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
 garageSoundMsg = 0x8017D8BC; // type:func
+_dryfieldGarageRejectKeyItemUse = 0x8017d914; // type:func
+_dryfieldGarageIdleRoomTask = 0x8017dc08; // type:func

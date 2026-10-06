@@ -80,8 +80,11 @@ STATIC_ASSERT_SIZEOF(_DryfieldGarageDoorSceneStorage, 8);
 
 extern _DryfieldGarageDoorSceneStorage D_dryfield_garage_8018021C;
 
+enum { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32  _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static void func_dryfield_garage_8017DB18(Task* arg0);
-static void func_dryfield_garage_8017DC08(Task* task);
+static void _dryfieldGarageIdleRoomTask(Task* unusedTask);
 
 extern TaskDesc Actor00100_D1BA84;
 
@@ -90,7 +93,6 @@ extern WorldCollisionTrigger      D_dryfield_garage_8017F69C[14];
 extern WorldCollisionTrigger      D_dryfield_garage_8017FD1C[11];
 extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
 extern WorldCoordRoomLights       D_dryfield_garage_8017FD04[1];
-s32                               func_dryfield_garage_8017D914(Task*, s32, s32, s32);
 s32                               func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_dryfield_garage_8017DA18(Task*, s32, s32, s32);
 s32                               func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, s32);
@@ -100,7 +102,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
-    { 5105, func_dryfield_garage_8017D914 },
+    { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM, _dryfieldGarageRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, garageSoundMsg },
     { ROOM_MESSAGE_COMMAND, func_dryfield_garage_8017DA18 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_garage_8017DA54 },
@@ -612,18 +614,22 @@ RoomEventReq gRoomEventReq;
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_garage_8017DC10`: the entry state
 /// `func_dryfield_garage_8017DB18`, the idle state
-/// `func_dryfield_garage_8017DC08`, then `taskKill`.
+/// `_dryfieldGarageIdleRoomTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_garage_8017D5DC = {
-    { func_dryfield_garage_8017DB18, func_dryfield_garage_8017DC08, taskKill },
+    { func_dryfield_garage_8017DB18, _dryfieldGarageIdleRoomTask, taskKill },
 };
 
 #include "../../shared/garage_sound_msg.inc.c"
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_garage_8017D914(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in Dryfield Garage.
+///
+/// Ignores all arguments and returns 0, selecting the inventory's "No use now"
+/// notice without consuming an item or starting a room event.
+static s32 _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { DRYFIELD_GARAGE_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_GARAGE_KEY_ITEM_REFUSED;
 }
 
 /// Handler for message 0x13EE in the room's message table, which filters a
@@ -733,8 +739,11 @@ static void func_dryfield_garage_8017DB18(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Idle state of the room task.
-static void func_dryfield_garage_8017DC08(Task* task)
+/// Keeps the initialized room task idle between messages.
+///
+/// Ignores `unusedTask` without advancing its state or releasing it; the room's
+/// installed message table remains available to synchronous dispatch.
+static void _dryfieldGarageIdleRoomTask(Task* unusedTask)
 {
 }
 
@@ -748,7 +757,6 @@ void func_dryfield_garage_8017DC10(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Empty function; nothing in the room references it.
-void func_dryfield_garage_8017DC68(Task* unused)
+void dryfieldGarageEffectNoopTaskD6(Task* unusedTask)
 {
 }
