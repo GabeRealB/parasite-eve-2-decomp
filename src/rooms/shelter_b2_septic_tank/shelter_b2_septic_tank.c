@@ -1475,15 +1475,21 @@ static void _shelterB2SepticTankInitializeWater(Task* task)
     task->state = task->state + 1;
 }
 
-/// Selects the current display half of the room's borrowed water-packet arena.
+/// Resets the water-packet byte cursor to the half being built for the current frame.
 ///
-/// No saved companion selects actor buffer 2, otherwise buffer 1. The byte
-/// cursor is word-aligned and `otBuffer` must be 0 or 1. Previous uses must
-/// have ended, and queued packets must remain live until GPU consumption.
-static inline void _shelterB2SepticTankResetWaterPackets(void)
+/// No saved companion selects actor-load buffer 2, otherwise buffer 1.
+/// `otBuffer` must be 0 or 1, selecting a 0xC000-byte half of that buffer.
+/// Previous actor-load uses must have ended; reserve word-aligned storage
+/// until the GPU consumes its queued packets.
+/// Call once before both surface lists; a later reset would overwrite packets
+/// already linked into the ordering table. Only the cursor is written.
+static inline void _shelterB2SepticTankResetWaterPacketCursor(void)
 {
-    enum { SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES = 0xC000 };
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
+    enum {
+        SHELTER_B2_SEPTIC_TANK_COMPANION_NONE          = 0,
+        SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES = 0xC000
+    };
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == SHELTER_B2_SEPTIC_TANK_COMPANION_NONE) {
         _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
     } else {
         _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
@@ -1498,12 +1504,17 @@ static inline void _shelterB2SepticTankResetWaterPackets(void)
 static void _shelterB2SepticTankDrawWater(Task* task)
 {
     // Reset once: the second list appends after the first list's packets.
-    _shelterB2SepticTankResetWaterPackets();
+    _shelterB2SepticTankResetWaterPacketCursor();
     _waterDrawWaveStrips(task);
     _waterDrawSecondWaveStrips(task);
 }
 
-/// Publishes the room-specific implementations used by counted effect spawns.
+/// Selects this room's flash, twin-trail, spark-burst, ripple and spray effect IDs.
+///
+/// Subsequent counted effect spawns use these resident selectors to dispatch
+/// this overlay's callbacks in effect task bank 6. Register after the effect
+/// controller initializes its selectors and keep the room overlay loaded
+/// through the selected tasks' lifetimes. The assignments replace prior IDs.
 static inline void _shelterB2SepticTankRegisterEffects(void)
 {
     gRoomEffectFlashId       = EFFECT_SHELTER_B2_SEPTIC_TANK_FLASH;
