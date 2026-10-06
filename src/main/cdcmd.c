@@ -274,7 +274,6 @@ static void CdCmd_HandleFileLoad(void)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;
-    s16         ret;
     s32         status;
     u8          req[4];
     u8          mode;
@@ -298,30 +297,20 @@ static void CdCmd_HandleFileLoad(void)
                     gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                 }
             }
-            ret = CdCmd_PollStatus(0, 0);
-            if (ret != 1) {
-                if (ret < 2) {
-                    if (ret == 0) {
-                        return;
-                    }
+            switch ((s16)CdCmd_PollStatus(0, 0)) {
+                case 0:
+                    return;
+                case 2:
+                    CdFlush();
+                    /* fallthrough */
+                case 1:
+                    break;
+                default:
                     goto end_check;
-                }
-                if (ret != 2) {
-                    goto end_check;
-                }
-                CdFlush();
             }
             mode = 0xA0;
             CdControlB(CdlSetmode, &mode, NULL);
-            if (state->entries[state->readIdx].args.file.loadMode != CD_COMMAND_LOAD_DEFAULT) {
-                state->step = 4;
-                goto do_load;
-            }
-            if (req[3] == 0) {
-                state->step = 4;
-                goto do_load;
-            }
-            if (req[0] != 0) {
+            if (state->entries[state->readIdx].args.file.loadMode != CD_COMMAND_LOAD_DEFAULT || req[3] == 0 || req[0] != 0) {
                 state->step = 4;
                 goto do_load;
             }
@@ -329,84 +318,67 @@ static void CdCmd_HandleFileLoad(void)
             /* fallthrough */
         case 1:
             Fs_PrepareFolderLoad(req[3], req[2], req[1]);
-            goto increment_step;
-        case 2: {
-            s32 sync;
-            s32 diskErr;
-
-            sync    = CdSync(1, NULL);
-            diskErr = CdlDiskError;
-            if (sync == diskErr) {
+            state->step = state->step + 1;
+            break;
+        case 2:
+            if (CdSync(1, NULL) == CdlDiskError) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
-                goto wait_reset_step1;
+                Fs_WaitDiskReset(1);
+                state->step = 1;
+                break;
             }
             Fs_CheckReadTimeout();
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
-                    ret = CdCmd_PollStatus(0, 0);
-                    if (ret != 1) {
-                        if (ret < 2) {
-                            if (ret == 0) {
-                                return;
+                    switch ((s16)CdCmd_PollStatus(0, 0)) {
+                        case 0:
+                            return;
+                        case 2:
+                            CdFlush();
+                            /* fallthrough */
+                        case 1:
+                            if (CdSync(1, NULL) == CdlDiskError) {
+                                Fs_WaitDiskReset(1);
                             }
-                            goto end_check;
-                        }
-                        if (ret != 2) {
-                            goto end_check;
-                        }
-                        CdFlush();
+                            state->step = 1;
+                            break;
                     }
-                    sync    = CdSync(1, NULL);
-                    diskErr = CdlDiskError;
-                    if (sync == diskErr) {
-                    wait_reset_step1:
-                        Fs_WaitDiskReset(1);
-                    }
-                    state->step = 1;
-                    goto end_check;
+                    break;
                 case 0xFF:
                     CdSyncCallback(NULL);
                     CdReadyCallback(NULL);
-                    goto increment_step;
+                    state->step = state->step + 1;
+                    break;
                 case 0x10:
                 case 0x20:
                 case 0x40:
-                    ret = CdCmd_PollStatus(0, 0);
-                    if (ret != 1) {
-                        if (ret < 2) {
-                            if (ret == 0) {
-                                return;
-                            }
-                            goto end_check;
-                        }
-                        if (ret != 2) {
-                            goto end_check;
-                        }
-                        CdFlush();
+                    switch ((s16)CdCmd_PollStatus(0, 0)) {
+                        case 0:
+                            return;
+                        case 2:
+                            CdFlush();
+                            /* fallthrough */
+                        case 1:
+                            Fs_RetryReadN();
+                            break;
                     }
-                    Fs_RetryReadN();
-                    goto end_check;
+                    break;
             }
-            goto end_check;
-        }
+            break;
         case 3:
-            ret = CdCmd_PollStatus(0, 0);
-            if (ret != 1) {
-                if (ret < 2) {
-                    if (ret == 0) {
-                        return;
-                    }
-                    goto do_load;
-                }
-                if (ret != 2) {
-                    goto do_load;
-                }
-                CdFlush();
+            switch ((s16)CdCmd_PollStatus(0, 0)) {
+                case 0:
+                    return;
+                case 2:
+                    CdFlush();
+                    /* fallthrough */
+                case 1:
+                    Fs_BuildFolderTables(req[3], req[2], req[1]);
+                    state->step = state->step + 1;
+                    break;
             }
-            Fs_BuildFolderTables(req[3], req[2], req[1]);
-            state->step = state->step + 1;
             /* fallthrough */
         case 4:
         do_load:
@@ -415,48 +387,37 @@ static void CdCmd_HandleFileLoad(void)
                 (u8)state->entries[state->readIdx].args.file.loadMode,
                 state->entries[state->readIdx].args.file.imageXPageOffset,
                 state->entries[state->readIdx].args.file.imageYOffset);
-        increment_step:
             state->step = state->step + 1;
-            goto end_check;
-        case 5: {
-            s32 sync;
-            s32 diskErr;
-
-            sync    = CdSync(1, NULL);
-            diskErr = CdlDiskError;
-            if (sync == diskErr) {
+            break;
+        case 5:
+            if (CdSync(1, NULL) == CdlDiskError) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
-                goto wait_reset_step4;
+                Fs_WaitDiskReset(1);
+                state->step = 4;
+                break;
             }
             Fs_CheckReadTimeout();
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
-                    ret = CdCmd_PollStatus(0, 0);
-                    if (ret != 1) {
-                        if (ret < 2) {
-                            if (ret == 0) {
-                                return;
+                    switch ((s16)CdCmd_PollStatus(0, 0)) {
+                        case 0:
+                            return;
+                        case 2:
+                            CdFlush();
+                            /* fallthrough */
+                        case 1:
+                            if (CdSync(1, NULL) == CdlDiskError) {
+                                Fs_WaitDiskReset(1);
                             }
-                            goto end_check;
-                        }
-                        if (ret != 2) {
-                            goto end_check;
-                        }
-                        CdFlush();
+                            state->step = 4;
+                            break;
                     }
-                    sync    = CdSync(1, NULL);
-                    diskErr = CdlDiskError;
-                    if (sync == diskErr) {
-                    wait_reset_step4:
-                        Fs_WaitDiskReset(1);
-                    }
-                    state->step = 4;
-                    goto end_check;
+                    break;
                 case 0xFF:
                     if (state->imageLoadStatus != status) {
-                        goto end_check;
+                        break;
                     }
                     CdSyncCallback(NULL);
                     CdReadyCallback(NULL);
@@ -474,29 +435,24 @@ static void CdCmd_HandleFileLoad(void)
                         p->readIdx                 = p->readIdx + 1;
                         p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
                     }
-                    goto end_check;
+                    break;
                 case 0x10:
                 case 0x20:
                 case 0x40:
-                    ret = CdCmd_PollStatus(0, 0);
-                    if (ret == 1) {
-                        Fs_RetryReadN();
-                        goto end_check;
-                    }
-                    if (ret < 2) {
-                        if (ret == 0) {
+                    switch ((s16)CdCmd_PollStatus(0, 0)) {
+                        case 0:
                             return;
-                        }
-                        goto end_check;
+                        case 1:
+                            Fs_RetryReadN();
+                            break;
+                        case 2:
+                            CdFlush();
+                            Fs_RetryReadN();
+                            break;
                     }
-                    if (ret == 2) {
-                        CdFlush();
-                        Fs_RetryReadN();
-                    }
-                    goto end_check;
+                    break;
             }
-            goto end_check;
-        }
+            break;
     }
 
 end_check:
