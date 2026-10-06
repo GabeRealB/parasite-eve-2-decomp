@@ -145,63 +145,63 @@ static void Task_AllocIdMap(Task* task)
 
     temp_s4   = Stage_MusicRowLengths[gGameSession->location.loc.stage - 1];
     selection = memCalloc(sizeof(_StageMusicSelection), 0);
-    if (selection != NULL) {
-        task->work = selection;
-        if (gStageRoomSong != 0) {
-            SndEvt_EnqueueType2(0, 1);
-            gStageRoomSong = 0;
-        }
-        temp_a0                    = gGameSession->location.loc.stage;
-        ret                        = stageMusicSelectColumn(temp_a0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
-        field34                    = task->spawnArg1.value;
-        gStageMusicRow             = ret;
-        Stage_MusicCountdownActive = 0;
-        if (field34 == 2) {
-            s32              f7;
-            StageMusicEntry* p;
-            u16              v;
-            f7                         = gGameSession->location.loc.stage;
-            Stage_MusicCountdownActive = 0xFF;
-            p                          = Stage_CountdownMusicTables[f7 - 1];
-            v                          = gStageSceneMusicEntry;
-            Stage_MusicCountdownFrames = 0x12C;
-            selection->index           = v;
-            selection->table           = p;
-        } else {
-            selection->table = Stage_MusicTables[gGameSession->location.loc.stage - 1];
-            selection->index =
-                gStageMusicRow + (gGameSession->location.loc.area * (temp_s4 & 0xFF));
-            if ((selection->table[gGameSession->location.loc.area * (temp_s4 & 0xFF)].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
-                (gStageAmbientOn != 0)) {
-                sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x1E);
-                gStageAmbientOn = 0;
-            }
-        }
-        temp_s1 = selection->table[selection->index].sequenceId;
-        if (temp_s1 == STAGE_MUSIC_NO_SEQUENCE) {
-            SndEvt_EnqueueType2(gStageCurrentSong, gStageMusicParams.fadeOutTicks);
-            gStageMusicLoadState = temp_s1;
-            taskKill(task);
-            return;
-        }
-        gStageMusicLoadState = 0;
-        if (Midi_IsChannelFree(selection->table[selection->index].sequenceId) == 1) {
-            if ((gStageCurrentSong != 0) && (Midi_IsBusy(gStageCurrentSong) != 0)) {
-                SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
-            }
-            task->state = task->state + 1;
-            return;
-        }
-        if (selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) {
-            SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
-            goto block_20;
-        }
-        if (Midi_IsBusy(gStageCurrentSong) == 0) {
-            task->state = task->state + 2;
-            return;
+    if (selection == NULL) {
+        gStageMusicLoadState = 0xFF;
+        taskKill(task);
+        return;
+    }
+    task->work = selection;
+    if (gStageRoomSong != 0) {
+        SndEvt_EnqueueType2(0, 1);
+        gStageRoomSong = 0;
+    }
+    temp_a0                    = gGameSession->location.loc.stage;
+    ret                        = stageMusicSelectColumn(temp_a0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
+    field34                    = task->spawnArg1.value;
+    gStageMusicRow             = ret;
+    Stage_MusicCountdownActive = 0;
+    if (field34 == 2) {
+        s32              f7;
+        StageMusicEntry* p;
+        u16              v;
+        f7                         = gGameSession->location.loc.stage;
+        Stage_MusicCountdownActive = 0xFF;
+        p                          = Stage_CountdownMusicTables[f7 - 1];
+        v                          = gStageSceneMusicEntry;
+        Stage_MusicCountdownFrames = 0x12C;
+        selection->index           = v;
+        selection->table           = p;
+    } else {
+        selection->table = Stage_MusicTables[gGameSession->location.loc.stage - 1];
+        selection->index =
+            gStageMusicRow + (gGameSession->location.loc.area * (temp_s4 & 0xFF));
+        if ((selection->table[gGameSession->location.loc.area * (temp_s4 & 0xFF)].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
+            (gStageAmbientOn != 0)) {
+            sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x1E);
+            gStageAmbientOn = 0;
         }
     }
-block_20:
+    temp_s1 = selection->table[selection->index].sequenceId;
+    if (temp_s1 == STAGE_MUSIC_NO_SEQUENCE) {
+        SndEvt_EnqueueType2(gStageCurrentSong, gStageMusicParams.fadeOutTicks);
+        gStageMusicLoadState = temp_s1;
+        taskKill(task);
+        return;
+    }
+    gStageMusicLoadState = 0;
+    if (Midi_IsChannelFree(selection->table[selection->index].sequenceId) == 1) {
+        if ((gStageCurrentSong != 0) && (Midi_IsBusy(gStageCurrentSong) != 0)) {
+            SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
+        }
+        task->state = task->state + 1;
+        return;
+    }
+    if (selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) {
+        SndEvt_EnqueueType2(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
+    } else if (Midi_IsBusy(gStageCurrentSong) == 0) {
+        task->state = task->state + 2;
+        return;
+    }
     gStageMusicLoadState = 0xFF;
     taskKill(task);
 }
