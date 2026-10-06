@@ -416,7 +416,6 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
     GfxCoord*   coord;
     s16         scene;
     s16         flag;
-    s32         state;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -430,43 +429,31 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
                 }
                 mem->age = mem->age + 1;
                 actorRenderComposeCoord(coord);
-                state = arg0->state;
-                if (state == scene) {
-                    goto L_case1;
+                switch (arg0->state) {
+                    case 0:
+                        Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
+                        arg0->state = scene;
+                        return;
+                    case 1:
+                        if (mem->age == 8) {
+                            Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
+                            arg0->state = 2;
+                        }
+                        return;
+                    case 2:
+                        if (mem->age == 0x10) {
+                            Gp_SpawnEff(0x80060000 | 0x10, coord, 2, 0);
+                            arg0->state = 3;
+                        }
+                        return;
+                    case 3:
+                        break;
+                    default:
+                        return;
                 }
-                if (state < 2) {
-                    if (state == 0) {
-                        goto L_case0;
-                    }
-                    return;
-                }
-                if (state == 2) {
-                    goto L_case2;
-                }
-                if (state == 3) {
-                    goto L_release;
-                }
-                return;
-            L_case0:
-                Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
-                arg0->state = scene;
-                return;
-            L_case1:
-                if (mem->age == 8) {
-                    Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
-                    arg0->state = 2;
-                }
-                return;
-            L_case2:
-                if (mem->age == 0x10) {
-                    Gp_SpawnEff(0x80060000 | 0x10, coord, 2, 0);
-                    arg0->state = 3;
-                }
-                return;
             }
         }
     }
-L_release:
     effectKillTask(mem, arg0);
 }
 
