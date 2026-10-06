@@ -1576,35 +1576,20 @@ void func_actor_207200_8014D280(Task* arg0)
 /// draws its ground shadow.
 static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
 {
-    s32 state;
-    s32 one;
-
-    state = gSceneCombatState.actorControl;
-    one   = 1;
-    if (state == one) {
-        goto case1;
+    switch (gSceneCombatState.actorControl) {
+        case 1:
+            func_actor_207200_8014D70C(arg0, arg1);
+            func_actor_207200_8014D77C(arg1);
+            return;
+        case 0:
+            arg1->extra.tmd->flags       = 0;
+            arg0->node.state.parts.flags = 0;
+            break;
+        case 2:
+            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = 1;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    arg1->extra.tmd->flags       = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case2:
-    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     func_actor_207200_8014D41C(arg1);
     func_actor_207200_8014D8DC(arg1);
     func_actor_207200_8014BEF4(arg1);
@@ -1616,7 +1601,6 @@ default_body:
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-case1:
     func_actor_207200_8014D70C(arg0, arg1);
     func_actor_207200_8014D77C(arg1);
 }
