@@ -1006,7 +1006,7 @@ func_shelter_b1_elevator_hall_80180D18 = 0x80180D18; // type:func absolute:True 
 
 func_shelter_b1_elevator_hall_8018177C = 0x8018177C; // type:func absolute:True owner=shelter_b1_elevator_hall
 
-func_shelter_b1_golem_freezer_1_8017DFFC = 0x8017DFFC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
+shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
 
 func_shelter_b1_main_corridor_8017DDF0 = 0x8017DDF0; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
 

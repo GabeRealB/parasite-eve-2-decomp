@@ -958,7 +958,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_TMD, 0x70 } }, func_shelter_b6_nursery_80181314, { &gShelterB6NurseryModel07BAC } },    // 0x1A3
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryAnimatedParticleTask, { NULL } },                      // 0x1A4
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurserySparkShowerShardTask, { NULL } },                      // 0x1A5
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_golem_freezer_1_8017DFFC, { NULL } },                  // 0x1A6
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1GolemFreezer1FloorMistTask, { NULL } },                       // 0x1A6
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomOrangeBurstTask, { NULL } },                      // 0x1A7
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomSummonRingTask, { NULL } },                       // 0x1A8
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_80180DB4, { NULL } },                    // 0x1A9

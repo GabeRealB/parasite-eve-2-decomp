@@ -58,18 +58,35 @@ extern SVECTOR            D_shelter_b1_golem_freezer_1_8017E740[];
 
 static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
 static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* arg0, s16* arg1);
-static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void _shelterB1GolemFreezer1DrawFloorMist(const GfxCoord* coord, u16 frame, s16 sizeFactor, s16 angle);
+static void _shelterB1GolemFreezer1IdleRoomState(Task* task);
 
-s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task*, s32, s32, s32);
-s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_golem_freezer_1_8017D61C(Task*, s32, s32, s32);
-s32 func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, s32);
+static s32 _shelterB1GolemFreezer1RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_shelter_b1_golem_freezer_1_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1GolemFreezer1IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+s32        func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, s32);
+
+/// Room message used by the key-item menu to request use of an item.
+enum { SHELTER_B1_GOLEM_FREEZER_1_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Layout and projection constants of the ten-cell floor-mist texture sheet.
+enum {
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_FRAME_COUNT        = 10,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_CELLS_PER_ROW      = 5,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_CELL_PITCH_TEXELS  = 48,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS     = SHELTER_B1_GOLEM_FREEZER_1_MIST_CELL_PITCH_TEXELS - 1,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_TOP_V              = -128,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_MIN_DEPTH          = 65,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_SHADE              = 80,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_QUARTER_TURN       = ONE / 4,
+    SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS = 12,
+};
 
 TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_golem_freezer_1_8017D5D8 },
-    { 5105, func_shelter_b1_golem_freezer_1_8017D5D0 },
+    { SHELTER_B1_GOLEM_FREEZER_1_MESSAGE_USE_KEY_ITEM, _shelterB1GolemFreezer1RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_golem_freezer_1_8017D624 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_golem_freezer_1_8017D61C },
+    { ROOM_MESSAGE_COMMAND, _shelterB1GolemFreezer1IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -345,10 +362,11 @@ WorldCollisionSurfaceProperties* D_shelter_b1_golem_freezer_1_8017F290[8] = {
 };
 
 static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0);
-static void func_shelter_b1_golem_freezer_1_8017D6DC(Task* task);
 
-/// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects every key-item use request in this room with a zero reply.
+///
+/// Keeps the task-message ABI; neither the receiver nor either payload is read.
+static s32 _shelterB1GolemFreezer1RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
     return 0;
 }
@@ -362,8 +380,10 @@ s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg*
     return 1;
 }
 
-/// Message-table handler for message 0x13F0: does nothing and answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and returns zero without changing room state.
+///
+/// Keeps the task-message ABI; the command selector and argument remain unread.
+static s32 _shelterB1GolemFreezer1IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
@@ -393,16 +413,17 @@ static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// The room task's idle state. It reserves a stack frame it never uses.
-static void func_shelter_b1_golem_freezer_1_8017D6DC(Task* task)
+/// Leaves the initialized room task waiting for messages without advancing its state.
+static void _shelterB1GolemFreezer1IdleRoomState(Task* task)
 {
-    char pad[0x10];
+    // Retain the original unused stack reservation.
+    char unusedStackFrame[0x10];
 }
 
 /// State handlers of the room task `func_shelter_b1_golem_freezer_1_8017D6EC`
 /// runs: its setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_golem_freezer_1_8017D5C4 = {
-    { func_shelter_b1_golem_freezer_1_8017D66C, func_shelter_b1_golem_freezer_1_8017D6DC, taskKill }
+    { func_shelter_b1_golem_freezer_1_8017D66C, _shelterB1GolemFreezer1IdleRoomState, taskKill }
 };
 
 /// Runs one tick of the room task through the three-state table
@@ -525,130 +546,177 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
+/// Chooses and quantizes a mist puff's fixed local-XZ displacement per task tick.
+///
+/// Consumes two LCG draws for components in -127..128, normalizes to Q12,
+/// then scales by `speed` (1..255 local-coordinate units per tick). Only
+/// `step` and `move` in the live work block are changed; GTE registers are clobbered.
+static inline void _shelterB1GolemFreezer1InitializeMistDrift(EffectWork* work, s16 speed)
 {
+    enum {
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT  = 0x80,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK      = 0xFF,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT = 16,
+    };
+    s32 directionZ;
+    u32 directionXState;
+    u32 directionZState;
+
+    work->step      = speed;
+    work->move.vy   = 0;
+    directionXState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = directionXState;
+    work->move.vx   = SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT - ((directionXState >> SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK);
+    directionZState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = directionZState;
+    directionZ      = SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT - ((directionZState >> SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK);
+    work->move.vz   = directionZ;
+    VectorNormalSS(&work->move, &work->move);
+
+    gte_lddp(work->step);
+    gte_ldsv(&work->move);
+    gte_gpf12();
+    gte_stsv(&work->move);
+}
+
+void shelterB1GolemFreezer1FloorMistTask(Task* task)
+{
+    enum {
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_STATE_INIT          = 0,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_STATE_DRIFT         = 1,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_SIZE_MASK           = 0xFFF,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_ANGLE_MASK          = ONE - 1,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_PERIOD_PRESENT_MASK = 0xF000,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_PERIOD_SHIFT        = 12,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_PERIOD_MASK         = 0x7,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_DEFAULT_PERIOD      = 1,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_SPEED_PRESENT_MASK  = 0xFF0000,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_SPEED_SHIFT         = 16,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_SPEED_MASK          = 0xFF,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_DEFAULT_SPEED       = 64,
+    };
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    s32         vz;
-    s16         f2a;
-    u32         rng2;
-    u32         rng3;
+    s16         speed;
 
     work->age++;
-    if (task->state == 0) {
-        work->scale     = task->spawnArg1.value & 0xFFF;
+    if (task->state == SHELTER_B1_GOLEM_FREEZER_1_MIST_STATE_INIT) {
+        // Decode the spawn word and choose one screen rotation for the puff's lifetime.
+        work->scale     = task->spawnArg1.value & SHELTER_B1_GOLEM_FREEZER_1_MIST_SIZE_MASK;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->angle     = (gRandomLcgState >> 16) & 0xFFF;
+        work->angle     = (gRandomLcgState >> 16) & SHELTER_B1_GOLEM_FREEZER_1_MIST_ANGLE_MASK;
 
-        if (task->spawnArg1.value & 0xF000) {
-            work->period = (task->spawnArg1.value >> 12) & 0x7;
+        // Bit 15 participates in the presence test but not the decoded period.
+        if (task->spawnArg1.value & SHELTER_B1_GOLEM_FREEZER_1_MIST_PERIOD_PRESENT_MASK) {
+            work->period = (task->spawnArg1.value >> SHELTER_B1_GOLEM_FREEZER_1_MIST_PERIOD_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_PERIOD_MASK;
         } else {
-            work->period = 1;
+            work->period = SHELTER_B1_GOLEM_FREEZER_1_MIST_DEFAULT_PERIOD;
         }
 
         work->age   = 0;
-        task->state = 1;
+        task->state = SHELTER_B1_GOLEM_FREEZER_1_MIST_STATE_DRIFT;
 
-        if (task->spawnArg1.value & 0xFF0000) {
-            f2a = (task->spawnArg1.value >> 16) & 0xFF;
+        if (task->spawnArg1.value & SHELTER_B1_GOLEM_FREEZER_1_MIST_SPEED_PRESENT_MASK) {
+            speed = (task->spawnArg1.value >> SHELTER_B1_GOLEM_FREEZER_1_MIST_SPEED_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_SPEED_MASK;
         } else {
-            f2a = 0x40;
+            speed = SHELTER_B1_GOLEM_FREEZER_1_MIST_DEFAULT_SPEED;
         }
 
-        work->step      = f2a;
-        work->move.vy   = 0;
-        rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng2;
-        work->move.vx   = 0x80 - (((u32)rng2 >> 16) & 0xFF);
-        rng3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng3;
-        vz              = 0x80 - (((u32)rng3 >> 16) & 0xFF);
-        work->move.vz   = vz;
-        VectorNormalSS(&work->move, &work->move);
-
-        gte_lddp(work->step);
-        gte_ldsv(&work->move);
-        gte_gpf12();
-        gte_stsv(&work->move);
+        _shelterB1GolemFreezer1InitializeMistDrift(work, speed);
     }
 
-    func_shelter_b1_golem_freezer_1_8017E254(coord, work->index, work->scale, work->angle);
+    // Draw the composed centre before changing the next tick's local translation.
+    _shelterB1GolemFreezer1DrawFloorMist(coord, work->index, work->scale, work->angle);
 
     coord->coord.t[0]  += work->move.vx;
     coord->coord.t[1]  += work->move.vy;
     coord->coord.t[2]  += work->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
+    // Age zero advances cell zero immediately; the remaining cells last a full period.
     if ((work->age % work->period) == 0) {
         work->index++;
-        if (work->index >= 0xA) {
+        if (work->index >= SHELTER_B1_GOLEM_FREEZER_1_MIST_FRAME_COUNT) {
             effectKillTask(work, task);
         }
     }
 }
 
-static void func_shelter_b1_golem_freezer_1_8017E254(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+/// Stores one mist billboard's rightward and upward pixel half-diagonal components.
+///
+/// `projection` is live scratch with positive SZ3/4 depth; `sizeFactor * 47 / depth`
+/// truncates toward zero before Q12 rotation. Products must fit s32. `cornerAngle`
+/// uses 4096 units per turn, with zero up and a quarter turn right for positive size.
+static inline void _shelterB1GolemFreezer1ComputeMistCornerOffset(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
-    void**              scratch;
-    EffectShapeScratch* head;
-    EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    SVECTOR*            vec;
-    s32                 u0;
-    s32                 v0;
-    s32                 u1;
-    s32                 v1;
-    s32                 ang;
-    s32                 ang2;
-    u16                 vz;
+    projection->extent.corner.x = (((sizeFactor * SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS) / projection->depth) * rsin(cornerAngle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS;
+    projection->extent.corner.y = (((sizeFactor * SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS) / projection->depth) * rcos(cornerAngle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS;
+}
 
-    scratch                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                      = *scratch;
-    (head - 1)->worldPoint.vx = (u16)coord->workm.t[0];
-    block                     = head - 1;
-    block->worldPoint.vy      = (u16)coord->workm.t[1];
-    vz                        = (u16)coord->workm.t[2];
-    *scratch                  = block;
-    block->worldPoint.vz      = vz;
-    vec                       = &block->worldPoint;
+/// Queues one shaded, additive, semitransparent frame of the floor-mist billboard.
+///
+/// `coord` borrows a composed translation in the input space of `GsWSMATRIX`;
+/// projection uses its low signed 16 bits. `frame` is 0..9 in a five-column sheet
+/// of 48-by-48 texel cells. `sizeFactor * 47 / (SZ3/4)` is the integer pixel
+/// half-diagonal before rotation; `angle` uses 4096 units per turn.
+///
+/// Requires initialized GTE settings, one word-aligned `EffectShapeScratch` block
+/// of free scratch stack, and packet-arena space for one `POLY_FT4`. Negative GTE
+/// FLAG or depth below 65 rejects the sprite before allocating a packet. Scratch
+/// is released on every path; queued packets live until the arena is reused.
+static void _shelterB1GolemFreezer1DrawFloorMist(const GfxCoord* coord, u16 frame, s16 sizeFactor, s16 angle)
+{
+    EffectShapeScratch* projection;
+    POLY_FT4*           quad;
+    s32                 leftU;
+    s32                 topV;
+    s32                 rightU;
+    s32                 bottomV;
+    s32                 cornerAngle;
+    s32                 perpendicularAngle;
+
+    // Reserve one projection block and narrow the composed centre to GPU coordinate width.
+    projection                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    projection->worldPoint.vx = (u16)coord->workm.t[0];
+    projection->worldPoint.vy = (u16)coord->workm.t[1];
+    projection->worldPoint.vz = (u16)coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        if (block->depth >= 0x41) {
-            prim           = gGpuPrimCursor;
-            ang            = arg3;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2E);
-            setRGB0(prim, 0x50, 0x50, 0x50);
-            prim->tpage = 0x2B;
-            prim->clut  = 0x43D0;
-            u0          = (arg1 % 5) * 0x30;
-            v0          = (arg1 / 5) * 0x30;
-            u1          = u0 + 0x2F;
-            v1          = v0 - 0x51;
-            v0          = v0 - 0x80;
-            setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            ang2                   = ang + 0x400;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&projection->depth);
+        if (projection->depth >= SHELTER_B1_GOLEM_FREEZER_1_MIST_MIN_DEPTH) {
+            quad           = gGpuPrimCursor;
+            cornerAngle    = angle;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setSemiTrans(quad, 1);
+            setRGB0(quad, SHELTER_B1_GOLEM_FREEZER_1_MIST_SHADE, SHELTER_B1_GOLEM_FREEZER_1_MIST_SHADE, SHELTER_B1_GOLEM_FREEZER_1_MIST_SHADE);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+            quad->clut  = getClut(256, 271);
+            leftU       = (frame % SHELTER_B1_GOLEM_FREEZER_1_MIST_CELLS_PER_ROW) * SHELTER_B1_GOLEM_FREEZER_1_MIST_CELL_PITCH_TEXELS;
+            topV        = (frame / SHELTER_B1_GOLEM_FREEZER_1_MIST_CELLS_PER_ROW) * SHELTER_B1_GOLEM_FREEZER_1_MIST_CELL_PITCH_TEXELS;
+            rightU      = leftU + SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS;
+            bottomV     = topV + SHELTER_B1_GOLEM_FREEZER_1_MIST_TOP_V + SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS;
+            topV        = topV + SHELTER_B1_GOLEM_FREEZER_1_MIST_TOP_V;
+            setUV4(quad, leftU, topV, rightU, topV, leftU, bottomV, rightU, bottomV);
+            // Two perpendicular half-diagonals supply the opposite corner pairs.
+            _shelterB1GolemFreezer1ComputeMistCornerOffset(projection, sizeFactor, cornerAngle);
+            quad->x0           = projection->screenX + (u16)projection->extent.corner.x;
+            quad->x3           = projection->screenX - (u16)projection->extent.corner.x;
+            quad->y0           = projection->screenY - (u16)projection->extent.corner.y;
+            perpendicularAngle = cornerAngle + SHELTER_B1_GOLEM_FREEZER_1_MIST_QUARTER_TURN;
+            quad->y3           = projection->screenY + (u16)projection->extent.corner.y;
+            _shelterB1GolemFreezer1ComputeMistCornerOffset(projection, sizeFactor, perpendicularAngle);
+            quad->x1 = projection->screenX + (u16)projection->extent.corner.x;
+            quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
+            quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
+            quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);

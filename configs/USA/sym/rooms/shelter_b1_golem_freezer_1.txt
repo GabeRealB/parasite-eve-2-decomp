@@ -44,7 +44,11 @@ D_actor_160700_801416A8 = 0x801416A8; // absolute:True owner=actor_160700
 D_shelter_b1_golem_freezer_1_8017E6A8 = 0x8017E6A8; // size:0x28 defined:True
 D_shelter_b1_golem_freezer_1_8017E6D0 = 0x8017E6D0; // size:0x6 defined:True
 
-func_shelter_b1_golem_freezer_1_8017DFFC = 0x8017DFFC; // type:func
+shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func
 
 func_shelter_b1_golem_freezer_1_8017DA7C = 0x8017DA7C; // type:func
 glowDrawDisc = 0x8017DC5C; // type:func
+_shelterB1GolemFreezer1DrawFloorMist = 0x8017e254; // type:func
+_shelterB1GolemFreezer1RejectKeyItemUse = 0x8017d5d0; // type:func
+_shelterB1GolemFreezer1IgnoreRoomCommand = 0x8017d61c; // type:func
+_shelterB1GolemFreezer1IdleRoomState = 0x8017d6dc; // type:func
