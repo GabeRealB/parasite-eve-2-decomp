@@ -62,36 +62,46 @@ static _MetabolismLevelTuning D_metabolism_8012FB54[] = {
 static s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 
 /// Scratch angles for the fan, one per wedge: `(i << 10)` plus a 10-bit
-/// random offset, seeded by state 0 and swept by `func_metabolism_8012F840`.
+/// random offset, seeded by state 0 and drawn by `_metabolismDrawFanWedge`.
 static s16 D_metabolism_8012FB78[16];
 
-static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void _metabolismDrawFanWedge(const GfxCoord* coord, s16 radius, s16 bearing, s16 brightness);
 
-/// Draws the metabolism disc and its glow bands at the work's current radius
-/// and brightness.
-static inline void _metabolismDrawGlow(GfxCoord* coord, EffectWork* mem)
+/// Draws the metabolism cast's doubled disc and concentric outer glow bands.
+///
+/// Borrows a composed centre coordinate and the cast's work for this call.
+/// `angle` is the radius in game-coordinate units, `scale` is green brightness
+/// (red / 4, blue / 2), `age` selects the extra band on odd ticks, and a
+/// nonzero `index` selects the additional outer band for PE levels 2 and 3.
+/// RGB arithmetic narrows to bytes after each operation. The drawers borrow
+/// scratch storage and append packets to the unchecked frame primitive arena.
+static inline void _metabolismDrawGlow(const GfxCoord* coord, const EffectWork* castWork)
 {
+    enum {
+        METABOLISM_GLOW_BAND_WIDTH        = 0x80,
+        METABOLISM_GLOW_OUTER_BAND_OFFSET = 0x200,
+    };
     u8 rgb[3];
 
-    rgb[0] = mem->scale >> 2;
-    rgb[1] = (u8)mem->scale;
-    rgb[2] = mem->scale >> 1;
-    effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
-    effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
+    rgb[0] = castWork->scale >> 2;
+    rgb[1] = castWork->scale;
+    rgb[2] = castWork->scale >> 1;
+    effectDrawGouraudDisc(coord, castWork->angle >> 1, rgb);
+    effectDrawGouraudDisc(coord, castWork->angle >> 1, rgb);
     rgb[0] >>= 1;
     rgb[1] >>= 1;
     rgb[2] >>= 1;
-    effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
-    if (mem->age & 1) {
+    effectDrawOuterGlowBand(coord, castWork->angle, METABOLISM_GLOW_BAND_WIDTH, rgb);
+    if (castWork->age & 1) {
         rgb[1] >>= 1;
         rgb[2] <<= 1;
-        effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
+        effectDrawOuterGlowBand(coord, METABOLISM_GLOW_BAND_WIDTH, castWork->angle, rgb);
     }
-    if (mem->index != 0) {
+    if (castWork->index != 0) {
         rgb[0] >>= 1;
         rgb[1] >>= 1;
         rgb[2] >>= 1;
-        effectDrawOuterGlowBand(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
+        effectDrawOuterGlowBand(coord, (s16)(castWork->angle + METABOLISM_GLOW_OUTER_BAND_OFFSET), METABOLISM_GLOW_BAND_WIDTH, rgb);
     }
 }
 
@@ -197,16 +207,16 @@ void func_metabolism_8012EF34(Task* arg0)
                 arg0->state = 2;
             }
             for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
-                func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
-                                         mem->scale);
+                _metabolismDrawFanWedge(coord, mem->angle, D_metabolism_8012FB78[i],
+                                        mem->scale);
             }
             _metabolismDrawGlow(coord, mem);
             return;
         case 2:
             actorRenderComposeCoord(coord);
             for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
-                func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
-                                         mem->scale);
+                _metabolismDrawFanWedge(coord, mem->angle, D_metabolism_8012FB78[i],
+                                        mem->scale);
             }
             mem->scale = mem->scale - 0x10;
             mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].radiusStep;
@@ -221,139 +231,177 @@ void func_metabolism_8012EF34(Task* arg0)
     }
 }
 
-/// Metabolism billboard. State 0 seeds the spin from the spawn argument and
-/// picks the draw path: the plain additive quad (state 1), or, one roll in
-/// three when the level's difficulty band allows it, the alternate
-/// `effectDrawModulatedBillboard` quad that fades its colour by 0x18 a frame (state 2).
-/// Both states lift the frame and draw on odd ticks until it runs out.
-void func_metabolism_8012F5A0(Task* arg0)
+/// Moves the sparkle along its parent's Y axis and refreshes its cached transform.
+///
+/// `deltaY` is a signed displacement in parent-coordinate units; the sum must
+/// fit s32. The writable coordinate and its parent chain must remain live.
+static inline void _metabolismMoveSparkleCoord(GfxCoord* coord, s16 deltaY)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s32         y;
-    s16         step;
-    u16         kind;
-    u16         roll;
+    s32 nextY;
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            mem->move.vx = 0;
-            mem->move.vy = 8;
-            mem->move.vz = 0;
-            mem->angle   = arg0->spawnArg1.value & 0xFFF;
-            kind         = Gp_StateC08.attachId % 10U;
-            if (kind - 1 < 2 ||
+    nextY               = coord->coord.t[1] + deltaY;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->coord.t[1]   = nextY;
+    actorRenderComposeCoord(coord);
+}
+
+void metabolismSparkleTask(Task* task)
+{
+    enum {
+        METABOLISM_SPARKLE_STATE_INITIALIZE   = 0,
+        METABOLISM_SPARKLE_STATE_SPINNING     = 1,
+        METABOLISM_SPARKLE_STATE_FADING       = 2,
+        METABOLISM_SPARKLE_Y_STEP             = 8,
+        METABOLISM_SPARKLE_SIZE_MASK          = 0xFFF,
+        METABOLISM_SPARKLE_ROTATION_MASK      = 0xFFF,
+        METABOLISM_SPARKLE_PALETTE_SHIFT      = 12,
+        METABOLISM_SPARKLE_SPINNING_PALETTE   = 1,
+        METABOLISM_SPARKLE_FADING_PALETTE     = 3,
+        METABOLISM_SPARKLE_INITIAL_BRIGHTNESS = 0xC0,
+        METABOLISM_SPARKLE_BRIGHTNESS_STEP    = 0x18,
+        METABOLISM_SPARKLE_FRAME_COUNT        = 8,
+        METABOLISM_SPARKLE_FADING_ROLL_COUNT  = 3,
+        METABOLISM_SPARKLE_ALWAYS_SPIN_LEVELS = 2,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    u16         peLevel;
+    u16         variantRoll;
+
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    work->age = work->age + 1;
+    switch (task->state) {
+        case METABOLISM_SPARKLE_STATE_INITIALIZE:
+            work->move.vx = 0;
+            work->move.vy = METABOLISM_SPARKLE_Y_STEP;
+            work->move.vz = 0;
+            work->angle   = task->spawnArg1.value & METABOLISM_SPARKLE_SIZE_MASK;
+            // Only PE level 3 can select the fading variant; lower levels skip that random draw.
+            peLevel = Gp_StateC08.attachId % 10U;
+            if (peLevel - 1 < METABOLISM_SPARKLE_ALWAYS_SPIN_LEVELS ||
                 (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT,
-                 roll            = (gRandomLcgState >> 16) % 3U, roll != 0)) {
-                arg0->state     = 1;
-                mem->period     = 0x1000;
+                 variantRoll     = (gRandomLcgState >> 16) % (u32)METABOLISM_SPARKLE_FADING_ROLL_COUNT, variantRoll != 0)) {
+                task->state     = METABOLISM_SPARKLE_STATE_SPINNING;
+                work->period    = METABOLISM_SPARKLE_SPINNING_PALETTE << METABOLISM_SPARKLE_PALETTE_SHIFT;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
+                work->scale     = (gRandomLcgState >> 16) & METABOLISM_SPARKLE_ROTATION_MASK;
             } else {
-                arg0->state = 2;
-                mem->scale  = 0xC0;
-                mem->period = 0x3000;
+                task->state  = METABOLISM_SPARKLE_STATE_FADING;
+                work->scale  = METABOLISM_SPARKLE_INITIAL_BRIGHTNESS;
+                work->period = METABOLISM_SPARKLE_FADING_PALETTE << METABOLISM_SPARKLE_PALETTE_SHIFT;
             }
             return;
-        case 1:
-            step                = mem->move.vy;
-            y                   = coord->coord.t[1] + step;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]   = y;
-            actorRenderComposeCoord(coord);
-            if (!(mem->age & 1)) {
-                mem->index = mem->index + 1;
+        case METABOLISM_SPARKLE_STATE_SPINNING:
+            _metabolismMoveSparkleCoord(coord, work->move.vy);
+            // Advance on even ages, draw on odd ages, and retire at frame eight.
+            if (!(work->age & 1)) {
+                work->index = work->index + 1;
             }
-            if (mem->index < 8) {
-                if (mem->age & 1) {
-                    effectDrawSpinningBillboard(coord, mem->index, mem->angle,
-                                                mem->scale | mem->period);
+            if (work->index < METABOLISM_SPARKLE_FRAME_COUNT) {
+                if (work->age & 1) {
+                    effectDrawSpinningBillboard(coord, work->index, work->angle,
+                                                work->scale | work->period);
                     return;
                 }
             } else {
-                effectKillTask(mem, arg0);
+                effectKillTask(work, task);
                 return;
             }
             break;
-        case 2:
-            step                = mem->move.vy;
-            y                   = coord->coord.t[1] + step;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[1]   = y;
-            actorRenderComposeCoord(coord);
-            if (!(mem->age & 1)) {
-                mem->index = mem->index + 1;
+        case METABOLISM_SPARKLE_STATE_FADING:
+            _metabolismMoveSparkleCoord(coord, work->move.vy);
+            if (!(work->age & 1)) {
+                work->index = work->index + 1;
             }
-            if (mem->index < 8) {
-                if (mem->age & 1) {
-                    effectDrawModulatedBillboard(coord, mem->index, mem->angle,
-                                                 mem->scale | mem->period);
-                    mem->scale = mem->scale - 0x18;
+            if (work->index < METABOLISM_SPARKLE_FRAME_COUNT) {
+                if (work->age & 1) {
+                    effectDrawModulatedBillboard(coord, work->index, work->angle,
+                                                 work->scale | work->period);
+                    work->scale = work->scale - METABOLISM_SPARKLE_BRIGHTNESS_STEP;
                     return;
                 }
             } else {
-                effectKillTask(mem, arg0);
+                effectKillTask(work, task);
                 return;
             }
             break;
     }
 }
 
-/// Draws one wedge of the metabolism fan as a Gouraud triangle. `arg0`'s
-/// origin is projected once through `GsWSMATRIX`; the two outer corners sit
-/// `arg1` screen units away at `arg2 - 0x20` and `arg2 + 0x20`. Apex colour
-/// is a single channel: red is halved, green is `arg3`, blue is shifted by
-/// the low bit of `gDisplayState.animFrame`. The rim fades to black. A
-/// negative `gte_stflg` drops the wedge.
-static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Reserves and projects the centre of a metabolism fan wedge.
+///
+/// `cursorSlot` points at the initialized scratch-stack cursor. Returns one
+/// live complete block; the caller releases it through the same cursor slot.
+/// Borrows the composed coordinate and `GsWSMATRIX`, and clobbers GTE registers.
+static inline EffectCentreScratch* _metabolismProjectFanCentre(const GfxCoord* coord, void** cursorSlot)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    SVECTOR*             vec;
-    POLY_G3*             prim;
-    s32                  ang;
-    s32                  ang2;
-    u16                  vz;
+    EffectCentreScratch* scratch;
 
-    head                                                                        = SCRATCH_STACK_CURSOR(u8);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
-    vz                                                                          = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+    // Project the composed centre once, narrowing its translation to signed halfwords.
+    scratch                = SCRATCH_PUSH_AT(cursorSlot, EffectCentreScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG3(prim);
-        setRGB0(prim, arg3 >> 1, arg3, arg3 >> (gDisplayState.animFrame & 1));
-        setRGB1(prim, 0, 0, 0);
-        setRGB2(prim, 0, 0, 0);
-        block->screenExtent = (arg1 * 128) / block->depth;
-        ang                 = arg2;
-        ang2                = ang - 0x20;
-        prim->x0            = block->screenX;
-        prim->y0            = block->screenY;
-        prim->x1            = block->screenX + ((block->screenExtent * rsin(ang2)) >> 12);
-        prim->y1            = block->screenY + ((block->screenExtent * rcos(ang2)) >> 12);
-        ang                += 0x20;
-        prim->x2            = block->screenX + ((block->screenExtent * rsin(ang)) >> 12);
-        prim->y2            = block->screenY + ((block->screenExtent * rcos(ang)) >> 12);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    return scratch;
+}
+
+/// Draws one additive Gouraud wedge of the metabolism cast's screen-space fan.
+///
+/// `coord` supplies a composed translation in the input space of `GsWSMATRIX`;
+/// its rotation is unused and XYZ narrows to signed 16-bit coordinate units.
+/// The rim radius in pixels is `radius * 128 / (SZ3 / 4 + 1)`, with signed
+/// arithmetic and division toward zero. `bearing` uses 4096 units per turn,
+/// counterclockwise from screen-down; the rim corners are at bearing +/- 32.
+/// `brightness` supplies green (0..255), with red / 2 and blue alternating
+/// between full and half brightness on display-frame parity. The rim is black.
+/// A negative GTE FLAG rejects the triangle. Reserves/releases one complete
+/// scratch block and appends a triangle/blend-command pair to the unchecked
+/// frame arena; inputs must stay clear of both, and packets live through GPU drawing.
+static void _metabolismDrawFanWedge(const GfxCoord* coord, s16 radius, s16 bearing, s16 brightness)
+{
+    enum {
+        METABOLISM_FAN_PERSPECTIVE_SCALE  = 128,
+        METABOLISM_FAN_HALF_ANGLE         = 0x20,
+        METABOLISM_FAN_TRIG_FRACTION_BITS = 12,
+    };
+    void**               cursorSlot;
+    EffectCentreScratch* scratch;
+    POLY_G3*             triangle;
+    s32                  rightRimAngle;
+    s32                  leftRimAngle;
+
+    cursorSlot = SCRATCH_HEAD_ADDR;
+    scratch    = _metabolismProjectFanCentre(coord, cursorSlot);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        triangle       = gGpuPrimCursor;
+        gGpuPrimCursor = triangle + 1;
+        setPolyG3(triangle);
+        // Fade from the coloured centre to a black rim spanning 64 angle units.
+        setRGB0(triangle, brightness >> 1, brightness, brightness >> (gDisplayState.animFrame & 1));
+        setRGB1(triangle, 0, 0, 0);
+        setRGB2(triangle, 0, 0, 0);
+        scratch->screenExtent = (radius * METABOLISM_FAN_PERSPECTIVE_SCALE) / scratch->depth;
+        rightRimAngle         = bearing;
+        leftRimAngle          = rightRimAngle - METABOLISM_FAN_HALF_ANGLE;
+        triangle->x0          = scratch->screenX;
+        triangle->y0          = scratch->screenY;
+        triangle->x1          = scratch->screenX + ((scratch->screenExtent * rsin(leftRimAngle)) >> METABOLISM_FAN_TRIG_FRACTION_BITS);
+        triangle->y1          = scratch->screenY + ((scratch->screenExtent * rcos(leftRimAngle)) >> METABOLISM_FAN_TRIG_FRACTION_BITS);
+        rightRimAngle        += METABOLISM_FAN_HALF_ANGLE;
+        triangle->x2          = scratch->screenX + ((scratch->screenExtent * rsin(rightRimAngle)) >> METABOLISM_FAN_TRIG_FRACTION_BITS);
+        triangle->y2          = scratch->screenY + ((scratch->screenExtent * rcos(rightRimAngle)) >> METABOLISM_FAN_TRIG_FRACTION_BITS);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                triangle);
+        gpuSetPrimitiveBlendMode(triangle, GPU_BLEND_ADD, scratch->depth);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
+    SCRATCH_POP_AT(cursorSlot, EffectCentreScratch);
 }

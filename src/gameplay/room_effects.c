@@ -557,7 +557,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012EF48, { NULL } },                                   // 0x010
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_80131CE4, { NULL } },                                   // 0x011
     { { { TASK_BODY_COORD, 0x70 } }, func_metabolism_8012EF34, { NULL } },                                    // 0x012
-    { { { TASK_BODY_COORD, 0x70 } }, func_metabolism_8012F5A0, { NULL } },                                    // 0x013
+    { { { TASK_BODY_COORD, 0x70 } }, metabolismSparkleTask, { NULL } },                                       // 0x013
     { { { TASK_BODY_COORD, 0x70 } }, func_plasma_8012EF34, { NULL } },                                        // 0x014
     { { { TASK_BODY_COORD, 0x70 } }, func_healing_8012EF34, { NULL } },                                       // 0x015
     { { { TASK_BODY_COORD, 0x70 } }, healingRisingSparkTask, { NULL } },                                      // 0x016
