@@ -2378,7 +2378,6 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
 {
     _AcropolisSecurityRoomMonitorWork* work;
     McSaveData*                        save;
-    s32                                sfx;
     s16                                confirmedId;
     u16                                confirmedBits;
 
@@ -2402,15 +2401,12 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
         if (confirmedBits == ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_BRIGHTER) {
             if (((s16)work->screenLevel + ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP) < ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_NEXT_LIMIT) {
                 work->screenLevel += ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP;
-                sfx                = SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER;
-                goto play;
+                sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER, 0, 0);
             }
         } else if (confirmedBits == ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_DARKER) {
             if (((s16)work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP) > 0) {
                 work->screenLevel -= ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP;
-                sfx                = SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER;
-            play:
-                sndEvtRequestScriptStart(sfx, 0, 0);
+                sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER, 0, 0);
             }
         }
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xB) &&
