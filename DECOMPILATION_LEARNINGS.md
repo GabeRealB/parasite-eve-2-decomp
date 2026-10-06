@@ -149243,3 +149243,44 @@ attempts; left as it was.
 - Not converted: `func_mp5a5_8011DDA4`'s `goto fire` from state 6 back into
   state 2. An inline for state 3's body called from both places is not merged
   back (12 insns longer, the copy's if/else arms laid out the other way round).
+### Goto forms from the shelter rooms: a found-flag scan, a three-way merged body, `case 0: default:` (batch of 16, 2026-10-06)
+
+- **`while (node) { if (c) { found = 1; goto check; } node = node->next; }
+  found = 0; check: if (found)`** is a `static inline` scan,
+  `for (...) { if (c) return 1; } return 0;`, tested directly
+  (`func_shelter_b1_armory_80180468`, first try). The image's signature is
+  `li v0,1` in the delay slot of the hit branch and `move v0,zero; beqz v0`
+  left unfolded on the exhausted path (the inline's return label has two
+  users, so cse does not fold the test). `found = 0; for (...) { if (c) {
+  found = 1; break; } }` is not the same code: the zero is loaded before the
+  loop and the hit path gets its own `j; li 1`.
+- Not converted: the same scan in `func_shelter_r48_8017DF50`, whose image has
+  the 1 loaded *before* the loop (`beqz node,exhausted; li a0,1`). The inline
+  gives the armory shape, the flag-and-`break` form gives the zero before the
+  loop, and `found = 1; for (;;) { if (!node) { found = 0; break; } ... }` is
+  not rotated. Only the goto source (`found = 1;` ahead of the `while`, `goto
+  check` on a hit) reproduces it.
+- **Duplicating a tail that uses the function's locals needs locals of its
+  own.** `func_shelter_r47_8017FE84` had `goto spawn_six` into another
+  switch's case and `goto toggle_only` into another arm. Written out twice
+  with the *same* `spawned`/`p`/`q` locals, the copies differ in registers
+  (one pseudo now has two live ranges) and cross-jumping does not merge them;
+  with a second local for the copied spawn block and a `static inline` for
+  the two-statement trigger swap, each copy has fresh pseudos and the three
+  spawn bodies collapse to the image's single copy entered with a different
+  table in `$a0`. The `flag_a = K; flag_b = V; goto set_and_toggle;` pair was
+  just the call written in each arm.
+- **`==1 -> A; <2 -> default; ==2 -> B; default`** is `switch (x) { case 1: A;
+  case 2: B; case 0: default: break; }` (`ratDeath`, on
+  `gSceneCombatState.actorControl`). Without the explicit `case 0:` it is a
+  two-node tree, `==1; ==2`, and the `slti 2` is gone.
+- **Two early-outs to a shared failure store before the common release**
+  (`if (flag < 0) goto fail; ...; goto done; fail: x = 1; done: release;`)
+  is the positive nesting `if (flag >= 0) { ...; if (flag >= 0) { body } else
+  { x = 1; } } else { x = 1; }`: the two stores merge into the last one, which
+  sits where the image has it (`_m4a1JavelinDrawGroundBeamSegment`).
+- A case that falls through into `kill:` after the switch
+  (`case RELEASE: goto kill; default: return;`) is `case RELEASE: break;
+  default: return;` with the call after the switch
+  (`_roomVisualEffectsHaloTask`); a `release:` label inside the last case is
+  the kill call written at each site (`shelterB6TrainingRoomRingBandTask`).
