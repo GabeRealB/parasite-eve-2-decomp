@@ -1,2 +1,4 @@
 
-func_pepper_spray_8012EF34 = 0x8012EF34; // type:func
+pepperSprayEffectTask = 0x8012EF34; // type:func
+_pepperSprayDrawOriginBillboard = 0x8012f21c; // type:func
+_pepperSprayDrawConeQuad = 0x8012f634; // type:func

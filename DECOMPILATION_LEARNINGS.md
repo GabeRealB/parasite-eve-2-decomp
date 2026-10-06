@@ -62302,14 +62302,14 @@ locals cost no instructions.
 
 ## Back-to-back writes to the same global lose the first store unless a pointer store separates them
 
-`func_pepper_spray_8012EF34` draws twice from the LCG before it uses either
+`pepperSprayEffectTask` draws twice from the LCG before it uses either
 value:
 
 ```c
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-yaw         = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
+initialRadiusScale = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-spread      = ((u32)gRandomLcgState >> 16) & 0xFFF;
+billboardRotation  = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
 
 That compiled with only *one* `sw ..., %lo(gRandomLcgState)`: the second assignment
@@ -62324,12 +62324,12 @@ between the two LCG steps restores the store, because a write through a pointer
 may alias the global and blocks the elimination:
 
 ```c
-slot->head.transform.coord.coord.t[0] = coord->coord.t[0];
+pointLight->head.transform.coord.coord.t[0] = sprayCoord->coord.t[0];
 gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
-yaw                    = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
-slot->head.transform.coord.coord.t[1] = coord->coord.t[1];   /* keeps the first sw alive */
+initialRadiusScale         = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
+pointLight->head.transform.coord.coord.t[1] = sprayCoord->coord.t[1];   /* keeps the first sw alive */
 gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
-spread                 = ((u32)gRandomLcgState >> 16) & 0xFFF;
+billboardRotation          = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
 
 Which copy goes in the gap is not free: the scheduler picks the hard register
@@ -62877,7 +62877,7 @@ prim offsets `0x7` / `0xE` / `0x16` are the code byte, CLUT and tpage.
 
 ## A reloaded `prim->code` byte means the `setPolyFT4` is far from the `setSemiTrans`
 
-`func_pepper_spray_8012F21C` sets up a `POLY_FT4` in two places: the tag length
+`_pepperSprayDrawOriginBillboard` sets up a `POLY_FT4` in two places: the tag length
 and code are written before the `gte_stflg` test, and the semi-transparent /
 raw-texture bits are only set inside the `if`, after the UVs. The object dump
 shows that split directly:

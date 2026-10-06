@@ -943,7 +943,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineGalleryWaterDriftTaskU16, { NULL } },                   // 0x194
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48PinkRingFlashTask, { NULL } },                               // 0x195
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed, { NULL } },     // 0x196
-    { { { TASK_BODY_COORD, 0x70 } }, func_pepper_spray_8012EF34, { NULL } },                                // 0x197
+    { { { TASK_BODY_COORD, 0x70 } }, pepperSprayEffectTask, { NULL } },                                     // 0x197
     { { { TASK_BODY_COORD, 0x70 } }, ofudaEffectTask, { NULL } },                                           // 0x198
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleEffectSpriteDriftTaskAimed, { NULL } },            // 0x199
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_dumping_hole_80186218, { NULL } },                     // 0x19A

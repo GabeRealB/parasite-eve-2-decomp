@@ -2083,7 +2083,7 @@ func_energyshot_8012EF34 = 0x8012EF34; // type:func absolute:True owner=energysh
 
 func_energyball_8012EF48 = 0x8012EF48; // type:func absolute:True owner=energyball shared=pe
 
-func_pepper_spray_8012EF34 = 0x8012EF34; // type:func absolute:True owner=pepper_spray shared=pe
+pepperSprayEffectTask = 0x8012EF34; // type:func absolute:True owner=pepper_spray shared=pe
 
 ofudaEffectTask = 0x8012EF34; // type:func absolute:True owner=ofuda shared=pe
 
