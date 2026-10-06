@@ -1959,21 +1959,23 @@ static void _mcStateResolveFileHeaderWrite(Task* task, McWork* work)
     u8* savedFilenameByte;
 
     writeResult = work->syncResult;
-    if (writeResult < (u32)McErrNotFormat) {
-        filenameByte = Mc_FileName;
-        if (writeResult == McErrNone) {
+    // The compare tree has a case node above McErrNotFormat; which one is not recoverable.
+    switch (writeResult) {
+        case McErrNone:
             work->slotsRemaining   = MEMORY_CARD_BUFFER_SLOT_COUNT;
             work->slotWriteMask    = MEMORY_CARD_SLOT_WRITE_ALL;
             work->confirmOverwrite = MEMORY_CARD_OVERWRITE_PROCEED;
             task->state            = MEMORY_CARD_SAVE_STATE_BEGIN_OPEN_FILE;
-        } else {
-            goto invalidateFileNames;
-        }
-    } else {
-        filenameByte = Mc_FileName;
-    invalidateFileNames:
-        savedFilenameByte = Mc_FileNameBuf;
-        MEMORY_CARD_FAIL_FILE_HEADER_WRITE(task, filenameByte, savedFilenameByte);
+            break;
+        case McErrCardNotExist:
+        case McErrCardInvalid:
+        case McErrNewCard:
+        case McErrFileNotExist:
+        default:
+            filenameByte      = Mc_FileName;
+            savedFilenameByte = Mc_FileNameBuf;
+            MEMORY_CARD_FAIL_FILE_HEADER_WRITE(task, filenameByte, savedFilenameByte);
+            break;
     }
     work->buffer = NULL;
 
