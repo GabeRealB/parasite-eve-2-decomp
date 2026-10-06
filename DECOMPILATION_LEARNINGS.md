@@ -149355,3 +149355,56 @@ attempts; left as it was.
   outer one from there). A predicate inline and an inline for the whole case
   both leave `li v1,1; beqz v1`; writing the 5..7 test in the range arm and
   again in an `else` is not merged and swaps `$s4/$s5`.
+### Goto forms from the desert chaser and glutton actors (batch 08, 2026-10-06)
+
+- **Cross-jumping does not merge two jumps to a label it created itself.**
+  `func_actor_421600_80132A00` has two placement cases with identical bodies
+  ending `state = 0x20; prevState = -1;`, and the image keeps both bodies,
+  sharing only the `sh v0,2(s0)` with a `state = 0; prevState = -1;` block in
+  front of the join. Written as an early-out (`if (n < 4) { state = 0;
+  prevState = -1; break; } ...; break;`) the two bodies end in jumps to the
+  *switch's* end label and are merged whole (15 insns shorter). jump.c tries
+  jump-against-jump only while `INSN_UID (JUMP_LABEL (insn)) < max_uid`: a
+  label made by `do_cross_jump` is newer than that, so two jumps retargeted
+  to it are never compared. The form that reproduces the image puts the reset
+  last in each case, where the body's tail can merge with it first:
+  `if (n >= 4) { if (state != 0) break; ...; state = 0x20; prevState = -1;
+  break; } state = 0; prevState = -1; break;`. Two identical arms left
+  unmerged in the image mean they share a short tail with a third block.
+- **`if (t == A) { slot = 0; goto dispatch; } if (t == B) { slot = 1;
+  dispatch: ... }`** (`func_actor_403200_8013EF6C`) is not the body written in
+  both arms: after `slot = 0` cse folds every `slot` in the copy
+  (`summons[0]`), 65 insns longer. It is a `static inline` that begins
+  `if (t == A) slot = 0; else if (t == B) slot = 1; else return;` and then
+  runs the body once; the join has two users, so the stored value is re-read
+  as in the image. The hand-written `==1; >=2 -> default; !=0 -> default`
+  ladder inside it is `case 0: ... case 1: ... case 2: default:`.
+- **`goto body` from the first two of three scans and `goto out` from the
+  third** (`func_actor_403200_8013A4A0`: each scan is `id = find(); key = id;
+  if (id != 0) { effect(); if (key != 0) goto body; }`) is one `||` of three
+  `&&` pairs over two single-return inlines: one that scans, stores the key
+  and returns it, one that spawns the effect and returns `sc->attackKey != 0`.
+  Both fold into the branches. One helper holding both halves cannot: its
+  miss path would have to reload the key it just stored, or return a
+  constant that is then tested unfolded.
+- **A contact scan spelled `for (...) { if (!key) goto missed; if (kind) {
+  ...; id = key; goto found; } } missed: id = 0; found:`** is the inline
+  `for` + `break` + `return key` (`actorFindHit` with a count); the image's
+  mark is `move a1,zero; beqz a1` on the miss path. With a real loop in
+  place the fake `do { } while (0)` around the angle wrap, documented as
+  needed for the `sc`/`work` register ranking, was not needed.
+- **`value = A; flag = x < K; if (!flag) value = B; goto done;` next to
+  `value = B; flag = x < K + 1; if (flag) value = A;`**
+  (`func_actor_403200_801344C4`, `_80134A14`, 14 gotos each) are two
+  spellings of a return pair: `if (x < K) return A; return B;` gives
+  `v = A; if (!c) v = B`, and `if (x > K) return B; return A;` gives
+  `v = B; if (c) v = A`. Read that way the thresholds of the hysteresis
+  agree (leave view 3 above 0x2261, enter it below 0x2261) where the flag
+  spelling had 0x2261 and 0x2262. The shared `if (!flag) value = B` tails
+  are cross-jumping. The `move v1,s2` copy of the view in front of each
+  equality chain still needs a local assigned from `view` in each case
+  (`current = view;`) that is mentioned after the last mention of `view`;
+  what the original had there is not known.
+- **`dmg = x / 6; if (dmg == 0) { dmg = 1; if (x == 0) { x = 0; goto
+  stored; } } x = dmg; stored:`** is `if (dmg == 0) { if (x == 0) x = 0;
+  else x = 1; } else x = dmg;`; the two `sw v0` merge.
