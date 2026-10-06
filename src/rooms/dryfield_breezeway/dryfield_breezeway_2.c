@@ -1528,7 +1528,8 @@ void func_dryfield_breezeway_80181264(Task* task)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
 
     actorRenderComposeCoord(coord);
@@ -1642,7 +1643,6 @@ void func_dryfield_breezeway_80181264(Task* task)
                 color[0] = color[1] = color[2] = (60 - work->age) * 4;
                 func_dryfield_breezeway_80181938(task, color);
             } else {
-            release:
                 effectKillTask(work, task);
             }
             break;
