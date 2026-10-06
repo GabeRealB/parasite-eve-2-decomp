@@ -3948,7 +3948,6 @@ static void func_actor_403000_80138DB0(Task* arg0)
     _Actor403000ChaseScratch* scratch;
     _Actor403000ChaseScratch* head;
     GfxCoord*                 coord;
-    GfxCoord*                 rot;
     GfxCoord*                 pos;
     GfxCoord*                 pos2;
     SVECTOR*                  dir;
@@ -3958,12 +3957,9 @@ static void func_actor_403000_80138DB0(Task* arg0)
     SVECTOR*                  t3;
     SVECTOR*                  t4;
     SVECTOR                   v;
-    s16                       angle;
     s16                       diff;
     s32                       dist;
     s32                       ret;
-    s8                        sign;
-    s8                        sign2;
     s16                       cell;
 
     work                                           = arg0->work;
@@ -3995,10 +3991,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t1->vx                              = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
         t1->vy                              = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
         t1->vz                              = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-        rot                                 = arg0->extra.tmd->coords;
-        angle                               = ratan2(t1->vx, t1->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-        angle                               = actorWrapAngle(angle);
-        scratch->turn                       = angle;
+        scratch->turn                       = actorYawTo(arg0->extra.tmd->coords, t1->vx, t1->vz);
         scratch->turn                      += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4055,10 +4048,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t3->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
         t3->vy         = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
         t3->vz         = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
-        rot            = arg0->extra.tmd->coords;
-        angle          = ratan2(t3->vx, t3->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-        angle          = actorWrapAngle(angle);
-        scratch->turn  = angle;
+        scratch->turn  = actorYawTo(arg0->extra.tmd->coords, t3->vx, t3->vz);
         scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4102,11 +4092,9 @@ static void func_actor_403000_80138DB0(Task* arg0)
         cell                = Actor403000_Cell(arg0->extra.tmd->coords);
         scratch->cell       = cell;
         diff                = (s8)cell - scratch->playerCell;
-        sign                = _actor403000RingSide(diff);
-        work->watchRingDir  = sign;
+        work->watchRingDir  = _actor403000RingSide(diff);
         diff                = scratch->cell - scratch->playerCell;
-        sign2               = _actor403000RingSide(diff);
-        work->turnRingDir = work->watchRingDir = -sign2;
+        work->turnRingDir = work->watchRingDir = -_actor403000RingSide(diff);
         work->state                            = ACTOR_403000_STATE_TURN;
     }
     func_actor_403000_80133AF8(arg0);
