@@ -268,13 +268,15 @@ void func_shelter_b1_armory_8018034C(Task* task)
             D_shelter_b1_armory_8018557C.view = view;
             Gp_MsgPlayer3F3(0);
             Gp_RunCapCmd(0x16, 0);
-            goto advance;
+            task->state = task->state + 1;
+            break;
         case 1:
             if (Gp_CapBusy() != 0) {
                 break;
             }
             func_800D4D2C(0x40);
-            goto advance;
+            task->state = task->state + 1;
+            break;
         case 2:
             task->state = 3;
         case 3:
@@ -283,8 +285,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             Gp_MsgPlayer3F3(1);
             Gp_MsgPlayerWeapon(1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_armory_8018557C.view;
-        advance:
-            task->state = task->state + 1;
+            task->state                                                = task->state + 1;
             break;
     }
 }
