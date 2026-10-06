@@ -1492,7 +1492,12 @@ void func_shelter_b1_pod_access_tunnel_8017E7B4(void)
     Gp_PulseState1C();
 }
 
-/// Selects the room's combat effect implementations for subsequent actor spawns.
+/// Selects this room's flash, twin-trail and spark-burst tasks for GOLEM attacks.
+///
+/// Installs packed effect bank/type IDs used by subsequent `Gp_SpawnEff` calls.
+/// Call after room-effect controller initialization and before spawning these
+/// effects. The selections persist until reset or rebound; this room overlay
+/// must remain loaded while any selected task runs.
 static inline void _shelterB1PodAccessTunnelSelectCombatEffects(void)
 {
     gRoomEffectFlashId      = EFFECT_SHELTER_B1_POD_ACCESS_TUNNEL_FLASH;
