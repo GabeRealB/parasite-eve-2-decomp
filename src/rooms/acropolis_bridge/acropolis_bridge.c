@@ -3201,29 +3201,23 @@ static void func_acropolis_bridge_8017E3A0(Task* task)
     SpriteView*                 rec;
     s32                         view;
     s16                         tick;
-    s32                         step;
 
     view                                 = viewGetMappedIndex();
     rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 0;
 
     tick = work->timer;
-    step = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
-    if (tick >= ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
-        if (tick >= 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
-            goto reset;
-        }
-        step = work->code;
+    if (tick < ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
+        func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
+        work->timer++;
+    } else if (tick < 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
+        func_acropolis_bridge_8017E60C(work->code, 0);
+        work->timer++;
+    } else {
+        work->timer = 0;
+        work->blinkCount++;
     }
-    func_acropolis_bridge_8017E60C(step, 0);
-    work->timer++;
-    goto after;
 
-reset:
-    work->timer = 0;
-    work->blinkCount++;
-
-after:
     if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
