@@ -893,7 +893,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017E954, { NULL } },                                // 0x160
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017EA08, { NULL } },                         // 0x161
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r49_8017D9D0, { NULL } },                                   // 0x162
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017DF6C, { NULL } },                     // 0x163
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageDrawViewGlowsTask, { NULL } },                     // 0x163
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockDrawLightsTask, { NULL } },                     // 0x164
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fBulwarkDrawGlowsTask, { NULL } },                               // 0x165
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fHeliportNoOpEffectTask, { NULL } },                             // 0x166
@@ -1008,7 +1008,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_main_corridor_8018094C, { NULL } },                      // 0x1D3
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80180BE0, { NULL } },                        // 0x1D4
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80181C2C, { NULL } },                  // 0x1D5
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017EC0C, { NULL } },                     // 0x1D6
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsFlashTask, { NULL } },            // 0x1D6
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsFlashTask, { NULL } },         // 0x1D7
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsFlashTask, { NULL } },              // 0x1D8
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsFlashTask, { NULL } },                  // 0x1D9
@@ -1036,7 +1036,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_main_corridor_801813B0, { NULL } },                      // 0x1EF
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80181644, { NULL } },                        // 0x1F0
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80182690, { NULL } },                  // 0x1F1
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017F670, { NULL } },                     // 0x1F2
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsTwinTrailTask, { NULL } },        // 0x1F2
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask, { NULL } },     // 0x1F3
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask, { NULL } },          // 0x1F4
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsTwinTrailTask, { NULL } },              // 0x1F5

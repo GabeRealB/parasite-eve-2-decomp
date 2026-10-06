@@ -69,9 +69,6 @@ extern TaskDesc         D_shelter_1f_parking_garage_80180BE0;
 extern SVECTOR          D_shelter_1f_parking_garage_80180BFC[];
 extern SVECTOR          D_shelter_1f_parking_garage_80180C4C[];
 
-/// Offsets from the parent coordinate of the two trail heads the smoke-trail
-/// task follows. The second is also reached under its own name.
-
 extern ScreenFade       gRoomEventFade;
 extern ScreenFade       D_shelter_1f_parking_garage_80181978;
 extern RoomEventMsg     gRoomEventStagedMsg;
@@ -79,7 +76,7 @@ extern RoomDeparture    gRoomDeparture;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
-static void func_shelter_1f_parking_garage_8017DF04(Task* task);
+static void _shelter1fParkingGarageIdle(Task* task);
 
 extern WorldCollisionGrid         D_shelter_1f_parking_garage_80180FE8[1];
 extern WorldCollisionTrigger      D_shelter_1f_parking_garage_801815F8[4];
@@ -87,11 +84,17 @@ extern WorldCollisionTrigger      D_shelter_1f_parking_garage_80181728[5];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5];
 extern WorldCoordRoomLights       D_shelter_1f_parking_garage_801815E0[1];
 
-s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, s32, s32);
-s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, s32, s32);
-s32  func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void func_shelter_1f_parking_garage_8017DAF0(Task*);
+static s32 _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+s32        func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelter1fParkingGarageIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 secondArg);
+s32        func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+void       func_shelter_1f_parking_garage_8017DAF0(Task*);
+
+/// The room's key-item request ID and the reply that displays "cannot use now".
+enum {
+    SHELTER_1F_PARKING_GARAGE_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE    = 0,
+};
 
 TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
@@ -99,9 +102,9 @@ TaskDesc D_shelter_1f_parking_garage_80180BAC = { { { TASK_BODY_NONE, 32 } }, ro
 
 TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
-    { 5105, func_shelter_1f_parking_garage_8017DCEC },
+    { SHELTER_1F_PARKING_GARAGE_MESSAGE_USE_KEY_ITEM, _shelter1fParkingGarageRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_parking_garage_8017DE4C },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_parking_garage_8017DE44 },
+    { ROOM_MESSAGE_COMMAND, _shelter1fParkingGarageIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -452,9 +455,13 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
     }
 }
 
-s32 func_shelter_1f_parking_garage_8017DCEC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the parking garage without changing the room.
+///
+/// Receives an integer item ID and an unused second argument. All parameters
+/// are ignored; the zero reply selects the key-item menu's "cannot use now" notice.
+static s32 _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    return SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE;
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
@@ -476,7 +483,10 @@ s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* 
     return _shelter1fParkingGarageStartEvent(out, &event);
 }
 
-s32 func_shelter_1f_parking_garage_8017DE44(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores CAP room commands and returns zero without changing the room.
+///
+/// Both integer argument words and the receiver/message ID are unused.
+static s32 _shelter1fParkingGarageIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 secondArg)
 {
     return 0;
 }
@@ -507,15 +517,15 @@ static void func_shelter_1f_parking_garage_8017DE9C(Task* task)
 /// `func_shelter_1f_parking_garage_8017DF14`: set up the room, then idle.
 static const TaskFuncTable3 D_shelter_1f_parking_garage_8017D6A0 = { {
     func_shelter_1f_parking_garage_8017DE9C,
-    func_shelter_1f_parking_garage_8017DF04,
+    _shelter1fParkingGarageIdle,
     taskKill,
 } };
 
-/// Idle state of the room's controller task: does nothing. The 0x10-byte
-/// frame is the compiler's, kept for an unused local.
-static void func_shelter_1f_parking_garage_8017DF04(Task* task)
+/// Keeps the room controller alive to receive messages without advancing its state.
+static void _shelter1fParkingGarageIdle(Task* task)
 {
-    char pad[0x10];
+    // Preserve the idle callback's stack reservation; the bytes are never read.
+    char reservedFrame[0x10];
 }
 
 /// The room's controller task: copies its three-entry state table to the
@@ -528,32 +538,48 @@ void func_shelter_1f_parking_garage_8017DF14(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
+/// Selects this loaded room's flash, twin-trail and spark-burst effect implementations.
+static inline void _shelter1fParkingGarageBindActorEffects(void)
 {
-    u8 view;
+    gRoomEffectFlashId      = EFFECT_SHELTER_1F_PARKING_GARAGE_FLASH;
+    gRoomEffectTwinTrailId  = EFFECT_SHELTER_1F_PARKING_GARAGE_TWIN_TRAIL;
+    gRoomEffectSparkBurstId = EFFECT_SHELTER_1F_PARKING_GARAGE_SPARK_BURST;
+}
 
-    if (arg0->state == 0) {
-        gRoomEffectFlashId      = EFFECT_SHELTER_1F_PARKING_GARAGE_FLASH;
-        gRoomEffectTwinTrailId  = EFFECT_SHELTER_1F_PARKING_GARAGE_TWIN_TRAIL;
-        gRoomEffectSparkBurstId = EFFECT_SHELTER_1F_PARKING_GARAGE_SPARK_BURST;
-        arg0->state             = 1;
+void shelter1fParkingGarageDrawViewGlowsTask(Task* task)
+{
+    enum {
+        GLOWS_INITIALIZE            = 0,
+        GLOWS_DRAW                  = 1,
+        GLOWS_CAPSULE_RADIUS_SCALE  = 0x200,
+        GLOWS_DISC_RADIUS_SCALE     = 0x300,
+        GLOWS_CAPSULE_COLOR_FACTORS = (2 << 8) | (1 << 4),
+        GLOWS_DISC_COLOR_FACTORS    = 2 << 8,
+    };
+    u8 mappedView;
+
+    // Publish this overlay's counted-effect callbacks before drawing its fixed lights.
+    if (task->state == GLOWS_INITIALIZE) {
+        _shelter1fParkingGarageBindActorEffects();
+        task->state = GLOWS_DRAW;
     }
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2: {
-            SVECTOR* p = D_shelter_1f_parking_garage_80180BFC;
-            _glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
-            _glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
-            _glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
-            _glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
+            const SVECTOR* capsulePoints = D_shelter_1f_parking_garage_80180BFC;
+            _glowDrawAngledCapsule(&capsulePoints[0], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(&capsulePoints[2], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(&capsulePoints[6], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(&capsulePoints[8], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
             break;
         }
         case 4: {
-            SVECTOR* p = D_shelter_1f_parking_garage_80180C4C;
-            _glowDrawFactorDisc(&p[0], 0x300, 0x200);
-            _glowDrawAngledCapsule(&p[-12], 0x200, 0x800, 0x210);
-            _glowDrawAngledCapsule(&p[-6], 0x200, 0, 0x210);
+            const SVECTOR* discPoint = D_shelter_1f_parking_garage_80180C4C;
+            _glowDrawFactorDisc(discPoint, GLOWS_DISC_RADIUS_SCALE, GLOWS_DISC_COLOR_FACTORS);
+            // The image addresses both preceding capsule pairs from this shared disc base.
+            _glowDrawAngledCapsule(&discPoint[-12], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(&discPoint[-6], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
             break;
         }
     }
@@ -567,14 +593,14 @@ void func_shelter_1f_parking_garage_8017DF6C(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_1f_parking_garage_8017EC0C(Task* arg0)
+void shelter1fParkingGarageRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_1f_parking_garage_8017F670(Task* task)
+void shelter1fParkingGarageRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
