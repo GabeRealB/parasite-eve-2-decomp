@@ -788,8 +788,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, apobiosisShardTask, { NULL } },                                          // 0x0F7
     { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012F180, { NULL } },                                    // 0x0F8
     { { { TASK_BODY_COORD, 0x70 } }, energyballImpactRingTask, { NULL } },                                    // 0x0F9
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017E3C0, { NULL } },                           // 0x0FA
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017DC20, { NULL } },                           // 0x0FB
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneConfigureEffectsTask, { NULL } },                        // 0x0FA
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneLeafFallTask, { NULL } },                                // 0x0FB
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012FAC8, { NULL } },                                   // 0x0FC
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterHoleWaterRippleTask, { NULL } },                            // 0x0FD
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterHoleWaterDriftTaskU16, { NULL } },                          // 0x0FE
@@ -1011,7 +1011,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017EC0C, { NULL } },                     // 0x1D6
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsFlashTask, { NULL } },         // 0x1D7
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017FDD4, { NULL } },                       // 0x1D8
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017E420, { NULL } },                           // 0x1D9
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsFlashTask, { NULL } },                  // 0x1D9
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_8017FCB0, { NULL } },                              // 0x1DA
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_8017FB9C, { NULL } },                                // 0x1DB
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017DDF4, { NULL } },                         // 0x1DC
@@ -1039,7 +1039,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017F670, { NULL } },                     // 0x1F2
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask, { NULL } },     // 0x1F3
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_80180838, { NULL } },                       // 0x1F4
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017EE84, { NULL } },                           // 0x1F5
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsTwinTrailTask, { NULL } },              // 0x1F5
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80180714, { NULL } },                              // 0x1F6
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_80180600, { NULL } },                                // 0x1F7
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017E858, { NULL } },                         // 0x1F8

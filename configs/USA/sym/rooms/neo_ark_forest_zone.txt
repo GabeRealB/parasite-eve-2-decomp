@@ -101,15 +101,15 @@ D_neo_ark_forest_zone_80181E68 = 0x80181E68; // size:0x4 defined:True
 D_neo_ark_forest_zone_80181E6C = 0x80181E6C; // size:0x228 defined:True
 RoomFx_TrailOffsets = 0x80182094; // size:0x10 defined:True
 
-func_neo_ark_forest_zone_8017E3C0 = 0x8017E3C0; // type:func
+neoArkForestZoneConfigureEffectsTask = 0x8017E3C0; // type:func
 
-func_neo_ark_forest_zone_8017E420 = 0x8017E420; // type:func
+neoArkForestZoneRoomVisualEffectsFlashTask = 0x8017E420; // type:func
 
-func_neo_ark_forest_zone_8017EE84 = 0x8017EE84; // type:func
+neoArkForestZoneRoomVisualEffectsTwinTrailTask = 0x8017EE84; // type:func
 
 func_neo_ark_forest_zone_8017F76C = 0x8017F76C; // type:func
 
-func_neo_ark_forest_zone_8017DC20 = 0x8017DC20; // type:func
+neoArkForestZoneLeafFallTask = 0x8017DC20; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E6C4; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017EAF0; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017F374; // type:func
@@ -122,3 +122,6 @@ roamerTickPoolA = 0x80180620; // type:func
 roamerAmbushMsg = 0x80180A60; // type:func
 roamerArmPoolB = 0x80180BB4; // type:func
 roamerLatchRequest = 0x801813C4; // type:func
+neoArkForestZoneRejectKeyItemMessage = 0x8017d7dc; // type:func
+neoArkForestZoneIgnoreCommandMessage = 0x8017d950; // type:func
+_neoArkForestZoneSetupIdleState = 0x8017dbac; // type:func

@@ -31,11 +31,22 @@ extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_neo_ark_forest_zone_8017D7DC(Task*, s32, s32, s32);
+/// Key-item use request from the inventory menu; its first argument is an item ID.
+enum { NEO_ARK_FOREST_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Refuses every key-item use in the forest zone.
+///
+/// Returns zero, which the key-item menu reports as unusable. All arguments
+/// are ignored; no item is consumed and no message payload is retained.
+s32 neoArkForestZoneRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 
 s32 func_neo_ark_forest_zone_8017D7E4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_neo_ark_forest_zone_8017D950(Task*, s32, s32, s32);
+/// Ignores forest-zone room commands and returns zero.
+///
+/// `commandId` selects the command sent by the CAP interpreter. All arguments
+/// are ignored and no room state changes.
+s32 neoArkForestZoneIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 secondArg);
 
 s32 func_neo_ark_forest_zone_8017D958(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

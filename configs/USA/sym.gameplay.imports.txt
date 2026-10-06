@@ -842,11 +842,11 @@ neoArkBridgeRoomVisualEffectsTwinTrailTask = 0x801809E8; // type:func absolute:T
 
 func_neo_ark_bridge_801812D0 = 0x801812D0; // type:func absolute:True owner=neo_ark_bridge
 
-func_neo_ark_forest_zone_8017E3C0 = 0x8017E3C0; // type:func absolute:True owner=neo_ark_forest_zone
+neoArkForestZoneConfigureEffectsTask = 0x8017E3C0; // type:func absolute:True owner=neo_ark_forest_zone
 
-func_neo_ark_forest_zone_8017E420 = 0x8017E420; // type:func absolute:True owner=neo_ark_forest_zone
+neoArkForestZoneRoomVisualEffectsFlashTask = 0x8017E420; // type:func absolute:True owner=neo_ark_forest_zone
 
-func_neo_ark_forest_zone_8017EE84 = 0x8017EE84; // type:func absolute:True owner=neo_ark_forest_zone
+neoArkForestZoneRoomVisualEffectsTwinTrailTask = 0x8017EE84; // type:func absolute:True owner=neo_ark_forest_zone
 
 func_neo_ark_forest_zone_8017F76C = 0x8017F76C; // type:func absolute:True owner=neo_ark_forest_zone
 
@@ -1949,7 +1949,7 @@ acropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func absolute:True owner=a
 
 func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
-func_neo_ark_forest_zone_8017DC20 = 0x8017DC20; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
+neoArkForestZoneLeafFallTask = 0x8017DC20; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
 
 shelterB1PodServiceGantrySpriteDriftTask = 0x8017D8F4; // type:func absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
 

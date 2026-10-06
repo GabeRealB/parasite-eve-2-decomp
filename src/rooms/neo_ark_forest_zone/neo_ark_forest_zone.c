@@ -95,13 +95,14 @@ u16 gRoamerReserveHp[5] = {
 };
 
 static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           func_neo_ark_forest_zone_8017DBAC(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkForestZoneRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    enum { NEO_ARK_FOREST_ZONE_KEY_ITEM_REFUSED = 0 };
+
+    return NEO_ARK_FOREST_ZONE_KEY_ITEM_REFUSED;
 }
 
 /// Latches the room's pending event and starts the controller that runs it:
@@ -154,9 +155,11 @@ s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return NeoArkForestZone_StartEvent(out, &event);
 }
 
-s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkForestZoneIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 secondArg)
 {
-    return 0;
+    enum { NEO_ARK_FOREST_ZONE_COMMAND_IGNORED = 0 };
+
+    return NEO_ARK_FOREST_ZONE_COMMAND_IGNORED;
 }
 
 /// Room message handler: on the first-visit sub-id (`warp == 1`) with flag
@@ -233,18 +236,18 @@ static void func_neo_ark_forest_zone_8017DB40(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// State 2 of the room setup task: does nothing until the task is killed. The
-/// unused local reproduces the original's stack frame.
-static void func_neo_ark_forest_zone_8017DBAC(Task* task)
+/// Holds the room setup task in state 2 with its message handlers installed.
+static void _neoArkForestZoneSetupIdleState(Task* task)
 {
-    char pad[0x10];
+    // Preserve the 16-byte stack frame despite having no runtime work in this state.
+    char stackFrame[0x10];
 }
 
 /// State table of the room setup task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
     func_neo_ark_forest_zone_8017DA80,
     func_neo_ark_forest_zone_8017DB40,
-    func_neo_ark_forest_zone_8017DBAC,
+    _neoArkForestZoneSetupIdleState,
     taskKill,
 } };
 
@@ -260,25 +263,24 @@ void func_neo_ark_forest_zone_8017DBBC(Task* task)
 
 #include "../../shared/falling_leaves_task.inc.c"
 
-/// The room's falling-leaf task, named by gameplay's effect table.
-void func_neo_ark_forest_zone_8017DC20(Task* task)
+void neoArkForestZoneLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
 #include "../../shared/falling_leaves_draw_neo_ark.inc.c"
 
-/// Keeps `gRoomEffectState->roomEffectMode` at 2 every frame and, on its first run,
-/// stores 0x601D9, 0x601F5 and 0x60211 in three gameplay globals; the values
-/// have the form `Gp_SpawnEff` takes as effect ids.
-void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
+void neoArkForestZoneConfigureEffectsTask(Task* task)
 {
+    enum { NEO_ARK_FOREST_ZONE_EFFECTS_INITIALIZE,
+           NEO_ARK_FOREST_ZONE_EFFECTS_ACTIVE };
+
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    if (arg0->state == 0) {
+    if (task->state == NEO_ARK_FOREST_ZONE_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_NEO_ARK_FOREST_ZONE_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_FOREST_ZONE_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_NEO_ARK_FOREST_ZONE_SPARK_BURST;
-        arg0->state             = 1;
+        task->state             = NEO_ARK_FOREST_ZONE_EFFECTS_ACTIVE;
     }
 }
 
@@ -286,14 +288,14 @@ void func_neo_ark_forest_zone_8017E3C0(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_forest_zone_8017E420(Task* arg0)
+void neoArkForestZoneRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_forest_zone_8017EE84(Task* task)
+void neoArkForestZoneRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

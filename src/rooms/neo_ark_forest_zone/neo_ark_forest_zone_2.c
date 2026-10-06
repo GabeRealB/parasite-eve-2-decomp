@@ -154,9 +154,9 @@ TaskDesc D_neo_ark_forest_zone_80181DBC = { { { TASK_BODY_NONE, 32 } }, roomEven
 
 TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_forest_zone_8017D7E4 },
-    { 5105, func_neo_ark_forest_zone_8017D7DC },
+    { NEO_ARK_FOREST_ZONE_MESSAGE_USE_KEY_ITEM, neoArkForestZoneRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_8017D958 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_forest_zone_8017D950 },
+    { ROOM_MESSAGE_COMMAND, neoArkForestZoneIgnoreCommandMessage },
     { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_forest_zone_8017DA14 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
