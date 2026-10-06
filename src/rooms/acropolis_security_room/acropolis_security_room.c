@@ -3212,55 +3212,43 @@ void func_acropolis_security_room_80180294(Task* task)
 void func_acropolis_security_room_80180368(Task* task)
 {
     CdCmdQueue*                          queue;
-    s32                                  state;
     _AcropolisSecurityRoomMovieLoopWork* work;
     _AcropolisSecurityRoomMovieLoopWork* alloc;
 
     queue = &gCdCmdQueue;
-    state = task->state;
     work  = task->work;
-
-    switch (state) {
+    switch (task->state) {
         case 0:
-            goto L_case0;
+            alloc      = memCalloc(sizeof(_AcropolisSecurityRoomMovieLoopWork), 0);
+            task->work = alloc;
+            if (alloc == NULL) {
+                taskKill(task);
+                return;
+            }
+            memFillBytes(alloc, 0, sizeof(_AcropolisSecurityRoomMovieLoopWork));
+            sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0, 0);
+            task->state = task->state + 1;
+            return;
         case 1:
-            goto L_case1;
+            if (queue->movieFrame >= 0x46 && work->fadeStarted == 0) {
+                sndEvtRequestScriptStop(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
+                work->fadeStarted = 1;
+            }
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                task->state = task->state + 1;
+            }
+            if (Pad_CheckFlag800() == 0) {
+                return;
+            }
+            if (work->fadeStarted == 0) {
+                sndEvtRequestScriptStop(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
+            }
+            task->state = task->state + 1;
+            return;
         case 2:
-            goto L_case2;
+            Task_RequestKill(task, 0);
+            return;
     }
-    return;
-
-L_case0:
-    alloc      = memCalloc(sizeof(_AcropolisSecurityRoomMovieLoopWork), 0);
-    task->work = alloc;
-    if (alloc == NULL) {
-        taskKill(task);
-        return;
-    }
-    memFillBytes(alloc, 0, sizeof(_AcropolisSecurityRoomMovieLoopWork));
-    sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0, 0);
-    goto advance;
-
-L_case1:
-    if (queue->movieFrame >= 0x46 && work->fadeStarted == 0) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
-        work->fadeStarted = 1;
-    }
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        task->state = task->state + 1;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    if (work->fadeStarted == 0) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
-    }
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case2:
-    Task_RequestKill(task, 0);
 }
 
 /// Second `TaskDesc` of `D_acropolis_security_room_80182700`: kicks off the
