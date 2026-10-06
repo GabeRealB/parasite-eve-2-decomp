@@ -150430,3 +150430,56 @@ copy cross-jumping to it; `sndId = A; goto play` arms are the call in each arm
 of the same `if (x != 0xD) { if (x == 0xE) ... } else ...` nest (a `switch`
 takes the equal edge and loses cse's `or a0, a0, v0` reuse of the compare
 constant).
+
+### Goto removal, batch 28: a result set in every case, a loop that blocks the merge, a mode-matched constant (2026-10-06)
+
+- **`result = K; goto done;` in most cases, `break` to a `result = 0; done:`
+  after the switch in the rest** is `result = K; break;` in every case and
+  `return result;` after the switch (`SndScript_Exec`, 10 gotos, second try).
+  `return K;` in each case does not match: the image keeps the value in a
+  register of its own (`move a1,zero` in the delay slots of the dispatch tree,
+  `move v0,a1` once at the end), and with `return` it is `$v0` directly. The
+  three `goto stop` into `case END: script->ended = 1;` are that store and
+  `result = 0; break;` written out; all copies end in a jump to the same label
+  and the first one survives, where the image has it.
+- **A shared block that contains a loop cannot be written twice.**
+  Cross-jumping compares two insn runs backward from a common end and a
+  backward branch never compares equal (each copy branches to its own loop
+  head), so only the part after the loop merges. `SndVoice_DriveSlots` (`run`,
+  `update`, `release` all hold or lead into a voice loop) and `Midi_Tick`'s
+  `play` keep their gotos for that reason. Writing out `Midi_Tick`'s loop-free
+  `stop` tail inside the per-song loop changed that loop's strength reduction
+  (`song` became `base + offset` with two more saved registers).
+- **A constant stored to a narrow field reuses the switch's compare constant
+  only through an `s32` local.** `actor->statePhase = 1` (a `u16` field) under
+  `switch (actor->statePhase) { case 0: ...; case 1: ... }` loads its own
+  `li v0,1` in HImode; `s32 next = 1; actor->statePhase = next;` is an SImode
+  pseudo that cse equates with the `1` the dispatch already holds
+  (`func_actor_800200_8016436C`: the goto went, the local stays). The `flag`
+  locals of the companion route functions in the same file are the same thing.
+- **`goto fail` where the dispatch constant is live in the jumping block stays
+  a goto**: in `func_actor_800200_80163CCC`/`_80163E14` the arrival block
+  stores 1 and the jumping block sits in the extended basic block of the
+  `state == 1` compare, so a written-out copy reuses that register across a
+  call (`li s4,1`, as recorded for `_80163044`); the block after the switch
+  reached by `break` gets the registers right and the block order wrong.
+  `SndBank_SetupFromLoad`'s `fail` is the same with -1 (`addu v0,v0,s2`
+  against `addiu v0,v0,-1`).
+- **The same test twice with a store between** (`if (active) { if (held)
+  request = PENDING; goto tick; } ... tick: if (active) Tick();`) is the tick
+  test written in both arms; the first arm's copy is deleted and jumps to the
+  second (`SndVoice_Tick`). An early `return 0;` in the first arm instead puts
+  `move v0,zero` in its delay slot.
+- **After a `goto success` guard was folded into `if (a != 0 || (id = b) ==
+  FREE) { fail }`, the `volatile` casts and the `end = -1` local of the loop
+  below it were not needed**: `for (i--; i != -1; i--)` gives the same
+  `li v0,-1; ...; move a3,v0` (`SndBank_FinalizeLoad`).
+- **A jump out of a counted scan with a value** (`var = 2; goto done;` from a
+  `do`/`while`, `var = 1` after it, a third value in front) is an inline with
+  three `return`s; loop.c moves the `return 2` block in front of the loop as
+  the image has it (`Snd_InitFromStage`, first try).
+- Not converted: `SndVoice_SelectStealCandidate` reads one of three slots and
+  jumps *back* to a shared `== -1` test from the last one. `if/else` with the
+  test after it puts the third read before the test; written-out tails merge
+  into the later copy; either way the comparison constant needs the `none`
+  local to stay in `$a2`.
