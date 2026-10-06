@@ -3258,24 +3258,22 @@ void func_acropolis_security_room_801804CC(Task* arg0)
 {
     u8          slotParam[4];
     CdCmdQueue* queue;
-    Task*       task;
 
-    task  = arg0;
     queue = &gCdCmdQueue;
-    switch (task->state) {
+    switch (arg0->state) {
         case 0:
             queue->movieFrame = 1;
             slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state = task->state + 1;
+            arg0->state = arg0->state + 1;
             return;
         case 1:
             if ((CdCmd_IsIdle() & 0xFFFF) || Pad_CheckFlag800() != 0) {
-                task->state = task->state + 1;
+                arg0->state = arg0->state + 1;
             }
             return;
         case 2:
-            Task_RequestKill(task, 0);
+            Task_RequestKill(arg0, 0);
             return;
     }
 }
