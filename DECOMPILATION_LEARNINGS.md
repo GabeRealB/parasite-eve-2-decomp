@@ -149284,3 +149284,37 @@ attempts; left as it was.
   default: return;` with the call after the switch
   (`_roomVisualEffectsHaloTask`); a `release:` label inside the last case is
   the kill call written at each site (`shelterB6TrainingRoomRingBandTask`).
+
+### Goto forms from the PE casts, weapons and dryfield rooms (batch of 16, 2026-10-06)
+
+- **`goto draw` from one switch case into the next case's draw tail, where
+  the tail owns a stack array** (`rgb[3]` in `func_metabolism_8012EF34`,
+  `func_healing_8012EF34`) is a `static inline` with the array as *its* local,
+  called in both cases. The two inlined copies share one stack slot
+  (`sp+16`), so cross-jumping still merges them into the later case; the frame
+  does not grow. First try both times.
+- **`if (cancel) goto release;` at the top, `release:` after a switch whose
+  cases all return** (`func_inferno_8012EF88`, `_8012F530`,
+  `func_energyball_8012F180`, `func_combustion_8012EF34`) is
+  `effectKillTask(mem, arg0); return;` written at the site. The copy merges
+  into the last identical call before the epilogue, wherever that is (the
+  `break` path after the switch, or the last case's own kill).
+- **A chain of `cmd = K; goto cap_only / goto spawn;`** with the two tails
+  `run(cmd)` and `run(cmd); spawn();` (`func_mine_cavern_8017DAA0`, 5 gotos)
+  is an `if / else if` chain with the calls written in each arm. Put the arm
+  whose tail the image places *last* in the final `else`: the image had the
+  spawn tail before the cap-only one, so the last test is `!= 2` with the
+  spawn in the `then` arm.
+- **`if (x >= 2) goto kill; if (x < 0) goto kill; store; return; kill:`**:
+  `if (x >= 2 || x < 0)` and `if (x < 2 && x >= 0)` both fold to
+  `sltiu x,2`. The nested form `if (x < 2) { if (x >= 0) { store; return; } }`
+  keeps the two signed tests (`func_mine_mesa_8017E684`).
+- Not converted: **a backward `goto fire` from case 5 into case 2, which
+  falls through into case 3** (`func_m950_8011D1DC`, `func_m249_8011D1DC`).
+  Writing the start-shot and step-shot blocks as inlines called in both places
+  fails two ways: in m950 the inlined step after `stateTimer = 4` is folded
+  (`--timer == 0` is known false, so the copy becomes `stateTimer = 3`), and
+  in m249, where a call sits between the store and the test, cross-jumping
+  keeps the *later* copy (case 5's) and the image has the earlier one with a
+  backward `bgtz`. A jump back into an earlier case has no structured
+  spelling that does not re-dispatch.
