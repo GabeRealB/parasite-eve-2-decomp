@@ -1104,9 +1104,10 @@ static void Actor01900_Fn01C94(Task* arg0)
                `RESET` path makes just below. */
             w1->appliedAnim = (s16)(u16)w1->animId;
         }
-        goto block_9;
-    }
-    if (work->animRequest == ACTOR_01900_ANIM_REQUEST_RESET) {
+        work->animRequest  = ACTOR_01900_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+        work->lastCueFrame = 0;
+    } else if (work->animRequest == ACTOR_01900_ANIM_REQUEST_RESET) {
         w2 = work;
         i2 = 1;
         do {
@@ -1114,8 +1115,7 @@ static void Actor01900_Fn01C94(Task* arg0)
             animationResetSlot(&w2->rig.anim, i2, w2->animId);
             i2++;
         } while (i2 < 0x13);
-        w2->appliedAnim = (s16)(u16)w2->animId;
-    block_9:
+        w2->appliedAnim    = (s16)(u16)w2->animId;
         work->animRequest  = ACTOR_01900_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
@@ -1155,12 +1155,11 @@ static void Actor01900_Fn01C94(Task* arg0)
         if ((dst - cur) >= 0x101) {
             work->lookYaw = cur_u + 0x100;
         } else {
-            goto block_25;
+            work->lookYaw = (s16)dst_u;
         }
     } else if ((cur - dst) >= 0x101) {
         work->lookYaw = cur_u - 0x100;
     } else {
-    block_25:
         work->lookYaw = (s16)dst_u;
     }
     raw     = work->lookYaw;
@@ -3036,13 +3035,15 @@ static void Actor01900_Fn08724(Task* arg0)
             vec.vy                   = 0;
             vec.vx                   = 0;
             eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
-            goto body;
+            if (eff != NULL) {
+                actorTintTask(eff->task, enemy);
+            }
+            break;
         case 4:
             D_80114B34[5].data.model = &_gActor01900StrangerBurstHand;
             vec.vy                   = 0;
             vec.vx                   = 0;
             eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec);
-        body:
             if (eff != NULL) {
                 actorTintTask(eff->task, enemy);
             }
