@@ -477,17 +477,16 @@ void func_shelter_b6_training_room_8017D974(s32 arg0)
     if (t == NULL) {
         return;
     }
-    if (arg0 >= 2) {
-        goto kill;
+    switch (arg0) {
+        case 0:
+        case 1:
+            t->spawnArg1.value = arg0;
+            break;
+        default:
+            taskKill(D_shelter_b6_training_room_80185C5C);
+            D_shelter_b6_training_room_80185C5C = NULL;
+            break;
     }
-    if (arg0 < 0) {
-        goto kill;
-    }
-    t->spawnArg1.value = arg0;
-    return;
-kill:
-    taskKill(D_shelter_b6_training_room_80185C5C);
-    D_shelter_b6_training_room_80185C5C = NULL;
 }
 
 void func_shelter_b6_training_room_8017D9C8(Task* task)
