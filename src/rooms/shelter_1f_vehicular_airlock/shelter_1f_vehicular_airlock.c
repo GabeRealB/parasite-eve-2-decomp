@@ -526,11 +526,13 @@ void shelter1fVehicularAirlockDrawLightsTask(Task* task)
 
 #include "../../shared/glow_draw_factor_disc.inc.c"
 
-/// Initializes a three-vertex glow diagonal with a tinted centre and black ends.
+/// Initializes a Gouraud light diagonal with a coloured centre and black ends.
 ///
-/// The caller supplies coordinates, DMA linkage and semitransparency. Colour
-/// stores narrow the supplied channels to bytes in the caller-owned packet.
-static inline void _shelter1fVehicularAirlockInitLightDiagonal(LINE_G3* diagonal, s32 red, s32 green, s32 blue)
+/// Borrows one writable `LINE_G3`; the caller retains ownership. The centre's
+/// byte intensities wrap wider inputs modulo 256. Sets the packet length,
+/// opaque line command and polyline terminator. The caller must then supply
+/// all three screen positions, link the packet and enable blending for the glow.
+static inline void _shelter1fVehicularAirlockInitLightDiagonal(LINE_G3* diagonal, u8 red, u8 green, u8 blue)
 {
     setLineG3(diagonal);
     setRGB0(diagonal, 0, 0, 0);
