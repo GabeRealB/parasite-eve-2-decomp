@@ -258,7 +258,7 @@ void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
         one    = 1;
         if (((status >> 16) == one) || (status == one)) {
             if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-                Ui_SetHolderParam(Gp_StrReleasePe, 0, 0);
+                uiSetPromptText(Gp_StrReleasePe, 0, 0);
             }
         }
     }
@@ -304,7 +304,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Ui_SetHolderParam(Gp_StrCustomizeHelp, 0, 0);
+            uiSetPromptText(Gp_StrCustomizeHelp, 0, 0);
             two = 2;
             if (arg1->owner->spawnArg1.value != two) {
                 cdCmdDropQueuedTail();
@@ -344,7 +344,7 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Ui_SetHolderParam(Gp_StrReturnGame, 0, 0);
+            uiSetPromptText(Gp_StrReturnGame, 0, 0);
         }
     }
 
@@ -422,9 +422,9 @@ void Gp_WeaponSummaryTask(Task* arg0)
 void Gp_SetHolderItemText(s32 arg0)
 {
     if (arg0 == 0) {
-        Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+        uiSetPromptText(Gp_StrEmpty, 0, 0);
     } else {
-        Ui_SetHolderParam(itemGetText(arg0, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+        uiSetPromptText(itemGetText(arg0, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
     }
 }
 
@@ -555,7 +555,7 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
                 arg0->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
                 arg0->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
             } else {
-                Ui_SetHolderParam(Gp_StrChangeOrderHelp, 0, 0);
+                uiSetPromptText(Gp_StrChangeOrderHelp, 0, 0);
             }
         }
     }
@@ -2211,7 +2211,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Ui_SetHolderParamAlt(item, 0, 0);
+            uiSetPromptPeItem(item, 0, 0);
         }
     }
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
@@ -3238,7 +3238,7 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Ui_SetHolderParam(Gp_StrUseAttachHelp, 0, 0);
+            uiSetPromptText(Gp_StrUseAttachHelp, 0, 0);
         }
     }
 
@@ -3270,7 +3270,7 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Ui_SetHolderParam(Gp_StrUseKeyHelp, 0, 0);
+            uiSetPromptText(Gp_StrUseKeyHelp, 0, 0);
         }
     }
 
@@ -3343,7 +3343,7 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
     one    = 1;
     if (((status >> 16) == one) || (status == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Ui_SetHolderParam(Gp_StrCheckMap, 0, 0);
+            uiSetPromptText(Gp_StrCheckMap, 0, 0);
         }
     }
 

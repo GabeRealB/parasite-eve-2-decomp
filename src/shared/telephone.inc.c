@@ -88,7 +88,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
                 Telephone_Data_80181C08,
             };
 
-            Ui_SetHolderParam(tbl[arg0->currentItemIndex], 0, 0);
+            uiSetPromptText(tbl[arg0->currentItemIndex], 0, 0);
         }
     }
 

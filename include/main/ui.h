@@ -16,7 +16,23 @@ extern UiObject* Wip_UiHolder;
 /// Current item-information panel, cleared when its owner closes.
 extern UiObject* D_80067634;
 
-UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4);
+/// Opens a screen-centered option dialog and clears its caller-owned answer.
+///
+/// A positive optionCount must be 1..127, with at least that many linked options;
+/// the list controller keeps only its low byte. Zero or negative counts open
+/// nothing. Measures every label with `textMeasureLineWidth`, fits fifteen-pixel
+/// rows and adds twelve width pixels. Labels follow that measurement contract
+/// and `textDrawUiLine`'s stream contract; a non-NULL title uses `uiDrawPanelLabel`.
+/// Bounds narrow to halfwords without clamping. Content layout is refreshed by
+/// the owning task before drawing at the final bounds.
+///
+/// Borrows the writable request, nodes and strings until the dialog's closing
+/// animation finishes. Only one option dialog may use the shared list at a time.
+/// Confirm publishes a one-based option; permitted Cancel/Menu publishes -1.
+/// Returns the task-owned object, or NULL for an empty request/allocation failure;
+/// result is cleared even on failure. No borrowed storage is released. The
+/// owning task releases the object after closing; trailing arguments are ignored.
+UiObject* uiSpawnOptionDialog(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4);
 
 /// Spawns a task-owned UI object from a read-only panel recipe.
 ///
@@ -160,11 +176,24 @@ void uiUpdatePanelContentLayout(UiPanel* panel, const RECT* outerRect, RECT* inn
 /// live; only dialog bounds are written, with 16-bit coordinate truncation.
 void uiPositionRowDialog(UiPanel* dialogPanel, const UiList* list, const UiPanel* listPanel);
 
-/// Set the prompt text; the owner task stores it in its mixed spawn payload.
-void Ui_SetHolderParam(const u8* arg0, s32 unused2, s32 unused3);
+/// Replaces the current prompt panel's borrowed encoded text.
+///
+/// Does nothing without a registered panel. Otherwise its owner must be live and
+/// use a text-aware prompt callback. Text must remain readable under that drawer's
+/// stream contract until replaced or the panel closes; NULL clears the payload.
+/// The mixed payload's pointer view discards const, but these consumers only read
+/// the string. No allocation, redraw or release occurs here; trailing arguments
+/// are ignored.
+void uiSetPromptText(const u8* text, s32 unused2, s32 unused3);
 
-/// Set a numeric item id (0x300..0x3FF) for the PE cost prompt.
-void Ui_SetHolderParamAlt(s32 arg0, s32 unused2, s32 unused3);
+/// Selects a PE item's cost display in the current prompt panel.
+///
+/// Does nothing without a registered panel. Otherwise its live owner must use a
+/// prompt callback that accepts the numeric payload. PE item IDs 0x300..0x3FF
+/// select cost lines; zero clears the payload. The full s32 word is stored without
+/// validation, allocation or redraw. Text-only prompt callbacks cannot accept
+/// nonzero item IDs. The two trailing arguments are ignored.
+void uiSetPromptPeItem(s32 peItemId, s32 unused2, s32 unused3);
 
 /// Limits a hidden panel's reopening delay, or begins opening an earlier state.
 ///

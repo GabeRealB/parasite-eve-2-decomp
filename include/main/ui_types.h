@@ -217,7 +217,7 @@ STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 /// One selectable row of an option dialog, linked in display order.
 ///
 /// The caller builds the list and passes its head in the `UiOptionDialogRequest`
-/// given to `Ui_SpawnTextBlock`. The dialog shows one option per list row and
+/// given to `uiSpawnOptionDialog`. The dialog shows one option per list row and
 /// reports a confirmed row as its one-based position in the list. Nodes are
 /// reached by stepping `next` a counted number of times, never by testing for a
 /// terminator, so the list must hold at least the request's `optionCount` nodes.
@@ -236,7 +236,7 @@ enum {
 
 /// A caller's request for an option dialog, and the place its answer arrives.
 ///
-/// The caller fills the request and passes it to `Ui_SpawnTextBlock`, which
+/// The caller fills the request and passes it to `uiSpawnOptionDialog`, which
 /// opens a screen-centred panel listing one option per row, widened to the
 /// longest label. A count of zero or less opens nothing. Either way the call
 /// clears `result`, and the caller polls it: it stays zero until the player

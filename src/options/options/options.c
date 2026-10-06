@@ -219,7 +219,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     }
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
-        Ui_SetHolderParam(D_options_801D5C7C, 0, 0);
+        uiSetPromptText(D_options_801D5C7C, 0, 0);
     }
 }
 
@@ -289,7 +289,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     }
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
-        Ui_SetHolderParam(D_options_801D5CA8, 0, 0);
+        uiSetPromptText(D_options_801D5CA8, 0, 0);
     }
 }
 
@@ -345,7 +345,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode = selected;
     status                                              = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
-        Ui_SetHolderParam(D_options_801D5CE4, 0, 0);
+        uiSetPromptText(D_options_801D5CE4, 0, 0);
     }
 }
 
@@ -403,7 +403,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = selected;
     status                                             = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
-        Ui_SetHolderParam(D_options_801D5D28, 0, 0);
+        uiSetPromptText(D_options_801D5D28, 0, 0);
     }
 }
 
@@ -461,7 +461,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode = selected;
     status                                            = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
-        Ui_SetHolderParam(D_options_801D5D68, 0, 0);
+        uiSetPromptText(D_options_801D5D68, 0, 0);
     }
 }
 
@@ -879,16 +879,16 @@ static void func_options_801D4D0C(Task* task)
     if (((status2 >> 16) == 1) || (status2 == 1)) {
         switch (type) {
             case 0:
-                Ui_SetHolderParam(D_options_801D5E0C, 0, 0);
+                uiSetPromptText(D_options_801D5E0C, 0, 0);
                 break;
             case 1:
-                Ui_SetHolderParam(D_options_801D5E20, 0, 0);
+                uiSetPromptText(D_options_801D5E20, 0, 0);
                 break;
             case 2:
-                Ui_SetHolderParam(D_options_801D5E58, 0, 0);
+                uiSetPromptText(D_options_801D5E58, 0, 0);
                 break;
             default:
-                Ui_SetHolderParam(D_options_801D5E90, 0, 0);
+                uiSetPromptText(D_options_801D5E90, 0, 0);
                 break;
         }
     }
@@ -929,7 +929,7 @@ static void func_options_801D5954(UiList* arg0, UiObject* arg1)
     textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5BAC, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
-        Ui_SetHolderParam(D_options_801D5DA4, 0, 0);
+        uiSetPromptText(D_options_801D5DA4, 0, 0);
     }
     if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -945,7 +945,7 @@ static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
     textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B2C, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     status = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
-        Ui_SetHolderParam(D_options_801D5DDC, 0, 0);
+        uiSetPromptText(D_options_801D5DDC, 0, 0);
     }
     if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);

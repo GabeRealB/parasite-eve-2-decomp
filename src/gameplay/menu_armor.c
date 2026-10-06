@@ -157,14 +157,14 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
-    do {                                                                                  \
-        if ((item) == 0) {                                                                \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
-        } else {                                                                          \
-            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                                 \
-        Gp_SetPreviewItem((item), 0);                                                     \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
+    do {                                                                                \
+        if ((item) == 0) {                                                              \
+            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                        \
+            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                               \
+        Gp_SetPreviewItem((item), 0);                                                   \
     } while (0)
 
 /// Whether item `id` is the equipped weapon, the equipped armour, or a
@@ -229,9 +229,9 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 
         if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->selectedItemIndex == prompt->currentItemIndex) {
             if (item == 0) {
-                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+                uiSetPromptText(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
 
@@ -263,7 +263,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
         }
     } else {
         if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && prompt->selectedItemIndex == prompt->currentItemIndex) {
-            Ui_SetHolderParam(Gp_StrDetachArmorHelp, 0, 0);
+            uiSetPromptText(Gp_StrDetachArmorHelp, 0, 0);
         }
         {
             TextDrawReq req;

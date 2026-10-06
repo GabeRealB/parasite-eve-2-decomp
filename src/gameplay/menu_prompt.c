@@ -103,7 +103,7 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         case 5:
             desc = D_8010EAB4;
             uiSpawnObject(desc + 5, 0, 1, 8, arg0);
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 0x14:
@@ -117,21 +117,21 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         case 0x101:
             displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
             uiSpawnObject(&D_8010EAD0, 0, 1, 8, arg0);
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 6:
         case 0xC:
             displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
             uiSpawnObject(D_8010EAB4 + arg0->resultValue, 0, 0, 8, arg0);
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
         case 0x24:
         default:
             displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
             uiSpawnObject(D_8010EAB4 + arg0->resultValue, 0, 1, 8, arg0);
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(Gp_StrEmpty, 0, 0);
             uiStartPanelOpening(&(arg0)->panel, arg0->owner);
             break;
     }
@@ -1173,14 +1173,14 @@ static inline InventoryItemRow* _gpNthLooseRec(InventoryItemRange* scan, s32 ind
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
-    do {                                                                                  \
-        if ((item) == 0) {                                                                \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
-        } else {                                                                          \
-            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                                 \
-        Gp_SetPreviewItem((item), 0);                                                     \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
+    do {                                                                                \
+        if ((item) == 0) {                                                              \
+            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                        \
+            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                               \
+        Gp_SetPreviewItem((item), 0);                                                   \
     } while (0)
 
 void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
@@ -1205,7 +1205,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
             if (Gp_ItemOrderMode == 0) {
                 GP_SHOW_ITEM_IN_HOLDER(item);
             } else {
-                Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+                uiSetPromptText(Gp_StrSelectDest, 0, 0);
             }
         }
     }
@@ -1544,13 +1544,13 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
     if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item == 0) {
-                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+                uiSetPromptText(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
             Gp_SetPreviewItem(item, 0);
         } else {
-            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+            uiSetPromptText(Gp_StrSelectDest, 0, 0);
         }
     }
 
@@ -1691,13 +1691,13 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
     if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
-                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 Gp_SetPreviewItem(item, 0);
             } else {
-                Ui_SetHolderParam(Gp_StrAmmoNone, 0, 0);
+                uiSetPromptText(Gp_StrAmmoNone, 0, 0);
             }
         } else {
-            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+            uiSetPromptText(Gp_StrSelectDest, 0, 0);
         }
     }
     if (item != 0) {
@@ -2009,13 +2009,13 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
     if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
-                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 Gp_SetPreviewItem(item, 0);
             } else {
-                Ui_SetHolderParam(Gp_StrAttachNone, 0, 0);
+                uiSetPromptText(Gp_StrAttachNone, 0, 0);
             }
         } else {
-            Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+            uiSetPromptText(Gp_StrSelectDest, 0, 0);
         }
     }
     if (rec != NULL) {
@@ -2250,13 +2250,13 @@ void Gp_ArmorMenuTask(Task* arg0)
             if (((t >> 16) == one) || (t == one)) {
                 if (Gp_ItemOrderMode == 0) {
                     if (item == 0) {
-                        Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+                        uiSetPromptText(Gp_StrEmpty, 0, 0);
                     } else {
-                        Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                        uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                     }
                     Gp_SetPreviewItem(item, 0);
                 } else {
-                    Ui_SetHolderParam(Gp_StrSelectDest, 0, 0);
+                    uiSetPromptText(Gp_StrSelectDest, 0, 0);
                 }
             }
         }

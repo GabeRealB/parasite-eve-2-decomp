@@ -1006,7 +1006,7 @@ void func_800BDF6C(Task* task)
         split->carriedQty          = dstTotal;
         split->carriedInitialQty   = dstTotal;
         split->loadedQty           = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
-        Ui_SetHolderParam(Gp_StrSetAmmoHelp, 0, 0);
+        uiSetPromptText(Gp_StrSetAmmoHelp, 0, 0);
         split->stackLimit = Gp_StackLimits[task->spawnArg1.value - 0xA0].maxHeld;
         task->state       = task->state + 1;
     }
@@ -1178,15 +1178,15 @@ void func_800BDF6C(Task* task)
     message = task->status;
     if (message == 1) {
         task->killCountdown = 0xBC;
-        Ui_SetHolderParam(Gp_StrAmmoLocked, 0, 0);
+        uiSetPromptText(Gp_StrAmmoLocked, 0, 0);
     } else if (message == 2) {
         task->killCountdown = 0xBC;
-        Ui_SetHolderParam(Gp_StrMaxCapacity, 0, 0);
+        uiSetPromptText(Gp_StrMaxCapacity, 0, 0);
     } else if (task->killCountdown > 0) {
         result              = (u16)task->killCountdown - 1;
         task->killCountdown = result;
         if ((result << 0x10) == 0) {
-            Ui_SetHolderParam(Gp_StrSetAmmoHelp, 0, 0);
+            uiSetPromptText(Gp_StrSetAmmoHelp, 0, 0);
         }
     }
 }

@@ -9336,7 +9336,7 @@ non-volatile read; `((T**)Table)[1]` produces it without changing the
 declaration other callers rely on. `_worldCoordUpdatePlayerLighting` reading `gPlayerActorTasks[1]`
 is the example.
 
-## Dummy pin that outlives a short constant (Ui_SpawnTextBlock)
+## Dummy pin that outlives a short constant (uiSpawnOptionDialog)
 
 When the target holds a small constant K in `$s5` only during early init, then
 reuses a *different* callee-saved (`$s3`) for a later accumulator that would
@@ -16512,7 +16512,7 @@ if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, mask) != 0) {
 ```
 
 `li $v1, 6` fills the `beqz` delay slot; `lbu` reuses `$v0`; `sh $v1, result`
-sits between the load and the sign-extend. `Ui_DrawDialogLine` is the example.
+sits between the load and the sign-extend. `_uiDrawOptionDialogRow` is the example.
 
 ## Array re-index each iteration to keep struct base as IV
 
@@ -35165,9 +35165,9 @@ cur = (CdCmdEntry*)off;
 
 `Gp_EnqueueItemPreviewCd` is the example.
 
-## Join `SetHolderParam` text in `$a0` and kill REG_EQUAL on the 0s
+## Join `uiSetPromptText` text in `$a0` and kill REG_EQUAL on the 0s
 
-`Ui_SetHolderParam(text, 0, 0)` immediately followed by `Gp_SetPreviewItem(item, 0)`
+`uiSetPromptText(text, 0, 0)` immediately followed by `Gp_SetPreviewItem(item, 0)`
 with `item` in `$s0` copy-props both 0s: `move a1, zero` / `jal` /
 `move a2, zero`. The target reuses the first 0 as `move a2, a1` in the delay
 and still has `li a1, 1` in the `bnez item` delay of the empty-slot path.
@@ -35187,7 +35187,7 @@ if (item == 0) {
 }
 a1v = 0;
 asm("" : "+r"(a1v));
-Ui_SetHolderParam(t, a1v, a1v);
+uiSetPromptText(t, a1v, a1v);
 Gp_SetPreviewItem(item, 0);
 ```
 
@@ -35796,7 +35796,7 @@ Take `SVECTOR*` addresses of `field_10` / `field_18` *before* the
 
 ## Force `$a1 = 0` with `addu` from `$zero` when a proven-zero local would copy-prop
 
-`if (item == 0) Ui_SetHolderParam(str, 0, 0)` lets GCC substitute the
+`if (item == 0) uiSetPromptText(str, 0, 0)` lets GCC substitute the
 known-zero `item` (`move a1, s3` / `move a2, s3`). The target is
 `move a1, zero` after the `la`. Load the string first, then pin `$a1`
 from `$zero`:
@@ -35806,7 +35806,7 @@ t = (s32)str;
 {
     register s32 a1v asm("a1");
     asm volatile("addu %0, $zero, $zero" : "=r"(a1v));
-    Ui_SetHolderParam(t, a1v, a1v);
+    uiSetPromptText(t, a1v, a1v);
 }
 ```
 
@@ -36813,7 +36813,7 @@ saves. `Gp_DrawRemoveArmorRow` is the example.
 
 ## Clobber a known-NULL saved pointer so it is not a zero source
 
-`rec = func(); if (rec != NULL) { ... } else { Ui_SetHolderParam(s, 0, 0); }`
+`rec = func(); if (rec != NULL) { ... } else { uiSetPromptText(s, 0, 0); }`
 leaves `rec` in `$s0` as a known 0 on the empty path. GCC then writes
 `move a1, s0` instead of `move a1, zero`, and later reuses `$s0` as a
 scratch for `field_0 << 2` when the same pointer is assigned a table walk.
@@ -36824,7 +36824,7 @@ Clobber the register on the empty path before those uses:
 } else {
     asm volatile("" : "+r"(rec));
     a1v = 0;
-    Ui_SetHolderParam(str, a1v, a1v);
+    uiSetPromptText(str, a1v, a1v);
     rec = (GpItemRec*)((s32)tmp + (idx << 2));
 }
 ```
@@ -146766,9 +146766,9 @@ and nothing is skipped.
 **Fix.** Swap the operands, `l->itemCount <= l->visibleRowCount.signedValue`: the `itemCount` load
 leads the join block and reorg retargets the branch past it. No local, no
 barrier.
-## A temp that reads a stack field ahead of stores is sched1 reordering disjoint-offset stores (Ui_SpawnTextBlock, 2026-09-27)
+## A temp that reads a stack field ahead of stores is sched1 reordering disjoint-offset stores (uiSpawnOptionDialog, 2026-09-27)
 
-`Ui_SpawnTextBlock` repeats a sibling's whole spawn routine and then the usual
+`uiSpawnOptionDialog` repeats a sibling's whole spawn routine and then the usual
 rect-to-layout block, but the target stores `baseY` (0x22) *after* two later
 fields (0x10, 0xC), with `rect.y` loaded before them. The tree reproduced that
 with `new_var = rect.y` hoisted above the other stores, a `dummy = 1` plus

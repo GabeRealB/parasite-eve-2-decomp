@@ -686,14 +686,14 @@ const u16 D_80096F88[12] = {
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
-    do {                                                                                  \
-        if ((item) == 0) {                                                                \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
-        } else {                                                                          \
-            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                                 \
-        Gp_SetPreviewItem((item), 0);                                                     \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
+    do {                                                                                \
+        if ((item) == 0) {                                                              \
+            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                        \
+            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                               \
+        Gp_SetPreviewItem((item), 0);                                                   \
     } while (0)
 
 /// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the

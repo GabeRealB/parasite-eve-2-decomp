@@ -296,7 +296,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->selectedItemIndex == prompt->currentItemIndex) {
-                Ui_SetHolderParam(Shop_Data_80181A20, 0, 0);
+                uiSetPromptText(Shop_Data_80181A20, 0, 0);
             }
         }
         if (Gp_HasMappedItem() == 0) {
@@ -324,7 +324,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->selectedItemIndex == prompt->currentItemIndex) {
-                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+                uiSetPromptText(Gp_StrEmpty, 0, 0);
             }
         }
         if (Gp_SumScanQty(scan, 0x8F) != 0) {
@@ -689,7 +689,7 @@ static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
     status = obj->panel.control.word;
     if (((status >> 16) == one2) || (status == one2)) {
         if (prompt->selectedItemIndex == prompt->currentItemIndex) {
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(Gp_StrEmpty, 0, 0);
         }
     }
 

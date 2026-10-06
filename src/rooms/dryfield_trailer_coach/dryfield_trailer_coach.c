@@ -1705,7 +1705,7 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, s32 arg
 /// Opens the room's two-option choice: allocates the `RoomOptionDialog` (killing
 /// the task if that fails), labels its two options from the topic menu chosen
 /// by `spawnArg1` (menu 1 when it is 1, menu 0 otherwise), passes the request
-/// to `Ui_SpawnTextBlock` and advances the task. Cancelling is not permitted.
+/// to `uiSpawnOptionDialog` and advances the task. Cancelling is not permitted.
 static void func_dryfield_trailer_coach_801826A0(Task* task)
 {
     RoomOptionDialog* dialog;
@@ -1749,7 +1749,7 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     dialog->request.options     = dialog->options;
     dialog->request.title       = NULL;
     dialog->request.flags       = 0;
-    Ui_SpawnTextBlock(&dialog->request, 0, 0, 0);
+    uiSpawnOptionDialog(&dialog->request, 0, 0, 0);
     task->state++;
 }
 

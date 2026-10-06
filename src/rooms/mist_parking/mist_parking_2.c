@@ -1034,7 +1034,7 @@ void func_mist_parking_801832AC(Task* task)
 /// Opens the room's two-option choice: allocates the `RoomOptionDialog`
 /// (killing the task if that fails), parks it at `Task::work`, labels its two
 /// options from the pair chosen by `spawnArg1` (the second pair when it is 1,
-/// the first otherwise), passes the request to `Ui_SpawnTextBlock` and steps
+/// the first otherwise), passes the request to `uiSpawnOptionDialog` and steps
 /// the task on. Cancelling is not permitted. `func_mist_parking_80183434` is
 /// set as the exit callback.
 static void func_mist_parking_80183304(Task* task)
@@ -1074,7 +1074,7 @@ static void func_mist_parking_80183304(Task* task)
     dialog->request.options     = dialog->options;
     dialog->request.title       = NULL;
     dialog->request.flags       = 0;
-    Ui_SpawnTextBlock(&dialog->request, 0, 0, 0);
+    uiSpawnOptionDialog(&dialog->request, 0, 0, 0);
     task->state++;
 }
 

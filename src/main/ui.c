@@ -523,9 +523,9 @@ static void _uiPanelHidden(UiPanel* panel, Task* task);
 
 static void _uiDispatchPanelLifecycle(Task* owningTask);
 
-static void Ui_DrawDialogLine(UiList* list, UiObject* object);
+static void _uiDrawOptionDialogRow(UiList* list, UiObject* object);
 
-static void Ui_ListTaskCallback(Task* task);
+static void _uiUpdateOptionDialogTask(Task* owningTask);
 
 TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -685,9 +685,9 @@ static s32 D_80067644 = 0x0038443C;
 static s32 D_80067648 = 0xFFFFFF56;
 static s32 D_8006764C = 0xFFFFFF7E;
 
-static UiListRowCallback Ui_DialogLineCallbacks[] = { Ui_DrawDialogLine };
+static UiListRowCallback Ui_DialogLineCallbacks[] = { _uiDrawOptionDialogRow };
 static UiList            Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1, 1, 0, 0x0F };
-static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 0x60, 0x40 }, 0x20, 0, TASK_BODY_NONE, 0xC0, Ui_ListTaskCallback, 0 };
+static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 0x60, 0x40 }, 0x20, 0, TASK_BODY_NONE, 0xC0, _uiUpdateOptionDialogTask, 0 };
 UiObject*                Wip_UiHolder             = NULL;
 
 static const _UiPanelLifecycleFuncTable6 Ui_ObjectStates = { {
@@ -1623,6 +1623,13 @@ static inline void _uiFillRectInterior(const UiPanel* panel, s32 left, s32 top, 
 }
 
 /// Queues the two three-vertex polylines forming a rectangle's bevel.
+///
+/// Borrows a live panel; origins and edge spans are content-relative pixels.
+/// Bit zero of raisedBevel selects dark bottom/right and light top/left when
+/// set, reversing the colors when clear. Always reserves and links two LINE_F3
+/// packets, even for nonpositive spans. Coordinates retain sixteen bits; needs
+/// word-aligned arena space and a writable signed panel OT base+1 tag. No bounds
+/// checks or clipping occur here. Packets must remain live until GPU completion.
 static inline void _uiQueueRectBevelEdges(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, s32 raisedBevel)
 {
     enum {
@@ -2080,6 +2087,12 @@ void uiDrawHorizontalSeparator(const UiPanel* panel, s32 left, s32 right, s32 ce
 }
 
 /// Initializes the vertical separator's eight-texel UI atlas cell and raw texture mode.
+///
+/// Borrows a writable, word-aligned POLY_FT4 with screen vertices already set.
+/// Texture endpoints cover U 112..119 and V 80..87 on the 4bpp page at VRAM
+/// (896,256), using the sixteen-color palette at (48,240). Sets the nine-word
+/// DMA length and textured-quad command; raw mode leaves RGB bytes unused.
+/// Does not allocate or link the packet, or change its vertices or DMA address.
 static inline void _uiInitVerticalSeparatorPacket(POLY_FT4* separator)
 {
     enum {
@@ -2282,67 +2295,84 @@ void uiDrawPanelLabel(UiPanel* panel, const char* label)
     panel->otIndex.unsignedValue += 1;
 }
 
-UiObject* Ui_SpawnTextBlock(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4)
-{
-    UiObject*       obj;
-    UiDialogOption* option;
-    TaskSpawnArg    requestArg;
-    s32             count;
-    s32             maxWidth;
-    s32             width;
+/// Applies style padding and centers an option dialog's content rectangle.
+///
+/// Requires a stable UiPanel pointer and writable frame-inset RECT lvalue without
+/// side effects; both arguments are used repeatedly. Captures no locals. Stores
+/// retain sixteen bits, using signed left-edge and unsigned top-edge arithmetic.
+/// Invoke as a standalone statement in a compound block; the rectangle keeps its
+/// caller-local lifetime and must be separate from the panel's bounds.
+#define USER_INTERFACE_CENTER_OPTION_DIALOG_CONTENT(panelValue, contentRectValue)                               \
+    if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {          \
+        (contentRectValue).y += 9;                                                                              \
+        (contentRectValue).h -= 0xB;                                                                            \
+        (contentRectValue).x += 2;                                                                              \
+        (contentRectValue).w -= 4;                                                                              \
+    } else {                                                                                                    \
+        (contentRectValue).y += 2;                                                                              \
+        (contentRectValue).h -= 4;                                                                              \
+        (contentRectValue).x += 2;                                                                              \
+        (contentRectValue).w -= 4;                                                                              \
+    }                                                                                                           \
+    (panelValue)->contentLeft.signedValue      = -((contentRectValue).w >> 1);                                  \
+    (panelValue)->contentRight.unsignedValue   = (panelValue)->contentLeft.signedValue + (contentRectValue).w;  \
+    (panelValue)->contentTop.unsignedValue     = -((contentRectValue).h >> 1);                                  \
+    (panelValue)->contentBottom.unsignedValue  = (panelValue)->contentTop.unsignedValue + (contentRectValue).h; \
+    (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.signedValue;  \
+    (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.unsignedValue;
 
-    obj = NULL;
+UiObject* uiSpawnOptionDialog(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4)
+{
+    enum {
+        USER_INTERFACE_OPTION_DIALOG_UNTITLED_STYLE      = 3,
+        USER_INTERFACE_OPTION_DIALOG_ROW_HEIGHT_PIXELS   = 15,
+        USER_INTERFACE_OPTION_DIALOG_WIDTH_MARGIN_PIXELS = 12,
+        USER_INTERFACE_OPTION_DIALOG_OPENING_DELAY_TICKS = 1
+    };
+    UiObject*             object;
+    const UiDialogOption* option;
+    TaskSpawnArg          requestArg;
+    s32                   remainingOptions;
+    s32                   contentGrowthPixels;
+    s32                   optionWidthPixels;
+
+    object = NULL;
     if (request->optionCount > 0) {
         requestArg.pointer = request;
-        obj                = USER_INTERFACE_SPAWN_OBJECT(&Ui_DialogListDesc, requestArg, 1, 1, NULL);
-        if (obj != NULL) {
-            RECT rect;
+        object             = USER_INTERFACE_SPAWN_OBJECT(&Ui_DialogListDesc, requestArg, USER_INTERFACE_PANEL_ACTIVE, USER_INTERFACE_OPTION_DIALOG_OPENING_DELAY_TICKS, NULL);
+        if (object != NULL) {
+            RECT contentRect;
 
-            count    = request->optionCount;
-            option   = request->options;
-            maxWidth = 0;
+            remainingOptions    = request->optionCount;
+            option              = request->options;
+            contentGrowthPixels = 0;
             if (request->title == NULL) {
-                obj->panel.style = 3;
+                object->panel.style = USER_INTERFACE_OPTION_DIALOG_UNTITLED_STYLE;
             }
-            for (; count > 0; count--) {
-                width = textMeasureLineWidth(option->text);
-                if (maxWidth < width) {
-                    maxWidth = width;
+            for (; remainingOptions > 0; remainingOptions--) {
+                optionWidthPixels = textMeasureLineWidth(option->text);
+                if (contentGrowthPixels < optionWidthPixels) {
+                    contentGrowthPixels = optionWidthPixels;
                 }
                 option = option->next;
             }
-            _uiComputePanelInnerRect(&obj->panel, &obj->panel.bounds.rect, &rect);
-            if ((obj->panel.style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {
-                rect.y += 9;
-                rect.h -= 0xB;
-                rect.x += 2;
-                rect.w -= 4;
-            } else {
-                rect.y += 2;
-                rect.h -= 4;
-                rect.x += 2;
-                rect.w -= 4;
-            }
-            obj->panel.contentLeft.signedValue      = -(rect.w >> 1);
-            obj->panel.contentRight.unsignedValue   = obj->panel.contentLeft.signedValue + rect.w;
-            obj->panel.contentTop.unsignedValue     = -(rect.h >> 1);
-            obj->panel.contentBottom.unsignedValue  = obj->panel.contentTop.unsignedValue + rect.h;
-            obj->panel.contentOriginX.unsignedValue = rect.x - obj->panel.contentLeft.signedValue;
-            obj->panel.contentOriginY.unsignedValue = rect.y - obj->panel.contentTop.unsignedValue;
+            _uiComputePanelInnerRect(&object->panel, &object->panel.bounds.rect, &contentRect);
+            USER_INTERFACE_CENTER_OPTION_DIALOG_CONTENT(&object->panel, contentRect);
 
-            // Grow the panel so the widest line and every line fit inside.
-            maxWidth                        -= obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue;
-            obj->panel.bounds.unsignedRect.w = obj->panel.bounds.unsignedRect.w + maxWidth + 0xC;
-            obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
-            maxWidth                         = request->optionCount * 0xF;
-            maxWidth                        -= obj->panel.contentBottom.signedValue - obj->panel.contentTop.signedValue;
-            obj->panel.bounds.unsignedRect.h = obj->panel.bounds.unsignedRect.h + maxWidth;
-            obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
+            // Grow around the widest label and fifteen-pixel rows, then center the bounds.
+            contentGrowthPixels                -= object->panel.contentRight.signedValue - object->panel.contentLeft.signedValue;
+            object->panel.bounds.unsignedRect.w = object->panel.bounds.unsignedRect.w + contentGrowthPixels + USER_INTERFACE_OPTION_DIALOG_WIDTH_MARGIN_PIXELS;
+            object->panel.bounds.unsignedRect.x = -((s16)object->panel.bounds.unsignedRect.w / 2);
+            contentGrowthPixels                 = request->optionCount * USER_INTERFACE_OPTION_DIALOG_ROW_HEIGHT_PIXELS;
+            contentGrowthPixels                -= object->panel.contentBottom.signedValue - object->panel.contentTop.signedValue;
+            object->panel.bounds.unsignedRect.h = object->panel.bounds.unsignedRect.h + contentGrowthPixels;
+            object->panel.bounds.unsignedRect.y = -((s16)object->panel.bounds.unsignedRect.h / 2);
         }
     }
-    request->result = 0;
-    return obj;
+    request->result = USER_INTERFACE_RESULT_NONE;
+    return object;
 }
+#undef USER_INTERFACE_CENTER_OPTION_DIALOG_CONTENT
 
 /// Insets a standalone frame while retaining signed-halfword origin truncation.
 ///
@@ -3166,96 +3196,127 @@ void Ui_WaitCdThenOverlay(Task* task)
     temp_s0->animationTicks += gDisplayState.frameTicks;
 }
 
-static void Ui_DrawDialogLine(UiList* list, UiObject* object)
+/// Draws one linked option and publishes confirm/cancel for the active row.
+///
+/// Borrows the list/object under UiListRowCallback's contract. The object's owner
+/// must borrow a live UiOptionDialogRequest in spawnArg1 with 1..127 options and
+/// enough linked nodes for currentItemIndex. Labels follow textDrawUiLine's
+/// encoded-text and drawing-resource contract. Port-zero Confirm wins over
+/// Cancel/Menu and publishes the one-based row; flag bit zero permits result -1.
+/// Neither borrowed storage nor the owning task is released here.
+static void _uiDrawOptionDialogRow(UiList* list, UiObject* object)
 {
-    UiOptionDialogRequest* request;
-    UiDialogOption*        option;
-    s32                    var_v0;
-    s16                    temp;
+    const UiOptionDialogRequest* request;
+    const UiDialogOption*        option;
+    s32                          remainingOptions;
+    s16                          confirmResult;
 
-    request = object->owner->spawnArg1.pointer;
-    var_v0  = list->currentItemIndex;
-    option  = request->options;
-    if (var_v0 > 0) {
+    // Find the row by its counted position, rather than a list terminator.
+    request          = object->owner->spawnArg1.pointer;
+    remainingOptions = list->currentItemIndex;
+    option           = request->options;
+    if (remainingOptions > 0) {
         do {
-            option  = option->next;
-            var_v0 -= 1;
-        } while (var_v0 > 0);
+            option            = option->next;
+            remainingOptions -= 1;
+        } while (remainingOptions > 0);
     }
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, option->text, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            temp                = USER_INTERFACE_RESULT_CONFIRM;
-            object->resultValue = (s8)(u8)list->currentItemIndex + 1;
-            object->result      = temp;
+            confirmResult       = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = list->currentItemIndex + 1;
+            object->result      = confirmResult;
             return;
         }
         if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
-            object->resultValue = -1;
+            object->resultValue = USER_INTERFACE_RESULT_CANCEL;
             object->result      = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
 
-static void Ui_ListTaskCallback(Task* task)
+/// Detaches an option dialog's descendants before marking its owner closing.
+///
+/// Borrows the live UI object and its task tree. Each child holds a UiObject
+/// in spawnArg2; closing children must already be detached. No storage is freed.
+static inline void _uiCloseOptionDialogTree(UiObject* object)
 {
-    UiObject*              obj;
-    UiOptionDialogRequest* request;
-    UiList*                menu;
-    char*                  text;
-    u8                     base;
-    s16                    status;
-    Task*                  parent;
-    Task*                  child;
+    Task* owner;
+    Task* childTask;
 
-    obj         = (UiObject*)task->spawnArg2.pointer;
-    request     = task->spawnArg1.pointer;
-    menu        = &Ui_DialogLineList;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (task->state == 0) {
-        base                                = request->optionCount;
-        menu->visibleRowCount.unsignedValue = base;
-        menu->itemCount                     = base;
-        uiFitPanelToList(menu, &(obj)->panel);
-        menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        task->state += 1;
+    owner     = object->owner;
+    childTask = owner->firstChild;
+    if (childTask != NULL) {
+        do {
+            uiStartTreeClosing(childTask->spawnArg2.pointer, childTask);
+            childTask = owner->firstChild;
+        } while (childTask != NULL);
     }
-    text = request->title;
-    if (text != NULL) {
-        uiDrawPanelLabel(&(obj)->panel, text);
+    if (object->panel.state != USER_INTERFACE_PANEL_CLOSING) {
+        taskDetachFromParent(owner);
+        object->panel.state = USER_INTERFACE_PANEL_CLOSING;
     }
-    _uiUpdateListRows(menu, &(obj)->panel, 0);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        status = obj->result;
-        if ((status == USER_INTERFACE_RESULT_CONFIRM) || (status == USER_INTERFACE_RESULT_CANCEL)) {
-            request->result = obj->resultValue;
-            parent          = obj->owner;
-            child           = parent->firstChild;
-            if (child != NULL) {
-                do {
-                    uiStartTreeClosing((UiObject*)child->spawnArg2.pointer, child);
-                    child = parent->firstChild;
-                } while (child != NULL);
-            }
-            if (obj->panel.state != USER_INTERFACE_PANEL_CLOSING) {
-                taskDetachFromParent(parent);
-                obj->panel.state = USER_INTERFACE_PANEL_CLOSING;
-            }
+}
+
+/// Updates the shared option list, publishes its answer and begins dialog teardown.
+///
+/// owningTask owns a live UiObject in spawnArg2 and borrows its writable request
+/// in spawnArg1. A single option dialog may use Ui_DialogLineList at a time;
+/// its positive count must fit 1..127. State zero initializes the viewport from
+/// the count's low byte. Every call clears the transient result, draws any title
+/// and runs rows; the panel lifecycle supplies layout, clipping and GPU resources.
+/// Active confirm/cancel copies resultValue into the request before closing and
+/// detaching children and the owner. Borrowed request/text storage remains live
+/// until closing finishes; this callback does not free it.
+static void _uiUpdateOptionDialogTask(Task* owningTask)
+{
+    enum { USER_INTERFACE_OPTION_DIALOG_TASK_INITIAL = 0 };
+    UiObject*              object;
+    UiOptionDialogRequest* request;
+    UiList*                list;
+    const char*            title;
+    u8                     optionCount;
+    s16                    result;
+
+    object         = owningTask->spawnArg2.pointer;
+    request        = owningTask->spawnArg1.pointer;
+    list           = &Ui_DialogLineList;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (owningTask->state == USER_INTERFACE_OPTION_DIALOG_TASK_INITIAL) {
+        optionCount                         = request->optionCount;
+        list->visibleRowCount.unsignedValue = optionCount;
+        list->itemCount                     = optionCount;
+        uiFitPanelToList(list, &object->panel);
+        list->flags        = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        owningTask->state += 1;
+    }
+    title = request->title;
+    if (title != NULL) {
+        uiDrawPanelLabel(&object->panel, title);
+    }
+    _uiUpdateListRows(list, &object->panel, 0);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        result = object->result;
+        if ((result == USER_INTERFACE_RESULT_CONFIRM) || (result == USER_INTERFACE_RESULT_CANCEL)) {
+            // Publish the answer before detaching the dialog's task tree.
+            request->result = object->resultValue;
+            _uiCloseOptionDialogTree(object);
         }
     }
 }
 
-void Ui_SetHolderParam(const u8* arg0, s32 unused2, s32 unused3)
+void uiSetPromptText(const u8* text, s32 unused2, s32 unused3)
 {
     if (Wip_UiHolder != NULL) {
         // The task payload carries an address; the prompt only reads its text.
-        Wip_UiHolder->owner->spawnArg1.pointer = (void*)arg0;
+        Wip_UiHolder->owner->spawnArg1.pointer = (void*)text;
     }
 }
 
-void Ui_SetHolderParamAlt(s32 arg0, s32 unused2, s32 unused3)
+void uiSetPromptPeItem(s32 peItemId, s32 unused2, s32 unused3)
 {
     if (Wip_UiHolder != NULL) {
-        Wip_UiHolder->owner->spawnArg1.value = arg0;
+        Wip_UiHolder->owner->spawnArg1.value = peItemId;
     }
 }

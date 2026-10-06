@@ -25,7 +25,7 @@ STATIC_ASSERT_SIZEOF(RoomFadeStorage, 8);
 /// Work block of a room task that asks the player to choose between two options.
 ///
 /// The task allocates it, parks it in `Task::work` and passes `request` to
-/// `Ui_SpawnTextBlock`. The option dialog keeps that pointer while it is open
+/// `uiSpawnOptionDialog`. The option dialog keeps that pointer while it is open
 /// and reads the list through it, so the request and the two nodes its
 /// `options` head points at share one allocation, which the task's teardown
 /// frees. The task polls `request.result` for the answer.

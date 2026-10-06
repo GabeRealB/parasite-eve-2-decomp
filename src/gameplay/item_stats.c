@@ -95,14 +95,14 @@ WeaponAttackRow Gp_IdParamLo[47] = {
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
-    do {                                                                                  \
-        if ((item) == 0) {                                                                \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
-        } else {                                                                          \
-            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                                 \
-        Gp_SetPreviewItem((item), 0);                                                     \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
+    do {                                                                                \
+        if ((item) == 0) {                                                              \
+            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                        \
+            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                               \
+        Gp_SetPreviewItem((item), 0);                                                   \
     } while (0)
 
 /// Draws `item` as `_gpDrawItemNameUnmarkedAt` does, but fills the caller's
@@ -798,9 +798,9 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
                 Gp_EnqueueItemPreviewCd(item, 0);
             }
             if (item == 0) {
-                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+                uiSetPromptText(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
     }

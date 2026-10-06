@@ -387,9 +387,9 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             if (item == 0) {
-                Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
+                uiSetPromptText(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
     }
