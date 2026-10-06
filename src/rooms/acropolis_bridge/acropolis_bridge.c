@@ -4949,7 +4949,9 @@ static void func_acropolis_bridge_8018581C(Task* task)
                                        D_acropolis_bridge_801915E4[start->prevAnimId][start->animId]);
         }
         start->prevAnimId = start->animId;
-        goto advance;
+        work->animRequest = 3;
+        work->animFrame   = 0;
+        return;
     }
     if (work->animRequest == 2) {
         reset = (_AcropolisBridgeEnemyWork*)task->work;
@@ -4958,7 +4960,6 @@ static void func_acropolis_bridge_8018581C(Task* task)
             animationResetSlot(&reset->rig.anim, j, reset->animId);
         }
         reset->prevAnimId = reset->animId;
-    advance:
         work->animRequest = 3;
         work->animFrame   = 0;
         return;
