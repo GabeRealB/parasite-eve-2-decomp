@@ -2679,27 +2679,15 @@ static void func_actor_421600_80136138(Task* arg0)
         nextZone = zone - 1;
     else
         nextZone = zone + 1;
-    head[-1].delta.vx = D_actor_421600_80151158[nextZone].vx;
-    turn->delta.vy    = D_actor_421600_80151158[nextZone].vy;
-    turn->delta.vz    = D_actor_421600_80151158[nextZone].vz;
-    turn->delta.vx    = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
-    turn->delta.vy    = 0;
-    turn->delta.vz    = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    coord2            = arg0->extra.tmd->coords;
-    angle             = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    head[-1].delta.vx   = D_actor_421600_80151158[nextZone].vx;
+    turn->delta.vy      = D_actor_421600_80151158[nextZone].vy;
+    turn->delta.vz      = D_actor_421600_80151158[nextZone].vz;
+    turn->delta.vx      = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
+    turn->delta.vy      = 0;
+    turn->delta.vz      = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
+    coord2              = arg0->extra.tmd->coords;
+    angle               = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    angle               = actorWrapAngle(angle);
     wrapped             = angle;
     turn->angle         = wrapped;
     work->lookYawTarget = wrapped;
