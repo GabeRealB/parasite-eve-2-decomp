@@ -68119,7 +68119,7 @@ chain produced the same object. Writing the store into all three arms - no temp
 (209/209). Same tail: the target's two `addiu v0,6` turn out to be one insn,
 duplicated by `reorg` into the branch delay slot.
 
-`func_actor_123200_80133EDC` confirms the same mechanism without a call
+`_actor123200ApplyCommand` confirms the same mechanism without a call
 (2026-09-20). The archived ternary seed scored 94.591% with matching topology
 and predicates. Its `.jump` UID 136 defined the scale before the condition;
 `.greg` listed the scale's r91 as conflicting with hard v0. Replacing only
@@ -86142,8 +86142,8 @@ pattern that both readings share.
 `323e00e233bdf8f6d8bdad3fd8c9c2141bbd56fda8277535f4382bd0fec8065e`).
 ## m2c inlines the loaded pointer into the store that uses it, so the load is born *after* it - assign it to a local first
 
-`func_actor_123200_80134178` is 12 instructions: test a work-block flag, then
-release the node and set the model's kill bit. m2c folds the second store's
+`_actor123200Hide` is 12 instructions: test a work-block flag, then
+mark the node not lockable and exclude active model drawing. m2c folds the second store's
 pointer chain into one expression, so the load has no pseudo of its own until
 that statement. Its `.lreg` block 1 is
 
@@ -86151,7 +86151,7 @@ that statement. Its `.lreg` block 1 is
 (insn 22 ... (set (reg:QI 86) (const_int 1)))            ; the flag value
 (insn 24 ... (set (mem/s:QI (plus (reg/v:SI 80) ...))))  ; sb 0x14(a0)
 (insn 27 ... (set (reg:SI 87) ...))                      ; lw 0x2c(a1), born here
-(insn 29 ... (set (reg:HI 88) (const_int 128)))          ; the kill bit
+(insn 29 ... (set (reg:HI 88) (const_int 128)))          ; active-draw exclusion
 ```
 
 and it scores 79.545% (`regs=5 insert=1 delete=1`): the constant takes `$v0`,
@@ -86167,10 +86167,13 @@ match in one build:
 ```c
     TmdObject* model;
 
-    if (((_Actor123200Work*)arg1->work)->stateEntered != 0) {
-        model              = (TmdObject*)arg1->extra;
-        arg0->node.flags = 1;
-        model->field_C     = 0x80;
+    _Actor123200Work* work;
+
+    work = task->work;
+    if (work->stateEntered != 0) {
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 ```
 
@@ -86180,7 +86183,7 @@ whether the seed ever gave the load a home of its own. A duplicated body's
 matched sibling answers that directly, so transcribe its statement order, not
 just its field offsets and types.
 
-Example: `func_actor_123200_80134178` (79.545% -> 100.000%, one build).
+Example: `_actor123200Hide` (79.545% -> 100.000%, one build).
 Inputs: `base.i` (79.545%)
 `0b60a43483f9ab5e4920f14d2868ebe4f6e120e60ed81dae1ab536b181743f7c`,
 `base_1.i` (100.000%)
@@ -129239,7 +129242,7 @@ Inputs: scratch `nonmatchings/func_actor_304000_80162DFC-vacuum`; `base.c` (m2c)
 48.519%; `base_1.c`, the shared body with an inline work struct, 100.000% with
 all-zero penalties on its first build. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A scratch `-= 0xC` around an inlined step absorbs the step's head load unless the carve is the `SCRATCH_SP` shape (func_actor_123200_80133820, 2026-09-17)
+## A scratch `-= 0xC` around an inlined step absorbs the step's head load unless the carve is the `SCRATCH_SP` shape (_actor123200Walk, 2026-09-17)
 
 The per-frame handler reserves 0xC off the scratch head, then carves an `SVECTOR`
 inside an `if`. Written with the pointer macro —
@@ -129284,14 +129287,14 @@ back.
 ```c
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-static __inline__ void Actor123200_StepForward(GfxCoord* coord)
+static __inline__ void _actor123200StepForward(GfxCoord* coord)
 {
-    u8*      head;
-    SVECTOR* dir;
+    u8*      scratchHead;
+    SVECTOR* displacement;
 
-    head       = (u8*)SCRATCH_SP;
-    dir        = (SVECTOR*)(head - sizeof(SVECTOR));
-    SCRATCH_SP = (u32)dir;
+    scratchHead  = (u8*)SCRATCH_SP;
+    displacement = (SVECTOR*)(scratchHead - sizeof(SVECTOR));
+    SCRATCH_SP   = (u32)displacement;
     ...
     SCRATCH_SP = (u32)((u8*)SCRATCH_SP + sizeof(SVECTOR));
 }
@@ -129313,7 +129316,7 @@ before probing pieces of it; cse's `find_best_addr` bails out on
 `CONSTANT_ADDRESS_P (addr)`, which is why the carve's address survives as a
 constant only in the shape that never puts it in a register.
 
-## A header that names `MATRIX` must include `<psyq/libgte.h>` itself (func_actor_123200_80133BA0, 2026-09-17)
+## A header that names `MATRIX` must include `<psyq/libgte.h>` itself (_actor123200Update, 2026-09-17)
 
 Adding a matrix-typed field to an overlay header fails to compile with
 
@@ -129329,15 +129332,15 @@ the error, and it points at the header line, not at the missing include.
 `#include <psyq/libgte.h>` next to the other includes fixes it. The same applies
 to any psyq struct a newly added field names.
 
-## The actors family's render-mode tick recurs across overlays; read a sibling, `similar` does not rank it (func_actor_123200_80133BA0, 2026-09-17)
+## The actors family's render-mode tick recurs across overlays; read a sibling, `similar` does not rank it (_actor123200Update, 2026-09-17)
 
-`func_actor_123200_80133BA0` is a per-frame tick whose body is the same shape as
+`_actor123200Update` is a per-frame tick whose body is the same shape as
 `func_actor_201200_8014D4D0` in `src/actors/actor_201200/actor_201200_3.c`:
 refresh the part coordinate and colour, scale the light matrix from a work-block
 scale field, switch on the render mode `D_801153F4`, then re-record the display
 mode and dispatch a stack-copied state table by it. Copying that sibling's
 statement order — the table copy in the declaration list, the chained
-`pos.vx = pos.vy = pos.vz = work->lightScale;`, the `id | ((index->field_8 >> 12) << 8)`
+`lightingVector.vx = lightingVector.vy = lightingVector.vz = work->lightScale;`, the `cueSoundId | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_123200_SOUND_INSTANCE_SHIFT)`
 sound tag and the `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth` pair — produced 100.000% on the first
 attempt, where the m2c seed scored 65.189% with a structurally different 164-vs-148
 instructions.
@@ -130204,7 +130207,7 @@ them apart - 99.16% -> 99.98%, with the same body otherwise untouched. When a
 `regs`-only diff is a clean swap of two callee-saved homes for values of very
 different lifetime, read the greg order and compute both ratios before
 rewriting anything.
-## `(x & 1) == 1` always folds to `!= 0`; a `li 1` / `bne` compare needs the masked value in a variable (func_actor_123200_8013352C, 2026-09-17)
+## `(x & 1) == 1` always folds to `!= 0`; a `li 1` / `bne` compare needs the masked value in a variable (_actor123200Spawn, 2026-09-17)
 
 **Symptom.** The target tests a nibble's low bit with an explicit comparison
 
@@ -130231,7 +130234,7 @@ if (placementParity == 1) { ... }
 `switch (placementIndex & 1)` with `case 1:` / `default:` emits the same two insns — the
 switch expression also goes through a temporary.
 
-## A `(u16)` cast into a `u32` local keeps a real `andi 0xffff`; casting into a `u16` local becomes a `move` (func_actor_123200_8013352C, 2026-09-17)
+## A `(u16)` cast into a `u32` local keeps a real `andi 0xffff`; casting into a `u16` local becomes a `move` (_actor123200Spawn, 2026-09-17)
 
 **Symptom.** One instruction short of a match: the target masks the shifted
 nibble before testing it,
@@ -130281,7 +130284,7 @@ folds to a `move`, the second keeps the `andi` but lets combine fold
 `(and (and A 0xffff) 1)` into `(and A 1)`, so the compare reads the wrong
 register.
 
-## An inline helper taking the scratch vector's address is what puts it in `$s0` — and reshuffles the other pointers (func_actor_123200_8013352C, 2026-09-17)
+## An inline helper taking the scratch vector's address is what puts it in `$s0` — and reshuffles the other pointers (_actor123200Spawn, 2026-09-17)
 
 **Symptom.** `regs=71` at 95%: the incoming `Enemy*` and the `memCalloc`
 result had swapped `$s0` / `$s1` against the target, and the address of a stack
@@ -130298,17 +130301,17 @@ live_length`, 33 refs over 121 vs the enemy pointer's 20 over 178), so the work
 pointer takes `$s1` and the enemy pointer — dead by then — reuses `$s0`.
 
 **Fix.** Give the sequence its own `static __inline__` helper taking the pointer,
-the way the sibling `Actor123200_StepForward` / `_actorMovementBuildDisplacement` are
+the way the sibling `_actor123200StepForward` / `_actorMovementBuildDisplacement` are
 written:
 
 ```c
-static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
+static __inline__ void _actorMovementBuildDisplacement(SVECTOR* direction, s16 stepDistance)
 {
-    VectorNormalSS(dir, dir);
-    gte_lddp(0x3E8);
-    gte_ldsv(dir);
+    VectorNormalSS(direction, direction);
+    gte_lddp(stepDistance);
+    gte_ldsv(direction);
     gte_gpf12();
-    gte_stsv(dir);
+    gte_stsv(direction);
 }
 ```
 
@@ -150460,6 +150463,9 @@ attempts; left as it was.
 **Problem.** `func_actor_123200_80133450` / `_actor223600PollSoundCue` (the
 sound-cue latch; `actor_01200` and `actor_04000` carry the same body) reach one
 `latchCue:` block from two switch cases by `goto`. Writing the block out in each
+**Problem.** `_actor123200SelectCueSound` / `func_actor_223600_8014B464` (the
+sound-cue latch; `actor_01200` and `actor_04000` carry the same body) reach one
+shared latch block from two switch cases by `goto`. Writing the block out in each
 case (plain, or as a `static inline`) and letting cross-jumping merge the
 copies does not match.
 
