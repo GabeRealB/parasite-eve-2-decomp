@@ -1360,21 +1360,15 @@ Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2
         type = arg1 + 0x82;
     }
     task = Task_Spawn(7, type, arg2, options);
-    if (task != NULL) {
-        goto have_task;
+    if (task == NULL) {
+        return NULL;
     }
-    return NULL;
-
-have_task:
     actor = memCalloc(sizeof(*actor), 0);
-    if (actor != NULL) {
-        goto have_actor;
+    if (actor == NULL) {
+    fail:
+        taskKill(task);
+        return NULL;
     }
-fail:
-    taskKill(task);
-    return NULL;
-
-have_actor:
     companion = memCalloc(sizeof(*companion), 0);
     if (companion == NULL) {
         goto fail;
