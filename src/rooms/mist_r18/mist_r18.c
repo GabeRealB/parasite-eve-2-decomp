@@ -1082,7 +1082,8 @@ void func_mist_r18_8017D5EC(Task* task)
             } else {
                 task->killCountdown = spawn->charDelay;
             }
-            break;
+            task->state++;
+            return;
 
         case 1:
             sprite.x         = spawn->x;
@@ -1095,57 +1096,53 @@ void func_mist_r18_8017D5EC(Task* task)
             sprite.semiTrans = 0;
             sprite.unused_12 = ONE;
 
-            if (spawn->chars[spawn->cursor - 1] == TEXT_STREAM_END) {
-                break;
-            }
-
-            for (i = 0; i < spawn->cursor; i++) {
-                if (spawn->chars[i] == TEXT_STREAM_LINE_BREAK) {
-                    sprite.x  = spawn->x;
-                    sprite.y += spawn->lineHeight;
-                } else {
-                    sprite.u = spawn->glyphs[spawn->chars[i]].u + (spawn->tpageX & 0x3F);
-                    sprite.v = spawn->glyphs[spawn->chars[i]].v + (u8)spawn->tpageY;
-                    sprite.w = spawn->glyphs[spawn->chars[i]].width;
-                    sprite.h = spawn->glyphs[spawn->chars[i]].height;
-                    if (sprite.h != 0) {
-                        func_mist_r18_8017E534(&sprite, spawn->clutX, spawn->clutY);
+            if (spawn->chars[spawn->cursor - 1] != TEXT_STREAM_END) {
+                for (i = 0; i < spawn->cursor; i++) {
+                    if (spawn->chars[i] == TEXT_STREAM_LINE_BREAK) {
+                        sprite.x  = spawn->x;
+                        sprite.y += spawn->lineHeight;
+                    } else {
+                        sprite.u = spawn->glyphs[spawn->chars[i]].u + (spawn->tpageX & 0x3F);
+                        sprite.v = spawn->glyphs[spawn->chars[i]].v + (u8)spawn->tpageY;
+                        sprite.w = spawn->glyphs[spawn->chars[i]].width;
+                        sprite.h = spawn->glyphs[spawn->chars[i]].height;
+                        if (sprite.h != 0) {
+                            func_mist_r18_8017E534(&sprite, spawn->clutX, spawn->clutY);
+                        }
+                        sprite.x += spawn->glyphs[spawn->chars[i]].width;
                     }
-                    sprite.x += spawn->glyphs[spawn->chars[i]].width;
                 }
-            }
 
-            func_mist_r18_8017E654(1, spawn->tpageX, spawn->tpageY, 4);
+                func_mist_r18_8017E654(1, spawn->tpageX, spawn->tpageY, 4);
 
-            if (--task->killCountdown < 0) {
-                spawn->cursor++;
-                if (spawn->chars[spawn->cursor] == TEXT_STREAM_END) {
-                    task->killCountdown = spawn->delayReload;
-                } else {
-                    task->killCountdown = spawn->charDelay;
+                if (--task->killCountdown < 0) {
+                    spawn->cursor++;
+                    if (spawn->chars[spawn->cursor] == TEXT_STREAM_END) {
+                        task->killCountdown = spawn->delayReload;
+                    } else {
+                        task->killCountdown = spawn->charDelay;
+                    }
                 }
-            }
 
-            // The plate sits three pixels above and left of the pen.
-            sprite.x         = spawn->x - 3;
-            sprite.y         = spawn->y - 3;
-            sprite.w         = spawn->boxWidth;
-            sprite.h         = spawn->boxHeight;
-            sprite.b         = 0;
-            sprite.g         = 0;
-            sprite.r         = 0;
-            sprite.semiTrans = 1;
-            func_mist_r18_8017E448(&sprite);
-            func_mist_r18_8017E654(0, 0, 0, 5);
+                // The plate sits three pixels above and left of the pen.
+                sprite.x         = spawn->x - 3;
+                sprite.y         = spawn->y - 3;
+                sprite.w         = spawn->boxWidth;
+                sprite.h         = spawn->boxHeight;
+                sprite.b         = 0;
+                sprite.g         = 0;
+                sprite.r         = 0;
+                sprite.semiTrans = 1;
+                func_mist_r18_8017E448(&sprite);
+                func_mist_r18_8017E654(0, 0, 0, 5);
+                return;
+            }
+            task->state++;
             return;
 
         default:
-            goto kill;
+            break;
     }
-    task->state++;
-    return;
-
-kill:
     taskKill(task);
 }
 
