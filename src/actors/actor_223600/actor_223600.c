@@ -163,13 +163,46 @@ static SVECTOR ActorContact_ScratchPosition;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static void func_actor_223600_8014CF3C(Enemy* arg0, Task* arg1);
+static s32  _actor223600PollSoundCue(_Actor223600Work* work);
+static void _actor223600Spawn(Enemy* enemy, Task* task);
+static void _actor223600Walk(Enemy* enemy, Task* task);
+static void _actor223600DropIn(Enemy* enemy, Task* task);
+static void _actor223600Update(Enemy* enemy, Task* task);
+static void _actor223600Hide(Enemy* enemy, Task* task);
+static void _actor223600Task(Task* task);
+static s32  _actor223600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
+static s32  _actor223600ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+
+/// Loaded animation-set indices used by this package's state handlers.
+enum {
+    ACTOR_223600_ANIM_REQUEST_INITIAL = 1,
+    ACTOR_223600_ANIM_REQUEST_WALK    = 2,
+    ACTOR_223600_ANIM_REQUEST_FALL    = 14,
+    ACTOR_223600_ANIM_REQUEST_LAND    = 15,
+};
+
+/// Applies one signed root-axis step within `_actor223600DropIn`.
+///
+/// Captures its live `task`, reserved `scratchTop` block and the `axisStep` /
+/// `gteStep` views of that block's vector. `readAxis` must be a matrix-axis
+/// reader; it and `stepDistance` are evaluated once. Distance uses parent-
+/// coordinate units. Normalization removes matrix scale; GTE state is overwritten.
+/// The step includes Y, ignores the freeze gate and leaves invalidation to the caller.
+/// Expands to a compound block; invoke only within an already braced body.
+#define ACTOR_223600_STEP_LOCAL_AXIS(readAxis, stepDistance)           \
+    {                                                                  \
+        (readAxis)(&task->extra.tmd->coords->coord, axisStep);         \
+        VectorNormalSS(axisStep, axisStep);                            \
+        gte_lddp(stepDistance);                                        \
+        gte_ldsv(gteStep);                                             \
+        gte_gpf12();                                                   \
+        gte_stsv(gteStep);                                             \
+        task->extra.tmd->coords->coord.t[0] += scratchTop[-1].step.vx; \
+        task->extra.tmd->coords->coord.t[1] += axisStep->vy;           \
+        task->extra.tmd->coords->coord.t[2] += axisStep->vz;           \
+    }
 
 static TmdSource _gActor223600BloodSucklerBody;
-void             func_actor_223600_8014CF6C(Task*);
-
-s32 func_actor_223600_8014CC04(Task*, s32, s32, s32);
-s32 func_actor_223600_8014CCD4(Task*, s32, ActorCommand*, s32);
 
 #include "../../shared/actor_contacts.h"
 
@@ -842,13 +875,13 @@ u8 D_actor_223600_80150A28[256] = {
 };
 
 TaskMessageEntry D_actor_223600_80150B28[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_223600_8014CC04 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_223600_8014CCD4 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor223600SetModelDraw },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor223600ApplyCommand },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_223600_80150B48 = { { { TASK_BODY_TMD, 96 } }, func_actor_223600_8014CF6C, { .model = &_gActor223600BloodSucklerBody } };
+TaskDesc D_actor_223600_80150B48 = { { { TASK_BODY_TMD, 96 } }, _actor223600Task, { .model = &_gActor223600BloodSucklerBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -859,126 +892,93 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 EffectSpawnArg D_actor_223600_80150B5C = { 0 };
 
-static s32             func_actor_223600_8014B464(_Actor223600Work* arg0);
-static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount);
-static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount);
-static void            func_actor_223600_8014B540(Enemy* enemy, Task* task);
-static void            func_actor_223600_8014B840(Enemy* enemy, Task* task);
-static void            func_actor_223600_8014BBF4(Enemy* enemy, Task* task);
-static void            func_actor_223600_8014CA00(Enemy* enemy, Task* task);
-
 #include "../../shared/actor_contacts.h"
 
 #include "../../shared/actor_contacts.inc.c"
 
 #include "../../shared/anim_driver_tick.inc.c"
 
-/// On animations 2 and 3 (`driver.requestedSet`), reports 0x400C0001 the first
-/// time rig slot 1's cue index reaches one of that animation's trigger values
-/// (latched in `lastSoundCueIndex`); on animation 5, 0x400C0005 while slot 1
-/// reports `ANIMATION_SLOT_FOLLOWED_JUMP`.
-/// Returns 0 otherwise.
-static s32 func_actor_223600_8014B464(_Actor223600Work* arg0)
+/// Selects a sound script from slot 1's animation cue, or returns zero.
+///
+/// WALK and set 3 emit bank 0x400C entry 1 once per held trigger cue; leaving
+/// a trigger cue clears that latch. Set 5 emits entry 5 on a control-jump tick.
+/// Other sets leave the latch unchanged. Requires initialized rig slot 1; the
+/// returned id has a zero instance byte, which the update supplies.
+static s32 _actor223600PollSoundCue(_Actor223600Work* work)
 {
-    u16 id;
-    s32 v;
+    enum {
+        ACTOR_223600_SOUND_ANIM_CUE_PAIR     = 3,
+        ACTOR_223600_SOUND_ANIM_CONTROL_JUMP = 5,
+        ACTOR_223600_WALK_CUE_FIRST          = 0x11,
+        ACTOR_223600_WALK_CUE_SECOND         = 0x15,
+        ACTOR_223600_PAIR_CUE_FIRST          = 0xD,
+        ACTOR_223600_PAIR_CUE_SECOND         = 0x12,
+        ACTOR_223600_SOUND_CUE_POSE          = 0x400C0001,
+        ACTOR_223600_SOUND_CUE_CONTROL_JUMP  = 0x400C0005,
+    };
+    u16 cueIndex;
+    s32 promotedCueIndex;
 
-    switch (arg0->driver.requestedSet) {
-        case 2:
-            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            v  = id;
-            if (v != 0x15) {
-                goto not15;
+    switch (work->driver.requestedSet) {
+        case ACTOR_223600_ANIM_REQUEST_WALK:
+            cueIndex         = work->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            promotedCueIndex = cueIndex;
+            if (promotedCueIndex != ACTOR_223600_WALK_CUE_SECOND) {
+                goto checkOtherWalkCue;
             }
-        check:
-            if (arg0->lastSoundCueIndex == v) {
-                goto same;
+        latchCue:
+            if (work->lastSoundCueIndex == promotedCueIndex) {
+                goto heldCue;
             }
-            arg0->lastSoundCueIndex = id;
-            return 0x400C0001;
-        not15:
-            if (v == 0x11) {
-                goto check;
+            work->lastSoundCueIndex = cueIndex;
+            return ACTOR_223600_SOUND_CUE_POSE;
+        checkOtherWalkCue:
+            if (promotedCueIndex == ACTOR_223600_WALK_CUE_FIRST) {
+                goto latchCue;
             }
-        clear:
-            arg0->lastSoundCueIndex = 0;
+        clearCueLatch:
+            work->lastSoundCueIndex = 0;
             break;
-        case 3:
-            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            v  = id;
-            if (v != 0xD && v != 0x12) {
-                goto clear;
+        case ACTOR_223600_SOUND_ANIM_CUE_PAIR:
+            cueIndex         = work->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            promotedCueIndex = cueIndex;
+            if (promotedCueIndex != ACTOR_223600_PAIR_CUE_FIRST && promotedCueIndex != ACTOR_223600_PAIR_CUE_SECOND) {
+                goto clearCueLatch;
             }
-            goto check;
-        same:
-            arg0->lastSoundCueIndex = id;
+            goto latchCue;
+        heldCue:
+            work->lastSoundCueIndex = cueIndex;
             break;
-        case 5:
-            if (arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
-                return 0x400C0005;
+        case ACTOR_223600_SOUND_ANIM_CONTROL_JUMP:
+            if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
+                return ACTOR_223600_SOUND_CUE_CONTROL_JUMP;
             }
             break;
     }
     return 0;
 }
 
-/// Normalises `dir` in place and scales it to `amount`/0x1000 of unit length on
-/// the GTE. The pointer stays in one register across `VectorNormalSS` because
-/// the GTE loads read it back afterwards.
-static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount)
+/// Initializes this placement's enemy model, animation rig and owned task work.
+///
+/// Requires a live TMD model with coordinates 0..5 and a live enemy in the
+/// task's second spawn argument. Allocation failure destroys the task and enemy.
+/// On success, the task owns the work and lighting matrices until teardown;
+/// the rig borrows the loaded animation table and the root borrows the view
+/// coordinate. Starts hidden, publishes the effect anchor and advances task state.
+static void _actor223600Spawn(Enemy* enemy, Task* task)
 {
-    VectorNormalSS(dir, dir);
-    gte_lddp(amount);
-    gte_ldsv(dir);
-    gte_gpf12();
-    gte_stsv(dir);
-}
-
-/// Steps the model `amount` units along its facing -- the coordinate matrix's z
-/// column, normalised and GTE-scaled in a scratch-pad vector -- and invalidates
-/// the coordinate. Skipped entirely while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
-static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-        vec                           = head - 1;
-        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        gfxReadMatrixZAxis(&coord->coord, vec);
-        Actor223600_ScaleForward(vec, amount);
-        coord->coord.t[0]  += head[-1].vx;
-        coord->coord.t[1]  += vec->vy;
-        coord->coord.t[2]  += vec->vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-    }
-}
-
-/// Spawn state of this enemy: allocates the 0x214 work block, publishes it as
-/// `Task::work`, reparents the model to `gGfxViewCoord`, seeds its animation
-/// slots from `D_actor_223600_801509C0` and hangs the enemy's display node off
-/// part 2 of the model's coordinate array. HP and max HP both come from
-/// `D_actor_223600_8014CFCC`, which also picks the opening motion through
-/// `_animDriverTick`. The placement index in `Enemy::placeKey` biases the
-/// initial values in `driver.rate`, `field_184` and `field_186`: odd indices
-/// add the index, even indices subtract half of it. The model's world
-/// position is sampled into `spawnPos` and its facing is
-/// normalised and scaled on the GTE, and the instance is published as the
-/// overlay's anchor `D_actor_223600_80150B5C`.
-static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
-{
-    SVECTOR           dir;
+    enum { ACTOR_223600_PREVIOUS_STATE_UNSET = -1 };
+    SVECTOR           initialFacingStep;
     _Actor223600Work* work;
-    TmdObject*        obj;
+    TmdObject*        model;
     GfxCoord*         coord;
     u32               placementIndex;
-    u32               placementParity;
-    s32               hp;
+    u32               placementIsOdd;
+    s32               hitPoints;
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
+    // The task owns the work allocation; allocation failure destroys the instance.
+    model      = task->extra.tmd;
+    coord      = model->coords;
     work       = memCalloc(sizeof(_Actor223600Work), false);
     task->work = work;
     if (work == NULL) {
@@ -987,8 +987,8 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     }
     coord->parent  = &gGfxViewCoord;
     task->msgTable = D_actor_223600_80150B28;
-    obj->flags     = 0;
-    animationInitContext(&work->rig.anim, D_actor_223600_801509C0, obj, work->rig.poses, work->rig.slots);
+    model->flags   = 0;
+    animationInitContext(&work->rig.anim, D_actor_223600_801509C0, model, work->rig.poses, work->rig.slots);
 
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;
@@ -1001,28 +1001,29 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     enemy->hpMax                  = 1;
     enemy->hp                     = 1;
     enemy->reactionFlags          = 0;
-    hp                            = D_actor_223600_8014CFCC.hpMax;
+    hitPoints                     = D_actor_223600_8014CFCC.hpMax;
     enemy->param                  = &D_actor_223600_8014CFCC;
     enemy->recs                   = 0;
-    enemy->hpMax                  = hp;
-    enemy->hp                     = hp;
+    enemy->hpMax                  = hitPoints;
+    enemy->hp                     = hitPoints;
 
-    work->driver.requestedSet = 1;
+    work->driver.requestedSet = ACTOR_223600_ANIM_REQUEST_INITIAL;
     work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
     work->driver.rate         = ANIMATION_RATE_ONE;
     work->driver.rateBias     = 0;
     _animDriverTick(task);
     work->field_17E     = 0;
     work->field_8       = 0;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
+    model->lightMtx     = &work->lightMtx;
+    model->colorMtx     = &work->colorMtx;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->field_184     = 5;
     work->field_186     = 0x14;
 
-    placementIndex  = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
-    placementParity = placementIndex & 1;
-    if (placementParity == 1) {
+    // Odd placements speed up playback; even placements subtract half their index.
+    placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    placementIsOdd = placementIndex & 1;
+    if (placementIsOdd == 1) {
         work->driver.rate += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         work->field_186   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         work->field_184   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
@@ -1036,12 +1037,13 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     work->spawnPos.vy = task->extra.tmd->coords->coord.t[1];
     work->spawnPos.vz = task->extra.tmd->coords->coord.t[2];
 
-    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
-    dir.vy = 0;
-    Actor223600_ScaleForward(&dir, 0x3E8);
+    // Keep the initial horizontal-facing calculation: it also updates GTE state.
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &initialFacingStep);
+    initialFacingStep.vy = 0;
+    _actorMovementBuildDisplacement(&initialFacingStep, 0x3E8);
 
     work->state     = ACTOR_223600_STATE_HIDDEN;
-    work->prevState = -1;
+    work->prevState = ACTOR_223600_PREVIOUS_STATE_UNSET;
 
     D_actor_223600_80150B5C.coord      = task->extra.tmd->coords;
     D_actor_223600_80150B5C.spawnArgLo = 0x100;
@@ -1049,35 +1051,60 @@ static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// `ACTOR_223600_STATE_WALK`. On the frame it is entered (`stateEntered` set) it
-/// allocates the model's draw buffers, sets the target position in
-/// `walkTarget`, writes the starting world position for this enemy's
-/// placement index -- two start points, any other index leaving the
-/// coordinate alone -- faces the model down +Z and restarts animation 2. On
-/// every later frame it counts the frame in `stateFrame`, turns the model by up to
-/// 0x10 towards the target (the clamped yaw kept in the scratch block) and
-/// walks it 5 units forward.
-static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
+/// Turns toward the walk waypoint by at most 16/4096 of a revolution.
+///
+/// Requires the reserved turn block with its X/Z target offset initialized.
+/// Replaces root yaw and leaves translation, animation and scratch lifetime to the caller.
+static __inline__ void _actor223600TurnTowardWalkTarget(Task* task, ActorTurnScratch* scratchTop,
+                                                        ActorTurnScratch* turnScratch)
 {
+    enum { ACTOR_223600_WALK_TURN_LIMIT = 16 };
+    GfxCoord* rootCoord;
+
+    rootCoord          = task->extra.tmd->coords;
+    turnScratch->angle = _actorAngleNormalizeYaw(ratan2(scratchTop[-1].delta.vx, turnScratch->delta.vz) -
+                                                 ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]));
+    if (turnScratch->angle > ACTOR_223600_WALK_TURN_LIMIT) {
+        turnScratch->angle = ACTOR_223600_WALK_TURN_LIMIT;
+    }
+    if (turnScratch->angle < -ACTOR_223600_WALK_TURN_LIMIT) {
+        turnScratch->angle = -ACTOR_223600_WALK_TURN_LIMIT;
+    }
+    turnScratch->angle += ratan2(-task->extra.tmd->coords->coord.m[2][0],
+                                 task->extra.tmd->coords->coord.m[2][2]);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, turnScratch->angle, GRAPHICS_ROTATION_REPLACE);
+}
+
+/// Initializes or advances the hidden-to-walk state toward its fixed waypoint.
+///
+/// Requires initialized work and a live model. Placements 0 and 1 have fixed
+/// start positions; other indices retain their position. Turns by at most
+/// 16/4096 of a revolution and steps five parent-coordinate units per tick.
+/// The movement freeze gate skips translation only; turning and animation continue.
+/// Reserves one turn block, plus the nested movement helper's vector.
+static void _actor223600Walk(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_223600_WALK_DISTANCE = 5, // Parent-coordinate units per tick
+    };
     _Actor223600Work* work;
-    ActorTurnScratch* head;
-    ActorTurnScratch* turn;
-    GfxCoord*         coord;
-    TmdObject*        obj;
-    u32               mode;
+    ActorTurnScratch* scratchTop;
+    ActorTurnScratch* turnScratch;
+    TmdObject*        model;
+    u32               placementIndex;
 
     work = task->work;
     if (work->stateEntered != 0) {
-        obj                           = task->extra.tmd;
+        model                         = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->walkTarget.vx = 0x115D;
         work->walkTarget.vy = 1;
         work->walkTarget.vz = 0x12D5;
 
-        mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        switch (mode) {
+        placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        switch (placementIndex) {
             case 0:
                 task->extra.tmd->coords->coord.t[0] = 0xA8C;
                 task->extra.tmd->coords->coord.t[1] = 1;
@@ -1085,12 +1112,12 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
                 break;
             case 1:
                 task->extra.tmd->coords->coord.t[0] = 0x384;
-                task->extra.tmd->coords->coord.t[1] = mode;
+                task->extra.tmd->coords->coord.t[1] = placementIndex;
                 task->extra.tmd->coords->coord.t[2] = 0x960;
                 break;
         }
-        gfxRotMatrixY(&task->extra.tmd->coords->coord, 0, 1);
-        work->driver.requestedSet = 2;
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, 0, GRAPHICS_ROTATION_REPLACE);
+        work->driver.requestedSet = ACTOR_223600_ANIM_REQUEST_WALK;
         work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
         _animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1098,98 +1125,98 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
         return;
     }
 
+    // Turn toward the fixed waypoint before stepping along the new facing.
     work->stateFrame++;
-    head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    head[-1].delta.vx                      = work->walkTarget.vx - task->extra.tmd->coords->coord.t[0];
-    SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
-    turn                                   = head - 1;
-    turn->delta.vy                         = 0;
-    turn->delta.vz                         = work->walkTarget.vz - task->extra.tmd->coords->coord.t[2];
+    scratchTop                             = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    scratchTop[-1].delta.vx                = work->walkTarget.vx - task->extra.tmd->coords->coord.t[0];
+    SCRATCH_STACK_CURSOR(ActorTurnScratch) = scratchTop - 1;
+    turnScratch                            = scratchTop - 1;
+    turnScratch->delta.vy                  = 0;
+    turnScratch->delta.vz                  = work->walkTarget.vz - task->extra.tmd->coords->coord.t[2];
 
-    coord       = task->extra.tmd->coords;
-    turn->angle = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, turn->delta.vz) -
-                                          ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    if (turn->angle > 0x10) {
-        turn->angle = 0x10;
-    }
-    if (turn->angle < -0x10) {
-        turn->angle = -0x10;
-    }
-    turn->angle += ratan2(-task->extra.tmd->coords->coord.m[2][0],
-                          task->extra.tmd->coords->coord.m[2][2]);
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, turn->angle, 1);
-    Actor223600_MoveForward(task->extra.tmd->coords, 5);
+    _actor223600TurnTowardWalkTarget(task, scratchTop, turnScratch);
+    _actorMovementStepForward(task->extra.tmd->coords, ACTOR_223600_WALK_DISTANCE);
     _animDriverTick(task);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// `ACTOR_223600_STATE_DROP_IN`. On the frame it is entered (`stateEntered` set)
-/// it allocates the model's draw buffers and puts the model above the floor at
-/// the point the enemy's placement index selects -- two of them just face the
-/// model and start animation 2, while the third steps it forward and
-/// starts animation 0xE, advancing it until rig slot 1 reports
-/// `ANIMATION_SLOT_REACHED_BOUNDARY`. Every later frame it runs one step of the
-/// animation `driver.requestedSet` names: 0xE lowers the model by about `fallSpeed` a frame
-/// from frame 0x28 of `stateFrame`, stepping it forward while the counter is inside the walk window, and
-/// hands over to 0xF once the model's world Y goes positive; 0xF walks the
-/// coordinate along its own axes on the GTE and swings part 1 through the
-/// flourish, in a longer form for the nibble-0 context than for the others;
-/// animation 2 only doubles `driver.rate` until `stateFrame` reaches 0 and 0xE takes over. The scratch block comes off
-/// the scratch stack under three names -- `head`, whose negative index the
-/// world-X step reads, `vec`, which the column and normalise calls take, and
-/// `gte`, which the GTE round trip reads back -- and the two the scratch stack
-/// pointers are the carve and the release, each materialised where it is used.
-static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
+/// Runs the placement-specific walk lead-in, fall and landing sequence.
+///
+/// Placements 0..2 have defined entry poses; other indices retain the existing
+/// pose and animation. World Y grows downward: falling starts at frame 40 and
+/// reaching positive Y selects the landing set with its frame counter reset.
+/// Placement 0 has the longer landing sway. Landing uses root-axis steps and
+/// rotates coordinate 1; its steps continue while actor translation is frozen.
+/// Requires initialized work, coordinates 0..5, loaded animation sets and
+/// scratch room for one axis-step block plus nested helper storage.
+static void _actor223600DropIn(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_223600_DROP_WALK_START_FRAME  = 19,
+        ACTOR_223600_DROP_APPROACH_FRAME    = 35,
+        ACTOR_223600_DROP_FALL_START_FRAME  = 40,
+        ACTOR_223600_DROP_WALK_END_FRAME    = 50,
+        ACTOR_223600_DROP_STEP_CYCLE_FRAMES = 5,
+        ACTOR_223600_DROP_SLOW_STEP_FRAMES  = 2,
+        ACTOR_223600_LAND_FORWARD_END_FRAME = 11,
+        ACTOR_223600_LAND_LIFT_START_FRAME  = 5,
+        ACTOR_223600_LAND_SWAY_START_FRAME  = 14,
+        ACTOR_223600_LAND_SWAY_BIAS_FRAME   = 15,
+        ACTOR_223600_LAND_SHORT_END_FRAME   = 30,
+        ACTOR_223600_LAND_LONG_END_FRAME    = 37,
+    };
     _Actor223600Work*            work;
-    void**                       push;
-    void**                       pop;
-    _Actor223600AxisStepScratch* head;
-    SVECTOR*                     vec;
-    SVECTOR*                     gte;
-    TmdObject*                   obj;
-    s32                          mode;
-    s16                          frame;
+    void**                       reserveCursorSlot;
+    void**                       releaseCursorSlot;
+    _Actor223600AxisStepScratch* scratchTop;
+    SVECTOR*                     axisStep;
+    SVECTOR*                     gteStep;
+    TmdObject*                   model;
+    s32                          placementIndex;
+    s16                          fallFrame;
+    u16                          fallStepPhase;
+    s16                          swayFrame;
 
     work = task->work;
+    // Stage each placement above the floor; placement 2 starts partway through its fall.
     if (work->stateEntered != 0) {
-        obj                           = task->extra.tmd;
+        model                         = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        switch (mode) {
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        switch (placementIndex) {
             case 0:
                 task->extra.tmd->coords->coord.t[0] = 0xA1E;
                 task->extra.tmd->coords->coord.t[1] = -0x384;
                 task->extra.tmd->coords->coord.t[2] = 0x1590;
-                gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x7D0, 1);
+                gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x7D0, GRAPHICS_ROTATION_REPLACE);
                 work->stateFrame          = -0xA;
                 work->fallSpeed           = 0xB4;
-                work->driver.requestedSet = 2;
+                work->driver.requestedSet = ACTOR_223600_ANIM_REQUEST_WALK;
                 work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 break;
             case 1:
                 task->extra.tmd->coords->coord.t[0] = 0x12C;
                 task->extra.tmd->coords->coord.t[1] = -0x4C4;
                 task->extra.tmd->coords->coord.t[2] = 0x1194;
-                gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x3E8, 1);
+                gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x3E8, GRAPHICS_ROTATION_REPLACE);
                 work->fallSpeed           = 0xBE;
                 work->stateFrame          = 0;
-                work->driver.requestedSet = 2;
+                work->driver.requestedSet = ACTOR_223600_ANIM_REQUEST_WALK;
                 work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 break;
             case 2:
                 task->extra.tmd->coords->coord.t[0] = 0x104A;
                 task->extra.tmd->coords->coord.t[1] = -0x384;
                 task->extra.tmd->coords->coord.t[2] = 0xFE6;
-                gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x400, 1);
-                Actor223600_MoveForward(task->extra.tmd->coords, 0x15E);
+                gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x400, GRAPHICS_ROTATION_REPLACE);
+                _actorMovementStepForward(task->extra.tmd->coords, 0x15E);
                 work->stateFrame          = 0x3C;
                 work->fallSpeed           = 0x50;
                 work->driver.rate         = 4 * ANIMATION_RATE_ONE;
-                work->driver.requestedSet = 0xE;
+                work->driver.requestedSet = ACTOR_223600_ANIM_REQUEST_FALL;
                 work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 do {
                     _animDriverTick(task);
@@ -1203,95 +1230,75 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
         return;
     }
 
+    // The walk is a lead-in; landing restarts this counter for the axis-driven finish.
     if (work->stateFrame == 0) {
-        if (work->driver.requestedSet == 2) {
-            work->driver.requestedSet = 0xE;
+        if (work->driver.requestedSet == ACTOR_223600_ANIM_REQUEST_WALK) {
+            work->driver.requestedSet = ACTOR_223600_ANIM_REQUEST_FALL;
             work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
         }
     }
     _animDriverTick(task);
 
-    push                                               = SCRATCH_HEAD_ADDR;
-    head                                               = SCRATCH_HEAD_AT(push, _Actor223600AxisStepScratch);
-    vec                                                = &head[-1].step;
-    gte                                                = &head[-1].step;
-    SCRATCH_HEAD_AT(push, _Actor223600AxisStepScratch) = head - 1;
+    reserveCursorSlot                                               = SCRATCH_HEAD_ADDR;
+    scratchTop                                                      = SCRATCH_HEAD_AT(reserveCursorSlot, _Actor223600AxisStepScratch);
+    axisStep                                                        = &scratchTop[-1].step;
+    gteStep                                                         = &scratchTop[-1].step;
+    SCRATCH_HEAD_AT(reserveCursorSlot, _Actor223600AxisStepScratch) = scratchTop - 1;
 
     switch (work->driver.requestedSet) {
-        case 0xE:
+        case ACTOR_223600_ANIM_REQUEST_FALL:
             work->driver.rate = ANIMATION_RATE_ONE;
             if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) != 2) {
-                if (work->stateFrame < 0x32) {
-                    if (work->stateFrame >= 0x28) {
-                        Actor223600_MoveForward(task->extra.tmd->coords, 0x16);
-                    } else if (work->stateFrame >= 0x23) {
-                        Actor223600_MoveForward(task->extra.tmd->coords, 0xA);
-                    } else if (work->stateFrame >= 0x13) {
-                        Actor223600_MoveForward(task->extra.tmd->coords, 0xA);
+                if (work->stateFrame < ACTOR_223600_DROP_WALK_END_FRAME) {
+                    if (work->stateFrame >= ACTOR_223600_DROP_FALL_START_FRAME) {
+                        _actorMovementStepForward(task->extra.tmd->coords, 0x16);
+                    } else if (work->stateFrame >= ACTOR_223600_DROP_APPROACH_FRAME) {
+                        _actorMovementStepForward(task->extra.tmd->coords, 0xA);
+                    } else if (work->stateFrame >= ACTOR_223600_DROP_WALK_START_FRAME) {
+                        _actorMovementStepForward(task->extra.tmd->coords, 0xA);
                     }
                 }
             }
-            frame = work->stateFrame;
-            if (frame >= 0x28) {
-                if ((u16)(frame % 5) < 2) {
-                    task->extra.tmd->coords->coord.t[1] += work->fallSpeed - (frame - 0x28) / 4;
+            fallFrame = work->stateFrame;
+            if (fallFrame >= ACTOR_223600_DROP_FALL_START_FRAME) {
+                fallStepPhase = fallFrame % ACTOR_223600_DROP_STEP_CYCLE_FRAMES;
+                if (fallStepPhase < ACTOR_223600_DROP_SLOW_STEP_FRAMES) {
+                    task->extra.tmd->coords->coord.t[1] += work->fallSpeed - (fallFrame - ACTOR_223600_DROP_FALL_START_FRAME) / 4;
                 } else {
-                    task->extra.tmd->coords->coord.t[1] += work->fallSpeed + (frame - 0x28) / 2;
+                    task->extra.tmd->coords->coord.t[1] += work->fallSpeed + (fallFrame - ACTOR_223600_DROP_FALL_START_FRAME) / 2;
                 }
                 if (task->extra.tmd->coords->coord.t[1] >= 2) {
                     task->extra.tmd->coords->coord.t[1] = 1;
                 }
             }
             if (task->extra.tmd->coords->coord.t[1] > 0) {
-                work->driver.requestedSet = 0xF;
+                work->driver.requestedSet = ACTOR_223600_ANIM_REQUEST_LAND;
                 work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
                 work->stateFrame          = 0;
             }
             break;
-        case 0xF:
+        case ACTOR_223600_ANIM_REQUEST_LAND:
+            // Landing steps use the root axes without the actor-freeze gate.
             work->driver.rate = ANIMATION_RATE_ONE;
-            if (work->stateFrame < 0xB) {
-                gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, vec);
-                VectorNormalSS(vec, vec);
-                gte_lddp(0x23);
-                gte_ldsv(gte);
-                gte_gpf12();
-                gte_stsv(gte);
-                task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
-                task->extra.tmd->coords->coord.t[1] += vec->vy;
-                task->extra.tmd->coords->coord.t[2] += vec->vz;
+            if (work->stateFrame < ACTOR_223600_LAND_FORWARD_END_FRAME) {
+                ACTOR_223600_STEP_LOCAL_AXIS(gfxReadMatrixZAxis, 0x23);
             }
-            if (work->stateFrame >= 5 && work->stateFrame < 0xE) {
-                gfxReadMatrixYAxis(&task->extra.tmd->coords->coord, vec);
-                VectorNormalSS(vec, vec);
-                gte_lddp(-0x14);
-                gte_ldsv(gte);
-                gte_gpf12();
-                gte_stsv(gte);
-                task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
-                task->extra.tmd->coords->coord.t[1] += vec->vy;
-                task->extra.tmd->coords->coord.t[2] += vec->vz;
+            if (work->stateFrame >= ACTOR_223600_LAND_LIFT_START_FRAME && work->stateFrame < ACTOR_223600_LAND_SWAY_START_FRAME) {
+                ACTOR_223600_STEP_LOCAL_AXIS(gfxReadMatrixYAxis, -0x14);
                 gfxRotMatrixX(&task->extra.tmd->coords[1].coord,
                               -((work->stateFrame - 4) * 0xCC), GRAPHICS_ROTATION_COMPOSE);
             }
             if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
-                if (work->stateFrame >= 0xE && work->stateFrame < 0x25) {
-                    gfxReadMatrixYAxis(&task->extra.tmd->coords->coord, vec);
-                    VectorNormalSS(vec, vec);
-                    gte_lddp(0xB);
-                    gte_ldsv(gte);
-                    gte_gpf12();
-                    gte_stsv(gte);
-                    task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
-                    task->extra.tmd->coords->coord.t[1] += vec->vy;
-                    task->extra.tmd->coords->coord.t[2] += vec->vz;
-                    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, vec);
-                    VectorNormalSS(vec, vec);
+                if (work->stateFrame >= ACTOR_223600_LAND_SWAY_START_FRAME && work->stateFrame < ACTOR_223600_LAND_LONG_END_FRAME) {
+                    ACTOR_223600_STEP_LOCAL_AXIS(gfxReadMatrixYAxis, 0xB);
+                    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, axisStep);
+                    VectorNormalSS(axisStep, axisStep);
                     gte_lddp(-0x1D);
-                    gte_ldsv(gte);
+                    gte_ldsv(gteStep);
                     gte_gpf12();
-                    gte_stsv(gte);
-                    switch ((s16)(work->stateFrame - 0xF)) {
+                    gte_stsv(gteStep);
+                    swayFrame = work->stateFrame - ACTOR_223600_LAND_SWAY_BIAS_FRAME;
+                    switch (swayFrame) {
                         case 0:
                         case 1:
                         case 3:
@@ -1299,65 +1306,50 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                         case 5:
                         case 7:
                         case 9:
-                            task->extra.tmd->coords->coord.t[0] -= gte->vx;
-                            task->extra.tmd->coords->coord.t[1] -= gte->vy;
-                            task->extra.tmd->coords->coord.t[2] -= gte->vz;
-                            gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
+                            task->extra.tmd->coords->coord.t[0] -= gteStep->vx;
+                            task->extra.tmd->coords->coord.t[1] -= gteStep->vy;
+                            task->extra.tmd->coords->coord.t[2] -= gteStep->vz;
+                            gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_COMPOSE);
                             gfxRotMatrixZ(&task->extra.tmd->coords[1].coord,
                                           (work->stateFrame - 0xD) * 0x55 - 0x6E, GRAPHICS_ROTATION_COMPOSE);
                             break;
                         default:
-                            task->extra.tmd->coords->coord.t[0] += gte->vx;
-                            task->extra.tmd->coords->coord.t[1] += gte->vy;
-                            task->extra.tmd->coords->coord.t[2] += gte->vz;
-                            gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
+                            task->extra.tmd->coords->coord.t[0] += gteStep->vx;
+                            task->extra.tmd->coords->coord.t[1] += gteStep->vy;
+                            task->extra.tmd->coords->coord.t[2] += gteStep->vz;
+                            gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_COMPOSE);
                             gfxRotMatrixZ(&task->extra.tmd->coords[1].coord,
                                           (work->stateFrame - 0xD) * 0x55, GRAPHICS_ROTATION_COMPOSE);
                             break;
                     }
                 }
-                if (work->stateFrame >= 0x25) {
-                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
-                    gfxRotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
+                if (work->stateFrame >= ACTOR_223600_LAND_LONG_END_FRAME) {
+                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_COMPOSE);
+                    gfxRotMatrixZ(&task->extra.tmd->coords[1].coord, ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_COMPOSE);
                 }
             } else {
-                if (work->stateFrame >= 0xE && work->stateFrame < 0x1E) {
-                    gfxReadMatrixYAxis(&task->extra.tmd->coords->coord, vec);
-                    VectorNormalSS(vec, vec);
-                    gte_lddp(0xB);
-                    gte_ldsv(gte);
-                    gte_gpf12();
-                    gte_stsv(gte);
-                    task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
-                    task->extra.tmd->coords->coord.t[1] += vec->vy;
-                    task->extra.tmd->coords->coord.t[2] += vec->vz;
-                    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, vec);
-                    VectorNormalSS(vec, vec);
-                    gte_lddp(-0x1D);
-                    gte_ldsv(gte);
-                    gte_gpf12();
-                    gte_stsv(gte);
-                    task->extra.tmd->coords->coord.t[0] += head[-1].step.vx;
-                    task->extra.tmd->coords->coord.t[1] += vec->vy;
-                    task->extra.tmd->coords->coord.t[2] += vec->vz;
-                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
+                if (work->stateFrame >= ACTOR_223600_LAND_SWAY_START_FRAME && work->stateFrame < ACTOR_223600_LAND_SHORT_END_FRAME) {
+                    ACTOR_223600_STEP_LOCAL_AXIS(gfxReadMatrixYAxis, 0xB);
+                    ACTOR_223600_STEP_LOCAL_AXIS(gfxReadMatrixXAxis, -0x1D);
+                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_COMPOSE);
                     gfxRotMatrixZ(&task->extra.tmd->coords[1].coord,
                                   (work->stateFrame - 0xD) * 0x78, GRAPHICS_ROTATION_COMPOSE);
                 }
-                if (work->stateFrame >= 0x1E) {
-                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -0x800, GRAPHICS_ROTATION_COMPOSE);
-                    gfxRotMatrixZ(&task->extra.tmd->coords[1].coord, 0x800, GRAPHICS_ROTATION_COMPOSE);
+                if (work->stateFrame >= ACTOR_223600_LAND_SHORT_END_FRAME) {
+                    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_COMPOSE);
+                    gfxRotMatrixZ(&task->extra.tmd->coords[1].coord, ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_COMPOSE);
                 }
             }
             break;
-        case 2:
+        case ACTOR_223600_ANIM_REQUEST_WALK:
             work->driver.rate = 2 * ANIMATION_RATE_ONE;
             break;
     }
+    // Both invalidations are retained from the original landing-state tail.
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    pop                                   = SCRATCH_HEAD_ADDR;
-    SCRATCH_POP_AT(pop, _Actor223600AxisStepScratch);
+    releaseCursorSlot                     = SCRATCH_HEAD_ADDR;
+    SCRATCH_POP_AT(releaseCursorSlot, _Actor223600AxisStepScratch);
     work->stateFrame++;
 }
 
@@ -1367,34 +1359,30 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
 /// object rather than a local initialiser.
 static const EnemyTaskFuncTable3 D_actor_223600_80149E4C = {
     {
-        func_actor_223600_8014CF3C,
-        func_actor_223600_8014B840,
-        func_actor_223600_8014BBF4,
+        _actor223600Hide,
+        _actor223600Walk,
+        _actor223600DropIn,
     },
 };
 
-/// Per-frame tick of this enemy, entry 1 of `D_actor_223600_80149E58`. The
-/// game mode word selects a one-shot arm first: mode 0 clears the model's
-/// `field_C` when the work block's state is not `ACTOR_223600_STATE_HIDDEN` and then carries on, mode 1
-/// does the same and returns, and mode 2 forces `field_C` to 0x80 and returns.
-/// The common path records the state change in `stateEntered` and the dispatched
-/// state in `prevState`, runs the state handler from `D_actor_223600_80149E4C`,
-/// turns the animation latch `func_actor_223600_8014B464` raises into a
-/// `sndEvtRequestScriptStart` cue -- the top nibble of the enemy's `placeKey` in
-/// bits 8-11, with the model's pan and depth -- and finally relights the model
-/// through `worldCoordSetModelLighting` while `relightPending` is set, setting
-/// `relightPending` again when the session's `viewReady` or the state handler
-/// left the root coordinate dirty.
-static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
+/// Advances the enemy state, requests spatial sound cues and refreshes lighting.
+///
+/// Requires initialized work with state HIDDEN, WALK or DROP_IN and a live
+/// model whose composed matrix supplies sound positioning and lighting. Paused
+/// and hidden combat-control modes return before state, sound or lighting work.
+/// The placement index supplies the sound instance byte. A dirty coordinate or
+/// view change schedules lighting from the next tick's cached translation.
+static void _actor223600Update(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_223600_SOUND_INSTANCE_SHIFT = 8 };
     _Actor223600Work*   work;
-    EnemyTaskFuncTable3 fns;
-    s32                 reaction;
-    s32                 cue;
-    s32                 pan;
+    EnemyTaskFuncTable3 stateHandlers;
+    s32                 soundCue;
+    s32                 soundId;
+    s32                 panOffset;
 
-    work = task->work;
-    fns  = D_actor_223600_80149E4C;
+    work          = task->work;
+    stateHandlers = D_actor_223600_80149E4C;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
@@ -1412,25 +1400,27 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
             return;
     }
 
+    // Publish entry before dispatch so a new state initializes exactly once.
     if (work->prevState != work->state) {
         work->stateEntered = 1;
     } else {
         work->stateEntered = 0;
     }
     work->prevState = work->state;
-    fns.funcs[work->state](enemy, task);
+    stateHandlers.funcs[work->state](enemy, task);
 
-    reaction = func_actor_223600_8014B464(work);
-    if (reaction != 0) {
-        cue = reaction | (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    soundCue = _actor223600PollSoundCue(work);
+    if (soundCue != 0) {
+        soundId   = soundCue | (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_223600_SOUND_INSTANCE_SHIFT);
+        panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(
-            cue, pan,
+            soundId, panOffset,
             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
+    // Lighting samples the cached translation before this frame's root is composed.
     if (work->relightPending != 0) {
         worldCoordSetModelLighting(task->extra.tmd,
-                                   (VECTOR*)task->extra.tmd->coords->workm.t, 0, 3);
+                                   task->extra.tmd->coords->workm.t, 0, 3);
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1443,56 +1433,58 @@ static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
 }
 
 /// The enemy's three task states -- spawn, per-frame tick and teardown -- which
-/// `func_actor_223600_8014CF6C` runs by `Task::state`.
+/// `_actor223600Task` runs by `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_223600_80149E58 = {
     {
-        func_actor_223600_8014B540,
-        func_actor_223600_8014CA00,
+        _actor223600Spawn,
+        _actor223600Update,
         enemyDestroy,
     },
 };
 
-/// Message handler (id 0x7D5 in `D_actor_223600_80150B28`). Drives the model's
-/// `field_C` flag word and the work block's `state` from `arg2`: 0 sets 0x80
-/// and rewrites the buffers, 1 clears it and rewrites the buffers, 2 sets bit
-/// 2, and 3 clears then sets bit 2. 0 and 1 select `ACTOR_223600_STATE_WALK`,
-/// 2 and 3 `ACTOR_223600_STATE_HIDDEN`.
-s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Applies a model-draw message and selects the walk or hidden actor state.
+///
+/// Requires a live TMD model and initialized work. HIDE and SHOW select WALK
+/// and allocate a primitive buffer if missing; their active-draw flag differs.
+/// The two SKIP_AUTO_BUFFER modes select HIDDEN, preserving other flags or
+/// clearing them first. Other modes change nothing. Ignores the message ID
+/// and second argument; returns zero and retains no payload.
+static s32 _actor223600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject*        obj  = task->extra.tmd;
-    _Actor223600Work* work = task->work;
+    TmdObject*        model = task->extra.tmd;
+    _Actor223600Work* work  = task->work;
 
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
+    switch (drawMode) {
+        case ACTOR_MESSAGE_VISIBILITY_HIDE:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
             work->state = ACTOR_223600_STATE_WALK;
             break;
-        case 1:
-            obj->flags = 0;
-            tmdAllocPrimitiveBuffer(obj);
+        case ACTOR_MESSAGE_VISIBILITY_SHOW:
+            model->flags = 0;
+            tmdAllocPrimitiveBuffer(model);
             work->state = ACTOR_223600_STATE_WALK;
             break;
-        case 2:
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->state = ACTOR_223600_STATE_HIDDEN;
+        case ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state   = ACTOR_223600_STATE_HIDDEN;
             break;
-        case 3:
-            obj->flags  = 0;
-            work->state = ACTOR_223600_STATE_HIDDEN;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_VISIBILITY_CLEAR_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags  = 0;
+            work->state   = ACTOR_223600_STATE_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
 }
 
-/// `ACTOR_COMMAND_MESSAGE_APPLY` handler in `D_actor_223600_80150B28`. Records
-/// the command's stage, area and the low byte of its selector in
-/// `lastCommandStage`, `lastCommandArea` and `lastCommand`, then, for a
-/// command in the `ACTOR_223600_COMMAND_CONTEXT` namespace, sets the work
-/// block's `state` from the `ACTOR_223600_COMMAND_*` selector. Commands of any
-/// other namespace are recorded and otherwise ignored.
-s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, ActorCommand* command, s32 arg3)
+/// Records an actor command and applies this room's drop-in or hide selector.
+///
+/// Requires initialized work and a readable four-byte command through dispatch.
+/// Records stage, area and the selector's low byte for every namespace, but
+/// changes state only for `ACTOR_223600_COMMAND_CONTEXT` and its known selectors.
+/// Ignores the message ID and second argument; returns zero and retains no pointer.
+static s32 _actor223600ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
     _Actor223600Work* work;
 
@@ -1522,29 +1514,32 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, ActorCommand* command, s32 
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-/// `ACTOR_223600_STATE_HIDDEN` (entry 0 of `D_actor_223600_80149E4C`). On the
-/// frame the state is entered (`stateEntered` set) it marks the enemy not lockable
-/// and sets the model's flags to 0x80; it does nothing on later frames.
-static void func_actor_223600_8014CF3C(Enemy* arg0, Task* arg1)
+/// Hides the model and disables lock-on on the hidden state's entry tick.
+///
+/// Requires initialized work, a live enemy and its TMD model; later ticks do nothing.
+static void _actor223600Hide(Enemy* enemy, Task* task)
 {
     _Actor223600Work* work;
     TmdObject*        model;
 
-    work = arg1->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        model                        = arg1->extra.tmd;
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
-/// Runs the handler of `D_actor_223600_80149E58` that `Task::state` selects --
-/// spawn, per-frame tick or teardown -- on the enemy in `Task::spawnArg2`,
-/// copying the table onto the stack before the call.
-void func_actor_223600_8014CF6C(Task* task)
+/// Dispatches this enemy's spawn, update or teardown task state.
+///
+/// Requires task state 0..2 and a live enemy in the second spawn argument.
+/// Spawn creates task-owned work, update requires it and teardown releases it.
+/// The table is copied by value; the actor overlay must remain loaded for the call.
+/// Spawn failure and teardown destroy the task and enemy before returning.
+static void _actor223600Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 taskHandlers;
 
-    sp = D_actor_223600_80149E58;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    taskHandlers = D_actor_223600_80149E58;
+    taskHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

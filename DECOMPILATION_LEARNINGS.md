@@ -2932,7 +2932,7 @@ only where its declaration sits in address order: GCC emits the object at the
 *declaration*, not at the use, so one at the top of the file collects ahead of
 the leading rodata, while one declared immediately before the consuming
 function lands immediately before that function's `.text` and matches
-(`func_actor_223600_8014CA00`; see the `## A local array initialiser of *three
+(`_actor223600Update`; see the `## A local array initialiser of *three
 or more* elements becomes a .rdata table plus a block move` section).
 
 Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
@@ -71426,7 +71426,7 @@ only where its declaration sits in address order: GCC emits the object at the
 *declaration*, not at the use, so one at the top of the file collects ahead of
 the leading rodata, while one declared immediately before the consuming
 function lands immediately before that function's `.text` and matches
-(`func_actor_223600_8014CA00`; see the `## A local array initialiser of *three
+(`_actor223600Update`; see the `## A local array initialiser of *three
 or more* elements becomes a .rdata table plus a block move` section).
 
 Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
@@ -73309,14 +73309,14 @@ not by source store order but by a scheduler hoist into the same block.
 
 ## A `slti` bound one past a case value, with `bnez`, is the *inverted* fourth-case tree
 
-`func_actor_223600_8014CCD4` dispatches on a `u16` sub-command with arms for 9,
+`_actor223600ApplyCommand` dispatches on a `u16` sub-command with arms for 9,
 1 and 2. Written as the obvious three-case switch it scores 53% and opens with
 `beq a2, 2`: three sorted values put the *middle* one in the root. Adding a
 fourth, empty case — `case 0: break;`, sharing the switch's end with the
 default — moves the pivot to 1 and matches exactly:
 
 ```c
-switch (event->words[1]) {
+switch (command->command) {
     case 9: work->state = 0; break;
     case 1: work->state = 2; break;
     case 2: work->state = 0; break;
@@ -102675,7 +102675,7 @@ the dead store afterwards and it emits nothing. Arm order picks the branch sense
 cmp = (u16)(out.vz + 0x12B) < 0xA27;
 if (cmp == 0) { ret = cmp; ret = 0; } else { ret = cmp; ret = 1; }
 ```
-## m2c drops an unused middle parameter, renumbering the ones after it (func_actor_223600_8014CC04, 2026-09-16)
+## m2c drops an unused middle parameter, renumbering the ones after it (_actor223600SetModelDraw, 2026-09-16)
 
 The m2c seed scored 94.630% with `regs=17 branch=5 insert=2`, and all three
 penalties came from one cause: the function's second argument (`$a1`) is never
@@ -102706,12 +102706,12 @@ different shape - the block graph and predicates already matched).
 Restoring the true arity and typing the switch value `s32` is the whole fix:
 
 ```c
-s32 func_actor_223600_8014CC04(Task* task, s32 arg1, s32 arg2)
+static s32 _actor223600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 ```
 
-100.000% on the next build, every penalty zero. Note `value` need not be *used*
-for this to be right: the handlers in this overlay's `D_actor_223600_80150B28`
-table are all 3-argument, which is where the arity is visible. When an m2c
+100.000% on the next build, every penalty zero. The unused `messageId` and
+second payload word remain in the signature: `TaskMessageHandler` dispatch
+passes four arguments to every entry of `D_actor_223600_80150B28`. When an m2c
 signature has fewer parameters than the register numbers in the names suggest -
 or a name like `arg2` sitting in the second slot - read the caller or the
 dispatch table before accepting it. A narrow type m2c inferred from a store
@@ -126714,7 +126714,7 @@ carriers (`0x8013D3E0` / `0x8013D3EC` / `0x8013D3BC` / `0x8013D3C4` against
 names to become shared symbols emitted at each carrier's own address, which is
 the mechanism `promote`'s docstring records as missing.
 
-## A local array initialiser of *three or more* elements becomes a `.rdata` table plus a block move; two elements expand inline (func_actor_223600_8014CA00, 2026-09-17)
+## A local array initialiser of *three or more* elements becomes a `.rdata` table plus a block move; two elements expand inline (_actor223600Update, 2026-09-17)
 
 An automatic aggregate initialised from constants is expanded one of two ways,
 and the element count decides which. Two elements go inline, one
@@ -126747,7 +126747,7 @@ declared immediately before the consuming function it lands immediately before
 that function's `.text`. maspsx rewrites `.rdata` to `.section .rodata`, so a
 `const` placed in address order *between* the surrounding
 `INCLUDE_ASM`/`INCLUDE_RODATA` lines lands exactly where the target has the
-words - `func_actor_223600_8014CA00` declares `D_actor_223600_80149E4C`
+words - `_actor223600Update` declares `D_actor_223600_80149E4C`
 immediately before the tick, which puts its three words at 0x2C, ahead of
 `ActorsShared80135df4Table` at 0x38. A `const` at the *top* of the file instead
 collects ahead of the leading rodata; see `## Migrated D_* tables have no
@@ -126760,14 +126760,14 @@ m2c types it, defers the extension to the call - see `## A narrow parameter
 signs its extension on the incoming $aN`), and `(TmdObject*)task->extra`
 re-loads per use, as in `src/gameplay/4CC.c`.
 
-Inputs: scratch `nonmatchings/func_actor_223600_8014CA00-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor223600Update-vacuum`, `base.c`
 71.460% (m2c's local initialiser over three `D_x[i]` elements: a constructor
 temp and a second copy), `base_1.c` 85.168% (struct assignment `fns = D_x`),
 `base_2.c` 100.000%. Preprocessed `base_2.i` `485649c0ab868d4f...`. Assembly
 `base_2.s` `cf90db0c48bbce5b...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## m2c leaves a dispatcher's shared body in `default:`; the target emits the case bodies in source order and the shared code after the switch (func_actor_223600_8014CA00, 2026-09-17)
+## m2c leaves a dispatcher's shared body in `default:`; the target emits the case bodies in source order and the shared code after the switch (_actor223600Update, 2026-09-17)
 
 m2c renders a switch whose arms fall into a shared tail by putting that tail in
 `default:` and the case bodies after it. GCC emits the default block *before*
@@ -126795,7 +126795,7 @@ The `return`s matter: m2c's `break` would send the earlier arms into the shared
 body instead of the epilogue. The dispatch tree itself is unchanged (it is
 built from the case *values*), only the body order moves.
 
-Inputs: scratch `nonmatchings/func_actor_223600_8014CA00-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_actor223600Update-vacuum`, `base_1.c`
 85.168% (`branch=8 insert=9 delete=7`, blocks in m2c's order), `base_2.c`
 100.000%. Preprocessed `base_2.i` `485649c0ab868d4f...`. Assembly `base_2.s`
 `cf90db0c48bbce5b...`. Compiler SHA256
@@ -130509,7 +130509,7 @@ The general rule: the number of *variables* decides how many pseudos compete,
 and a cast alone does not create one. When the ROM uses two registers for one
 value across a bail-out branch, look for a second variable rather than for a pin.
 
-## A global's field read repeatedly across pointer stores emits one load per read, and the cached local's statement position is fixed (func_actor_223600_8014B540, 2026-09-17)
+## A global's field read repeatedly across pointer stores emits one load per read, and the cached local's statement position is fixed (_actor223600Spawn, 2026-09-17)
 
 **Symptom.** The spawn handler writes the same constant table field into two
 `Enemy` halfwords and then passes it to a call:
@@ -130545,16 +130545,16 @@ instructions:
   earlier than where the values are used. Put it where the target's load is,
   not where it reads naturally.
 
-## A pointer bump with an extra `move` was materialised by an earlier store, not by an extra variable (func_actor_223600_8014B840, 2026-09-17)
+## A pointer bump with an extra `move` was materialised by an earlier store, not by an extra variable (_actor223600Walk, 2026-09-17)
 
 **Symptom.** A scratch-pad block taken by decrementing the arena head is one
 instruction short. The natural order
 
 ```c
-head                        = *(Turn**)SCRATCH_STACK_CURSOR_SLOT;
-head[-1].dx                 = ...;      /* sh $v0, -0xC($a0) */
-turn                        = head - 1;
-*(Turn**)SCRATCH_STACK_CURSOR_SLOT     = turn;
+scratchTop = *(ActorTurnScratch**)SCRATCH_STACK_CURSOR_SLOT;
+scratchTop[-1].delta.vx = ...;      /* sh $v0, -0xC($a0) */
+turnScratch = scratchTop - 1;
+*(ActorTurnScratch**)SCRATCH_STACK_CURSOR_SLOT = turnScratch;
 ```
 
 compiles the bump to a single `addiu $s1, $a0, -0xC`, while the ROM has
@@ -130564,20 +130564,20 @@ addiu $v0, $a0, -0xC
 addu  $s1, $v0, $zero
 ```
 
-**Cause.** `turn` is live across the calls that follow, so global alloc gives it
-a callee-saved home; when `turn = head - 1` is the first place the sum is
+**Cause.** `turnScratch` is live across the calls that follow, so global alloc gives it
+a callee-saved home; when `turnScratch = scratchTop - 1` is the first place the sum is
 materialised, expand writes it straight into that pseudo and there is nothing to
 copy. A second pseudo exists in the ROM, and it is *not* a second variable -
 the same expression was already computed for an earlier statement:
 
 ```c
-*(Turn**)SCRATCH_STACK_CURSOR_SLOT = head - 1;     /* the store operand must be a reg:
+*(ActorTurnScratch**)SCRATCH_STACK_CURSOR_SLOT = scratchTop - 1;     /* the store operand must be a reg:
                                            the sum lands in a local temp */
-turn                    = head - 1;     /* cse2 folds to that temp: a copy */
+turnScratch = scratchTop - 1;     /* cse2 folds to that temp: a copy */
 ```
 
 local-alloc will not coalesce the copy away, because its source is local to the
-block while `turn` is a global (call-crossing) pseudo, and quantity merging only
+block while `turnScratch` is a global (call-crossing) pseudo, and quantity merging only
 joins two local quantities.
 
 **Rule.** An unexplained `move` into `$sN` right after an address computation is
@@ -130586,7 +130586,7 @@ earlier statement - usually a store - that needed the same value in a register.
 This is the complement of the entry above, where a second *variable* was what
 created the second pseudo; a cast never does.
 
-## One function called with two different argument counts in a TU needs a K&R declaration (func_actor_223600_8014B840, 2026-09-17)
+## One function called with two different argument counts in a TU needs a K&R declaration (_actor223600Walk, 2026-09-17)
 
 **Symptom.** `func_actor_223600_8014B2F4` is called twice in `actor_223600`. The
 ROM sets `$a0` and `$a1` at one call site and only `$a0` at the other, with no
@@ -130612,15 +130612,15 @@ it (`actor_800200.h`, `actor_403100.h`, `src/gameplay/3E9C.c`). Read a
 mismatched argument register as a question about the *declaration* before
 treating it as an allocation problem.
 
-## A `switch` whose lowest case is 0 tests it with `<` when the index is unsigned and with `==` when it is signed (func_actor_223600_8014BBF4, 2026-09-17)
+## A `switch` whose lowest case is 0 tests it with `<` when the index is unsigned and with `==` when it is signed (_actor223600DropIn, 2026-09-17)
 
-`func_actor_223600_8014BBF4` opens with a three-case dispatch on the top nibble
+`_actor223600DropIn` opens with a three-case dispatch on the top nibble
 of `Enemy::placeKey`. Written the way its already-matched sibling
-`func_actor_223600_8014B840` writes the same expression,
+`_actor223600Walk` writes the same expression,
 
 ```c
-u32 mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-switch (mode) { case 0: ... case 1: ... case 2: ... }
+u32 placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+switch (placementIndex) { case 0: ... case 1: ... case 2: ... }
 ```
 
 GCC emits three plain equality tests - `beq s5,s0` (==1), `beqz s5` (==0),
@@ -130653,13 +130653,13 @@ small switch's tree has the right root but the wrong number of tests. Two cases
 are a different shape again - see "A two-case `switch`'s decision tree is a
 linear list".
 
-## A large absolute address is `lui $at` inline but `lui`+`ori` through a pointer variable, and one variable per use site keeps each range short (func_actor_223600_8014BBF4, 2026-09-17)
+## A large absolute address is `lui $at` inline but `lui`+`ori` through a pointer variable, and one variable per use site keeps each range short (_actor223600DropIn, 2026-09-17)
 
 Scratch-pad code reaches `SCRATCH_STACK_CURSOR_SLOT` (`0x1F8003FC`) two ways in the same
 function, and they are different code. Written inline,
 
 ```c
-head = *(_Actor223600AxisStepScratch**)SCRATCH_STACK_CURSOR_SLOT;
+scratchTop = *(_Actor223600AxisStepScratch**)SCRATCH_STACK_CURSOR_SLOT;
 ```
 
 GCC hands the assembler a MEM with an absolute address and gets its `$at`
@@ -130667,7 +130667,7 @@ expansion - `lui $s1,0x1f80; lw $s1,0x3fc($s1)` for the load, a second
 `lui $at,0x1f80; sw ...,0x3fc($at)` for the store. Assigned to a pointer
 variable first, the constant becomes a *value*, so it is materialised with
 `lui`+`ori` and every access is `0($reg)`. Both forms appear in this one
-function - the inlined `Actor223600_MoveForward` uses the inline form, the body
+function - the inlined `_actorMovementStepForward` uses the inline form, the body
 around it the variable form - so copy whichever the target shows rather than
 picking one.
 
@@ -147140,7 +147140,7 @@ overlay whose copy other rooms call under a public name uses the same define
 to give the fragment that name.
 
 A value sitting in `$a1` at a call is not proof of a second argument. In
-`func_actor_223600_8014B540` the target loads the enemy's hit points into `$a1`
+`_actor223600Spawn` the target loads the enemy's hit points into `$a1`
 just before `jal _animDriverTick`, and an old-style call passing it matched - but
 no other call of the driver in four packages sets `$a1`. The permuter found the
 real source: store `field_174 = 1` before `field_170 = 2`. The constant 1 is
@@ -150457,13 +150457,13 @@ attempts; left as it was.
   insn longer; it stays.
 ## Goto forms from batch 31: a surviving `andi rX, rY, 0xFFFF` says the block was shared in the source
 
-**Problem.** `func_actor_123200_80133450` / `func_actor_223600_8014B464` (the
+**Problem.** `func_actor_123200_80133450` / `_actor223600PollSoundCue` (the
 sound-cue latch; `actor_01200` and `actor_04000` carry the same body) reach one
-`check:` block from two switch cases by `goto`. Writing the block out in each
+`latchCue:` block from two switch cases by `goto`. Writing the block out in each
 case (plain, or as a `static inline`) and letting cross-jumping merge the
 copies does not match.
 
-**Symptom.** `id = x & 0x3FF` followed by its promotion compiles to
+**Symptom.** `cueIndex = x & 0x3FF` followed by its promotion compiles to
 `andi a1, v0, 0x3FF; andi v1, a1, 0xFFFF` in the target; the duplicated form
 gives `andi a1, v0, 0x3FF; move v1, a1`, and the copies only merge partially
 (cross-jumping stops at the conditional branch inside the block).
