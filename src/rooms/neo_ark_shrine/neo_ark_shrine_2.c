@@ -59,6 +59,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/action_prompt.h"
 
@@ -78,8 +79,8 @@ typedef struct {
 } _NeoArkShrineFallingPropWork;
 STATIC_ASSERT_SIZEOF(_NeoArkShrineFallingPropWork, 0x48);
 
-static void func_neo_ark_shrine_8017F86C(Task* task);
-static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2);
+static void _neoArkShrineUpdateFallingPropLighting(Task* task);
+static void _neoArkShrineDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
 extern SVECTOR D_neo_ark_shrine_8018268C[];
 extern SVECTOR D_neo_ark_shrine_80182694[];
@@ -109,10 +110,10 @@ static void func_neo_ark_shrine_8017F21C(Task* task);
 static void func_neo_ark_shrine_8017F274(Task* task);
 static void func_neo_ark_shrine_8017F320(Task* task);
 static void func_neo_ark_shrine_8017F398(Task* task);
-static void func_neo_ark_shrine_8017F4C8(Task* task);
+static void _neoArkShrineInitializeFirstFallingProp(Task* task);
 static void func_neo_ark_shrine_8017F578(Task* task);
 static void func_neo_ark_shrine_8017F640(Task* task);
-static void func_neo_ark_shrine_8017F688(Task* task);
+static void _neoArkShrineInitializeSecondFallingProp(Task* task);
 static void func_neo_ark_shrine_8017F738(Task* task);
 
 /// State table of the shrine's cap script task, indexed by `Task::state`.
@@ -138,11 +139,11 @@ static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
 };
 /// State table of the shrine's first falling prop, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_shrine_8017D610 = {
-    { func_neo_ark_shrine_8017F4C8, func_neo_ark_shrine_8017F578, func_neo_ark_shrine_8017F640, taskKill },
+    { _neoArkShrineInitializeFirstFallingProp, func_neo_ark_shrine_8017F578, func_neo_ark_shrine_8017F640, taskKill },
 };
 /// State table of the shrine's second falling prop, indexed by `Task::state`.
 static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
-    { func_neo_ark_shrine_8017F688, func_neo_ark_shrine_8017F738, taskKill },
+    { _neoArkShrineInitializeSecondFallingProp, func_neo_ark_shrine_8017F738, taskKill },
 };
 
 extern WorldCollisionGrid     D_neo_ark_shrine_80182D2C[1];
@@ -1417,33 +1418,51 @@ void func_neo_ark_shrine_8017F448(void)
     } while (i < 0x10);
 }
 
-/// Second state of the shrine's first falling prop: allocates its 0x48-byte
-/// scratch block, republishes the block's light / colour matrices onto the
-/// model's `TmdObject`, parks the prop at its starting position parented to the
-/// room's view coordinate system, and advances the task to the falling state.
-static void func_neo_ark_shrine_8017F4C8(Task* task)
+/// Creates a falling prop's owned lighting work and places its model above the floor.
+///
+/// `task` has a TMD body and starts with null work. X and Z are world-coordinate
+/// positions; Y starts at -3000. Work is published even on allocation failure,
+/// when the task is killed. Success exposes its matrices to the model, enables
+/// drawing, refreshes lighting and advances to the falling state.
+static inline void _neoArkShrineInitializeFallingProp(Task* task, s32 startX, s32 startZ)
 {
-    TmdObject*                    extra;
+    enum { NEO_ARK_SHRINE_PROP_START_Y = -3000 };
+
+    TmdObject*                    model;
     GfxCoord*                     coord;
     _NeoArkShrineFallingPropWork* work;
 
-    extra      = task->extra.tmd;
-    coord      = extra->coords;
-    work       = memCalloc(sizeof(_NeoArkShrineFallingPropWork), 0);
+    model      = task->extra.tmd;
+    coord      = model->coords;
+    work       = memCalloc(sizeof(*work), false);
     task->work = work;
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    extra->lightMtx   = &work->light;
-    extra->flags      = 0;
-    extra->colorMtx   = &work->color;
+    // The model borrows these matrices until task teardown frees the work.
+    model->lightMtx   = &work->light;
+    model->flags      = 0;
+    model->colorMtx   = &work->color;
     coord->parent     = &gGfxViewCoord;
-    coord->coord.t[0] = 0x1B58;
-    coord->coord.t[1] = -0xBB8;
-    coord->coord.t[2] = -0x3E8;
-    func_neo_ark_shrine_8017F86C(task);
+    coord->coord.t[0] = startX;
+    coord->coord.t[1] = NEO_ARK_SHRINE_PROP_START_Y;
+    coord->coord.t[2] = startZ;
+    _neoArkShrineUpdateFallingPropLighting(task);
     task->state++;
+}
+
+/// Initializes the first falling prop at world position (7000, -3000, -1000).
+///
+/// State 0 requires a TMD body and null work. Success starts the drop from
+/// rest; its zeroed work and lighting matrices remain owned by the task.
+/// Allocation failure kills the task without advancing the state.
+static void _neoArkShrineInitializeFirstFallingProp(Task* task)
+{
+    enum { NEO_ARK_SHRINE_FIRST_PROP_START_X = 7000,
+           NEO_ARK_SHRINE_FIRST_PROP_START_Z = -1000 };
+
+    _neoArkShrineInitializeFallingProp(task, NEO_ARK_SHRINE_FIRST_PROP_START_X, NEO_ARK_SHRINE_FIRST_PROP_START_Z);
 }
 
 static void func_neo_ark_shrine_8017F578(Task* task)
@@ -1466,42 +1485,28 @@ static void func_neo_ark_shrine_8017F578(Task* task)
         coord->coord.t[1] = 0;
         task->state++;
     }
-    func_neo_ark_shrine_8017F86C(task);
+    _neoArkShrineUpdateFallingPropLighting(task);
 }
 
 static void func_neo_ark_shrine_8017F640(Task* task)
 {
-    func_neo_ark_shrine_8017F86C(task);
+    _neoArkShrineUpdateFallingPropLighting(task);
     if (D_neo_ark_shrine_8018686A == 0) {
         task->state++;
     }
 }
 
-/// Second state of the shrine's second falling prop: as `func_neo_ark_shrine_8017F4C8`,
-/// but parked at the mirror position on the far side of the shrine.
-static void func_neo_ark_shrine_8017F688(Task* task)
+/// Initializes the second falling prop at world position (8750, -3000, -4550).
+///
+/// State 0 requires a TMD body and null work. Success starts the drop from
+/// rest; its zeroed work and lighting matrices remain owned by the task.
+/// Allocation failure kills the task without advancing the state.
+static void _neoArkShrineInitializeSecondFallingProp(Task* task)
 {
-    TmdObject*                    extra;
-    GfxCoord*                     coord;
-    _NeoArkShrineFallingPropWork* work;
+    enum { NEO_ARK_SHRINE_SECOND_PROP_START_X = 8750,
+           NEO_ARK_SHRINE_SECOND_PROP_START_Z = -4550 };
 
-    extra      = task->extra.tmd;
-    coord      = extra->coords;
-    work       = memCalloc(sizeof(_NeoArkShrineFallingPropWork), 0);
-    task->work = work;
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    extra->lightMtx   = &work->light;
-    extra->flags      = 0;
-    extra->colorMtx   = &work->color;
-    coord->parent     = &gGfxViewCoord;
-    coord->coord.t[0] = 0x222E;
-    coord->coord.t[1] = -0xBB8;
-    coord->coord.t[2] = -0x11C6;
-    func_neo_ark_shrine_8017F86C(task);
-    task->state++;
+    _neoArkShrineInitializeFallingProp(task, NEO_ARK_SHRINE_SECOND_PROP_START_X, NEO_ARK_SHRINE_SECOND_PROP_START_Z);
 }
 
 static void func_neo_ark_shrine_8017F738(Task* task)
@@ -1526,217 +1531,234 @@ static void func_neo_ark_shrine_8017F738(Task* task)
         coord->coord.t[1] = 0;
         task->state++;
     }
-    func_neo_ark_shrine_8017F86C(task);
+    _neoArkShrineUpdateFallingPropLighting(task);
 }
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-/// Tail every falling-prop handler runs: clears the prop's root coordinate
-/// flag, rebuilds its world matrix, and rebuilds its lighting through
-/// `worldCoordSetModelLighting` at a sample position 0x320 below its world origin.
-static void func_neo_ark_shrine_8017F86C(Task* task)
+/// Refreshes a falling model's composed transform and its lighting matrices.
+///
+/// Requires a TMD body with writable light and colour matrices. The lighting
+/// sample retains the composed translation with Y reduced by 800 coordinate
+/// units; for these view-parented models that translation is in view space.
+static void _neoArkShrineUpdateFallingPropLighting(Task* task)
 {
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
+    enum { NEO_ARK_SHRINE_PROP_LIGHT_SAMPLE_Y_OFFSET = -800,
+           NEO_ARK_SHRINE_PROP_LIGHT_COUNT           = 3 };
 
-    obj                 = task->extra.tmd;
-    coord               = obj->coords;
+    TmdObject* model;
+    GfxCoord*  coord;
+    VECTOR     samplePosition;
+
+    model               = task->extra.tmd;
+    coord               = model->coords;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x320;
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
+    // Retain the original sample in the composed coordinate's space.
+    samplePosition.vx = coord->workm.t[0];
+    samplePosition.vy = coord->workm.t[1] + NEO_ARK_SHRINE_PROP_LIGHT_SAMPLE_Y_OFFSET;
+    samplePosition.vz = coord->workm.t[2];
+    worldCoordSetModelLighting(model, &samplePosition, 0, NEO_ARK_SHRINE_PROP_LIGHT_COUNT);
 }
 
-/// On the task's first tick stores three ids (0x601DF, 0x601FB, 0x60217) into
-/// the `gRoomEffectFlashId` / `gRoomEffectTwinTrailId` / `gRoomEffectSparkBurstId` slots; then, every tick, runs
-/// `func_neo_ark_shrine_8017FC14` over the positions the current camera view
-/// shows, drawn from one of the room's `SVECTOR` arrays.
-void func_neo_ark_shrine_8017F8DC(Task* task)
+void neoArkShrineFlareTask(Task* task)
 {
-    if (task->state == 0) {
+    enum { NEO_ARK_SHRINE_FLARES_INITIALIZE,
+           NEO_ARK_SHRINE_FLARES_DRAW,
+           NEO_ARK_SHRINE_FLARE_TEXTURE_0    = 0,
+           NEO_ARK_SHRINE_FLARE_TEXTURE_1    = 1,
+           NEO_ARK_SHRINE_FLARE_RADIUS_SCALE = 0x300 };
+
+    if (task->state == NEO_ARK_SHRINE_FLARES_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_NEO_ARK_SHRINE_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_NEO_ARK_SHRINE_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_NEO_ARK_SHRINE_SPARK_BURST;
-        task->state             = 1;
+        task->state             = NEO_ARK_SHRINE_FLARES_DRAW;
     }
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
-            SVECTOR* p = D_neo_ark_shrine_801826D4;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[1], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[2], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[3], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[4], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[5], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_801826D4;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[4], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[5], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 3: {
-            SVECTOR* p = D_neo_ark_shrine_801826AC;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[1], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[2], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[5], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[6], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[8], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[9], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[10], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[5], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[6], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[8], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[9], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[10], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 4: {
-            SVECTOR* p = D_neo_ark_shrine_801826AC;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[3], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[4], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[5], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[4], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[5], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 5:
         case 18: {
-            SVECTOR* p = D_neo_ark_shrine_801826AC;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[3], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[4], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[4], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 6: {
-            SVECTOR* p = D_neo_ark_shrine_8018269C;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[1], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[5], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[6], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_8018269C;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[5], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[6], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 7: {
-            SVECTOR* p = D_neo_ark_shrine_8018268C;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[2], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_8018268C;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 12: {
-            SVECTOR* p = D_neo_ark_shrine_80182694;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[3], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[6], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_80182694;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[6], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 14: {
-            SVECTOR* p = D_neo_ark_shrine_801826C4;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[1], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[2], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_801826C4;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 16: {
-            SVECTOR* p = D_neo_ark_shrine_801826AC;
-            func_neo_ark_shrine_8017FC14(&p[0], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[3], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[4], 1, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[5], 1, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[4], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[5], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 10:
         case 17: {
-            SVECTOR* p = D_neo_ark_shrine_80182704;
-            func_neo_ark_shrine_8017FC14(&p[0], 0, 0x300);
-            func_neo_ark_shrine_8017FC14(&p[1], 0, 0x300);
+            const SVECTOR* positions = D_neo_ark_shrine_80182704;
+            _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_0, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
+            _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_0, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
     }
 }
 
-/// Projects the world-space point `pos` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues one semi-transparent `POLY_FT4` sprite
-/// centred on it (tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects
-/// the 40-texel UV column `(s16)arg1 * 40` at v=0..0x27, and `arg2` is a signed
-/// half-extent whose on-screen radius is `(s16)arg2 * 39 / otz`. All three RGB
-/// channels take `0x20`, plus 0x10 on odd `animFrame` values, so the sprite
-/// flickers frame to frame.
-static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
+/// Sets a flare's four screen edges from its projected centre and half-extent.
+///
+/// The half-extent is narrowed to an unsigned halfword before the edge
+/// arithmetic; each result is narrowed to a signed screen-coordinate halfword.
+static inline void _neoArkShrineSetFlareBounds(POLY_FT4* flare, const GlowCentreScratch* projection)
 {
-    void**             scratch;
-    u8*                head;
-    u8*                tmp;
-    GlowCentreScratch* block;
-    POLY_FT4*          prim;
-    DisplayState*      ds;
-    s32                idx;
-    s32                u0;
-    s32                u1;
-    s32                sarg;
-    s32                blend;
-    s16                xy;
+    s16 edge;
 
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    tmp      = head - 0x10;
-    block    = (GlowCentreScratch*)tmp;
-    *scratch = tmp;
+    edge      = projection->sx - (u16)projection->radius;
+    flare->x2 = edge;
+    flare->x0 = edge;
+    edge      = projection->sx + (u16)projection->radius;
+    flare->x3 = edge;
+    flare->x1 = edge;
+    edge      = projection->sy - (u16)projection->radius;
+    flare->y1 = edge;
+    flare->y0 = edge;
+    edge      = projection->sy + (u16)projection->radius;
+    flare->y3 = edge;
+    flare->y2 = edge;
+}
 
+/// Draws a flickering textured flare at a shrine light's world position.
+///
+/// Borrows `worldPoint` for the call. The signed low halfword of `textureIndex`
+/// selects a 40-texel column and its low six bits select the palette offset;
+/// shrine callers select columns 0 and 1. The signed low halfword of
+/// `radiusScale` gives the pixel half-extent `radiusScale * 39 / depth`, with
+/// depth equal to camera Z / 4 and required to be nonzero after projection.
+/// Negative GTE flags suppress the packet. Accepted points queue one
+/// semitransparent quad with RGB intensity 32 or 48 on alternating frames.
+/// Requires a composed view, a current packet arena and depth ordering table,
+/// and 16 free scratch-stack bytes, released before return on either path.
+static void _neoArkShrineDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale)
+{
+    GlowCentreScratch* projection;
+    POLY_FT4*          flare;
+    DisplayState*      display;
+    s32                columnIndex;
+    s32                leftU;
+    s32                rightU;
+    s32                signedRadiusScale;
+    s32                intensity;
+
+    projection = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
+
+    // Reject projection errors before reserving a GPU packet.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(pos);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    ds    = &gDisplayState;
-    blend = (((u8)ds->animFrame & 1) * 16) + 0x20;
-    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
-    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
-    if (((GlowCentreScratch*)tmp)->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        idx         = (s16)arg1;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u0          = idx * 40;
-        u1          = u0 + 0x27;
-        sarg        = (s16)arg2;
-        setRGB0(prim, blend, blend, blend);
-        prim->u0                          = u0;
-        prim->v0                          = 0;
-        prim->u1                          = u1;
-        prim->v1                          = 0;
-        prim->u2                          = u0;
-        prim->v2                          = 0x27;
-        prim->u3                          = u1;
-        prim->v3                          = 0x27;
-        prim->code                       |= 2;
-        ((GlowCentreScratch*)tmp)->radius = (sarg * 40 - sarg) / ((GlowCentreScratch*)(head - 0x10))->otz;
-        xy                                = ((GlowCentreScratch*)tmp)->sx - (u16)((GlowCentreScratch*)tmp)->radius;
-        prim->x2                          = xy;
-        prim->x0                          = xy;
-        xy                                = ((GlowCentreScratch*)tmp)->sx + (u16)((GlowCentreScratch*)tmp)->radius;
-        prim->x3                          = xy;
-        prim->x1                          = xy;
-        xy                                = ((GlowCentreScratch*)tmp)->sy - (u16)((GlowCentreScratch*)tmp)->radius;
-        prim->y1                          = xy;
-        prim->y0                          = xy;
-        xy                                = ((GlowCentreScratch*)tmp)->sy + (u16)((GlowCentreScratch*)tmp)->radius;
-        prim->y3                          = xy;
-        prim->y2                          = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GlowCentreScratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    display   = &gDisplayState;
+    intensity = (((u8)display->animFrame & 1) * (1 << GLOW_BRIGHT_FLICKER_SHIFT)) + GLOW_FLICKER_BASE_INTENSITY;
+    gte_stsxy(&projection->sx);
+    gte_stflg(&projection->flag);
+    if (projection->flag >= 0) {
+        gte_stszotz(&projection->otz);
+        flare          = gGpuPrimCursor;
+        gGpuPrimCursor = flare + 1;
+        setPolyFT4(flare);
+        columnIndex       = (s16)textureIndex;
+        flare->tpage      = GLOW_FLARE_TEXTURE_PAGE;
+        flare->clut       = (columnIndex & GLOW_FLARE_PALETTE_OFFSET_MASK) | GLOW_FLARE_PALETTE_BASE;
+        leftU             = columnIndex * GLOW_FLARE_CELL_STRIDE;
+        rightU            = leftU + GLOW_FLARE_CELL_LAST_TEXEL;
+        signedRadiusScale = (s16)radiusScale;
+        setRGB0(flare, intensity, intensity, intensity);
+        flare->u0 = leftU;
+        flare->v0 = 0;
+        flare->u1 = rightU;
+        flare->v1 = 0;
+        flare->u2 = leftU;
+        flare->v2 = GLOW_FLARE_CELL_LAST_TEXEL;
+        flare->u3 = rightU;
+        flare->v3 = GLOW_FLARE_CELL_LAST_TEXEL;
+        setSemiTrans(flare, true);
+
+        // Size the square in screen pixels and sort it at the projected depth.
+        projection->radius = (signedRadiusScale * GLOW_FLARE_CELL_LAST_TEXEL) / projection->otz;
+        _neoArkShrineSetFlareBounds(flare, projection);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                flare);
     }
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }
 
 #include "../../shared/room_visual_effects.inc.c"
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_shrine_8017FEA0(Task* arg0)
+void neoArkShrineRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_shrine_80180904(Task* task)
+void neoArkShrineRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

@@ -926,11 +926,11 @@ func_neo_ark_savanna_zone_8017E470 = 0x8017E470; // type:func absolute:True owne
 
 func_neo_ark_savanna_zone_8017ED58 = 0x8017ED58; // type:func absolute:True owner=neo_ark_savanna_zone
 
-func_neo_ark_shrine_8017F8DC = 0x8017F8DC; // type:func absolute:True owner=neo_ark_shrine
+neoArkShrineFlareTask = 0x8017F8DC; // type:func absolute:True owner=neo_ark_shrine
 
-func_neo_ark_shrine_8017FEA0 = 0x8017FEA0; // type:func absolute:True owner=neo_ark_shrine
+neoArkShrineRoomVisualEffectsFlashTask = 0x8017FEA0; // type:func absolute:True owner=neo_ark_shrine
 
-func_neo_ark_shrine_80180904 = 0x80180904; // type:func absolute:True owner=neo_ark_shrine
+neoArkShrineRoomVisualEffectsTwinTrailTask = 0x80180904; // type:func absolute:True owner=neo_ark_shrine
 
 func_neo_ark_south_promenade_8017E184 = 0x8017E184; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 

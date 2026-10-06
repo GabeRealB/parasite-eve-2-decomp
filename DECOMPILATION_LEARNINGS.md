@@ -87624,9 +87624,9 @@ Two levers that do *not* work for this swap, both worth knowing:
 Inputs: `base_1.i` `d8c3158cdcb2cd2a9a9e10b9c28c8c74916baf0d75a10e6ef0ccfe479691458e`,
 `base_12.i` `41d64bdea1facee77f1fb36da4d86fe0707c4c7389f2d544d58b95b0e6e75fee`.
 
-## An m2c pile of scalars assembled into one stack object: only the address-taken one survives dead-store elimination (func_neo_ark_shrine_8017F86C, 2026-09-15)
+## An m2c pile of scalars assembled into one stack object: only the address-taken one survives dead-store elimination (_neoArkShrineUpdateFallingPropLighting, 2026-09-15)
 
-`func_neo_ark_shrine_8017F86C` is 23 insns that load three words from a
+`_neoArkShrineUpdateFallingPropLighting` is 23 insns that load three words from a
 `GfxCoord`'s `workm.t[]`, bias the middle one by `-0x320`, and hand them to
 `worldCoordSetModelLighting` as its three-word position input. m2c renders that as three unrelated locals and
 one address-taken:
@@ -87653,11 +87653,11 @@ Fix: write the object the callee actually takes, so one address is taken for all
 three fields:
 
 ```c
-    VECTOR vec;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x320;
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
+    VECTOR samplePosition;
+    samplePosition.vx = coord->workm.t[0];
+    samplePosition.vy = coord->workm.t[1] + NEO_ARK_SHRINE_PROP_LIGHT_SAMPLE_Y_OFFSET;
+    samplePosition.vz = coord->workm.t[2];
+    worldCoordSetModelLighting(model, &samplePosition, 0, NEO_ARK_SHRINE_PROP_LIGHT_COUNT);
 ```
 
 100% with all-zero penalties on the first body rewrite, frame back to 0x30.
@@ -87770,7 +87770,7 @@ Inputs: `base.i` `6c2870c680e9ba0288857295bc5606f260d14ffa5dc8fb15ef5840e1b7cf09
 
 ## A store the target puts in the `bnez` delay slot must be written *before* the check
 
-`func_neo_ark_shrine_8017F4C8` allocates its scratch block, stores it to
+`_neoArkShrineInitializeFirstFallingProp` allocates its scratch block, stores it to
 `Task::work`, and kills the task when the allocation failed:
 
 ```
@@ -87791,7 +87791,7 @@ addiu v0,v1,0x20
 Every other room that allocates a work block writes the store *after* the
 check - `if (work == NULL) { taskKill(task); return; } task->work = work;` -
 and following that convention here scored 97.273% with `reorder=2`: sched2
-hoisted the `func_neo_ark_shrine_8017F86C` argument into the branch delay slot
+hoisted the `_neoArkShrineUpdateFallingPropLighting` argument into the branch delay slot
 (`bnez v1,4c` / `move a0,s2`) and pushed the store past `addiu v0,v1,0x20`.
 Writing `task->work = work;` **before** `if (work == NULL)` restores the
 target exactly (100%, all-zero penalties).
@@ -95445,7 +95445,7 @@ correct codes, one original.
 
 The idiom is in the matched corpus, which is what settled it in two builds:
 `func_acropolis_west_elevator_hall_8017F6F0`, `func_shelter_b2_elevator_8017D70C`
-and `func_neo_ark_shrine_8017F86C` all write `coord->composeStamp = 0;` on the line before
+and `_neoArkShrineUpdateFallingPropLighting` all write `coord->composeStamp = 0;` on the line before
 `actorRenderComposeCoord(coord);` and all compile to `addu $a0,$sX,$zero` / `jal` /
 `sw $zero,0x0($sX)`. When a function belongs to a family, grep the matched corpus
 for its callee and read how the neighbouring statement is written before

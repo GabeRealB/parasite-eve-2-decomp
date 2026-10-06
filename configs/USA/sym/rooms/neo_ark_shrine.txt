@@ -126,11 +126,11 @@ D_neo_ark_shrine_80182410 = 0x80182410; // size:0x20 defined:True
 D_neo_ark_shrine_80182430 = 0x80182430; // size:0xD8 defined:True
 D_neo_ark_shrine_80182508 = 0x80182508; // size:0x24 defined:True
 
-func_neo_ark_shrine_8017F8DC = 0x8017F8DC; // type:func
+neoArkShrineFlareTask = 0x8017F8DC; // type:func
 
-func_neo_ark_shrine_8017FEA0 = 0x8017FEA0; // type:func
+neoArkShrineRoomVisualEffectsFlashTask = 0x8017FEA0; // type:func
 
-func_neo_ark_shrine_80180904 = 0x80180904; // type:func
+neoArkShrineRoomVisualEffectsTwinTrailTask = 0x80180904; // type:func
 
 func_neo_ark_shrine_801811EC = 0x801811EC; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180144; // type:func
@@ -142,3 +142,7 @@ actionPromptMoveCursors = 0x8017E528; // type:func
 actionPromptDrawCursor = 0x8017E988; // type:func
 actionPromptHitTest = 0x8017EC10; // type:func
 actionPromptReset = 0x8017F80C; // type:func
+_neoArkShrineUpdateFallingPropLighting = 0x8017f86c; // type:func
+_neoArkShrineDrawFlare = 0x8017fc14; // type:func
+_neoArkShrineInitializeFirstFallingProp = 0x8017f4c8; // type:func
+_neoArkShrineInitializeSecondFallingProp = 0x8017f688; // type:func
