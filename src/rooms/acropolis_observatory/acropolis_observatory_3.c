@@ -1070,27 +1070,23 @@ void func_acropolis_observatory_8017E19C(Task* task)
     }
 }
 
-/// Sets a glow quad's corners around its projected centre and pixel half-extent.
+/// Sets the screen-aligned square corners of a glow quad around its projected centre.
 ///
-/// Borrows the live projection and packet. Edge arithmetic retains the low 16
-/// bits in signed screen coordinates; it neither clips nor retains pointers.
+/// Only `projection`'s `screenX`, `screenY` and `screenExtent` need initialization.
+/// The centre fields encode signed pixel coordinates; the integer pixel
+/// half-extent is narrowed to unsigned 16 bits before computing the edges.
+/// Corners 0/1 form the top row and 2/3 the bottom row; 0/2 form the left
+/// column and 1/3 the right column. Screen X increases rightward, Y downward.
+///
+/// Borrows a live read-only projection and a disjoint writable `POLY_FT4`.
+/// Writes only the eight XY halfwords, retaining the low 16 bits as signed
+/// screen coordinates without clipping. Neither pointer is retained.
 static inline void _acropolisObservatorySetGlowScreenBounds(POLY_FT4* quad, const EffectCentreScratch* projection)
 {
-    s16 horizontalEdge;
-    s16 verticalEdge;
-
-    horizontalEdge = projection->screenX - (u16)projection->screenExtent;
-    quad->x2       = horizontalEdge;
-    quad->x0       = horizontalEdge;
-    horizontalEdge = projection->screenX + (u16)projection->screenExtent;
-    quad->x3       = horizontalEdge;
-    quad->x1       = horizontalEdge;
-    verticalEdge   = projection->screenY - (u16)projection->screenExtent;
-    quad->y1       = verticalEdge;
-    quad->y0       = verticalEdge;
-    verticalEdge   = projection->screenY + (u16)projection->screenExtent;
-    quad->y3       = verticalEdge;
-    quad->y2       = verticalEdge;
+    quad->x0 = quad->x2 = projection->screenX - (u16)projection->screenExtent;
+    quad->x1 = quad->x3 = projection->screenX + (u16)projection->screenExtent;
+    quad->y0 = quad->y1 = projection->screenY - (u16)projection->screenExtent;
+    quad->y2 = quad->y3 = projection->screenY + (u16)projection->screenExtent;
 }
 
 void acropolisObservatoryAmbientGlowTask(Task* task)
