@@ -1149,7 +1149,8 @@ void func_actor_342000_8016382C(Task* arg0)
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 work->doors[0] = taskSpawnFromTable(D_actor_342000_80164FF8, 8, 0, arg0);
                 work->doors[1] = taskSpawnFromTable(D_actor_342000_80164FF8, 9, 0, arg0);
-                goto next;
+                arg0->state++;
+                break;
             }
             work->doors[0] = taskSpawnFromTable(D_actor_342000_80164FF8, 8, 1, arg0);
             work->doors[1] = taskSpawnFromTable(D_actor_342000_80164FF8, 9, 1, arg0);
@@ -1167,11 +1168,13 @@ void func_actor_342000_8016382C(Task* arg0)
                     work->gluttonLegLeft = child;
                 }
             }
-            goto next;
+            arg0->state++;
+            break;
         case 2:
             Gp_MsgPlayerWeapon(0);
             func_800E8634(D_actor_342000_80164968, 0, D_actor_342000_80164E30);
-            goto next;
+            arg0->state++;
+            break;
         case 3:
             if (gGameSession->eventState == 0) {
                 gGameSession->sceneClock = D_shelter_b3_garbage_incinerator_8018FBC8[0];
@@ -1207,7 +1210,8 @@ void func_actor_342000_8016382C(Task* arg0)
             arg0->killCountdown = timer;
             if (timer >= 2) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x21;
-                goto next;
+                arg0->state++;
+                break;
             }
             break;
         case 7:
@@ -1239,11 +1243,11 @@ void func_actor_342000_8016382C(Task* arg0)
                 func_shelter_b3_garbage_incinerator_8018507C();
                 taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
-                goto next;
+                arg0->state++;
+                break;
             }
             break;
         case 10:
-        next:
             arg0->state++;
             break;
         case 11:
