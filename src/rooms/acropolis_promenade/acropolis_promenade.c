@@ -2216,11 +2216,14 @@ void func_acropolis_promenade_8017E03C(Task* task)
     work->scale = view;
 }
 
-/// Seeds one drip's pixel position, lifetime, width and frames per row.
+/// Seeds one screen drip's pixel position, lifetime, width and descent period.
 ///
-/// Borrows the live task and its writable effect work. Consumes five shared
-/// LCG draws in position/lifetime/width/period order, retaining unsigned
-/// lifetime reduction, then advances the task state. Retains no pointer.
+/// Requires a live writable task and its zero-age effect work. Sets `move.vx`
+/// to X in 0..239 pixels, `move.vy` to Y in 176..239 pixels, `scale` to the
+/// lifetime cutoff in 30..119 frames, `angle` to width in 16..79 pixels and
+/// `period` to 1..4 frames per row. Advances task state without changing age.
+/// Consumes five shared LCG draws in X/Y/lifetime/width/period order, using
+/// unsigned lifetime reduction. Borrows both objects and retains no pointer.
 static __inline__ void _acropolisPromenadeInitializeScreenDrip(Task* task, EffectWork* work)
 {
     enum {
@@ -2316,33 +2319,35 @@ void acropolisPromenadeScreenDripTask(Task* task)
 /// Places one corner of the ground glow in the task's composed coordinate space.
 ///
 /// `cornerIndex` is 0..3 in GPU strip order; the local XZ half-side is 768
-/// coordinate units. Borrows a live scratch block and composed coordinate.
-/// Products and translations narrow to signed 16 bits; rotation stores GTE IR
-/// results. Leaves the vector's fourth halfword untouched, loads GTE rotation
-/// and V0, and retains no pointer.
+/// game-coordinate units. Requires a live word-aligned scratch block and a
+/// coordinate whose `workm` is composed, with 12-fractional-bit rotation.
+/// Rotates the local corner through GTE IR, then adds the cached translation,
+/// retaining the low 16 bits of each component. Leaves `depth` and the vector's
+/// fourth halfword untouched; changes GTE rotation, V0 and result registers.
+/// Borrows both objects and retains no pointer.
 static __inline__ void _acropolisPromenadeTransformGroundGlowCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, const GfxCoord* coord)
 {
     enum { ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE = 768 };
-    SVECTOR* corner;
-    quadScratch->vertices[cornerIndex].vx = D_acropolis_promenade_80181AE4[cornerIndex].axis0Sign * ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
-    // This aliases vertices[cornerIndex]; the byte view preserves separate store/GTE addresses.
-    corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(EffectQuadCornersScratch, vertices));
-    corner->vy = 0;
-    corner->vz = D_acropolis_promenade_80181AE4[cornerIndex].axis1Sign * ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
+    quadScratch->vertices[cornerIndex].vx     = D_acropolis_promenade_80181AE4[cornerIndex].axis0Sign * ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
+    (&quadScratch->vertices[cornerIndex])->vy = 0;
+    (&quadScratch->vertices[cornerIndex])->vz = D_acropolis_promenade_80181AE4[cornerIndex].axis1Sign * ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
+    // Rotate the local corner before adding the composition-root translation.
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&quadScratch->vertices[cornerIndex]);
     gte_rtv0();
     gte_stsv(&quadScratch->vertices[cornerIndex]);
-    quadScratch->vertices[cornerIndex].vx += coord->workm.t[0];
-    corner->vy                            += coord->workm.t[1];
-    corner->vz                            += coord->workm.t[2];
+    quadScratch->vertices[cornerIndex].vx     += coord->workm.t[0];
+    (&quadScratch->vertices[cornerIndex])->vy += coord->workm.t[1];
+    (&quadScratch->vertices[cornerIndex])->vz += coord->workm.t[2];
 }
 
 /// Reserves and initializes one ground-glow quad in the current frame's packet arena.
 ///
 /// Requires aligned space for a `POLY_FT4` at `gGpuPrimCursor`. Advances the
 /// cursor and returns the packet with its DMA length and textured-quad code
-/// set. The caller fills and links it; storage must live until GPU completion.
+/// set; coordinates, colour and texture fields remain uninitialized. Does not
+/// check capacity. The caller fills and links it; storage is borrowed from the
+/// current frame arena and must live until GPU completion.
 static __inline__ POLY_FT4* _acropolisPromenadeReserveGroundGlowQuad(void)
 {
     POLY_FT4* quad;
