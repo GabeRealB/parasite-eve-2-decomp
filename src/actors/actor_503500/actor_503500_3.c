@@ -1301,6 +1301,78 @@ static void func_actor_503500_80134C68(Task* arg0)
     }
 }
 
+/// One contact record of `func_actor_503500_80134EAC`'s pass; a `return`
+/// moves the caller on to the next record.
+static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enemy* enemy, GfxCoord* coord, WorldCollisionContact* arg2, s32 i)
+{
+    VECTOR    d;
+    SVECTOR   pos;
+    MATRIX    mtx;
+    GfxCoord* src;
+    s16       stun;
+    u32       id;
+    s32       dmg;
+    s32       j;
+
+    id = arg2[i].key.value;
+    for (j = 0; j < i; j++) {
+        if (arg2[j].key.value == id) {
+            return;
+        }
+    }
+    if ((id & 0xFFFF0000) == 0x10000) {
+        return;
+    }
+    if ((id & 0xFFFF0000) != 0x20000) {
+        return;
+    }
+    if (work->hitCooldown != 0) {
+        return;
+    }
+    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
+    d.vx = src->coord.t[0] - pos.vx;
+    d.vy = src->coord.t[1] - pos.vy;
+    d.vz = src->coord.t[2] - pos.vz;
+    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
+        dmg *= 4;
+        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
+    }
+    func_800E2C78(enemy, id, dmg, 0);
+    enemy->hp -= dmg;
+    func_800DA6E8(&enemy->node, dmg, 0);
+    if (enemy->hp <= 0) {
+        func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_DEFEATED);
+        work->defeated = 1;
+    } else {
+        switch (Gp_GetIdParam0(id) & 0xFFFF) {
+            case 0:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                break;
+            case 1:
+                Gp_SetObjFlag1(enemy);
+                break;
+            case 2:
+                Gp_SetObjFlag2(enemy, id, 0);
+                break;
+            case 3:
+                Gp_SetObjFlag4(enemy, id, 0);
+                break;
+        }
+    }
+    func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->hitEffect);
+    stun = Gp_GetIdParam2(id);
+    if (work->hitCooldown < stun) {
+        work->hitCooldown = stun;
+    }
+}
+
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
 /// the boss. Each attack id is taken once, and only type-2 ids land while the
 /// `hitCooldown` countdown is clear: the damage scales with the attacker's
@@ -1309,81 +1381,16 @@ static void func_actor_503500_80134C68(Task* arg0)
 /// is passed by the caller but unused.
 static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
-    VECTOR           d;
-    SVECTOR          pos;
-    MATRIX           mtx;
     Actor503500Work* work;
     Enemy*           enemy;
     GfxCoord*        coord;
-    GfxCoord*        src;
-    s16              stun;
-    u32              id;
-    s32              dmg;
     s32              i;
-    s32              j;
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     for (i = 0; i < arg3; i++) {
-        id = arg2[i].key.value;
-        for (j = 0; j < i; j++) {
-            if (arg2[j].key.value == id) {
-                goto next;
-            }
-        }
-        if ((id & 0xFFFF0000) == 0x10000) {
-            continue;
-        }
-        if ((id & 0xFFFF0000) != 0x20000) {
-            continue;
-        }
-        if (work->hitCooldown != 0) {
-            continue;
-        }
-        src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-        gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-        d.vx = src->coord.t[0] - pos.vx;
-        d.vy = src->coord.t[1] - pos.vy;
-        d.vz = src->coord.t[2] - pos.vz;
-        dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-        if (Gp_RollEnemyChance(enemy, id, 0) != 0) {
-            dmg *= 4;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
-        }
-        func_800E2C78(enemy, id, dmg, 0);
-        enemy->hp -= dmg;
-        func_800DA6E8(&enemy->node, dmg, 0);
-        if (enemy->hp <= 0) {
-            func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_DEFEATED);
-            work->defeated = 1;
-        } else {
-            switch (Gp_GetIdParam0(id) & 0xFFFF) {
-                case 0:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                    break;
-                case 1:
-                    Gp_SetObjFlag1(enemy);
-                    break;
-                case 2:
-                    Gp_SetObjFlag2(enemy, id, 0);
-                    break;
-                case 3:
-                    Gp_SetObjFlag4(enemy, id, 0);
-                    break;
-            }
-        }
-        func_800FDB18(Gp_GetIdParam1(id) & 0xFFFF, coord, NULL, &work->hitEffect);
-        stun = Gp_GetIdParam2(id);
-        if (work->hitCooldown < stun) {
-            work->hitCooldown = stun;
-        }
-    next:;
+        _actor503500HandleHit(arg0, work, enemy, coord, arg2, i);
     }
 }
 
