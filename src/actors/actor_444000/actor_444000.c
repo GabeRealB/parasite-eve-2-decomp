@@ -3100,9 +3100,7 @@ static void func_actor_444000_8013482C(Task* task)
     Enemy*                  enemy;
     GfxCoord*               coord;
     GfxCoord*               model;
-    GfxCoord*               facing;
     u8*                     head;
-    s16                     ang;
     s32                     frame;
 
     head = SCRATCH_STACK_CURSOR(u8);
@@ -3163,24 +3161,7 @@ static void func_actor_444000_8013482C(Task* task)
     sc->offset.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
     sc->offset.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
 
-    facing = task->extra.tmd->coords;
-    ang    = ratan2(sc->offset.vx, sc->offset.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-
-    if (ang < 0) {
-    wrapUp:
-        if (ang < -0x800) {
-            ang += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (ang > 0x800) {
-            ang -= 0x1000;
-            goto wrapDown;
-        }
-    }
-
-    work->neckYawTarget = ang;
+    work->neckYawTarget = actorYawTo(task->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
 
     switch (work->phase) {
         case 0: {
