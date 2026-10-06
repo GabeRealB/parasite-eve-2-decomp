@@ -90,13 +90,15 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_RunCapCmd(5, 0);
-            goto advance;
+            arg0->state++;
+            break;
         case 1:
             if (Gp_CapBusy() != 0) {
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            goto advance;
+            arg0->state++;
+            break;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
@@ -115,20 +117,20 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
                 break;
             }
             Gp_TriggerPeIfArmed();
-            goto advance;
+            arg0->state++;
+            break;
         case 4:
             D_shelter_b1_elevator_hall_801849F0.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b1_elevator_hall_801849F0.fade.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
-            goto advance;
-        case 5:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT) != 0) {
-                break;
-            }
-        advance:
             arg0->state++;
+            break;
+        case 5:
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT) == 0) {
+                arg0->state++;
+            }
             break;
         case 6:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
