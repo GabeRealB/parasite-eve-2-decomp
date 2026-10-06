@@ -2340,11 +2340,9 @@ static void func_actor_403000_80133AF8(Task* arg0)
 
 static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
 {
-    GfxCoord*         coord;
     ActorTurnScratch* scratch;
     s16               angle;
     s32               mag;
-    GfxCoord*         coord2;
 
     if (arg1 == arg2) {
         return 1;
@@ -2352,17 +2350,17 @@ static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
     switch (arg1) {
         case 0:
             if (arg2 == 9) {
-                goto calc;
+                break;
             }
             if (arg2 < 4) {
-                goto calc;
+                break;
             }
             return 0;
         case 1:
         case 2:
         case 3:
             if (arg2 < 5) {
-                goto calc;
+                break;
             }
             return 0;
         case 4:
@@ -2370,7 +2368,7 @@ static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
                 return 0;
             }
             if (arg2 != 0) {
-                goto calc;
+                break;
             }
             return 0;
         case 5:
@@ -2378,47 +2376,28 @@ static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
                 return 0;
             }
             if (arg2 != 9) {
-                goto calc;
+                break;
             }
             return 0;
         case 6:
         case 7:
         case 8:
             if (arg2 >= 5) {
-                goto calc;
+                break;
             }
             return 0;
         case 9:
         default:
             if (arg2 >= 6) {
-                goto calc;
+                break;
             }
             if (arg2 != 0) {
                 return 0;
             }
             break;
     }
-calc:
-    scratch           = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    coord             = arg0->extra.tmd->coords;
-    scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    scratch->delta.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    coord2            = arg0->extra.tmd->coords;
-    angle             = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
+    angle          = actorPositionYaw(arg0, &scratch->delta, &gPlayerStatus);
     scratch->angle = mag = angle;
     if ((mag < 0 ? -mag : mag) < 0x200) {
         SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
