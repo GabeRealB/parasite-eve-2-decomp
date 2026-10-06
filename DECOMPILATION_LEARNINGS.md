@@ -123574,7 +123574,7 @@ case-local `state`). Overlay also needs the rodata cut moved
 since the compiler-generated tables must start and end their unit's `.rodata`.
 ## Which pseudo gets which saved register: read the two numbers in `.lreg`
 
-`func_dryfield_saloon_g_r_8017DA70` (rooms, unmatched, best 98.765%) is a
+`dryfieldSaloonGRDrawLightEffectsTask` (rooms, unmatched, best 98.765%) is a
 worked example of a register-assignment mismatch that no amount of source
 rearranging fixes, and the reason is visible in one line of the `.lreg` header.
 `global.c`'s `allocno_compare` ranks allocnos by
@@ -123619,7 +123619,7 @@ order in the emitted prologue (next section).
 
 ## For equal scheduler priorities the emitted order *is* the RTL order
 
-`func_dryfield_saloon_g_r_8017DA70` needs `sw s1,0x14(sp)` + `move s1,$zero`
+`dryfieldSaloonGRDrawLightEffectsTask` needs `sw s1,0x14(sp)` + `move s1,$zero`
 scheduled ahead of two `lui`/`addiu` pointer materialisations. `sched.c`'s
 `rank_for_schedule` sorts the ready list by `INSN_PRIORITY`, then by dependence
 class against `last_scheduled_insn`, and finally by `INSN_LUID (tmp) -
@@ -123689,7 +123689,7 @@ Reading the device: `.lreg` shows the shape directly, `(set (reg/v:SI 84)
 `(const (plus (symbol_ref) (const_int 48)))`, and `loop.c`'s contribution is
 two insns with uids far above their neighbours.
 
-Inputs: scratch `nonmatchings/func_dryfield_saloon_g_r_8017DA70-vacuum`,
+Inputs: scratch `nonmatchings/dryfieldSaloonGRDrawLightEffectsTask-vacuum`,
 `base_1.c` 97.415% (`regs=22`), `base_7.c` 98.654% (`delete=1`), `base_9.c`
 98.519% (`reorder=2`, every other penalty zero), `base_10.c` 90.437%
 (`insert=7`). Compiler SHA256
@@ -140528,7 +140528,7 @@ if (D_flag[0] & 4) {
 Lesson: when a give-up has a `similar` candidate starred in more than one
 class, port that body first - it is cheaper than any delay-slot experiment.
 
-### Walking pointers that restart at a constant offset are loop.c's givs, not source locals (func_dryfield_saloon_g_r_8017DA70, 2026-09-23)
+### Walking pointers that restart at a constant offset are loop.c's givs, not source locals (dryfieldSaloonGRDrawLightEffectsTask, 2026-09-23)
 
 Two consecutive loops each walked a vector table and a mask table with
 registers that were re-set to `base + 6*stride` between them, and after the

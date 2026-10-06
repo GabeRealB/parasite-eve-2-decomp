@@ -68,12 +68,15 @@ extern TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[];
 extern s16 D_dryfield_saloon_g_r_8017ED84[];
 
 static void func_dryfield_saloon_g_r_8017D9CC(Task* task);
-static void func_dryfield_saloon_g_r_8017DA10(Task* task);
+static void _dryfieldSaloonGRIdleTask(Task* task);
 
-// Indexed views below share one contiguous table.
-s32 func_dryfield_saloon_g_r_8017D994(Task*, s32, s32, s32);
-s32 func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, s32);
-s32 func_dryfield_saloon_g_r_8017D9C4(Task*, s32, s32, s32);
+enum {
+    DRYFIELD_SALOON_G_R_MESSAGE_USE_KEY_ITEM = 0x13F1,
+};
+
+static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, s32);
+static s32 _dryfieldSaloonGRIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 extern WorldCollisionGrid     D_dryfield_saloon_g_r_8017F780[1];
 extern WorldCollisionOccluder D_dryfield_saloon_g_r_801817B0[2];
@@ -91,8 +94,8 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
-    { 5105, func_dryfield_saloon_g_r_8017D994 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_saloon_g_r_8017D9C4 },
+    { DRYFIELD_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldSaloonGRRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldSaloonGRIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, func_dryfield_saloon_g_r_8017D99C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -719,20 +722,26 @@ RoomEventReq gRoomEventReq;
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_saloon_g_r_8017DA18`: the entry tick
 /// `func_dryfield_saloon_g_r_8017D9CC`, the idle state
-/// `func_dryfield_saloon_g_r_8017DA10`, then `taskKill`.
+/// `_dryfieldSaloonGRIdleTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
-    { func_dryfield_saloon_g_r_8017D9CC, func_dryfield_saloon_g_r_8017DA10, taskKill },
+    { func_dryfield_saloon_g_r_8017D9CC, _dryfieldSaloonGRIdleTask, taskKill },
 };
 
 #include "../../shared/room_variants_saloon.inc.c"
 
 static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint, s32 textureIndex, s32 radiusScale);
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_saloon_g_r_8017D994(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in the saloon.
+///
+/// Ignores the selected item ID and returns zero, so the item menu reports
+/// that the item cannot be used here. Does not consume or retain any payload.
+static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum {
+        DRYFIELD_SALOON_G_R_KEY_ITEM_UNUSABLE = 0,
+    };
+
+    return DRYFIELD_SALOON_G_R_KEY_ITEM_UNUSABLE;
 }
 
 /// Handler for message 0x13F0 in the room's message table: on action 4 it
@@ -745,9 +754,12 @@ s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Handler for message 0x13EF in the room's message table: the room takes no
-/// action and reports the message as not handled.
-s32 func_dryfield_saloon_g_r_8017D9C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Leaves trigger-driven room-action requests without an action in the saloon.
+///
+/// The synchronous sender supplies a borrowed request and a zero second
+/// payload word. Neither payload is read or retained. Returns zero; the
+/// direction dispatcher discards the result.
+static s32 _dryfieldSaloonGRIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -761,8 +773,10 @@ static void func_dryfield_saloon_g_r_8017D9CC(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Idle state of the room task.
-static void func_dryfield_saloon_g_r_8017DA10(Task* task)
+/// Keeps the saloon room task idle while its message table remains installed.
+///
+/// This state performs no frame work and leaves the task's state unchanged.
+static void _dryfieldSaloonGRIdleTask(Task* task)
 {
 }
 
@@ -776,34 +790,58 @@ void func_dryfield_saloon_g_r_8017DA18(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws the room's light effects under the task's coordinate in
-/// `arg0->extra.coordBody->coord`, each only when its mask in `D_dryfield_saloon_g_r_8017ED84`
-/// includes the current view `gGameSession->location.loc.view`: sprites at
-/// positions 0-5 with frame 0 and 6-10 with frame 2, the two light shafts,
-/// and the beam from position 13 to position 12.
-void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
+void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
 {
-    GfxCoord* coord;
-    s32       mask;
-    s32       i;
+    enum {
+        DRYFIELD_SALOON_G_R_FIRST_FLARE_GROUP_END       = 6,
+        DRYFIELD_SALOON_G_R_FLARE_COUNT                 = 11,
+        DRYFIELD_SALOON_G_R_FIRST_FLARE_TEXTURE_COLUMN  = 0,
+        DRYFIELD_SALOON_G_R_SECOND_FLARE_TEXTURE_COLUMN = 2,
+        DRYFIELD_SALOON_G_R_FLARE_RADIUS_SCALE          = 512,
+        DRYFIELD_SALOON_G_R_SHAFT_VIEW_MASK_INDEX       = 12,
+        DRYFIELD_SALOON_G_R_BEAM_VIEW_MASK_INDEX        = 11,
+        DRYFIELD_SALOON_G_R_BEAM_START_POINT            = 13,
+        DRYFIELD_SALOON_G_R_BEAM_END_POINT              = 12,
+        DRYFIELD_SALOON_G_R_BEAM_RADIUS_SCALE           = 256,
+    };
 
-    coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->location.loc.view;
-    for (i = 0; i < 6; i++) {
-        if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            _glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 0, 0x200);
-        }
+    const GfxCoord* roomCoord;
+    s32             viewMask;
+    s32             flareIndex;
+
+    /// Draws a half-open group of view-visible flares using one atlas column.
+    ///
+    /// Captures roomCoord, viewMask, flareIndex, the room's point/mask tables
+    /// and the fixed flare scale. Writes flareIndex through the range's end.
+    /// Arguments must be pure signed-integer values with 0 <= firstPoint <=
+    /// pointLimit <= DRYFIELD_SALOON_G_R_FLARE_COUNT: firstPoint is evaluated
+    /// once, pointLimit on every loop test and textureColumn for each visible
+    /// point. Expands to one for statement; invoke inside a braced block.
+#define DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE(firstPoint, pointLimit, textureColumn)       \
+    for (flareIndex = (firstPoint); flareIndex < (pointLimit); flareIndex++) {            \
+        if (viewMask & D_dryfield_saloon_g_r_8017ED84[flareIndex]) {                      \
+            _glowDrawFlareLocal(roomCoord, &gSaloonLightPoints[flareIndex],               \
+                                (textureColumn), DRYFIELD_SALOON_G_R_FLARE_RADIUS_SCALE); \
+        }                                                                                 \
     }
-    for (i = 6; i < 11; i++) {
-        if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            _glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 2, 0x200);
-        }
+
+    roomCoord = task->extra.coordBody->coord;
+    viewMask  = 1 << gGameSession->location.loc.view;
+
+    // The two flare groups use separate columns of the same texture atlas.
+    DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE(0, DRYFIELD_SALOON_G_R_FIRST_FLARE_GROUP_END,
+                                         DRYFIELD_SALOON_G_R_FIRST_FLARE_TEXTURE_COLUMN);
+    DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE(DRYFIELD_SALOON_G_R_FIRST_FLARE_GROUP_END, DRYFIELD_SALOON_G_R_FLARE_COUNT,
+                                         DRYFIELD_SALOON_G_R_SECOND_FLARE_TEXTURE_COLUMN);
+#undef DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE
+
+    // Shafts share a visibility mask; endpoint order fixes the beam's orientation.
+    if (viewMask & D_dryfield_saloon_g_r_8017ED84[DRYFIELD_SALOON_G_R_SHAFT_VIEW_MASK_INDEX]) {
+        _glowDrawTwinShafts(roomCoord);
     }
-    if (mask & D_dryfield_saloon_g_r_8017ED84[12]) {
-        _glowDrawTwinShafts(coord);
-    }
-    if (mask & D_dryfield_saloon_g_r_8017ED84[11]) {
-        _glowDrawTaperedBeam(coord, &gSaloonLightPoints[13], &gSaloonLightPoints[12], 0x100);
+    if (viewMask & D_dryfield_saloon_g_r_8017ED84[DRYFIELD_SALOON_G_R_BEAM_VIEW_MASK_INDEX]) {
+        _glowDrawTaperedBeam(roomCoord, &gSaloonLightPoints[DRYFIELD_SALOON_G_R_BEAM_START_POINT],
+                             &gSaloonLightPoints[DRYFIELD_SALOON_G_R_BEAM_END_POINT], DRYFIELD_SALOON_G_R_BEAM_RADIUS_SCALE);
     }
 }
 
