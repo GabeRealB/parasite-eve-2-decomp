@@ -2648,6 +2648,16 @@ static inline s32 _actor403600SecondHalfFacesViewer(const TmdStreamWorkspace* wo
     return workspace->gteResult < 0;
 }
 
+/// As `_actor403600SecondHalfFacesViewer`, for a packet whose corners are
+/// already projected: pushes corner 3 onto the screen FIFO first.
+static inline s32 _actor403600PreXformSecondHalfFacesViewer(const POLY_GT4* packet, const TmdStreamWorkspace* workspace, s32* gteResult)
+{
+    gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 3));
+    gte_nclip();
+    gte_stopz(gteResult);
+    return workspace->gteResult < 0;
+}
+
 u32* actor403600DrawStreamGt4BottomFade(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
     CVECTOR       lightColor;
@@ -2772,14 +2782,7 @@ u32* actor403600DrawStreamGt4PreXformBottomFade(TmdStreamWorkspace* workspace, s
             gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 2));
             gte_nclip();
             gte_stopz(gteResult);
-            if (workspace->gteResult > 0) {
-                goto draw;
-            }
-            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(packet, 3));
-            gte_nclip();
-            gte_stopz(gteResult);
-            if (workspace->gteResult < 0) {
-            draw:
+            if (workspace->gteResult > 0 || _actor403600PreXformSecondHalfFacesViewer(packet, workspace, gteResult)) {
                 depths           = workspace->szTable;
                 depthOffsetBytes = offsets[0] & ACTOR_403600_DEPTH_OFFSET_MASK;
                 vertexDepth      = depths[(u32)depthOffsetBytes / sizeof(*depths)];
