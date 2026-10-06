@@ -3211,48 +3211,33 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
     _Actor510900HelipadLightWork* work;
     GfxCoord*                     coord;
     Actor510900Work*              parent;
-    s32                           mode;
     s32                           i;
-    s32                           one;
 
     obj    = arg1->extra.tmd;
     work   = arg1->work;
     coord  = obj->coords;
     parent = arg1->parent->work;
-    mode   = gSceneCombatState.actorControl;
-    one    = 1;
-    if (mode == one) {
-        goto case1;
+    switch (gSceneCombatState.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            if (func_actor_510900_8013C240(arg1) == 0) {
+                i = 1;
+                do {
+                    animationTickSlot(&work->anim, i);
+                    i++;
+                } while (i < 0xB);
+                return;
+            }
+            arg1->extra.tmd->flags       = 0;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            break;
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            func_actor_510900_8013C338(arg1, coord);
+            return;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
     }
-    if (mode >= 2) {
-        goto ge2;
-    }
-    if (mode == 0) {
-        goto case0;
-    }
-    goto body;
-ge2:
-    if (mode == 2) {
-        goto case2;
-    }
-    goto body;
-case0:
-    if (func_actor_510900_8013C240(arg1) == 0) {
-        i = 1;
-        do {
-            animationTickSlot(&work->anim, i);
-            i++;
-        } while (i < 0xB);
-        return;
-    }
-    arg1->extra.tmd->flags       = 0;
-    arg0->node.state.parts.flags = one;
-    goto body;
-case2:
-    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-body:
     func_actor_510900_8013A9BC(arg1);
     if (work->lightIndex < 2) {
         gameFlagSetNibble(work->lightIndex + 0xB, work->status);
@@ -3266,7 +3251,6 @@ body:
     } while (i < 0xB);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-case1:
     func_actor_510900_8013C338(arg1, coord);
 }
 
