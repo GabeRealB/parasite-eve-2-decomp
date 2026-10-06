@@ -1780,6 +1780,19 @@ static inline void _actor105100AnimUpdate(Task* task)
     }
 }
 
+/// Relights the actor of `task` for its model's world position.
+static inline void _actor105100UpdateColor(Task* task)
+{
+    GfxCoord* coord;
+    VECTOR    pos;
+
+    coord  = task->extra.tmd->coords;
+    pos.vx = coord->workm.t[0];
+    pos.vy = coord->workm.t[1];
+    pos.vz = coord->workm.t[2];
+    Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+}
+
 /// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `gSceneCombatState.actorControl` only
 /// refreshes the actor colour; mode 2 hides the model and returns. Otherwise it
 /// walks `actionStep`: unlink the collision bodies, wait out the fade delay,
@@ -1789,31 +1802,29 @@ static inline void _actor105100AnimUpdate(Task* task)
 static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
 {
     SVECTOR           dir;
-    VECTOR            pos;
     Task*             actor;
     TmdObject*        obj;
     _Actor105100Work* work;
     GfxCoord*         coord;
     Task*             player;
-    s32               state;
     s32               snd;
     s16               flag;
-    GfxCoord*         colorCoord;
 
     actor  = arg1;
     obj    = actor->extra.tmd;
     work   = actor->work;
     coord  = obj->coords;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    state  = gSceneCombatState.actorControl;
-    if (state == 1) {
-        goto color_update;
-    }
-    if (state >= 2) {
-        if (state == 2) {
+    switch (gSceneCombatState.actorControl) {
+        case 1:
+            _actor105100UpdateColor(actor);
+            return;
+        case 2:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        }
+        case 0:
+        default:
+            break;
     }
     if (work->knockbackActive != 0) {
         func_actor_105100_80133CE4(actor);
@@ -1831,7 +1842,8 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
             work->timer      = 0;
             work->actionStep = 1;
-            goto color_update;
+            _actor105100UpdateColor(actor);
+            return;
         case 1:
             if (++work->timer == 0xA) {
                 obj->flags = (u16)obj->flags | TMD_OBJECT_SEMI_TRANS;
@@ -1843,7 +1855,8 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
                 work->deathEventPending = 1;
             }
             _actor105100AnimUpdate(actor);
-            goto color_update;
+            _actor105100UpdateColor(actor);
+            return;
         case 2:
             flag = work->deathEventPending;
             if ((flag == 1) && (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != flag) &&
@@ -1872,7 +1885,8 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
                 work->actionStep = 3;
             }
             _actor105100AnimUpdate(actor);
-            goto color_update;
+            _actor105100UpdateColor(actor);
+            return;
         case 3:
             if (work->scale >= 0x201) {
                 work->scale -= 0x50;
@@ -1881,12 +1895,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             if (++work->timer >= 0x3C) {
                 work->actionStep = 4;
             }
-        color_update:
-            colorCoord = actor->extra.tmd->coords;
-            pos.vx     = colorCoord->workm.t[0];
-            pos.vy     = colorCoord->workm.t[1];
-            pos.vz     = colorCoord->workm.t[2];
-            Gp_UpdateActorColor(actor->spawnArg2.pointer, &pos, 0, 0);
+            _actor105100UpdateColor(actor);
             return;
         case 4:
             enemyDestroy(arg0, actor);
