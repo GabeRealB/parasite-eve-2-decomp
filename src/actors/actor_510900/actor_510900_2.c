@@ -3466,51 +3466,35 @@ static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1)
 {
     _Actor510900BlastSourceWork* work;
     Actor510900Work*             parent;
-    s32                          mode;
-    s32                          one;
     u32                          random;
     Task*                        child;
 
     work   = arg1->work;
     parent = arg1->parent->work;
-    mode   = gSceneCombatState.actorControl;
-    one    = 1;
-    if (mode == one) {
-        return;
+    switch (gSceneCombatState.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            if ((viewGetMappedIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
+                arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->blast.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                if (work->flareFrames != 0) {
+                    work->flareFrames--;
+                }
+                child = work->flareTask;
+                if (child != NULL) {
+                    child->state    = 3;
+                    work->flareTask = NULL;
+                }
+                return;
+            }
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            break;
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            return;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
     }
-    if (mode >= 2) {
-        goto ge2;
-    }
-    if (mode == 0) {
-        goto case0;
-    }
-    goto body;
-ge2:
-    if (mode == 2) {
-        goto case2;
-    }
-    goto body;
-case0:
-    if ((viewGetMappedIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
-        arg0->node.state.parts.flags = one;
-        work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->blast.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        if (work->flareFrames != 0) {
-            work->flareFrames--;
-        }
-        child = work->flareTask;
-        if (child != NULL) {
-            child->state    = 3;
-            work->flareTask = NULL;
-        }
-        return;
-    }
-    arg0->node.state.parts.flags = one;
-    goto body;
-case2:
-    arg0->node.state.parts.flags = one;
-    return;
-body:
     func_actor_510900_8013B0D8(arg1);
     gameFlagSetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->state][parent->light2Status]);
     random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
