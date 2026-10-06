@@ -3409,7 +3409,7 @@ static void func_mine_mesa_80181358(Task* arg0)
             break;
         }
         if (MineMesaRemaining == 0) {
-            goto end;
+            break;
         }
         if (MineMesaRemaining == 1 &&
             (D_mine_mesa_80189B74[0] != NULL || D_mine_mesa_80189B74[1] != NULL)) {
@@ -3480,7 +3480,6 @@ static void func_mine_mesa_80181358(Task* arg0)
     if (MineMesaRemaining > 0) {
         return;
     }
-end:
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
     arg0->spawnArg2.pointer                                = &result;
     result.param                                           = NULL;
