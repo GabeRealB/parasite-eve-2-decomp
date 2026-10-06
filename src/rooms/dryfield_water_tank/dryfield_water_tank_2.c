@@ -1131,58 +1131,45 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
 
     switch (task->state) {
         case 0:
-            goto L_case0;
+            if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+                work       = memMalloc(sizeof(*work), false);
+                task->work = work;
+                if (work == NULL) {
+                    taskKill(task);
+                } else {
+                    memFillBytes(work, 0, sizeof(*work));
+                    work->player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    D_dryfield_water_tank_80188D50 = task;
+                }
+                weaponId                    = gPlayerStatus.weapon;
+                anim                        = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                script.source.index         = anim;
+                script.animationId          = 1;
+                script.blend                = ANIMATION_BLEND_INTERPOLATE;
+                script.blendFrames          = 0xA;
+                script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
+                func_800E8634(D_dryfield_water_tank_8018050C, 0,
+                              D_dryfield_water_tank_8018068C);
+                task->state = task->state + 1;
+            }
+            break;
         case 1:
-            goto L_case1;
+            if (gGameSession->eventState != 0) {
+                func_dryfield_water_tank_8017E78C(task);
+                break;
+            }
+            task->state = task->state + 1;
+            break;
         case 2:
-            goto advance;
         case 3:
-            goto advance;
         case 4:
-            goto advance;
+            task->state = task->state + 1;
+            break;
         case 5:
-            goto L_case5;
+            Task_RequestKill(task, 0);
+            break;
     }
-    return;
-
-L_case0:
-    if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-        work       = memMalloc(sizeof(*work), false);
-        task->work = work;
-        if (work == NULL) {
-            taskKill(task);
-        } else {
-            memFillBytes(work, 0, sizeof(*work));
-            work->player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            D_dryfield_water_tank_80188D50 = task;
-        }
-        weaponId                    = gPlayerStatus.weapon;
-        anim                        = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-        script.source.index         = anim;
-        script.animationId          = 1;
-        script.blend                = ANIMATION_BLEND_INTERPOLATE;
-        script.blendFrames          = 0xA;
-        script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
-        func_800E8634(D_dryfield_water_tank_8018050C, 0,
-                      D_dryfield_water_tank_8018068C);
-        goto advance;
-    }
-    return;
-
-L_case1:
-    if (gGameSession->eventState == 0) {
-        goto advance;
-    }
-    func_dryfield_water_tank_8017E78C(task);
-    return;
-
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    Task_RequestKill(task, 0);
 }
 
 /// Script command of the room's cutscene: stores `arg0` as the command the
