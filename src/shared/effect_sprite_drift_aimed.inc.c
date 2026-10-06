@@ -7,39 +7,53 @@
 #error "Bind EFFECT_SPRITE_DRIFT_AIMED_TASK to the carrier's void (Task*) callback before inclusion"
 #endif
 
-/// Converts the aimed sprite's generated direction to a per-update velocity.
+/// Scales a Q12 sprite direction to signed integer displacement components.
 ///
-/// Borrows writable task-owned work. Normalize `move` in place to Q12 before
-/// reading `step` (0 for stationary, otherwise speed 1..255 in coordinate-parent
-/// units per running update). Scale back to signed halfword displacements.
-/// Zero directions follow SDK normalization without a special case. Only the
-/// three components change; no pointer is retained. Clobbers GTE data/results.
-static __inline__ void _effectSpriteAimedDriftInitializeVelocity(EffectWork* work)
+/// `speed` is 0..255 coordinate-parent units per running update. Borrows the
+/// writable vector, leaves its fourth halfword intact and retains no pointer.
+/// Clobbers GTE data/results.
+static __inline__ void _effectSpriteAimedDriftScaleVelocity(SVECTOR* velocity, s16 speed)
 {
-    SVECTOR* velocity;
-
-    velocity = &work->move;
-    VectorNormalSS(velocity, velocity);
-    gte_lddp(work->step);
+    gte_lddp(speed);
     gte_ldsv(velocity);
     gte_gpf12();
     gte_stsv(velocity);
 }
 
-/// Adds one running update's velocity to the aimed sprite's local translation.
+/// Converts a generated sprite direction to velocity at the selected launch speed.
 ///
-/// Borrows live work and a writable coordinate. Signed halfword components
-/// are extended for the 32-bit additions in the coordinate's parent space.
-/// Always invalidate composition, including zero displacement; the caller
-/// gates this operation with `step` and applies its state-specific acceleration
-/// afterwards. No pointer is retained.
-static __inline__ void _effectSpriteAimedDriftMove(const EffectWork* work, GfxCoord* coord)
+/// Borrows writable task-owned work: `move` supplies signed parent-space XYZ
+/// direction and `step` supplies 0..255 coordinate units per running update.
+/// Normalizes in place to Q12 before reading the speed for integer scaling.
+/// Only XYZ change; the vector's fourth halfword and other work fields stay
+/// intact. A zero direction follows SDK normalization without a special case.
+/// Clobbers GTE data/results and retains no pointer. A supplied velocity must
+/// bypass this conversion.
+static __inline__ void _effectSpriteAimedDriftInitializeVelocity(EffectWork* work)
 {
-    coord->coord.t[0]  += work->move.vx;
-    coord->coord.t[1]  += work->move.vy;
-    coord->coord.t[2]  += work->move.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    SVECTOR* direction = &work->move;
+
+    VectorNormalSS(direction, direction);
+    _effectSpriteAimedDriftScaleVelocity(direction, work->step);
 }
+
+/// Adds one running update's velocity to a sprite's parent-space translation.
+///
+/// `velocity` must be a readable `SVECTOR` lvalue; `coord` must point to a live,
+/// writable `GfxCoord` disjoint from it. Both expressions must be side-effect-free:
+/// the vector is evaluated three times and the pointer four times. Signed XYZ
+/// integer displacements are extended for the 32-bit additions; velocity and
+/// rotation stay intact. Invalidates composition even for zero displacement;
+/// composition must run before using `workm`. The caller gates movement and
+/// applies acceleration afterwards. Expands to a compound statement, captures
+/// no locals and retains no pointer. Undefined after the task fragment.
+#define EFFECT_SPRITE_AIMED_DRIFT_TRANSLATE(velocity, coord) \
+    {                                                        \
+        (coord)->coord.t[0]  += (velocity).vx;               \
+        (coord)->coord.t[1]  += (velocity).vy;               \
+        (coord)->coord.t[2]  += (velocity).vz;               \
+        (coord)->composeStamp = GRAPHICS_COORD_DIRTY;        \
+    }
 
 void EFFECT_SPRITE_DRIFT_AIMED_TASK(Task* task)
 {
@@ -183,7 +197,7 @@ void EFFECT_SPRITE_DRIFT_AIMED_TASK(Task* task)
             _effectSpriteDrawBanked(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
                 // Draw and translate before updating the next tick's Y velocity.
-                _effectSpriteAimedDriftMove(work, coord);
+                EFFECT_SPRITE_AIMED_DRIFT_TRANSLATE(work->move, coord);
                 if (((task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_MASK) == EFFECT_SPRITE_AIMED_DRIFT_PARENT_FORWARD) {
                     work->move.vy += work->age / EFFECT_SPRITE_AIMED_DRIFT_DOWNWARD_AGE_DIVISOR;
                 } else {
@@ -200,7 +214,7 @@ void EFFECT_SPRITE_DRIFT_AIMED_TASK(Task* task)
         case EFFECT_SPRITE_AIMED_DRIFT_ALTERNATE:
             _effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
             if (work->step != 0) {
-                _effectSpriteAimedDriftMove(work, coord);
+                EFFECT_SPRITE_AIMED_DRIFT_TRANSLATE(work->move, coord);
                 if (((task->spawnArg1.value >> EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_SHIFT) & EFFECT_SPRITE_AIMED_DRIFT_DIRECTION_MASK) == EFFECT_SPRITE_AIMED_DRIFT_PARENT_FORWARD) {
                     work->move.vy += work->age / EFFECT_SPRITE_AIMED_DRIFT_DOWNWARD_AGE_DIVISOR;
                 } else {
@@ -218,3 +232,4 @@ void EFFECT_SPRITE_DRIFT_AIMED_TASK(Task* task)
 }
 
 #undef EFFECT_SPRITE_DRIFT_AIMED_TASK
+#undef EFFECT_SPRITE_AIMED_DRIFT_TRANSLATE
