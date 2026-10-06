@@ -6,9 +6,8 @@
 /// with `shadowHidden` set and the collision flags 0x8000 / 0x4000 cleared on
 /// `pairBody` / `gridBody`.
 ///
-/// `two` is a variable for the same reason as `one` in the sibling: the ROM
-/// keeps the constant in `$s5` across the calls. `kind` has to be its own
-/// variable too - masking `flags` in place reuses `$v1` for the result.
+/// `kind` has to be its own variable - masking `flags` in place reuses `$v1`
+/// for the result.
 void madChaserSpawnHidden(Task* task)
 {
     TmdObject*     model;
@@ -24,7 +23,6 @@ void madChaserSpawnHidden(Task* task)
     Enemy*         e2;
     s32            flags;
     s32            kind;
-    s32            two;
 
     model      = task->extra.tmd;
     enemy      = task->spawnArg2.pointer;
@@ -42,8 +40,7 @@ void madChaserSpawnHidden(Task* task)
         return;
     }
     kind = flags & 0xF;
-    two  = 2;
-    if (kind == two) {
+    if (kind == 2) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     obj                     = task->extra.tmd;
@@ -57,13 +54,13 @@ void madChaserSpawnHidden(Task* task)
     e->recs                 = w->contacts;
     w->effectArg.coord      = &task->extra.tmd->coords[1];
     w->effectArg.spawnArgLo = 0x140;
-    w->effectArg.spawnArgHi = two;
+    w->effectArg.spawnArgHi = 2;
     e->hp = e->hpMax = gMadChaserEnemyParams.hpMax;
     animationInitContext(&w->anim, (AnimationSet**)gMadChaserAnimBank, obj, w->poses, w->slots);
     w2              = (MadChaserWork*)task->work;
     w2->animRate    = ANIMATION_RATE_ONE;
     w2->animId      = 7;
-    w2->animRequest = two;
+    w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     madChaserTickAnim(task);
     coord->parent = &gGfxViewCoord;
     madChaserLinkBodies(task);
