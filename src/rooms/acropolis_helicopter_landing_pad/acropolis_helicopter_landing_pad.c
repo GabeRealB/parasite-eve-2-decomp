@@ -235,13 +235,19 @@ static void _acropolisHelicopterLandingPadLiftInitLighting(Task* task)
     }
 }
 
-/// Places the lift at a run's starting stop and arms its fixed-duration travel.
+/// Resets the lift to a starting stop and arms fixed-duration vertical travel.
 ///
-/// Requires the lift's live TMD task and work block. The placement is borrowed
-/// through this call; `stepY` is signed world units per frame, negative upward.
-static inline void _acropolisHelicopterLandingPadLiftStartRun(Task* task, _AcropolisHelicopterLandingPadLiftWork* work,
-                                                              const ActorTransform* startPlacement, s32 stepY)
+/// Requires an initialized lift task with its work block and live TMD root.
+/// `startPlacement` is borrowed only through this call; its position and signed
+/// Euler orientation replace the root placement and invalidate its composed
+/// transform. Position and `stepY` use whole units in the root parent's frame;
+/// `stepY` is the signed Y displacement per update tick, negative upward.
+/// X/Z travel is cleared and the next 120 update ticks apply the new step,
+/// replacing any unfinished run. Callers pass -25 to raise or 25 to lower.
+static inline void _acropolisHelicopterLandingPadLiftStartRun(Task* task, const ActorTransform* startPlacement, s32 stepY)
 {
+    _AcropolisHelicopterLandingPadLiftWork* work = task->work;
+
     actorMsgPlaceEuler(task, 0, startPlacement, 0);
     work->stepFrames = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES;
     work->stepX      = 0;
@@ -270,11 +276,11 @@ static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 me
 
     switch (request->animationId) {
         case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_RAISE:
-            _acropolisHelicopterLandingPadLiftStartRun(task, work, &D_acropolis_helicopter_landing_pad_80182394,
+            _acropolisHelicopterLandingPadLiftStartRun(task, &D_acropolis_helicopter_landing_pad_80182394,
                                                        -ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_LOWER:
-            _acropolisHelicopterLandingPadLiftStartRun(task, work, &D_acropolis_helicopter_landing_pad_801823AC,
+            _acropolisHelicopterLandingPadLiftStartRun(task, &D_acropolis_helicopter_landing_pad_801823AC,
                                                        ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_PARK_LOWER:
