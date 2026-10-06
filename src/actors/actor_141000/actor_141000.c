@@ -2681,17 +2681,24 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode, s32 arg3)
     switch (mode) {
         case 0:
             uploadList = &D_actor_141000_8013CA7C[0];
-            goto small;
+            rect.y     = 0x40;
+            rect.w     = 0x19;
+            rect.x     = 0;
+            rect.h     = 0x14;
+            break;
         case 1:
             uploadList = &D_actor_141000_8013D28C[0];
-            goto small;
+            rect.y     = 0x40;
+            rect.w     = 0x19;
+            rect.x     = 0;
+            rect.h     = 0x14;
+            break;
         case 2:
             uploadList = &D_actor_141000_8013D4DC[0];
-        small:
-            rect.y = 0x40;
-            rect.w = 0x19;
-            rect.x = 0;
-            rect.h = 0x14;
+            rect.y     = 0x40;
+            rect.w     = 0x19;
+            rect.x     = 0;
+            rect.h     = 0x14;
             break;
         case 3:
             uploadList                                              = &D_actor_141000_8013D72C[0];
@@ -2704,14 +2711,17 @@ s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode, s32 arg3)
             break;
         case 4:
             uploadList = &D_actor_141000_8013D72C[0];
-            goto big;
+            rect.x     = 0xC;
+            rect.y     = 0x60;
+            rect.w     = 0xE;
+            rect.h     = 0x14;
+            break;
         case 5:
             uploadList = &D_actor_141000_8013D4DC[0];
-        big:
-            rect.x = 0xC;
-            rect.y = 0x60;
-            rect.w = 0xE;
-            rect.h = 0x14;
+            rect.x     = 0xC;
+            rect.y     = 0x60;
+            rect.w     = 0xE;
+            rect.h     = 0x14;
             break;
         default:
             uploadList = NULL;
