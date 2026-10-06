@@ -866,10 +866,7 @@ void func_actor_310100_80162284(Task* task)
                     } while (0);
                 } while (0);
                 work->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_801798FC, 2, 7, 0);
-            } else {
-                goto skip;
             }
-        skip:
             modelTask = work->modelTask;
             place     = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != mode) {
