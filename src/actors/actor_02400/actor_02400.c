@@ -486,7 +486,6 @@ static void Actor02400_Fn00C08(Task* task)
     s32                             val;
     s32                             res;
     s32                             i;
-    s32                             z;
     s32                             kind;
     s32                             param;
     s32                             damage;
@@ -503,25 +502,21 @@ static void Actor02400_Fn00C08(Task* task)
     coord   = task->extra.tmd->coords;
     enemy   = task->spawnArg2.pointer;
     res     = func_800E0C10(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL);
-    if (res == 1)
-        goto move_delta;
-    if (res < 2)
-        goto move_done;
-    if (res == 2)
-        goto move_absolute;
-    goto move_done;
-move_delta:
-    coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-    coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-    z                  = coord->coord.t[2] + scratch->delta.fixed.vz.halves.integer;
-    goto move_z;
-move_absolute:
-    coord->coord.t[0] = work->prevPos.vx;
-    coord->coord.t[1] = work->prevPos.vy;
-    z                 = work->prevPos.vz;
-move_z:
-    coord->coord.t[2] = z;
-move_done:
+    switch (res) {
+        case 1:
+            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+            break;
+        case 2:
+            coord->coord.t[0] = work->prevPos.vx;
+            coord->coord.t[1] = work->prevPos.vy;
+            coord->coord.t[2] = work->prevPos.vz;
+            break;
+        case 0:
+        default:
+            break;
+    }
     if (work->hitCooldown != 0) {
         work->hitCooldown--;
         if (work->hitCooldown <= 0) {
