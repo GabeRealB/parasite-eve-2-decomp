@@ -1159,13 +1159,13 @@ shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x80182618; // 
 
 func_shelter_b2_north_maintenance_walkway_80182F00 = 0x80182F00; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
-func_shelter_b2_operating_room_8017DDB8 = 0x8017DDB8; // type:func absolute:True owner=shelter_b2_operating_room
+shelterB2OperatingRoomDrawGlowsTask = 0x8017DDB8; // type:func absolute:True owner=shelter_b2_operating_room
 
 func_shelter_b2_operating_room_8017ECFC = 0x8017ECFC; // type:func absolute:True owner=shelter_b2_operating_room
 
-func_shelter_b2_operating_room_8017F254 = 0x8017F254; // type:func absolute:True owner=shelter_b2_operating_room shared=rooms
+shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask = 0x8017F254; // type:func absolute:True owner=shelter_b2_operating_room shared=rooms
 
-func_shelter_b2_operating_room_8017FEB4 = 0x8017FEB4; // type:func absolute:True owner=shelter_b2_operating_room
+shelterB2OperatingRoomRoomVisualEffectsFlyingOrangeBurstTask = 0x8017FEB4; // type:func absolute:True owner=shelter_b2_operating_room
 
 shelterB2PodAccessTunnelEffectSpriteDriftTask = 0x8017E6E0; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 
@@ -1793,7 +1793,7 @@ dryfieldGarageEffectNoopTaskD6 = 0x8017DC68; // type:func absolute:True owner=dr
 
 dryfieldDrivewayEnableAmbientEffectsTask = 0x8017DE6C; // type:func absolute:True owner=dryfield_driveway
 
-dryfieldJunkYardEnableViewEffectsTask = 0x8017DD0C; // type:func absolute:True owner=dryfield_junk_yard shared=rooms
+dryfieldJunkYardEnableViewEffectsTask = 0x8017DD0C; // type:func absolute:True owner=dryfield_junk_yard
 
 dryfieldMotelBalconyInitRoomEffectsTask = 0x8017DC28; // type:func absolute:True owner=dryfield_motel_balcony shared=rooms
 

@@ -65,13 +65,13 @@ D_shelter_b2_operating_room_8018091C = 0x8018091C; // size:0x28 defined:True
 D_shelter_b2_operating_room_80180944 = 0x80180944; // size:0x78 defined:True
 gRoomEventLatched = 0x80184258; // size:0xC defined:True
 
-func_shelter_b2_operating_room_8017F254 = 0x8017F254; // type:func
+shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask = 0x8017F254; // type:func
 
-func_shelter_b2_operating_room_8017DDB8 = 0x8017DDB8; // type:func
+shelterB2OperatingRoomDrawGlowsTask = 0x8017DDB8; // type:func
 
 func_shelter_b2_operating_room_8017ECFC = 0x8017ECFC; // type:func
 
-func_shelter_b2_operating_room_8017FEB4 = 0x8017FEB4; // type:func
+shelterB2OperatingRoomRoomVisualEffectsFlyingOrangeBurstTask = 0x8017FEB4; // type:func
 _roomVisualEffectsDrawFlyingSpark = 0x8017F478; // type:func
 _roomVisualEffectsDrawFlyingRing = 0x8017F6FC; // type:func
 _roomVisualEffectsDrawFlyingDisc = 0x8017FB20; // type:func
@@ -82,3 +82,8 @@ glowDrawDisc = 0x8017E95C; // type:func
 roomEventGate = 0x8017D628; // type:func
 roomEventTask = 0x8017D78C; // type:func
 roomEventStagedTask = 0x8017D8FC; // type:func
+_shelterB2OperatingRoomIgnoreKeyItem = 0x8017dc9c; // type:func
+_shelterB2OperatingRoomIgnoreAction = 0x8017dd0c; // type:func
+_shelterB2OperatingRoomInitTask = 0x8017dd14; // type:func
+_shelterB2OperatingRoomIdleTask = 0x8017dd58; // type:func
+shelterB2OperatingRoomTask = 0x8017dd60; // type:func

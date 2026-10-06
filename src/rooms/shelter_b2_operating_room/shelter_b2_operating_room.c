@@ -102,10 +102,13 @@ extern RoomLatchedEvent gRoomEventLatched;
 // Indexed views below share one contiguous table.
 extern TaskDesc D_actor_207000_801575F0;
 
-s32 func_shelter_b2_operating_room_8017DA94(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_operating_room_8017DC9C(Task*, s32, s32, s32);
-s32 func_shelter_b2_operating_room_8017DCA4(Task*, s32, s32, s32);
-s32 func_shelter_b2_operating_room_8017DD0C(Task*, s32, s32, s32);
+s32        func_shelter_b2_operating_room_8017DA94(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB2OperatingRoomIgnoreKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_shelter_b2_operating_room_8017DCA4(Task*, s32, s32, s32);
+static s32 _shelterB2OperatingRoomIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unusedArg);
+
+/// Inventory key-item message received by this room's task.
+enum { SHELTER_B2_OPERATING_ROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -113,8 +116,8 @@ TaskDesc D_shelter_b2_operating_room_80180910 = { { { TASK_BODY_NONE, 32 } }, ro
 
 TaskMessageEntry D_shelter_b2_operating_room_8018091C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_operating_room_8017DA94 },
-    { 5105, func_shelter_b2_operating_room_8017DC9C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_operating_room_8017DD0C },
+    { SHELTER_B2_OPERATING_ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2OperatingRoomIgnoreKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2OperatingRoomIgnoreAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b2_operating_room_8017DCA4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -897,9 +900,9 @@ RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           func_shelter_b2_operating_room_8017DD14(Task* task);
-static void           func_shelter_b2_operating_room_8017DD58(Task* task);
+static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
+static void           _shelterB2OperatingRoomInitTask(Task* task);
+static void           _shelterB2OperatingRoomIdleTask(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -909,26 +912,40 @@ static void           func_shelter_b2_operating_room_8017DD58(Task* task);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Starts `event` for the outgoing message `dst` unless its flag says it has
-/// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->queryOnly` asks for a dry run - latches the message and the event,
-/// sets the flag and spawns the room's event task.
-static __inline__ s32 _operatingRoomStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Latches a first-use room departure event, or tests its eligibility for a query.
+///
+/// Borrows complete eight-byte `destination` and twelve-byte `event` records
+/// for this call. A zero flag ID stays eligible; any other ID must name a
+/// valid game-flag nibble. Returns 1 when that nibble is already nonzero,
+/// allowing the ordinary departure, or 2 when the staged event is eligible.
+/// Executing an eligible request copies both records into room-owned storage,
+/// sets a nonzero flag's nibble to 1 and attempts to spawn the staged task.
+/// Every call clears the room's event-started byte; execution raises it even
+/// if spawning fails. The room overlay must remain loaded through the event.
+static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
+    enum {
+        SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG            = 0,
+        SHELTER_B2_OPERATING_ROOM_EVENT_FLAG_LATCHED       = 1,
+        SHELTER_B2_OPERATING_ROOM_EVENT_ORDINARY_DEPARTURE = 1,
+        SHELTER_B2_OPERATING_ROOM_EVENT_STAGED_DEPARTURE   = 2,
+    };
+
     D_shelter_b2_operating_room_80184234[0] = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG) {
+        if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
+            // Own both records before the staged task can use the caller's stack data.
+            gRoomEventStagedMsg = *destination;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG) {
+                gameFlagSetNibble(event->flagId, SHELTER_B2_OPERATING_ROOM_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_b2_operating_room_80180910, 0, 0, 0);
             D_shelter_b2_operating_room_80184234[0] = 1;
         }
-        return 2;
+        return SHELTER_B2_OPERATING_ROOM_EVENT_STAGED_DEPARTURE;
     }
-    return 1;
+    return SHELTER_B2_OPERATING_ROOM_EVENT_ORDINARY_DEPARTURE;
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
@@ -966,21 +983,27 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
         event.stageSnd = 0x541D0001;
         event.flagId   = GAME_FLAG_B2_OPERATING_TO_SOUTH_WALKWAY_SCENE;
         event.fade     = 0;
-        return _operatingRoomStartEvent(out, &event);
+        return _shelterB2OperatingRoomStartEvent(out, &event);
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
         event.capCmd   = 0xD;
         event.stageSnd = 0x541D0005;
         event.flagId   = GAME_FLAG_B2_OPERATING_TO_LAB_SCENE;
         event.fade     = 0;
-        return _operatingRoomStartEvent(out, &event);
+        return _shelterB2OperatingRoomStartEvent(out, &event);
     }
     return 1;
 }
 
-s32 func_shelter_b2_operating_room_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use without consuming the item or changing room state.
+///
+/// `itemId` is the collected-item ID from the inventory; all inputs are ignored.
+/// Returns zero, which the inventory presents as an unusable item.
+static s32 _shelterB2OperatingRoomIgnoreKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { SHELTER_B2_OPERATING_ROOM_KEY_ITEM_UNUSED = 0 };
+
+    return SHELTER_B2_OPERATING_ROOM_KEY_ITEM_UNUSED;
 }
 
 s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -996,114 +1019,131 @@ s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, s32 
     return 0;
 }
 
-s32 func_shelter_b2_operating_room_8017DD0C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores a direction trigger's room-action request and returns zero.
+///
+/// The sender borrows a `DirectionActionRequest` for synchronous dispatch.
+/// This handler does not read it or any other input and performs no action.
+static s32 _shelterB2OperatingRoomIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unusedArg)
 {
     return 0;
 }
 
-/// Installs `D_shelter_b2_operating_room_8018091C` as the task's message
-/// table, registers the task in pointer slot 7 and steps it on one state.
-static void func_shelter_b2_operating_room_8017DD14(Task* task)
+/// Publishes the room's task and message handlers, then advances it to idle.
+///
+/// Called with state zero; the borrowed message table remains live with the
+/// room overlay.
+static void _shelterB2OperatingRoomInitTask(Task* task)
 {
     task->msgTable = D_shelter_b2_operating_room_8018091C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
-/// The room task's idle state, which does nothing.
-static void func_shelter_b2_operating_room_8017DD58(Task* task)
+/// Keeps the room task available for messages while idle.
+static void _shelterB2OperatingRoomIdleTask(Task* task)
 {
 }
 
 /// The room task's three states, dispatched by
-/// `func_shelter_b2_operating_room_8017DD60`: install the message table, idle,
+/// `shelterB2OperatingRoomTask`: install the message table, idle,
 /// end.
 static const TaskFuncTable3 D_shelter_b2_operating_room_8017D5F0 = {
-    { func_shelter_b2_operating_room_8017DD14, func_shelter_b2_operating_room_8017DD58, taskKill }
+    { _shelterB2OperatingRoomInitTask, _shelterB2OperatingRoomIdleTask, taskKill }
 };
 
-/// Runs the handler for the task's current state, from a local copy of
-/// `D_shelter_b2_operating_room_8017D5F0`.
-void func_shelter_b2_operating_room_8017DD60(Task* task)
+void shelterB2OperatingRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b2_operating_room_8017D5F0;
-    sp.funcs[task->state](task);
+    states = D_shelter_b2_operating_room_8017D5F0;
+    states.funcs[task->state](task);
 }
 
-/// Per-frame view task. On its first frame it stores three ids in the gameplay
-/// words `gRoomEffectGlowDiscId`, `gRoomEffectFlyingSparkId` (the effect the halo task spawns) and
-/// `gRoomEffectOrangeBurst2Id`; every frame it
-/// draws the glows of the current view (views 2 to 7) at that view's points,
-/// as capsules through `_glowDrawCapsule` and discs
-/// through `glowDrawDisc`.
-void func_shelter_b2_operating_room_8017DDB8(Task* arg0)
+/// Selects this room's glow-disc, flying-spark and orange-burst implementations.
+static __inline__ void _shelterB2OperatingRoomInitGlowEffects(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_OPERATING_ROOM_GLOW_DISC;
-        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_OPERATING_ROOM_FLYING_SPARK;
-        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B2_OPERATING_ROOM_ORANGE_BURST_2;
-        arg0->state               = 1;
+    gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_OPERATING_ROOM_GLOW_DISC;
+    gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_OPERATING_ROOM_FLYING_SPARK;
+    gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B2_OPERATING_ROOM_ORANGE_BURST_2;
+}
+
+void shelterB2OperatingRoomDrawGlowsTask(Task* task)
+{
+    // Radius parameters are world units; colours pack RGB nibbles scaled by 16.
+    enum {
+        SHELTER_B2_OPERATING_ROOM_GLOW_INITIALIZE,
+        SHELTER_B2_OPERATING_ROOM_GLOW_DRAW,
+        SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS    = 0x100,
+        SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS       = 0x200,
+        SHELTER_B2_OPERATING_ROOM_GLOW_LARGE_DISC_RADIUS = 0x380,
+        SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR     = 0x444,
+        SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR        = 0x433,
+        SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR         = 0x400,
+    };
+
+    if (task->state == SHELTER_B2_OPERATING_ROOM_GLOW_INITIALIZE) {
+        _shelterB2OperatingRoomInitGlowEffects();
+        task->state = SHELTER_B2_OPERATING_ROOM_GLOW_DRAW;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Only views 2..7 have glows; capsules borrow consecutive endpoint pairs.
+    switch ((u8)viewGetMappedIndex()) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[4], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B6C[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[54], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[58], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[62], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B5C[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B5C[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[52], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[60], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
         case 4:
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[0], 0x380, 0x444);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-48], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-44], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-41], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-38], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-37], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-36], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-35], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-34], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-31], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-30], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-27], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-26], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-23], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-22], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_80180B44[-21], 0x200, 0x400);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180B44[-7], 0x100, 0x400);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[49], SHELTER_B2_OPERATING_ROOM_GLOW_LARGE_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[1], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[5], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[8], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[11], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[12], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[13], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[14], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[15], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[18], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[19], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[22], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[23], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[26], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[27], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[28], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[42], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
             break;
         case 5:
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[0], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[6], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[8], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[9], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[10], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[13], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[14], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[15], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[16], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[17], 0x200, 0x433);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[20], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[21], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[24], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[25], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[29], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[30], 0x200, 0x400);
-            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[31], 0x200, 0x400);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[0], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[6], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[8], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[9], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[10], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[13], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[14], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[15], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[16], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[17], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_WARM_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[20], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[21], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[24], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[25], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[29], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[30], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
+            glowDrawDisc(&D_shelter_b2_operating_room_801809BC[31], SHELTER_B2_OPERATING_ROOM_GLOW_DISC_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_RED_COLOR);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ABC[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ABC[2], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[32], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[34], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[0], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[2], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[4], 0x100, 0x444);
-            _glowDrawCapsule(&D_shelter_b2_operating_room_80180ADC[8], 0x100, 0x444);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[36], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[38], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[40], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
+            _glowDrawCapsule(&D_shelter_b2_operating_room_801809BC[44], SHELTER_B2_OPERATING_ROOM_GLOW_CAPSULE_RADIUS, SHELTER_B2_OPERATING_ROOM_GLOW_NEUTRAL_COLOR);
             break;
     }
 }
@@ -1121,16 +1161,16 @@ void func_shelter_b2_operating_room_8017ECFC(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b2_operating_room_8017F254(Task* task)
+void shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b2_operating_room_8017FEB4(Task* arg0)
+void shelterB2OperatingRoomRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"
