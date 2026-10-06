@@ -214,6 +214,8 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                               have;
     s32                               useSecond;
     s32                               i;
+    s32                               limited;
+    s32                               used;
 
     table     = Gp_GetItemTable(arg0);
     useSecond = 0;
@@ -262,25 +264,23 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (have <= 0) {
         return -1;
     }
+    limited = have < arg3;
     if (arg3 != 0) {
-        if (have < arg3) {
-            arg3 = have;
-        }
+        used = limited ? have : arg3;
         if (useSecond == 0) {
             slot->primaryItemId = arg2;
-            slot->primaryQty    = arg3;
+            slot->primaryQty    = used;
         } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
             slot->secondaryItemId = arg2;
-            slot->secondaryQty    = arg3;
+            slot->secondaryQty    = used;
         }
     } else {
-        asm volatile("" : "=r"(arg3));
-        arg3 = 0;
+        used = 0;
     }
-    if (arg3 > 0) {
+    if (used > 0) {
         Gp_SetItemSeenBit(arg2, 1);
     }
-    return arg3;
+    return used;
 }
 
 u8 D_8010D318[8] = {
