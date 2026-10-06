@@ -810,7 +810,10 @@ void func_actor_450900_8013223C(Task* task)
             break;
         case 2:
             if (Gp_GetCapEventKey() != 0xB) {
-                goto kill;
+                Gp_MsgPlayerWeapon(1);
+                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                taskKill(task);
+                break;
             }
             gameFlagSetNibble(GAME_FLAG_0D8, 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
@@ -820,7 +823,6 @@ void func_actor_450900_8013223C(Task* task)
             break;
         case 3:
             if (gGameSession->eventState == 0) {
-            kill:
                 Gp_MsgPlayerWeapon(1);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
