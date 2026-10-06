@@ -155,16 +155,17 @@ static const TaskFuncTable3 D_shelter_b2_pod_access_tunnel_8017D5D8 = {
 
 void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
 {
-    s32 var_v0;
-
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_0FC) != 0 ? 3 : 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            goto L_advance;
+            task->state++;
+            return;
         case 1:
-            var_v0 = Gp_CapBusy();
-            goto L_idle;
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            return;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 if (Gp_GetCapEventKey() == 1) {
@@ -177,15 +178,12 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             }
             sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1, 0, 0);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
-            goto L_advance;
-        case 3:
-            var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1);
-        L_idle:
-            if (var_v0 != 0) {
-                return;
-            }
-        L_advance:
             task->state++;
+            return;
+        case 3:
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1) == 0) {
+                task->state++;
+            }
             return;
         case 4:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
