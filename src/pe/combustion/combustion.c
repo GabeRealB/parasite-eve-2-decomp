@@ -136,7 +136,8 @@ void func_combustion_8012EF34(Task* arg0)
         case 1:
             actorRenderComposeCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                goto release;
+                effectKillTask(mem, arg0);
+                return;
             }
             mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].flameDropStep;
             mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].flameReachStep;
@@ -154,7 +155,6 @@ void func_combustion_8012EF34(Task* arg0)
             actorRenderComposeCoord(coord);
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
                 (mem->age > D_combustion_80130980[mem->index].emitterFrames)) {
-            release:
                 effectKillTask(mem, arg0);
                 return;
             }
