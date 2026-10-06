@@ -918,7 +918,19 @@ WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[8] = {
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-/// Queues two coincident textured flares at one borrowed world point.
+/// Queues two coincident additive flare passes to reinforce one world-point glow.
+///
+/// Borrows one word-aligned, readable `SVECTOR` for the call. The signed low
+/// halfword of `textureIndex` selects a 40-texel texture column and palette
+/// offset; the signed low halfword of `radiusScale` gives each square's pixel
+/// half-extent as `radiusScale * 39 / depth`, with depth equal to camera Z / 4.
+/// Negative GTE flags emit no packets; accepted points require nonzero depth.
+/// Both passes use the same frame's flicker intensity and projected bounds.
+///
+/// Requires the current view matrix, an initialized scratch stack with room
+/// for one `GlowCentreScratch`, and a frame packet arena with room for two
+/// `POLY_FT4`s. Queued packets remain live until GPU completion; the world
+/// point is not retained.
 static inline void _dryfieldNightWaterTowerDrawDoubleFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale)
 {
     _glowDrawFlare(worldPoint, textureIndex, radiusScale);
