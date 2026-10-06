@@ -60,13 +60,15 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_RunCapCmd(2, 0);
-            goto advance;
+            arg0->state++;
+            break;
         case 1:
             if (Gp_CapBusy() != 0) {
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            goto advance;
+            arg0->state++;
+            break;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
@@ -85,19 +87,20 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
                 break;
             }
             Gp_TriggerPeIfArmed();
-            goto advance;
+            arg0->state++;
+            break;
         case 4:
             D_mine_secret_passage_80183440.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_mine_secret_passage_80183440.fade.phase      = SCREEN_FADE_RUNNING;
             D_mine_secret_passage_80183440.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_mine_secret_passage_80183440.fade);
             sndEvtRequestScriptStart(SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT, 0, 0);
-            goto advance;
+            arg0->state++;
+            break;
         case 5:
             if (SndVoice_HasActiveId(SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT) != 0) {
                 break;
             }
-        advance:
             arg0->state++;
             break;
         case 6:
