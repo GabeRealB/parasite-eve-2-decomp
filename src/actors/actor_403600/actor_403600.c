@@ -3056,13 +3056,7 @@ u32* actor403600DrawStreamGt4TopDisplace(TmdStreamWorkspace* workspace, s32 obje
                 gte_rtps();
                 gte_stflg(gteFlag);
                 if (!(workspace->gteFlag & gteErrorMask)) {
-                    if (workspace->gteResult > 0) {
-                        goto draw;
-                    }
-                    gte_nclip();
-                    gte_stopz(gteResult);
-                    if (workspace->gteResult < 0) {
-                    draw:
+                    if (workspace->gteResult > 0 || _actor403600SecondHalfFacesViewer(workspace, gteResult)) {
                         gte_stsxy2(&packet->x3);
                         gte_avsz4();
                         // Fade from corner 0; every corner uses this same colour weight.
