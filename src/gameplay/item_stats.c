@@ -155,7 +155,6 @@ void func_800C5F70(Task* arg0)
     s32              item;
     s32              featCount;
     s32              altColor;
-    s32              state;
     s32              lines;
     const u8*        p;
     u8*              payload;
@@ -221,59 +220,55 @@ void func_800C5F70(Task* arg0)
         if (obj->panel.state == USER_INTERFACE_PANEL_OPEN) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
         }
-        state = arg0->state;
-        if (state == 2) {
-            goto parse;
-        } else if (state < 3) {
-            goto hbar_setup;
-        } else if (state == 3) {
-            goto state3;
-        } else if (state == 4) {
-            goto state4;
-        } else {
-            goto hbar_setup;
-        }
-    parse:
-        if (CdCmd_IsIdle() & 0xFFFF) {
-            lines = 0;
-            p     = textSkipLines(Fs_GetChunkPayload(), 5);
-            while (*p != 0) {
-                if (*p == '\\') {
-                    p++;
-                    if (*p == 'Z' || *p == 'z') {
-                        break;
+        switch (arg0->state) {
+            case 2:
+                if (CdCmd_IsIdle() & 0xFFFF) {
+                    lines = 0;
+                    p     = textSkipLines(Fs_GetChunkPayload(), 5);
+                    while (*p != 0) {
+                        if (*p == '\\') {
+                            p++;
+                            if (*p == 'Z' || *p == 'z') {
+                                break;
+                            }
+                        }
+                        if (*p == '\n') {
+                            lines++;
+                        }
+                        p++;
                     }
+                    if (item < 0x100) {
+                        if (lines < 2) {
+                            lines = 2;
+                        }
+                    }
+                    menu->selectedItemIndex                   = 0;
+                    menu->firstVisibleItemIndex.unsignedValue = 0;
+                    menu->visibleRowCount.unsignedValue       = lines;
+                    menu->itemCount                           = lines;
+                    uiInitList(menu, &(obj)->panel);
+                    if (menu->visibleRowCount.signedValue >= 7) {
+                        menu->visibleRowCount.unsignedValue = 6;
+                    }
+                    menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+                    menu->topInset = -(u8)obj->panel.contentTop.unsignedValue + 7;
+                    arg0->state    = 3;
                 }
-                if (*p == '\n') {
-                    lines++;
+                break;
+            case 3:
+                arg0->state = 4;
+                /* fallthrough */
+            case 4:
+                if (CdCmd_IsIdle() & 0xFFFF) {
+                    ready = 1;
                 }
-                p++;
-            }
-            if (item < 0x100) {
-                if (lines < 2) {
-                    lines = 2;
-                }
-            }
-            menu->selectedItemIndex                   = 0;
-            menu->firstVisibleItemIndex.unsignedValue = 0;
-            menu->visibleRowCount.unsignedValue       = lines;
-            menu->itemCount                           = lines;
-            uiInitList(menu, &(obj)->panel);
-            if (menu->visibleRowCount.signedValue >= 7) {
-                menu->visibleRowCount.unsignedValue = 6;
-            }
-            menu->flags    = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-            menu->topInset = -(u8)obj->panel.contentTop.unsignedValue + 7;
-            arg0->state    = 3;
+                break;
+            // A fourth case below 2 is in the compare tree; which one is not
+            // recoverable from the bytes.
+            case 1:
+            default:
+                break;
         }
-        goto hbar_setup;
-    state3:
-        arg0->state = 4;
-    state4:
-        if (CdCmd_IsIdle() & 0xFFFF) {
-            ready = 1;
-        }
-    hbar_setup:
         if (item >= 0x500) {
             flags |= 0x400;
             uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, 0x25);
