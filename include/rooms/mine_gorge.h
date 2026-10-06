@@ -30,7 +30,14 @@ extern SpriteView D_mine_gorge_801827F8[];
 
 extern WorldCollisionSurfaceProperties* D_mine_gorge_80183644[];
 
-void func_mine_gorge_8017D9F8(Task* unused);
+/// Updates the gorge's ambient-effect gate and draws the current view's fixed flares.
+///
+/// The loaded gorge must supply a mapped view index in 1..11. Views 2 and 6
+/// enable ambient effects; view 1 draws no flares. Requires the current view
+/// matrices, initialized scratch stack, ordering table and space for up to five
+/// textured quads in the frame's primitive arena. The task argument is unused;
+/// this per-frame callback neither advances nor releases the task.
+void mineGorgeDrawViewFlaresTask(Task* unusedTask);
 
 void func_mine_gorge_8017D9A0(Task* task);
 

@@ -89,5 +89,5 @@ _gMineGorgeAnimation00C98 = 0x8017E258; // size:0x28 defined:True
 
 func_mine_gorge_8017D828 = 0x8017D828; // type:func
 
-func_mine_gorge_8017D9F8 = 0x8017D9F8; // type:func
+mineGorgeDrawViewFlaresTask = 0x8017D9F8; // type:func
 _glowDrawFlare = 0x8017DB88; // type:func

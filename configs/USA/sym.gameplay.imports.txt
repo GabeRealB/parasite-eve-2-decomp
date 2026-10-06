@@ -1847,7 +1847,7 @@ func_mine_tunnel_entrance_8017D720 = 0x8017D720; // type:func absolute:True owne
 
 func_mine_tunnel_8017D7D4 = 0x8017D7D4; // type:func absolute:True owner=mine_tunnel shared=rooms
 
-func_mine_gorge_8017D9F8 = 0x8017D9F8; // type:func absolute:True owner=mine_gorge shared=rooms
+mineGorgeDrawViewFlaresTask = 0x8017D9F8; // type:func absolute:True owner=mine_gorge shared=rooms
 
 mineRefugeDrawGlowsTask = 0x80181454; // type:func absolute:True owner=mine_refuge
 

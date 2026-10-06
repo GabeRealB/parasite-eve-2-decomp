@@ -9580,7 +9580,7 @@ A cut that is already at the right offset only misnames its owner, and if you
 are hand-writing the decompiled body anyway, the incoming unit's file already
 exists and splat has nothing to add to either file. `mine_gorge` carried
 `rodata = [{ start = "0x10", unit = "mine_gorge_3" }]` for the 10-word table
-belonging to `func_mine_gorge_8017D9F8` in unit `_4`; the fix was `_3` -> `_4`
+belonging to `mineGorgeDrawViewFlaresTask` in unit `_4`; the fix was `_3` -> `_4`
 in the manifest plus dropping that one `INCLUDE_RODATA` line from
 `mine_gorge_3.c`. Hand-editing was the safe option here precisely because the
 destructive path is the one that loses matched bodies — its own file's remaining

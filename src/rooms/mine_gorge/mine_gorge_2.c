@@ -52,6 +52,11 @@ extern WorldCollisionTrigger      D_mine_gorge_80182F94[5];
 extern WorldCoordRoomAmbientEntry D_mine_gorge_801835A4[12];
 extern WorldCoordRoomLights       D_mine_gorge_80182ABC[1];
 
+enum {
+    MINE_GORGE_FLARE_TEXTURE_COLUMN = 1,
+    MINE_GORGE_FLARE_RADIUS_SCALE   = 0x300 // Pixel half-extent = scale * 39 / (camera Z / 4).
+};
+
 u16 D_mine_gorge_8017E760[12] = {
     0,
     2,
@@ -1072,59 +1077,61 @@ WorldCollisionSurfaceProperties* D_mine_gorge_80183644[8] = {
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-/// Publishes the variant index the current camera view maps to, then draws the
-/// gorge's props for that view: one `_glowDrawFlare` quad per
-/// position, UV column 1 and half-extent 0x300. Views share runs of the same
-/// table, so `3` and `7` draw five positions from `E778` where `6` draws two,
-/// and `10`/`11` draw the single position at `E790`; every case ends on the
-/// same call, which the compiler merges into one shared tail.
-void func_mine_gorge_8017D9F8(Task* unused)
+/// Draws two consecutive fixed gorge flares.
+///
+/// Borrows two readable world positions for the calls, using texture column 1
+/// and a radius scale of 768. Requires the view, scratch and frame arena already
+/// prepared for flare drawing.
+static inline void _mineGorgeDrawFlarePair(const SVECTOR* flarePositions)
 {
-    gRoomEffectState->roomEffectMode = D_mine_gorge_8017E760[(viewGetMappedIndex() & 0xFF) - 1];
-    switch (viewGetMappedIndex() & 0xFF) {
+    _glowDrawFlare(&flarePositions[0], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+    _glowDrawFlare(&flarePositions[1], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+}
+
+void mineGorgeDrawViewFlaresTask(Task* unusedTask)
+{
+    // Gate ambient effects independently of the fixed flares visible in this view.
+    gRoomEffectState->roomEffectMode = D_mine_gorge_8017E760[(u8)viewGetMappedIndex() - 1];
+    switch ((u8)viewGetMappedIndex()) {
         case 2: {
-            SVECTOR* p = D_mine_gorge_8017E798;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x300);
+            const SVECTOR* flarePositions = D_mine_gorge_8017E798;
+            _mineGorgeDrawFlarePair(flarePositions);
             break;
         }
         case 3:
         case 7: {
-            SVECTOR* p = D_mine_gorge_8017E778;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
-            _glowDrawFlare(&p[3], 1, 0x300);
-            _glowDrawFlare(&p[4], 1, 0x300);
+            const SVECTOR* flarePositions = D_mine_gorge_8017E778;
+            _mineGorgeDrawFlarePair(flarePositions);
+            _glowDrawFlare(&flarePositions[2], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePositions[3], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePositions[4], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             break;
         }
         case 4:
         case 5:
         case 9: {
-            SVECTOR* p = D_mine_gorge_8017E788;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
-            _glowDrawFlare(&p[3], 1, 0x300);
+            const SVECTOR* flarePositions = D_mine_gorge_8017E788;
+            _mineGorgeDrawFlarePair(flarePositions);
+            _glowDrawFlare(&flarePositions[2], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePositions[3], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             break;
         }
         case 6: {
-            SVECTOR* p = D_mine_gorge_8017E778;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x300);
+            const SVECTOR* flarePositions = D_mine_gorge_8017E778;
+            _mineGorgeDrawFlarePair(flarePositions);
             break;
         }
         case 8: {
-            SVECTOR* p = D_mine_gorge_8017E788;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
-            _glowDrawFlare(&p[3], 1, 0x300);
+            const SVECTOR* flarePositions = D_mine_gorge_8017E788;
+            _glowDrawFlare(&flarePositions[0], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePositions[2], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePositions[3], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             break;
         }
         case 10:
         case 11: {
-            SVECTOR* p = D_mine_gorge_8017E790;
-            _glowDrawFlare(&p[0], 1, 0x300);
+            const SVECTOR* flarePositions = D_mine_gorge_8017E790;
+            _glowDrawFlare(&flarePositions[0], MINE_GORGE_FLARE_TEXTURE_COLUMN, MINE_GORGE_FLARE_RADIUS_SCALE);
             break;
         }
     }
