@@ -223,14 +223,19 @@ typedef struct {
 } CapFile;
 STATIC_ASSERT_SIZEOF(CapFile, 0x14);
 
-/// Resolve a record's byte displacement within a relocated CAP script.
-/// CAP references share their integer address and pointer representations;
-/// this preserves that representation through the indexed address addition.
-static inline CapSequenceRecord* Gp_CapEventAt(CapSequenceRecord* events, s32 index)
+/// Returns the playback record at `recordIndex` in a relocated CAP sequence.
+///
+/// `sequence` borrows the command header's address in slot zero; playback
+/// records occupy slots one through the terminal record, all with a 12-byte
+/// stride. `recordIndex` counts slots from that base, not bytes or variant keys.
+/// The caller must provide a valid record index within the loaded CAP file and
+/// keep that file loaded while using the result. This only computes an address:
+/// it performs no relocation, bounds check or terminal-record test.
+static inline CapSequenceRecord* _capSequenceRecordAt(CapSequenceRecord* sequence, s32 recordIndex)
 {
     CapCommandRef address;
-    address.sequence = events;
-    address.offset   = index * sizeof(CapSequenceRecord) + address.offset;
+    address.sequence = sequence;
+    address.offset   = recordIndex * sizeof(CapSequenceRecord) + address.offset;
     return address.sequence;
 }
 

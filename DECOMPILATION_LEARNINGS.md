@@ -150535,8 +150535,8 @@ constant).
   != id) { p++; arg0++; } else break; }` is unrotated but one insn longer:
   with `p` a biv of its own, loop.c reduces the two field addresses to a
   third register (`addiu v1,v0,5`, `lw 3(v1)`, `lbu 0(v1)`). Written
-  `for (;;) { p = Gp_CapEventAt(table, arg0); if (...) arg0++; else break; }`
-  the only biv is the index, `p` is its giv and the reduction *is* the
+  `for (;;) { record = _capSequenceRecordAt(table, arg0); if (...) arg0++; else break; }`
+  the only biv is the index, `record` is its giv and the reduction *is* the
   image's `addiu v1,v1,0xC`. The `flag = END`, `id = ...`, `base = ...` locals
   in front of the goto loop then go too: loop.c hoists the three in the same
   order.

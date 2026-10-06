@@ -1212,30 +1212,30 @@ void capSetTextUpdateCallback(CapTextUpdateCallback callback)
 
 void Gp_ApplyCapEvtFlags(void)
 {
-    CapSequenceRecord* p;
+    CapSequenceRecord* record;
     u8                 soundAndTextFlags;
-    CapSequenceRecord* base;
-    s32                idx;
+    CapSequenceRecord* sequence;
+    s32                recordIndex;
 
-    idx               = (s16)D_801155AE;
-    base              = Gp_CapTable;
-    p                 = Gp_CapEventAt(base, idx);
-    soundAndTextFlags = p->trigger.soundAndTextFlags;
+    recordIndex       = (s16)D_801155AE;
+    sequence          = Gp_CapTable;
+    record            = _capSequenceRecordAt(sequence, recordIndex);
+    soundAndTextFlags = record->trigger.soundAndTextFlags;
     D_80115670        = soundAndTextFlags;
     // A minimum playback interval disables instant reveal.
-    if (p->minDisplayFrames != 0) {
+    if (record->minDisplayFrames != 0) {
         D_80115670 = soundAndTextFlags & CAP_SEQUENCE_SOUND_ID_MASK;
     }
-    D_80115678 = p->minDisplayFrames;
+    D_80115678 = record->minDisplayFrames;
 }
 
 s32 Gp_FindCapEvt(s32 arg0)
 {
-    CapSequenceRecord* p;
+    CapSequenceRecord* record;
 
     for (;;) {
-        p = Gp_CapEventAt(Gp_CapTable, arg0);
-        if (p->textRef.offset != CAP_TEXT_REF_END && p->key != Gp_CapEventKey) {
+        record = _capSequenceRecordAt(Gp_CapTable, arg0);
+        if (record->textRef.offset != CAP_TEXT_REF_END && record->key != Gp_CapEventKey) {
             arg0++;
         } else {
             break;
