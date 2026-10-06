@@ -39,6 +39,12 @@ extern WorldCollisionSurfaceProperties* D_shelter_b1_access_tunnel_8017FF24[];
 
 void func_shelter_b1_access_tunnel_8017DD08(Task* task);
 
-void func_shelter_b1_access_tunnel_8017DD60(Task* unused);
+/// Draws the access tunnel's light glows for mapped views 2 through 5 each frame.
+///
+/// Other views emit no packets. The task argument is unused; this callback does
+/// not advance a state or end its task. Requires the room overlay, current view
+/// matrices, scratch stack and frame packet arena to remain available during
+/// drawing; queued primitives live in that arena until GPU completion.
+void shelterB1AccessTunnelDrawGlowsTask(Task* unused);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_ACCESS_TUNNEL_H

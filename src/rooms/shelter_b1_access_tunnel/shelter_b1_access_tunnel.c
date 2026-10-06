@@ -96,12 +96,14 @@ extern RoomEventReqStorage gRoomEventReq;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_b1_access_tunnel_8017DCBC(Task* task);
-static void func_shelter_b1_access_tunnel_8017DD00(Task* task);
+static void _shelterB1AccessTunnelIdle(Task* task);
 
-s32 func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_access_tunnel_8017DCA4(Task*, s32, s32, s32);
-s32 func_shelter_b1_access_tunnel_8017DCAC(Task*, s32, s32, s32);
-s32 func_shelter_b1_access_tunnel_8017DCB4(Task*, s32, s32, s32);
+s32        func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1AccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _shelterB1AccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 command, s32 unusedArg);
+static s32 _shelterB1AccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+enum { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -109,9 +111,9 @@ TaskDesc D_shelter_b1_access_tunnel_8017E710 = { { { TASK_BODY_NONE, 32 } }, roo
 
 TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_access_tunnel_8017DA68 },
-    { 5105, func_shelter_b1_access_tunnel_8017DCA4 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_access_tunnel_8017DCB4 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_access_tunnel_8017DCAC },
+    { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1AccessTunnelRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1AccessTunnelIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1AccessTunnelIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -599,17 +601,26 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
     return 1;
 }
 
-s32 func_shelter_b1_access_tunnel_8017DCA4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this room, selecting the inventory's cannot-use notice.
+///
+/// Ignores the collected `itemId` and every other argument; always returns zero.
+static s32 _shelterB1AccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_access_tunnel_8017DCAC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from scripts and triggers and always returns zero.
+///
+/// Neither the command word nor the other arguments are read or retained.
+static s32 _shelterB1AccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 command, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_access_tunnel_8017DCB4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests from direction triggers and always returns zero.
+///
+/// The borrowed `request` and all other arguments are neither read nor retained.
+static s32 _shelterB1AccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -619,7 +630,7 @@ s32 func_shelter_b1_access_tunnel_8017DCB4(Task* task, s32 msgId, s32 arg2, s32 
 static const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
     {
         func_shelter_b1_access_tunnel_8017DCBC,
-        func_shelter_b1_access_tunnel_8017DD00,
+        _shelterB1AccessTunnelIdle,
         taskKill,
     },
 };
@@ -632,7 +643,8 @@ static void func_shelter_b1_access_tunnel_8017DCBC(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-static void func_shelter_b1_access_tunnel_8017DD00(Task* task)
+/// Keeps the room task available for messages without per-frame work or state changes.
+static void _shelterB1AccessTunnelIdle(Task* task)
 {
 }
 
@@ -645,44 +657,61 @@ void func_shelter_b1_access_tunnel_8017DD08(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_access_tunnel_8017DD60(Task* unused)
+/// Draws two light segments from four consecutive borrowed world-space endpoints.
+static inline void _shelterB1AccessTunnelDrawGlowPair(const SVECTOR lightPoints[4], s32 radiusScale, s32 packedColor)
 {
-    u8 view;
+    _glowDrawCapsule(&lightPoints[0], radiusScale, packedColor);
+    _glowDrawCapsule(&lightPoints[2], radiusScale, packedColor);
+}
 
-    view = viewGetMappedIndex();
-    switch (view) {
+void shelterB1AccessTunnelDrawGlowsTask(Task* unused)
+{
+    // Packed colours contain RGB nibbles, each scaled by 16 by the capsule drawer.
+    // Radius scales produce pixel radii of scale * 64 / (camera Z / 4).
+    enum {
+        SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE   = 0x200,
+        SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE = 0x180,
+        SHELTER_B1_ACCESS_TUNNEL_GLOW_BLUE_TINT           = 0x334,
+        SHELTER_B1_ACCESS_TUNNEL_GLOW_GREEN_TINT          = 0x343,
+        SHELTER_B1_ACCESS_TUNNEL_GLOW_CYAN_TINT           = 0x344,
+        SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP           = 0x111,
+    };
+    u8 viewIndex;
+
+    // Each active view draws only its selected pairs of world-space light endpoints.
+    viewIndex = viewGetMappedIndex();
+    switch (viewIndex) {
         case 2: {
-            SVECTOR* p;
-            p = D_shelter_b1_access_tunnel_8017E744;
-            _glowDrawCapsule(&p[0], 0x200, 0x334);
-            _glowDrawCapsule(&p[2], 0x200, 0x334);
-            _glowDrawCapsule(&p[4], 0x180, 0x444);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_access_tunnel_8017E744;
+            _shelterB1AccessTunnelDrawGlowPair(lightPoints, SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_BLUE_TINT);
+            _glowDrawCapsule(&lightPoints[4], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 4 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
             break;
         }
         case 3: {
-            SVECTOR* p;
-            p = D_shelter_b1_access_tunnel_8017E744;
-            _glowDrawCapsule(&p[0], 0x200, 0x334);
-            _glowDrawCapsule(&p[2], 0x200, 0x334);
-            _glowDrawCapsule(&p[4], 0x180, 0x111);
-            _glowDrawCapsule(&p[6], 0x180, 0x222);
-            _glowDrawCapsule(&p[8], 0x180, 0x333);
-            _glowDrawCapsule(&p[10], 0x180, 0x444);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_access_tunnel_8017E744;
+            _shelterB1AccessTunnelDrawGlowPair(lightPoints, SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_BLUE_TINT);
+            _glowDrawCapsule(&lightPoints[4], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
+            _glowDrawCapsule(&lightPoints[6], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 2 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
+            _glowDrawCapsule(&lightPoints[8], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 3 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
+            _glowDrawCapsule(&lightPoints[10], SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 4 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
             break;
         }
         case 4: {
-            SVECTOR* p;
-            p = D_shelter_b1_access_tunnel_8017E7D4;
-            _glowDrawCapsule(&p[0], 0x200, 0x343);
-            _glowDrawCapsule(&p[-8], 0x180, 0x444);
-            _glowDrawCapsule(&p[-6], 0x180, 0x333);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_access_tunnel_8017E7D4;
+            _glowDrawCapsule(&lightPoints[0], SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_GREEN_TINT);
+            // Select the last two pairs of the fourteen-point array, across the
+            // intervening four-point array, using PS1 integer byte addresses.
+            _glowDrawCapsule((const SVECTOR*)((u32)lightPoints - 8 * sizeof(*lightPoints)), SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 4 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
+            _glowDrawCapsule((const SVECTOR*)((u32)lightPoints - 6 * sizeof(*lightPoints)), SHELTER_B1_ACCESS_TUNNEL_GLOW_NARROW_RADIUS_SCALE, 3 * SHELTER_B1_ACCESS_TUNNEL_GLOW_GREY_STEP);
             break;
         }
         case 5: {
-            SVECTOR* p;
-            p = D_shelter_b1_access_tunnel_8017E7B4;
-            _glowDrawCapsule(&p[0], 0x200, 0x344);
-            _glowDrawCapsule(&p[2], 0x200, 0x344);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_access_tunnel_8017E7B4;
+            _shelterB1AccessTunnelDrawGlowPair(lightPoints, SHELTER_B1_ACCESS_TUNNEL_GLOW_WIDE_RADIUS_SCALE, SHELTER_B1_ACCESS_TUNNEL_GLOW_CYAN_TINT);
             break;
         }
     }
