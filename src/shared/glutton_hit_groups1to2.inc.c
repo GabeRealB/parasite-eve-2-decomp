@@ -2,11 +2,9 @@
 
 /// The hit handler for collision groups 1 and 2 -- the same scan
 /// `gluttonHitGroup0` runs for group 0, done twice: group 1 first, and
-/// group 2 only if nothing landed on group 1. The second scan carries its own
-/// `recs2` / `pos2` / `i2`, because sharing `recs` / `pos` / `i` with the first
-/// gives both loops one pseudo each and the wrong registers. Both scans are
-/// written as real `for` loops rather than the group-0 handler's labels so
-/// `find_and_verify_loops` parks the match arm out of line.
+/// group 2 only if nothing landed on group 1. Each scan is `_gluttonFindHit`
+/// with the key stored here; through `_gluttonScanGroup` the second scan
+/// allocates its registers differently, as in `gluttonHitGroups6To8`.
 ///
 /// A hit spawns the impact effect on the part's coordinate, publishes
 /// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C and
@@ -36,80 +34,41 @@
 /// exchange registers and the function stops at 99.06%.
 void gluttonHitGroups1To2(Task* arg0)
 {
-    GluttonHitScratch*     sc;
-    GluttonWork*           work;
-    Enemy*                 host;
-    PlayerStatus*          cfg;
-    GfxCoord*              coord;
-    WorldCollisionContact* recs;
-    WorldCollisionContact* recs2;
-    SVECTOR*               pos;
-    SVECTOR*               pos2;
-    s32                    id;
-    s32                    dx2;
-    s32                    dy2;
-    s32                    dz2;
-    s16                    angle;
-    s16                    state;
-    s16                    i;
-    s16                    i2;
-    s16                    param;
-    u16                    roll;
-    u16                    hp;
-    Enemy*                 esc3;
-    Enemy*                 esc0;
-    Enemy*                 esc1;
+    GluttonHitScratch* sc;
+    GluttonWork*       work;
+    Enemy*             host;
+    PlayerStatus*      cfg;
+    GfxCoord*          coord;
+    s32                id;
+    s32                dx2;
+    s32                dy2;
+    s32                dz2;
+    s16                angle;
+    s16                state;
+    s16                param;
+    u16                roll;
+    u16                hp;
+    Enemy*             esc3;
+    Enemy*             esc0;
+    Enemy*             esc1;
 
-    cfg  = &gPlayerStatus;
-    host = (Enemy*)arg0->spawnArg2.pointer;
-    work = arg0->work;
-    sc   = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
-    pos  = &sc->contactPoint;
-    recs = work->hits[1].contacts;
-    for (i = 0; i < ARRAY_SIZE(work->hits[1].contacts); i++) {
-        if (recs[i].key.value == 0) {
-            goto missed1;
-        }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = recs[i].point.vx;
-            pos->vy = recs[i].point.vy;
-            pos->vz = recs[i].point.vz;
-            id      = recs[i].key.value;
-            goto found1;
-        }
-    }
-missed1:
-    id = 0;
-found1:
+    cfg           = &gPlayerStatus;
+    host          = (Enemy*)arg0->spawnArg2.pointer;
+    work          = arg0->work;
+    sc            = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
+    id            = _gluttonFindHit(&sc->contactPoint, work->hits[1].contacts, ARRAY_SIZE(work->hits[1].contacts));
     sc->attackKey = id;
     if (id != 0) {
         coord = work->hits[1].body.coord;
-        goto hit;
-    }
-
-    pos2  = &sc->contactPoint;
-    recs2 = work->hits[2].contacts;
-    for (i2 = 0; i2 < ARRAY_SIZE(work->hits[2].contacts); i2++) {
-        if (recs2[i2].key.value == 0) {
-            goto missed2;
+    } else {
+        id            = _gluttonFindHit(&sc->contactPoint, work->hits[2].contacts, ARRAY_SIZE(work->hits[2].contacts));
+        sc->attackKey = id;
+        if (id == 0) {
+            SCRATCH_STACK_RELEASE_BLOCK(GluttonHitScratch);
+            return;
         }
-        if ((recs2[i2].key.value & 0xFFFF0000) == 0x20000) {
-            pos2->vx = recs2[i2].point.vx;
-            pos2->vy = recs2[i2].point.vy;
-            pos2->vz = recs2[i2].point.vz;
-            id       = recs2[i2].key.value;
-            goto found2;
-        }
+        coord = work->hits[2].body.coord;
     }
-missed2:
-    id = 0;
-found2:
-    sc->attackKey = id;
-    if (id == 0) {
-        goto out;
-    }
-    coord = work->hits[2].body.coord;
-hit:
     gluttonHitEffect(coord, id);
     if (sc->attackKey != 0) {
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
@@ -249,6 +208,5 @@ hit:
         }
 #endif
     }
-out:
     SCRATCH_STACK_RELEASE_BLOCK(GluttonHitScratch);
 }
