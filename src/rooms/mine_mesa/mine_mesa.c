@@ -3023,15 +3023,12 @@ void func_mine_mesa_8017E684(s32 arg0)
     if (t == NULL) {
         return;
     }
-    if (arg0 >= 2) {
-        goto kill;
+    if (arg0 < 2) {
+        if (arg0 >= 0) {
+            t->spawnArg1.value = arg0;
+            return;
+        }
     }
-    if (arg0 < 0) {
-        goto kill;
-    }
-    t->spawnArg1.value = arg0;
-    return;
-kill:
     taskKill(D_mine_mesa_80189B54);
     D_mine_mesa_80189B54 = NULL;
 }
