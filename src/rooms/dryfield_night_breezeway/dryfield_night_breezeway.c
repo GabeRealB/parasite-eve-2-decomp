@@ -43,7 +43,7 @@
 #define D_dryfield_night_breezeway_8017E6C4 (D_dryfield_night_breezeway_8017E6A4[4])
 
 static void func_dryfield_night_breezeway_8017D634(Task* task);
-static void func_dryfield_night_breezeway_8017D678(Task* task);
+static void _dryfieldNightBreezewayIdleRoomTask(Task* task);
 
 /// The room's message table: 0x13EE, 0x13F1, 0x13EF and 0x13F0 to their
 /// handlers, terminated by `TASK_MESSAGE_TABLE_END`.
@@ -56,14 +56,18 @@ extern TaskMessageEntry D_dryfield_night_breezeway_8017E67C[];
 /// The room's event task states: open the message table, idle, then kill the
 /// task.
 static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
-    { func_dryfield_night_breezeway_8017D634, func_dryfield_night_breezeway_8017D678, taskKill },
+    { func_dryfield_night_breezeway_8017D634, _dryfieldNightBreezewayIdleRoomTask, taskKill },
 };
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_night_breezeway_8017D5D0(Task*, s32, s32, s32);
-s32 func_dryfield_night_breezeway_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_breezeway_8017D600(Task*, s32, s32, s32);
-s32 func_dryfield_night_breezeway_8017D62C(Task*, s32, s32, s32);
+static s32 _dryfieldNightBreezewayRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+static s32 _dryfieldNightBreezewayAcceptTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+s32        func_dryfield_night_breezeway_8017D600(Task*, s32, s32, s32);
+static s32 _dryfieldNightBreezewayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+enum {
+    DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM = 0x13F1,
+};
 
 extern WorldCollisionGrid    D_dryfield_night_breezeway_8017EBC4[1];
 extern WorldCollisionTrigger D_dryfield_night_breezeway_80180170[4];
@@ -73,9 +77,9 @@ extern WorldCoordRoomLights  D_dryfield_night_breezeway_80180158[1];
 extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_breezeway_8017D5D8 },
-    { 5105, func_dryfield_night_breezeway_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_breezeway_8017D62C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightBreezewayAcceptTransition },
+    { DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightBreezewayRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightBreezewayIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_dryfield_night_breezeway_8017D600 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -637,19 +641,29 @@ WorldCollisionSurfaceProperties* D_dryfield_night_breezeway_801804B8[8] = {
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-/// The room's 0x13F1 message handler: answers 0 without looking at the
-/// message.
-s32 func_dryfield_night_breezeway_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the night breezeway.
+///
+/// All arguments are ignored. Returns 0 to select the item menu's refusal
+/// notice, without consuming an item or changing the room.
+static s32 _dryfieldNightBreezewayRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    return 0;
+    enum { DRYFIELD_NIGHT_BREEZEWAY_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_NIGHT_BREEZEWAY_KEY_ITEM_REFUSED;
 }
 
-/// The room's 0x13EE message handler: copies the incoming location onto the
-/// outgoing record and answers 1.
-s32 func_dryfield_night_breezeway_8017D5D8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Accepts the requested room transition without changing its destination.
+///
+/// Borrows a readable eight-byte `request` and a writable eight-byte `reply`
+/// for synchronous dispatch; they may be the same record. Copies every field
+/// for both query and execute requests, retains neither pointer and returns 1
+/// to allow the transition. The task and message ID are unused.
+static s32 _dryfieldNightBreezewayAcceptTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    return 1;
+    enum { DRYFIELD_NIGHT_BREEZEWAY_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_NIGHT_BREEZEWAY_TRANSITION_ALLOWED;
 }
 
 /// The room's 0x13F0 message handler: when `arg2` is 1, spawns the gameplay
@@ -663,9 +677,12 @@ s32 func_dryfield_night_breezeway_8017D600(Task* arg0, s32 arg1, s32 arg2, s32 a
     return 0;
 }
 
-/// The room's 0x13EF message handler: answers 0 without looking at the
-/// message.
-s32 func_dryfield_night_breezeway_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-specific action requests in the night breezeway.
+///
+/// The trigger dispatcher borrows a `DirectionActionRequest` and passes zero
+/// as the second payload word. This handler reads no arguments, retains no
+/// request and returns 0; the dispatcher does not use the result.
+static s32 _dryfieldNightBreezewayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -680,8 +697,11 @@ static void func_dryfield_night_breezeway_8017D634(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room's event task: does nothing.
-static void func_dryfield_night_breezeway_8017D678(Task* task)
+/// Leaves the initialized room task idle while its message table remains active.
+///
+/// State 1 performs no per-frame work and does not inspect `task` or advance
+/// its state. Teardown is the separate state-2 callback.
+static void _dryfieldNightBreezewayIdleRoomTask(Task* task)
 {
 }
 
@@ -701,24 +721,32 @@ void func_dryfield_night_breezeway_8017D680(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// The room's light draw: sets `gRoomEffectState->roomEffectMode` to 2, then draws
-/// the lights the current camera view (`gGameSession->location.loc.view`) can see.
-/// View 2 draws a sprite and a beam; view 3 draws a beam and then everything
-/// view 4 draws, a pulsing star and a second beam. Other views draw nothing.
-void func_dryfield_night_breezeway_8017E5BC(Task* unused)
+void dryfieldNightBreezewayDrawGlowsTask(Task* task)
 {
+    enum {
+        DRYFIELD_NIGHT_BREEZEWAY_VIEW_FLARE_AND_SHAFT     = 2,
+        DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_TWO_SHAFTS = 3,
+        DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_SHAFT      = 4,
+        DRYFIELD_NIGHT_BREEZEWAY_FLARE_TEXTURE_INDEX      = 2,
+        DRYFIELD_NIGHT_BREEZEWAY_FLARE_RADIUS_SCALE       = 0x400,
+        DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE       = 0x180,
+        DRYFIELD_NIGHT_BREEZEWAY_STAR_PULSE_RATE          = 0x600, // Angle units per animation frame; 4096 per turn
+        DRYFIELD_NIGHT_BREEZEWAY_STAR_RADIUS_SCALE        = 0x80,
+    };
+
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
-        case 2:
-            _glowDrawFlare(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6AC[5], 0x180);
+        case DRYFIELD_NIGHT_BREEZEWAY_VIEW_FLARE_AND_SHAFT:
+            _glowDrawFlare(&D_dryfield_night_breezeway_8017E6AC[0], DRYFIELD_NIGHT_BREEZEWAY_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_BREEZEWAY_FLARE_RADIUS_SCALE);
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6AC[5], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
             break;
-        case 3:
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6C4, 0x180);
+        case DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_TWO_SHAFTS:
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6C4, DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
+            // This view also shows the star and shaft drawn by view 4.
             /* fallthrough */
-        case 4:
-            glowDrawPulsingStar(&D_dryfield_night_breezeway_8017E6A4[0], 0x600, 0x80);
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[2], 0x180);
+        case DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_SHAFT:
+            glowDrawPulsingStar(&D_dryfield_night_breezeway_8017E6A4[0], DRYFIELD_NIGHT_BREEZEWAY_STAR_PULSE_RATE, DRYFIELD_NIGHT_BREEZEWAY_STAR_RADIUS_SCALE);
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[2], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
             break;
     }
 }

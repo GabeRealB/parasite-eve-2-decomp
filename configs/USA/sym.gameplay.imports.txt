@@ -1825,7 +1825,7 @@ func_dryfield_night_water_tower_8017DB80 = 0x8017DB80; // type:func absolute:Tru
 
 func_dryfield_night_water_tank_8017DD8C = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_water_tank shared=rooms
 
-func_dryfield_night_breezeway_8017E5BC = 0x8017E5BC; // type:func absolute:True owner=dryfield_night_breezeway
+dryfieldNightBreezewayDrawGlowsTask = 0x8017E5BC; // type:func absolute:True owner=dryfield_night_breezeway
 
 dryfieldNightFactoryDrawGlowsTask = 0x801825F0; // type:func absolute:True owner=dryfield_night_factory shared=rooms
 
