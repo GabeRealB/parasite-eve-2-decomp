@@ -787,7 +787,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_801311B8, { NULL } },                                   // 0x0F6
     { { { TASK_BODY_COORD, 0x70 } }, apobiosisShardTask, { NULL } },                                          // 0x0F7
     { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012F180, { NULL } },                                    // 0x0F8
-    { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8013107C, { NULL } },                                    // 0x0F9
+    { { { TASK_BODY_COORD, 0x70 } }, energyballImpactRingTask, { NULL } },                                    // 0x0F9
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017E3C0, { NULL } },                           // 0x0FA
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017DC20, { NULL } },                           // 0x0FB
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012FAC8, { NULL } },                                   // 0x0FC

@@ -63714,9 +63714,9 @@ deletes the second `lh` as a self-copy. Give the second read its own local
 
 ## An `s16` copy of an `s16` parameter survives cse; an `s32` one needs a dead store
 
-`func_energyball_8012FFD0` (an overlay copy of `effectDrawGouraudDisc` with a flat tint)
+`_energyballDrawGlowDisc` (the energy ball's green-tinted `effectDrawGouraudDisc` variant)
 keeps a copy of its third argument in `$fp` for the loop's `sb` while the
-`(s16)arg2 >> 1` before the loop still reads `$a2`:
+`(s16)brightness >> 1` before the loop still reads `$a2`:
 
 ```
 move  fp, a2            /* prologue */
@@ -63726,18 +63726,18 @@ sra   s5, v0, 17
 sb    fp, 0x15(s0)      /* colour, inside the loop */
 ```
 
-With `s32 arg2` and `s32 color = arg2;` the copy is a plain SI move and cse1
+With `s32 brightness` and `s32 color = brightness;` the copy is a plain SI move and cse1
 makes `color` the canonical name of the pair (its last use is later - see "A
 dead store keeps `x` (not `y`) the cse-canonical name"), so the `sll` reads
 the copy instead and `color` picks up a fourth reference, which lifts it above
 the two hoisted mask constants and puts it in `$s6`. `SOFT_TOUCH_REG(color)`
 blocks the substitution but adds two references of its own, with the same
-mis-colouring; only a dead `arg2 = 0;` after the loop gave 100%.
+mis-colouring; only a dead `brightness = 0;` after the loop gave 100%.
 
 Declaring both as `s16` needs no hack. A `s16` parameter is *not* promoted in
 GCC 2.8.1: it is a `HImode` pseudo set from a `subreg:HI` of the `SImode`
-entry copy, and `s16 color = arg2;` is a `HImode` move of that pseudo. The
-sign-extending `arg2 >> 1` is expanded from the `SImode` entry copy, so the
+entry copy, and `s16 color = brightness;` is a `HImode` move of that pseudo. The
+sign-extending `brightness >> 1` is expanded from the `SImode` entry copy, so the
 two reads are in different modes, cse has no same-mode register to
 substitute, and `color` keeps exactly its three references (`move` plus two
 `sb`) - which is what drops it to the last callee-saved slot. The caller

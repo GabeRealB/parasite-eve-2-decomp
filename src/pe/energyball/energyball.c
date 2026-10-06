@@ -72,7 +72,15 @@ typedef struct {
 } _EnergyballBody;
 STATIC_ASSERT_SIZEOF(_EnergyballBody, 0x38);
 
-static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2);
+/// Angle units and perspective sizing for the energy ball's sixteen-triangle glow fan.
+enum {
+    ENERGYBALL_FULL_TURN               = 4096,
+    ENERGYBALL_GLOW_RIM_ANGLE_STEP     = ENERGYBALL_FULL_TURN / 16,
+    ENERGYBALL_GLOW_PERSPECTIVE_SCALE  = 64,
+    ENERGYBALL_GLOW_TRIG_FRACTION_BITS = 12,
+};
+
+static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16 brightness);
 static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// The energy ball's sound-script ids. Only the first three are read, indexed by
@@ -207,7 +215,7 @@ void func_energyball_8012F180(Task* arg0)
         }
         actorRenderComposeCoord(coord);
         spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-        func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
+        _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
         if ((arg0->state < 3) && (gRoomEffectState->groundTraceEnabled != 0) &&
             (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
             groundGlowDraw(&ground, mem->angle);
@@ -287,7 +295,7 @@ void func_energyball_8012F180(Task* arg0)
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
+            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
             if ((gRoomEffectState->groundTraceEnabled != 0) && (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
                 groundGlowDraw(&ground, mem->angle);
             }
@@ -354,7 +362,7 @@ void func_energyball_8012F180(Task* arg0)
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
+            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
             if (gRoomEffectState->groundTraceEnabled != 0) {
                 if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
                     groundGlowDraw(&ground, mem->angle);
@@ -403,8 +411,8 @@ void func_energyball_8012F180(Task* arg0)
         case 3:
             actorRenderComposeCoord(coord);
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
-            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
+            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
+            _energyballDrawGlowDisc(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle + D_energyball_80131194[mem->index].sizeStep;
             if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
@@ -431,8 +439,8 @@ void func_energyball_8012F180(Task* arg0)
         case 4:
             actorRenderComposeCoord(coord);
             spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
-            func_energyball_8012FFD0(coord, (u16)mem->angle * 2, mem->scale >> 2);
+            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
+            _energyballDrawGlowDisc(coord, (u16)mem->angle * 2, mem->scale >> 2);
             mem->angle = mem->angle - D_energyball_80131194[mem->index].sizeStep;
             if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
@@ -461,53 +469,69 @@ void func_energyball_8012F180(Task* arg0)
     }
 }
 
-/// Overlay copy of `effectDrawGouraudDisc` with a flat tint: draws an eight-segment
-/// gouraud ring centred on `arg0`'s world position. The position is projected
-/// through `GsWSMATRIX` by one `RTPS` and the ring is dropped when that sets a
-/// negative `gte_stflg`. `arg1` is the radius in world units (scaled by 64 and
-/// divided by the projected OTZ) and `arg2` the brightness: only the inner
-/// vertex of each `POLY_G4` is lit, `(arg2 / 2, arg2, arg2 / 2)`, so every
-/// wedge fades from green at the centre to black at the rim. Each wedge gets
-/// the semi-transparent tpage of `gpuSetPrimitiveBlendMode` at its OTZ.
-static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
+/// Places the two fan triangles of one glow quad around an already projected centre.
+///
+/// `scratch` supplies pixel coordinates and a signed pixel radius. `rimAngle`
+/// uses 4096 units per turn; the three rim vertices are one sixteenth-turn
+/// apart, with the centre at vertex 2. Writes only the quad's XY fields, which
+/// narrow to signed 16 bits. Borrows both objects and retains no pointers.
+static inline void _energyballSetGlowFanVertices(POLY_G4* quad, const EffectCentreScratch* scratch, s32 rimAngle)
 {
-    EffectCentreScratch* block;
-    POLY_G4*             prim;
-    s32                  ang;
+    quad->x0 = scratch->screenX + ((scratch->screenExtent * rsin(rimAngle)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS);
+    quad->y0 = scratch->screenY + ((scratch->screenExtent * rcos(rimAngle)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS);
+    quad->x1 = scratch->screenX + ((scratch->screenExtent * rsin(rimAngle + ENERGYBALL_GLOW_RIM_ANGLE_STEP)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS);
+    quad->y1 = scratch->screenY + ((scratch->screenExtent * rcos(rimAngle + ENERGYBALL_GLOW_RIM_ANGLE_STEP)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS);
+    quad->x2 = scratch->screenX;
+    quad->y2 = scratch->screenY;
+    quad->x3 = scratch->screenX + ((scratch->screenExtent * rsin(rimAngle + 2 * ENERGYBALL_GLOW_RIM_ANGLE_STEP)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS);
+    quad->y3 = scratch->screenY + ((scratch->screenExtent * rcos(rimAngle + 2 * ENERGYBALL_GLOW_RIM_ANGLE_STEP)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS);
+}
 
-    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
-    block->worldPoint.vx = arg0->workm.t[0];
-    block->worldPoint.vy = arg0->workm.t[1];
-    block->worldPoint.vz = arg0->workm.t[2];
+/// Draws the energy ball's additive green disc, fading from its centre to a black rim.
+///
+/// `centreCoord` supplies a composed translation in `GsWSMATRIX`'s input
+/// space; rotation is unused and the position narrows to signed 16 bits.
+/// Signed `radius` scales to radius * 64 / (SZ3 / 4 + 1) pixels. Centre RGB
+/// channels take the low bytes of (brightness >> 1, brightness, brightness >> 1).
+/// A negative GTE FLAG rejects the whole disc. Otherwise eight Gouraud quads
+/// cover sixteen fan triangles and sort by the biased depth.
+/// Reserves/releases one scratch block and appends eight `POLY_G4`/`DR_TPAGE`
+/// pairs to the unchecked frame arena. Inputs must stay clear of that storage;
+/// packets live through GPU drawing. Leaves additive blend mode active.
+static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16 brightness)
+{
+    EffectCentreScratch* scratch;
+    POLY_G4*             quad;
+    s32                  rimAngle;
+
+    // Project just the centre; the fan is built in screen space.
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    scratch->worldPoint.vx = centreCoord->workm.t[0];
+    scratch->worldPoint.vy = centreCoord->workm.t[1];
+    scratch->worldPoint.vz = centreCoord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&block->depth);
-        block->depth++;
-        block->screenExtent = (arg1 * 64) / block->depth;
-        for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2 >> 1, arg2, arg2 >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->screenExtent * rsin(ang)) >> 12);
-            prim->y0 = block->screenY + ((block->screenExtent * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->screenExtent * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->screenY + ((block->screenExtent * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->screenExtent * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->screenY + ((block->screenExtent * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        scratch->depth++;
+        scratch->screenExtent = (radius * ENERGYBALL_GLOW_PERSPECTIVE_SCALE) / scratch->depth;
+        // Each quad spans two triangles with only their shared centre lit.
+        for (rimAngle = 0; rimAngle < ENERGYBALL_FULL_TURN; rimAngle += 2 * ENERGYBALL_GLOW_RIM_ANGLE_STEP) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, brightness >> 1, brightness, brightness >> 1);
+            setRGB3(quad, 0, 0, 0);
+            _energyballSetGlowFanVertices(quad, scratch, rimAngle);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -613,43 +637,53 @@ static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-void func_energyball_8013107C(Task* arg0)
+void energyballImpactRingTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        ENERGYBALL_IMPACT_NEW                = 0,
+        ENERGYBALL_IMPACT_ACTIVE             = 1,
+        ENERGYBALL_IMPACT_INITIAL_BRIGHTNESS = 128,
+        ENERGYBALL_IMPACT_INITIAL_RADIUS     = 256,
+        ENERGYBALL_IMPACT_BAND_WIDTH         = 384,
+        ENERGYBALL_IMPACT_RADIUS_STEP        = 128,
+        ENERGYBALL_IMPACT_BRIGHTNESS_STEP    = 8,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
+    s16         peEffectControl;
     u8          rgb[3];
-    s32         scale;
-    s32         angle;
+    s32         nextBrightness;
+    s32         nextInnerRadius;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->peEffectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+    work            = task->spawnArg2.pointer;
+    peEffectControl = gRoomEffectState->peEffectControl;
+    coord           = task->extra.coordBody->coord;
+    if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
 
-    if (arg0->state == 0) {
-        gfxRotMatrixZ(&coord->coord, arg0->spawnArg1.value & 0xFFF, GRAPHICS_ROTATION_COMPOSE);
+    if (task->state == ENERGYBALL_IMPACT_NEW) {
+        gfxRotMatrixZ(&coord->coord, task->spawnArg1.value & (ENERGYBALL_FULL_TURN - 1), GRAPHICS_ROTATION_COMPOSE);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->scale          = 0x80;
-        mem->angle          = 0x100;
-        arg0->state         = 1;
+        work->scale         = ENERGYBALL_IMPACT_INITIAL_BRIGHTNESS;
+        work->angle         = ENERGYBALL_IMPACT_INITIAL_RADIUS;
+        task->state         = ENERGYBALL_IMPACT_ACTIVE;
     }
 
     actorRenderComposeCoord(coord);
-    rgb[0] = mem->scale >> 1;
-    rgb[1] = (u8)mem->scale;
-    rgb[2] = mem->scale >> 1;
-    effectDrawInnerGlowBand(coord, mem->angle, 0x180, rgb);
+    rgb[0] = work->scale >> 1;
+    rgb[1] = work->scale;
+    rgb[2] = work->scale >> 1;
+    effectDrawInnerGlowBand(coord, work->angle, ENERGYBALL_IMPACT_BAND_WIDTH, rgb);
 
-    angle      = (u16)mem->angle;
-    scale      = (u16)mem->scale;
-    angle     += 0x80;
-    scale     -= 8;
-    mem->scale = scale;
-    mem->angle = angle;
-    if ((s16)scale < 9) {
-        effectKillTask(mem, arg0);
+    // Draw the current band before expanding and fading it for the next update.
+    nextInnerRadius  = (u16)work->angle;
+    nextBrightness   = (u16)work->scale;
+    nextInnerRadius += ENERGYBALL_IMPACT_RADIUS_STEP;
+    nextBrightness  -= ENERGYBALL_IMPACT_BRIGHTNESS_STEP;
+    work->scale      = nextBrightness;
+    work->angle      = nextInnerRadius;
+    if ((s16)nextBrightness <= ENERGYBALL_IMPACT_BRIGHTNESS_STEP) {
+        effectKillTask(work, task);
     }
 }

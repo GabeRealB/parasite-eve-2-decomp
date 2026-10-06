@@ -1,8 +1,9 @@
 
 func_energyball_8012F180 = 0x8012F180; // type:func
 
-func_energyball_8013107C = 0x8013107C; // type:func
+energyballImpactRingTask = 0x8013107C; // type:func
 
 func_energyball_8012EF48 = 0x8012EF48; // type:func
 spriteQuadDrawFlicker = 0x8013035C; // type:func
 groundGlowDraw = 0x801307D4; // type:func
+_energyballDrawGlowDisc = 0x8012ffd0; // type:func

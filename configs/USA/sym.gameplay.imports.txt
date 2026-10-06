@@ -2041,7 +2041,7 @@ apobiosisShardTask = 0x8012FE10; // type:func absolute:True owner=apobiosis
 
 func_energyball_8012F180 = 0x8012F180; // type:func absolute:True owner=energyball
 
-func_energyball_8013107C = 0x8013107C; // type:func absolute:True owner=energyball
+energyballImpactRingTask = 0x8013107C; // type:func absolute:True owner=energyball
 
 func_pyrokinesis_8012FAC8 = 0x8012FAC8; // type:func absolute:True owner=pyrokinesis
 
