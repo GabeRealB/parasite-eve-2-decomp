@@ -2023,7 +2023,6 @@ static void Actor01600_Fn01420(Task* arg0)
     GfxCoord*        coord;
     s32              id;
     s32              state;
-    s32              one;
     u16              sel;
     s16              count;
 
@@ -2100,8 +2099,7 @@ static void Actor01600_Fn01420(Task* arg0)
     }
 
     state = work->animRequest;
-    one   = 1;
-    if (state == one || state == 0x16 || state == 0x15 || state == 0x10 ||
+    if (state == 1 || state == 0x16 || state == 0x15 || state == 0x10 ||
         state == 0x13 || state == 0x1C || state == 0x1D || state == 0x1E ||
         state == 0x1B || state == 9) {
         return;
