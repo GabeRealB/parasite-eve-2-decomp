@@ -149318,3 +149318,40 @@ attempts; left as it was.
   keeps the *later* copy (case 5's) and the image has the earlier one with a
   backward `bgtz`. A jump back into an earlier case has no structured
   spelling that does not re-dispatch.
+
+### Goto removal, batch 07: a loop body that is an inline, a tail after the switch (2026-10-06)
+
+- **`goto next;` out of a scan nested in a `for` body is the body as a
+  `static inline void` with `return`.** The seven hit handlers of
+  `actor_503500_4.c` (`func_actor_503500_801431EC` and siblings) skip a contact
+  whose id an earlier contact already carried: `for (j = 0; j < i; j++) if
+  (rec[j].key.value == id) goto next;`, the image branching straight from the
+  compare to the outer step. `break;` followed by `if (j < i) continue;` emits
+  the second test (4 insns longer, `$s6/$s7` swapped), and a `static inline`
+  predicate returning 1/0 is not threaded (`li v0,1` / `move v0,zero; bnez`).
+  Moving the whole per-record body, with its stack locals, into an inline
+  (`_actor503500ArmHandleHit(arg0, work, enemy, coord, rec, i)`) and writing the
+  skips as `return` matched all seven on the first build: a `return` in an
+  inlined void function is a jump to the end of the expansion, which is the
+  loop step. The locals keep their frame slots when declared in the same order.
+- **`goto state_inc;` from case 0 into `case 1..5: state++; /* fallthrough */
+  case 7: <step>`** (`func_actor_560800_80136094`) is the step written *after*
+  the switch: `case 0: ...; state += 1; break;`, `case 1..5: state += 1;
+  break;`, `case 7: break;`, `default: return;`. An inline for the step called
+  in case 0 and case 7 merges the step but leaves case 0 its own increment (3
+  insns longer): there the increment and the step's argument setup are one
+  block, sched1 moves `li a3,2` into the load delay, and the cross-jump walk
+  stops at it. After the switch the increment ends its block in both arms.
+- **`if (a) { if (f(slot) == 0) X; else goto T; } else { T: Y; }`** is
+  `if (a && f(c ? 0xA : 0xB) == 0) X; else Y;` (`func_actor_503500_8013FF0C`,
+  `_80138898`). Written `if (!a || f() != 0) Y; else X;` the arms come out in
+  the other order.
+- Not converted: `func_as12_8011D1DC`'s `goto fire` from state 5 back into
+  state 2 (the `mp5a5` case of batch 05). Two inlines (state 2's and state 3's
+  bodies) called in both places do merge, at the same length, but the surviving
+  copy is the later one, so the block sits in state 5 instead of state 2.
+- Not converted: `func_actor_560800_80137820`'s `goto done` from the `default`
+  of a switch nested in the outer switch's case 1 (C has no way to `break` the
+  outer one from there). A predicate inline and an inline for the whole case
+  both leave `li v1,1; beqz v1`; writing the 5..7 test in the range arm and
+  again in an `else` is not merged and swaps `$s4/$s5`.
