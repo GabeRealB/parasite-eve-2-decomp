@@ -647,7 +647,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void Gp_EquipSummaryTask(Task* arg0);
 
-void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj);
+void Gp_DrawAmmoRow(UiList* prompt, UiObject* obj);
 
 void Gp_SelectWeaponMenuTask(Task* arg0);
 

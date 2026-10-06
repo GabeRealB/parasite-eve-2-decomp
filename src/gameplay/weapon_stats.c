@@ -489,19 +489,25 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
     }
 }
 
-void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
+void Gp_DrawAmmoRow(UiList* prompt, UiObject* obj)
 {
-    register UiList* prompt asm("s5");
-    register s32     spawnArg asm("s4");
-    s32              item;
-    s32              status;
-    UiObject*        spawned;
+    s32       spawnArg;
+    s32       item;
+    s32       status;
+    UiObject* spawned;
 
     spawnArg = obj->owner->spawnArg1.value;
-    USE_REG(spawnArg);
-    prompt = arg0;
-    USE_REG(arg0);
-    item   = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->currentItemIndex, spawnArg);
+    // Both arms make the same call and the image holds it once, with no test.
+    // What the image does show is a basic-block boundary right after the load
+    // above (the parameter's copy sits where it filled the load delay of a
+    // branch on `spawnArg`) and two more references to `spawnArg` than the
+    // surviving code has. The condition has to be one the compiler cannot turn
+    // into `spawnArg == 0` in either arm; what the original tested is unknown.
+    if (spawnArg > 0) {
+        item = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->currentItemIndex, spawnArg);
+    } else {
+        item = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->currentItemIndex, spawnArg);
+    }
     status = obj->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->selectedItemIndex == prompt->currentItemIndex) {

@@ -35480,6 +35480,8 @@ pattern as a single-`gte_ldv3` handler (`tmdDrawStreamPrimFt3`).
 
 ## Volatile `move` after a chained load so it does not fill the first delay
 
+*2026-10-07: not needed. `Gp_DrawAmmoRow` matches with the parameter used directly and no asm; the copy is the parameter's own entry copy, held below the loads by a basic block that later disappears. See "A parameter's entry copy below a chained load" at the end of this file.*
+
 `s = p->owner->spawnArg1` then `prompt = index` lets `-fschedule-insns2` put
 `move s5, a0` in the `lw owner` delay. The target wants consecutive loads
 (assembler `nop`) then the copy just before `lui a0` clobbers `$a0`. Emit
@@ -68361,6 +68363,8 @@ overlap in the original build is unresolved.
 **2026-10-06.** Resolved for `Gp_CountAmmoRows`: the overlap is with the *limit load*, not with another `high`. Once the pre-test keeps its `slt`, sched1 leaves `lbu limit` between the `high` and its `lo_sum`. See "A conditional block that is empty by local-alloc" at the end of this file.
 
 ## A pinned local fed by a parameter deletes the copy; `USE_REG` on the parameter brings it back
+
+*2026-10-07: not needed. `Gp_DrawAmmoRow` matches with the parameter used directly and no asm; the copy is the parameter's own entry copy, held below the loads by a basic block that later disappears. See "A parameter's entry copy below a chained load" at the end of this file.*
 
 `register T x asm("s5"); ... x = index;` does not reliably give a `move s5, a0`
 where the assignment stands. local-alloc propagates the hard register backwards
@@ -148605,6 +148609,8 @@ set in the same block as the compare and after the `lh`, yet unknown to cse2.
 **2026-10-06, `Gp_CountAmmoRows` resolved.** The read of `count` that keeps the `slt` is not needed: a basic-block boundary between `count = 0` and the pre-test does it, and the giv's missing reference is a second `idx++`. See "A conditional block that is empty by local-alloc" at the end of this file. The other three functions are unchanged.
 
 **2026-10-06, `Gp_BuildAttachList` resolved, and `Gp_CountAmmoRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
+
+**2026-10-07, `Gp_DrawAmmoRow` resolved without pins or barriers.** The table row above compared the wrong pair: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
 ## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
 
 **Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
@@ -151722,3 +151728,88 @@ the call's result, makes the copy multi-set without adding an instruction; the
 priority it then needs can come from `v = call(); if (v & mask)` pairs, which
 cost nothing. Check `Register N used K times across L insns` in `.lreg`
 against the pointer it has to outrank.
+
+### A parameter's entry copy below a chained load: a block that ended on a branch reading the loaded value, then disappeared (Gp_DrawAmmoRow, 2026-10-07)
+
+**Was.** `register UiList* prompt asm("s5")`, `register s32 spawnArg asm("s4")`
+and two `USE_REG` barriers, for
+
+```
+sw   s0,40(sp)          # end of the prologue
+lw   v0,40(s1)          # obj->owner
+nop
+lw   s4,52(v0)          # ->spawnArg1.value
+move s5,a0              # first parameter, only now
+lui  a0,...             # first call's arguments
+```
+
+Three entries read the `move` as an assignment `prompt = arg0` that had to be
+held below the loads and kept from filling the load delay.
+
+**Mechanism.** There is no second variable. The `move` is the parameter's
+entry copy (`(set (reg/v 80) a0)`, the first insn of the function), and sched2
+put it where it is:
+
+- sched1 and sched2 schedule one basic block at a time, on the blocks flow
+  found. If the first block ends in a conditional branch that reads the value
+  just loaded (`lw s4` / `bnez s4`), sched2 needs one insn between the load and
+  the branch, and the only insn in the block that is free to go there is the
+  entry copy (`ready list at T-2: 4 (1)`, then `launching 15 before 4`). The
+  other parameter's copy stays among the register saves (`sw s1; move s1,a1`).
+- With no block boundary the copy is combined into the first statement that
+  reads the parameter and sched1 floats it to the top (`sw s2; move s2,a0` in
+  the prologue); with `prompt = arg0` written after a boundary the parameter is
+  a second global pseudo and costs a `move v1,a0` / `move s2,v1` pair.
+- The branch is gone from the image, so its two arms were identical after
+  reload: jump2 cross-jumps them and deletes the branch, and a branch on a
+  register leaves nothing behind (a masked test's `andi` is deleted with it).
+- Register order then needs `spawnArg` allocated before the list pointer and
+  both before the inlined colour: `.greg` priorities with the block and one
+  test are list 13 refs / 400 = 975, colour 3 / 32 = 937, `spawnArg` 7 / 194 =
+  721 (`$s4,$s5,$s6` rotated, 46 lines). `spawnArg` needs 8 references
+  (24 / 200 = 1200; anything from 8 to 12 fits). An `if`/`else` whose arms are
+  the same call supplies exactly that: the test, and the argument once per arm.
+
+**Fix (fitted, see below).**
+
+```c
+void Gp_DrawAmmoRow(UiList* prompt, UiObject* obj)
+{
+    spawnArg = obj->owner->spawnArg1.value;
+    if (spawnArg > 0) {
+        item = inventoryGetNthWeaponForConsumable(..., prompt->currentItemIndex, spawnArg);
+    } else {
+        item = inventoryGetNthWeaponForConsumable(..., prompt->currentItemIndex, spawnArg);
+    }
+```
+
+The condition must not let cse learn the value: with `spawnArg == 0` or
+`!= 0` the zero arm passes `move a2,zero` and the arms no longer merge (280
+insns). `spawnArg > 0`, `(u16)spawnArg != 0` and `(spawnArg & 0xFF) != 0` all
+match. `Gp_DrawRemoveAmmoRow`, written from this function, has the same
+identical-arms shape at its dialog call.
+
+**What is fitted.** The block boundary and the two extra references are
+measured; what the original had in that block is not known. Other bodies that
+were built and also match all 272 instructions:
+
+| form | note |
+|---|---|
+| `if (spawnArg == 0) { flag = 0x10000; }` before the call and `if (spawnArg == 0) { sound = SOUND_WEAPON_EQUIP; }` after it, each constant read once further down | two set-once constants that `update_equiv_regs` moves to their use; one block alone gives 7 references and the rotation |
+| `if (spawnArg == 0) { a = K; } else if (spawnArg != 1) { b = K2; }` | two tests in one place |
+| `do { } while (0);` after the load, nothing else | the instruction order is right (the scheduler does not move an insn across a loop note) and only the `$s4/$s5/$s6` rotation remains: `spawnArg` is still at 6 references |
+
+Not matching: `do { if (spawnArg == 0) { k = 10; } } while (0)` (the test
+counts double at loop depth 2 and the registers come out right, but
+`update_equiv_regs` does not move an initialisation inside a loop, so `k` takes
+`$fp`); a variable set in both arms and never read (gone before flow, no
+boundary).
+
+**Use.**
+- A parameter copied into its call-saved register *after* the function's first
+  loads, directly behind a load whose value the next instructions do not need
+  yet: the copy was a load-delay filler for a branch that is no longer there.
+  Use the parameter directly and look for the vanished block before writing a
+  second variable.
+- Count references for the value the vanished branch read. If the listing is
+  short by more than the test itself, the vanished arms used it too.
