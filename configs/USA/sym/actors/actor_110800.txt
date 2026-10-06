@@ -48,5 +48,5 @@ viewFigureStepAnim = 0x80132368; // type:func
 viewFigureResetAnim = 0x80132424; // type:func
 viewFigureReseedAnim = 0x801324AC; // type:func
 viewFigurePlayMessage = 0x80132524; // type:func
-viewFigureExit = 0x8013232C; // type:func
-viewFigureTickAnim = 0x801323DC; // type:func
+_viewFigureExit = 0x8013232C; // type:func
+_viewFigureTickAnim = 0x801323DC; // type:func

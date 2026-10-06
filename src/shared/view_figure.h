@@ -43,8 +43,7 @@ void viewFigureResetAnim(void);
 void viewFigureReseedAnim(void);
 s32  viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
-/* Defined by each package. */
-void viewFigureExit(Task* arg0);
-void viewFigureTickAnim(void);
+static void _viewFigureExit(Task* task);
+static void _viewFigureTickAnim(void);
 
 #endif /* SRC_SHARED_VIEW_FIGURE_H */

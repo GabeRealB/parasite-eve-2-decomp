@@ -16,6 +16,6 @@ void viewFigureStepAnim(Task* task)
         return;
     }
     if (gViewFigureWork->st.state == ACTOR_ENEMY_ANIM_TICK) {
-        viewFigureTickAnim();
+        _viewFigureTickAnim();
     }
 }

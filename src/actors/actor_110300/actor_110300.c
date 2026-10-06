@@ -29,7 +29,7 @@ extern ViewFigureWork* gViewFigureWork;
 
 /// The actor's own task, stored by the step-0 handler. The message handlers
 /// drive the animation step driver and the model through it, and the helper
-/// task's entry `func_actor_110300_80131FF8` parents its coordinate to one of
+/// task's entry `_actor110300AttachModelTask` parents its coordinate to one of
 /// its model's nodes.
 extern Task* gActorSelfTask;
 
@@ -57,7 +57,7 @@ static void func_actor_110300_80132020(Enemy* enemy, Task* task);
 static TmdSource _gActor110300SwatMember2Body;
 static TmdSource _gActor110300Model05E6C;
 void             func_actor_110300_80131F9C(Task*);
-void             func_actor_110300_80131FF8(Task*);
+static void      _actor110300AttachModelTask(Task* task);
 
 static TmdBone _gActor110300SwatMember2BodySkeleton[20] = {
 #include "assets/swat_member_2_body_skeleton.inc"
@@ -241,7 +241,7 @@ TaskMessageEntry gViewFigureMessages[3] = {
 
 TaskDesc gViewFigureTasks[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_110300_80131F9C, { .model = &_gActor110300SwatMember2Body } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_110300_80131FF8, { .model = &_gActor110300Model05E6C } },
+    { { { TASK_BODY_TMD, 192 } }, _actor110300AttachModelTask, { .model = &_gActor110300Model05E6C } },
 };
 
 u8 gViewFigureAnimSets[28] = {
@@ -298,17 +298,22 @@ void func_actor_110300_80131F9C(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Entry of the helper task: parents the given task's model root to node 8 of
-/// the actor's model.
-void func_actor_110300_80131FF8(Task* arg0)
+/// Attaches the helper model's root to part 8 of this figure's body model.
+///
+/// Both tasks must have live TMD models; the body provides twenty coordinates.
+/// The helper keeps its local transform and borrows the body's part coordinate
+/// until helper teardown, which precedes body teardown in `_viewFigureExit`.
+static void _actor110300AttachModelTask(Task* task)
 {
-    GfxCoord* parent;
-    GfxCoord* coord;
+    enum { ACTOR_110300_HELPER_PARENT_PART = 8 };
 
-    parent              = gActorSelfTask->extra.tmd->coords;
-    coord               = arg0->extra.tmd->coords;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = parent + 8;
+    GfxCoord* bodyCoords;
+    GfxCoord* helperRoot;
+
+    bodyCoords               = gActorSelfTask->extra.tmd->coords;
+    helperRoot               = task->extra.tmd->coords;
+    helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    helperRoot->parent       = &bodyCoords[ACTOR_110300_HELPER_PARENT_PART];
 }
 
 /// Step 1 of the `func_actor_110300_80131F9C` dispatcher: run the body the
@@ -335,27 +340,11 @@ static void func_actor_110300_80132020(Enemy* enemy, Task* task)
     worldCoordSetModelLighting(obj, &vec, 0, 3);
 }
 
-/// Exit callback the step-0 handler installs: kills the helper task, then
-/// destroys the actor.
-void viewFigureExit(Task* arg0)
-{
-    taskKill(gActorHelperTask);
-    enemyDestroy(arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/view_figure_exit.inc.c"
 
 #include "../../shared/view_figure_step_anim.inc.c"
 
-/// Ticks animation slots 1..0x13 of the work block's animation context.
-void viewFigureTickAnim(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        animationTickSlot(&gViewFigureWork->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+#include "../../shared/view_figure_tick_anim.inc.c"
 
 #include "../../shared/view_figure_reset_anim.inc.c"
 

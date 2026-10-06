@@ -394,27 +394,11 @@ void func_actor_110800_801322FC(Task* arg0)
     coord->parent       = parent + 8;
 }
 
-/// Exit callback the step-0 handler installs: kills the helper task, then
-/// destroys the actor.
-void viewFigureExit(Task* arg0)
-{
-    taskKill(gActorHelperTask);
-    enemyDestroy(arg0->spawnArg2.pointer, arg0);
-}
+#include "../../shared/view_figure_exit.inc.c"
 
 #include "../../shared/view_figure_step_anim.inc.c"
 
-/// Ticks animation slots 1..0x13 of the work block's animation context.
-void viewFigureTickAnim(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        animationTickSlot(&gViewFigureWork->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+#include "../../shared/view_figure_tick_anim.inc.c"
 
 #include "../../shared/view_figure_reset_anim.inc.c"
 

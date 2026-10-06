@@ -23,7 +23,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = viewFigureExit;
+    task->exitCallback               = _viewFigureExit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
