@@ -429,20 +429,30 @@ cp "$WORKLIST" "$SNAPSHOT"
 trap 'rm -f "$SNAPSHOT"' EXIT
 WORKLIST="$SNAPSHOT"
 
-# Ctrl-C asks the pass to stop between rounds rather than killing it mid-step,
-# as the matching vacuum's does. What becomes of the round in flight depends on
-# how its steps were forked, and both outcomes are safe. Parallel steps run as
-# asynchronous children, which a non-interactive shell starts with the
-# interrupt already ignored, so they keep working: the round finishes and lands
-# as usual and the pass stops after it. A single-worker run works in the
-# foreground, sharing the terminal's process group, so that agent is
-# interrupted along with the driver and its step is recorded as not landed.
-# Either way the bookkeeping still runs - the rename log is collected, whatever
-# committed is landed, every step's outcome is recorded and the worker trees are
-# reset - so the next run resumes from the ledger and retries only what did not
-# land. A second Ctrl-C kills the driver outright.
+# Ctrl-C is the driver's to handle: it asks the pass to stop after the round in
+# flight, and nothing else may hear it. The terminal sends the interrupt to the
+# whole foreground process group, though, which is every foreground child too.
+# Parallel workers were safe by accident - a non-interactive shell starts an
+# asynchronous child with the interrupt ignored - but the landing agent, a
+# verification and a single-worker step all run in the foreground: one Ctrl-C
+# during a join killed the landing agent, and the round fell back to landing
+# its steps one at a time. So every long-running child is started through
+# `shielded`, in a session of its own, where the terminal's signal does not
+# reach it. The round finishes and lands as usual, the bookkeeping runs, and
+# the pass stops; the next run resumes from the ledger.
+#
+# The handler stays armed, so a second Ctrl-C only repeats the message. To
+# abandon a round outright, send the driver SIGTERM (or Ctrl-\) - its shielded
+# children then have to be stopped by hand.
 STOP_REQUESTED=0
-trap 'echo ""; echo "Interrupt received; stopping after this round - an unlanded step is retried by the next run."; STOP_REQUESTED=1; trap - INT' INT
+trap 'echo ""; echo "Interrupt received; stopping after this round (kill -TERM $$ to abandon it)."; STOP_REQUESTED=1' INT
+shielded() {
+  if command -v setsid >/dev/null 2>&1; then
+    setsid -w "$@"
+  else
+    ( trap '' INT; exec "$@" )
+  fi
+}
 
 # A step is an analysis, not just a rename of its own item: it merges a
 # duplicate type away, retypes a caller, renames a neighbouring field. That
@@ -544,18 +554,18 @@ run_agent() {
   # prints nothing else, and on the terminal alone it left the log silent.
   if (( stream )); then
     if (( term )); then
-      ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" 2> >(tee -a "$log" >&2) \
-        | python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
-        | tee -a "$log"
+      ( cd "$dir" && shielded "${cmd[@]}" ) <"$brief_file" 2> >(shielded tee -a "$log" >&2) \
+        | shielded python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
+        | shielded tee -a "$log"
     else
-      ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" 2>>"$log" \
-        | python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
+      ( cd "$dir" && shielded "${cmd[@]}" ) <"$brief_file" 2>>"$log" \
+        | shielded python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
         >>"$log" 2>&1
     fi
   elif (( term )); then
-    ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" 2> >(tee -a "$log" >&2) | tee -a "$log"
+    ( cd "$dir" && shielded "${cmd[@]}" ) <"$brief_file" 2> >(shielded tee -a "$log" >&2) | shielded tee -a "$log"
   else
-    ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" >>"$log" 2>&1
+    ( cd "$dir" && shielded "${cmd[@]}" ) <"$brief_file" >>"$log" 2>&1
   fi
   rc=$?
   rm -f "$brief_file"
@@ -611,7 +621,7 @@ $brief" "$log" "$term"; rc=$?
   elif ! outcome=$(cd "$dir" && venv/bin/python3 tools/refactor/name_review.py validate \
                      --report "$report" "${names[@]}" 2>>"$log"); then
     why="its review report did not validate"
-  elif ! ( cd "$dir" && venv/bin/python3 tools/refactor/verify_name_pass.py ) >"$log.build" 2>&1; then
+  elif ! ( cd "$dir" && shielded venv/bin/python3 tools/refactor/verify_name_pass.py ) >"$log.build" 2>&1; then
     why="verification failed"
   fi
   if [[ -n "$why" ]]; then
@@ -815,7 +825,7 @@ join_round() {
     break
   done
   if [[ -z "$needs_agent" ]]; then
-    if ! venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
+    if ! shielded venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
       echo "--- the joined tree does not build; handing the round to a landing agent" | tee -a "$LOG"
       tail -20 "$LOG.build" | tee -a "$LOG"
       needs_agent="Every commit replayed cleanly, but the joined tree fails
@@ -832,7 +842,7 @@ substance. The build output is at $LOG.build."
       git clean -qfd src include configs >/dev/null 2>&1
       return 1
     fi
-    if ! venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
+    if ! shielded venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
       echo "landing agent finished but the tree does not build; rewinding to $pre" >&2
       tail -20 "$LOG.build" >&2
       git reset -q --hard "$pre"
@@ -866,7 +876,7 @@ salvage_round() {
       echo "--- step $order conflicts with the steps already landed; left for a later round" | tee -a "$LOG" >&2
       continue
     fi
-    if ! venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
+    if ! shielded venv/bin/python3 tools/refactor/verify_name_pass.py >"$LOG.build" 2>&1; then
       git reset -q --hard "$before"
       git clean -qfd src include configs >/dev/null 2>&1
       echo "--- step $order does not build on the steps already landed; left for a later round" | tee -a "$LOG" >&2
@@ -1001,11 +1011,10 @@ BARRIER
       pids[$w]=$!
     done
     for w in "${!pids[@]}"; do wait "${pids[$w]}" || true; done
-    # A trapped Ctrl-C makes `wait` return early, so the loop above can step
-    # past a worker that is still running. The bare wait reaps whatever is
-    # left; the handler disarms itself, so this one blocks normally and a
-    # second Ctrl-C still kills the driver.
-    wait 2>/dev/null || true
+    # A trapped Ctrl-C makes `wait` return early, each time it arrives, so
+    # neither the loop above nor one bare wait is enough: keep waiting until
+    # no worker is left running.
+    while [[ -n "$(jobs -rp)" ]]; do wait 2>/dev/null || true; done
     w=0
     for order in "${batch[@]}"; do
       w=$((w + 1))
@@ -1098,7 +1107,7 @@ echo "reviewed $done_count step(s), $followup_count with follow-ups, $fail_count
 # per-function objdiff comparison is an audit, run once over everything landed.
 if (( DRY == 0 )) && [[ "$(git rev-parse HEAD)" != "$RUN_START" ]]; then
   echo "--- auditing the landed tree with objdiff" | tee -a "$LOG"
-  if venv/bin/python3 tools/refactor/verify_name_pass.py --objdiff >"$LOG.audit" 2>&1; then
+  if shielded venv/bin/python3 tools/refactor/verify_name_pass.py --objdiff >"$LOG.audit" 2>&1; then
     echo "objdiff audit passed: $(grep -o 'All [0-9]* individual functions match at 100%' "$LOG.audit")" | tee -a "$LOG"
   else
     echo "OBJDIFF AUDIT FAILED over ${RUN_START:0:9}..$(git rev-parse --short HEAD); see $LOG.audit" | tee -a "$LOG" >&2
