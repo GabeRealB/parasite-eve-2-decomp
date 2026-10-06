@@ -614,17 +614,25 @@ void shelterB2ElevatorHallRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Draws the south walkway door's unlocked or locked indicator in the current view.
+/// Draws the south walkway door's blue unlocked or red locked status glow.
+///
+/// A nonzero unlock nibble selects the blue lamp's world point; zero selects
+/// the red lamp's. The room glow task calls this for mapped views 5 and 6.
+/// Requires composed view matrices, an initialized scratch stack and the
+/// current frame's primitive arena and depth ordering table.
 static inline void _shelterB2ElevatorHallDrawDoorIndicator(void)
 {
-    enum { DOOR_INDICATOR_RADIUS = 0x100,
-           DOOR_UNLOCKED_COLOR   = 0x504C, // RGB nibbles; odd frames add 32 per channel
-           DOOR_LOCKED_COLOR     = 0x5C40 };
+    enum {
+        DOOR_INDICATOR_RADIUS_SCALE  = 0x100,                                        // Outer pixels = scale * 64 / (camera Z / 4 + 1)
+        DOOR_INDICATOR_FLICKER_SHIFT = 5,                                            // Odd animation frames add 32 to each RGB byte
+        DOOR_UNLOCKED_COLOR          = (DOOR_INDICATOR_FLICKER_SHIFT << 12) | 0x04C, // Base RGB bytes 0, 64, 192
+        DOOR_LOCKED_COLOR            = (DOOR_INDICATOR_FLICKER_SHIFT << 12) | 0xC40, // Base RGB bytes 192, 64, 0
+    };
 
     if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
-        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, DOOR_INDICATOR_RADIUS, DOOR_UNLOCKED_COLOR);
+        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, DOOR_INDICATOR_RADIUS_SCALE, DOOR_UNLOCKED_COLOR);
     } else {
-        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, DOOR_INDICATOR_RADIUS, DOOR_LOCKED_COLOR);
+        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, DOOR_INDICATOR_RADIUS_SCALE, DOOR_LOCKED_COLOR);
     }
 }
 
