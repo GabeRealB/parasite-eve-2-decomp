@@ -1474,12 +1474,14 @@ void shelterB2LaboratoryGlowTask(Task* task)
 
 #include "../../shared/glow_draw_capsule.inc.c"
 
-/// Prepares a Gouraud diamond half with a cyan centre and a black rim.
+/// Initializes one Gouraud half of the laboratory's cyan glow diamond.
 ///
-/// Borrows a writable packet and sets its command, length and four vertex
-/// colours. The low byte of `cyanIntensity` supplies green and blue at vertex
-/// 2; red and the rim vertices are zero. Coordinates, ordering-table linkage
-/// and blend mode are supplied by the drawer.
+/// Requires a word-aligned, writable `POLY_G4` supplied by the caller.
+/// Sets the opaque untextured command and packet length. Vertex 2 is the
+/// diamond centre, with zero red and the low byte of `cyanIntensity` in
+/// green and blue; rim vertices 0, 1 and 3 are black. The drawer supplies
+/// screen coordinates, DMA linkage and additive semitransparency.
+/// Packet storage remains caller-owned.
 static inline void _shelterB2LaboratoryInitGlowDiamondHalf(POLY_G4* diamondHalf, s32 cyanIntensity)
 {
     setPolyG4(diamondHalf);
@@ -1489,12 +1491,15 @@ static inline void _shelterB2LaboratoryInitGlowDiamondHalf(POLY_G4* diamondHalf,
     setRGB3(diamondHalf, 0, 0, 0);
 }
 
-/// Prepares a three-vertex glow diagonal with a cyan centre and black ends.
+/// Initializes one Gouraud diagonal through the laboratory's cyan glow.
 ///
-/// Borrows a writable packet and sets its command, length and three vertex
-/// colours. The low byte of `cyanIntensity` supplies green and blue at vertex
-/// 1; red and the end vertices are zero. Coordinates, ordering-table linkage
-/// and blend mode are supplied by the drawer.
+/// Requires a word-aligned, writable `LINE_G3` supplied by the caller.
+/// Sets the opaque command, packet length and polyline terminator, and
+/// clears the high byte of the final vertex colour word. Vertex 1 is the
+/// centre, with zero red and the low byte of `cyanIntensity` in green and
+/// blue; end vertices 0 and 2 are black. The drawer supplies screen
+/// coordinates, DMA linkage and additive semitransparency.
+/// Packet storage remains caller-owned.
 static inline void _shelterB2LaboratoryInitGlowDiagonal(LINE_G3* diagonal, s32 cyanIntensity)
 {
     setLineG3(diagonal);
