@@ -540,13 +540,17 @@ RoomEventReq gRoomEventReq;
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
-/// Draws the red or green lock indicator at its corresponding world point.
+/// Draws the armory lock's flickering green unlocked or red locked indicator.
 ///
-/// The outer pixel radius is `radiusScale * 64 / (camera Z / 4 + 1)`.
-/// Requires the same current-view and frame drawing context as the task.
-static inline void _shelterB1ArmoryDrawLockGlow(s32 radiusScale)
+/// `radiusScale` is a signed 16-bit perspective scale. The disc's outer pixel
+/// radius is `radiusScale * 64 / (camera Z / 4 + 1)`; two blades reach twice that.
+/// Requires composed current-view matrices, scratch space for
+/// `GlowCentreRadiiScratch`, and frame packet/ordering-table space for twenty
+/// additive quads and their blend commands. Packets live until GPU completion.
+static inline void _shelterB1ArmoryDrawLockGlow(s16 radiusScale)
 {
-    // RGB nibbles with a 32-level brightening on odd animation frames.
+    // RGB nibbles give a 192-level primary; the high nibble adds 32 to every
+    // channel on odd animation frames.
     enum {
         SHELTER_B1_ARMORY_UNLOCKED_GLOW_COLOR = 0x50C0,
         SHELTER_B1_ARMORY_LOCKED_GLOW_COLOR   = 0x5C00,
