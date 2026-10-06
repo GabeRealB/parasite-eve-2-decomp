@@ -2407,6 +2407,9 @@ s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3
     switch (mode) {
         case 0:
             child = work->gunTask;
+            if (child != NULL) {
+                child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            }
             break;
         case 1:
             child = work->gunTask;
@@ -2414,15 +2417,11 @@ s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3
                 child->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             child = work->propTask;
+            if (child != NULL) {
+                child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            }
             break;
-        default:
-            goto out;
     }
-
-    if (child != NULL) {
-        child->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-out:
     return 0;
 }
 
