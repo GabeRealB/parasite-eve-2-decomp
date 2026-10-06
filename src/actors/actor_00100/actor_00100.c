@@ -2683,19 +2683,10 @@ static void Actor00100_Fn08E7C(Task* arg0)
     DesertChaserWork*              work;
     GfxCoord*                      coord;
     GfxCoord*                      coord2;
-    GfxCoord*                      facing;
-    GfxCoord*                      facing2;
     TmdObject*                     obj;
-    s16                            delta;
     s32                            playerX;
-    s16                            delta2;
     s16                            z;
     s16                            targetYaw;
-    s16                            wrapped;
-    s16                            wrappedYaw;
-    s16                            wrapped2;
-    s32                            angle;
-    s32                            angle2;
     s32                            finalDelta;
     s32                            firstDelta;
     _Actor00100ScreenWatchScratch* head;
@@ -2734,29 +2725,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
     scratch->delta.vz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
-    facing  = arg0->extra.tmd->coords;
-    angle   = ratan2(head[-1].delta.vx, scratch->delta.vz);
-    delta   = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-    wrapped = delta;
-
-    if (delta < 0) {
-        for (;;) {
-            if (wrapped < -0x800) {
-                wrapped += 0x1000;
-            } else {
-                break;
-            }
-        }
-    } else {
-        for (;;) {
-            if (wrapped >= 0x801) {
-                wrapped -= 0x1000;
-            } else {
-                break;
-            }
-        }
-    }
-    firstDelta             = wrapped;
+    firstDelta             = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, scratch->delta.vz);
     scratch->turn          = firstDelta;
     work->lookYawTarget    = firstDelta;
     playerX                = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
@@ -2767,52 +2736,11 @@ static void Actor00100_Fn08E7C(Task* arg0)
     z                      = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
     scratch->delta.vz      = z;
     targetYaw              = ratan2(scratch->delta.vx, (s32)z) + 0x800;
-    wrappedYaw             = targetYaw;
     scratch->yawFromPlayer = targetYaw;
-
-    if (targetYaw < 0) {
-        for (;;) {
-            if (wrappedYaw < -0x800) {
-                wrappedYaw += 0x1000;
-            } else {
-                break;
-            }
-        }
-    } else {
-        for (;;) {
-            if (wrappedYaw >= 0x801) {
-                wrappedYaw -= 0x1000;
-            } else {
-                break;
-            }
-        }
-    }
-    scratch->yawFromPlayer = wrappedYaw;
-    facing2                = arg0->extra.tmd->coords;
-    angle2                 = ratan2(scratch->delta.vx, scratch->delta.vz);
-    delta2                 = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
-    wrapped2               = delta2;
-
-    if (delta2 < 0) {
-        for (;;) {
-            if (wrapped2 < -0x800) {
-                wrapped2 += 0x1000;
-            } else {
-                break;
-            }
-        }
-    } else {
-        for (;;) {
-            if (wrapped2 >= 0x801) {
-                wrapped2 -= 0x1000;
-            } else {
-                break;
-            }
-        }
-    }
-    finalDelta          = wrapped2;
-    scratch->turn       = (s16)finalDelta;
-    work->lookYawTarget = (s16)finalDelta;
+    scratch->yawFromPlayer = actorWrapAngle(targetYaw);
+    finalDelta             = actorYawTo(arg0->extra.tmd->coords, scratch->delta.vx, scratch->delta.vz);
+    scratch->turn          = (s16)finalDelta;
+    work->lookYawTarget    = (s16)finalDelta;
     if (abs(scratch->screen.vx) < 0x78 && abs(scratch->screen.vy) < 0x64 && abs(scratch->turn) < 0x200) {
         Gp_ArmStateF0(1);
         work->state = 0x1C;
