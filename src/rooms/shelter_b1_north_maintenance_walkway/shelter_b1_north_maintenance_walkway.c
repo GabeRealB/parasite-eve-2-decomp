@@ -112,7 +112,12 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
 static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0);
 static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task);
 
-/// Selects this room's task IDs for the resident effect spawners.
+/// Binds the shared enemy-effect selectors to this room's implementations.
+///
+/// Stores packed bank-6 task IDs for later `Gp_SpawnEff` calls. Call after
+/// room-effect initialization clears the selectors and before enemies use them.
+/// This overlay must remain loaded while the selected IDs are used and while
+/// their spawned tasks are live.
 static __inline__ void _shelterB1NorthMaintenanceWalkwayBindEffectTasks(void)
 {
     gRoomEffectMoteId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MOTE;
