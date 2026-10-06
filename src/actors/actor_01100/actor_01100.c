@@ -3012,6 +3012,13 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
     gte_stsv(arg1);
 }
 
+/// Requests sound `snd` with the work's `waterRoom` bit and placement index
+/// merged into the id, at the pan and depth held in `scratch`.
+static __inline__ void _actor01100StrideSound(_Actor01100Work* work, _Actor01100Scratch* scratch, s32 snd)
+{
+    sndEvtRequestScriptStart((work->waterRoom << 22) | snd | ((u8)work->placeIndex << 8), (s8)scratch->pan, (s8)scratch->depth);
+}
+
 /// Lunge. The first frame, while `stateStep` is clear, measures the squared
 /// distance to actor slot 3. No spawn argument and a target inside 0xA62B0F, or
 /// any target inside 0x1DE83F, consumes one `rand` in the first of those cases
@@ -3043,12 +3050,10 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     s32            dist;
     s32            dist2;
     s32            turn;
-    s32            yaw;
     s32            yaw2;
     s32            scale;
     s32            frame;
     s32            n;
-    s32            snd;
     u16            angle;
     u32            rng;
 
@@ -3113,38 +3118,25 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
     }
     if (work->strideFrame == 0x2E) {
-        snd = 0x400B0001;
-        goto do_sound;
-    }
-    if (work->strideFrame == 1) {
-        snd = 0x400B0002;
-    do_sound:
-        sndEvtRequestScriptStart((work->waterRoom << 22) | snd | ((u8)work->placeIndex << 8), (s8)scratch->pan, (s8)scratch->depth);
+        _actor01100StrideSound(work, scratch, 0x400B0001);
+    } else if (work->strideFrame == 1) {
+        _actor01100StrideSound(work, scratch, 0x400B0002);
     }
     if (work->strideFrame == 0x2E) {
         actorCoords = task->extra.tmd->coords;
         Actor104900_DistToPlayer(actorCoords, dist2);
         if (rand() & 7) {
-            if (work->blockedFrames < 0xBU) {
-                yaw = work->playerBearing;
-                if (yaw < -0x300) {
-                    goto far_state;
+            if (work->blockedFrames >= 0xBU || work->playerBearing < -0x300 || work->playerBearing >= 0x301) {
+                if (dist2 <= 0x89543F) {
+                    work->state = ACTOR_01100_STATE_SPIT;
+                } else {
+                    work->state = ACTOR_01100_STATE_FACE_PLAYER;
                 }
-                if (yaw < 0x301) {
-                    goto close_state;
-                }
+                work->stateStep = 0;
+                return;
             }
-        far_state:
-            if (dist2 <= 0x89543F) {
-                work->state = ACTOR_01100_STATE_SPIT;
-            } else {
-                work->state = ACTOR_01100_STATE_FACE_PLAYER;
-            }
-            work->stateStep = 0;
-            return;
-        close_state:
             if (dist2 <= 0xA62B0F) {
-                yaw2 = yaw;
+                yaw2 = work->playerBearing;
                 if (!(rand() & 7)) {
                     yaw2 = -yaw2;
                 }
