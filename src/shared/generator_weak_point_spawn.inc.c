@@ -58,7 +58,7 @@ void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1)
     type              = work->kind;
     part->kind        = type;
     if ((type << 0x10) == 0) {
-        func_neo_ark_power_plant_2_8017FD88(1);
+        neoArkPowerPlant2SetView6SpritesHidden(1);
         flag = 0x147;
     } else {
         func_neo_ark_power_plant_1_8017E524(1);

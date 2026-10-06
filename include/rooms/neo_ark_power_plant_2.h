@@ -30,11 +30,34 @@ extern SpriteView D_neo_ark_power_plant_2_8018205C[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_2_80182F50[];
 
-void func_neo_ark_power_plant_2_8017FD88(s32 arg0);
+/// Sets visibility of view 6's five-sprite batch for the generator Life Support task.
+///
+/// `hidden` is 0 to show or 1 to hide; other byte values leave it unchanged.
+/// The active session must select this room's sprite tables, with its map and
+/// room overlays loaded. Updates view 6 regardless of the current view.
+void neoArkPowerPlant2SetView6SpritesHidden(u8 hidden);
 
-void func_neo_ark_power_plant_2_8017DDF4(Task* task);
+/// Runs this room's charging pink flash, peak screen tint and fading star.
+///
+/// Starts in state 0 with a coordinate body and counted `EffectWork` in
+/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` is a positive
+/// charge duration in active ticks, consumed as a countdown. Nonzero room
+/// effect control pauses it; control 4 or above, state 3, or completion
+/// releases the work and task. The effect controller and room overlay must
+/// remain live until teardown.
+void neoArkPowerPlant2RoomVisualEffectsFlashTask(Task* task);
 
-void func_neo_ark_power_plant_2_8017E858(Task* task);
+/// Records two moving endpoints and draws their fading trail as a blue beam.
+///
+/// Starts in state 0 with a coordinate body and counted `EffectWork` in
+/// `spawnArg2.pointer` from `Gp_SpawnEff`; its parent coordinate must stay live.
+/// Owns two eight-coordinate histories in `Task::work`, freed by task teardown.
+/// Allocation failure resets age to zero for retry. Initialization is the first
+/// active tick; later ticks draw seven quads tinted 1:2:3 in R:G:B.
+/// `spawnArg1.value` is 0 for external teardown or 2..32767 for a first-cycle
+/// active-age limit. Room effect control at two or above pauses recording and
+/// drawing without cancellation. Requires a live effect controller and room overlay.
+void neoArkPowerPlant2RoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_neo_ark_power_plant_2_8017F140(Task* task);
 

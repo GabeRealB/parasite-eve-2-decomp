@@ -84,11 +84,11 @@ D_neo_ark_power_plant_2_80180560 = 0x80180560; // size:0x108 defined:True
 D_neo_ark_power_plant_2_80180668 = 0x80180668; // size:0x8 defined:True
 D_neo_ark_power_plant_2_80180670 = 0x80180670; // size:0x8 defined:True
 
-func_neo_ark_power_plant_2_8017FD88 = 0x8017FD88; // type:func
+neoArkPowerPlant2SetView6SpritesHidden = 0x8017FD88; // type:func
 
-func_neo_ark_power_plant_2_8017DDF4 = 0x8017DDF4; // type:func
+neoArkPowerPlant2RoomVisualEffectsFlashTask = 0x8017DDF4; // type:func
 
-func_neo_ark_power_plant_2_8017E858 = 0x8017E858; // type:func
+neoArkPowerPlant2RoomVisualEffectsTwinTrailTask = 0x8017E858; // type:func
 
 func_neo_ark_power_plant_2_8017F140 = 0x8017F140; // type:func
 
@@ -98,3 +98,5 @@ _roomVisualEffectsDrawFlashDisc = 0x8017E4C4; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017ED48; // type:func
 _roomVisualEffectsDrawBurstStar = 0x8017F3C8; // type:func
 glowDrawDisc = 0x8017DA54; // type:func
+_neoArkPowerPlant2RejectKeyItemUse = 0x8017d5d0; // type:func
+_neoArkPowerPlant2IgnoreRoomAction = 0x8017d694; // type:func

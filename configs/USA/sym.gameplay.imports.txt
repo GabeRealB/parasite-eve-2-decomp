@@ -904,9 +904,9 @@ neoArkPavilionRoomVisualEffectsFlyingSparkTask = 0x8018219C; // type:func absolu
 
 neoArkPavilionRoomVisualEffectsFlyingOrangeBurstTask = 0x80182DFC; // type:func absolute:True owner=neo_ark_pavilion
 
-func_neo_ark_power_plant_2_8017DDF4 = 0x8017DDF4; // type:func absolute:True owner=neo_ark_power_plant_2
+neoArkPowerPlant2RoomVisualEffectsFlashTask = 0x8017DDF4; // type:func absolute:True owner=neo_ark_power_plant_2
 
-func_neo_ark_power_plant_2_8017E858 = 0x8017E858; // type:func absolute:True owner=neo_ark_power_plant_2 shared=rooms
+neoArkPowerPlant2RoomVisualEffectsTwinTrailTask = 0x8017E858; // type:func absolute:True owner=neo_ark_power_plant_2 shared=rooms
 
 func_neo_ark_power_plant_2_8017F140 = 0x8017F140; // type:func absolute:True owner=neo_ark_power_plant_2
 

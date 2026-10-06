@@ -22,7 +22,7 @@ void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1)
             arg0->recs = 0;
             sndEvtRequestScriptStop(parentWork->runningSoundId, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             if (part->kind == GENERATOR_BETA) {
-                func_neo_ark_power_plant_2_8017FD88(0);
+                neoArkPowerPlant2SetView6SpritesHidden(0);
                 gameFlagSetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN, 1);
             } else {
                 func_neo_ark_power_plant_1_8017E524(0);

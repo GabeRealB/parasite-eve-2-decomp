@@ -98,12 +98,14 @@ extern WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8];
 extern WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8];
 extern WorldCoordRoomLights  D_neo_ark_power_plant_2_801828A8[1];
 
-s32  func_neo_ark_power_plant_2_8017D5D0(Task*, s32, s32, s32);
-s32  func_neo_ark_power_plant_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, s32);
-s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, s32, s32);
-void func_neo_ark_power_plant_2_8017D69C(void);
-void func_neo_ark_power_plant_2_8017D6D4(void);
+enum { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32 _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+s32        func_neo_ark_power_plant_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, s32);
+static s32 _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+void       func_neo_ark_power_plant_2_8017D69C(void);
+void       func_neo_ark_power_plant_2_8017D6D4(void);
 
 static AnimationPackedPose _gNeoArkPowerPlant2Animation02A4CBank1[3] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank1.inc"
@@ -151,8 +153,8 @@ static AnimationSet _gNeoArkPowerPlant2Animation02C10 = {
 
 TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_power_plant_2_8017D5D8 },
-    { 5105, func_neo_ark_power_plant_2_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_power_plant_2_8017D694 },
+    { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM, _neoArkPowerPlant2RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPowerPlant2IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_power_plant_2_8017D61C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -775,11 +777,14 @@ AreaApplyRec D_neo_ark_power_plant_2_80182F94[4] = {
     { 255, 0, 0, 0 },
 };
 
-/// Message handler the room's message table names for one of its entries:
-/// accepts the message and does nothing.
-s32 func_neo_ark_power_plant_2_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in this room, returning the menu's unusable result.
+///
+/// Reads no payload, consumes no item and retains no arguments.
+static s32 _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum { KEY_ITEM_UNUSABLE = 0 };
+
+    return KEY_ITEM_UNUSABLE;
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
@@ -815,7 +820,10 @@ s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, s32 arg3
     return 0;
 }
 
-s32 func_neo_ark_power_plant_2_8017D694(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests and returns zero.
+///
+/// The request is borrowed during synchronous dispatch; no payload is read or retained.
+static s32 _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -931,14 +939,14 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_power_plant_2_8017DDF4(Task* arg0)
+void neoArkPowerPlant2RoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_power_plant_2_8017E858(Task* task)
+void neoArkPowerPlant2RoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -952,20 +960,20 @@ void func_neo_ark_power_plant_2_8017F140(Task* task)
 
 #include "../../shared/room_visual_effects_glow.inc.c"
 
-/// Sets `field_4` of the third sprite command in the sixth record of the
-/// current area's entry in the current stage's sprite table to the low byte of
-/// `arg0`; values other than 0 and 1 leave it unchanged.
-void func_neo_ark_power_plant_2_8017FD88(s32 arg0)
+void neoArkPowerPlant2SetView6SpritesHidden(u8 hidden)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteBatch*     batches;
-    s32              mode;
+    enum { VIEW_INDEX      = 5,
+           BATCH_INDEX     = 2,
+           SPRITES_VISIBLE = 0,
+           SPRITES_HIDDEN  = 1 };
 
-    batches = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1][5].batches;
-    mode    = arg0 & 0xFF;
-    if (mode == 0) {
-        batches[2].hidden = 0;
-    } else if (mode == 1) {
-        batches[2].hidden = 1;
+    const GameLocationKey* location = &gGameSession->location.loc;
+    SpriteBatch*           view6Batches;
+
+    view6Batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
+    if (hidden == SPRITES_VISIBLE) {
+        view6Batches[BATCH_INDEX].hidden = SPRITES_VISIBLE;
+    } else if (hidden == SPRITES_HIDDEN) {
+        view6Batches[BATCH_INDEX].hidden = SPRITES_HIDDEN;
     }
 }

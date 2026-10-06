@@ -95703,17 +95703,17 @@ saves `gMcSaveData.queryOnly` and kills the task). m2c's `? sp18` seed scores
 
 Input `base_1.c`
 `7fdf4978302f81ce40532dac94bf526fc6bb26562a7b33612ea78282c19aa6a4` (100.000%).
-## A store of the compared constant comes out as a store of the compared variable (func_neo_ark_power_plant_2_8017FD88, 2026-09-16)
+## A store of the compared constant comes out as a store of the compared variable (neoArkPowerPlant2SetView6SpritesHidden, 2026-09-16)
 
-`if (mode == 1) { cmd[2].hidden = 1; }` compiles to
+`if (hidden == 1) { view6Batches[2].hidden = 1; }` compiles to
 
 ```
 bne $a0, $v0, .L     # $v0 = li 1, the comparison constant
 nop
-sb  $a0, 0x14($v1)   # $a0 = mode, not $v0
+sb  $a0, 0x14($v1)   # $a0 = hidden, not $v0
 ```
 
-so the store reads as `hidden = mode`, and m2c writes exactly that
+so the store reads as `view6Batches[2].hidden = hidden`, and m2c writes exactly that
 (`case 1: M2C_FIELD(temp_v1, s8 *, 0x14) = temp_a0;`). With two compares
 sharing a tail it also renders the whole function as an irregular two-case
 `switch`. That reading scores 43%; the real source is the plain if/else-if
@@ -95732,7 +95732,7 @@ the variable's register:
               (subreg:QI (reg/v:SI 86) 0)))   /* (const_int 1) in the source */
 ```
 
-`= 1` and `= mode` are therefore the same RTL by then and compile identically -
+`= 1` and `= hidden` are therefore the same RTL by then and compile identically -
 either matches, and neither is the "fix" for the other. Do not rewrite the
 store to the variable because the `sb` names it.
 
@@ -95740,7 +95740,7 @@ What differs between such near-copies is only the index and the displacement:
 the brief's "Similar matched bodies" put `shelterB6NurserySetView13SpriteHidden` at
 shape 1.00 - the same 26 instructions with `0x94`/`0xC` where this one has
 `0x40`/`0x14` (`rec[12].batches` / `cmd[1].hidden` against `rec[5].batches` /
-`cmd[2].hidden`). Porting that already-matched body's source form, indices
+`view6Batches[2].hidden`). Porting that already-matched body's source form, indices
 adjusted, was one build to 100%. Read the shape-1.00 neighbour before
 reconstructing control flow from the asm.
 Input: `base_1.i`

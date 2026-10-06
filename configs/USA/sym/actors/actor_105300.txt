@@ -40,7 +40,7 @@ gGeneratorSoundIds = 0x8013D3B0; // size:0xC defined:True
 
 func_neo_ark_power_plant_1_8017E524 = 0x8017E524; // type:func absolute:True owner=neo_ark_power_plant_1
 
-func_neo_ark_power_plant_2_8017FD88 = 0x8017FD88; // type:func absolute:True owner=neo_ark_power_plant_2
+neoArkPowerPlant2SetView6SpritesHidden = 0x8017FD88; // type:func absolute:True owner=neo_ark_power_plant_2
 modelPlacementSetScaled = 0x801336D4; // type:func
 generatorBodyHit = 0x80131E3C; // type:func
 generatorPulse = 0x8013222C; // type:func
