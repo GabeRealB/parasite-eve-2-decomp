@@ -867,11 +867,24 @@ void func_shelter_b1_main_corridor_8017DD98(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws two beams from four consecutive borrowed world-space endpoints.
-static inline void _shelterB1MainCorridorDrawBeamPair(const SVECTOR lightPoints[4], s32 radiusScale, s32 startAngle, s32 packedColor)
+/// Draws two additive flickering beams with the same radius scale, screen angle and tint.
+///
+/// `beamEndpoints` supplies four word-aligned world-space points, borrowed
+/// only for this call: points 0..1 form the first beam and 2..3 the second.
+/// Each end's pixel radius is `radiusScale * 64 / depth`, with depth camera Z / 4.
+/// Each beam is omitted if its second end's depth is below 17; its first end's
+/// depth is clamped to 16. `screenAngle` uses 4096 units per turn, zero down.
+/// `colorFactors` packs a signed red multiplier in bits 8..15 and one-bit green
+/// and blue multipliers in bits 4 and 0; all other bits are ignored. These
+/// multiply an intensity of 32 or 40 on alternating frames; colour bytes wrap.
+/// Requires current view matrices, an initialized scratch stack with room for
+/// one `GlowPointPairScratch`, and a current ordering table and packet arena.
+/// Each visible beam queues six Gouraud quads and their additive blend commands;
+/// the arena stays live until GPU completion.
+static inline void _shelterB1MainCorridorDrawBeamPair(const SVECTOR beamEndpoints[4], s16 radiusScale, s16 screenAngle, u16 colorFactors)
 {
-    _glowDrawBeam(&lightPoints[0], radiusScale, startAngle, packedColor);
-    _glowDrawBeam(&lightPoints[2], radiusScale, startAngle, packedColor);
+    _glowDrawBeam(&beamEndpoints[0], radiusScale, screenAngle, colorFactors);
+    _glowDrawBeam(&beamEndpoints[2], radiusScale, screenAngle, colorFactors);
 }
 
 void shelterB1MainCorridorDrawViewLightsTask(Task* task)
