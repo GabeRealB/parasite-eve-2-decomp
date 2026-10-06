@@ -849,28 +849,25 @@ void Gp_CapExit(Task* arg0)
             queue->imageMdecMode = D_8011565C;
             Stage_BeginTransitionKind7(D_8011566C);
         }
-        goto block_11;
-    }
-    if (D_80115690 == 0) {
-        gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-    }
-    if (gGameSession->eventState == 0) {
-        gGameSession->hideHud                                      = 0;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566C;
-        Gp_MsgPlayer3F3(1);
-        Gp_MsgAlly3F3(1);
-        if (gDisplayState.debugMode != 0) {
-            func_8072455C(D_8011564A, D_8011566C);
-            goto block_11;
-        }
     } else {
-    block_11:
-        if (gDisplayState.debugMode != 0 && D_801156F4.sceneKey != 0) {
-            sprintf(
-                buf, Gp_StrEvsFmt, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
-                D_801156F4.sceneKey->subId);
-            func_807244CC(buf);
+        if (D_80115690 == 0) {
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
         }
+        if (gGameSession->eventState == 0) {
+            gGameSession->hideHud                                      = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566C;
+            Gp_MsgPlayer3F3(1);
+            Gp_MsgAlly3F3(1);
+            if (gDisplayState.debugMode != 0) {
+                func_8072455C(D_8011564A, D_8011566C);
+            }
+        }
+    }
+    if (gDisplayState.debugMode != 0 && D_801156F4.sceneKey != 0) {
+        sprintf(
+            buf, Gp_StrEvsFmt, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
+            D_801156F4.sceneKey->subId);
+        func_807244CC(buf);
     }
     Gp_CapTable = 0;
     D_8011565A  = 0;
@@ -1185,26 +1182,16 @@ void Gp_ApplyCapEvtFlags(void)
 
 s32 Gp_FindCapEvt(s32 arg0)
 {
-    s32                flag;
-    s32                id;
-    CapSequenceRecord* base;
     CapSequenceRecord* p;
 
-    flag = CAP_TEXT_REF_END;
-    id   = Gp_CapEventKey;
-    base = Gp_CapTable;
-    p    = Gp_CapEventAt(base, arg0);
-loop:
-    if (p->textRef.offset == flag) {
-        goto done;
+    for (;;) {
+        p = Gp_CapEventAt(Gp_CapTable, arg0);
+        if (p->textRef.offset != CAP_TEXT_REF_END && p->key != Gp_CapEventKey) {
+            arg0++;
+        } else {
+            break;
+        }
     }
-    if (p->key == id) {
-        goto done;
-    }
-    p++;
-    arg0++;
-    goto loop;
-done:
     return arg0;
 }
 
