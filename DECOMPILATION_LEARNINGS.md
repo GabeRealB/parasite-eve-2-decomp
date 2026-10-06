@@ -5009,15 +5009,15 @@ allocation there is no single register to name.
 
 ## A shared `case X: case Y:` body leaves *one* jtbl label; a duplicated body leaves two
 
-`func_dryfield_night_general_store_8017E6C8` dispatches on
-`gGameSession->location.loc.view` and draws one `Room_Draw08` wedge pair per view, views 4
+`dryfieldNightGeneralStoreDrawLightShaftsTask` dispatches on
+`gGameSession->location.loc.view` and draws one `_glowDrawShaft` wedge pair per view, views 4
 and 8 drawing the same pair. Its jump table repeats that pair's label **twice**,
 at two distinct labels (`E728` and `E744`) whose bodies are identical, and that
 is the source form:
 
 ```c
-case 4: Room_Draw08(&D_...E7EC[0], 0x100); Room_Draw08(&D_...E7EC[2], 0x100); break;
-case 8: Room_Draw08(&D_...E7EC[0], 0x100); Room_Draw08(&D_...E7EC[2], 0x100); break;
+case 4: _glowDrawShaft(&D_...E7EC[0], 0x100); _glowDrawShaft(&D_...E7EC[2], 0x100); break;
+case 8: _glowDrawShaft(&D_...E7EC[0], 0x100); _glowDrawShaft(&D_...E7EC[2], 0x100); break;
 ```
 
 100.00% with every penalty zero. Sharing one body between the two labels

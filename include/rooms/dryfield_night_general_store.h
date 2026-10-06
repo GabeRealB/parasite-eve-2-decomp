@@ -30,7 +30,13 @@ extern SpriteView D_dryfield_night_general_store_80184278[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_general_store_80185894[];
 
-void func_dryfield_night_general_store_8017E6C8(Task* unused);
+/// Draws the nighttime general store's grey light shafts visible in the current view.
+///
+/// Views 2, 3, 12 and 13 draw one shaft; views 4 and 8 draw two. Other views
+/// emit no packets. The task argument is unused. Requires the room overlay to
+/// remain loaded, a composed view, an initialized scratch stack and space in
+/// the current frame's primitive arena and depth ordering table.
+void dryfieldNightGeneralStoreDrawLightShaftsTask(Task* unusedTask);
 
 void func_dryfield_night_general_store_8017DE88(Task* task);
 

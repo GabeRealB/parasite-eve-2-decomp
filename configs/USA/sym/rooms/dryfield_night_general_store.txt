@@ -83,7 +83,7 @@ gStoreRoom = 0x801858C6; // size:0x1 defined:True
 D_dryfield_night_general_store_801858C7 = 0x801858C7; // size:0x1 defined:True
 gRoomEventReq = 0x801858C8; // size:0x14 defined:True
 
-func_dryfield_night_general_store_8017E6C8 = 0x8017E6C8; // type:func
+dryfieldNightGeneralStoreDrawLightShaftsTask = 0x8017E6C8; // type:func
 _glowDrawShaft = 0x8017DEE0; // type:func
 roomEventGate = 0x8017D630; // type:func
 roomEventTask = 0x8017D794; // type:func

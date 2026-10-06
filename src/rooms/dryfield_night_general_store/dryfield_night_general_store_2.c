@@ -1452,35 +1452,33 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/glow_draw_shaft.inc.c"
 
-static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
-
-/// Draws the store's light beams for the current camera view
-/// `gGameSession->location.loc.view`. Each beam is a pair of world points handed to
-/// `_glowDrawShaft` with a radius of 0x100: views
-/// 2, 3, 12 and 13 draw one beam each, and views 4 and 8 draw the beams of
-/// views 2 and 3 together.
-void func_dryfield_night_general_store_8017E6C8(Task* unused)
+void dryfieldNightGeneralStoreDrawLightShaftsTask(Task* unusedTask)
 {
+    enum {
+        // Pixel radius is this scale times 64, divided by camera Z / 4.
+        DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE = 256,
+    };
+
     switch (gGameSession->location.loc.view) {
         case 2:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 3:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 8:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], 0x100);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 12:
-            _glowDrawShaft(D_dryfield_night_general_store_8017E80C, 0x100);
+            _glowDrawShaft(D_dryfield_night_general_store_8017E80C, DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 13:
-            _glowDrawShaft(D_dryfield_night_general_store_8017E81C, 0x100);
+            _glowDrawShaft(D_dryfield_night_general_store_8017E81C, DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
     }
 }

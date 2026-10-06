@@ -1801,7 +1801,7 @@ motelRoom6DayDrawGlow = 0x80182978; // type:func absolute:True owner=dryfield_mo
 
 func_dryfield_water_hole_8017E040 = 0x8017E040; // type:func absolute:True owner=dryfield_water_hole
 
-func_dryfield_night_general_store_8017E6C8 = 0x8017E6C8; // type:func absolute:True owner=dryfield_night_general_store shared=rooms
+dryfieldNightGeneralStoreDrawLightShaftsTask = 0x8017E6C8; // type:func absolute:True owner=dryfield_night_general_store shared=rooms
 
 dryfieldNightWarehouseDrawGlowsTask = 0x8017E778; // type:func absolute:True owner=dryfield_night_warehouse shared=rooms
 
