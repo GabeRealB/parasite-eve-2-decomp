@@ -80,7 +80,8 @@ void func_plasma_8012EF34(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        goto release;
+        effectKillTask(mem, arg0);
+        return;
     }
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -150,8 +151,7 @@ void func_plasma_8012EF34(Task* arg0)
             return;
         case 2:
             if (mem->scale < 9) {
-                effectKillTask(mem, arg0);
-                return;
+                break;
             }
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 if ((s16)next == 8) {
@@ -187,9 +187,9 @@ void func_plasma_8012EF34(Task* arg0)
                 glowDrawHalo(coord, span, span, rgb);
             }
             return;
+        default:
+            return;
     }
-    return;
-release:
     effectKillTask(mem, arg0);
 }
 
