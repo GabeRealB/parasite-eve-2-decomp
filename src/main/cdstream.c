@@ -2154,12 +2154,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
             }
             sectorPos = CdPosToInt(&D_800827F8);
             if (sectorPos != CdStream_Runtime.state.expectedSector) {
-                if (sectorPos < CdStream_Runtime.state.expectedSector) {
-                    if (CdStream_Runtime.state.expectedSector >= (sectorPos + 4)) {
-                        goto sector_mismatch;
-                    }
-                } else {
-                sector_mismatch:
+                if (sectorPos >= CdStream_Runtime.state.expectedSector || CdStream_Runtime.state.expectedSector >= (sectorPos + 4)) {
                     D_80068B5F += 1;
                     if (CdStream_ErrorCode == 0) {
                         CdStream_ErrorCode = 3;
@@ -2173,14 +2168,13 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                     skipIndex = D_80068B78++ & 0xFF;
                     skipStamp = skipIndex | ((CdStream_Runtime.state.chunkIndex << 8) & 0xFFFF00);
                     if (D_80068B74 < skipStamp) {
-                        if ((func_800AF590(0, 0) << 0x10) == 0) {
-                            *(volatile s32*)&D_80068B74 = skipStamp;
-                            goto count_gap;
+                        if ((func_800AF590(0, 0) << 0x10) != 0) {
+                            goto check_status;
                         }
-                        goto check_status;
+                        *(volatile s32*)&D_80068B74 = skipStamp;
+                    } else {
+                        CdGetSector(CdStream_Runtime.state.sector, 0x200);
                     }
-                    CdGetSector(CdStream_Runtime.state.sector, 0x200);
-                count_gap:
                     state                               = &CdStream_Runtime.state;
                     CdStream_Runtime.state.gapRemaining = (u16)CdStream_Runtime.state.gapRemaining - 1;
                     if ((u16)CdStream_Runtime.state.gapRemaining == 0) {
@@ -2316,12 +2310,10 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                             if ((u16)CdStream_Runtime.state.gapRemaining != 0) {
                                 CdStream_Runtime.state.readPhase = CD_STREAM_READ_GAP;
                                 D_80068B78                       = 0;
-                                goto unlock;
                             } else {
-                                goto mark_complete;
+                                state->readPhase = CD_STREAM_READ_COMPLETE;
                             }
                         } else {
-                        mark_complete:
                             state->readPhase = CD_STREAM_READ_COMPLETE;
                         }
                     }
@@ -2352,7 +2344,6 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
             }
         }
     }
-unlock:
     CdStream_ReadyCallbackActive = 0;
 }
 
