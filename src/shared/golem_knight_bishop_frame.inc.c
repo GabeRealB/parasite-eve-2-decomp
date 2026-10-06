@@ -13,44 +13,26 @@ void golemKnightBishopFrameState(Enemy* arg0, Task* arg1)
     GolemKnightBishopWork* temp_s1;
     TmdObject*             temp_a1;
     GfxCoord*              temp_s2;
-    s32                    state;
-    s32                    one;
 
     temp_s1 = arg1->work;
     temp_a1 = arg1->extra.tmd;
     temp_s2 = temp_a1->coords;
-    state   = gSceneCombatState.actorControl;
-    one     = 1;
-    if (state == one) {
-        goto case1;
+    switch (gSceneCombatState.actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            if (temp_s1->fadeState != GOLEM_KNIGHT_BISHOP_FADE_HIDDEN) {
+                temp_a1->flags = 0;
+            }
+            arg0->node.state.parts.flags = (temp_s1->hurtBody.flags >> 0xF) ^ WORLD_TARGET_NOT_LOCKABLE;
+            break;
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            golemKnightBishopUpdateTint(arg1);
+            golemKnightBishopDrawShadow(arg1);
+            return;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    if (temp_s1->fadeState != GOLEM_KNIGHT_BISHOP_FADE_HIDDEN) {
-        temp_a1->flags = 0;
-    }
-    arg0->node.state.parts.flags = (temp_s1->hurtBody.flags >> 0xF) ^ WORLD_TARGET_NOT_LOCKABLE;
-    goto default_body;
-case1:
-    golemKnightBishopUpdateTint(arg1);
-    golemKnightBishopDrawShadow(arg1);
-    return;
-case2:
-    temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     if (temp_s1->regions != 0) {
         golemKnightBishopTakeHits(arg1);
         golemKnightBishopRunSequence(arg1);
