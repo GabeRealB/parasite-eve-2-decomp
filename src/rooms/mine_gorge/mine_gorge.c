@@ -169,6 +169,19 @@ EvsCommand D_mine_gorge_8017E610[14] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
+/// Answers 1 when a pending room-action trigger with `parameter0` 0xFF was hit.
+static inline s32 _mineGorgeRoomTriggerHit(void)
+{
+    WorldCollisionTrigger* node;
+
+    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
+        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /// Answers message `0x13F1` with argument `0x11F`: while flag nibble `0xA4` is
 /// clear and a room-action `WorldCollisionTrigger` with `parameter0 == 0xFF` and a
 /// non-zero `hit` is queued, raises the nibble, spawns the cutscene task
@@ -177,22 +190,9 @@ EvsCommand D_mine_gorge_8017E610[14] = {
 /// did so, 0 otherwise.
 s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    WorldCollisionTrigger* node;
-    s32                    found;
-
     if (arg2 == 0x11F) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) == 0) {
-            node = Gp_PendingObj4C;
-            while (node != NULL) {
-                if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-                    found = 1;
-                    goto check;
-                }
-                node = node->next;
-            }
-            found = 0;
-        check:
-            if (found != 0) {
+            if (_mineGorgeRoomTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
                 taskSpawnFromTableOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
                 gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
