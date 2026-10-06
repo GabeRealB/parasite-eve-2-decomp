@@ -43,10 +43,6 @@
 #define waterRippleTaskFixedCoord   neoArkIslandWaterRippleTaskFixedCoord
 #include "../../shared/water_effects.h"
 
-/// Offsets from the parent coordinate of the two points whose trails
-/// `func_neo_ark_island_80180600` records.
-/// The second of those offsets, which the recording frames read by name.
-
 TaskDesc D_neo_ark_island_80181B30 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
 TaskDesc D_neo_ark_island_80181B3C = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
@@ -93,15 +89,18 @@ DirectionWarpEntry D_neo_ark_island_80181BB4[2] = {
 
 #include "../../shared/water_tile_u16.inc.c"
 
-void func_neo_ark_island_8017FB2C(Task* arg0)
+void neoArkIslandInstallRoomEffectIdsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { EFFECT_IDS_PENDING,
+           EFFECT_IDS_INSTALLED };
+
+    if (task->state == EFFECT_IDS_PENDING) {
         gRoomEffectFlashId       = EFFECT_NEO_ARK_ISLAND_FLASH;
         gRoomEffectTwinTrailId   = EFFECT_NEO_ARK_ISLAND_TWIN_TRAIL;
         gRoomEffectSparkBurstId  = EFFECT_NEO_ARK_ISLAND_SPARK_BURST;
         gRoomEffectWaterRippleId = EFFECT_NEO_ARK_ISLAND_WATER_RIPPLE;
         gRoomEffectWaterSprayId  = EFFECT_NEO_ARK_ISLAND_WATER_SPRAY;
-        arg0->state              = 1;
+        task->state              = EFFECT_IDS_INSTALLED;
     }
 }
 
@@ -109,14 +108,14 @@ void func_neo_ark_island_8017FB2C(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_island_8017FB9C(Task* arg0)
+void neoArkIslandRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_island_80180600(Task* task)
+void neoArkIslandRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

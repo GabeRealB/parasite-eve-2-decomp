@@ -58,15 +58,15 @@ D_neo_ark_island_80181B3C = 0x80181B3C; // size:0xC defined:True
 D_neo_ark_island_80181B48 = 0x80181B48; // size:0x30 defined:True
 D_neo_ark_island_80181B78 = 0x80181B78; // size:0xC defined:True
 
-func_neo_ark_island_8017FB2C = 0x8017FB2C; // type:func
+neoArkIslandInstallRoomEffectIdsTask = 0x8017FB2C; // type:func
 
 neoArkIslandWaterRippleTaskFixedCoord = 0x8017EB68; // type:func
 
 neoArkIslandWaterDriftTaskU16FixedCoord = 0x8017EFE8; // type:func
 
-func_neo_ark_island_8017FB9C = 0x8017FB9C; // type:func
+neoArkIslandRoomVisualEffectsFlashTask = 0x8017FB9C; // type:func
 
-func_neo_ark_island_80180600 = 0x80180600; // type:func
+neoArkIslandRoomVisualEffectsTwinTrailTask = 0x80180600; // type:func
 
 func_neo_ark_island_80180EE8 = 0x80180EE8; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017FE40; // type:func

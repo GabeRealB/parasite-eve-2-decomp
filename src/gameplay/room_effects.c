@@ -878,7 +878,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017D720, { NULL } },                       // 0x151
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_8017F48C, { NULL } },                      // 0x152
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_8017FC10, { NULL } },                              // 0x153
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_8017FB2C, { NULL } },                                // 0x154
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandInstallRoomEffectIdsTask, { NULL } },                        // 0x154
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017EA9C, { NULL } },                                // 0x155
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017D8AC, { NULL } },                         // 0x156
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_1_8017DA18, { NULL } },                         // 0x157
@@ -1013,7 +1013,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017FDD4, { NULL } },                       // 0x1D8
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsFlashTask, { NULL } },                  // 0x1D9
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_8017FCB0, { NULL } },                              // 0x1DA
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_8017FB9C, { NULL } },                                // 0x1DB
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandRoomVisualEffectsFlashTask, { NULL } },                      // 0x1DB
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017DDF4, { NULL } },                         // 0x1DC
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_savanna_zone_8017DA0C, { NULL } },                          // 0x1DD
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_south_promenade_8017D720, { NULL } },                       // 0x1DE
@@ -1041,7 +1041,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_80180838, { NULL } },                       // 0x1F4
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsTwinTrailTask, { NULL } },              // 0x1F5
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80180714, { NULL } },                              // 0x1F6
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_80180600, { NULL } },                                // 0x1F7
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandRoomVisualEffectsTwinTrailTask, { NULL } },                  // 0x1F7
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017E858, { NULL } },                         // 0x1F8
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_savanna_zone_8017E470, { NULL } },                          // 0x1F9
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_south_promenade_8017E184, { NULL } },                       // 0x1FA

@@ -862,11 +862,11 @@ neoArkIslandWaterRippleTaskFixedCoord = 0x8017EB68; // type:func absolute:True o
 
 neoArkIslandWaterDriftTaskU16FixedCoord = 0x8017EFE8; // type:func absolute:True owner=neo_ark_island
 
-func_neo_ark_island_8017FB2C = 0x8017FB2C; // type:func absolute:True owner=neo_ark_island
+neoArkIslandInstallRoomEffectIdsTask = 0x8017FB2C; // type:func absolute:True owner=neo_ark_island
 
-func_neo_ark_island_8017FB9C = 0x8017FB9C; // type:func absolute:True owner=neo_ark_island shared=rooms
+neoArkIslandRoomVisualEffectsFlashTask = 0x8017FB9C; // type:func absolute:True owner=neo_ark_island shared=rooms
 
-func_neo_ark_island_80180600 = 0x80180600; // type:func absolute:True owner=neo_ark_island
+neoArkIslandRoomVisualEffectsTwinTrailTask = 0x80180600; // type:func absolute:True owner=neo_ark_island
 
 func_neo_ark_island_80180EE8 = 0x80180EE8; // type:func absolute:True owner=neo_ark_island
 
