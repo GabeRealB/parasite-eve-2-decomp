@@ -10,7 +10,7 @@ static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
 
     SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
     rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
+    _actorRenderAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     _actorRenderLocalizeRotation(coord, rotation);
     memcpy(coord->coord.m, rotation->m, sizeof(coord->coord.m));

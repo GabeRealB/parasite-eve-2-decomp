@@ -380,6 +380,11 @@ interface is `include/title/title.h`, implemented by `src/title/title.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
 whose entry points retain package identities.
 
+`actorRender` also owns the inline joint-rotation composition helpers in
+`include/actors/actor.h`. Each actor translation unit keeps its own static
+instance, with the `_` marker; composing up to an excluded view node produces
+a world-space rotation without changing the coordinate hierarchy.
+
 `actorMovement` owns the shared coordinate steps used by actor packages:
 translation along a normalized local axis, subject to the live actor-freeze
 state, with distances in parent-coordinate units. Its inline interface is

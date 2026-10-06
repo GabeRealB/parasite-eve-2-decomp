@@ -1018,29 +1018,53 @@ static __inline__ void actorCalcPush(SVECTOR* pos, WorldCollisionContact* rec, S
     out->vz = (pen * d.vz) >> 12;
 }
 
-/// Builds `joint`'s absolute rotation in `out`: its own rotation with each
-/// ancestor pre-multiplied in turn, renormalised after every step, up to but
-/// not including `stop`. Returns whether the walk reached `stop` rather than
-/// the end of the chain.
-static __inline__ s32 actorAccumulateRotation(GfxCoord* joint, MATRIX* out, GfxCoord* stop)
+/// Pre-multiplies a rotation by a parent's basis and normalizes the product.
+///
+/// Inputs use 12-fractional-bit coefficients. Only the resulting 3x3 is valid;
+/// the whole-matrix copy also overwrites translation and alignment bytes.
+static __inline__ void _actorRenderPreMultiplyNormalizedRotation(const MATRIX* parentRotation, MATRIX* rotation)
 {
-    MATRIX    matrix;
-    GfxCoord* coord;
+    MATRIX normalizedRotation;
 
-    coord = joint->parent;
-    *out  = joint->coord;
+    gte_SetRotMatrix(parentRotation);
+    MulRotMatrix(rotation);
+    MatrixNormal(rotation, &normalizedRotation);
+    *rotation = normalizedRotation;
+}
+
+/// Composes a joint's rotation into an ancestor's frame, excluding that ancestor's transform.
+///
+/// Seeds `rotation` with `joint->coord`, then pre-multiplies each parent up to
+/// `excludedAncestor`, normalizing after each product. Coefficients have 12
+/// fractional bits (`ONE` is 1.0); without a product the joint's basis is used
+/// as stored. Excluding `gGfxViewCoord` produces a world-space rotation.
+///
+/// Returns 1 when a non-NULL `excludedAncestor` is reached, or 0 at a NULL
+/// parent, leaving the accumulated rotation on either exit. The joint itself
+/// is always included; the excluded node must be a strict ancestor for success.
+///
+/// `joint` and its acyclic parent chain must remain live for the call.
+/// `rotation` must be a separate, word-aligned writable `MATRIX`. Only its
+/// 3x3 coefficients are a result: after any parent product, the whole-matrix
+/// copy overwrites its translation and alignment bytes with unspecified data.
+/// The coordinate nodes are borrowed and unchanged; GTE working registers change.
+static __inline__ s32 _actorRenderAccumulateRotation(const GfxCoord* joint, MATRIX* rotation,
+                                                     const GfxCoord* excludedAncestor)
+{
+    const GfxCoord* ancestor;
+
+    ancestor  = joint->parent;
+    *rotation = joint->coord;
     while (1) {
-        if (coord == NULL) {
+        if (ancestor == NULL) {
             return 0;
         }
-        if (coord == stop) {
+        if (ancestor == excludedAncestor) {
             return 1;
         }
-        gte_SetRotMatrix(&coord->coord);
-        MulRotMatrix(out);
-        MatrixNormal(out, &matrix);
-        *out  = matrix;
-        coord = coord->parent;
+        // Normalize the product so ancestor scale does not accumulate in the rotation.
+        _actorRenderPreMultiplyNormalizedRotation(&ancestor->coord, rotation);
+        ancestor = ancestor->parent;
     }
 }
 
@@ -1651,8 +1675,8 @@ static __inline__ void actorLocalToView(GfxCoord* coord, SVECTOR* out)
     }
 }
 
-/// `actorAccumulateRotation` stopping at the view coordinate, without the
-/// result.
+/// `_actorRenderAccumulateRotation` with the view as its excluded ancestor,
+/// without returning whether that ancestor was reached.
 static __inline__ void actorAccumulateToView(GfxCoord* coord, MATRIX* mat)
 {
     MATRIX    m;
