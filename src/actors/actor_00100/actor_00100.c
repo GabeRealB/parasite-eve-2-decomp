@@ -3212,43 +3212,29 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                             }
                         }
                     }
-                } else if (work->playerMove.displacement.vx == 0) {
-                    if (work->playerMove.displacement.vz != 0) {
-                        goto dispatchMotion;
-                    }
-                } else {
-                dispatchMotion:
+                } else if ((work->playerMove.displacement.vx != 0) || (work->playerMove.displacement.vz != 0)) {
                     if ((s16)TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &work->playerMove, 0) != 1) {
                         if (work->playerAnimFrames >= 0xF) {
                             work->playerMove.displacement.vx >>= 1;
                             work->playerMove.displacement.vy >>= 1;
                             work->playerMove.displacement.vz >>= 1;
                         }
-                    } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < 6)) {
-                        if (Actor00100_InRegion(player)) {
-                            if (Actor00100_InDirection(player, &work->playerMove.displacement)) {
-                                work->playerMove.collisionRequests = (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
-                                Gp_StateC08.flags                  = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
-                                Gp_PulseState1C();
-                                scratch->vx = (u16)work->playerMove.displacement.vx;
-                                scratch->vy = 0;
-                                scratch->vz = (u16)work->playerMove.displacement.vz;
-                                VectorNormalSS(scratch, scratch);
-                                gte_lddp(250);
-                                gte_ldsv(scratch);
-                                gte_gpf12();
-                                gte_stsv(scratch);
-                                work->playerMove.displacement.vx = (s16)scratch->vx;
-                                work->playerMove.displacement.vy = 0x3C;
-                                work->playerMove.displacement.vz = scratch->vz;
-                            } else {
-                                goto clearMotion;
-                            }
-                        } else {
-                            goto clearMotion;
-                        }
+                    } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < 6) && Actor00100_InRegion(player) && Actor00100_InDirection(player, &work->playerMove.displacement)) {
+                        work->playerMove.collisionRequests = (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
+                        Gp_StateC08.flags                  = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
+                        Gp_PulseState1C();
+                        scratch->vx = (u16)work->playerMove.displacement.vx;
+                        scratch->vy = 0;
+                        scratch->vz = (u16)work->playerMove.displacement.vz;
+                        VectorNormalSS(scratch, scratch);
+                        gte_lddp(250);
+                        gte_ldsv(scratch);
+                        gte_gpf12();
+                        gte_stsv(scratch);
+                        work->playerMove.displacement.vx = (s16)scratch->vx;
+                        work->playerMove.displacement.vy = 0x3C;
+                        work->playerMove.displacement.vz = scratch->vz;
                     } else {
-                    clearMotion:
                         work->playerMove.displacement.vx = 0;
                         work->playerMove.displacement.vy = 0;
                         work->playerMove.displacement.vz = 0;
