@@ -1251,29 +1251,20 @@ const u8* textSkipLines(const u8* text, s32 lineCount)
 {
     u8 byte;
 
-    if (lineCount > 0) {
-        s32 lineFeed       = '\n';
-        s32 upperLineBreak = 'N';
-        s32 lowerLineBreak = 'n';
-        s32 escapePrefix   = '\\';
-    scan:
+    while (lineCount > 0) {
         byte = *text;
         if (byte == '\0') {
-            goto done;
+            break;
         }
-        if (byte == lineFeed) {
+        if (byte == '\n') {
             lineCount -= 1;
-        } else if (byte == upperLineBreak || byte == lowerLineBreak) {
-            if (text[-1] == escapePrefix) {
+        } else if (byte == 'N' || byte == 'n') {
+            if (text[-1] == '\\') {
                 lineCount -= 1;
             }
         }
         text += 1;
-        if (lineCount > 0) {
-            goto scan;
-        }
     }
-done:
     return text;
 }
 
