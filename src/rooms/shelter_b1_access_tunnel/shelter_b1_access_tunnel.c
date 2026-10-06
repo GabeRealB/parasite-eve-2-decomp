@@ -657,11 +657,25 @@ void func_shelter_b1_access_tunnel_8017DD08(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws two light segments from four consecutive borrowed world-space endpoints.
-static inline void _shelterB1AccessTunnelDrawGlowPair(const SVECTOR lightPoints[4], s32 radiusScale, s32 packedColor)
+/// Draws two additive capsule glows with a shared radius scale and tint.
+///
+/// `worldPoints` supplies at least four consecutive, word-aligned world-space
+/// endpoints, paired as [0, 1] and [2, 3]. The points are read only during the
+/// call. Each capsule is independently rejected if either endpoint has negative
+/// GTE flags; accepted endpoints must have nonzero depth (camera Z / 4).
+/// The signed low halfword of `radiusScale` gives the pixel radius at each end
+/// as `(s16)radiusScale * 64 / depth`. `packedColor` bits 8..11, 4..7 and 0..3
+/// supply red, green and blue nibbles scaled by 16; odd animation frames set
+/// bit 3 in each channel. Higher colour bits are ignored in this room's drawer.
+///
+/// Requires composed view matrices, an initialized scratch stack, and a current
+/// ordering table and packet arena with space for up to twelve Gouraud quads
+/// and their additive blend commands. Queued packets live until GPU completion;
+/// the endpoint storage is not retained.
+static inline void _shelterB1AccessTunnelDrawGlowPair(const SVECTOR worldPoints[4], s32 radiusScale, s32 packedColor)
 {
-    _glowDrawCapsule(&lightPoints[0], radiusScale, packedColor);
-    _glowDrawCapsule(&lightPoints[2], radiusScale, packedColor);
+    _glowDrawCapsule(&worldPoints[0], radiusScale, packedColor);
+    _glowDrawCapsule(&worldPoints[2], radiusScale, packedColor);
 }
 
 void shelterB1AccessTunnelDrawGlowsTask(Task* unused)
