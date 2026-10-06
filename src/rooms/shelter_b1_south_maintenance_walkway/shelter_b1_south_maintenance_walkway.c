@@ -87,17 +87,19 @@ extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801830AC[6]
 extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801832B0[2];
 extern WorldCoordRoomLights   D_shelter_b1_south_maintenance_walkway_80183094[1];
 s32                           func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                           func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, s32, s32);
-s32                           func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, s32, s32);
-s32                           func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, s32, s32);
+static s32                    _shelterB1SouthMaintenanceWalkwayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32                    _shelterB1SouthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32                    _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_south_maintenance_walkway_8017D790 },
-    { 5105, func_shelter_b1_south_maintenance_walkway_8017D9D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_south_maintenance_walkway_8017D9E0 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_south_maintenance_walkway_8017D9D8 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB1SouthMaintenanceWalkwayRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1SouthMaintenanceWalkwayIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -437,7 +439,18 @@ RoomLatchedEvent gRoomEventLatched;
 static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event);
 static void func_shelter_b1_south_maintenance_walkway_8017D9E8(Task* task);
-static void func_shelter_b1_south_maintenance_walkway_8017DA2C(Task* task);
+static void _shelterB1SouthMaintenanceWalkwayIdle(Task* task);
+
+/// Selects this room's exported tasks for effects spawned while it is loaded.
+static inline void _shelterB1SouthMaintenanceWalkwayBindEffects(void)
+{
+    gRoomEffectFlashId        = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLASH;
+    gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
+    gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SPARK_BURST;
+    gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_GLOW_DISC;
+    gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLYING_SPARK;
+    gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
+}
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -490,17 +503,26 @@ s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, Roo
     return 1;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in this room with a zero result.
+///
+/// The item ID and all other arguments are neither read nor retained.
+static s32 _shelterB1SouthMaintenanceWalkwayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from scripts and triggers and returns zero.
+///
+/// Neither command word nor any other argument is read or retained.
+static s32 _shelterB1SouthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests from direction triggers and returns zero.
+///
+/// The borrowed request and all other arguments are neither read nor retained.
+static s32 _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -514,14 +536,14 @@ static void func_shelter_b1_south_maintenance_walkway_8017D9E8(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// The room task's idle state: does nothing.
-static void func_shelter_b1_south_maintenance_walkway_8017DA2C(Task* task)
+/// Keeps the initialized room task available for messages without per-frame work.
+static void _shelterB1SouthMaintenanceWalkwayIdle(Task* task)
 {
 }
 
 /// The room task's three states: set-up, idle and exit.
 static const TaskFuncTable3 D_shelter_b1_south_maintenance_walkway_8017D5D8 = {
-    { func_shelter_b1_south_maintenance_walkway_8017D9E8, func_shelter_b1_south_maintenance_walkway_8017DA2C, taskKill },
+    { func_shelter_b1_south_maintenance_walkway_8017D9E8, _shelterB1SouthMaintenanceWalkwayIdle, taskKill },
 };
 
 /// The room task. Runs the handler for its current state from the room's
@@ -534,42 +556,43 @@ void func_shelter_b1_south_maintenance_walkway_8017DA34(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
+void shelterB1SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
 {
-    if (task->state == 0) {
-        gRoomEffectFlashId        = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLASH;
-        gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_TWIN_TRAIL;
-        gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SPARK_BURST;
-        gRoomEffectGlowDiscId     = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_GLOW_DISC;
-        gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_FLYING_SPARK;
-        gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
-        task->state               = 1;
+    enum { GLOWS_INITIALIZE,
+           GLOWS_DRAW,
+           GLOW_RADIUS_SCALE = 0x200,
+           RED_DISC_POINT    = 20 };
+
+    if (task->state == GLOWS_INITIALIZE) {
+        _shelterB1SouthMaintenanceWalkwayBindEffects();
+        task->state = GLOWS_DRAW;
     }
 
+    // Select the visible endpoint pairs by the saved room view; view 1 draws none.
     switch (gGameSession->location.loc.view) {
         case 2:
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
         case 3:
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[2], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[8], 0x200, 0x400);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[2], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[8], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
         case 4:
-            glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[20], 0x200);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[10], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, 0x800);
+            glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[RED_DISC_POINT], GLOW_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[10], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
             break;
         case 5:
-            glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[20], 0x200);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[12], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], 0x200, -0x400);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[16], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[18], 0x200, -0x400);
+            glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[RED_DISC_POINT], GLOW_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[12], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[16], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[18], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
     }
 }
@@ -582,14 +605,14 @@ void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_south_maintenance_walkway_8017E760(Task* arg0)
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_south_maintenance_walkway_8017F1C4(Task* task)
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -610,16 +633,16 @@ void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b1_south_maintenance_walkway_80180C4C(Task* task)
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b1_south_maintenance_walkway_801818AC(Task* arg0)
+void shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"

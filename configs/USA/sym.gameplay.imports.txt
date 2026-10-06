@@ -1065,15 +1065,15 @@ func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func absolute:T
 
 shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F894; // type:func absolute:True owner=shelter_b1_sleeping_quarters
 
-func_shelter_b1_south_maintenance_walkway_8017E760 = 0x8017E760; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
+shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x8017E760; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 
-func_shelter_b1_south_maintenance_walkway_8017F1C4 = 0x8017F1C4; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
+shelterB1SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x8017F1C4; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
 func_shelter_b1_south_maintenance_walkway_801806F4 = 0x801806F4; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
-func_shelter_b1_south_maintenance_walkway_80180C4C = 0x80180C4C; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
+shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask = 0x80180C4C; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
-func_shelter_b1_south_maintenance_walkway_801818AC = 0x801818AC; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
+shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask = 0x801818AC; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway
 
 func_shelter_b1_sterilization_room_8018188C = 0x8018188C; // type:func absolute:True owner=shelter_b1_sterilization_room
 
@@ -1316,7 +1316,7 @@ func_shelter_b6_corridor_8017E238 = 0x8017E238; // type:func absolute:True owner
 
 func_shelter_b6_corridor_8017ECA8 = 0x8017ECA8; // type:func absolute:True owner=shelter_b6_corridor
 
-func_shelter_b6_growth_room_8017D9D8 = 0x8017D9D8; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
+func_shelter_b6_growth_room_8017D9D8 = 0x8017D9D8; // type:func absolute:True owner=shelter_b6_growth_room
 
 shelterB6GrowthRoomMistTask = 0x8017E564; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
 
@@ -1857,7 +1857,7 @@ mineSecretPassageDrawLightGlowsTask = 0x8017D9D4; // type:func absolute:True own
 
 shelterB1ElevatorHallDrawGlowsTask = 0x8017DC80; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
-func_shelter_b1_south_maintenance_walkway_8017DA8C = 0x8017DA8C; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
+shelterB1SouthMaintenanceWalkwayDrawGlowsTask = 0x8017DA8C; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 
 func_shelter_b1_storeroom_8017D7EC = 0x8017D7EC; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
 
