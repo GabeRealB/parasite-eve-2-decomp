@@ -919,7 +919,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeWaterRippleTask, { NULL } },                                            // 0x17A
     { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeWaterDriftTask, { NULL } },                                             // 0x17B
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLeafFallTask, { NULL } },                                        // 0x17C
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sterilization_room_801823D8, { NULL } },                            // 0x17D
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1SterilizationRoomPuffTask, { NULL } },                                     // 0x17D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08DrawGlowsTask, { NULL } },                                          // 0x17E
     { { { TASK_BODY_COORD, 0x70 } }, m4a1PykeFlameTask, { NULL } },                                                      // 0x17F
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_80161F20, { NULL } },                                             // 0x180

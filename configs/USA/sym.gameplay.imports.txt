@@ -1077,7 +1077,7 @@ shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask = 0x80181
 
 func_shelter_b1_sterilization_room_8018188C = 0x8018188C; // type:func absolute:True owner=shelter_b1_sterilization_room
 
-func_shelter_b1_sterilization_room_801823D8 = 0x801823D8; // type:func absolute:True owner=shelter_b1_sterilization_room
+shelterB1SterilizationRoomPuffTask = 0x801823D8; // type:func absolute:True owner=shelter_b1_sterilization_room
 
 func_shelter_b1_storeroom_8017E7A8 = 0x8017E7A8; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
 

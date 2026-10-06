@@ -62,7 +62,11 @@ void func_shelter_b1_sterilization_room_8018118C(s32);
 
 void func_shelter_b1_sterilization_room_801813A0(Task*);
 
-void func_shelter_b1_sterilization_room_801814FC(Task*);
+/// Selects room 2 after requesting a view refresh on the preceding task tick.
+///
+/// Updates both the live save and session room selectors, requests room-object
+/// relinking, then releases the task on its next tick. Spawn arguments are unused.
+void shelterB1SterilizationRoomSwitchRoomTask(Task* task);
 
 void func_shelter_b1_sterilization_room_80181588(Task*);
 

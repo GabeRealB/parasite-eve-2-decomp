@@ -37,7 +37,18 @@ void func_shelter_b1_sterilization_room_80180518(Task* task);
 
 void func_shelter_b1_sterilization_room_8018188C(Task* task);
 
-void func_shelter_b1_sterilization_room_801823D8(Task* task);
+/// Animates one drifting, expanding sterilization puff through ten sprite frames.
+///
+/// Bank-6 effect 0x17D requires its counted, zeroed `EffectWork` allocation in
+/// `spawnArg2.pointer` and a coordinate body. The low 12 bits of `spawnArg1`
+/// must be a source index 0..63; each group of 16 selects one of four Q12
+/// directions. The signed high halfword biases the initial perspective size.
+/// `index` holds ticks per sprite frame (1..4), `period` the initial velocity
+/// magnitude, and `step` the size growth per tick. Movement, size and age pause
+/// while room effects are paused; drawing continues. Initialization while paused
+/// leaves age zero, drawing signed frame -1 when the cadence is one tick.
+/// Releases the work and task after the last frame.
+void shelterB1SterilizationRoomPuffTask(Task* task);
 
 void func_shelter_b1_sterilization_room_8017EB2C(Task* task);
 

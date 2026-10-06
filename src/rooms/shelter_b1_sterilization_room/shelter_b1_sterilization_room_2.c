@@ -63,7 +63,7 @@
 extern EvsCommand D_shelter_b1_sterilization_room_80188C94[];
 extern EvsCommand D_shelter_b1_sterilization_room_80188E14[];
 
-static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale);
 
 // Indexed views below share one contiguous table.
 extern WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25];
@@ -961,23 +961,28 @@ void func_shelter_b1_sterilization_room_801814B0(void)
     Task_Spawn(0, 0x11, 0, 0);
 }
 
-void func_shelter_b1_sterilization_room_801814FC(Task* arg0)
+void shelterB1SterilizationRoomSwitchRoomTask(Task* task)
 {
-    s32 state = arg0->state;
+    enum {
+        SHELTER_B1_STERILIZATION_ROOM_SWITCH_REQUEST_VIEW = 0,
+        SHELTER_B1_STERILIZATION_ROOM_SWITCH_SELECT_ROOM  = 1,
+        SHELTER_B1_STERILIZATION_ROOM_SWITCH_DESTINATION  = 2,
+    };
+    s32 switchState = task->state;
 
-    switch (state) {
-        case 0:
+    switch (switchState) {
+        case SHELTER_B1_STERILIZATION_ROOM_SWITCH_REQUEST_VIEW:
             gGameSession->viewDirty = 1;
-            arg0->state            += 1;
+            task->state            += 1;
             break;
-        case 1:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-            gGameSession->location.loc.room                            = 2;
-            gGameSession->roomObjsDirty                                = state;
-            arg0->state                                               += 1;
+        case SHELTER_B1_STERILIZATION_ROOM_SWITCH_SELECT_ROOM:
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B1_STERILIZATION_ROOM_SWITCH_DESTINATION;
+            gGameSession->location.loc.room                            = SHELTER_B1_STERILIZATION_ROOM_SWITCH_DESTINATION;
+            gGameSession->roomObjsDirty                                = switchState;
+            task->state                                               += 1;
             break;
         default:
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -1134,7 +1139,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         break;
                     case 19:
                         glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[0x50], 0x100, 0x440);
-                        func_shelter_b1_sterilization_room_80183B8C(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
+                        _shelterB1SterilizationRoomDrawPulsingGlow(&D_shelter_b1_sterilization_room_8018909C[0x4F], 0x60, 0x80);
                         break;
                     case 20:
                         _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[0x44], 0x200, 0x222);
@@ -1360,43 +1365,46 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
     }
 }
 
-/// Per-frame update of a drifting effect drawn by
-/// `spriteQuadDraw`. State 0 seeds the work block
-/// from the LCG and takes a direction from a table indexed by the 12-bit angle
-/// in `spawnArg1`, scaled through the GTE by `period` and jittered into the
-/// velocity `move`. Each tick then moves the coordinate by that velocity
-/// and adds `step` to `scale`; while an event is running the tick
-/// counter is held instead. The drawn frame advances every `index` ticks
-/// and the task is released once ten frames have passed.
-void func_shelter_b1_sterilization_room_801823D8(Task* task)
+void shelterB1SterilizationRoomPuffTask(Task* task)
 {
+    enum {
+        SHELTER_B1_STERILIZATION_ROOM_PUFF_INITIALIZE            = 0,
+        SHELTER_B1_STERILIZATION_ROOM_PUFF_ANIMATE               = 1,
+        SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCE_INDEX_MASK     = 0xFFF,
+        SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION = 16,
+        SHELTER_B1_STERILIZATION_ROOM_PUFF_FRAME_COUNT           = 10,
+        SHELTER_B1_STERILIZATION_ROOM_PUFF_BASE_SIZE             = 0x180,
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         base;
+    SVECTOR*    velocity;
+    s32         sizeBias;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     work->age++;
     switch (task->state) {
-        case 0:
-            base                   = task->spawnArg1.halves.high;
-            work->scale            = ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF) + 0x180) + base;
-            work->angle            = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFFF;
-            task->spawnArg1.value &= 0xFFF;
+        case SHELTER_B1_STERILIZATION_ROOM_PUFF_INITIALIZE:
+            // Choose the size, fixed sprite rotation and animation cadence once.
+            sizeBias               = task->spawnArg1.halves.high;
+            work->scale            = ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF) + SHELTER_B1_STERILIZATION_ROOM_PUFF_BASE_SIZE) + sizeBias;
+            work->angle            = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (GLOW_FULL_TURN - 1);
+            task->spawnArg1.value &= SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCE_INDEX_MASK;
             work->index            = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 1;
             work->period           = (work->scale >> 5) + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
             work->step             = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF;
+            // Scale the source group's Q12 direction, then jitter each component.
             gte_lddp(work->period);
-            gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1.value / 16]);
+            gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1.value / SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION]);
             gte_gpf12();
-            vec = &work->move;
-            gte_stsv(vec);
+            velocity = &work->move;
+            gte_stsv(velocity);
             work->move.vx -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
             work->move.vy -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
             work->move.vz -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
-            task->state    = 1;
-        case 1:
+            task->state    = SHELTER_B1_STERILIZATION_ROOM_PUFF_ANIMATE;
+            // The first animation tick also runs on the initialization tick.
+        case SHELTER_B1_STERILIZATION_ROOM_PUFF_ANIMATE:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 coord->coord.t[0]  += work->move.vx;
                 coord->coord.t[1]  += work->move.vy;
@@ -1408,7 +1416,7 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
             }
             spriteQuadDraw(coord, (work->age - 1) / work->index,
                            work->scale, work->angle);
-            if (work->index * 10 - 1 < work->age) {
+            if (work->index * SHELTER_B1_STERILIZATION_ROOM_PUFF_FRAME_COUNT - 1 < work->age) {
                 effectKillTask(work, task);
             }
             break;
@@ -1444,131 +1452,136 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
 
 #include "../../shared/glow_draw_diamond.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues a glow of gouraud `POLY_G4` wedges
-/// around the projected centre: an eight-step disc of radius
-/// `(s16)arg2 * 64 / otz`, each wedge paired with a half-radius copy, then
-/// wedges reaching between that radius and an inner one of
-/// `(s16)arg2 * 8 / otz`. Only the centre vertex is lit, on green and blue, at
-/// `rsin(animFrame * (s16)arg1) / 34 + 0x78` so the glow pulses.
-static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Initializes a cyan-centred Gouraud wedge with a black rim.
+///
+/// Sets packet length and command, and narrows green/blue to the intensity's
+/// low byte. The caller supplies coordinates, linkage and additive blending.
+static inline void _shelterB1SterilizationRoomInitGlowWedge(POLY_G4* wedge, s32 intensity)
 {
-    RoomDiscScratch* block;
-    POLY_G4*         prim;
-    s32              pulse;
-    s32              color;
-    s32              half;
-    s32              size;
-    s32              ang;
-    s32              t;
-    s32              t2;
-    s32              u;
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, 0, intensity, intensity);
+    setRGB3(wedge, 0, 0, 0);
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDiscScratch);
+/// Draws a pulsing cyan disc with four alternating-length glow blades.
+///
+/// Borrows `worldPoint` in world coordinates for this call. `pulseRate` is in
+/// 4096 angle units per animation frame; `radiusScale` gives a disc radius of
+/// `radiusScale * 64 / depth` pixels, where depth is camera Z / 4. The rim is
+/// black; green/blue intensity pulses around 120. Eight outer wedges have
+/// brighter half-radius copies; four half-bright blades reach the outer radius
+/// and twice it. Rejects negative GTE flags and requires nonzero accepted depth.
+/// Needs a composed view matrix, 20 scratch bytes, and space for twenty Gouraud
+/// quads plus additive blend packets in the current frame's GPU arena/table.
+static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale)
+{
+    RoomDiscScratch* scratch;
+    POLY_G4*         wedge;
+    s32              pulseSine;
+    s32              intensity;
+    s32              halfIntensity;
+    s32              angle;
+    s32              halfStepAngle;
+    s32              nextAngle;
+    s32              bladeAngle;
 
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(RoomDiscScratch);
+
+    // Project the centre once; screen radii use its camera depth.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        pulse              = rsin(gDisplayState.animFrame * (s16)arg1);
-        ang                = 0;
-        size               = (s16)arg2;
-        block->outerRadius = (size * 64) / block->otz;
-        color              = pulse / 34 + 0x78;
-        block->innerRadius = (size * 8) / block->otz;
+    gte_stsxy(&scratch->sx);
+    gte_stflg(&scratch->flag);
+    if (scratch->flag >= 0) {
+        gte_stszotz(&scratch->otz);
+        pulseSine            = rsin(gDisplayState.animFrame * pulseRate);
+        angle                = 0;
+        scratch->outerRadius = (radiusScale * GLOW_RADIUS_SCALE) / scratch->otz;
+        intensity            = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+        scratch->innerRadius = (radiusScale * GLOW_INNER_RADIUS_SCALE) / scratch->otz;
+        // Pair each outer wedge with a brighter copy at half radius.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            half = (s16)color >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, half, half);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            setPolyG4(wedge);
+            halfIntensity = (s16)intensity >> 1;
+            setRGB0(wedge, 0, 0, 0);
+            setRGB1(wedge, 0, 0, 0);
+            setRGB2(wedge, 0, halfIntensity, halfIntensity);
+            setRGB3(wedge, 0, 0, 0);
+            wedge->x0     = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + GLOW_SIXTEENTH_TURN;
+            wedge->y0     = scratch->sy + ((scratch->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1     = scratch->sx + ((scratch->outerRadius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y1     = scratch->sy + ((scratch->outerRadius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = angle + GLOW_EIGHTH_TURN;
+            wedge->x2     = scratch->sx;
+            wedge->y2     = scratch->sy;
+            wedge->x3     = scratch->sx + ((scratch->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3     = scratch->sy + ((scratch->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->outerRadius * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->outerRadius * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->outerRadius * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->outerRadius * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            _shelterB1SterilizationRoomInitGlowWedge(wedge, intensity);
+            wedge->x0 = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y0 = scratch->sy + ((scratch->outerRadius * rcos(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->x1 = scratch->sx + ((scratch->outerRadius * rsin(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y1 = scratch->sy + ((scratch->outerRadius * rcos(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->x2 = scratch->sx;
+            wedge->y2 = scratch->sy;
+            wedge->x3 = scratch->sx + ((scratch->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y3 = scratch->sy + ((scratch->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            angle     = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
+        } while (angle < GLOW_FULL_TURN);
 
-        color = half;
-        ang   = 0x200;
+        // Overlay four blades, alternating tips at one and two outer radii.
+        intensity = halfIntensity;
+        angle     = GLOW_EIGHTH_TURN;
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->innerRadius * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(ang)) >> 12);
-            u        = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            _shelterB1SterilizationRoomInitGlowWedge(wedge, intensity);
+            bladeAngle = angle - GLOW_QUARTER_TURN;
+            wedge->x0  = scratch->sx + ((scratch->innerRadius * rsin(bladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y0  = scratch->sy + ((scratch->innerRadius * rcos(bladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->x1  = scratch->sx + ((scratch->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->y1  = scratch->sy + ((scratch->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            bladeAngle = angle + GLOW_QUARTER_TURN;
+            wedge->x2  = scratch->sx;
+            wedge->y2  = scratch->sy;
+            wedge->x3  = scratch->sx + ((scratch->innerRadius * rsin(bladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            wedge->y3  = scratch->sy + ((scratch->innerRadius * rcos(bladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, color, color);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->innerRadius * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->innerRadius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->outerRadius * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->outerRadius * rcos(u)) >> 11);
-            u        = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->innerRadius * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->innerRadius * rcos(u)) >> 12);
-            ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-        } while (ang < 0x1000);
+            wedge          = gGpuPrimCursor;
+            gGpuPrimCursor = wedge + 1;
+            _shelterB1SterilizationRoomInitGlowWedge(wedge, intensity);
+            wedge->x0  = scratch->sx + ((scratch->innerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->y0  = scratch->sy + ((scratch->innerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            wedge->x1  = scratch->sx + ((scratch->outerRadius * rsin(bladeAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            wedge->y1  = scratch->sy + ((scratch->outerRadius * rcos(bladeAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            bladeAngle = angle + GLOW_HALF_TURN;
+            wedge->x2  = scratch->sx;
+            wedge->y2  = scratch->sy;
+            wedge->x3  = scratch->sx + ((scratch->innerRadius * rsin(bladeAngle)) >> GLOW_TRIG_SHIFT);
+            wedge->y3  = scratch->sy + ((scratch->innerRadius * rcos(bladeAngle)) >> GLOW_TRIG_SHIFT);
+            angle      = bladeAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    wedge);
+            gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
+        } while (angle < GLOW_FULL_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomDiscScratch);
 }

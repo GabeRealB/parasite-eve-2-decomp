@@ -178,7 +178,7 @@ D_shelter_b1_sterilization_room_80188728 = 0x80188728; // size:0x10 defined:True
 
 func_shelter_b1_sterilization_room_8018188C = 0x8018188C; // type:func
 
-func_shelter_b1_sterilization_room_801823D8 = 0x801823D8; // type:func
+shelterB1SterilizationRoomPuffTask = 0x801823D8; // type:func
 
 func_shelter_b1_sterilization_room_8017EB2C = 0x8017EB2C; // type:func
 Telephone_DrawPlayDataRow = 0x8017D794; // type:func
@@ -210,3 +210,5 @@ crossfadeOutState = 0x801812A0; // type:func
 crossfadeSetTpage = 0x80181308; // type:func
 crossfadeDrawBackdrop = 0x80180BF0; // type:func
 spriteQuadDraw = 0x801826F0; // type:func
+shelterB1SterilizationRoomSwitchRoomTask = 0x801814fc; // type:func
+_shelterB1SterilizationRoomDrawPulsingGlow = 0x80183b8c; // type:func
