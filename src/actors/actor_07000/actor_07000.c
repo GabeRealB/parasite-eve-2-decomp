@@ -1130,30 +1130,21 @@ static void Actor07000_Fn03164(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     coord = obj->coords;
     one   = 1;
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            obj->flags                   = 0;
+            arg0->node.state.parts.flags = 0;
+            break;
+        case 2:
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = one;
+            return;
+        case 1:
+            Actor07000_Fn05F84(arg1);
+            return;
+        default:
+            break;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags                   = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case2:
-    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     switch (work->state) {
         case ACTOR_07000_SLOUCH_STATE_IDLE:
             Actor07000_Fn03460(arg1, obj, one);
@@ -1181,7 +1172,12 @@ default_body:
                 work->animFrames  = 0;
                 work->stateFrames = 0;
             }
-            goto block_21;
+            work->idleFrames += 1;
+            if (work->idleFrames >= 0x10) {
+                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
+                work->idleFrames = 0;
+            }
+            break;
         case ACTOR_07000_SLOUCH_STATE_PUFFING_DEATH:
             work->stateFrames += 1;
             if (work->stateFrames >= 0xB) {
@@ -1199,7 +1195,6 @@ default_body:
                     work->deathPhase        = ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN;
                 }
             }
-        block_21:
             work->idleFrames += 1;
             if (work->idleFrames >= 0x10) {
                 Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
@@ -1216,7 +1211,6 @@ default_body:
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-case1:
     Actor07000_Fn05F84(arg1);
 }
 
@@ -1954,7 +1948,6 @@ static void Actor07000_Fn04E60(Task* arg0)
     WorldCollisionContact*           hit;
     WorldCollisionContact*           contacts;
     s32                              state;
-    s32                              one;
 
     work    = arg0->work;
     part    = arg0->extra.tmd;
@@ -1963,32 +1956,19 @@ static void Actor07000_Fn04E60(Task* arg0)
     capsule = &work->capsule;
     coord   = part->coords;
     hit     = work->contacts;
-    one     = 1;
 
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            part->flags = 0;
+            break;
+        case 1:
+            return;
+        case 2:
+            part->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        default:
+            break;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    part->flags = 0;
-    goto default_body;
-case1:
-    return;
-case2:
-    part->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    return;
-default_body:
     // Sweep the capsule back over this frame's step, then take the step.
     capsule->ends[1].vx = -work->velocity.vx;
     capsule->ends[1].vy = -work->velocity.vy;
@@ -2005,9 +1985,11 @@ default_body:
         if (child != NULL) {
             child->spawnArg1.value = 3;
         }
-        goto block_16;
-    }
-    if (worldCollisionFindContactIndex(contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+        // Landed: stop colliding and leave the task to its kill countdown.
+        work->body.flags    = work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        arg0->killCountdown = 0x1E;
+        arg0->state         = arg0->state + 1;
+    } else if (worldCollisionFindContactIndex(contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         sndEvtRequestScriptStart(SOUND_SUCKLERCEPH_PROJECTILE_IMPACT, (s8)worldCoordGetOriginAudioPan(coord),
                                  (s8)worldCoordGetOriginAudioDepth(coord));
         if (child != NULL) {
@@ -2017,7 +1999,6 @@ default_body:
                 child->spawnArg1.value = 2;
             }
         }
-    block_16:
         // Landed: stop colliding and leave the task to its kill countdown.
         work->body.flags    = work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         arg0->killCountdown = 0x1E;
