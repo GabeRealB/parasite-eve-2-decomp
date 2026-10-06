@@ -4309,11 +4309,9 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 work->scriptedDelay = (gRandomLcgState >> 16) % 20;
             }
             if (variant == 3) {
-                obj = arg0->extra.tmd;
-                do {
-                    obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    obj         = arg0->extra.tmd;
-                } while (0);
+                obj         = arg0->extra.tmd;
+                obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+                obj         = arg0->extra.tmd;
                 obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
