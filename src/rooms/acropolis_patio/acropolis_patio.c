@@ -2167,17 +2167,33 @@ void func_acropolis_patio_8017E100(Task* task)
     }
 }
 
-/// Sets a light glow's square screen bounds from its projected centre.
+/// Positions a patio light glow as a square around its projected screen centre.
 ///
-/// `screenPos` and `halfExtent` count pixels. Each edge narrows to a signed
-/// halfword before filling the two corners that share it; vertex order is
-/// top-left, top-right, bottom-left, bottom-right. Only packet coordinates change.
-static inline void _acropolisPatioSetLightGlowBounds(POLY_FT4* glowQuad, const RoomGlowSpriteScratch* spriteScratch)
+/// Borrows a writable packet and a separate, read-only `projection` for this
+/// call. Only `screenPos` and `halfExtent` need initialization in the projection;
+/// both count whole pixels, with a nonnegative half-extent. Centre plus/minus
+/// extent must fit signed 32-bit arithmetic. Each edge narrows to signed 16 bits
+/// without clipping. Vertices 0..3 are top-left, top-right, bottom-left and
+/// bottom-right. Writes only the eight coordinate halfwords.
+static inline void _acropolisPatioSetLightGlowBounds(POLY_FT4* glowQuad, const RoomGlowSpriteScratch* projection)
 {
-    glowQuad->x0 = glowQuad->x2 = spriteScratch->screenPos.vx - spriteScratch->halfExtent;
-    glowQuad->x1 = glowQuad->x3 = spriteScratch->screenPos.vx + spriteScratch->halfExtent;
-    glowQuad->y0 = glowQuad->y1 = spriteScratch->screenPos.vy - spriteScratch->halfExtent;
-    glowQuad->y2 = glowQuad->y3 = spriteScratch->screenPos.vy + spriteScratch->halfExtent;
+    s16 left;
+    s16 right;
+    s16 top;
+    s16 bottom;
+
+    left         = projection->screenPos.vx - projection->halfExtent;
+    glowQuad->x2 = left;
+    glowQuad->x0 = left;
+    right        = projection->screenPos.vx + projection->halfExtent;
+    glowQuad->x3 = right;
+    glowQuad->x1 = right;
+    top          = projection->screenPos.vy - projection->halfExtent;
+    glowQuad->y1 = top;
+    glowQuad->y0 = top;
+    bottom       = projection->screenPos.vy + projection->halfExtent;
+    glowQuad->y3 = bottom;
+    glowQuad->y2 = bottom;
 }
 
 /// Projects a patio light's cached view position into a flickering additive glow.
