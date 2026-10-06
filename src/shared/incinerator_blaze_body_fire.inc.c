@@ -2,7 +2,7 @@
 
 /* Part of the incinerator blaze library; see incinerator_blaze.h. */
 
-/// Spawn task of the overlay's spawn table (`blazeFadeTask`'s
+/// Spawn task of the overlay's spawn table (`_blazeFadeTask`'s
 /// neighbour entry, started with the encounter): each tick rolls the LCG and
 /// aims the overlay's effect record at one part of the player's model, taken
 /// from the coordinate array `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`'s display object owns.

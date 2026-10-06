@@ -4985,7 +4985,7 @@ objects = [
 ]
 
 [actors.overlays.actor_342100]
-label = "the overlay id word is 0x0..0x4 and the leading rodata is the unit's three jump tables, the first of which - func_actor_342100_80162748's six-entry one - starts at 0x4, so the head must be its own object or the table's .align 3 pads it"
+label = "the overlay id word is 0x0..0x4 and the leading rodata is the unit's three jump tables, the first of which - _blazeFadeTask's six-entry one - starts at 0x4, so the head must be its own object or the table's .align 3 pads it"
 slot = 3
 id = 237
 objects = [

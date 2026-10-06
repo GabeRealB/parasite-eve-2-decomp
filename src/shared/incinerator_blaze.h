@@ -50,7 +50,7 @@ enum {
 /// The second payload is ignored and the callback has no defined result.
 extern TaskMessageEntry gBlazeFadeMessages[1];
 
-void blazeFadeTask(Task* arg0);
-void blazeBodyFireTask(Task* arg0);
+static void _blazeFadeTask(Task* task);
+void        blazeBodyFireTask(Task* arg0);
 
 #endif /* SRC_SHARED_INCINERATOR_BLAZE_H */

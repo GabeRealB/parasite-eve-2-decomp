@@ -1,91 +1,123 @@
 /* Part of the incinerator blaze library; see incinerator_blaze.h. */
 
-/// Fade-to-white driver of the encounter, six states over the eight-byte
-/// channel block it allocates into its own `Task::work` and hands the parent
-/// work block through `Task::spawnArg2`.
+/// Queues the opaque white screen held after the incinerator's colour ramps.
 ///
-/// State 0 allocates the ramp, zeroes the three channels and parks the
-/// message record `gBlazeFadeMessages` in `Task::msgTable`. States 2 and
-/// 3 step `r` -- the first by 0xA up to 0x50, the second by 1 up to
-/// 0xFF -- and each hands the state machine back to 1 when it clamps, so the
-/// two ramps run back to back. State 4 steps `g` / `b` by 8; once
-/// `g` passes 0xFF the framebuffer environments are reconfigured, `Fs_ImgBuffers` is
-/// filled white, the parent work block's wave ramp is sent to
-/// `SCREEN_WAVE_RAMP_FINISHED`, and state 5 draws the full-screen white
-/// `TILE` + `DR_TPAGE` packed into `gGpuPrimCursor` before returning without
-/// the fade call. Every other state
-/// -- 1, 6 and up -- only draws the fade.
-void blazeFadeTask(Task* arg0)
+/// Borrows one TILE and one DR_TPAGE from the word-aligned frame arena until
+/// GPU completion. Foreground OT tag -16 must be writable. The fixed screen
+/// rectangle retains the draw environment's vertical shake.
+static inline void _blazeQueueWhiteout(void)
 {
-    ScreenFadeWork*  work;
-    ScreenFadeWork*  alloc;
-    BlazeParentWork* parent;
-    TILE*            tile;
-    DR_TPAGE*        dr;
+    enum {
+        BLAZE_FADE_CHANNEL_MAX   = 255,
+        BLAZE_FADE_WIDTH_PIXELS  = 320,
+        BLAZE_FADE_HEIGHT_PIXELS = 240,
+        BLAZE_FADE_OT_INDEX      = -16,
+    };
+    TILE*     tile;
+    DR_TPAGE* drawMode;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setTile(tile);
+    tile->r0 = BLAZE_FADE_CHANNEL_MAX;
+    tile->g0 = BLAZE_FADE_CHANNEL_MAX;
+    tile->b0 = BLAZE_FADE_CHANNEL_MAX;
+    tile->x0 = -BLAZE_FADE_WIDTH_PIXELS / 2;
+    tile->y0 = -BLAZE_FADE_HEIGHT_PIXELS / 2;
+    tile->w  = BLAZE_FADE_WIDTH_PIXELS;
+    tile->h  = BLAZE_FADE_HEIGHT_PIXELS;
+    addPrim(gGpuCurrentOt + BLAZE_FADE_OT_INDEX, tile);
+
+    // OT insertion prepends: the draw mode must execute before the tile.
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, 0);
+    addPrim(gGpuCurrentOt + BLAZE_FADE_OT_INDEX, drawMode);
+}
+
+/// Draws the incinerator's scripted red-to-white fade and holds the whiteout.
+///
+/// Start a bodyless task in state 0. `spawnArg2.pointer` borrows its controller
+/// task, whose work begins with `BlazeParentWork` and must remain live until the
+/// wash to white finishes; `spawnArg1` is unused. The task owns an eight-byte
+/// `ScreenFadeWork` primary-heap allocation until teardown. Allocation failure
+/// kills the task.
+///
+/// `BLAZE_FADE_MESSAGE_SET_STATE` selects 2 (red +10 to 80), 3 (red +1 to 255),
+/// then 4 (green and blue +8 to white), with one step per callback. Each red
+/// ramp returns to state 1, holding the additive tint until the next request.
+/// The white wash stops the controller's heat haze, restores the default
+/// framebuffer layout and fills the complete RAM image workspace white.
+/// State 5 holds an opaque 320 by 240 white tile without vertical-shake
+/// compensation. Other states only draw the current tint's low channel bytes.
+///
+/// Drawing requires a word-aligned frame-arena reservation for one `TILE` and
+/// one `DR_TPAGE`, and a writable foreground OT tag at index -16. Packet storage
+/// remains borrowed until GPU completion. The task stays live after whiteout.
+static void _blazeFadeTask(Task* task)
+{
+    enum {
+        BLAZE_FADE_STATE_INIT       = 0,
+        BLAZE_FADE_STATE_HOLD_TINT  = 1,
+        BLAZE_FADE_STATE_FAST_RED   = 2,
+        BLAZE_FADE_STATE_SLOW_RED   = 3,
+        BLAZE_FADE_STATE_TO_WHITE   = 4,
+        BLAZE_FADE_STATE_HOLD_WHITE = 5,
+        BLAZE_FADE_FAST_RED_STEP    = 10,
+        BLAZE_FADE_FAST_RED_MAX     = 80,
+        BLAZE_FADE_WHITE_STEP       = 8,
+        BLAZE_FADE_CHANNEL_MAX      = 255,
+        BLAZE_FADE_WHITE_IMAGE_FILL = 0xFF,
+    };
+    ScreenFadeWork*  fadeWork;
+    BlazeParentWork* parentWork;
+
+    fadeWork = task->work;
+    switch (task->state) {
+        case BLAZE_FADE_STATE_INIT:
+            task->work = memMalloc(sizeof(*fadeWork), false);
+            if (task->work == NULL) {
+                taskKill(task);
                 return;
             }
-            work           = alloc;
-            work->b        = 0;
-            work->g        = 0;
-            work->r        = 0;
-            arg0->msgTable = gBlazeFadeMessages;
-            arg0->state   += 1;
+            fadeWork       = task->work;
+            fadeWork->b    = 0;
+            fadeWork->g    = 0;
+            fadeWork->r    = 0;
+            task->msgTable = gBlazeFadeMessages;
+            task->state   += 1;
             break;
-        case 2:
-            work->r += 0xA;
-            if (work->r >= 0x51) {
-                work->r     = 0x50;
-                arg0->state = 1;
+        case BLAZE_FADE_STATE_FAST_RED:
+            fadeWork->r += BLAZE_FADE_FAST_RED_STEP;
+            if (fadeWork->r >= BLAZE_FADE_FAST_RED_MAX + 1) {
+                fadeWork->r = BLAZE_FADE_FAST_RED_MAX;
+                task->state = BLAZE_FADE_STATE_HOLD_TINT;
             }
             break;
-        case 3:
-            work->r += 1;
-            if (work->r >= 0x100) {
-                work->r     = 0xFF;
-                arg0->state = 1;
+        case BLAZE_FADE_STATE_SLOW_RED:
+            fadeWork->r += 1;
+            if (fadeWork->r >= BLAZE_FADE_CHANNEL_MAX + 1) {
+                fadeWork->r = BLAZE_FADE_CHANNEL_MAX;
+                task->state = BLAZE_FADE_STATE_HOLD_TINT;
             }
             break;
-        case 4:
-            work->g += 8;
-            work->b += 8;
-            if (work->g >= 0x100) {
-                parent             = (BlazeParentWork*)((Task*)arg0->spawnArg2.pointer)->work;
-                parent->wave.state = SCREEN_WAVE_RAMP_FINISHED;
+        case BLAZE_FADE_STATE_TO_WHITE:
+            fadeWork->g += BLAZE_FADE_WHITE_STEP;
+            fadeWork->b += BLAZE_FADE_WHITE_STEP;
+            if (fadeWork->g >= BLAZE_FADE_CHANNEL_MAX + 1) {
+                // Replace the heat-haze image with white before holding the whiteout.
+                parentWork             = ((Task*)task->spawnArg2.pointer)->work;
+                parentWork->wave.state = SCREEN_WAVE_RAMP_FINISHED;
                 displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
-                memFillBytes(Fs_ImgBuffers, 0xFF, sizeof(*Fs_ImgBuffers));
-                work->b     = 0xFF;
-                work->g     = 0xFF;
-                arg0->state = 5;
+                memFillBytes(Fs_ImgBuffers, BLAZE_FADE_WHITE_IMAGE_FILL, sizeof(*Fs_ImgBuffers));
+                fadeWork->b = BLAZE_FADE_CHANNEL_MAX;
+                fadeWork->g = BLAZE_FADE_CHANNEL_MAX;
+                task->state = BLAZE_FADE_STATE_HOLD_WHITE;
             }
             break;
-        case 5:
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            setlen(tile, 3);
-            setcode(tile, 0x60);
-            tile->r0 = 0xFF;
-            tile->g0 = 0xFF;
-            tile->b0 = 0xFF;
-            tile->x0 = -0xA0;
-            tile->y0 = -0x78;
-            tile->w  = 0x140;
-            tile->h  = 0xF0;
-            addPrim(gGpuCurrentOt - 16, tile);
-
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000200;
-            addPrim(gGpuCurrentOt - 16, dr);
+        case BLAZE_FADE_STATE_HOLD_WHITE:
+            _blazeQueueWhiteout();
             return;
     }
-    fadeDrawOverlay(work->r, work->g, work->b, GPU_BLEND_ADD);
+    fadeDrawOverlay(fadeWork->r, fadeWork->g, fadeWork->b, GPU_BLEND_ADD);
 }

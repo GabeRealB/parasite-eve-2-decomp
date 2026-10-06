@@ -10466,7 +10466,7 @@ is the whole reason it could not be written as C.
 **A generated overlay whose tables all belong to its first unit wants
 `rodata_head` shrunk to the id word.** `actor_342100` carried
 `rodata_head = "0x1C"`, so the head (0x0..0x1C) was one splat-emitted object
-holding the id word *and* `func_actor_342100_80162748`'s six-entry jump table as
+holding the id word *and* `_blazeFadeTask`'s six-entry jump table as
 a `jlabel` table whose `.word .Lactor_342100_8016278C` entries name case labels
 of an `INCLUDE_ASM` body. Replacing that body with C moves the labels into the
 compiler, and the head object then fails to link, naming the head rather than a

@@ -374,7 +374,7 @@ EvsCommand D_actor_342100_801649C8[18] = {
 TaskDesc D_actor_342100_80164B78[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_342100_801630A4, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, blazeFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, blazeBodyFireTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, func_actor_342100_80162AB0, { .value = 0 } },
 };

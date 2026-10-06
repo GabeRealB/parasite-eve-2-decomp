@@ -38,7 +38,7 @@ D_shelter_b3_dumping_hole_8018B83C = 0x8018B83C; // absolute:True owner=shelter_
 
 D_shelter_b3_dumping_hole_8018B57C = 0x8018B57C; // absolute:True owner=shelter_b3_dumping_hole shared=rooms
 screenWaveGridTask = 0x80161E70; // type:func
-blazeFadeTask = 0x80162748; // type:func
+_blazeFadeTask = 0x80162748; // type:func
 blazeBodyFireTask = 0x80162DDC; // type:func
 _actor342100AdvanceBlazeAnimation = 0x801629b8; // type:func
 _actor342100HandleBlazeFadeState = 0x80163344; // type:func
