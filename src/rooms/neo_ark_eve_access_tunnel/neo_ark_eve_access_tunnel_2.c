@@ -152,7 +152,19 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2] = {
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Draws two capsules from four consecutive world endpoints using the same tint and radius scale.
+/// Draws two additive capsule glows for a tunnel light run.
+///
+/// `worldPoints` supplies four readable, word-aligned world endpoints, paired
+/// as [0, 1] and [2, 3] and borrowed only during the call. Each capsule projects
+/// through the current view and rejects negative GTE flags independently.
+/// Accepted endpoints must have nonzero depth (camera Z / 4). The signed low
+/// halfword of `radiusScale` gives each pixel radius as `radiusScale * 64 / depth`.
+/// `packedColor` bits 8..11, 4..7 and 0..3 are RGB nibbles scaled by 16;
+/// odd animation frames set bit 3 in each channel. Both capsules share these values.
+///
+/// Requires the composed view, initialized scratch stack and a current ordering
+/// table and packet arena with room for up to twelve Gouraud quads and their
+/// additive blend commands. Queued packets remain live until GPU completion.
 static inline void _neoArkEveAccessTunnelDrawGlowPair(const SVECTOR worldPoints[4], s32 radiusScale, s32 packedColor)
 {
     _glowDrawCapsule(&worldPoints[0], radiusScale, packedColor);
