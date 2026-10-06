@@ -73,6 +73,9 @@ enum {
     MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_HIGH_COMMANDS = 0x2C0
 };
 
+// Key-item use requests carry an item ID and an unused second argument word.
+enum { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
 #define D_mist_shooting_gallery_80185570 (D_mist_shooting_gallery_80185550 + 4)
 #define D_mist_shooting_gallery_801855C0 (D_mist_shooting_gallery_80185550 + 14)
 #define D_mist_shooting_gallery_801855F0 (D_mist_shooting_gallery_80185550 + 20)
@@ -250,7 +253,7 @@ extern const char D_mist_shooting_gallery_8017DA88[27];
 extern const char D_mist_shooting_gallery_8017DAA4[18];
 extern const char D_mist_shooting_gallery_8017DAB8[16];
 extern const char D_mist_shooting_gallery_8017DAC8[20];
-s32               func_mist_shooting_gallery_8017FEB0(Task*, s32, s32, s32);
+static s32        _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, s32);
 s32               func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
@@ -722,7 +725,7 @@ TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, func_
 
 TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
-    { 5105, func_mist_shooting_gallery_8017FEB0 },
+    { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM, _mistShootingGalleryRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_shooting_gallery_8018008C },
     { ROOM_MESSAGE_COMMAND, func_mist_shooting_gallery_80180000 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -932,7 +935,6 @@ SVECTOR D_mist_shooting_gallery_80185550[45] = {
     { -390, -2770, 6800, 0 },
 };
 
-static s32  func_mist_shooting_gallery_8017FA38(s32 score);
 static void func_mist_shooting_gallery_8017FC2C(Task* arg0);
 static void func_mist_shooting_gallery_8017FD40(Task* task);
 
@@ -1439,29 +1441,42 @@ void func_mist_shooting_gallery_8017EAE0(Task* task)
         obj->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
-// A stored reward as the status panel shows and awards it: divided by the
-// game mode's factor and capped at six digits; nothing in mode 3.
-static inline s32 _mistShootingGalleryScaleReward(s32 raw)
+/// Converts an accumulated EXP or BP total to the selected run mode's carryover.
+///
+/// Reads the live save's mode: Replay divides by 10, Bounty by 20, Scavenger
+/// by 100, and Nightmare returns zero. Other mode values use Replay's divisor.
+/// Signed division truncates toward zero; only the upper limit of 999999 is
+/// clamped. The STATUS panel and the closing sequence use the same result.
+static inline s32 _mistShootingGalleryScaleReward(s32 unscaledTotal)
 {
-    s32 scaled;
+    enum {
+        MIST_SHOOTING_GALLERY_REWARD_MODE_BOUNTY       = 1,
+        MIST_SHOOTING_GALLERY_REWARD_MODE_SCAVENGER    = 2,
+        MIST_SHOOTING_GALLERY_REWARD_MODE_NIGHTMARE    = 3,
+        MIST_SHOOTING_GALLERY_REPLAY_REWARD_DIVISOR    = 10,
+        MIST_SHOOTING_GALLERY_BOUNTY_REWARD_DIVISOR    = 20,
+        MIST_SHOOTING_GALLERY_SCAVENGER_REWARD_DIVISOR = 100,
+        MIST_SHOOTING_GALLERY_CARRYOVER_REWARD_MAX     = 999999
+    };
+    s32 reward;
 
     switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-        case 3:
+        case MIST_SHOOTING_GALLERY_REWARD_MODE_NIGHTMARE:
             return 0;
-        case 2:
-            scaled = raw / 100;
+        case MIST_SHOOTING_GALLERY_REWARD_MODE_SCAVENGER:
+            reward = unscaledTotal / MIST_SHOOTING_GALLERY_SCAVENGER_REWARD_DIVISOR;
             break;
-        case 1:
-            scaled = raw / 20;
+        case MIST_SHOOTING_GALLERY_REWARD_MODE_BOUNTY:
+            reward = unscaledTotal / MIST_SHOOTING_GALLERY_BOUNTY_REWARD_DIVISOR;
             break;
         default:
-            scaled = raw / 10;
+            reward = unscaledTotal / MIST_SHOOTING_GALLERY_REPLAY_REWARD_DIVISOR;
             break;
     }
-    if (scaled > 999999) {
-        scaled = 999999;
+    if (reward > MIST_SHOOTING_GALLERY_CARRYOVER_REWARD_MAX) {
+        reward = MIST_SHOOTING_GALLERY_CARRYOVER_REWARD_MAX;
     }
-    return scaled;
+    return reward;
 }
 
 void func_mist_shooting_gallery_8017EC58(Task* task)
@@ -1698,7 +1713,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 /// `D_mist_shooting_gallery_8018E0BC` / `_8018E0C0`.
 /// State 1 waits for the panel to confirm (`result == USER_INTERFACE_RESULT_CONFIRM`), then writes both
 /// totals back scaled down by the bonus mode - the same divisor table as
-/// `func_mist_shooting_gallery_8017FA38`, clamped to 999999. Once the kill
+/// `_mistShootingGalleryScaleReward`, clamped to 999999. Once the kill
 /// countdown runs out the task exits and the stage is flagged as ended.
 void func_mist_shooting_gallery_8017F6C8(Task* task)
 {
@@ -1756,27 +1771,13 @@ void func_mist_shooting_gallery_8017F98C(UiList* arg0, UiObject* arg1)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode = (u8)arg0->currentItemIndex;
     }
 }
-static s32 func_mist_shooting_gallery_8017FA38(s32 score)
+/// Retained out-of-line copy of the EXP/BP carryover conversion.
+///
+/// Uses `_mistShootingGalleryScaleReward`'s contract. Nothing calls this copy;
+/// its instructions remain part of the room overlay.
+static s32 _mistShootingGalleryScaleRewardOutOfLine(s32 unscaledTotal)
 {
-    s32 value;
-
-    switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-        case 3:
-            return 0;
-        case 2:
-            value = score / 100;
-            break;
-        case 1:
-            value = score / 20;
-            break;
-        default:
-            value = score / 10;
-            break;
-    }
-    if (value > 999999) {
-        value = 999999;
-    }
-    return value;
+    return _mistShootingGalleryScaleReward(unscaledTotal);
 }
 void func_mist_shooting_gallery_8017FAE8(Task* task)
 {
@@ -1881,10 +1882,16 @@ static const char D_mist_shooting_gallery_8017D844[] = "ENEMY LEVEL";
 /// "SUPPLY LEVEL", followed by the non-zero padding the original toolchain left.
 static const char D_mist_shooting_gallery_8017D850[16] = "SUPPLY LEVEL\0\xD0\x0E\xF0";
 
-/// The room's handler for message 0x13F1: accepts it and does nothing.
-s32 func_mist_shooting_gallery_8017FEB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects every key-item use request without changing room or inventory state.
+///
+/// Handles `MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM`; all arguments are
+/// ignored. Returns zero, which makes the item menu show its unavailable-use
+/// notice. The receiver and its message table must belong to this loaded room.
+static s32 _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { MIST_SHOOTING_GALLERY_KEY_ITEM_UNUSABLE = 0 };
+
+    return MIST_SHOOTING_GALLERY_KEY_ITEM_UNUSABLE;
 }
 
 s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
@@ -2457,68 +2464,75 @@ void func_mist_shooting_gallery_801811C0(s16 arg0)
     gMistShootingGalleryRoomLightingTable[0].lights = &D_mist_shooting_gallery_8018DF38;
 }
 
-void func_mist_shooting_gallery_801811EC(Task* unused)
+void mistShootingGalleryDrawLightGlowsTask(Task* unused)
 {
-    u8 view;
+    enum {
+        MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE = 0x200,
+        MIST_SHOOTING_GALLERY_CAPSULE_COLOR        = 0x222,
+        MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE    = 0x300,
+        MIST_SHOOTING_GALLERY_DISC_COLOR           = 0x111
+    };
+    u8 mappedView;
 
-    view = viewGetMappedIndex();
-    switch (view) {
+    // View mapping selects the visible strips and point glows in world space.
+    mappedView = viewGetMappedIndex();
+    switch (mappedView) {
         case 2:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[0], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[8], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[10], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[8], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[10], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[0], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[2], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[10], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[12], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[14], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[2], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[10], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[12], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 7:
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[0], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[2], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[4], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[6], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[2], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[4], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 8:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185610[0], 0x200, 0x222);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185610[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 9:
         case 18:
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[0], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[2], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[6], 0x200, 0x222);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[8], 0x200, 0x222);
-            glowDrawDisc(&D_mist_shooting_gallery_801855F0[16], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[2], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[8], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_801855F0[16], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 10:
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[0], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[2], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[4], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[6], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[2], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[4], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[6], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 11:
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[0], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[1], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[3], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[4], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[1], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[3], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[4], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 12:
-            glowDrawDisc(&D_mist_shooting_gallery_80185690[0], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185690[1], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185690[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185690[1], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 13:
-            glowDrawDisc(&D_mist_shooting_gallery_80185688[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185688[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 14:
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[0], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[1], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[3], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[5], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[7], 0x300, 0x111);
-            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[1], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[3], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[5], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[7], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
     }
 }

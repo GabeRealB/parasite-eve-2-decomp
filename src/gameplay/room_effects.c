@@ -953,7 +953,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorEffectSpriteDebrisTask, { NULL } },           // 0x19C
     { { { TASK_BODY_COORD, 0x70 } }, flareEffectTask, { NULL } },                                             // 0x19D
     { { { TASK_BODY_COORD, 0x70 } }, flareSparkTask, { NULL } },                                              // 0x19E
-    { { { TASK_BODY_COORD, 0x70 } }, func_mist_shooting_gallery_801811EC, { NULL } },                         // 0x19F
+    { { { TASK_BODY_COORD, 0x70 } }, mistShootingGalleryDrawLightGlowsTask, { NULL } },                       // 0x19F
     { { { TASK_BODY_COORD, 0x70 } }, func_combustion_801308E0, { NULL } },                                    // 0x1A0
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomMistTask, { NULL } },                                 // 0x1A1
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomDriftPuffTask, { NULL } },                            // 0x1A2

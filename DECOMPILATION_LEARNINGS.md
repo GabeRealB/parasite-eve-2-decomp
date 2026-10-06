@@ -149237,7 +149237,7 @@ attempts; left as it was.
   `func_mist_shooting_gallery_8017F6C8` had `case 3: bp = 0; goto store;` past
   a clamp after the switch; `func_mist_shooting_gallery_8017EC58` had
   `case 2: q = raw / 100; goto clamp;` into the default case with `val = 0;
-  break;` for case 3. Both are `_mistShootingGalleryScaleReward(raw)`: a
+  break;` for case 3. Both are `_mistShootingGalleryScaleReward(unscaledTotal)`: a
   `static inline` with `case 3: return 0;`, the three divisions with `break`,
   and the clamp after the switch. Four sites, first try. Differing goto
   layouts of one computation in two functions point to an inline.

@@ -97,7 +97,15 @@ s32 func_mist_shooting_gallery_8017F95C(s32 unused);
 
 void func_mist_shooting_gallery_8017FBD8(void);
 
-void func_mist_shooting_gallery_801811EC(Task* unused);
+/// Draws the gallery's fixed light glows for the mapped view each frame.
+///
+/// Gameplay effect slot 0x19F dispatches this callback. `unused` is ignored;
+/// selected world-point pairs draw capsules, and single points draw discs.
+/// Other views draw nothing. Radii use the glow drawers' depth-scaled units,
+/// and colours are packed RGB nibbles with alternating-frame flicker.
+/// Requires this room overlay, the current view transform, initialized scratch
+/// storage and sufficient frame packet space; packets live until GPU completion.
+void mistShootingGalleryDrawLightGlowsTask(Task* unused);
 
 void func_mist_shooting_gallery_80182064(Task* task);
 

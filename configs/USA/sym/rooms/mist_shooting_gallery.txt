@@ -293,7 +293,7 @@ func_mist_shooting_gallery_8017F95C = 0x8017F95C; // type:func
 
 func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func
 
-func_mist_shooting_gallery_801811EC = 0x801811EC; // type:func
+mistShootingGalleryDrawLightGlowsTask = 0x801811EC; // type:func
 
 func_mist_shooting_gallery_80182064 = 0x80182064; // type:func
 _glowDrawCapsule = 0x80181480; // type:func
@@ -302,3 +302,5 @@ jukeboxDrawRow = 0x8018055C; // type:func
 jukeboxHostTask = 0x80180A00; // type:func
 spriteQuadDraw = 0x80182294; // type:func
 _beamStripDraw = 0x801826C4; // type:func
+_mistShootingGalleryScaleRewardOutOfLine = 0x8017fa38; // type:func
+_mistShootingGalleryRejectKeyItemMessage = 0x8017feb0; // type:func
