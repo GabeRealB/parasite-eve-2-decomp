@@ -34016,6 +34016,8 @@ if (mode != 2) {
 
 `Gp_BuildAttachList` is the example.
 
+**2026-10-06.** Superseded: `Gp_BuildAttachList` needs no asm. `i = n` was never written; it is what cse makes of a second `i = 0`. See "A register zeroed twice" at the end of this file.
+
 ## Pin a late `addiu` to a just-loaded value so it cannot hoist
 
 `y = temp + 0x58` is independent of the third `TextDrawReq` setup, so
@@ -146289,6 +146291,8 @@ initialisation variants all leave it folded. The extra use of `n` is also what
 lifts its allocation priority above the list pointer's, so the two symptoms
 share one cause.
 
+**2026-10-06.** The `reload_cse` half stands; "only something opaque to CSE does that" does not. cse itself writes `(set i (reg n))` when `i` is already known to hold zero at a second `i = 0`. See "A register zeroed twice" at the end of this file.
+
 ## A scratch-head constant hoisted out of an inner loop but not the outer one is one block-scoped local per exit (func_800DDDF8, 2026-09-27)
 
 **Shape.** A slot search nested in a face loop gives the scratch block back
@@ -148576,6 +148580,8 @@ return / local / `start0` types) gave nothing closer. The target needs the zero
 set in the same block as the compare and after the `lh`, yet unknown to cse2.
 
 **2026-10-06, `Gp_CountAmmoRows` resolved.** The read of `count` that keeps the `slt` is not needed: a basic-block boundary between `count = 0` and the pre-test does it, and the giv's missing reference is a second `idx++`. See "A conditional block that is empty by local-alloc" at the end of this file. The other three functions are unchanged.
+
+**2026-10-06, `Gp_BuildAttachList` resolved, and `Gp_CountAmmoRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
 ## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
 
 **Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
@@ -150855,6 +150861,8 @@ not match (built: 96 instructions, `count` ranked first at 14736).
 - Duplicated arms that cross-jump are references the listing cannot show;
   REG_N_REFS is taken at flow, the listing after jump2.
 
+**2026-10-06, later the same day.** The vanishing block was a stand-in. The read of `count` that the 2026-10-05 entry asked for is real and comes from `s32 i = 0;` followed by `for (i = 0; ...)`; with it the `visibleRows` local, the third `idx++` and the `if`/`else if` hit tests are not needed. See "A register zeroed twice" at the end of this file.
+
 ## One asm instead of two: a call's argument copy is a leftover or a birth by how often its register is set (func_actor_143000_80133CF0, 2026-10-06)
 
 **Was.** `rp = &r2; SOFT_TOUCH_REG_USE(rp, n);` to put the strip count in
@@ -150999,3 +151007,94 @@ at the constant. A register set once is a birth and stays at the call; set
 twice or more it floats to the top of the block whenever the stores between
 are fed by loads. Then test the hypothesis by deleting the other sets in a
 scratch copy: if the function matches, the constant was never the problem.
+
+## A register zeroed twice: cse turns the second `i = 0` into a copy from the longest-lived zero (Gp_BuildAttachList, Gp_CountAmmoRows, 2026-10-06)
+
+**Was.** `Gp_BuildAttachList` held `n = count; if (mode != 2) { SOFT_TOUCH_REG(n); i = n; do { ... } while (i < 3); }`
+for `move s3,s5` / `move s2,s3`, and three entries concluded that the copy
+`i = n` had to be hidden from cse (`reload_cse` cannot produce it: a
+`CONST_INT` is `VOIDmode`, so a zero is not forwarded through `move s3,s5`).
+`Gp_CountAmmoRows` needed a read of `count` between its zeroing and the loop
+pre-test and got it from a block that vanished after combine.
+
+**Mechanism.** Nobody wrote `i = n`. The index was zeroed twice:
+
+```c
+s32 count = 0;
+s32 n;
+s32 i = 0;                      /* redundant: every loop sets it again */
+...
+slot = Gp_GetItemSlot(arg1);
+n    = 0;
+if (mode != 2) {
+    for (i = 0; i < 3; i++) { ... }
+}
+if (mode != 1) {
+    for (i = 0; i < 3; i++) { ... }
+}
+```
+
+In `cse_insn`, when the destination register is already in the equivalence
+class of the value being stored, the destination itself is offered as a source
+at cost -1 ("this insn will probably be eliminated"), so `(set i (const_int 0))`
+is first rewritten to `(set i i)`. The same `validate_change` pair then runs
+`canon_reg` on the new source, which replaces a register by the **head of its
+class**, and the head is whichever register lives longest beyond the block
+(`make_regs_eqv`). The insn leaves cse as `(set i (reg n))` with a
+`REG_WAS_0` note pointing at the first zeroing. The fallback that would put the
+cheaper constant back only runs when the source is still equal to the
+destination after `canon_reg`, that is, when the destination *is* the head.
+cse2 does the same thing again because the first `i = 0` is still there; flow
+deletes it afterwards as a dead set. So:
+
+- the first loop, in the block where everything is known to be zero, starts
+  with `move s2,s3` (`i` from `n`, the zero with the latest last use);
+- the second loop sits behind a label, knows nothing, and gets `move s2,zero`.
+  The asymmetry between two identically written loops is the signature;
+- the copy is a real reference to `n` at flow time: 15 references over 82
+  insns (5487) against 5384 for the list pointer, which is what puts `n` in
+  `$s3` and the pointer in `$s4`. The old barrier supplied two references
+  instead of one.
+
+`n = 0` after the call is `move s3,s5` by `reload_cse` as before. Either
+`s32 count = 0;` or a `count = 0;` statement before the call matches; `n` has to
+be assigned after the call, and `i`'s first zero can be an initialiser or a
+statement (`count = 0; i = 0;` at the top, then `for (i = 0; ...)`).
+
+**Gp_CountAmmoRows is the same thing.** With `s32 count = 0; s32 i = 0;` and
+`for (i = 0; i < scan->rowCount; i++)` the loop init becomes `i = count`
+(`move t3,t0`): the read of `count` between its zeroing and the pre-test that
+breaks combine's `LOG_LINK`, so `slt v0,t0,v0` survives, and with it the
+`lui $v1`. That reference also lifts `count` over the hoisted offsets, so the
+body no longer needs three `idx++` or `if`/`else if` hit tests. Built
+(scratch, 94 instructions each):
+
+| body | result |
+|---|---|
+| no `continue`, one `idx++`, `\|\|` tests | `$a3/$t0/$t1` rotated |
+| `for (...; i++, idx++)` | 95 insns |
+| not-a-weapon guard (`idx++; continue;`), then `if (arg1 == 0) count++; else { ... }`, `\|\|` tests | **match** (used) |
+| `arg1 == 0` guard only, `\|\|` tests | **match** |
+| both guards, `\|\|` tests | **match** |
+
+The `visibleRows` positional local is gone; the tail stores the literal `4`.
+
+**What is fitted.** The initialiser on `i` is dead by definition: no path reads
+it. It is kept because it is the ordinary `int i = 0;` habit, one line explains
+two functions of the same file family, and it accounts for the two loops
+differing. Nothing else in either function is positional.
+
+**Use.**
+- A loop index that starts as a copy of a counter (`move i,count`), or a
+  compare that reads a counter known to be zero, in the *first* block of a
+  function while a later identical loop starts from `$zero`: give the index an
+  initialiser (or an earlier `= 0`) before looking for anything opaque.
+- The copy's source is not chosen by the statement: it is the zero-valued
+  register with the latest last use in the function. Which register that is
+  can be read off the listing (the count stored at the very end).
+- The first zeroing must be on the same cse path as the second (no label with
+  two predecessors between them) and must not be the class head, i.e. the
+  index must die before the other zero does.
+- decomp-permuter found this from the hack-free near-match in 384 iterations
+  (`i = 0; i = n;`). When a register copy "cannot be written", run it once on
+  the plain source before concluding that an asm is required.

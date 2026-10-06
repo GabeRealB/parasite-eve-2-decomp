@@ -837,21 +837,18 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
     InventoryItemRange*  scan;
     EquipmentWeaponLoad* slot;
     s32                  mode;
-    s32                  count;
+    s32                  count = 0;
     s32                  n;
-    s32                  i;
+    s32                  i = 0;
     s32                  item;
     s32                  qty;
 
-    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    mode  = Gp_ReloadMode;
-    count = 0;
-    slot  = Gp_GetItemSlot(arg1);
-    n     = count;
+    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    mode = Gp_ReloadMode;
+    slot = Gp_GetItemSlot(arg1);
+    n    = 0;
     if (mode != 2) {
-        SOFT_TOUCH_REG(n);
-        i = n;
-        do {
+        for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
             item = Gp_RelatedQty0.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i];
             if (item != INVENTORY_ITEM_NONE) {
                 qty  = Gp_ScanStackQty(scan, item);
@@ -864,8 +861,7 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
                     n++;
                 }
             }
-            i++;
-        } while (i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
+        }
     }
     if (mode != 1) {
         for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
