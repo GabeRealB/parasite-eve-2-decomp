@@ -63,31 +63,43 @@ static _HealingLevelTuning D_healing_8012FC1C[] = {
 /// The `sndEvtRequestScriptStart` id for each `D_healing_8012FC1C` row.
 static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
-static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void _healingDrawSparkle(const GfxCoord* coord, s16 frame, s16 sizeFactor, s16 brightness);
 
-/// Draws the healing disc and its glow bands at the work's current radius and
-/// brightness.
-static inline void _healingDrawGlow(GfxCoord* coord, EffectWork* mem)
+/// Draws the Healing aura's doubled centre disc and surrounding blue glow bands.
+///
+/// Borrows the composed centre coordinate and aura work without changing them.
+/// `angle` is the radius in game-coordinate units, `scale` the blue brightness
+/// (red is a quarter, green a half), `index` the zero-based PE level (0..2),
+/// and `age` the tick count. The disc uses half the signed radius; odd ages add
+/// a broad band and levels two and three add a fainter band farther out.
+/// Uses the radial drawers' scratch storage and unchecked frame primitive arena;
+/// all emitted packets must remain live until GPU drawing completes.
+static inline void _healingDrawGlow(const GfxCoord* coord, const EffectWork* work)
 {
+    enum {
+        HEALING_AURA_BAND_WIDTH          = 128,
+        HEALING_AURA_OUTER_RADIUS_OFFSET = 512,
+    };
     u8 rgb[3];
 
-    rgb[0] = mem->scale >> 2;
-    rgb[1] = mem->scale >> 1;
-    rgb[2] = (u8)mem->scale;
-    effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
-    effectDrawGouraudDisc(coord, (s32)((u16)mem->angle << 16) >> 17, rgb);
+    rgb[0] = work->scale >> 2;
+    rgb[1] = work->scale >> 1;
+    rgb[2] = work->scale;
+    // Draw the same additive disc twice to brighten the centre.
+    effectDrawGouraudDisc(coord, work->angle >> 1, rgb);
+    effectDrawGouraudDisc(coord, work->angle >> 1, rgb);
     rgb[0] >>= 1;
     rgb[1] >>= 1;
     rgb[2] >>= 1;
-    effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
-    if (mem->age & 1) {
-        effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
+    effectDrawOuterGlowBand(coord, work->angle, HEALING_AURA_BAND_WIDTH, rgb);
+    if (work->age & 1) {
+        effectDrawOuterGlowBand(coord, HEALING_AURA_BAND_WIDTH, work->angle, rgb);
     }
-    if (mem->index != 0) {
+    if (work->index != 0) {
         rgb[0] >>= 1;
         rgb[1] >>= 1;
         rgb[2] >>= 1;
-        effectDrawOuterGlowBand(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
+        effectDrawOuterGlowBand(coord, (s16)(work->angle + HEALING_AURA_OUTER_RADIUS_OFFSET), HEALING_AURA_BAND_WIDTH, rgb);
     }
 }
 
@@ -204,9 +216,7 @@ void func_healing_8012EF34(Task* arg0)
 
 #include "../../shared/rising_spark_task.inc.c"
 
-/// Healing's spark billboard (see rising_spark.h), spawned through gameplay's
-/// effect table.
-void func_healing_8012F494(Task* task)
+void healingRisingSparkTask(Task* task)
 {
     _risingSparkTask(task);
 }
@@ -254,7 +264,7 @@ void func_healing_8012F5E4(Task* arg0)
                 effectDrawModulatedBillboard(coord, mem->index, mem->angle,
                                              mem->scale);
             } else {
-                func_healing_8012F7FC(coord, mem->index, mem->angle, mem->scale);
+                _healingDrawSparkle(coord, mem->index, mem->angle, mem->scale);
             }
             if ((mem->age & 7) == 1) {
                 spawned = Gp_SpawnEff(EFFECT_HEALING_SPARK, coord, (s32)(mem->angle), 0);
@@ -268,102 +278,118 @@ void func_healing_8012F5E4(Task* arg0)
     }
 }
 
-/// Links the two quads of one healing pulse. `arg0`'s world position is
-/// projected through `GsWSMATRIX` by a single `RTPS` and both quads are
-/// dropped when that sets a negative `gte_stflg`. The inner quad takes one of
-/// the four 0x18-wide frames on tpage 0x2A (CLUT 0x42C5) picked by
-/// `arg1 & 3`, is tinted `arg3` and sits `arg2 * 23 / depth` from the projected
-/// centre; the outer glow takes the single 0x38..0x6F cell on tpage 0x29 with
-/// the CLUT alternating on `arg1 & 1`, is tinted `arg3 / 2` and sits
-/// `(arg2 / 2) * 55 / depth` out. Both are axis-aligned and linked into
-/// `gGpuCurrentOt` at the shared `depth`. Same 0x18-byte scratch as gameplay
-/// `effectSpriteTask8D`.
-static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Sets a sparkle quad's eight screen coordinates from its projected centre.
+///
+/// Borrows a writable quad and a read-only scratch block with initialized
+/// `screenX`, `screenY` and `screenExtent`. Signed word edge arithmetic must
+/// fit s32; packet stores retain only its low 16 bits. Nonnegative extents put
+/// corners 0/1 above 2/3 and corners 0/2 left of 1/3. No clipping occurs and
+/// no pointer is retained.
+static inline void _healingSetSparkleScreenBounds(POLY_FT4* quad, const EffectCentreScratch* scratch)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_FT4*            prim;
-    SVECTOR*             vec;
-    s32                  u0;
-    s32                  u1;
-    s16                  x;
-    s16                  y;
-    u16                  vz;
+    quad->x0 = quad->x2 = scratch->screenX - scratch->screenExtent;
+    quad->x1 = quad->x3 = scratch->screenX + scratch->screenExtent;
+    quad->y0 = quad->y1 = scratch->screenY - scratch->screenExtent;
+    quad->y2 = quad->y3 = scratch->screenY + scratch->screenExtent;
+}
 
-    head                                                                        = SCRATCH_STACK_CURSOR(u8);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)arg0->workm.t[0];
-    block                                                                       = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    block->worldPoint.vy                                                        = (u16)arg0->workm.t[1];
-    vz                                                                          = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectCentreScratch)                                   = block;
-    block->worldPoint.vz                                                        = vz;
-    vec                                                                         = &block->worldPoint;
+/// Draws a Healing level-three sparkle with an alternating-palette outer glow.
+///
+/// `coord` supplies a composed translation in the input space of `GsWSMATRIX`;
+/// XYZ narrows to signed 16-bit game-coordinate units and rotation is unused.
+/// `frame` wraps modulo four for the 24-by-24 core and modulo two for the
+/// glow palette. `brightness` supplies the core's RGB modulation byte; the
+/// glow uses its arithmetic half, narrowed to a byte (128 is neutral modulation).
+///
+/// Both quads align to the screen axes. With depth SZ3 / 4 + 1, their pixel
+/// half-extents are `sizeFactor * 23 / depth` and
+/// `(sizeFactor >> 1) * 55 / depth`, with signed division truncating toward zero.
+/// Edge arithmetic retains only the low 16 bits. The Healing task supplies
+/// size 1536 and brightness 126..224; neither value packs any selector bits.
+///
+/// Borrows the coordinate, reserves/releases one word-aligned
+/// `EffectCentreScratch`, and clobbers GTE working registers. A negative GTE
+/// FLAG drops both quads. Otherwise requires unchecked frame-arena space for
+/// two additive, modulated `POLY_FT4` packets and a current ordering table.
+/// Packets remain live until GPU drawing completes; no scratch pointer survives.
+static void _healingDrawSparkle(const GfxCoord* coord, s16 frame, s16 sizeFactor, s16 brightness)
+{
+    enum {
+        HEALING_SPARKLE_FRAME_COUNT         = 4,
+        HEALING_SPARKLE_CELL_SIZE           = 24,
+        HEALING_SPARKLE_UV_SPAN             = HEALING_SPARKLE_CELL_SIZE - 1,
+        HEALING_SPARKLE_TEXTURE_DEPTH_4BIT  = 0,
+        HEALING_SPARKLE_TEXTURE_PAGE        = getTPage(HEALING_SPARKLE_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 640, 0),
+        HEALING_SPARKLE_CLUT                = getClut(80, 267),
+        HEALING_SPARKLE_GLOW_TEXTURE_PAGE   = getTPage(HEALING_SPARKLE_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 576, 0),
+        HEALING_SPARKLE_GLOW_PALETTE_COUNT  = 2,
+        HEALING_SPARKLE_GLOW_CLUT_X         = 256,
+        HEALING_SPARKLE_GLOW_CLUT_Y         = 268,
+        HEALING_SPARKLE_GLOW_PALETTE_X_STEP = 16,
+        HEALING_SPARKLE_GLOW_LEFT_U         = 56,
+        HEALING_SPARKLE_GLOW_TOP_V          = 200,
+        HEALING_SPARKLE_GLOW_UV_SPAN        = 55,
+        HEALING_SPARKLE_DEPTH_BIAS          = 1,
+    };
+    EffectCentreScratch* scratch;
+    POLY_FT4*            quad;
+    s32                  leftU;
+    s32                  rightU;
+
+    // Project one composed centre for both screen-aligned layers.
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectCentreScratch);
+    scratch->worldPoint.vx = coord->workm.t[0];
+    scratch->worldPoint.vy = coord->workm.t[1];
+    scratch->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&scratch->worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        block->depth++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        prim->tpage = 0x2A;
-        prim->clut  = 0x42C5;
-        u0          = (arg1 & 3) * 0x18;
-        u1          = u0 + 0x17;
-        prim->u0    = u0;
-        prim->u1    = u1;
-        prim->u2    = u0;
-        prim->u3    = u1;
-        prim->v2    = 0x17;
-        prim->v3    = 0x17;
-        setRGB0(prim, arg3, arg3, arg3);
-        prim->v0            = 0;
-        prim->v1            = 0;
-        block->screenExtent = (arg2 * 0x17) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    gte_stsxy(&scratch->screenX);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->depth);
+        // Bias the shared depth so neither perspective divisor can be zero.
+        scratch->depth += HEALING_SPARKLE_DEPTH_BIAS;
+        quad            = gGpuPrimCursor;
+        gGpuPrimCursor  = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, true);
+        quad->tpage = HEALING_SPARKLE_TEXTURE_PAGE;
+        quad->clut  = HEALING_SPARKLE_CLUT;
+        leftU       = (frame & (HEALING_SPARKLE_FRAME_COUNT - 1)) * HEALING_SPARKLE_CELL_SIZE;
+        rightU      = leftU + HEALING_SPARKLE_UV_SPAN;
+        quad->u0    = leftU;
+        quad->u1    = rightU;
+        quad->u2    = leftU;
+        quad->u3    = rightU;
+        quad->v2    = HEALING_SPARKLE_UV_SPAN;
+        quad->v3    = HEALING_SPARKLE_UV_SPAN;
+        setRGB0(quad, brightness, brightness, brightness);
+        quad->v0              = 0;
+        quad->v1              = 0;
+        scratch->screenExtent = (sizeFactor * HEALING_SPARKLE_UV_SPAN) / scratch->depth;
+        _healingSetSparkleScreenBounds(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
 
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        prim->tpage    = 0x29;
-        prim->clut     = ((u32)(((arg1 & 1) * 0x10) + 0x100) >> 4) | 0x4300;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        arg3 = arg3 >> 1;
-        setRGB0(prim, arg3, arg3, arg3);
-        setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        block->screenExtent = ((arg2 >> 1) * 0x37) / block->depth;
-        x                   = block->screenX - (u16)block->screenExtent;
-        prim->x2            = x;
-        prim->x0            = x;
-        x                   = block->screenX + (u16)block->screenExtent;
-        prim->x3            = x;
-        prim->x1            = x;
-        y                   = block->screenY - (u16)block->screenExtent;
-        prim->y1            = y;
-        prim->y0            = y;
-        y                   = block->screenY + (u16)block->screenExtent;
-        prim->y3            = y;
-        prim->y2            = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        // The glow shares the centre and depth, but halves size and modulation.
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        quad->tpage    = HEALING_SPARKLE_GLOW_TEXTURE_PAGE;
+        quad->clut     = getClut((frame & (HEALING_SPARKLE_GLOW_PALETTE_COUNT - 1)) * HEALING_SPARKLE_GLOW_PALETTE_X_STEP + HEALING_SPARKLE_GLOW_CLUT_X, HEALING_SPARKLE_GLOW_CLUT_Y);
+        setPolyFT4(quad);
+        setSemiTrans(quad, true);
+        brightness = brightness >> 1;
+        setRGB0(quad, brightness, brightness, brightness);
+        setUV4(quad, HEALING_SPARKLE_GLOW_LEFT_U, HEALING_SPARKLE_GLOW_TOP_V,
+               HEALING_SPARKLE_GLOW_LEFT_U + HEALING_SPARKLE_GLOW_UV_SPAN, HEALING_SPARKLE_GLOW_TOP_V,
+               HEALING_SPARKLE_GLOW_LEFT_U, HEALING_SPARKLE_GLOW_TOP_V + HEALING_SPARKLE_GLOW_UV_SPAN,
+               HEALING_SPARKLE_GLOW_LEFT_U + HEALING_SPARKLE_GLOW_UV_SPAN, HEALING_SPARKLE_GLOW_TOP_V + HEALING_SPARKLE_GLOW_UV_SPAN);
+        scratch->screenExtent = ((sizeFactor >> 1) * HEALING_SPARKLE_GLOW_UV_SPAN) / scratch->depth;
+        _healingSetSparkleScreenBounds(quad, scratch);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }

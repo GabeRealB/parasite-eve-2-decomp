@@ -1,6 +1,7 @@
 
-func_healing_8012F494 = 0x8012F494; // type:func
+healingRisingSparkTask = 0x8012F494; // type:func
 
 func_healing_8012F5E4 = 0x8012F5E4; // type:func
 
 func_healing_8012EF34 = 0x8012EF34; // type:func
+_healingDrawSparkle = 0x8012f7fc; // type:func

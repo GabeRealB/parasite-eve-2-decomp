@@ -560,7 +560,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_metabolism_8012F5A0, { NULL } },                                    // 0x013
     { { { TASK_BODY_COORD, 0x70 } }, func_plasma_8012EF34, { NULL } },                                        // 0x014
     { { { TASK_BODY_COORD, 0x70 } }, func_healing_8012EF34, { NULL } },                                       // 0x015
-    { { { TASK_BODY_COORD, 0x70 } }, func_healing_8012F494, { NULL } },                                       // 0x016
+    { { { TASK_BODY_COORD, 0x70 } }, healingRisingSparkTask, { NULL } },                                      // 0x016
     { { { TASK_BODY_COORD, 0x70 } }, func_healing_8012F5E4, { NULL } },                                       // 0x017
     { { { TASK_BODY_COORD, 0x70 } }, func_necrosis_8012EF34, { NULL } },                                      // 0x018
     { { { TASK_BODY_COORD, 0x70 } }, func_necrosis_8012F52C, { NULL } },                                      // 0x019

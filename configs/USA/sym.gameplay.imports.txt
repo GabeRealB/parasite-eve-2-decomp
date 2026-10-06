@@ -1977,7 +1977,7 @@ func_pyrokinesis_80131CE4 = 0x80131CE4; // type:func absolute:True
 
 func_metabolism_8012F5A0 = 0x8012F5A0; // type:func absolute:True owner=metabolism
 
-func_healing_8012F494 = 0x8012F494; // type:func absolute:True owner=healing
+healingRisingSparkTask = 0x8012F494; // type:func absolute:True owner=healing
 
 func_healing_8012F5E4 = 0x8012F5E4; // type:func absolute:True owner=healing
 
