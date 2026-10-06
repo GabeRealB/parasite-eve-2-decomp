@@ -798,7 +798,7 @@ dryfieldWarehouseDrawGlowsTask = 0x8017F494; // type:func absolute:True owner=dr
 
 dryfieldWaterHoleWaterRippleTask = 0x8017EC90; // type:func absolute:True owner=dryfield_water_hole shared=rooms
 
-func_dryfield_water_hole_8017F118 = 0x8017F118; // type:func absolute:True owner=dryfield_water_hole
+dryfieldWaterHoleWaterDriftTaskU16 = 0x8017F118; // type:func absolute:True owner=dryfield_water_hole
 
 
 func_mine_cavern_8017E474 = 0x8017E474; // type:func absolute:True owner=mine_cavern

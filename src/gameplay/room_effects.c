@@ -792,7 +792,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017DC20, { NULL } },                           // 0x0FB
     { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012FAC8, { NULL } },                                   // 0x0FC
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterHoleWaterRippleTask, { NULL } },                            // 0x0FD
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_hole_8017F118, { NULL } },                           // 0x0FE
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterHoleWaterDriftTaskU16, { NULL } },                          // 0x0FE
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterRippleTask, { NULL } },                       // 0x0FF
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_gas_station_80180E9C, { NULL } },                    // 0x100
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_8017E484, { NULL } },                    // 0x101

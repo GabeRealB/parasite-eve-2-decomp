@@ -76,7 +76,7 @@ gWaterHoleWaveScroll = 0x801828D0; // size:0x2 defined:True
 
 dryfieldWaterHoleWaterRippleTask = 0x8017EC90; // type:func
 
-func_dryfield_water_hole_8017F118 = 0x8017F118; // type:func
+dryfieldWaterHoleWaterDriftTaskU16 = 0x8017F118; // type:func
 
 func_dryfield_water_hole_8017E040 = 0x8017E040; // type:func
 _waterDrawSplash = 0x8017EDE4; // type:func

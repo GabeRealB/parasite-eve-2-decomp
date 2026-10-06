@@ -30,7 +30,7 @@
 
 #include "../../shared/water_drift_task_u16.inc.c"
 
-void func_dryfield_water_hole_8017F118(Task* task)
+void dryfieldWaterHoleWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
