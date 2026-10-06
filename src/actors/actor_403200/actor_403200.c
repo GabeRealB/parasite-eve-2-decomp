@@ -6349,6 +6349,21 @@ static const EnemyTaskFuncTable3 D_actor_403200_801321B8 = {
 /// Per-frame tick for the enemy task. Updates the host coordinate, hides or
 /// shows the escorts, and either returns on the cinematic mode byte or runs
 /// the hit handlers, the death handoff and the state in `state`.
+/// Empties the contact lists of the nine hit spheres and of the swipe.
+static inline void _gluttonClearContacts(GluttonWork* work)
+{
+    worldCollisionClearContacts(work->hits[0].contacts);
+    worldCollisionClearContacts(work->hits[1].contacts);
+    worldCollisionClearContacts(work->hits[2].contacts);
+    worldCollisionClearContacts(work->hits[3].contacts);
+    worldCollisionClearContacts(work->hits[4].contacts);
+    worldCollisionClearContacts(work->hits[5].contacts);
+    worldCollisionClearContacts(work->hits[6].contacts);
+    worldCollisionClearContacts(work->hits[7].contacts);
+    worldCollisionClearContacts(work->hits[8].contacts);
+    worldCollisionClearContacts(work->swipeContacts);
+}
+
 static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
 {
     VECTOR                   pos;
@@ -6369,7 +6384,6 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     s16                      mode;
     u16                      count;
     u8                       viewReady;
-    s32                      d801153f4;
     u8                       stateF0;
     SVECTOR*                 pendingPos;
     s8                       nodeFlags;
@@ -6454,29 +6468,17 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         }
     }
 
-    d801153f4 = gSceneCombatState.actorControl;
-    if (d801153f4 == 1) {
-        goto clear_and_return;
+    switch (gSceneCombatState.actorControl) {
+        case 1:
+            _gluttonClearContacts(work);
+            return;
+        case 2:
+            _gluttonClearContacts(work);
+            return;
+        case 0:
+        default:
+            break;
     }
-    if (d801153f4 < 2) {
-        goto after_mode;
-    }
-    if (d801153f4 != 2) {
-        goto after_mode;
-    }
-clear_and_return:
-    worldCollisionClearContacts(work->hits[0].contacts);
-    worldCollisionClearContacts(work->hits[1].contacts);
-    worldCollisionClearContacts(work->hits[2].contacts);
-    worldCollisionClearContacts(work->hits[3].contacts);
-    worldCollisionClearContacts(work->hits[4].contacts);
-    worldCollisionClearContacts(work->hits[5].contacts);
-    worldCollisionClearContacts(work->hits[6].contacts);
-    worldCollisionClearContacts(work->hits[7].contacts);
-    worldCollisionClearContacts(work->hits[8].contacts);
-    worldCollisionClearContacts(work->swipeContacts);
-    return;
-after_mode:
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200TickScratch);
 
@@ -6637,16 +6639,7 @@ after_mode:
         work->hits[8].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    worldCollisionClearContacts(work->hits[0].contacts);
-    worldCollisionClearContacts(work->hits[1].contacts);
-    worldCollisionClearContacts(work->hits[2].contacts);
-    worldCollisionClearContacts(work->hits[3].contacts);
-    worldCollisionClearContacts(work->hits[4].contacts);
-    worldCollisionClearContacts(work->hits[5].contacts);
-    worldCollisionClearContacts(work->hits[6].contacts);
-    worldCollisionClearContacts(work->hits[7].contacts);
-    worldCollisionClearContacts(work->hits[8].contacts);
-    worldCollisionClearContacts(work->swipeContacts);
+    _gluttonClearContacts(work);
     gluttonShakeTick(arg1);
 
     if (work->viewLocked == 0 && work->state != 0) {
