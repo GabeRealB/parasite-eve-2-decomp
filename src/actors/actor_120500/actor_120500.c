@@ -365,38 +365,42 @@ void func_actor_120500_80131E58(Task* arg0)
         case 0:
             SetDispMask(0);
             Mem_AllocAuxWithImages(1);
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 1:
             key          = gGameSession->location;
             key.loc.view = 0x64;
             slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 2:
             if (queue->movieReady == 0) {
                 return;
             }
             sndEvtRequestScriptStart(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0, 0);
             SetDispMask(1);
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 3:
             if (CdCmd_IsIdle() & 0xFFFF) {
                 SetDispMask(0);
-                goto advance;
+                task->state = task->state + 1;
+                return;
             }
             if (Pad_CheckFlag800() == 0) {
                 return;
             }
             SetDispMask(0);
             CdCmd_ActivatePhase1();
-            goto advance;
+            task->state = task->state + 1;
+            return;
         case 4:
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
             }
             Stream_ResetRestoreState();
-        advance:
             task->state = task->state + 1;
             return;
         case 5:
