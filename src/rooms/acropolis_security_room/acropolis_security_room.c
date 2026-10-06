@@ -3264,33 +3264,20 @@ void func_acropolis_security_room_801804CC(Task* arg0)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            queue->movieFrame = 1;
+            slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            task->state = task->state + 1;
+            return;
         case 1:
-            goto L_case1;
+            if ((CdCmd_IsIdle() & 0xFFFF) || Pad_CheckFlag800() != 0) {
+                task->state = task->state + 1;
+            }
+            return;
         case 2:
-            goto L_case2;
+            Task_RequestKill(task, 0);
+            return;
     }
-    return;
-
-L_case0:
-    queue->movieFrame = 1;
-    slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case1:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case2:
-    Task_RequestKill(task, 0);
 }
 
 /// Per-frame update of the security-room's four monitor feeds: state 0 seeds
