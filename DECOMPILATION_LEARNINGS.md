@@ -71155,6 +71155,8 @@ because the asm has an output and so is not implicitly volatile — matched.
 Reach for the SOFT form first whenever the forced constant sits in a block the
 scheduler still has to fill.
 
+**2026-10-06.** Superseded for `func_actor_400600_801361AC`: the zero needs no asm. A `u8` zero set in an earlier block and widened once (`first = start0;`) is turned into `(set (reg:SI) 0)` by local-alloc, after cse and combine. See "A zero that local-alloc materialises" at the end of this file.
+
 ## A `u8` zero local: folded comparisons plus a surviving dead `move`
 
 The sibling above needed `SOFT_MOVE_ZERO` because its window start was compared
@@ -146037,6 +146039,8 @@ cross-jumping into the join block, but that happens after sched2, so the `move`
 sits ahead of the `lh`, and reorg then hoists it into the `beqz` delay slot
 (99.52% against 99.88%). Narrow widths (`s8`/`s16`/`u16`) and a fourth
 `0 / rate` bound fold or add code.
+**2026-10-06.** A third plain-C way does land it: keep the zero in a `u8` set in an earlier block and copy it once into the `s32` the tests read. The copy is in the join block, cse cannot see through it, and local-alloc replaces it by the constant. Matched in `func_actor_400600_801361AC`; the three `actor_400500` handlers have the same shape and were not retried. See "A zero that local-alloc materialises" at the end of this file.
+
 ## A dead load of a field just after two stores is an inline setter handed that field's own value (func_actor_400500_80133B14, 2026-09-27)
 
 A seed kept `(void)*(volatile u16*)&work->rate;` to reproduce an `lhu` of the rate
@@ -151471,3 +151475,70 @@ a build:
 - A reused local helps local-alloc only if combine deletes the second set
   (references stay, `REG_N_SETS` returns to 1). A local with two live ranges
   that both survive is a global-alloc register.
+
+## A zero that local-alloc materialises: a single-use constant pseudo widened in a later block (func_actor_400600_801361AC, 2026-10-06)
+
+**Was.** `SOFT_MOVE_ZERO(start0);` after `if (clipDone) work->animFrame = 0;`,
+for `lh v0,frame` / `move s2,zero` / `bne v0,s2` and a later `slt v0,v1,s2`.
+Two entries concluded that a register-held zero in that block needs an asm.
+
+**Required state.** At `.lreg` the join block holds
+`(set (reg:SI start0) (const_int 0))` with the two tests still reading the
+register. sched2 puts the frame `lh` ahead of it (it fills the load delay
+before the `bne`), and because the `lh` is then the head of the branch target,
+reorg cannot take the `move` into the `beqz` delay slot (`fill_slots_from_thread`
+stops at the first insn it cannot take from a thread it does not own).
+
+**Why every plain spelling failed.** A constant set that cse can see in the
+block is folded into both tests (`bnez`, `bltz`). A zero that only combine can
+see is not folded into them (two uses), but the ways to get one leave debris:
+`0 / rate` is not folded by cse (the `divmodsi4` PARALLEL), combine does fold it
+and the code matches, but the deleted insn's remainder pseudo keeps a stale
+reference count and reload gives it a stack slot (frame 56 -> 64; the divisor's
+loads add `(use)` insns and two more slots). An inline `frames(arg0, 0)` with
+the `rate == 0` guard folds at integration, and its two zero arms survive to
+jump2, so the `move` ends up ahead of the `lh`.
+
+**Mechanism.** `update_equiv_regs` (local-alloc.c) runs after combine. A pseudo
+that is set once, carries a `REG_EQUAL` constant note (cse adds one to any
+`(set reg const)`), is referenced exactly twice and is not confined to one
+block (`REG_BASIC_BLOCK < 0`) has its one use rewritten with the constant by
+`validate_replace_rtx`, and its initialising insn is deleted. recog.c
+simplifies a `ZERO_EXTEND` of the replaced operand, so
+`(set (reg:SI first) (zero_extend:SI (reg:QI start0)))` becomes
+`(set (reg:SI first) (const_int 0))` in place. No pass after that folds
+constants into the users.
+
+```c
+u8  start0;
+s32 first;
+...
+start0 = 0;                 /* before the three computed bounds, another block */
+...
+if (clipDone) { work->animFrame = 0; }
+first = start0;             /* join block: the only use of start0 */
+if (work->animFrame == first) { ... }
+...
+if (work->animFrame >= first && work->animFrame <= end0) { ... }
+```
+
+`u8 start0 = 0;` as an initialiser matches too. The narrow type is required:
+with `s32 start0 = 0; first = start0;` cse puts both registers in one class and
+rewrites the later `slt` to read `start0`, which then has three references and
+stays a register set at the top of the function (`move fp,zero`).
+
+**What is fitted.** The `u8` zero is the bound `stalkerZebraIvoryStepClip4`
+declares the same way (there both tests read it directly, combine folds them
+through `nonzero_bits` and the `move` is left dead). The `s32` copy is
+positional: it has to be one statement, in the join block, and both tests have
+to read it. No reason for the copy was recovered.
+
+**Use.**
+- A `move reg,zero` in a block whose tests still read the register, where a
+  literal folds: look for a constant held in a narrower local in an earlier
+  block and copied once. The same holds for any constant, not only zero.
+- A dead `move reg,zero` next to folded tests (the clip4 form) is the same
+  local with two uses instead of one.
+- `0 / x` survives cse and dies in combine; if a frame is 8 bytes too large
+  after such a fold, the remainder pseudo of the deleted `divmodsi4` took a
+  stack slot.

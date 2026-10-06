@@ -3107,13 +3107,17 @@ static void func_actor_400600_801361AC(Task* arg0)
     GfxCoord*                     coord;
     /* The bounds are computed into their own temporaries first; a `u8` temp is
      * what keeps the zero arm of each test out of the surrounding block. */
-    u8  tmp0;
-    u8  tmp1;
-    u8  tmp2;
-    u8  end0;
-    u8  start1;
-    u8  end1;
-    s32 start0;
+    u8 tmp0;
+    u8 tmp1;
+    u8 tmp2;
+    u8 end0;
+    u8 start1;
+    u8 end1;
+    /* The first window starts at frame 0. `start0` is a `u8` bound like the
+     * other three, set before them as in `stalkerZebraIvoryStepClip4`; here it
+     * is widened once into `first`, which both of its tests read. */
+    u8  start0;
+    s32 first;
     u32 sound;
     s32 pan;
 
@@ -3125,6 +3129,7 @@ static void func_actor_400600_801361AC(Task* arg0)
         work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_RESTART;
         stalkerZebraIvoryTickAnimInline(arg0);
     }
+    start0 = 0;
     if (((_Actor400600ZebraStalkerWork*)arg0->work)->animStep == 0) {
         tmp0 = 0;
     } else {
@@ -3146,10 +3151,8 @@ static void func_actor_400600_801361AC(Task* arg0)
     if ((stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         work->animFrame = 0;
     }
-    /* The first window starts at frame 0, and the original compares against it
-     * in a register: a literal 0 is folded into `$zero` by CSE. */
-    SOFT_MOVE_ZERO(start0);
-    if (work->animFrame == start0) {
+    first = start0;
+    if (work->animFrame == first) {
         func_actor_400600_80139F4C(arg0, 0xB, &work->anchorPos);
         sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         sound >>= 0xC;
@@ -3169,7 +3172,7 @@ static void func_actor_400600_801361AC(Task* arg0)
         pan   >>= 24;
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (work->animFrame >= start0 && work->animFrame <= end0) {
+    if (work->animFrame >= first && work->animFrame <= end0) {
         func_actor_400600_80139FE0(arg0, 0xB, &work->anchorPos);
         work->nextAnchorPart = 8;
     }
