@@ -2041,24 +2041,24 @@ static const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4 = {
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Answers 1 when a pending room-action trigger with `parameter0` 0xFF was hit.
+static inline s32 _shelterB1UndergroundParkingRoomTriggerHit(void)
 {
     WorldCollisionTrigger* node;
-    s32                    found;
 
+    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
+        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
     if (arg2 == 0x121 || arg2 == 0x122) {
         if (gGameSession->location.loc.room == 6) {
-            node = Gp_PendingObj4C;
-            while (node != NULL) {
-                if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-                    found = 1;
-                    goto check;
-                }
-                node = node->next;
-            }
-            found = 0;
-        check:
-            if (found != 0) {
+            if (_shelterB1UndergroundParkingRoomTriggerHit()) {
                 taskSpawnFromTableOnDefaultList(D_shelter_b1_underground_parking_8018726C, 2, 0, 0);
                 gGameSession->hideHud    = 1;
                 gGameSession->eventState = 1;
