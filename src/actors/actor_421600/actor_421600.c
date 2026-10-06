@@ -3416,9 +3416,6 @@ static void func_actor_421600_8013B00C(Task* arg0)
     Enemy*            ctx;
     TmdObject*        obj;
     GfxCoord*         coord;
-    GfxCoord*         coord2;
-    GfxCoord*         coord3;
-    GfxCoord*         coord4;
     s32               zone;
     s32               x_entry;
     s32               z_entry;
@@ -3429,7 +3426,6 @@ static void func_actor_421600_8013B00C(Task* arg0)
     s32               x;
     s32               z;
     s16               angle;
-    s32               wrapped;
     s32               var_a0;
     s32               var_v1;
 
@@ -3514,12 +3510,9 @@ static void func_actor_421600_8013B00C(Task* arg0)
     turn->delta.vy = 0;
     turn->delta.vz = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
     desertChaserAnimTick(arg0);
-    coord2              = arg0->extra.tmd->coords;
-    angle               = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
-    wrapped             = angle;
-    turn->angle         = wrapped;
-    work->lookYawTarget = wrapped;
+    angle               = actorYawTo(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
+    turn->angle         = angle;
+    work->lookYawTarget = angle;
     if (turn->angle >= 0x81) {
         turn->angle = 0x80;
     }
@@ -3527,12 +3520,10 @@ static void func_actor_421600_8013B00C(Task* arg0)
         turn->angle = -0x80;
     }
     work->waistYawTarget = turn->angle;
-    coord3               = arg0->extra.tmd->coords;
-    turn->angle          = turn->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
+    turn->angle          = turn->angle + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
-        coord4 = arg0->extra.tmd->coords;
-        actorMoveForward(coord4, 0xC8);
+        actorMoveForward(arg0->extra.tmd->coords, 0xC8);
     }
     ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
