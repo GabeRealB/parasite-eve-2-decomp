@@ -6125,6 +6125,75 @@ static void func_actor_403200_8013EB64(Task* arg0)
 /// Every later tick yaws the host at the player, and at `stateTicks` 0x46 / 0x78
 /// it sends summon 0 or 1 a 0x7DB order whose action is picked from
 /// `phase` and a coin flip of `gRandomLcgState`.
+/// On tick 0x46 sends the first summon, and on tick 0x78 the second, its
+/// attack command: a pair of candidates chosen by the host's phase and the
+/// slot, one of them picked at random, with a random variant in the low byte.
+static inline void _gluttonCommandSummonOnCue(GluttonWork* work, GluttonSummonScratch* sc)
+{
+    s32 rnd;
+
+    if (work->stateTicks == 0x46) {
+        sc->slot = 0;
+    } else if (work->stateTicks == 0x78) {
+        sc->slot = 1;
+    } else {
+        return;
+    }
+    if (work->summons[sc->slot] != NULL) {
+        D_actor_403200_8015F8F4.context.loc.stage = 0;
+        D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+        switch (work->phase) {
+            case 0:
+                if (sc->slot == 0) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.command = 3;
+                    } else {
+                        D_actor_403200_8015F8F4.command = 4;
+                    }
+                } else {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.command = 9;
+                    } else {
+                        D_actor_403200_8015F8F4.command = 0xA;
+                    }
+                }
+                break;
+            case 1:
+                if (sc->slot == 0) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.command = 0xA;
+                    } else {
+                        D_actor_403200_8015F8F4.command = 0xB;
+                    }
+                } else {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
+                        D_actor_403200_8015F8F4.command = 4;
+                    } else {
+                        D_actor_403200_8015F8F4.command = 5;
+                    }
+                }
+                break;
+            case 2:
+            default:
+                if (sc->slot == 0) {
+                    D_actor_403200_8015F8F4.command = 5;
+                } else {
+                    D_actor_403200_8015F8F4.command = 0xB;
+                }
+                break;
+        }
+        D_actor_403200_8015F8F4.command <<= 8;
+        rnd                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
+        gRandomLcgState                   = rnd;
+        TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
+    }
+}
+
 static void func_actor_403200_8013EF6C(Task* arg0)
 {
     GluttonSummonScratch* sc;
@@ -6142,10 +6211,8 @@ static void func_actor_403200_8013EF6C(Task* arg0)
     s32                   cuePan;
     s32                   blastId;
     s32                   blastPan;
-    s32                   rnd;
     s32                   state;
     s16                   angle;
-    s16                   sel;
     u32                   frame;
 
     work = arg0->work;
@@ -6204,26 +6271,14 @@ static void func_actor_403200_8013EF6C(Task* arg0)
         } else {
             work->hostExposed = 0;
         }
-        cfg             = &gPlayerStatus;
-        coord           = arg0->extra.tmd->coords;
-        sc->toPlayer.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
-        sc->toPlayer.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
-        sc->toPlayer.vz = cfg->coordMtx->t[2] - coord->coord.t[2];
-        facing          = arg0->extra.tmd->coords;
-        angle           = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        if (angle < 0) {
-        wrapUp:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto wrapUp;
-            }
-        } else {
-        wrapDown:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto wrapDown;
-            }
-        }
+        cfg                 = &gPlayerStatus;
+        coord               = arg0->extra.tmd->coords;
+        sc->toPlayer.vx     = cfg->coordMtx->t[0] - coord->coord.t[0];
+        sc->toPlayer.vy     = cfg->coordMtx->t[1] - coord->coord.t[1];
+        sc->toPlayer.vz     = cfg->coordMtx->t[2] - coord->coord.t[2];
+        facing              = arg0->extra.tmd->coords;
+        angle               = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+        angle               = actorWrapAngle(angle);
         work->neckYawTarget = angle;
         if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0x13) {
             work->animId   = 1;
@@ -6247,74 +6302,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
         if (work->stateTicks == 0x23) {
             work->viewSelector = 0;
         }
-        if (work->stateTicks == 0x46) {
-            sc->slot = 0;
-            goto dispatch;
-        }
-        if (work->stateTicks == 0x78) {
-            sc->slot = 1;
-        dispatch:
-            if (work->summons[sc->slot] != NULL) {
-                D_actor_403200_8015F8F4.context.loc.stage = 0;
-                D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
-                sel                                       = work->phase;
-                if (sel == 1) {
-                    goto L_case1;
-                }
-                if (sel >= 2) {
-                    goto L_default;
-                }
-                if (sel != 0) {
-                    goto L_default;
-                }
-                if (sc->slot == 0) {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 3;
-                    } else {
-                        D_actor_403200_8015F8F4.command = 4;
-                    }
-                } else {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 9;
-                    } else {
-                        D_actor_403200_8015F8F4.command = 0xA;
-                    }
-                }
-                goto L_join;
-            L_case1:
-                if (sc->slot == 0) {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 0xA;
-                    } else {
-                        D_actor_403200_8015F8F4.command = 0xB;
-                    }
-                } else {
-                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 4;
-                    } else {
-                        D_actor_403200_8015F8F4.command = 5;
-                    }
-                }
-                goto L_join;
-            L_default:
-                if (sc->slot == 0) {
-                    D_actor_403200_8015F8F4.command = 5;
-                } else {
-                    D_actor_403200_8015F8F4.command = 0xB;
-                }
-            L_join:
-                D_actor_403200_8015F8F4.command <<= 8;
-                rnd                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
-                gRandomLcgState                   = rnd;
-                TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
-            }
-        }
-    out:
+        _gluttonCommandSummonOnCue(work, sc);
         SCRATCH_STACK_RELEASE_BLOCK(GluttonSummonScratch);
     }
 }
