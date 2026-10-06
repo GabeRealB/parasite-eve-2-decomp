@@ -460,18 +460,14 @@ s32 Gp_FindScanQty(InventoryItemRow* arg0, InventoryItemRange* arg1, s32* arg2, 
 
     i   = *arg2;
     ret = 0;
-    if (i < arg1->firstRow + arg1->rowCount) {
-    loop:
+    while (i < arg1->firstRow + arg1->rowCount) {
         if (arg0[i].itemId == arg3) {
             ret = arg0[i].qty;
-        } else {
-            next  = i + 1;
-            *arg2 = next;
-            i     = next;
-            if (i < arg1->firstRow + arg1->rowCount) {
-                goto loop;
-            }
+            break;
         }
+        next  = i + 1;
+        *arg2 = next;
+        i     = next;
     }
     return (s16)ret;
 }
