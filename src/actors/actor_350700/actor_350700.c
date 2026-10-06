@@ -55,13 +55,13 @@ extern TaskMessageEntry D_actor_350700_8017090C[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_350700_80162B30(Task* arg0);
-static void func_actor_350700_80162D5C(Task* arg0);
-static void func_actor_350700_80163348(Task* task);
-static void func_actor_350700_801633BC(Task* arg0);
-static void func_actor_350700_801633DC(Task* task);
-static void func_actor_350700_801633F8(Task* arg0);
-static void func_actor_350700_80163400(Task* task);
-static void func_actor_350700_80163528(Task* task);
+static void _actor350700KyleMadiganWalkerUpdate(Task* task);
+static void _actor350700KyleMadiganAttachmentIdle(Task* task);
+static void _actor350700KyleMadiganWalkerExit(Task* task);
+static void _actor350700KyleMadiganWalkerBindLighting(Task* task);
+static void _actor350700KyleMadiganWalkerIdle(Task* task);
+static void _actor350700KyleMadiganWalkerRunStep(Task* task);
+static void _actor350700KyleMadiganWalkerBeginMove(Task* task);
 
 /// Spawn, tick and exit handlers of the enemy actor, dispatched by
 /// `func_actor_350700_80162398`.
@@ -86,19 +86,19 @@ static const TaskFuncTable4 D_actor_350700_80161E30 = { {
 static const VECTOR _gReverseWalkForward = { 0, 0, 0x200000, 0 };
 
 /// Spawn, tick and exit handlers of the child part tasks, dispatched by
-/// `func_actor_350700_80163274`.
+/// `_actor350700KyleMadiganAttachmentTask`.
 static const TaskFuncTable3 D_actor_350700_80161E50 = { {
     _modelPlacementAttachPartTask,
-    func_actor_350700_80163348,
+    _actor350700KyleMadiganAttachmentIdle,
     taskKill,
 } };
 
 /// Spawn, tick and exit handlers of the parent actor, dispatched by
-/// `func_actor_350700_80163350`.
+/// `_actor350700KyleMadiganWalkerTask`.
 static const TaskFuncTable3 D_actor_350700_80161E5C = { {
     func_actor_350700_80162B30,
-    func_actor_350700_80162D5C,
-    func_actor_350700_801633BC,
+    _actor350700KyleMadiganWalkerUpdate,
+    _actor350700KyleMadiganWalkerExit,
 } };
 
 /// Step handlers of the parent block's motion sequence, indexed by
@@ -106,13 +106,13 @@ static const TaskFuncTable3 D_actor_350700_80161E5C = { {
 /// forward, walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_350700_80161E68 = { {
     actorMotionFaceTarget,
-    func_actor_350700_80163528,
+    _actor350700KyleMadiganWalkerBeginMove,
     actorMotionArrive,
     actorMotionTurnToYaw,
 } };
 
 /// The parent's copy of the forward offset, rotated by
-/// `func_actor_350700_80163528`.
+/// `_actor350700KyleMadiganWalkerBeginMove`.
 static const VECTOR D_actor_350700_80161E78 = { 0, 0, 0x200000, 0 };
 
 static TmdSource _gActor350700KyleMadiganBody;
@@ -120,13 +120,13 @@ static TmdSource _gActor350700KyleMadiganHandRight;
 static TmdSource _gActor350700KyleMadiganHandLeft;
 static TmdSource _gActor350700KyleMadiganGun;
 static s32       _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
-s32              func_actor_350700_80163840(Task*, s32, s32, s32);
-s32              func_actor_350700_8016395C(Task*, s32, s32, s32);
-void             func_actor_350700_80163274(Task*);
-void             func_actor_350700_80163350(Task*);
+static s32       _actor350700KyleMadiganWalkerSetDrawModeMsg(Task* task, s32 msgId, s32 mode, s32 unusedArg);
+static s32       _actor350700KyleMadiganWalkerIgnoreCommandMsg(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg);
+static void      _actor350700KyleMadiganAttachmentTask(Task* task);
+static void      _actor350700KyleMadiganWalkerTask(Task* task);
 
-s32  func_actor_350700_80162AF4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void func_actor_350700_80162398(Task*);
+static s32 _actor350700ReverseWalkCommandMsg(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
+void       func_actor_350700_80162398(Task*);
 
 static TmdBone _gActor350700EveBreaMaskedBodySkeleton[19] = {
 #include "assets/eve_brea_masked_body_skeleton.inc"
@@ -267,7 +267,7 @@ TaskMessageEntry gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, reverseWalkVisibilityMsg },
     { ACTOR_MESSAGE_WALK_TO, reverseWalkStartMsg },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_350700_80162AF4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor350700ReverseWalkCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -523,18 +523,18 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_350700_801708DC[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350700_80163350, { .model = &_gActor350700KyleMadiganBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &_gActor350700KyleMadiganHandLeft } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &_gActor350700KyleMadiganHandRight } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_350700_80163274, { .model = &_gActor350700KyleMadiganGun } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700KyleMadiganWalkerTask, { .model = &_gActor350700KyleMadiganBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor350700KyleMadiganAttachmentTask, { .model = &_gActor350700KyleMadiganHandLeft } },
+    { { { TASK_BODY_TMD, 192 } }, _actor350700KyleMadiganAttachmentTask, { .model = &_gActor350700KyleMadiganHandRight } },
+    { { { TASK_BODY_TMD, 192 } }, _actor350700KyleMadiganAttachmentTask, { .model = &_gActor350700KyleMadiganGun } },
 };
 
 TaskMessageEntry D_actor_350700_8017090C[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_350700_80163840 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor350700KyleMadiganWalkerSetDrawModeMsg },
     { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_350700_8016395C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor350700KyleMadiganWalkerIgnoreCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table
 #include "../../shared/reversing_walker_update.inc.c"
@@ -607,19 +607,26 @@ void reverseWalkRunStep(Task* arg0)
 
 #include "../../shared/reversing_walker_visibility.inc.c"
 
-/// `taskMessageDispatch` handler: latches the walk direction the message's
-/// command selects into `walksForward` -- 1 clears it, so the walker backs
-/// toward its targets, 2 sets it, anything else leaves it. Always returns 0.
-s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Selects whether the reversing walker approaches its targets forward or backward.
+///
+/// Requires an initialized `ReverseWalkWork` and a borrowed, readable command.
+/// Command 1 selects backing, 2 selects forward walking; other commands leave
+/// the direction unchanged. The context, message ID and second payload are
+/// ignored. Retains no command pointer and always returns 0.
+static s32 _actor350700ReverseWalkCommandMsg(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_350700_REVERSE_WALK_COMMAND_BACKWARD = 1,
+        ACTOR_350700_REVERSE_WALK_COMMAND_FORWARD  = 2,
+    };
     ReverseWalkWork* work;
 
     work = task->work;
-    switch (msg->command) {
-        case 1:
+    switch (command->command) {
+        case ACTOR_350700_REVERSE_WALK_COMMAND_BACKWARD:
             work->walksForward = 0;
             break;
-        case 2:
+        case ACTOR_350700_REVERSE_WALK_COMMAND_FORWARD:
             work->walksForward = 1;
             break;
     }
@@ -634,8 +641,8 @@ s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 /// the area key `&gGameSession->location.loc` and indexed by the model id the child's
 /// own `spawnArg2` carries at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
-/// handing the parent to `func_actor_350700_801633DC`, pointing `msgTable` at the
-/// message table and installing `func_actor_350700_801633BC` as its exit
+/// handing the parent to `_actor350700KyleMadiganWalkerBindLighting`, pointing `msgTable` at the
+/// message table and installing `_actor350700KyleMadiganWalkerExit` as its exit
 /// callback.
 static void func_actor_350700_80162B30(Task* arg0)
 {
@@ -712,65 +719,75 @@ static void func_actor_350700_80162B30(Task* arg0)
     if (spawned != NULL) {
         work->heldItemTask = spawned;
     }
-    func_actor_350700_801633DC(arg0);
+    _actor350700KyleMadiganWalkerBindLighting(arg0);
     arg0->msgTable     = D_actor_350700_8017090C;
-    arg0->exitCallback = func_actor_350700_801633BC;
+    arg0->exitCallback = _actor350700KyleMadiganWalkerExit;
     arg0->state       += 1;
 }
 
-/// Per-frame tick of the parent actor: dispatches through the local two-entry
-/// table `walk.motion` indexes -- the empty `func_actor_350700_801633F8` or the
-/// step dispatcher `func_actor_350700_80163400` -- then integrates the
-/// per-frame deltas in `walk.velocity` into the 16.16 accumulators `walk.carry`,
-/// adds their high halves to the root coordinate's translation, clears `composeStamp`
-/// and truncates the accumulators back to 16 bits. Ticks the animation slots
-/// while `model.ticking` is set; and, unless the display object's `flags` carry
-/// 0x80, draws the ground-shadow quad from the second part's world matrix.
-/// While `gGameSession->viewReady` is set it also clears that part's `composeStamp`,
-/// rebuilds its coordinate and rebuilds the actor colour; the colour rebuild
-/// runs once more unconditionally. The `freeCountdown` countdown then runs while it
-/// is non-negative, freeing the model buffers on the frame it reaches zero; the
-/// init's -1 disables it.
-static void func_actor_350700_80162D5C(Task* arg0)
+/// Applies signed 16.16 walk velocity to a root's integer translation.
+///
+/// Both objects must be live and writable. Keeps each axis's low-half fraction
+/// for the next tick and invalidates the composed transform.
+static inline void _actor350700KyleMadiganWalkerIntegrateVelocity(KyleMadiganWalkerWork* work, GfxCoord* rootCoord)
 {
-    TmdObject*             ext      = arg0->extra.tmd;
-    KyleMadiganWalkerWork* work     = arg0->work;
-    TaskFunc               funcs[2] = { func_actor_350700_801633F8, func_actor_350700_80163400 };
-    VECTOR3                pos;
-    GfxCoord*              coord;
-    s32                    i;
-
-    funcs[work->walk.motion](arg0);
-    coord                     = arg0->extra.tmd->coords;
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
-    coord->coord.t[0]        += work->walk.carry[0].halves.integer;
-    coord->coord.t[1]        += work->walk.carry[1].halves.integer;
-    coord->coord.t[2]        += work->walk.carry[2].halves.integer;
-    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
     work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
     work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
     work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+}
+
+/// Advances Kyle Madigan's scripted walk, animation and model presentation.
+///
+/// Requires initialized `KyleMadiganWalkerWork`, a body with coordinates 0..19,
+/// and motion 0 (idle) or 1 (walking). A ticking rig must already be bound.
+/// Integrates velocity in signed 16.16 coordinate units per tick and drives
+/// animation slots 1..19. Part 1 supplies the world position for the shadow and
+/// lighting; it is recomposed when the view is ready. Lighting is also refreshed
+/// unconditionally, including a second refresh on those frames.
+/// A nonnegative buffer countdown is decremented once; a tick entering at zero
+/// releases the body's primitive buffer. -1 disables the countdown.
+static void _actor350700KyleMadiganWalkerUpdate(Task* task)
+{
+    enum { ACTOR_350700_KYLE_MADIGAN_SHADOW_HALF_SIZE = 0x300 };
+    TmdObject*             bodyModel        = task->extra.tmd;
+    KyleMadiganWalkerWork* work             = task->work;
+    TaskFunc               motionHandlers[] = { _actor350700KyleMadiganWalkerIdle, _actor350700KyleMadiganWalkerRunStep };
+    VECTOR3                groundPoint;
+    GfxCoord*              rootCoord;
+    s32                    slotIndex;
+
+    // Run the walk step before consuming its velocity for this frame.
+    motionHandlers[work->walk.motion](task);
+    rootCoord = task->extra.tmd->coords;
+    _actor350700KyleMadiganWalkerIntegrateVelocity(work, rootCoord);
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
+    if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, ACTOR_350700_KYLE_MADIGAN_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
+    // The presentation frame is part 1; retain both lighting queries when ready.
     if (gGameSession->viewReady != 0) {
-        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, arg0->extra.tmd->coords[1].workm.t, 0, 3);
+        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+        worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
-    worldCoordSetModelLighting(ext, arg0->extra.tmd->coords[1].workm.t, 0, 3);
+    worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, 3);
+    // Buffer release is delayed while the hidden body stops drawing.
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(bodyModel);
         }
         work->freeCountdown--;
     }
@@ -780,69 +797,76 @@ static void func_actor_350700_80162D5C(Task* arg0)
 
 #include "../../shared/actor_motion_start.inc.c"
 
-/// State dispatcher of the child part tasks: copies the three-handler table
-/// `D_actor_350700_80161E50` onto the stack and runs the entry `Task::state`
-/// selects.
-void func_actor_350700_80163274(Task* task)
+/// Runs the attachment task for either hand or the gun on Kyle Madigan's body.
+///
+/// State must be 0 (attach to the parent part), 1 (idle) or 2 (kill the task).
+/// Setup requires the live parent task and part index in the spawn arguments;
+/// the parent owns the attachment's coordinate and lighting lifetime.
+static void _actor350700KyleMadiganAttachmentTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_350700_80161E50;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_350700_80161E50;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// Tick state of the child part tasks: nothing to do, the parent drives them.
-static void func_actor_350700_80163348(Task* task)
+/// Leaves an attached hand or gun idle while the parent's rig drives its transform.
+static void _actor350700KyleMadiganAttachmentIdle(Task* task)
 {
 }
 
-/// Per-frame dispatcher of the parent actor: runs its spawn, tick or exit
-/// state from `D_actor_350700_80161E5C`, skipping the frame while the global
-/// freeze byte is set.
-void func_actor_350700_80163350(Task* task)
+/// Runs Kyle Madigan's body task while actor control is running.
+///
+/// State must be 0 (spawn), 1 (update) or 2 (exit). Actor-control values other
+/// than `SCENE_COMBAT_ACTORS_RUNNING` suspend all three states; attachment
+/// dispatch is independent of that gate.
+static void _actor350700KyleMadiganWalkerTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_350700_80161E5C;
+    stateHandlers = D_actor_350700_80161E5C;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 
-/// Exit callback `func_actor_350700_80162B30` installs, the same
-/// `enemyTaskExit` teardown `reverseWalkExit` performs.
-static void func_actor_350700_801633BC(Task* arg0)
+/// Releases Kyle Madigan's enemy record and tears down the body and its children.
+///
+/// Requires a live task with its owned `Enemy` in `spawnArg2.pointer`, including
+/// an incomplete spawn. Task teardown releases the work and model resources.
+/// The task and enemy must not be accessed after this call.
+static void _actor350700KyleMadiganWalkerExit(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-/// Republishes the parent work block's two matrices onto
-/// `TmdObject::lightMtx` / `colorMtx`, so the parent draws with its own
-/// lighting.
-static void func_actor_350700_801633DC(Task* task)
+/// Lends Kyle Madigan's work-owned lighting matrices to his body model.
+///
+/// Requires an allocated `KyleMadiganWalkerWork` and a live TMD body. The work
+/// must outlive model use and attachments that copy these matrix pointers.
+static void _actor350700KyleMadiganWalkerBindLighting(Task* task)
 {
-    TmdObject*             ext;
+    TmdObject*             bodyModel;
     KyleMadiganWalkerWork* work;
 
-    ext           = task->extra.tmd;
-    work          = task->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    bodyModel           = task->extra.tmd;
+    work                = task->work;
+    bodyModel->lightMtx = &work->model.light;
+    bodyModel->colorMtx = &work->model.color;
 }
 
-/// The empty first entry of the parent's two-handler table, selected by
-/// `KyleMadiganWalkerWork::walk.motion` -- the idle half of the pair whose other
-/// entry is the step dispatcher `func_actor_350700_80163400`.
-static void func_actor_350700_801633F8(Task* arg0)
+/// Leaves the scripted walk idle while the body update still drives presentation.
+static void _actor350700KyleMadiganWalkerIdle(Task* task)
 {
 }
 
-/// Motion handler 1 of the parent block: copies the step-handler table
-/// `D_actor_350700_80161E68` onto the stack and runs the entry `walk.motionStep`
-/// selects.
-static void func_actor_350700_80163400(Task* task)
+/// Runs the current step of Kyle Madigan's scripted walk.
+///
+/// Requires initialized work and `walk.motionStep` in 0..3: face the target,
+/// start moving, detect arrival, then turn to the requested final yaw.
+static void _actor350700KyleMadiganWalkerRunStep(Task* task)
 {
     KyleMadiganWalkerWork* work;
     TaskFuncTable4         handlers;
@@ -854,21 +878,24 @@ static void func_actor_350700_80163400(Task* task)
 
 #include "../../shared/actor_motion_face.inc.c"
 
-/// Step 1 of the parent: rotates the constant forward offset
-/// `D_actor_350700_80161E78` through the root part's matrix into `work->walk.velocity`,
-/// seeds `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances the
-/// step.
-static void func_actor_350700_80163528(Task* task)
+/// Starts Kyle Madigan moving along his root's local forward axis.
+///
+/// Requires initialized work and the root rotation set by the facing step.
+/// Rotates a +Z velocity of 32 coordinate units per tick, encoded in signed
+/// 16.16, into the root's parent frame. Seeds the first arrival comparison and
+/// advances to walk step 2; existing fractional displacement is retained.
+static void _actor350700KyleMadiganWalkerBeginMove(Task* task)
 {
     KyleMadiganWalkerWork* work;
-    GfxCoord*              coord;
-    VECTOR                 vec;
+    GfxCoord*              rootCoord;
+    VECTOR                 forwardVelocity;
 
-    coord = task->extra.tmd->coords;
-    work  = task->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    vec = D_actor_350700_80161E78;
-    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    // Rotate velocity only; the root's translation must not affect the step.
+    forwardVelocity = D_actor_350700_80161E78;
+    ApplyMatrixLV(&rootCoord->coord, &forwardVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
@@ -884,62 +911,69 @@ static void func_actor_350700_80163528(Task* task)
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
-/// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
-/// message's mode word, run against the `TmdObject` parked in `Task::extra`,
-/// then the resulting flags are republished onto the objects of the three
-/// child tasks the spawn handler parked at `handTasks` and `heldItemTask`.
-/// The modes are those of `reverseWalkVisibilityMsg`, the
-/// countdown mode 2 latches being `freeCountdown`. Anything else returns 1 and
-/// leaves the object alone; the handled modes return 0.
-s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Applies Kyle Madigan's body draw mode and copies its flags to both hands and gun.
+///
+/// Requires initialized work and all four live TMD tasks, even for an unknown
+/// mode. Mode 0 hides and enables automatic buffer recovery; 1 shows, allocates
+/// the body's buffer and enables recovery; 2 hides, disables recovery and sets
+/// the body buffer-release countdown to 2; 3 shows with recovery disabled.
+/// Other modes return 1 without changing body flags; handled modes return 0.
+/// Every mode replaces each attachment's entire flag word with the body's.
+/// Showing does not cancel a pending release. The message ID and second
+/// payload are ignored; no payload storage is borrowed.
+static s32 _actor350700KyleMadiganWalkerSetDrawModeMsg(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
+    enum { ACTOR_350700_KYLE_MADIGAN_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     KyleMadiganWalkerWork* work;
-    TmdObject*             obj;
-    TmdObject*             objA;
-    TmdObject*             objB;
-    TmdObject*             objC;
+    TmdObject*             bodyModel;
+    TmdObject*             leftHandModel;
+    TmdObject*             rightHandModel;
+    TmdObject*             heldItemModel;
     u16                    flags;
-    s32                    ret;
+    s32                    result;
 
-    work = task->work;
-    obj  = task->extra.tmd;
-    objA = work->handTasks[0]->extra.tmd;
-    objB = work->handTasks[1]->extra.tmd;
-    objC = work->heldItemTask->extra.tmd;
-    ret  = 0;
+    work           = task->work;
+    bodyModel      = task->extra.tmd;
+    leftHandModel  = work->handTasks[0]->extra.tmd;
+    rightHandModel = work->handTasks[1]->extra.tmd;
+    heldItemModel  = work->heldItemTask->extra.tmd;
+    result         = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            bodyModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(bodyModel);
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            bodyModel->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_350700_KYLE_MADIGAN_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    flags       = obj->flags;
-    objB->flags = flags;
-    objA->flags = flags;
-    objC->flags = flags;
-    return ret;
+    // Attachments inherit the whole flag word, including unrelated body flags.
+    flags                 = bodyModel->flags;
+    rightHandModel->flags = flags;
+    leftHandModel->flags  = flags;
+    heldItemModel->flags  = flags;
+    return result;
 }
 
-/// Message handler that accepts its message and does nothing with it:
-/// returns 0.
-s32 func_actor_350700_8016395C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Accepts actor-command messages for Kyle Madigan without changing his state.
+///
+/// Ignores every argument, dereferences no payload and always returns 0. This
+/// consumes scene broadcasts while animation and walk messages drive the actor.
+static s32 _actor350700KyleMadiganWalkerIgnoreCommandMsg(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg)
 {
     return 0;
 }

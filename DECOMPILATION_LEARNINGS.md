@@ -125460,10 +125460,10 @@ doing and that nothing else moved.
 
 ## Sibling `p->child->field` chains emit in the *reverse* of their statement order
 
-`func_actor_350700_80163840` is the `func_actor_335800_8016343C` body shape with
+`_actor350700KyleMadiganWalkerSetDrawModeMsg` is the `func_actor_335800_8016343C` body shape with
 one more child: a four-way switch over `TmdObject::flags`, then a republish of
-the result onto the objects of the three child tasks at `field_4FC` / `field_500`
-/ `field_504`. The target emits the three child loads `0x4FC`, `0x504`, `0x500`:
+the result onto the objects of the three child tasks at `handTasks[0]` / `handTasks[1]`
+/ `heldItemTask`. The target emits the three child loads `0x4FC`, `0x504`, `0x500`:
 
 ```
 lw    v0,0x4FC(a3)
@@ -125492,9 +125492,9 @@ shows for the last two is *reversed* relative to that order, both ways round:
 So writing the three statements in natural field order is what matches:
 
 ```c
-    objA = work->field_4FC->extra;
-    objB = work->field_500->extra;   /* object emits 4FC, 504, 500 from this */
-    objC = work->field_504->extra;   /* order -- the tail two swap */
+    leftHandModel = work->handTasks[0]->extra.tmd;
+    rightHandModel = work->handTasks[1]->extra.tmd;   /* object emits 4FC, 504, 500 from this */
+    heldItemModel = work->heldItemTask->extra.tmd;   /* order -- the tail two swap */
 ```
 
 The matched sibling is the authority on which order is the source: it declares
@@ -125507,12 +125507,12 @@ fix is to permute the statements rather than transcribe the dump. The reversal
 is not explained by the LUID tie-break alone — treat the direction as something
 to test, not to derive.
 
-## The sibling-chain reversal also covers read-modify-write accumulators, and a lone constant store moves by one slot (func_actor_350700_80162D5C, 2026-09-17)
+## The sibling-chain reversal also covers read-modify-write accumulators, and a lone constant store moves by one slot (_actor350700KyleMadiganWalkerUpdate, 2026-09-17)
 
 Two leftovers in one build of the parent-actor tick, both pure statement-order.
 
 **Accumulators.** The body integrates three per-frame deltas into three 16.16
-accumulators (`field_4D8/4DC/4E0 += field_4C8/4CC/4D0`) before reading their high
+accumulators (`walk.carry[0..2].word += walk.velocity.vx/vy/vz`) before reading their high
 halves. Writing them in the object dump's own order, `4D8, 4E0, 4DC`, scores
 98.897% with `regs=6 reorder=2`: the compiled object emits `4D8, 4DC, 4E0`. The
 natural field order, `4D8, 4DC, 4E0`, is what matches — it emits `4D8, 4E0, 4DC`,
@@ -128570,7 +128570,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## Equivalent pointer loads: their *source order* is what picks each one's call-saved register
 
-`func_actor_135600_80133240` is `func_actor_350700_80163840`'s body over one
+`func_actor_135600_80133240` is `_actor350700KyleMadiganWalkerSetDrawModeMsg`'s body over one
 more child: `work->field_4FC` / `field_500` / `field_504` are read into three
 `TmdObject*` locals, and the tail republishes `obj->flags` onto all three. The
 first attempt matched everything except which of `$s2` / `$s3` / `$s4` holds
@@ -128606,7 +128606,7 @@ lengths from raw uid spans predicted an exact tie and the wrong winner, while
 the reported `used 2 times across N insns` lines were right. And this is the
 lever to reach for *before* a pin whenever the residue is a clean permutation of
 otherwise-identical live-across-call pointers; the same body shape in
-`func_actor_350700_80163840` arrived at a different permutation from a different
+`_actor350700KyleMadiganWalkerSetDrawModeMsg` arrived at a different permutation from a different
 statement order, which is why two "identical" twins can disagree on register
 names.
 

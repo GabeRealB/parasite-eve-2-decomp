@@ -1,7 +1,7 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
 /// State handler at index 1 of `D_actor_350700_80161E30`, the move body that
-/// mirrors the parent's `func_actor_350700_80163528`: rotates the constant local-space offset
+/// mirrors the parent's `_actor350700KyleMadiganWalkerBeginMove`: rotates the constant local-space offset
 /// `_gReverseWalkForward` through the root part's matrix into `work->walk.velocity`,
 /// seeds `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances
 /// `walk.motionStep` so the dispatcher runs the next handler. Where the parent's step rotates its offset unchanged, this one
