@@ -2915,7 +2915,7 @@ static void func_actor_450800_80132448(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }
-        pacedWalkTickAnim(task);
+        _pacedWalkTickAnim(task);
     }
 }
 

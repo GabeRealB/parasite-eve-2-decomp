@@ -51,7 +51,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 
 #ifndef PACED_WALK_WORK_T
-/// Type `pacedWalkTickAnim`, `pacedWalkResetAnim`, `pacedWalkBlendAnim` and
+/// Type `_pacedWalkTickAnim`, `pacedWalkResetAnim`, `pacedWalkBlendAnim` and
 /// `pacedWalkPlace` take the block at `Task::work` as.
 ///
 /// Walkers whose work block is a type of their own carry some of those four,
@@ -70,23 +70,25 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #endif
 
 #ifndef PACED_WALK_TICK_ANIM
-/// Function identifier for this walker's animation-slot tick.
+/// Function identifier shared by a walker's private slot tick and update calls.
 ///
-/// The default is `pacedWalkTickAnim`. Bind to a function with signature
+/// The default is `_pacedWalkTickAnim`. Bind to a function with signature
 /// `void (Task* task)` before this header or around a further fragment copy.
-/// Bind the update fragment and tick definition to the same identifier;
-/// `PACED_WALK_WORK_T` selects the allocated work type for the tick definition.
-/// The binding is an object-like alias: it evaluates no arguments, and a
-/// preceding static prototype gives a further copy internal C linkage.
-/// Undefine an existing binding before selecting another walker.
-#define PACED_WALK_TICK_ANIM pacedWalkTickAnim
+/// The header declares the selected function `static`; declare further copies
+/// `static` in the carrier's prologue before including their update fragments.
+/// Use the same identifier at the update call and tick definition, and bind
+/// `PACED_WALK_WORK_T` to that walker's allocated work type at the definition.
+/// The header guard runs this default selection only on the first inclusion;
+/// undefine the binding before selecting another walker. An object-like alias,
+/// it evaluates no arguments and captures no local identifiers.
+#define PACED_WALK_TICK_ANIM _pacedWalkTickAnim
 #endif
 
-void pacedWalkUpdate(Task* task);
-void PACED_WALK_TICK_ANIM(Task* task);
-void pacedWalkResetAnim(Task* task);
-void pacedWalkBlendAnim(Task* task);
-s32  pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
+void        pacedWalkUpdate(Task* task);
+static void PACED_WALK_TICK_ANIM(Task* task);
+void        pacedWalkResetAnim(Task* task);
+void        pacedWalkBlendAnim(Task* task);
+s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 
 s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 

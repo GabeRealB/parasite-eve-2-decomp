@@ -468,7 +468,7 @@ D_actor_450800_801396A0 = 0x801396A0; // size:0x14 defined:True
 D_actor_450800_801396B4 = 0x801396B4; // size:0x14 defined:True
 
 func_shelter_b6_nursery_80182D14 = 0x80182D14; // type:func absolute:True owner=shelter_b6_nursery
-pacedWalkTickAnim = 0x80132A1C; // type:func
+_pacedWalkTickAnim = 0x80132A1C; // type:func
 pacedWalkResetAnim = 0x80132A68; // type:func
 walkerDrawShadowShaded = 0x801328BC; // type:func
 pacedWalkPlace = 0x80132C68; // type:func
