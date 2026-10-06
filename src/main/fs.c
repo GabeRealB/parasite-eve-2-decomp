@@ -366,7 +366,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
         switch (req[2]) {
             case 0:
                 if (req[1] != 0) {
-                    goto setup_and_load;
+                    break;
                 }
                 if (req[0] == 0) {
                     gDisplayState.videoMode = DISPLAY_VIDEO_STREAMING;
@@ -375,7 +375,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                     gDisplayState.videoMode = DISPLAY_VIDEO_NORMAL;
                 }
                 sector = Fs_FileOffsetsCat0[req[0]] + Fs_StageCdfSectors[0];
-                goto setup_and_load;
+                break;
 
             case 1:
                 fileId = (req[1] * 100) + req[0];
@@ -390,7 +390,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                         i++;
                     } while (i < (u32)len);
                 }
-                goto setup_and_load;
+                break;
 
             case 2:
                 fileId = (req[1] * 100) + req[0];
@@ -405,7 +405,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                         i++;
                     } while (i < (u32)len);
                 }
-                goto setup_and_load;
+                break;
 
             case 3:
                 fileId = (req[1] * 100) + req[0];
@@ -420,7 +420,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                         i++;
                     } while (i < (u32)len);
                 }
-                goto setup_and_load;
+                break;
 
             case 4:
                 Fs_CdOpStatus = 0xFF;
@@ -445,15 +445,15 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                     Fs_ChunkMode    = 0;
                     Fs_ReadSector(sector);
                 }
-                goto end_return;
+                return sector & 0xFFFF;
 
             case 5:
                 sector = Fs_FileOffsetsCat5[req[0]] + Fs_StageCdfSectors[0];
-                goto setup_and_load;
+                break;
 
             case 0x5A:
                 sector = Fs_FileOffsetsCat90[req[0]] + Fs_StageCdfSectors[0];
-                goto setup_and_load;
+                break;
 
             default:
                 D5B498_8006ADF4 = req[2] / 10;
@@ -473,7 +473,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                         i++;
                     } while (i < (u32)len);
                 }
-                goto setup_and_load;
+                break;
         }
     } else {
         sector = D_8006C158[req[0]] + Fs_StageCdfSectors[req[3]];
@@ -490,7 +490,7 @@ setup_and_load:
                 break;
             case 1:
                 Fs_SeekToPos(sector);
-                goto end_return;
+                return sector & 0xFFFF;
             case 2:
                 Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Fs_ChunkMode = 1;
@@ -513,7 +513,6 @@ setup_and_load:
         }
         Fs_ReadSector(sector);
     }
-end_return:
     return sector & 0xFFFF;
 }
 
