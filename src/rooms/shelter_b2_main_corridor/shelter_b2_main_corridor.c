@@ -1962,14 +1962,23 @@ static void _shelterB2MainCorridorInitializeWaterTask(Task* task)
     task->state++;
 }
 
-/// Draws three white beam pairs with alternating quarter- and half-turn caps.
+/// Draws three additive flickering white beams for the corridor's views 10 and 11.
 ///
-/// Requires ten readable points, borrowed for this draw; pairs start at 0, 4 and 8.
-static inline void _shelterB2MainCorridorDrawWhiteBeamGroup(const SVECTOR* beamPoints)
+/// Borrows world-space endpoint pairs at point offsets 0, 4 and 8, selecting
+/// every other pair from the interleaved view data. Screen-space start angles
+/// are a quarter, half and quarter turn (4096 units per turn). Requires the
+/// current view, scratch stack, ordering table and packet arena; queued
+/// additive packets live until GPU consumption.
+///
+/// The view-10 caller spans adjacent array declarations; its C array boundary
+/// is unproven.
+static inline void _shelterB2MainCorridorDrawWhiteBeamGroup(const SVECTOR worldBeamPoints[])
 {
-    _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
-    _glowDrawBeam(&beamPoints[4], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
-    _glowDrawBeam(&beamPoints[8], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+    enum { SHELTER_B2_MAIN_CORRIDOR_WHITE_BEAM_POINT_STRIDE = 4 };
+
+    _glowDrawBeam(worldBeamPoints, SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+    _glowDrawBeam(&worldBeamPoints[SHELTER_B2_MAIN_CORRIDOR_WHITE_BEAM_POINT_STRIDE], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
+    _glowDrawBeam(&worldBeamPoints[2 * SHELTER_B2_MAIN_CORRIDOR_WHITE_BEAM_POINT_STRIDE], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
 }
 
 void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
