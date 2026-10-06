@@ -11,40 +11,24 @@ void generatorTickState(Enemy* arg0, Task* arg1)
 {
     GfxCoord*  temp_s1;
     TmdObject* temp_a1;
-    s32        state;
-    s32        one;
 
     temp_a1 = arg1->extra.tmd;
     temp_s1 = temp_a1->coords;
-    state   = gSceneCombatState.actorControl;
-    one     = 1;
-    if (state == one) {
-        goto case1;
+    switch (gSceneCombatState.actorControl) {
+        case 0:
+            temp_a1->flags               = 0;
+            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+            break;
+        case 1:
+            generatorUpdateColor(arg1);
+            return;
+        case 2:
+            temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
+        default:
+            break;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    temp_a1->flags               = 0;
-    arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-    goto default_body;
-case1:
-    generatorUpdateColor(arg1);
-    return;
-case2:
-    temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     generatorBodyHit(arg1);
     generatorPulse(arg1);
     generatorTickPose(arg1);
