@@ -11605,7 +11605,7 @@ body brings back `slti` but also inserts extra `bltz`/duplicate labels — not a
 full match.
 
 A dummy case *does* match in full when its code lands on the switch exit.
-`func_actor_560800_801393EC` is the two-case version of this -- `case 1:
+`_actor560800SetCarrierModelDraw` is the two-case version of this -- `case 1:
 field_C &= 0xFF7B;`, `case 2: field_C |= 0x84;`, both `return` -- and the
 target is the `slti`/`bnez` form:
 
@@ -11636,7 +11636,7 @@ assembly hints that a third case exists.
 real `case 0`, and shows `slti v0,a2,2` with `beqz` instead of `bnez` -- same
 `bgt`, not yet inverted because its left subtree does not fall to the default.
 
-`func_actor_560800_801361A0` is byte-identical to `func_actor_560800_801393EC`
+`_actor560800SetCastModelDraw` is byte-identical to `_actor560800SetCarrierModelDraw`
 and reproduces the step from the same source, so the two-case form is the whole
 gap: with m2c's dropped third parameter and no `case 0` it scores 86.4% and the
 `.diagnosis.json` shows 6 blocks against the target's 5, the missing block being
@@ -76214,7 +76214,7 @@ scheduler; grep an existing caller for the argument's type.
 
 ## A m2c byte-typed field is a `reorder`/`insert`/`delete` mix, not a scheduler problem
 
-**Problem.** The m2c seed of `func_actor_560800_80135FA0` opened at 74.098%
+**Problem.** The m2c seed of `_actor560800FadeOutTask` opened at 74.098%
 with `stack=0 branch=0 regs=0 reorder=3 insert=7 delete=7`, while
 `.diagnosis.json` reported `topology: match` — 9/9 blocks, 61/61 instructions,
 predicates and calls identical. So the control flow was already right and the
@@ -83776,7 +83776,7 @@ The casts then follow from the width, and each has a distinct load:
 | `(u8)work->r` as a `u8` argument | `lbu`, the truncation folded into the load |
 | `(u16)index->spawnArg1`, `spawnArg1` an `s32` | `lhu` - a `subreg` of a word load narrows to the halfword at the same address |
 
-The sibling is the shortcut. `func_actor_560800_80135FA0` is the same fade task in
+The sibling is the shortcut. `_actor560800FadeOutTask` is the same fade task in
 another overlay, already matched, with the same `memMalloc(8, 0)` into
 `Task::work`, the same `switch (index->state)`, and the same three casts; its
 `ScreenFadeWork` is the struct to copy. Checking the family's other overlays
@@ -94435,7 +94435,7 @@ the call and at the compare. Do not follow m2c, which types the field from the
 byte access it happens to see and then emits every access at that width - the
 `sh` stores become `sb` and all seven sites are wrong together. The block here
 is the 8-byte fade work the rooms and actors carry as `ScreenFadeWork`
-(halfword `r`, `g`, `b`), and its matched body `func_actor_560800_80135FA0` is the same
+(halfword `r`, `g`, `b`), and its matched body `_actor560800FadeOutTask` is the same
 code word for word: reading the sibling turned a 74.5% baseline into an exact
 match on the first edit, where the target's own three widths look contradictory
 until you see which use produced each.
@@ -100424,7 +100424,7 @@ once in a `j`'s delay slot on the switch's default exit - because reorg filled
 that slot from the latch block, which both paths reach. And a `case 0: break;`
 written ahead of `case 1`/`case 2` never gets its own test: the tree is
 `beq ==1` / `slti <2` / `beq ==2`, so 0 lands in the default arm. The matched
-sibling `func_actor_560800_801393EC` (same overlay, same `TmdObject::flags`
+sibling `_actor560800SetCarrierModelDraw` (same overlay, same `TmdObject::flags`
 0xFF7B / 0x84 edit, `return` where this one has `break`) compiles to exactly
 that tree, which is the cheapest source of the shape for a message handler in
 this family.
@@ -105680,7 +105680,7 @@ target SHA256 `8a54159a19269822a47a7e97727326d5139de6e971a48d90f00239f58ed40c04`
 two builds, no pins, no search. Scratch
 `nonmatchings/Actor04400_Fn03B34-vacuum`.
 
-## A dead copy `w = work;` makes a reload pseudo non-birthing without emitting code (func_actor_560800_80138BCC)
+## A dead copy `w = work;` makes a reload pseudo non-birthing without emitting code (_actor560800RaiseCarrier)
 
 **Problem.** A function loads `task->work` once at entry and again after a
 store. With one local for both loads, both sets share a pseudo with
@@ -105695,7 +105695,7 @@ code is emitted, but the pseudo still counts two sets: the entry load stays
 birthing and the reload does not. Placing the copy right after the entry
 statements worked; placing it just before the reload did not change anything.
 
-### `if (x >= 0) { inlined tail } else return 1;` leaves a `j` over the deleted return block (func_actor_560800_80132498, 2026-09-16)
+### `if (x >= 0) { inlined tail } else return 1;` leaves a `j` over the deleted return block (_actor560800TickCastAnimationChain, 2026-09-16)
 
 **Symptom.** Every path the target expects matches except that a loop exit which
 should fall into the shared `move v0,zero` instead ends with `j epilogue` +
@@ -105729,7 +105729,7 @@ last index needs those explicit (`case 0: case 38: break;`), otherwise GCC
 builds a compare chain; and an unexplained extra 8 bytes of frame was an unused
 `SVECTOR` local, as in a sibling in the same TU.
 
-### Two switch cases repeating one inline block: give each case its own pointer local so sched1 sees a birthing set (func_actor_560800_80138D04, 2026-09-16)
+### Two switch cases repeating one inline block: give each case its own pointer local so sched1 sees a birthing set (_actor560800CarryNo9Away, 2026-09-16)
 
 **Symptom.** A switch has two cases that each repeat the same written-out block
 (`w = task->work; c = task->extra->coords; m = &c[1].coord; stores via m`).
@@ -105749,7 +105749,7 @@ both the stores and the compare; with plain constants the compare stays `slti`.
 
 ### `addu $s2, $s2, $a2` for `i++`: the increment follows the call's `li $a2, 1`
 
-`func_actor_560800_80137BEC` increments its loop counter with `addu $s2,$s2,$a2`
+`_actor560800FallingChainTask` increments its loop counter with `addu $s2,$s2,$a2`
 instead of `addiu $s2,$s2,1`, with `li $a2,1` (the next call's third argument)
 sitting just before it. That is `reload_cse_regs` replacing the constant with a
 hard register already known to hold it, so the increment has to come *after*
@@ -124846,7 +124846,7 @@ gave `-0x80`.
 ## The fade-task family: `memMalloc(8, 0)` + `switch (Task::state)` + `fadeDrawOverlay` repeats across actors and rooms, and its matched twins hand over the source shape (func_actor_121300_801326EC, 2026-09-17)
 
 `func_actor_121300_801326EC` is `func_actor_160900_801344D8`,
-`func_actor_560800_80136094` and its own TU sibling `func_actor_121300_8013400C`
+`_actor560800FadeInTask` and its own TU sibling `func_actor_121300_8013400C`
 with the state numbers moved: an 8-byte RGB block allocated into `Task::work`
 (0x1C), three `s16` channels at 0x2/0x4/0x6, and a `switch (index->state)` in
 which one `case` seeds the channels and another holds `SetDispMask(1)` and
@@ -134447,7 +134447,7 @@ session `eab7eadfae0e48609c94162bc0c7d03d`, LEARNINGS.md and retained dumps.
 ### A real loop's terminal return can prevent CSE following the next switch case (func_actor_560800_80134384, 2026-09-19)
 
 The archived seed reproduced 99.248%. Reusing the matched sibling
-`Actor560800_ReseedAnim` (u16 index, literal blend duration, existing
+`_actor560800BlendCastAnimation` (u16 index, literal blend duration, existing
 `SOFT_BARRIER` before the loop) reached 99.556%: index initialization moved into
 the guard delay slot, with index=s0 and anim=s1. The remaining guard reused
 the inner switch index, proven equal to 1, instead of materializing a fresh 1.
@@ -148567,7 +148567,7 @@ dispatch: the backward scan from the label has to meet something other than a
 BARRIER, and a `NOTE_INSN_LOOP_END` counts. Writing the three preceding
 `case 0:` tails as `do { [counter = 0;] step++; return; } while (0);` puts
 that note between the BARRIER and the label; with it the two
-`BlendSlotsFirst` calls become the existing `Actor560800_ReseedAnim`, the
+`BlendSlotsFirst` calls become the existing `_actor560800BlendCastAnimation`, the
 hand-expanded loop becomes `_ACTOR560800_BLEND_SLOTS(blend, 0x20, 5)`, and the
 image matches (scoped build). It was not committed: it trades four counted
 sites for three phony loops, and the wrapper is not a uniform macro - of the
@@ -148585,7 +148585,7 @@ same pointer, which cse turns into a copy. Uses of the copy are rewritten to
 the new register's last use to come after the old one's
 (`REGNO_LAST_UID(new) > REGNO_LAST_UID(firstr)`); `ctx7` is used in `case 1:`,
 textually later, so a fresh inline local never qualifies
-(`Actor560800_ReseedAnim(work->kyle, 3, ...)` stores through `ctx7`'s register
+(`_actor560800BlendCastAnimation(work->kyle, 3, ...)` stores through `ctx7`'s register
 and moves afterwards). Confirmed by giving `anim` a later use: hand-expanding
 `case 39` on the same local matches the site with no asm. That is not the
 answer either - the target's `case 39` pointer is in `$s0` and this one in
@@ -149417,7 +149417,7 @@ attempts; left as it was.
   inlined void function is a jump to the end of the expansion, which is the
   loop step. The locals keep their frame slots when declared in the same order.
 - **`goto state_inc;` from case 0 into `case 1..5: state++; /* fallthrough */
-  case 7: <step>`** (`func_actor_560800_80136094`) is the step written *after*
+  case 7: <step>`** (`_actor560800FadeInTask`) is the step written *after*
   the switch: `case 0: ...; state += 1; break;`, `case 1..5: state += 1;
   break;`, `case 7: break;`, `default: return;`. An inline for the step called
   in case 0 and case 7 merges the step but leaves case 0 its own increment (3

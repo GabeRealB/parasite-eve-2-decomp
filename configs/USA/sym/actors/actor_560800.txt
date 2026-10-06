@@ -669,3 +669,16 @@ D_actor_560800_8016EA40 = 0x8016EA40; // size:0x34 defined:True
 
 func_shelter_b1_pod_service_gantry_8017F450 = 0x8017F450; // type:func absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
 actorMsgPlaceYawPitchRoll = 0x801361F4; // type:func
+_actor560800TickCastAnimationChain = 0x80132498; // type:func
+_actor560800ShowCastMember = 0x80133540; // type:func
+_actor560800FadeOutTask = 0x80135fa0; // type:func
+_actor560800FadeInTask = 0x80136094; // type:func
+_actor560800SetCastModelDraw = 0x801361a0; // type:func
+_actor560800AwaitScenePlaybackTask = 0x801369e0; // type:func
+_actor560800DiscardTask = 0x80136a88; // type:func
+_actor560800InitChainModel = 0x801376e0; // type:func
+_actor560800FallingChainTask = 0x80137bec; // type:func
+_actor560800ApplyCarrierCommand = 0x80138a4c; // type:func
+_actor560800RaiseCarrier = 0x80138bcc; // type:func
+_actor560800CarryNo9Away = 0x80138d04; // type:func
+_actor560800SetCarrierModelDraw = 0x801393ec; // type:func

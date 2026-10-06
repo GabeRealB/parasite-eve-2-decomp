@@ -248,7 +248,7 @@ extern AnimationSet* D_actor_560800_8016EA40[13];
 extern ActorAnimChainLink D_actor_560800_8016EBE8[];
 extern ActorTransform     D_actor_560800_8016F1CC[6];
 
-/// Animation bank `func_actor_560800_801376E0` hands `animationInitContext` as its
+/// Animation bank `_actor560800InitChainModel` hands `animationInitContext` as its
 /// second argument: a null entry then one animation set per chain, indexed by
 /// `_Actor560800PropWork::chainNumber`.
 extern AnimationSet* D_actor_560800_801752F0[];
@@ -277,7 +277,7 @@ extern u32 D_actor_560800_801757A8;
 extern EvsCommand D_actor_560800_8016F5E0[];
 extern EvsCommand D_actor_560800_80171800[];
 
-/// Flag word whose bit 0 gates `func_actor_560800_80138BCC`'s sink step.
+/// Flag word whose bit 0 gates `_actor560800RaiseCarrier`'s sink step.
 extern s32 D_actor_560800_801752E8;
 
 /// Frame counter `func_actor_560800_80138FC8` raises by one per tick.
@@ -308,7 +308,7 @@ extern ActorTransform     D_actor_560800_8016F154;
 extern TaskMessageEntry D_actor_560800_8016F34C[2];
 extern s32              D_actor_560800_8016F57C[];
 
-static s32 func_actor_560800_80132498(Task* arg0);
+static s32 _actor560800TickCastAnimationChain(Task* task);
 
 static AnimationSet _gActor560800Animation421C4;
 static AnimationSet _gActor560800Animation42474;
@@ -323,14 +323,14 @@ static TmdSource _gActor560800Model40064;
 static TmdSource _gActor560800Model40E78;
 static TmdSource _gActor560800Model41AC4;
 void             func_actor_560800_80137820(Task*);
-void             func_actor_560800_80137BEC(Task*);
+static void      _actor560800FallingChainTask(Task* task);
 void             func_actor_560800_80137F58(Task*, s32, VECTOR*, s32);
 void             func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void             func_actor_560800_801386D4(Task*);
-void             func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static void      _actor560800ApplyCarrierCommand(Task* task, s32 messageId, ActorCommand* command, s32 unusedArg);
 void             func_actor_560800_80138FC8(Task*);
 void             func_actor_560800_80139360(Task*, s32, s32, s32);
-void             func_actor_560800_801393EC(Task*, s32, s32, s32);
+static void      _actor560800SetCarrierModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 void             func_actor_560800_80139440(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 
 static AnimationSet _gActor560800Animation1EE00;
@@ -434,9 +434,9 @@ void                func_actor_560800_80133750(s32);
 void                func_actor_560800_80134B14(s32);
 void                func_actor_560800_80135AEC(s32);
 void                func_actor_560800_80135D54(Task*);
-void                func_actor_560800_80135FA0(Task*);
-void                func_actor_560800_80136094(Task*);
-void                func_actor_560800_801361A0(Task*, s32, s32, s32);
+static void         _actor560800FadeOutTask(Task* task);
+static void         _actor560800FadeInTask(Task* task);
+static void         _actor560800SetCastModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 void                func_actor_560800_80136280(s32);
 void                func_actor_560800_801362B0(s32);
 void                func_actor_560800_801362E0(s16);
@@ -457,10 +457,10 @@ void                func_actor_560800_80136878(void);
 void                func_actor_560800_80136910(void);
 void                func_actor_560800_80136930(s32);
 void                func_actor_560800_801369A0(void);
-void                func_actor_560800_801369E0(Task*);
+static void         _actor560800AwaitScenePlaybackTask(Task* task);
 void                func_actor_560800_80136A20(void);
 void                func_actor_560800_80136A54(void);
-void                func_actor_560800_80136A88(Task*);
+static void         _actor560800DiscardTask(Task* task);
 
 void func_actor_560800_801321A0(Task*);
 void func_actor_560800_80135F50(Task*);
@@ -3101,7 +3101,7 @@ ActorTransform D_actor_560800_8016F31C = { { 8450, 0, 2850, 0 }, { 0, -512, 0, 0
 ActorTransform D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
 
 TaskMessageEntry D_actor_560800_8016F34C[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_560800_801361A0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor560800SetCastModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
@@ -3663,9 +3663,9 @@ EvsCommand D_actor_560800_80171800[10] = {
 
 TaskDesc D_actor_560800_801718F0[14] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80135D54, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80136A88, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80136094, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80135FA0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor560800DiscardTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor560800FadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor560800FadeOutTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_801326C4, { .model = &_gActor560800EveBreaMaskedBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132C60, { .model = &_gActor560800KyleMadiganBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132F64, { .model = &_gActor560800No9GolemDryfieldBody } },
@@ -3675,7 +3675,7 @@ TaskDesc D_actor_560800_801718F0[14] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80132A14, { .model = &_gActor560800No9GolemDryfieldGunblade } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_801326C4, { .model = &_gActor560800AyaBreaBody } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_801366B0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_560800_801369E0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor560800AwaitScenePlaybackTask, { .value = 0 } },
 };
 
 static TmdBone _gActor560800Model40064Skeleton[7] = {
@@ -4066,16 +4066,16 @@ s32 D_actor_560800_8017572C[6] = {
 };
 
 TaskMessageEntry D_actor_560800_80175744[3] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_560800_801393EC },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor560800SetCarrierModelDraw },
     { ACTOR_MESSAGE_PLACE, func_actor_560800_80139440 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_560800_80138A4C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor560800ApplyCarrierCommand },
 };
 
 TaskDesc D_actor_560800_8017575C[4] = {
     { { { TASK_BODY_COORD, 192 } }, func_actor_560800_801386D4, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80137820, { .model = &_gActor560800Model40064 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_560800_80138FC8, { .model = &_gActor560800Model41AC4 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_560800_80137BEC, { .model = &_gActor560800Model40E78 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
 };
 
 Task* D_actor_560800_8017578C = NULL;
@@ -4119,20 +4119,42 @@ extern s32 D_actor_560800_8017572C[];
 /// publishes the task as `D_actor_560800_801757AC` and resets the root matrix
 /// to identity. States 2/5 lift the root
 /// by 5 while pulsing the second coordinate's X/Z scale in steps of 0x32, state
-/// 3 by 1 in steps of 0xA; 4 and 6 hand off to `func_actor_560800_80138BCC` /
-/// `func_actor_560800_80138D04`. Every state but 0 advances the two frame
+/// 3 by 1 in steps of 0xA; 4 and 6 hand off to `_actor560800RaiseCarrier` /
+/// `_actor560800CarryNo9Away`. Every state but 0 advances the two frame
 /// counters. Each case needs its own matrix pointer (and case 0 its own work
 /// pointer): a pointer shared across cases is a global pseudo, so the local
 /// 0x1000 constant takes `$v0` from it.
 extern TaskMessageEntry D_actor_560800_80175744[3];
 
+/// Blend duration used by the scene's player requests and cast-chain changes.
+enum { ACTOR_560800_ANIMATION_BLEND_FRAMES = 10 };
+
+/// Cast groups accepted by `_actor560800ShowCastMember`.
+enum {
+    ACTOR_560800_CAST_PLAYER  = 0,
+    ACTOR_560800_CAST_EVE     = 1,
+    ACTOR_560800_CAST_KYLE    = 2,
+    ACTOR_560800_CAST_NO9     = 3,
+    ACTOR_560800_CAST_CHAINS  = 4,
+    ACTOR_560800_CAST_CARRIER = 5,
+};
+
+/// Carrier scale limits in 12-fractional-bit units and per-update scale direction.
+enum {
+    ACTOR_560800_CARRIER_HALF_SCALE   = ONE / 2,
+    ACTOR_560800_CARRIER_MAX_SCALE    = ONE * 3 / 2,
+    ACTOR_560800_CARRIER_SCALE_SHRINK = 0,
+    ACTOR_560800_CARRIER_SCALE_GROW   = 1,
+    ACTOR_560800_CARRIER_ACCELERATE   = 1,
+};
+
 static s32         func_actor_560800_80132340(Task* arg0);
-static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate);
-static void        func_actor_560800_80133540(u32 arg0);
+static inline void _actor560800BlendCastAnimation(Task* task, u16 animationId, s16 animationRate);
+static void        _actor560800ShowCastMember(u32 memberId);
 static inline void Actor560800_PlayAnim(Task* task, u16 anim);
-static inline void Actor560800_PlayAnimB(Task* task, u16 anim, s32 argC);
+static inline void _actor560800BlendPlayerAnimation(Task* task, u16 animationId, s32 blendFrames);
 static inline void Actor560800_PlaySe(s16 arg4);
-static inline void Actor560800_PlaySeB(s32 arg4);
+static inline void _actor560800BlendPlayerWeaponAnimation(s32 animationId);
 static inline void Actor560800_SpawnSparksA(Task* task);
 static inline void Actor560800_SpawnSparksB(Task* task);
 static inline void Actor560800_ResetAnimSlots(_Actor560800CastWork* anim, s16 clip);
@@ -4140,9 +4162,9 @@ static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate);
 static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate);
 static void        func_actor_560800_80135BD8(Task* arg0);
 static void        func_actor_560800_80136AA8(Task* arg0);
-static void        func_actor_560800_801376E0(Task* arg0);
-static void        func_actor_560800_80138BCC(Task* task);
-static void        func_actor_560800_80138D04(Task* task);
+static void        _actor560800InitChainModel(Task* task);
+static void        _actor560800RaiseCarrier(Task* task);
+static void        _actor560800CarryNo9Away(Task* task);
 
 void func_actor_560800_801321A0(Task* task)
 {
@@ -4271,20 +4293,23 @@ static s32 func_actor_560800_80132340(Task* arg0)
         (work)->animHold = 0;           \
     } while (0)
 
-/// Reseeds the animation slots of the task's own `_Actor560800CastWork`: the
-/// id goes to `animId` with `rate` in `animRate`, `animHold` is cleared,
-/// and slots 1..`slotCount` - 1 are blended through `animationSeekSlotWithBlend`.
-static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
+/// Blends a cast body's non-root tracks into a new clip over ten frames.
+///
+/// Requires an initialized `_Actor560800CastWork` with live model and clip data;
+/// slots 1 through `slotCount - 1` must fit the rig and selected clip's tracks.
+/// Records `animationRate` in sixteenths of a frame for subsequent chain links,
+/// but retains each slot's current rate. Restarts the clip's hold counter.
+static inline void _actor560800BlendCastAnimation(Task* task, u16 animationId, s16 animationRate)
 {
-    _Actor560800CastWork* w;
-    u16                   i;
+    _Actor560800CastWork* work;
+    u16                   slotIndex;
 
-    w           = arg0->work;
-    w->animId   = id;
-    w->animRate = rate;
-    _actor560800ResetAnimHold(w);
-    for (i = 1; i < w->slotCount; i++) {
-        animationSeekSlotWithBlend(&w->rig.anim, i, id, 0, 10);
+    work           = task->work;
+    work->animId   = animationId;
+    work->animRate = animationRate;
+    _actor560800ResetAnimHold(work);
+    for (slotIndex = 1; slotIndex < work->slotCount; slotIndex++) {
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex, animationId, 0, ACTOR_560800_ANIMATION_BLEND_FRAMES);
     }
 }
 
@@ -4298,48 +4323,48 @@ static inline void Actor560800_ReseedAnim(Task* arg0, u16 id, s16 rate)
         }                                                                         \
     } while (0)
 
-/// Ticks every animation slot, then advances the chain at `animChain`: a link
-/// with a non-zero hold waits `holdFrames` frames in `animHold`, a zero hold waits
-/// for every slot to hold its boundary pose (`ANIMATION_SLOT_SETTLED`). Returns 1 when the next
-/// step's id is negative (the script ended), 0 otherwise.
+/// Advances a visible cast body's non-root animations and follows its clip chain.
 ///
-/// The step is re-indexed at every use rather than held in a local, and the
-/// negative test is written as `>= 0` with an `else return 1`; both are needed
-/// for the register choice and the jump layout.
-static s32 func_actor_560800_80132498(Task* arg0)
+/// Requires initialized cast work, live playback storage and one chain link for
+/// every selected clip. A timed link waits its whole-frame hold count; an
+/// untimed link waits for all active slots to settle. Successors blend over ten
+/// frames. Returns 1 at a terminal link (negative successor), otherwise 0.
+/// Hidden bodies leave both playback and the hold counter unchanged.
+static s32 _actor560800TickCastAnimationChain(Task* task)
 {
     _Actor560800CastWork* work;
-    u16                   i;
-    u16                   done;
+    u16                   slotIndex;
+    u16                   allSettled;
 
-    work = arg0->work;
-    if (arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
+    work = task->work;
+    if (task->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
         return 0;
     }
-    for (i = 1; i < work->slotCount; i++) {
-        animationTickSlot(&work->rig.anim, i);
+    for (slotIndex = 1; slotIndex < work->slotCount; slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
-    i    = 1;
-    done = 1;
-    for (; i < work->slotCount; i++) {
-        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
-            done = 0;
+    slotIndex  = 1;
+    allSettled = 1;
+    for (; slotIndex < work->slotCount; slotIndex++) {
+        if (!(work->rig.slots[slotIndex].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+            allSettled = 0;
             break;
         }
     }
+    // Timed links may change clip before all slots settle.
     if (work->animChain[work->animId].holdFrames != 0) {
         if (work->animHold >= work->animChain[work->animId].holdFrames) {
             if (work->animChain[work->animId].nextAnimId >= 0) {
-                Actor560800_ReseedAnim(arg0, work->animChain[work->animId].nextAnimId, work->animRate);
+                _actor560800BlendCastAnimation(task, work->animChain[work->animId].nextAnimId, work->animRate);
             } else {
                 return 1;
             }
         } else {
             work->animHold++;
         }
-    } else if (done) {
+    } else if (allSettled) {
         if (work->animChain[work->animId].nextAnimId >= 0) {
-            Actor560800_ReseedAnim(arg0, work->animChain[work->animId].nextAnimId, work->animRate);
+            _actor560800BlendCastAnimation(task, work->animChain[work->animId].nextAnimId, work->animRate);
         } else {
             return 1;
         }
@@ -4445,7 +4470,7 @@ void func_actor_560800_801326C4(Task* arg0)
     shadowOffset.vy = 0x380;
     shadowOffset.vz = 0;
     actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &shadowOffset);
-    func_actor_560800_80132498(arg0);
+    _actor560800TickCastAnimationChain(arg0);
     if (work->relit != 0) {
         TmdObject* obj = arg0->extra.tmd;
 
@@ -4598,7 +4623,7 @@ void func_actor_560800_80132C60(Task* arg0)
     shadowOffset.vz = 0;
     actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &shadowOffset);
     if (work->animPaused == 0) {
-        func_actor_560800_80132498(arg0);
+        _actor560800TickCastAnimationChain(arg0);
     }
     gfxRotMatrixY(&arg0->extra.tmd->coords[4].coord, work->part4Yaw, 0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, work->part4Pitch, GRAPHICS_ROTATION_COMPOSE);
@@ -4689,7 +4714,7 @@ void func_actor_560800_80132F64(Task* arg0)
         shadowOffset.vz = 0;
         actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &shadowOffset);
     }
-    func_actor_560800_80132498(arg0);
+    _actor560800TickCastAnimationChain(arg0);
     if (work->relit != 0) {
         TmdObject* obj = arg0->extra.tmd;
 
@@ -4777,36 +4802,42 @@ void func_actor_560800_80133204(void)
     }
 }
 
-static void func_actor_560800_80133540(u32 arg0)
+/// Shows a selected scene body or prop group together with its attachments.
+///
+/// `memberId`: 0 player, 1 Eve, 2 Kyle and hands/gun, 3 No. 9 and gunblade,
+/// 4 chain group, 5 carrier; other values do nothing. Requires a published
+/// cutscene and a live selected body/group. Only the optional gun and gunblade
+/// are checked for absence.
+static void _actor560800ShowCastMember(u32 memberId)
 {
     _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
 
-    switch (arg0) {
-        case 0:
-            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    switch (memberId) {
+        case ACTOR_560800_CAST_PLAYER:
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             break;
-        case 1:
-            taskMessageDispatch(work->eve, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case ACTOR_560800_CAST_EVE:
+            taskMessageDispatch(work->eve, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             break;
-        case 2:
-            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case ACTOR_560800_CAST_KYLE:
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             if (work->kyleGun != NULL) {
-                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             }
             break;
-        case 3:
-            taskMessageDispatch(work->no9, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case ACTOR_560800_CAST_NO9:
+            taskMessageDispatch(work->no9, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             if (work->no9Gunblade != NULL) {
-                taskMessageDispatch(work->no9Gunblade, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                taskMessageDispatch(work->no9Gunblade, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             }
             break;
-        case 4:
-            taskMessageDispatch(work->chainGroup, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case ACTOR_560800_CAST_CHAINS:
+            taskMessageDispatch(work->chainGroup, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             break;
-        case 5:
-            taskMessageDispatch(work->carrierModel, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        case ACTOR_560800_CAST_CARRIER:
+            taskMessageDispatch(work->carrierModel, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             break;
     }
 }
@@ -4857,7 +4888,7 @@ void func_actor_560800_80133750(s32 arg0)
     if (work->player != NULL) {
         msg = D_actor_560800_8016F35C[arg0];
         if (msg->pos.vx != 0) {
-            func_actor_560800_80133540(0);
+            _actor560800ShowCastMember(ACTOR_560800_CAST_PLAYER);
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, msg, 0);
         } else {
             func_actor_560800_80133648(0);
@@ -4866,7 +4897,7 @@ void func_actor_560800_80133750(s32 arg0)
     if (work->kyle != NULL) {
         msg = D_actor_560800_8016F46C[arg0];
         if (msg->pos.vx != 0) {
-            func_actor_560800_80133540(2);
+            _actor560800ShowCastMember(ACTOR_560800_CAST_KYLE);
             TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, msg, 0);
         } else {
             func_actor_560800_80133648(2);
@@ -4875,7 +4906,7 @@ void func_actor_560800_80133750(s32 arg0)
     if (work->no9 != NULL) {
         msg = D_actor_560800_8016F3E4[arg0];
         if (msg->pos.vx != 0) {
-            func_actor_560800_80133540(3);
+            _actor560800ShowCastMember(ACTOR_560800_CAST_NO9);
             TASK_MESSAGE_DISPATCH_POINTER(work->no9, ACTOR_MESSAGE_PLACE, msg, 0);
         } else {
             func_actor_560800_80133648(3);
@@ -4884,7 +4915,7 @@ void func_actor_560800_80133750(s32 arg0)
     if (work->eve != NULL) {
         msg = D_actor_560800_8016F4F4[arg0];
         if (msg->pos.vx != 0) {
-            func_actor_560800_80133540(1);
+            _actor560800ShowCastMember(ACTOR_560800_CAST_EVE);
             TASK_MESSAGE_DISPATCH_POINTER(work->eve, ACTOR_MESSAGE_PLACE, msg, 0);
         } else {
             func_actor_560800_80133648(1);
@@ -4893,7 +4924,7 @@ void func_actor_560800_80133750(s32 arg0)
     if (work->chainGroup != NULL) {
         // No table of its own: reuses the payload picked for `eve`.
         if (msg->pos.vx != 0) {
-            func_actor_560800_80133540(4);
+            _actor560800ShowCastMember(ACTOR_560800_CAST_CHAINS);
             TASK_MESSAGE_DISPATCH_POINTER(work->chainGroup, ACTOR_MESSAGE_PLACE, msg, 0);
         } else {
             func_actor_560800_80133648(4);
@@ -4919,20 +4950,26 @@ static inline void Actor560800_PlayAnim(Task* task, u16 anim)
     }
 }
 
-static inline void Actor560800_PlayAnimB(Task* task, u16 anim, s32 argC)
+/// Blends Aya into a clip from this scene's player-animation bank.
+///
+/// `task` owns the cutscene work; an absent player makes this a no-op.
+/// `animationId` must name a loaded scene clip, and `blendFrames` counts whole
+/// normal-rate frames. Records the clip for chaining and clears its hold count.
+/// The player borrows the scene's clip data and keeps world collision enabled.
+static inline void _actor560800BlendPlayerAnimation(Task* task, u16 animationId, s32 blendFrames)
 {
     _Actor560800CutsceneWork* work;
-    AnimationPlayRequest      msg;
+    AnimationPlayRequest      request;
 
     work = task->work;
     if (work->player != NULL) {
-        msg.source.sets          = D_actor_560800_8016EA40;
-        work->playerAnimId       = anim;
-        msg.animationId          = anim;
-        msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-        msg.blendFrames          = argC;
-        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        request.source.sets          = D_actor_560800_8016EA40;
+        work->playerAnimId           = animationId;
+        request.animationId          = animationId;
+        request.blend                = ANIMATION_BLEND_INTERPOLATE;
+        request.blendFrames          = blendFrames;
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
         work->playerAnimHold = 0;
     }
 }
@@ -4951,18 +4988,29 @@ static inline void Actor560800_PlaySe(s16 arg4)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
 }
 
-static inline void Actor560800_PlaySeB(s32 arg4)
+/// Blends the player into an equipped-weapon clip over ten frames.
+///
+/// Requires a live player task and its loaded character/weapon animation bank.
+/// `animationId` is an index in that bank. This enters scripted playback and
+/// disables the player's world-collision participation; it does not update the
+/// cutscene's scene-clip id or hold count.
+static inline void _actor560800BlendPlayerWeaponAnimation(s32 animationId)
 {
-    s32 msg[5];
-    s32 val;
+    enum {
+        ACTOR_560800_PRIMARY_CHARACTER          = 1,
+        ACTOR_560800_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+    };
+    AnimationPlayRequest request;
+    s32                  weaponId;
 
-    val    = gPlayerStatus.weapon;
-    msg[0] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? val + 1 : val + 0x22;
-    msg[1] = arg4;
-    msg[2] = 1;
-    msg[3] = 0xA;
-    msg[4] = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
+    weaponId                     = gPlayerStatus.weapon;
+    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_560800_PRIMARY_CHARACTER) ? weaponId + ACTOR_560800_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE;
+    request.animationId          = animationId;
+    request.blend                = ANIMATION_BLEND_INTERPOLATE;
+    request.blendFrames          = ACTOR_560800_ANIMATION_BLEND_FRAMES;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
 }
 
 static inline void Actor560800_SpawnSparksA(Task* task)
@@ -5033,10 +5081,10 @@ static void func_actor_560800_80133970(Task* arg0)
             Actor560800_PlaySe(1);
             break;
         case 3:
-            Actor560800_PlaySeB(7);
+            _actor560800BlendPlayerWeaponAnimation(7);
             break;
         case 9:
-            Actor560800_PlayAnimB(arg0, 0, 0xA);
+            _actor560800BlendPlayerAnimation(arg0, 0, ACTOR_560800_ANIMATION_BLEND_FRAMES);
             break;
         case 12:
             Actor560800_PlaySe(9);
@@ -5058,7 +5106,7 @@ static void func_actor_560800_80133970(Task* arg0)
                         gPlayerStatus.coordMtx->t[0] -= 5;
                         return;
                     }
-                    Actor560800_PlayAnimB(arg0, 0xC, 0xA);
+                    _actor560800BlendPlayerAnimation(arg0, 0xC, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     break;
                 default:
                     return;
@@ -5095,7 +5143,7 @@ static void func_actor_560800_80133970(Task* arg0)
         case 35:
             switch (work->playerCue.step) {
                 case 0:
-                    Actor560800_PlaySeB(8);
+                    _actor560800BlendPlayerWeaponAnimation(8);
                     taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
                     work->playerCue.counter = 0;
                     work->playerCue.step++;
@@ -5104,7 +5152,7 @@ static void func_actor_560800_80133970(Task* arg0)
                     if (++work->playerCue.counter < 11) {
                         return;
                     }
-                    Actor560800_PlayAnimB(arg0, 0xC, 0x1E);
+                    _actor560800BlendPlayerAnimation(arg0, 0xC, 0x1E);
                     work->playerCue.id = 0;
                     return;
                 default:
@@ -5258,7 +5306,7 @@ static void func_actor_560800_80134384(Task* task)
                     if (++work->no9Cue.counter < 0xB5) {
                         return;
                     }
-                    Actor560800_ReseedAnim(work->no9, 0x1D, ANIMATION_RATE_ONE);
+                    _actor560800BlendCastAnimation(work->no9, 0x1D, ANIMATION_RATE_ONE);
                     break;
                 default:
                     return;
@@ -5432,7 +5480,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
             switch (work->kyleCue.step) {
                 case 0:
                     ((_Actor560800CastWork*)work->kyle->work)->relit = 1;
-                    Actor560800_PlaySeB(3);
+                    _actor560800BlendPlayerWeaponAnimation(3);
                     taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
@@ -5443,7 +5491,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                         gPlayerStatus.coordMtx->t[0] -= 5;
                         return;
                     }
-                    Actor560800_PlayAnimB(arg0, 2, 0xA);
+                    _actor560800BlendPlayerAnimation(arg0, 2, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -5750,62 +5798,84 @@ void func_actor_560800_80135F50(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_560800_80135FA0(Task* arg0)
+/// Darkens the cutscene, then disables display when its subtractive ramp finishes.
+///
+/// Starts at state 0; low 16 bits of `spawnArg1` add intensity units per update
+/// (scene callers use 2, 5 or 8). Owns a `ScreenFadeWork` until task teardown and
+/// hangs below the published cutscene. Allocation failure kills this task.
+/// Draws red/green/red before each step, including initialization; channels
+/// narrow to signed 16 bits without clamping. Zero rate never finishes.
+static void _actor560800FadeOutTask(Task* task)
 {
-    ScreenFadeWork* work;
-    ScreenFadeWork* alloc;
+    enum { ACTOR_560800_FADE_INITIALIZE    = 0,
+           ACTOR_560800_FADE_RAMP          = 1,
+           ACTOR_560800_FADE_END_INTENSITY = 256 };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+    fade = task->work;
+    switch (task->state) {
+        case ACTOR_560800_FADE_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            work    = alloc;
-            work->b = 0;
-            work->g = 0;
-            work->r = 0;
-            taskReparent(D_actor_560800_8017578C, arg0);
-            arg0->state += 1;
+            fade    = allocatedFade;
+            fade->b = 0;
+            fade->g = 0;
+            fade->r = 0;
+            taskReparent(D_actor_560800_8017578C, task);
+            task->state += 1;
             /* fallthrough */
-        case 1:
-            fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
-            work->r += (u16)arg0->spawnArg1.value;
-            work->g += (u16)arg0->spawnArg1.value;
-            work->b += (u16)arg0->spawnArg1.value;
-            if (work->r >= 0x100) {
+        case ACTOR_560800_FADE_RAMP:
+            fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
+            fade->r += task->spawnArg1.halves.low;
+            fade->g += task->spawnArg1.halves.low;
+            fade->b += task->spawnArg1.halves.low;
+            if (fade->r >= ACTOR_560800_FADE_END_INTENSITY) {
                 SetDispMask(0);
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
 }
 
-void func_actor_560800_80136094(Task* arg0)
+/// Reveals the cutscene through a shrinking subtractive overlay and delayed display enable.
+///
+/// Starts at state 0 with intensity 255; low 16 bits of `spawnArg1` are the
+/// per-update decrement (scene callers use 5, 8 or 10). Owns its fade work until
+/// teardown and hangs below the published cutscene; allocation failure kills it.
+/// Every update draws red/green/red before signed-halfword ramp truncation.
+/// State 6 enables display; state 7 keeps ramping until red becomes negative.
+/// Zero rate never finishes.
+static void _actor560800FadeInTask(Task* task)
 {
-    ScreenFadeWork* work;
-    ScreenFadeWork* alloc;
+    enum { ACTOR_560800_FADE_INITIALIZE     = 0,
+           ACTOR_560800_FADE_ENABLE_DISPLAY = 6,
+           ACTOR_560800_FADE_RAMP           = 7,
+           ACTOR_560800_FADE_MAX_INTENSITY  = 255 };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+    fade = task->work;
+    switch (task->state) {
+        case ACTOR_560800_FADE_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            work    = alloc;
-            work->b = 0xFF;
-            work->g = 0xFF;
-            work->r = 0xFF;
-            taskReparent(D_actor_560800_8017578C, arg0);
-            arg0->state += 1;
+            fade    = allocatedFade;
+            fade->b = ACTOR_560800_FADE_MAX_INTENSITY;
+            fade->g = ACTOR_560800_FADE_MAX_INTENSITY;
+            fade->r = ACTOR_560800_FADE_MAX_INTENSITY;
+            taskReparent(D_actor_560800_8017578C, task);
+            task->state += 1;
             break;
-        case 6:
+        case ACTOR_560800_FADE_ENABLE_DISPLAY:
             SetDispMask(1);
             /* fallthrough */
         case 1:
@@ -5813,35 +5883,40 @@ void func_actor_560800_80136094(Task* arg0)
         case 3:
         case 4:
         case 5:
-            arg0->state += 1;
+            task->state += 1;
             break;
-        case 7:
+        case ACTOR_560800_FADE_RAMP:
             break;
         default:
             return;
     }
-    fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
-    work->r -= (u16)arg0->spawnArg1.value;
-    work->g -= (u16)arg0->spawnArg1.value;
-    work->b -= (u16)arg0->spawnArg1.value;
-    if (work->r < 0) {
-        taskKill(arg0);
+    fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
+    fade->r -= task->spawnArg1.halves.low;
+    fade->g -= task->spawnArg1.halves.low;
+    fade->b -= task->spawnArg1.halves.low;
+    if (fade->r < 0) {
+        taskKill(task);
     }
 }
 
-void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Handles draw commands for a live cast body or attachment model.
+///
+/// Mode 1 enables active drawing and automatic buffering; mode 2 excludes both.
+/// Mode 0 and other values leave every flag unchanged. Ignores the message id
+/// and second argument. The callback has no usable return value.
+static void _actor560800SetCastModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject* extra;
+    TmdObject* model;
 
-    extra = task->extra.tmd;
-    switch (arg2) {
-        case 0:
+    model = task->extra.tmd;
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
             break;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags = model->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags = model->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }
@@ -6131,10 +6206,14 @@ void func_actor_560800_801369A0(void)
     Gp_SpawnViewTasks();
 }
 
-void func_actor_560800_801369E0(Task* arg0)
+/// Resumes the game display loop after the scene's queued CD work has finished.
+///
+/// While the queue remains busy this task stays alive; on idle it kills itself
+/// and restores ordinary display scheduling. Installed at task-table index 13.
+static void _actor560800AwaitScenePlaybackTask(Task* task)
 {
-    if (cdCmdIsIdle() & 0xFFFF) {
-        taskKill(arg0);
+    if (cdCmdIsIdle()) {
+        taskKill(task);
         displayResumeGameLoop();
     }
 }
@@ -6153,8 +6232,10 @@ void func_actor_560800_80136A54(void)
     capSetTexturePage(0x180, 0);
 }
 
-/// Task handler in the actor's task descriptor table that only kills the task.
-void func_actor_560800_80136A88(Task* task)
+/// Immediately kills the scene task-table's bodyless placeholder task.
+///
+/// Installed at index 1; owns no work and ignores both spawn arguments.
+static void _actor560800DiscardTask(Task* task)
 {
     taskKill(task);
 }
@@ -6347,47 +6428,51 @@ static void func_actor_560800_80136AA8(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor560800ChainScratch);
 }
 
-/// Sets up a chain or its falling copy: allocates its `_Actor560800PropWork`,
-/// hangs it off `Task::work`, points the object's light and colour matrices
-/// into it, makes the task the spawn argument names this one's `parent` and
-/// binds the rig with the overlay's animation bank. Of the three
-/// `gRandomLcgState` draws taken along the way only `swayPhase` is read again,
-/// and `chainNumber` comes from the spawner's `spawnArg1`.
-static void func_actor_560800_801376E0(Task* arg0)
+/// Allocates playback and transform storage for a chain or its falling copy.
+///
+/// Requires a live seven-part model and a live TMD parent task in `spawnArg2`.
+/// The root coordinate and teardown lifetime attach to that parent; model
+/// lighting borrows matrices from the owned work until task teardown.
+/// `spawnArg1` supplies a chain number (1..8) for a live chain; the falling copy
+/// supplies a Y coordinate which is stored there but never used for playback.
+/// Binds the seven-slot rig without starting a clip. Failure kills the task;
+/// callers must stop accessing its work after an allocation failure.
+static void _actor560800InitChainModel(Task* task)
 {
-    _Actor560800PropWork* mem;
+    _Actor560800PropWork* allocatedWork;
     _Actor560800PropWork* work;
-    TmdObject*            obj;
-    GfxCoord*             coord;
+    TmdObject*            model;
+    GfxCoord*             root;
     Task*                 parent;
 
-    obj        = arg0->extra.tmd;
-    coord      = obj->coords;
-    mem        = memMalloc(sizeof(*mem), false);
-    arg0->work = mem;
-    if (mem == NULL) {
-        taskKill(arg0);
+    model         = task->extra.tmd;
+    root          = model->coords;
+    allocatedWork = memMalloc(sizeof(*allocatedWork), false);
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
+        taskKill(task);
         return;
     }
-    memFillBytes(mem, 0, sizeof(*mem));
-    work          = arg0->work;
-    parent        = arg0->spawnArg2.pointer;
-    work->parent  = parent;
-    coord->parent = parent->extra.tmd->coords;
-    obj->lightMtx = &work->light;
-    obj->colorMtx = &work->color;
-    taskReparent(work->parent, arg0);
+    memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
+    work            = task->work;
+    parent          = task->spawnArg2.pointer;
+    work->parent    = parent;
+    root->parent    = parent->extra.tmd->coords;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    taskReparent(work->parent, task);
+    // Keep all three draws so later scene effects see the same RNG sequence.
     gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->swayPhase  = gRandomLcgState >> 16;
     gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_274  = gRandomLcgState >> 16;
     gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->pulseScale = (gRandomLcgState >> 16) & 0x3FF;
-    animationInitContext(&work->rig.anim, D_actor_560800_801752F0, obj, work->rig.poses, work->rig.slots);
-    work->chainNumber = arg0->spawnArg1.value;
+    animationInitContext(&work->rig.anim, D_actor_560800_801752F0, model, work->rig.poses, work->rig.slots);
+    work->chainNumber = task->spawnArg1.value;
 }
 
-/// Per-frame handler of a chain `func_actor_560800_801376E0` sets up. State 1
+/// Per-frame handler of a chain `_actor560800InitChainModel` sets up. State 1
 /// hides the chain (`TmdObject::flags` bit 0x80) for the chain numbers the
 /// current view excludes and otherwise runs `func_actor_560800_80136AA8`;
 /// state 2 restarts the rig's slots 1 to 6 in the clip `chainNumber` names,
@@ -6416,7 +6501,7 @@ void func_actor_560800_80137820(Task* arg0)
     obj   = extra;
     switch (state) {
         case 0:
-            func_actor_560800_801376E0(arg0);
+            _actor560800InitChainModel(arg0);
             arg0->state++;
             return;
         case 1:
@@ -6511,90 +6596,104 @@ done:
     }
 }
 
-/// Per-frame handler of a chain's falling copy. State 0 runs the spawner, parents the
-/// root coordinate to `D_actor_560800_801757AC`'s and records its height; state
-/// 1 swings parts 3-5 on X/Z by 20 between +-0x154, rebuilds their rotation
-/// matrices and sinks the root, killing the task once its height passes 10000.
-void func_actor_560800_80137BEC(Task* task)
+/// Animates a detached chain copy falling away from the moving carrier.
+///
+/// Starts at state 0 with the seven model-part matrices already copied from
+/// the intact chain. Requires a live carrier and chain-group parent throughout.
+/// `spawnArg1` is the carrier's Y when the copy spawned; the copy owns prop work
+/// and updates parts 3..5 in 4096-unit-per-turn angles. Fall speed and distance
+/// narrow to signed halfwords each update. Removes the copy once its local
+/// root Y exceeds 10000; lighting follows the composed position.
+static void _actor560800FallingChainTask(Task* task)
 {
+    enum {
+        ACTOR_560800_FALL_INITIALIZE          = 0,
+        ACTOR_560800_FALL_ADVANCE             = 1,
+        ACTOR_560800_CHAIN_SWING_X_INCREASING = 1,
+        ACTOR_560800_CHAIN_SWING_Z_INCREASING = 2,
+        ACTOR_560800_CHAIN_SWING_LIMIT        = 0x154,
+        ACTOR_560800_FALL_END_Y               = 10000,
+    };
     _Actor560800PropWork* work;
-    GfxCoord*             coord;
-    TmdObject*            extra;
-    VECTOR                vec;
-    s32                   i;
-    s32                   j;
-    u16                   t286;
-    u16                   t288;
+    GfxCoord*             root;
+    TmdObject*            model;
+    VECTOR                lightingPosition;
+    s32                   partIndex;
+    s32                   maskedPartIndex;
+    u16                   nextSpeed;
+    u16                   nextDistance;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
+    work = task->work;
+    root = task->extra.tmd->coords;
     switch (task->state) {
-        case 0:
-            func_actor_560800_801376E0(task);
-            coord->parent          = D_actor_560800_801757AC->extra.tmd->coords;
+        case ACTOR_560800_FALL_INITIALIZE:
+            _actor560800InitChainModel(task);
+            root->parent           = D_actor_560800_801757AC->extra.tmd->coords;
             task->extra.tmd->flags = 0;
             work                   = task->work;
-            i                      = 1;
+            partIndex              = 1;
             do {
-                work->swingDir[i & 0xFFFF] = 0;
-                i                         += 1;
-            } while ((u32)(i & 0xFFFF) < 6U);
-            work->fallStartY    = coord->coord.t[1];
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->swingDir[partIndex & 0xFFFF] = 0;
+                partIndex                         += 1;
+            } while ((u32)(partIndex & 0xFFFF) < 6U);
+            work->fallStartY   = root->coord.t[1];
+            root->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state++;
             break;
-        case 1:
-            i = 3;
+        case ACTOR_560800_FALL_ADVANCE:
+            // Direction bits stay clear: the retained updates keep turning X/Z down.
+            partIndex = 3;
             do {
-                if (work->swingDir[i & 0xFFFF] & 1) {
-                    work->swing[i & 0xFFFF].vx += 20;
-                    if (work->swing[i & 0xFFFF].vx >= 0x155) {
-                        work->swingDir[i & 0xFFFF] |= 1;
+                if (work->swingDir[partIndex & 0xFFFF] & ACTOR_560800_CHAIN_SWING_X_INCREASING) {
+                    work->swing[partIndex & 0xFFFF].vx += 20;
+                    if (work->swing[partIndex & 0xFFFF].vx >= (ACTOR_560800_CHAIN_SWING_LIMIT + 1)) {
+                        work->swingDir[partIndex & 0xFFFF] |= ACTOR_560800_CHAIN_SWING_X_INCREASING;
                     }
                 } else {
-                    work->swing[i & 0xFFFF].vx -= 20;
-                    if (work->swing[i & 0xFFFF].vx < -0x154) {
-                        work->swingDir[i & 0xFFFF] &= 0xFFFE;
+                    work->swing[partIndex & 0xFFFF].vx -= 20;
+                    if (work->swing[partIndex & 0xFFFF].vx < -ACTOR_560800_CHAIN_SWING_LIMIT) {
+                        work->swingDir[partIndex & 0xFFFF] &= (u16)~ACTOR_560800_CHAIN_SWING_X_INCREASING;
                     }
                 }
-                if (work->swingDir[i & 0xFFFF] & 2) {
-                    work->swing[i & 0xFFFF].vz += 20;
-                    if (work->swing[i & 0xFFFF].vz >= 0x155) {
-                        work->swingDir[i & 0xFFFF] |= 2;
+                if (work->swingDir[partIndex & 0xFFFF] & ACTOR_560800_CHAIN_SWING_Z_INCREASING) {
+                    work->swing[partIndex & 0xFFFF].vz += 20;
+                    if (work->swing[partIndex & 0xFFFF].vz >= (ACTOR_560800_CHAIN_SWING_LIMIT + 1)) {
+                        work->swingDir[partIndex & 0xFFFF] |= ACTOR_560800_CHAIN_SWING_Z_INCREASING;
                     }
                 } else {
-                    work->swing[i & 0xFFFF].vz -= 20;
-                    if (work->swing[i & 0xFFFF].vz < -0x154) {
-                        work->swingDir[i & 0xFFFF] &= 0xFFFD;
+                    work->swing[partIndex & 0xFFFF].vz -= 20;
+                    if (work->swing[partIndex & 0xFFFF].vz < -ACTOR_560800_CHAIN_SWING_LIMIT) {
+                        work->swingDir[partIndex & 0xFFFF] &= (u16)~ACTOR_560800_CHAIN_SWING_Z_INCREASING;
                     }
                 }
-                j = i & 0xFFFF;
-                gfxRotMatrixY(&task->extra.tmd->coords[j].coord, work->rot[j].vy, 1);
-                gfxRotMatrixX(&task->extra.tmd->coords[j].coord,
-                              work->rot[j].vx + work->swing[j].vx, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixZ(&task->extra.tmd->coords[j].coord,
-                              work->rot[j].vz + work->swing[j].vz, GRAPHICS_ROTATION_COMPOSE);
-                i += 1;
-            } while ((u32)(i & 0xFFFF) < 6U);
-            t286               = work->speed + 4;
-            t288               = work->fallDistance + t286;
-            work->fallDistance = t288;
-            work->speed        = t286;
-            coord->coord.t[1]  = work->fallStartY + task->spawnArg1.value -
-                                D_actor_560800_801757AC->extra.tmd->coords->coord.t[1] +
-                                (s16)t288;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (coord->coord.t[1] > 10000) {
+                maskedPartIndex = partIndex & 0xFFFF;
+                gfxRotMatrixY(&task->extra.tmd->coords[maskedPartIndex].coord, work->rot[maskedPartIndex].vy, GRAPHICS_ROTATION_REPLACE);
+                gfxRotMatrixX(&task->extra.tmd->coords[maskedPartIndex].coord,
+                              work->rot[maskedPartIndex].vx + work->swing[maskedPartIndex].vx, GRAPHICS_ROTATION_COMPOSE);
+                gfxRotMatrixZ(&task->extra.tmd->coords[maskedPartIndex].coord,
+                              work->rot[maskedPartIndex].vz + work->swing[maskedPartIndex].vz, GRAPHICS_ROTATION_COMPOSE);
+                partIndex += 1;
+            } while ((u32)(partIndex & 0xFFFF) < 6U);
+            // Compensate for the moving carrier parent so the detached chain falls independently.
+            nextSpeed          = work->speed + 4;
+            nextDistance       = work->fallDistance + nextSpeed;
+            work->fallDistance = nextDistance;
+            work->speed        = nextSpeed;
+            root->coord.t[1]   = work->fallStartY + task->spawnArg1.value -
+                               D_actor_560800_801757AC->extra.tmd->coords->coord.t[1] +
+                               (s16)nextDistance;
+            root->composeStamp = GRAPHICS_COORD_DIRTY;
+            if (root->coord.t[1] > ACTOR_560800_FALL_END_Y) {
                 taskKill(task);
                 return;
             }
             break;
     }
-    extra  = task->extra.tmd;
-    vec.vx = extra->coords->workm.t[0];
-    vec.vy = task->extra.tmd->coords->workm.t[1];
-    vec.vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(extra, &vec, 0, 3);
+    model               = task->extra.tmd;
+    lightingPosition.vx = model->coords->workm.t[0];
+    lightingPosition.vy = task->extra.tmd->coords->workm.t[1];
+    lightingPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingPosition, 0, 3);
 }
 
 /// Placement handler of the chain group, which loads a pose table into all
@@ -6916,206 +7015,222 @@ void func_actor_560800_801386D4(Task* task)
     w->targetWorld.t[2] = pos.vz;
 }
 
-void func_actor_560800_80138A4C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Applies a cutscene command to the carrier's motion state.
+///
+/// Reads only `command->command`: 0 relight, 1 hide, 2 first placement/descent,
+/// 3 slow descent, 4 accelerated rise, 5 second placement/descent, 6 carry No. 9.
+/// Placement commands show the model first and initialize scale or carry phase.
+/// Requires initialized prop work; consumes the command synchronously without
+/// retaining it. Ignores its context tags, message id and second argument.
+/// The callback has no usable return value.
+static void _actor560800ApplyCarrierCommand(Task* task, s32 messageId, ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_560800_CARRIER_RELIGHT        = 0,
+        ACTOR_560800_CARRIER_HIDE           = 1,
+        ACTOR_560800_CARRIER_FIRST_DESCENT  = 2,
+        ACTOR_560800_CARRIER_SLOW_DESCENT   = 3,
+        ACTOR_560800_CARRIER_RISE           = 4,
+        ACTOR_560800_CARRIER_SECOND_DESCENT = 5,
+        ACTOR_560800_CARRIER_CARRY_NO9      = 6,
+    };
     _Actor560800PropWork* work;
-    TmdObject*            extra;
-    VECTOR                vec;
+    TmdObject*            model;
+    VECTOR                lightingPosition;
 
     work = task->work;
-    switch (msg->command) {
-        case 0:
-            extra  = task->extra.tmd;
-            vec.vx = extra->coords->workm.t[0];
-            vec.vy = task->extra.tmd->coords->workm.t[1];
-            vec.vz = task->extra.tmd->coords->workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
+    switch (command->command) {
+        case ACTOR_560800_CARRIER_RELIGHT:
+            model               = task->extra.tmd;
+            lightingPosition.vx = model->coords->workm.t[0];
+            lightingPosition.vy = task->extra.tmd->coords->workm.t[1];
+            lightingPosition.vz = task->extra.tmd->coords->workm.t[2];
+            worldCoordSetModelLighting(model, &lightingPosition, 0, 3);
             break;
-        case 1:
-            task->state = 1;
+        case ACTOR_560800_CARRIER_HIDE:
+            task->state = ACTOR_560800_CARRIER_HIDE;
             break;
-        case 2:
-            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_801756FC, 0);
-            work->pulseScale = 0x1000;
-            task->state      = 2;
+        case ACTOR_560800_CARRIER_FIRST_DESCENT:
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_actor_560800_801756FC, 0);
+            work->pulseScale = ONE;
+            task->state      = ACTOR_560800_CARRIER_FIRST_DESCENT;
             break;
-        case 3:
-            task->state = 3;
+        case ACTOR_560800_CARRIER_SLOW_DESCENT:
+            task->state = ACTOR_560800_CARRIER_SLOW_DESCENT;
             break;
-        case 4:
-            task->state = 4;
+        case ACTOR_560800_CARRIER_RISE:
+            task->state = ACTOR_560800_CARRIER_RISE;
             break;
-        case 5:
-            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_80175714, 0);
-            work->pulseScale = 0x1000;
-            task->state      = 5;
+        case ACTOR_560800_CARRIER_SECOND_DESCENT:
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_actor_560800_80175714, 0);
+            work->pulseScale = ONE;
+            task->state      = ACTOR_560800_CARRIER_SECOND_DESCENT;
             break;
-        case 6:
-            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_actor_560800_8017572C, 0);
+        case ACTOR_560800_CARRIER_CARRY_NO9:
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_actor_560800_8017572C, 0);
             work->carryStep = 0;
-            task->state     = 6;
+            task->state     = ACTOR_560800_CARRIER_CARRY_NO9;
             break;
     }
 }
 
-/// Per-frame pulse of the carrier: while bit 0 of
-/// `D_actor_560800_801752E8` is set it raises `speed`, which sinks the root
-/// coordinate. Once `pulseScale` has reached 0x800 the second coordinate is reset
-/// to identity and scaled on X/Z by `pulseScale`, which swings between 0x1000 and
-/// 0x1800 in steps of 0x32 with `pulseGrowing` as the direction. The dead `w = work`
-/// store is what the match needs: see DECOMPILATION_LEARNINGS.md, "birthing".
-static void func_actor_560800_80138BCC(Task* task)
+/// Accelerates the carrier upward and shrinks its second part on X/Z.
+///
+/// Requires initialized prop work and both model coordinates. Bit 0 of the
+/// scene's phase word increments the signed-halfword speed; negative local Y
+/// moves upward. While scale is at least half size, each update forces a
+/// shrinking step of 50 in 12-fractional-bit scale units. The stored direction
+/// reversal is overwritten on the next update, so this phase does not oscillate.
+static void _actor560800RaiseCarrier(Task* task)
 {
     _Actor560800PropWork* work;
-    GfxCoord*             coord;
-    GfxCoord*             c;
-    _Actor560800PropWork* w;
-    MATRIX*               m;
+    GfxCoord*             root;
+    GfxCoord*             pulseCoord;
+    _Actor560800PropWork* pulseWork;
+    MATRIX*               pulseMatrix;
     VECTOR                scale;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
-    if (D_actor_560800_801752E8 & 1) {
+    work = task->work;
+    root = task->extra.tmd->coords;
+    if (D_actor_560800_801752E8 & ACTOR_560800_CARRIER_ACCELERATE) {
         work->speed++;
     }
-    w                  = work;
-    coord->coord.t[1] -= work->speed;
-    if (work->pulseScale >= 0x800) {
-        work->pulseGrowing   = 0;
-        w                    = task->work;
-        c                    = task->extra.tmd->coords;
-        m                    = &c[1].coord;
-        MATRIX_PAIR(m, 0, 0) = 0x1000;
-        MATRIX_PAIR(m, 0, 2) = 0;
-        MATRIX_PAIR(m, 1, 1) = 0x1000;
-        MATRIX_PAIR(m, 2, 0) = 0;
-        m->m[2][2]           = 0x1000;
-        c++;
-        if (w->pulseGrowing == 0) {
-            w->pulseScale -= 0x32;
-            if (w->pulseScale < 0x1000) {
-                w->pulseGrowing = 1;
+    // Retain the alias before the reload; removing it changes register allocation.
+    pulseWork         = work;
+    root->coord.t[1] -= work->speed;
+    if (work->pulseScale >= ACTOR_560800_CARRIER_HALF_SCALE) {
+        work->pulseGrowing = ACTOR_560800_CARRIER_SCALE_SHRINK;
+        pulseWork          = task->work;
+        pulseCoord         = task->extra.tmd->coords;
+        pulseMatrix        = &pulseCoord[1].coord;
+        gfxSetRotIdentity(pulseMatrix);
+        pulseCoord++;
+        if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_SHRINK) {
+            pulseWork->pulseScale -= 0x32;
+            if (pulseWork->pulseScale < ONE) {
+                pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_GROW;
             }
-        } else if (w->pulseGrowing == 1) {
-            w->pulseScale += 0x32;
-            if (w->pulseScale > 0x1800) {
-                w->pulseGrowing = 0;
+        } else if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_GROW) {
+            pulseWork->pulseScale += 0x32;
+            if (pulseWork->pulseScale > ACTOR_560800_CARRIER_MAX_SCALE) {
+                pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_SHRINK;
             }
         }
-        scale.vx = w->pulseScale;
-        scale.vy = 0x1000;
-        scale.vz = w->pulseScale;
-        ScaleMatrix(&c->coord, &scale);
+        scale.vx = pulseWork->pulseScale;
+        scale.vy = ONE;
+        scale.vz = pulseWork->pulseScale;
+        ScaleMatrix(&pulseCoord->coord, &scale);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Closing sequence of the carrier, driven by `carryStep`: phase 0 lifts the
-/// root coordinate until it clears -3000, phase 1 keeps lifting while pulsing
-/// the second coordinate's X/Z scale in steps of 0x32 until -1200, and phase 2
-/// pulses in steps of 0xC8 until `pulseScale` drops below 0x1000. Phase 3 sinks
-/// the carrier and the body `_Actor560800CutsceneWork::no9` names together. Each case
-/// needs its own matrix pointer: a shared one is set twice, loses sched1's
-/// birthing priority, and swaps the `work`/`field_8` loads.
-static void func_actor_560800_80138D04(Task* task)
+/// Lowers and reshapes the carrier, then raises it together with No. 9.
+///
+/// Requires initialized prop work, two model coordinates, and a live cutscene
+/// task in `spawnArg2` with No. 9 present. Phases 0/1 move down by 100 units per
+/// update through Y=-3000 and Y=-1200; phase 1 grows X/Z scale by 50 to above
+/// 1.5 times size. Phase 2 holds Y while shrinking by 200 to below unit scale.
+/// Phase 3 subtracts 20 from both roots' Y each update, carrying them upward.
+static void _actor560800CarryNo9Away(Task* task)
 {
+    enum {
+        ACTOR_560800_CARRY_LOWER_FROM_TOP = 0,
+        ACTOR_560800_CARRY_LOWER_AND_GROW = 1,
+        ACTOR_560800_CARRY_SHRINK         = 2,
+        ACTOR_560800_CARRY_RISE           = 3,
+    };
     _Actor560800PropWork* work;
-    GfxCoord*             coord;
-    GfxCoord*             c;
-    GfxCoord*             other;
-    _Actor560800PropWork* w;
-    MATRIX*               m;
-    MATRIX*               m2;
+    GfxCoord*             root;
+    GfxCoord*             pulseCoord;
+    GfxCoord*             no9Root;
+    _Actor560800PropWork* pulseWork;
+    MATRIX*               growMatrix;
+    MATRIX*               shrinkMatrix;
     VECTOR                scale;
-    s32                   one;
+    s32                   unitScale;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
+    work = task->work;
+    root = task->extra.tmd->coords;
     switch (work->carryStep) {
-        case 0:
-            if (coord->coord.t[1] >= -3000) {
+        case ACTOR_560800_CARRY_LOWER_FROM_TOP:
+            if (root->coord.t[1] >= -3000) {
                 work->carryStep++;
             }
             break;
-        case 1:
-            if (work->pulseScale <= 0x1800) {
-                work->pulseGrowing   = 1;
-                w                    = task->work;
-                c                    = task->extra.tmd->coords;
-                m                    = &c[1].coord;
-                one                  = 0x1000;
-                MATRIX_PAIR(m, 0, 0) = one;
-                MATRIX_PAIR(m, 0, 2) = 0;
-                MATRIX_PAIR(m, 1, 1) = one;
-                MATRIX_PAIR(m, 2, 0) = 0;
-                m->m[2][2]           = one;
-                c++;
-                if (w->pulseGrowing == 0) {
-                    w->pulseScale -= 0x32;
-                    if (w->pulseScale < one) {
-                        w->pulseGrowing = 1;
+        case ACTOR_560800_CARRY_LOWER_AND_GROW:
+            if (work->pulseScale <= ACTOR_560800_CARRIER_MAX_SCALE) {
+                work->pulseGrowing = ACTOR_560800_CARRIER_SCALE_GROW;
+                pulseWork          = task->work;
+                pulseCoord         = task->extra.tmd->coords;
+                growMatrix         = &pulseCoord[1].coord;
+                unitScale          = ONE;
+                gfxSetRotIdentity(growMatrix);
+                pulseCoord++;
+                if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_SHRINK) {
+                    pulseWork->pulseScale -= 0x32;
+                    if (pulseWork->pulseScale < unitScale) {
+                        pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_GROW;
                     }
-                } else if (w->pulseGrowing == 1) {
-                    w->pulseScale += 0x32;
-                    if (w->pulseScale > 0x1800) {
-                        w->pulseGrowing = 0;
+                } else if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_GROW) {
+                    pulseWork->pulseScale += 0x32;
+                    if (pulseWork->pulseScale > ACTOR_560800_CARRIER_MAX_SCALE) {
+                        pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_SHRINK;
                     }
                 }
-                scale.vx = w->pulseScale;
-                scale.vy = 0x1000;
-                scale.vz = w->pulseScale;
-                ScaleMatrix(&c->coord, &scale);
+                scale.vx = pulseWork->pulseScale;
+                scale.vy = ONE;
+                scale.vz = pulseWork->pulseScale;
+                ScaleMatrix(&pulseCoord->coord, &scale);
             }
-            if (coord->coord.t[1] >= -1200) {
+            if (root->coord.t[1] >= -1200) {
                 work->carryStep++;
             }
             break;
-        case 2:
-            if (work->pulseScale >= 0x1000) {
-                work->pulseGrowing    = 0;
-                w                     = task->work;
-                c                     = task->extra.tmd->coords;
-                m2                    = &c[1].coord;
-                one                   = 0x1000;
-                MATRIX_PAIR(m2, 0, 0) = one;
-                MATRIX_PAIR(m2, 0, 2) = 0;
-                MATRIX_PAIR(m2, 1, 1) = one;
-                MATRIX_PAIR(m2, 2, 0) = 0;
-                m2->m[2][2]           = one;
-                c++;
-                if (w->pulseGrowing == 0) {
-                    w->pulseScale -= 0xC8;
-                    if (w->pulseScale < one) {
-                        w->pulseGrowing = 1;
+        case ACTOR_560800_CARRY_SHRINK:
+            if (work->pulseScale >= ONE) {
+                work->pulseGrowing = ACTOR_560800_CARRIER_SCALE_SHRINK;
+                pulseWork          = task->work;
+                pulseCoord         = task->extra.tmd->coords;
+                shrinkMatrix       = &pulseCoord[1].coord;
+                unitScale          = ONE;
+                gfxSetRotIdentity(shrinkMatrix);
+                pulseCoord++;
+                if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_SHRINK) {
+                    pulseWork->pulseScale -= 0xC8;
+                    if (pulseWork->pulseScale < unitScale) {
+                        pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_GROW;
                     }
-                } else if (w->pulseGrowing == 1) {
-                    w->pulseScale += 0xC8;
-                    if (w->pulseScale > 0x1800) {
-                        w->pulseGrowing = 0;
+                } else if (pulseWork->pulseGrowing == ACTOR_560800_CARRIER_SCALE_GROW) {
+                    pulseWork->pulseScale += 0xC8;
+                    if (pulseWork->pulseScale > ACTOR_560800_CARRIER_MAX_SCALE) {
+                        pulseWork->pulseGrowing = ACTOR_560800_CARRIER_SCALE_SHRINK;
                     }
                 }
-                scale.vx = w->pulseScale;
-                scale.vy = 0x1000;
-                scale.vz = w->pulseScale;
-                ScaleMatrix(&c->coord, &scale);
+                scale.vx = pulseWork->pulseScale;
+                scale.vy = ONE;
+                scale.vz = pulseWork->pulseScale;
+                ScaleMatrix(&pulseCoord->coord, &scale);
             } else {
                 work->carryStep++;
             }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            root->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
-        case 3:
-            other               = ((_Actor560800CutsceneWork*)((Task*)task->spawnArg2.pointer)->work)->no9->extra.tmd->coords;
-            coord->coord.t[1]  -= 20;
-            other->coord.t[1]  -= 20;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            other->composeStamp = GRAPHICS_COORD_DIRTY;
+        case ACTOR_560800_CARRY_RISE: {
+            Task*                     cutscene     = task->spawnArg2.pointer;
+            _Actor560800CutsceneWork* cutsceneWork = cutscene->work;
+            no9Root                                = cutsceneWork->no9->extra.tmd->coords;
+            root->coord.t[1]                      -= 20;
+            no9Root->coord.t[1]                   -= 20;
+            root->composeStamp                     = GRAPHICS_COORD_DIRTY;
+            no9Root->composeStamp                  = GRAPHICS_COORD_DIRTY;
             return;
+        }
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]  += 100;
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+    root->coord.t[1]  += 100;
 }
 
 void func_actor_560800_80138FC8(Task* task)
@@ -7229,7 +7344,7 @@ void func_actor_560800_80138FC8(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case 4:
-            func_actor_560800_80138BCC(task);
+            _actor560800RaiseCarrier(task);
             break;
         case 5:
             coord              = task->extra.tmd->coords;
@@ -7265,7 +7380,7 @@ void func_actor_560800_80138FC8(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case 6:
-            func_actor_560800_80138D04(task);
+            _actor560800CarryNo9Away(task);
             break;
     }
     D_actor_560800_801752E8 += 2;
@@ -7273,7 +7388,7 @@ void func_actor_560800_80138FC8(Task* task)
 }
 
 /// Message 0x7D5 handler of the task `D_actor_560800_801756D4` belongs to: the
-/// visibility switch `func_actor_560800_801393EC` performs on a single model,
+/// visibility switch `_actor560800SetCarrierModelDraw` performs on a single model,
 /// applied to every chain its `_Actor560800ChainGroupWork` still holds. `arg2` is
 /// the sub-command - 1 clears the 0x84 pair of bits in the chain's
 /// `TmdObject::flags` and 2 sets it, anything else leaves the chains alone.
@@ -7305,19 +7420,24 @@ void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2, s32 arg3)
     } while ((u32)(i & 0xFFFF) < ARRAY_SIZE(work->chains));
 }
 
-void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Handles draw commands for a live carrier model.
+///
+/// Mode 1 enables active drawing and automatic buffering; mode 2 excludes both.
+/// Mode 0 and other values leave every flag unchanged. Ignores the message id
+/// and second argument. The callback has no usable return value.
+static void _actor560800SetCarrierModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject* extra;
+    TmdObject* model;
 
-    extra = task->extra.tmd;
-    switch (arg2) {
-        case 0:
+    model = task->extra.tmd;
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
             break;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags = model->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
-        case 2:
-            extra->flags = extra->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags = model->flags | (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }
