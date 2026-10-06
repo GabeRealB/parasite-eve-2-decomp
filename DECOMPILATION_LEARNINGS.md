@@ -149500,3 +149500,66 @@ attempts; left as it was.
   4 insns shorter. A function with no frame returns with a bare `jr ra`, so
   `return 1` in an arm is not a jump to a shared label and nothing merges
   with it (attempt 1, 2 insns shorter with the wake copied).
+
+### Goto removal, batch 11: an unsigned switch index, a store's arm order, alias locals that were inlines (2026-10-06)
+
+- **`==2; <3 -> default; ==3; j default`** (`Display_GetHoldMode`) is three
+  nodes, `case 2:`, `case 3:` and one case below 2 listed with the default
+  (`case 1: default:`). Two cases alone give `==2; ==3` with no `slti`.
+- **A switch on an *unsigned* index tests its bounded neighbours by equality,
+  with no range test.** `maggotCaterpillarResolveContacts` dispatches on
+  `(u32)key >> 16` as `==1; ==0; ==2; ==3; j default`: cases 0..3 pivot on 1,
+  and because 0 is the type's lower bound the left node is "bounded" and is
+  emitted as a bare `beqz` (the signed mode ladders have `slti 2` there). A
+  `switch (kind) { case 2: ...; case 1: case 3: ...; case 0: break; }` on the
+  `u32` reproduces the whole tree. Not converted all the same: the compare
+  with 1 uses the register of the `one = 1` local, which is set before the
+  loop *ahead of* `normal = &scratch->normal`. Without the local, loop.c
+  hoists the literal 1 into one register (every use matches) but emits it at
+  the preheader, after `normal`'s address (two insns swapped). With the local
+  kept, the switch's own `li v0,1` is not replaced by it (cse does not carry
+  `one == 1` across the loop label). Moving `normal`'s assignment into the
+  loop, or naming `&scratch->normal` at the use, loses the hoisted address
+  and swaps `$s0/$s1`. Untried: the ladder as conditions with `continue`
+  (`if (kind != one) { if (kind == 0) continue; if (kind == 2) { ...;
+  continue; } if (kind != 3) continue; }` in front of the push-out code).
+- **The merged store sits in the arm written last.** `oddStrangerTakeHit` had
+  `timer = 5; } else if (t > 0) { timer = t - 1; } else { clear; goto skip; }
+  store: work->t = timer; skip:`. The store written in each arm merges, but
+  with the arms in that order the `else if` arm keeps its own `sh`. The image
+  has the clear *before* the store, so the test is the other way round:
+  `work->t = 5; } else if (work->t <= 0) { clear; } else { work->t =
+  (u16)work->t - 1; }`.
+- **A tail that ORs a bit into a variable cannot be duplicated behind a
+  constant assignment.** `Gp_SelectWeaponMenuTask` ends both of its arms in
+  `if (CdCmd_IsIdle() == 0) flags |= 0x100;`, entered with `flags` 0x12 or
+  0x10 and skipped by `flags = 0x112` / `0x110` when there is no item. Written
+  in each arm, the copy that directly follows `flags = 0x10` is folded to
+  `li s0,0x110` and no longer merges. The shared label with two users is what
+  keeps the `ori`. An inline holding the whole if/else with `return 0x112;` /
+  `return 0x110;` has the image's shape at two insns less: the s-registers
+  are dealt differently (`val` takes `menu`'s, `flags` takes `cfg`'s) and
+  one save disappears. The two siblings without the 0x12/0x10 choice
+  (`Gp_SelectAmmoMenuTask`, `Gp_SelectArmorMenuTask`) are plain `if (item ==
+  0) flags = 0x112; else { ... }`.
+- **`w1 = work;` copies and one index local per loop were inlines taking the
+  task.** `Actor01900_Fn01C94` ran four slot loops over `w1`/`w2`/`w3` with
+  `i`..`i4`; the image has `move s0,s3` for the first two and a real reload of
+  `arg0->work` for the last two. Each is `static inline void f(Task* arg0) {
+  work = arg0->work; for (i = 1; i < 0x13; i++) ... }`: cse turns the reload
+  into a register copy where no store lies between it and the caller's own
+  `arg0->work`, uses the caller's register for the reads in the same block,
+  and the copy inside the loop. All four matched on the first build.
+- **A block with branches of its own, entered from three later places, stays
+  a `goto`** (`grenadeShellFly`'s `explode:`). As a `static inline` called at
+  each site only the last straight-line run of the copies merges
+  (cross-jumping stops at the conditional branch inside the block), 230
+  lines of assembly longer. The classification of the two contact lists
+  written out in both arms does not merge either, and a `found` inline with
+  two `return 1` is not folded (frame 8 bytes larger).
+- `func_800E31E8` is the `src/main/task.c` case: a real loop hoists the
+  `0xFFFF` of the end test next to the hand-hoisted `kind`; the image reloads
+  it every iteration.
+- A mode ladder whose image loads `actorControl` between two other loads
+  keeps the `state` local at that position (`maggotCaterpillarTick`);
+  `switch (gSceneCombatState.actorControl)` moves the load down.
