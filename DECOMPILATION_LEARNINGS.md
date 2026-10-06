@@ -129111,6 +129111,10 @@ loop_slots:
 That is worth reaching for whenever a target loop has its test at the top and
 its increment below with the back edge between them: no loop note, no rotation.
 
+Corrected 2026-10-06: the label is not needed. `while (1) { if (c) { i++; if
+((u16)i < N) continue; } break; }` is not rotated either (the exit is not the
+loop's first jump) and matches; see "Goto removal, batch 18".
+
 ## `x != 0 && x == 1` folds to one compare, and a two-case `switch` can never emit the `slti`/`bnez` range split (func_actor_120500_8013241C, 2026-09-17)
 
 The request-code dispatch reads `<u16> != 0` then `<u16> == 1` and branches to
@@ -129128,6 +129132,12 @@ only, so **no** `switch` on `{1, 2}` can produce the `slti v0, v1, 2; bnez`
 pair at all. Once the tests are ifs, the block layout follows the emission order
 (then before else), which for this dispatch meant putting the two arm bodies
 behind labels with `goto`s, in the order the target has them.
+
+Corrected 2026-10-06: a *three*-node switch does emit it. `case 1: ...; case
+2: ...; case 0: default: break;` gives `==1; <2 -> default; ==2`, and the
+clear written once after the switch is what the three clear sites were (reorg
+copies the merged store into the delay slot of each jump to it). The function
+now has no `goto`; see "Goto removal, batch 18".
 
 ## Two payloads that never overlap share one stack slot: declare each in its own block (func_actor_120500_8013241C, 2026-09-17)
 
@@ -149838,3 +149848,51 @@ attempts; left as it was.
   right but the second and third scans take different registers (element
   pointer in `$v1` instead of sharing `$a1` with the id). Only the angle
   wrap and the `dmg` clamp went (13 gotos -> 10).
+### Goto removal, batch 18: a tail shared backward that does merge, inlines behind alias locals, an inline defined too late (2026-10-06)
+
+- **A backward `goto tick` from a later case into an earlier case's tail can
+  be an inline called in both cases** (`func_actor_205200_8014BF28`). The
+  weapon handlers' re-fire jump has failed every time, but there the jump lands
+  on a case *body* that then falls through into further code. Here both cases
+  end with the shared block and `break`, the block (`--timer <= 0`, two LCG
+  steps, two stores) is a `static inline void` taking the work pointer, and
+  cross-jumping merges the two copies whole, keeping the earlier one with the
+  later case jumping back, first build. The function has no frame. What
+  separates the two shapes is whether the shared block is the *end* of both
+  arms.
+- **`xWork = arg0->work;` followed by a slot loop, several times in one
+  function, are inlines taking the task** (`func_actor_403000_80133AF8`: seek,
+  restart, overlay restart, tick and the foreleg turn, five alias locals and
+  eleven index and slot-pointer locals). The hand-reduced `slot[1].rate = ...; slot +=
+  1; do { } while` loops were plain `for (i = 1; i < ARRAY_SIZE(work->slots);
+  i++) { work->slots[i].rate = ...; f(&work->anim, i, ...); }`; where the
+  alias was `seekWork = work` (a copy, not a reload) the inline still starts
+  with `work = task->work;` and cse makes the copy. All five matched on the
+  first build that had them. `actor_400500` had the same blocks as existing inlines
+  that three functions simply did not call (`_actor400500TickAnim`,
+  `_actor400500SetAnim`, `_actor400500SampleView`, `_actor400500HitFlagged`);
+  its `flag = 1 / flag = 0; if (flag == 0)` around the knockdown request is an
+  inline returning 1/0 (`_actor400500TakeKnockdown`), tested unfolded as in
+  the image.
+- **A `goto common` over a guarded arm into the code after the `if`** (two
+  dispatchers of `actor_400500`: `if (dead) { ...; goto common; } if (!knocked)
+  { step; common: tick; }`) is `if (dead) { ... } else { if (knocked) return;
+  step; } tick;`.
+- **An inline called above its definition is not inlined, and the checksum
+  failure does not say so.** GCC 2.8.1 only inlines a function whose body it
+  has already seen; a forward `static inline` prototype is not enough. The
+  symptom is a `jal` to an address just past the end of the unit's last
+  function (the new out-of-line copy) where the reference has the expanded
+  body. Move the definition above the first caller.
+- **`goto end` to the function's `return 0;` from a switch that selects a
+  table and index for one call after it** (`factoryCommand`) is the call
+  written in each case with `break`. `return 0;` in place of the gotos keeps
+  the `table`/`idx` form but gives each early exit its own `move v0,zero` in a
+  delay slot; with the call per case the cross-jump leaves `j; li a1,K` and the
+  exits share the zero.
+- **`else { goto skip; } skip:`** is an empty `else` (`func_actor_310100_801620FC`);
+  its fake `do { mode = K; } while (0)` wrappers are still needed (`work`,
+  `task` and `mode` trade saved registers without them).
+- A scoped `build-and-verify.sh --only` prints no per-image line on success.
+  `sha256sum -c build/USA/out/checksum.scoped.sha` lists the images the last
+  scoped build actually checked.
