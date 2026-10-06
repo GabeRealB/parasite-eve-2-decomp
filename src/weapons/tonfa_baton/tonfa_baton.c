@@ -79,17 +79,28 @@ enum {
 static void _tonfaBatonKillModelTask(Task* task);
 void        func_tonfa_baton_8011DBFC(Task* arg0);
 
-/// Stores a composed endpoint as a world-space trail pose independent of the baton.
+/// Stores a composed baton endpoint as a stationary world-space trail pose.
 ///
-/// Copies the endpoint's complete view-space cache and removes the current
-/// orthonormal view transform into the history node's local matrix. The
-/// persistent view parent lets later composition follow the camera without
-/// following the weapon or retaining the temporary endpoint. Rotation uses
-/// 4096 units per 1.0; translation is in signed 32-bit game coordinates.
-/// Both nodes and the view must be live, word-aligned and disjoint. Leaves
-/// the history node's stamp and parameters untouched; mark it dirty before
-/// recomposing. Requires the initialized scratch stack with 48 free bytes
-/// disjoint from the nodes, released before return. Changes GTE state.
+/// `composedEndpoint->workm.t` must be a current view-space position, and
+/// `gGfxViewCoord.workm` the matching world-to-view transform with an
+/// orthonormal rotation. Copies the complete 32-byte endpoint cache into
+/// `historyFrame->workm` and removes the view transform into
+/// `historyFrame->coord`. Rotation is copied and rebased too, although the
+/// ribbon consumes only translation. Rotation elements use `ONE` (4096)
+/// for 1.0; translations are signed 32-bit game coordinates.
+///
+/// The caller-owned nodes and the view must be live, word-aligned and
+/// disjoint. Reads only the endpoint's composed cache and retains no pointer
+/// to it, so a temporary endpoint may expire after the call. The saved parent
+/// is the persistent view node: later composition follows camera movement
+/// while preserving the sampled world pose. Leaves the destination's local
+/// matrix alignment bytes, composition stamp and parameters untouched; the
+/// caller must mark it dirty before recomposing.
+///
+/// Requires an initialized scratch stack with 48 free bytes disjoint from
+/// the nodes and view, released before return. Loads the endpoint's rotation
+/// and translation into the GTE before rebasing; changes GTE rotation,
+/// translation and arithmetic state.
 static inline void _tonfaBatonStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* composedEndpoint)
 {
     historyFrame->parent = &gGfxViewCoord;
