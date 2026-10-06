@@ -431,11 +431,13 @@ void func_replay_bonus_80117A08(Task* arg0)
             arg0->killCountdown                     = D_replay_bonus_80119294->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             CdCmd_StartOverlay(0U, 1U, 0xBU);
             CdCmd_EnqueueOverlay82();
-            goto advance;
+            arg0->state += 1;
+            return;
         case 1:
             if (CdCmd_IsIdle() & 0xFFFF) {
                 CdCmd_EnqueueOverlay81();
-                goto advance;
+                arg0->state += 1;
+                return;
             }
             return;
         case 2:
@@ -494,19 +496,20 @@ void func_replay_bonus_80117A08(Task* arg0)
         case 20:
             if (D_replay_bonus_80119225 != 1) {
                 SetDispMask(0);
-                goto advance;
+                arg0->state += 1;
+                return;
             }
             break;
         case 21:
             Gp_RestoreStreamRng();
             memFree(D_replay_bonus_801192BC);
             Display_SetMode(DISPLAY_SETUP_DEFAULT);
-            goto advance;
+            arg0->state += 1;
+            return;
         case 24:
             func_800B2968();
         case 22:
         case 23:
-        advance:
             arg0->state += 1;
             return;
         case 25:
