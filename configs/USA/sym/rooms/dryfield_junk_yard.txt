@@ -72,5 +72,8 @@ D_dryfield_junk_yard_80181C18 = 0x80181C18; // size:0x8 defined:True
 D_dryfield_junk_yard_80181C20 = 0x80181C20; // size:0x8 defined:True
 D_dryfield_junk_yard_80181C28 = 0x80181C28; // size:0x20 defined:True
 
-func_dryfield_junk_yard_8017DD0C = 0x8017DD0C; // type:func
+dryfieldJunkYardEnableViewEffectsTask = 0x8017DD0C; // type:func
 junkYardCapMsg = 0x8017D994; // type:func
+_dryfieldJunkYardDrawModelGroundShadow = 0x8017d658; // type:func
+_dryfieldJunkYardRejectKeyItemUse = 0x8017da44; // type:func
+_dryfieldJunkYardSetSceneEvent = 0x8017dc54; // type:func

@@ -34,7 +34,11 @@ extern SpriteView D_dryfield_junk_yard_80180C28[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[];
 
-void func_dryfield_junk_yard_8017DD0C(Task* unused);
+/// Enables the junk yard's view effects, including dust from actor footsteps.
+///
+/// Gameplay dispatches this room callback as effect task 0xD8. The room-effect
+/// controller must be live; the task argument is ignored and no state advances.
+void dryfieldJunkYardEnableViewEffectsTask(Task* unusedTask);
 
 void func_dryfield_junk_yard_8017D5F4(Task* task);
 

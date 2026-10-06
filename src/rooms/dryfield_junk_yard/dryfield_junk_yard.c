@@ -64,7 +64,6 @@ void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
 /// Main-executable halfword the room task's second state waits on before it
 /// calls `func_80724608`.
-/// Signed byte of gameplay state the room's script callback stores into.
 
 /// The room's message table, published in `Task::msgTable` for
 /// `taskMessageDispatch` to walk.
@@ -84,7 +83,7 @@ extern EvsCommand           D_dryfield_junk_yard_8017E3D0[];
 extern EvsCommand           D_dryfield_junk_yard_8017E490[];
 extern EvsCommand           D_dryfield_junk_yard_8017E658[];
 
-static void func_dryfield_junk_yard_8017D658(Task* task);
+static void _dryfieldJunkYardDrawModelGroundShadow(Task* task);
 static void func_dryfield_junk_yard_8017D708(Task* arg0);
 static void func_dryfield_junk_yard_8017DC60(Task* task);
 
@@ -97,10 +96,15 @@ static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
 /// Name the room task's second state hands to `func_80724608`.
 static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 
-void func_dryfield_junk_yard_8017D848(Task*);
-s32  func_dryfield_junk_yard_8017DA44(Task*, s32, s32, s32);
-s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+void       func_dryfield_junk_yard_8017D848(Task*);
+static s32 _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+s32        func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+
+enum {
+    DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT   = 5,
+};
 
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD60;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD74;
@@ -117,11 +121,11 @@ extern WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8];
 extern WorldCoordRoomLights       D_dryfield_junk_yard_80181BB4[1];
 extern ActorTransform             D_dryfield_junk_yard_8017DE00;
 extern TaskDesc                   Actor00100_D1BA84;
-void                              func_dryfield_junk_yard_8017DC54(s8);
+static void                       _dryfieldJunkYardSetSceneEvent(s8 sceneEvent);
 
 TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
-    { 5105, func_dryfield_junk_yard_8017DA44 },
+    { DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM, _dryfieldJunkYardRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_junk_yard_8017DB78 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -254,7 +258,7 @@ EvsCommand D_dryfield_junk_yard_8017E490[19] = {
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_dryfield_junk_yard_8017DC54 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _dryfieldJunkYardSetSceneEvent }, { .value = DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -263,7 +267,7 @@ EvsCommand D_dryfield_junk_yard_8017E658[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_dryfield_junk_yard_8017DC54 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _dryfieldJunkYardSetSceneEvent }, { .value = DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1663,27 +1667,35 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
     } else {
         tmd->otOffset = 0;
     }
-    func_dryfield_junk_yard_8017D658(task);
+    _dryfieldJunkYardDrawModelGroundShadow(task);
 }
 
-/// Model draw: unless the model's flags carry bit 0x80 or it has no buffer
-/// yet, refreshes its world matrix and draws a 0x1A0 by 0xC0 ground-effect
-/// quad at its world position.
-static void func_dryfield_junk_yard_8017D658(Task* task)
+/// Draws the room model's ground shadow at its composed root position.
+///
+/// `task` must own a model with a root coordinate. Models that suppress active
+/// drawing or have no primitive buffer draw no shadow. The square's half-side
+/// is 416 world-coordinate units and its grayscale shade is 192. The temporary
+/// centre is borrowed by the shadow drawer and released before returning.
+static void _dryfieldJunkYardDrawModelGroundShadow(Task* task)
 {
-    _DryfieldJunkYardGroundShadowScratch* scratch;
-    GfxCoord*                             coord;
-    TmdObject*                            tmd;
+    enum {
+        DRYFIELD_JUNK_YARD_GROUND_SHADOW_HALF_SIZE = 0x1A0,
+        DRYFIELD_JUNK_YARD_GROUND_SHADOW_SHADE     = 0xC0,
+    };
+    _DryfieldJunkYardGroundShadowScratch* shadowScratch;
+    GfxCoord*                             rootCoord;
+    TmdObject*                            model;
 
-    tmd   = task->extra.tmd;
-    coord = tmd->coords;
-    if ((tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && tmd->buffer != 0) {
-        scratch = SCRATCH_STACK_RESERVE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
-        actorRenderComposeCoord(coord);
-        scratch->centre.vx = coord->workm.t[0];
-        scratch->centre.vy = coord->workm.t[1];
-        scratch->centre.vz = coord->workm.t[2];
-        effectDrawGroundShadow(&scratch->centre, 0x1A0, 0xC0);
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    if ((model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && model->buffer != NULL) {
+        shadowScratch = SCRATCH_STACK_RESERVE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
+        // Compose the root before taking its world-space shadow centre.
+        actorRenderComposeCoord(rootCoord);
+        shadowScratch->centre.vx = rootCoord->workm.t[0];
+        shadowScratch->centre.vy = rootCoord->workm.t[1];
+        shadowScratch->centre.vz = rootCoord->workm.t[2];
+        effectDrawGroundShadow(&shadowScratch->centre, DRYFIELD_JUNK_YARD_GROUND_SHADOW_HALF_SIZE, DRYFIELD_JUNK_YARD_GROUND_SHADOW_SHADE);
         SCRATCH_STACK_RELEASE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
     }
 }
@@ -1768,11 +1780,16 @@ void func_dryfield_junk_yard_8017D848(Task* task)
 
 #include "../../shared/junk_yard_cap_msg.inc.c"
 
-/// Handler for message 0x13F1 in the room's message table: does nothing and
-/// returns 0.
-s32 func_dryfield_junk_yard_8017DA44(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request in the junk yard without consuming an item.
+///
+/// The message carries the inventory item ID in `itemId` and an unused second
+/// word. Returns 0, selecting the inventory's "no use now" response; all
+/// parameters are ignored.
+static s32 _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    enum { DRYFIELD_JUNK_YARD_KEY_ITEM_USE_REFUSED = 0 };
+
+    return DRYFIELD_JUNK_YARD_KEY_ITEM_USE_REFUSED;
 }
 
 /// Handler for message 0x13EE in the room's message table. Copies the
@@ -1838,11 +1855,14 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg
     return 0;
 }
 
-/// Room script callback, named by two of the room's script records (command
-/// 0xD, argument 5): stores its argument into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent`.
-void func_dryfield_junk_yard_8017DC54(s8 arg0)
+/// Sets the live save's scene event for subsequent area-music selection.
+///
+/// The event-script callback consumes the signed low byte of its argument word.
+/// Both the return scene and its skip path supply
+/// `DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT`.
+static void _dryfieldJunkYardSetSceneEvent(s8 sceneEvent)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
 /// State 1 of the room task: once `gDisplayState.debugMode` is non-zero and a slot-0xA
@@ -1865,8 +1885,7 @@ void func_dryfield_junk_yard_8017DCB4(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Sets the room effect mode to 2.
-void func_dryfield_junk_yard_8017DD0C(Task* unused)
+void dryfieldJunkYardEnableViewEffectsTask(Task* unusedTask)
 {
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
 }

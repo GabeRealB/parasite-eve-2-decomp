@@ -1793,7 +1793,7 @@ dryfieldGarageEffectNoopTaskD6 = 0x8017DC68; // type:func absolute:True owner=dr
 
 dryfieldDrivewayEnableAmbientEffectsTask = 0x8017DE6C; // type:func absolute:True owner=dryfield_driveway
 
-func_dryfield_junk_yard_8017DD0C = 0x8017DD0C; // type:func absolute:True owner=dryfield_junk_yard shared=rooms
+dryfieldJunkYardEnableViewEffectsTask = 0x8017DD0C; // type:func absolute:True owner=dryfield_junk_yard shared=rooms
 
 func_dryfield_motel_balcony_8017DC28 = 0x8017DC28; // type:func absolute:True owner=dryfield_motel_balcony shared=rooms
 
