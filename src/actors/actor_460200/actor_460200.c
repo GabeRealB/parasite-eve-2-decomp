@@ -108,14 +108,14 @@ extern s32              D_actor_460200_80151538;
 
 static void func_actor_460200_80133254(Task* task);
 static void _pacedWalkTickSoldierBAnim(Task* task);
-static void func_actor_460200_8013332C(Task* task);
+static void _pacedWalkResetSoldierBAnim(Task* task);
 static void func_actor_460200_801333A4(Task* task);
 static void func_actor_460200_801338C0(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A04(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A88(Task* task);
 static void func_actor_460200_80133AB0(Task* task);
 static void _pacedWalkTickSoldierCAnim(Task* task);
-static void func_actor_460200_80133B88(Task* task);
+static void _pacedWalkResetSoldierCAnim(Task* task);
 static void func_actor_460200_80133C00(Task* task);
 
 static TmdSource _gActor460200SoldierBRifle;
@@ -2314,13 +2314,14 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args, s32 arg
 #include "../../shared/stride_walk_spawn.inc.c"
 
 #define pacedWalkBlendAnim func_actor_460200_801333A4
-#define pacedWalkResetAnim func_actor_460200_8013332C
+#undef PACED_WALK_RESET_ANIM
+#define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierBAnim
 #undef PACED_WALK_TICK_ANIM
 // Soldier B's stride update uses its own private slot tick.
 #define PACED_WALK_TICK_ANIM _pacedWalkTickSoldierBAnim
 #include "../../shared/stride_walk_update.inc.c"
 #undef pacedWalkBlendAnim
-#undef pacedWalkResetAnim
+#undef PACED_WALK_RESET_ANIM
 #undef PACED_WALK_TICK_ANIM
 
 void func_actor_460200_801330C8(Task* task)
@@ -2354,10 +2355,10 @@ void strideWalkExit(Task* task)
 #include "../../shared/paced_walk_tick_anim.inc.c"
 #undef PACED_WALK_TICK_ANIM
 
-/// The second walker's copy.
-#define pacedWalkResetAnim func_actor_460200_8013332C
+// Soldier B's reset uses the StrideWalkWork binding above.
+#define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierBAnim
 #include "../../shared/paced_walk_reset_anim.inc.c"
-#undef pacedWalkResetAnim
+#undef PACED_WALK_RESET_ANIM
 
 /// The second walker's copy.
 #define pacedWalkBlendAnim func_actor_460200_801333A4
@@ -2392,14 +2393,14 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg
 #include "../../shared/stride_walk_sub_model.inc.c"
 
 /// The third walker's copy.
-#define pacedWalkUpdate      func_actor_460200_801336B4
-#define PACED_WALK_TICK_ANIM _pacedWalkTickSoldierCAnim
-#define pacedWalkResetAnim   func_actor_460200_80133B88
-#define pacedWalkBlendAnim   func_actor_460200_80133C00
+#define pacedWalkUpdate       func_actor_460200_801336B4
+#define PACED_WALK_TICK_ANIM  _pacedWalkTickSoldierCAnim
+#define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierCAnim
+#define pacedWalkBlendAnim    func_actor_460200_80133C00
 #include "../../shared/paced_walk_update.inc.c"
 #undef pacedWalkUpdate
 #undef PACED_WALK_TICK_ANIM
-#undef pacedWalkResetAnim
+#undef PACED_WALK_RESET_ANIM
 #undef pacedWalkBlendAnim
 
 void func_actor_460200_8013386C(Task* task)
@@ -2476,10 +2477,10 @@ static void func_actor_460200_80133A88(Task* task)
 #include "../../shared/paced_walk_tick_anim.inc.c"
 #undef PACED_WALK_TICK_ANIM
 
-/// The third walker's copy.
-#define pacedWalkResetAnim func_actor_460200_80133B88
+// Soldier C's reset uses the restored PacedWalkWork binding.
+#define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierCAnim
 #include "../../shared/paced_walk_reset_anim.inc.c"
-#undef pacedWalkResetAnim
+#undef PACED_WALK_RESET_ANIM
 
 /// The third walker's copy.
 #define pacedWalkBlendAnim func_actor_460200_80133C00

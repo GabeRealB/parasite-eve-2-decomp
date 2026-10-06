@@ -2890,7 +2890,7 @@ static void func_actor_450800_80132448(Task* task)
         func_actor_450800_80132AE0(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
     } else if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
-        pacedWalkResetAnim(task);
+        PACED_WALK_RESET_ANIM(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
     } else if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {

@@ -51,7 +51,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 
 #ifndef PACED_WALK_WORK_T
-/// Type `_pacedWalkTickAnim`, `pacedWalkResetAnim`, `pacedWalkBlendAnim` and
+/// Type `_pacedWalkTickAnim`, `PACED_WALK_RESET_ANIM`, `pacedWalkBlendAnim` and
 /// `pacedWalkPlace` take the block at `Task::work` as.
 ///
 /// Walkers whose work block is a type of their own carry some of those four,
@@ -84,9 +84,23 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #define PACED_WALK_TICK_ANIM _pacedWalkTickAnim
 #endif
 
+#ifndef PACED_WALK_RESET_ANIM
+/// Function identifier shared by a walker's slot reset and update calls.
+///
+/// Bind to a function with signature `void (Task* task)` before this header
+/// or around a further fragment copy; the default is `pacedWalkResetAnim`.
+/// Declare additional private copies `static` in the carrier's prologue.
+/// The update call and reset definition must select the same identifier;
+/// bind `PACED_WALK_WORK_T` to the allocated work type at the definition.
+/// Undefine the binding before selecting another walker, since the header
+/// guard selects the default only once. This object-like alias evaluates no
+/// arguments and captures no local identifiers.
+#define PACED_WALK_RESET_ANIM pacedWalkResetAnim
+#endif
+
 void        pacedWalkUpdate(Task* task);
 static void PACED_WALK_TICK_ANIM(Task* task);
-void        pacedWalkResetAnim(Task* task);
+void        PACED_WALK_RESET_ANIM(Task* task);
 void        pacedWalkBlendAnim(Task* task);
 s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 

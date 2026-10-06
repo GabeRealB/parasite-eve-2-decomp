@@ -17,7 +17,7 @@ void strideWalkUpdate(Task* task)
         return;
     }
     if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
-        pacedWalkResetAnim(task);
+        PACED_WALK_RESET_ANIM(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
