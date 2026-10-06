@@ -150089,3 +150089,83 @@ attempts; left as it was.
   duplicate swapped registers** (`Fs_BootImageMachine`, see the sample entry):
   the tail goes after the switch, the two states `break`, the others `return`
   and `default: return;` keeps unknown states out.
+### Goto removal, batch 19: the collision grid walks, jump.c's own break mover, a hoist that counts mentions (2026-10-06)
+
+- **A block-scoped declaration at the top of a loop body keeps the loop
+  unrotated.** `for (;;) { id = *cell; if (id == END) break; ... }` is rotated
+  (`expand_end_loop` finds the conditional exit and moves it to the bottom);
+  `for (;;) { s32 id = *cell; if (id == END) break; ... }` is not: the body's
+  `NOTE_INSN_BLOCK_BEG` sits between the loop's start label and the test, and
+  the scan for an exit test stops at a block note. The same held for
+  `for (;;) { u16 flags = slot->flags; if (!(flags & OCCUPIED)) { ...; break; }
+  ... }`, where the function-scope local gave the rotated loop (`j test` at
+  the entry) and an 8-byte larger frame. A `return` from an inlined void
+  function in that position is not an exit jump either and also leaves the
+  loop alone (`_worldCollisionCollideMovingSphereCell`).
+- **`Gp_CollideObjGridDir` (9 gotos) is the cell walk as a `static inline void`**
+  with `return` for both `goto done`, `if (radius < ABS(dist)) { cell++;
+  continue; }` for the distance test, `outside = 1; break;` at both edge
+  tests and `break` at both slot exits. The `mark_outside:` block sitting
+  after the distance test was loop.c: a block ending in a jump out of its loop
+  moves to the nearest `BARRIER` at the target's loop level, and the
+  `continue` supplies it. The last test has to be `if (!outside) { slot scan }
+  cell++;`. Written `if (outside) { cell++; continue; }` the build is two
+  insns short: one more `cell++; j top` copy changes which copy cross-jumping
+  keeps (the one behind the distance test instead of the loop's last), and the
+  bottom block disappears.
+- **jump.c moves `if (c) { X; break; }` out of an infinite loop before loop.c
+  sees it.** The rule ("Look for `if (foo) bar; else break;`", second round of
+  the first jump pass) fires on `condjump L1; X; jump L2; L1: Y; jump
+  somewhere; BARRIER; L2:` when `L1` has one use and `L2` is the *next label*
+  after `L1`: it swaps `X` and `Y`, so `X` lands behind the loop and falls
+  into the code after it. `Gp_CollideObjGrid` has `X` (the contact fill)
+  where only loop.c puts it, next to `mark_outside` behind the distance test,
+  so in the original the rule did not fire. It does not fire when `Y`
+  contains a label, e.g. `if (flags & LAST) { release; return; }` instead of
+  a bare conditional jump; with that arm, early-outs for the range and null
+  tests and `{ release; return; }` at the cell end, every loop insn matched.
+  Not converted all the same: the release has to leave the slot loop (else
+  loop.c hoists its `0x1F8003FC` out of the loop, `lui a1` / `ori a1`), which
+  needs a `BARRIER` outside all loops, and the only way found to make one is
+  an early `{ release; return; }` before the loop, which cse then ties to the
+  entry's copy of the same address (`$s3` across the two calls, where the
+  image reloads it into `$v1`). Forms tried: plain `break`s (outer loop
+  rotated); the walk as an inline with returns (fill moved by jump.c, 2 insns
+  short); `if (OCCUPIED) { ... } else { fill; break; }` (fill stays at the end
+  of the loop); four early releases (cse, 6 long); nested ifs with a release
+  in the slot loop (hoist, 3 long). `goto fill` with the other gotos removed
+  does not match either: loop.c then puts `mark_outside` *behind* the
+  hand-placed fill block.
+- **One mention of a global in a loop is not hoisted, three are**
+  (`func_800AA120`). Its three queue arms each jumped to a shared
+  `D_80114C70++; break;`. With the increment written in all three, loop.c
+  hoists the symbol's `lui` out of the loop (savings 3); with one increment
+  after the arms and `continue` in the skip arm the skip arm is laid out
+  before the increment. The image's form has two: the two arms of the inner
+  `if` share one `D_80114C70++; break;` after it, the `else if` arm has its
+  own, and the skip arm is the final `else`. The three hand-expanded
+  key/parameter builds are one `static inline` taking the two texture
+  offsets (the `fileKey` / `fileParams` arrays are its locals; the frame does
+  not grow).
+- **`if (p == NULL) goto ret1; if (p->q == NULL) return 1;`** with `ret1:` on
+  a later `return 1` is `if (p == NULL || p->q == NULL) return 1;`. Two
+  separate `return 1` statements differ: the first one's `li v0,1` goes into
+  the branch delay slot and the second test reloads `p->q`.
+- **A tail shared by two switch cases whose duplication costs a register**
+  (`Actor03700_Fn0042C`: `z = ...; goto move_z;` from the push-out and the
+  restore case into `coord->coord.t[2] = z`). The store written in both cases
+  merges, but the extra mention of `coord` swaps `$s3/$s4`. As a
+  `static inline` with `default: return;` and the store once after the switch
+  it matches. The `one = 1` of the mode ladder in `Actor03700_Fn03004` stays
+  (it is also the third argument of a call, and the image has it in `$a2`
+  from the dispatch on); in `Actor02100_Fn031C4`, where it only feeds a store,
+  the plain `switch` matches without it.
+- An inline whose only local is a `VECTOR` replaces a caller's `VECTOR` and
+  three copies of the fill only if *every* site uses it
+  (`_actor03800UpdateColorAtRoot`): with the caller's own `vec` still in use
+  at one site the frame is 16 bytes larger.
+- Not converted: `func_actor_120300_80131EE0`, the settle scan of
+  `func_actor_342000_80161EA4` (batch 09) again. The plain flag-and-`break`
+  form puts the `done = 0` block behind the `return 1` jump; the image has it
+  between the `bodyAnimation` store and the seek loop's `i = 1`, where no
+  structured form leaves an unconditional jump.
