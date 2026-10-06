@@ -127,17 +127,19 @@ D_acropolis_forked_road_801850A4 = 0x801850A4; // size:0x20 defined:True
 
 func_acropolis_forked_road_8017E298 = 0x8017E298; // type:func
 
-func_acropolis_forked_road_8017E410 = 0x8017E410; // type:func
+acropolisForkedRoadWallLampTask = 0x8017E410; // type:func
 
-func_acropolis_forked_road_8017EF80 = 0x8017EF80; // type:func
+acropolisForkedRoadRoomVisualEffectsFlashTask = 0x8017EF80; // type:func
 
-func_acropolis_forked_road_8017F9E4 = 0x8017F9E4; // type:func
+acropolisForkedRoadRoomVisualEffectsTwinTrailTask = 0x8017F9E4; // type:func
 
 func_acropolis_forked_road_801802CC = 0x801802CC; // type:func
 
-func_acropolis_forked_road_8017E81C = 0x8017E81C; // type:func
+acropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017F224; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017F650; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017FED4; // type:func
 _roomVisualEffectsDrawBurstStar = 0x80180554; // type:func
 _leafDraw = 0x8017EC70; // type:func
+_acropolisForkedRoadSkipFadeInTask = 0x8017e220; // type:func
+_acropolisForkedRoadReleaseMaggotCaterpillarEntrance = 0x8017e288; // type:func

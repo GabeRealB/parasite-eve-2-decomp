@@ -4,7 +4,7 @@
  * register/volatile/assembly workarounds. Private drawing helpers remain in
  * the other room_visual_effects fragments. */
 
-/// Two view-relative endpoint histories owned by the effect task's work pointer.
+/// Two endpoint histories with world-space snapshots, owned by the task's work pointer.
 typedef struct {
     GfxCoord first[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT];  // Eight snapshots of the first endpoint
     GfxCoord second[ROOM_VISUAL_EFFECTS_TRAIL_SLOT_COUNT]; // Eight snapshots of the second endpoint
@@ -61,7 +61,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             break;
 
         case TRAIL_RECORD:
-            // View-relative snapshots keep old edges independent of later anchor movement.
+            // Recompose world-space snapshots through the current view before drawing.
             firstEndpointCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(firstEndpointCoord);
             secondEndpointCoord.parent = work->parent;

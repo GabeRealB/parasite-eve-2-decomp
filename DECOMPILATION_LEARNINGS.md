@@ -61436,7 +61436,7 @@ rodata = [{ start = "0x10", unit = "acropolis_forked_road_2" },
 ```
 
 then re-split and delete the `INCLUDE_RODATA` line the earlier unit used to
-carry. `func_acropolis_forked_road_8017E410` is the worked example.
+carry. `acropolisForkedRoadWallLampTask` is the worked example.
 
 A non-zero leftover byte in the word's fourth slot does not change this, and
 does not call for a 3-byte struct copied from a named `static const`. The

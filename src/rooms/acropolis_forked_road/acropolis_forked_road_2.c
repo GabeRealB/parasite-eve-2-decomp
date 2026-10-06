@@ -95,10 +95,10 @@ extern u16 D_acropolis_forked_road_801821E8[14];
 /// `[0]` places the task's own frame and `[1]`, also reached by its own name,
 /// the second trail's.
 
-void func_acropolis_forked_road_8017DA24(Task*);
-void func_acropolis_forked_road_8017DD60(Task*);
-void func_acropolis_forked_road_8017E1C0(Task*);
-void func_acropolis_forked_road_8017E220(Task*);
+void        func_acropolis_forked_road_8017DA24(Task*);
+void        func_acropolis_forked_road_8017DD60(Task*);
+void        func_acropolis_forked_road_8017E1C0(Task*);
+static void _acropolisForkedRoadSkipFadeInTask(Task* task);
 
 extern AnimationPlayRequest     D_acropolis_forked_road_8018207C;
 extern AnimationBankCopyRequest D_acropolis_forked_road_80182060;
@@ -106,7 +106,7 @@ extern WorldCollisionGrid       D_acropolis_forked_road_80182BF0[1];
 extern WorldCollisionTrigger    D_acropolis_forked_road_80182C14[6];
 extern WorldCollisionTrigger    D_acropolis_forked_road_80182DDC[7];
 extern WorldCoordRoomLights     D_acropolis_forked_road_80184E70[1];
-void                            func_acropolis_forked_road_8017E288(void);
+static void                     _acropolisForkedRoadReleaseMaggotCaterpillarEntrance(void);
 
 extern SpriteBatch  D_acropolis_forked_road_80183284[2];
 extern SpriteBatch  D_acropolis_forked_road_80183938[12];
@@ -129,7 +129,7 @@ TaskDesc D_acropolis_forked_road_80180F44[5] = {
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017DD60, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017E1C0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017E220, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadSkipFadeInTask, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_forked_road_80180F80[300] = {
@@ -500,7 +500,7 @@ AnimationPlayRequest D_acropolis_forked_road_80182090[2] = {
 EvsCommand D_acropolis_forked_road_801820B8[8] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_forked_road_80182060 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_forked_road_8018207C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_forked_road_8017E288 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisForkedRoadReleaseMaggotCaterpillarEntrance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1426,27 +1426,31 @@ void func_acropolis_forked_road_8017E1C0(Task* arg0)
     }
 }
 
-/// The same eight-frame fade run the other way: the overlay level is the
-/// complement of the rising counter, so it falls from 0xFF by 0x20 a frame,
-/// and the task kills itself once the counter passes 0xFF.
-void func_acropolis_forked_road_8017E220(Task* arg0)
+/// Reveals the return ride's final pose after its skip fade has hidden the scene.
+///
+/// Requires a bodyless task with `killCountdown` initially zero. Draws eight
+/// subtractive overlays, from brightness 255 down to 31 in steps of 32, then
+/// kills the task. The signed 16-bit counter is callback-owned fade progress.
+static void _acropolisForkedRoadSkipFadeInTask(Task* task)
 {
-    u8  fade;
-    s16 temp_v0;
+    enum { SKIP_FADE_LEVEL_STEP = 32,
+           SKIP_FADE_LEVEL_SPAN = 256 };
+    u8  fadeLevel;
+    s16 nextProgress;
 
-    fade = ~(u8)arg0->killCountdown;
-    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-    temp_v0             = (u16)arg0->killCountdown + 0x20;
-    arg0->killCountdown = temp_v0;
-    if (temp_v0 >= 0x100) {
-        taskKill(arg0);
+    fadeLevel = ~(u8)task->killCountdown;
+    fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
+    nextProgress        = (u16)task->killCountdown + SKIP_FADE_LEVEL_STEP;
+    task->killCountdown = nextProgress;
+    if (nextProgress >= SKIP_FADE_LEVEL_SPAN) {
+        taskKill(task);
     }
 }
 
-/// Room script callback: sets `gSceneCombatState.maggotCaterpillarEntranceReady` to 1.
-void func_acropolis_forked_road_8017E288(void)
+/// Releases the room's scripted Maggot/Caterpillar entrances.
+static void _acropolisForkedRoadReleaseMaggotCaterpillarEntrance(void)
 {
-    gSceneCombatState.maggotCaterpillarEntranceReady = 1;
+    gSceneCombatState.maggotCaterpillarEntranceReady = true;
 }
 
 /// Forked-road ambient effect task. On its first frame it fires one effect per
@@ -1480,96 +1484,107 @@ void func_acropolis_forked_road_8017E298(Task* task)
     }
 }
 
-/// Draws one frame of a forked-road wall lamp: a flickering, screen-aligned
-/// sprite at the task's own coordinate frame. The lamp is skipped entirely
-/// when effects are cancelled (`gRoomEffectState->effectControl` at 4 or more) and on
-/// the days whose bit is clear in `D_acropolis_forked_road_801821E8`, indexed
-/// by the low nibble of `Task::spawnArg1`.
+/// Sets a lamp quad's four edges around its projected centre in screen pixels.
 ///
-/// On the first frame the task unpacks the rest of `spawnArg1` into its
-/// effect work block - the half extent into `scale` (bits 16-27, 0x280 when
-/// zero), the animation column into `angle` (bits 8-9) and that column's grey
-/// level into `period` - and leaves only the day index behind. Every frame it then projects the
-/// coordinate's translation through `GsWSMATRIX` with a single `RTPS` into a
-/// `RoomGlowSpriteScratch` block and, for anything at `otz` 0x11 or
-/// further, queues one semi-transparent `POLY_FT4` on tpage 0x2B whose
-/// half extent is `scale * 39 / otz`, so the lamp shrinks with distance. The
-/// grey alternates by 0x10 on the parity of `DisplayState::animFrame`, which is
-/// what makes it flicker.
-void func_acropolis_forked_road_8017E410(Task* task)
+/// Each edge narrows to signed 16 bits before it is copied to the two corners.
+static inline void _acropolisForkedRoadSetWallLampBounds(POLY_FT4* quad, const RoomGlowSpriteScratch* projection)
 {
-    RoomGlowSpriteScratch* block;
+    s16 edge;
+
+    edge     = projection->screenPos.vx - projection->halfExtent;
+    quad->x2 = edge;
+    quad->x0 = edge;
+    edge     = projection->screenPos.vx + projection->halfExtent;
+    quad->x3 = edge;
+    quad->x1 = edge;
+    edge     = projection->screenPos.vy - projection->halfExtent;
+    quad->y1 = edge;
+    quad->y0 = edge;
+    edge     = projection->screenPos.vy + projection->halfExtent;
+    quad->y3 = edge;
+    quad->y2 = edge;
+}
+
+void acropolisForkedRoadWallLampTask(Task* task)
+{
+    enum {
+        WALL_LAMP_INITIALIZE     = 0,
+        WALL_LAMP_INDEX_MASK     = 0xF,
+        WALL_LAMP_CELL_SHIFT     = 8,
+        WALL_LAMP_CELL_MASK      = 3,
+        WALL_LAMP_CELL_COUNT     = 3,
+        WALL_LAMP_SCALE_SHIFT    = 16,
+        WALL_LAMP_SCALE_MASK     = 0xFFF,
+        WALL_LAMP_DEFAULT_SCALE  = 640,
+        WALL_LAMP_MIN_DRAW_DEPTH = 17,
+        WALL_LAMP_FLICKER_STEP   = 16,
+        WALL_LAMP_TEXTURE_PAGE   = getTPage(0, GPU_BLEND_ADD, 704, 0),
+        WALL_LAMP_CLUT_X_STRIDE  = 16,
+        WALL_LAMP_CLUT_Y         = 270,
+        WALL_LAMP_CELL_WIDTH     = 40,
+        WALL_LAMP_LAST_TEXEL     = WALL_LAMP_CELL_WIDTH - 1,
+    };
+    RoomGlowSpriteScratch* projection;
     EffectWork*            work;
     GfxCoord*              coord;
-    POLY_FT4*              prim;
-    s32                    rgb;
-    s32                    flicker;
-    s16                    xy;
+    POLY_FT4*              quad;
+    s32                    greyLevel;
+    s32                    flickerLevel;
 
-    work  = (EffectWork*)task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & WALL_LAMP_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
         actorRenderComposeCoord(coord);
-        block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-        if (task->state == 0) {
-            u8 levels[3] = { 0x50, 0x30, 0x10 };
+        projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+        if (task->state == WALL_LAMP_INITIALIZE) {
+            u8 restingLevels[WALL_LAMP_CELL_COUNT] = { 0x50, 0x30, 0x10 };
 
-            if (task->spawnArg1.value & 0xFFF0000) {
-                work->scale = (task->spawnArg1.value >> 16) & 0xFFF;
+            // Decode once, retaining only the lamp's view-mask index in the spawn argument.
+            if (task->spawnArg1.value & (WALL_LAMP_SCALE_MASK << WALL_LAMP_SCALE_SHIFT)) {
+                work->scale = (task->spawnArg1.value >> WALL_LAMP_SCALE_SHIFT) & WALL_LAMP_SCALE_MASK;
             } else {
-                work->scale = 0x280;
+                work->scale = WALL_LAMP_DEFAULT_SCALE;
             }
-            work->angle           = (task->spawnArg1.value >> 8) & 3;
-            task->spawnArg1.value = task->spawnArg1.value & 0xF;
-            work->period          = levels[work->angle];
-            task->state           = task->state + 1;
+            work->angle           = (task->spawnArg1.value >> WALL_LAMP_CELL_SHIFT) & WALL_LAMP_CELL_MASK;
+            task->spawnArg1.value = task->spawnArg1.value & WALL_LAMP_INDEX_MASK;
+            work->period          = restingLevels[work->angle];
+            task->state++;
         }
-        block->worldPos.vx = coord->workm.t[0];
-        block->worldPos.vy = coord->workm.t[1];
-        block->worldPos.vz = coord->workm.t[2];
+        // Rejected projections still consume one frame-arena packet.
+        projection->worldPos.vx = coord->workm.t[0];
+        projection->worldPos.vy = coord->workm.t[1];
+        projection->worldPos.vz = coord->workm.t[2];
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPos);
+        gte_ldv0(&projection->worldPos);
         gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        gte_stsxy(&block->screenPos);
-        gte_stszotz(&block->otz);
-        if (block->otz >= 0x11) {
-            flicker     = ((u8)gDisplayState.animFrame & 1) * 0x10;
-            rgb         = (u8)work->period + flicker;
-            prim->tpage = 0x2B;
-            prim->r0    = rgb;
-            prim->g0    = rgb;
-            prim->b0    = rgb;
-            setSemiTrans(prim, 1);
-            setClut(prim, work->angle * 16, 0x10E);
-            prim->u0 = work->angle * 0x28;
-            prim->v0 = 0;
-            prim->u1 = work->angle * 0x28 + 0x27;
-            prim->v1 = 0;
-            prim->u2 = work->angle * 0x28;
-            prim->v2 = 0x27;
-            prim->u3 = work->angle * 0x28 + 0x27;
-            prim->v3 = 0x27;
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        gte_stsxy(&projection->screenPos);
+        gte_stszotz(&projection->otz);
+        if (projection->otz >= WALL_LAMP_MIN_DRAW_DEPTH) {
+            flickerLevel = ((u8)gDisplayState.animFrame & 1) * WALL_LAMP_FLICKER_STEP;
+            greyLevel    = (u8)work->period + flickerLevel;
+            quad->tpage  = WALL_LAMP_TEXTURE_PAGE;
+            quad->r0     = greyLevel;
+            quad->g0     = greyLevel;
+            quad->b0     = greyLevel;
+            setSemiTrans(quad, true);
+            setClut(quad, work->angle * WALL_LAMP_CLUT_X_STRIDE, WALL_LAMP_CLUT_Y);
+            quad->u0 = work->angle * WALL_LAMP_CELL_WIDTH;
+            quad->v0 = 0;
+            quad->u1 = work->angle * WALL_LAMP_CELL_WIDTH + WALL_LAMP_LAST_TEXEL;
+            quad->v1 = 0;
+            quad->u2 = work->angle * WALL_LAMP_CELL_WIDTH;
+            quad->v2 = WALL_LAMP_LAST_TEXEL;
+            quad->u3 = work->angle * WALL_LAMP_CELL_WIDTH + WALL_LAMP_LAST_TEXEL;
+            quad->v3 = WALL_LAMP_LAST_TEXEL;
 
-            block->halfExtent = (work->scale * 0x27) / block->otz;
-            xy                = block->screenPos.vx - block->halfExtent;
-            prim->x2          = xy;
-            prim->x0          = xy;
-            xy                = block->screenPos.vx + block->halfExtent;
-            prim->x3          = xy;
-            prim->x1          = xy;
-            xy                = block->screenPos.vy - block->halfExtent;
-            prim->y1          = xy;
-            prim->y0          = xy;
-            xy                = block->screenPos.vy + block->halfExtent;
-            prim->y3          = xy;
-            prim->y2          = xy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+            projection->halfExtent = (work->scale * WALL_LAMP_LAST_TEXEL) / projection->otz;
+            _acropolisForkedRoadSetWallLampBounds(quad, projection);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
@@ -1577,8 +1592,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
 
 #include "../../shared/falling_leaves_task.inc.c"
 
-/// The room's falling-leaf task, named by gameplay's effect table.
-void func_acropolis_forked_road_8017E81C(Task* task)
+void acropolisForkedRoadLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
@@ -1589,14 +1603,14 @@ void func_acropolis_forked_road_8017E81C(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_acropolis_forked_road_8017EF80(Task* arg0)
+void acropolisForkedRoadRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_acropolis_forked_road_8017F9E4(Task* task)
+void acropolisForkedRoadRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

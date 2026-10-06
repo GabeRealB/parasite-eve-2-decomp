@@ -571,11 +571,11 @@ acropolisFireEscapeFlareTask = 0x80180B20; // type:func absolute:True owner=acro
 
 func_acropolis_forked_road_8017E298 = 0x8017E298; // type:func absolute:True owner=acropolis_forked_road
 
-func_acropolis_forked_road_8017E410 = 0x8017E410; // type:func absolute:True owner=acropolis_forked_road
+acropolisForkedRoadWallLampTask = 0x8017E410; // type:func absolute:True owner=acropolis_forked_road
 
-func_acropolis_forked_road_8017EF80 = 0x8017EF80; // type:func absolute:True owner=acropolis_forked_road
+acropolisForkedRoadRoomVisualEffectsFlashTask = 0x8017EF80; // type:func absolute:True owner=acropolis_forked_road
 
-func_acropolis_forked_road_8017F9E4 = 0x8017F9E4; // type:func absolute:True owner=acropolis_forked_road
+acropolisForkedRoadRoomVisualEffectsTwinTrailTask = 0x8017F9E4; // type:func absolute:True owner=acropolis_forked_road
 
 func_acropolis_forked_road_801802CC = 0x801802CC; // type:func absolute:True owner=acropolis_forked_road
 
@@ -1945,7 +1945,7 @@ func_shelter_b1_sleeping_quarters_8017EC34 = 0x8017EC34; // type:func absolute:T
 
 func_shelter_b1_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
-func_acropolis_forked_road_8017E81C = 0x8017E81C; // type:func absolute:True owner=acropolis_forked_road shared=rooms
+acropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func absolute:True owner=acropolis_forked_road shared=rooms
 
 func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
