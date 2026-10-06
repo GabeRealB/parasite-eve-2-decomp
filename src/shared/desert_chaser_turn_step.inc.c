@@ -40,28 +40,15 @@ void desertChaserTurnStep(Task* arg0)
     }
     work->stateTimer += 1;
     desertChaserAnimTick(arg0);
-    targetCoord        = arg0->extra.tmd->coords;
-    head[-1].offset.vx = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
-    scratch->offset.vy = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
-    z                  = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
-    scratch->offset.vz = z;
-    facing             = arg0->extra.tmd->coords;
-    angle              = ratan2((s32)head[-1].offset.vx, (s32)z);
-    delta              = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-    wrapped            = delta;
-    if (delta < 0) {
-    wrapNegative:
-        if (wrapped < -0x800) {
-            wrapped += 0x1000;
-            goto wrapNegative;
-        }
-    } else {
-    wrapPositive:
-        if (wrapped >= 0x801) {
-            wrapped -= 0x1000;
-            goto wrapPositive;
-        }
-    }
+    targetCoord         = arg0->extra.tmd->coords;
+    head[-1].offset.vx  = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
+    scratch->offset.vy  = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
+    z                   = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
+    scratch->offset.vz  = z;
+    facing              = arg0->extra.tmd->coords;
+    angle               = ratan2((s32)head[-1].offset.vx, (s32)z);
+    delta               = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
+    wrapped             = actorWrapAngle(delta);
     firstDelta          = wrapped;
     scratch->turn       = (s16)firstDelta;
     work->lookYawTarget = (u16)firstDelta;
