@@ -142,17 +142,16 @@ void func_mist_parking_80183634(s32 arg0)
     if (t == NULL) {
         return;
     }
-    if (arg0 >= 2) {
-        goto kill;
+    switch (arg0) {
+        case 0:
+        case 1:
+            t->spawnArg1.value = arg0;
+            break;
+        default:
+            taskKill(D_mist_parking_80195324);
+            D_mist_parking_80195324 = NULL;
+            break;
     }
-    if (arg0 < 0) {
-        goto kill;
-    }
-    t->spawnArg1.value = arg0;
-    return;
-kill:
-    taskKill(D_mist_parking_80195324);
-    D_mist_parking_80195324 = NULL;
 }
 
 void func_mist_parking_80183688(s32 arg0)
