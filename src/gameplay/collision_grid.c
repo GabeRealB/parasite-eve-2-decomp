@@ -699,6 +699,13 @@ static void _worldCollisionMarkViewSegmentCandidates(const SVECTOR* target, cons
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridQueryScratch);
 }
 
+static inline void _worldCollisionCopyContactPoint(VECTOR* out, WorldCollisionContact* contact)
+{
+    out->vx = contact->point.vx;
+    out->vy = contact->point.vy;
+    out->vz = contact->point.vz;
+}
+
 void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     _WorldCollisionCapsuleSegmentScratch* scratch;
@@ -718,14 +725,12 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
             for (;;) {
                 flags = slot->flags;
                 if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                    arg1->vx = slot->point.vx;
-                    arg1->vy = slot->point.vy;
-                    arg1->vz = slot->point.vz;
-                    i        = 1;
-                    goto done_search;
+                    _worldCollisionCopyContactPoint(arg1, slot);
+                    i = 1;
+                    break;
                 }
                 if (flags & WORLD_COLLISION_CONTACT_LAST) {
-                    goto done_search;
+                    break;
                 }
                 slot++;
             }
@@ -734,15 +739,13 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
             for (;;) {
                 if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                     if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
-                        arg1->vx = slot->point.vx;
-                        arg1->vy = slot->point.vy;
-                        arg1->vz = slot->point.vz;
-                        i        = 1;
-                        goto done_search;
+                        _worldCollisionCopyContactPoint(arg1, slot);
+                        i = 1;
+                        break;
                     }
                 }
                 if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
-                    goto done_search;
+                    break;
                 }
                 slot++;
             }
@@ -752,21 +755,18 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
         for (;;) {
             if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                 if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
-                    arg1->vx = slot->point.vx;
-                    arg1->vy = slot->point.vy;
-                    arg1->vz = slot->point.vz;
-                    i        = 1;
-                    goto done_search;
+                    _worldCollisionCopyContactPoint(arg1, slot);
+                    i = 1;
+                    break;
                 }
             }
             if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
-                goto done_search;
+                break;
             }
             slot++;
         }
     }
 
-done_search:
     gte_SetRotMatrix(&arg0->coord->workm);
     for (; i < 2; i++) {
         src                       = &rec->ends[i];
