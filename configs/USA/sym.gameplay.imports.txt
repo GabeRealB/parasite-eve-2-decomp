@@ -1839,7 +1839,7 @@ func_dryfield_night_motel_room_5_8017D9A4 = 0x8017D9A4; // type:func absolute:Tr
 
 motelRoom6NightDrawGlow = 0x80182AE0; // type:func absolute:True owner=dryfield_night_motel_room_6
 
-func_dryfield_night_cellar_8017DA28 = 0x8017DA28; // type:func absolute:True owner=dryfield_night_cellar shared=rooms
+dryfieldNightCellarDrawGlowsTask = 0x8017DA28; // type:func absolute:True owner=dryfield_night_cellar shared=rooms
 
 func_dryfield_night_underpass_8017DC3C = 0x8017DC3C; // type:func absolute:True owner=dryfield_night_underpass shared=rooms
 

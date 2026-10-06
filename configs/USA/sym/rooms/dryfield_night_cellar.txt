@@ -58,7 +58,10 @@ D_map_dryfield_full_8017CD88 = 0x8017CD88; // absolute:True owner=map_dryfield_f
 D_map_dryfield_full_8017CDE8 = 0x8017CDE8; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017CEA8 = 0x8017CEA8; // absolute:True
 
-func_dryfield_night_cellar_8017DA28 = 0x8017DA28; // type:func
+dryfieldNightCellarDrawGlowsTask = 0x8017DA28; // type:func
 _glowDrawFlare = 0x8017D7A0; // type:func
 cellarCapMsg = 0x8017D5D0; // type:func
 cellarDoorMsg = 0x8017D634; // type:func
+_dryfieldNightCellarRejectKeyItem = 0x8017d62c; // type:func
+_dryfieldNightCellarIgnoreActionMessage = 0x8017d6f4; // type:func
+_dryfieldNightCellarIdle = 0x8017d740; // type:func

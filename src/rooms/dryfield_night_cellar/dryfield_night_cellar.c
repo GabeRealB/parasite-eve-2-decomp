@@ -46,8 +46,12 @@ extern TaskMessageEntry D_dryfield_night_cellar_8017DAA8[];
 extern SVECTOR D_dryfield_night_cellar_8017DAD0[];
 extern SVECTOR D_dryfield_night_cellar_8017DAE0[];
 
-s32 func_dryfield_night_cellar_8017D62C(Task*, s32, s32, s32);
-s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, s32, s32);
+/// Room message sent by the inventory's key-item use prompt.
+enum { DRYFIELD_NIGHT_CELLAR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32  _dryfieldNightCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32  _dryfieldNightCellarIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unused);
+static void _dryfieldNightCellarIdle(Task* task);
 
 extern WorldCollisionGrid     D_dryfield_night_cellar_8017DE60[1];
 extern WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1];
@@ -59,8 +63,8 @@ extern WorldCoordRoomLights   D_dryfield_night_cellar_80180708[1];
 
 TaskMessageEntry D_dryfield_night_cellar_8017DAA8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, cellarDoorMsg },
-    { 5105, func_dryfield_night_cellar_8017D62C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_cellar_8017D6F4 },
+    { DRYFIELD_NIGHT_CELLAR_MESSAGE_USE_KEY_ITEM, _dryfieldNightCellarRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightCellarIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, cellarCapMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -851,22 +855,30 @@ WorldCollisionSurfaceProperties* D_dryfield_night_cellar_801807F4[8] = {
 };
 
 static void func_dryfield_night_cellar_8017D6FC(Task* task);
-static void func_dryfield_night_cellar_8017D740(Task* task);
 
 #include "../../shared/cellar_cap_msg.inc.c"
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-/// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_dryfield_night_cellar_8017D62C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects key-item use in the nighttime cellar.
+///
+/// The inventory sends a collected item ID and a zero second argument.
+/// Returns zero so its use prompt reports that the item cannot be used here.
+/// All arguments are ignored; no item or room state is changed.
+static s32 _dryfieldNightCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    enum { DRYFIELD_NIGHT_CELLAR_KEY_ITEM_REJECTED = 0 };
+
+    return DRYFIELD_NIGHT_CELLAR_KEY_ITEM_REJECTED;
 }
 
 #include "../../shared/cellar_door_msg.inc.c"
 
-/// Message-table handler for message 0x13EF: does nothing and answers 0.
-s32 func_dryfield_night_cellar_8017D6F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests in the nighttime cellar and returns zero.
+///
+/// `action` is borrowed for synchronous dispatch and is never read or retained.
+/// The sender supplies a zero second argument and ignores the return value.
+static s32 _dryfieldNightCellarIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unused)
 {
     return 0;
 }
@@ -880,14 +892,17 @@ static void func_dryfield_night_cellar_8017D6FC(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// The room entry task's idle state.
-static void func_dryfield_night_cellar_8017D740(Task* task)
+/// Keeps the initialized room task alive between message dispatches.
+///
+/// State 1 performs no per-frame work, leaving the message table installed
+/// and the state selector at 1 until teardown.
+static void _dryfieldNightCellarIdle(Task* task)
 {
 }
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_night_cellar_8017D5C4 = {
-    { func_dryfield_night_cellar_8017D6FC, func_dryfield_night_cellar_8017D740, taskKill },
+    { func_dryfield_night_cellar_8017D6FC, _dryfieldNightCellarIdle, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
@@ -902,21 +917,39 @@ void func_dryfield_night_cellar_8017D748(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Per-frame effect: once event nibble 0x52 is 1, draws a glow sprite on each
-/// of the two points belonging to the current camera view
-/// (`gGameSession->location.loc.view`), 2 or 3. Every other view draws nothing.
-void func_dryfield_night_cellar_8017DA28(Task* unused)
+/// Draws the nighttime cellar's two world-point flares in array order.
+///
+/// Borrows two consecutive positions in integer world units for this call.
+/// Texture column 1 and scale 640 give a pixel half-extent of
+/// `640 * 39 / (camera Z / 4)`. Drawing uses the current view, scratch stack,
+/// ordering table and packet arena; accepted points require nonzero depth.
+static inline void _dryfieldNightCellarDrawGlowPair(const SVECTOR worldPoints[2])
 {
-    u8 visit;
+    enum {
+        DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE      = 1,
+        DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE = 640,
+    };
 
-    if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 1) {
-        visit = gGameSession->location.loc.view;
-        if (visit == 2) {
-            _glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[0], 1, 0x280);
-            _glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[1], 1, 0x280);
-        } else if (visit == 3) {
-            _glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[0], 1, 0x280);
-            _glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[1], 1, 0x280);
+    _glowDrawFlare(&worldPoints[0], DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE, DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE);
+    _glowDrawFlare(&worldPoints[1], DRYFIELD_NIGHT_CELLAR_GLOW_TEXTURE, DRYFIELD_NIGHT_CELLAR_GLOW_RADIUS_SCALE);
+}
+
+void dryfieldNightCellarDrawGlowsTask(Task* unused)
+{
+    enum {
+        DRYFIELD_NIGHT_CELLAR_GLOW_SWITCH_ON = 1,
+        DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_2    = 2,
+        DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_3    = 3,
+    };
+
+    u8 viewId;
+
+    if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_NIGHT_CELLAR_GLOW_SWITCH_ON) {
+        viewId = gGameSession->location.loc.view;
+        if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_2) {
+            _dryfieldNightCellarDrawGlowPair(D_dryfield_night_cellar_8017DAD0);
+        } else if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_3) {
+            _dryfieldNightCellarDrawGlowPair(D_dryfield_night_cellar_8017DAE0);
         }
     }
 }
