@@ -1,6 +1,18 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// Applies one scheduled yaw increment and consumes one quiet-walker turning update.
+/// Advances a quiet walker's model yaw and consumes one scheduled turn update.
+///
+/// `rootCoord` is the live model root belonging to the writable `work` block.
+/// The caller selects the turn clip and checks `work->turnFrames` before calling;
+/// scheduled counts run from 20 down to zero, one call per turning update.
+/// Adds 51 angle units (4096 per turn) to `work->st.yaw`, narrowing to its signed
+/// 16-bit storage before applying the heading in the root's parent space.
+/// Replaces the rotation with a unit-scale yaw, preserving translation, and
+/// marks the cached composition stale; composition is left to the renderer.
+///
+/// Both arguments are borrowed for this call. The rotation requires an initialized
+/// scratch stack with 0x24 free, word-aligned bytes disjoint from both objects;
+/// that reservation is released before return.
 static __inline__ void _footstepWalkQuietTurnModel(GfxCoord* rootCoord, FootstepWalkQuietWork* work)
 {
     work->st.yaw += FOOTSTEP_WALK_TURN_ANGLE_PER_UPDATE;
