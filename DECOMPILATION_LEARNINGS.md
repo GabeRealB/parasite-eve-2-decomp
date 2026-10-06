@@ -149645,3 +149645,43 @@ attempts; left as it was.
   `return 0` on every path (`Actor00100_Fn00E58`) is `break` in each case and
   one `return 0;` after the `if`; the `default: return 0;` and the `else
   return 0;` were the same statement.
+### Goto forms from the pod boss, the stranger and the fire-escape actor (batch 13, 2026-10-06)
+
+- **`goto state_11;` from five jump-table cases into the last case's
+  `state = K; prevState = -1; return 1;`, in a function with no frame**
+  (`func_actor_110600_80134040`). Writing the three statements in each case
+  does not merge: sched1 moves each arm's `li v0,1` to the top of the arm, so
+  the only common run is `li v1,K` in front of the jump (9 insns longer, and
+  `work` moves from `$a0` to `$a1`). The cases `break`, and the tail is written
+  once after the `switch`, inside the enclosing `if`; the cases that return
+  something else keep their `return`. Second try.
+- **`ret = 1; if (c) { call; flags |= 8; goto done; } } else { done: ret = 1; }`**
+  with a comment that `ret` had to be dead across the call
+  (`func_actor_503500_80133684`) is `if (a) { if (c) { call; flags |= 8; } }
+  ret = 1;`. The `li a1,1` in the delay slot of the branch around the call is
+  reorg copying the join's first insn, not a second assignment.
+- **`if (hp > 0) { ...; if (hp > 0) goto skip; } if (player.hp <= 0) hp = 1;
+  skip:`** is `if (hp > 0) { ... } if (hp <= 0 && player.hp <= 0) hp = 1;`
+  (`func_actor_110600_80137F2C`): the first test's false edge is threaded past
+  the second.
+- **A draw tail reached by `goto tail` from an inner switch case, skipping one
+  store in front of it** (`func_actor_311500_80163334`, 13 gotos with the mode
+  ladder) is a `static inline` owning the `VECTOR`, called in that case before
+  its `return` and again at the end. The ladder there has an empty mode 1:
+  `case 0: ...; break; case 2: ...; break; case 1: break;`.
+- **`var = x < K; goto test;` into another case's `if (var == 0) { stores }`**
+  (`func_actor_403600_801396F8`, `_8013A444`) is `if (x >= K) { stores }` in
+  each case; the merged run includes the conditional branch, so the image's
+  `j test; slti` appears on its own.
+- **Written-out copies of a reset block that differ in store order can still
+  be one inline.** `actor_403600_2.c` had thirteen 17-store blocks through a
+  re-read `arg0->work`, in three different statement orders. Eleven of them,
+  and the whole body of `func_actor_403600_8014174C`, are
+  `_actor403600ResetState(arg0)` once its definition sits above the callers
+  (the order differences were sched filling load delays). One is not
+  (`func_actor_403600_8013DAF4`: `animRate` is stored three insns later than
+  the inline gives).
+- A counted scan `for (i = 0; i < N; i++, p++) { if (*p != 0) return 0; }
+  return 1;` needs the pointer step in the `for` header: with `*p++` in the
+  test the two increments trade places around the branch
+  (`func_actor_403600_80138D9C`).
