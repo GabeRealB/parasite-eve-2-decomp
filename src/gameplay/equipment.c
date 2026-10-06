@@ -100,7 +100,6 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
 {
     EquipmentWeaponLoad* slot;
     s32*                 counter;
-    McSaveData*          save;
     s32                  count;
 
     slot    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
@@ -115,22 +114,14 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
                 *counter = count + 1;
             }
         }
-    } else if (arg1 == 0x101) {
-        count = slot->secondaryItemId;
-        if (count != 0) {
-            if (count != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-                count = slot->secondaryQty;
-                if (count != 0) {
-                    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-                    if (save->state.cheatMode == 0) {
-                        slot->secondaryQty = count - 1;
-                        Gp_ConsumeScanQty(&save->state.carriedItems, slot->secondaryItemId, 1);
-                        count = *counter;
-                        if (count <= 0xF423E) {
-                            *counter = count + 1;
-                        }
-                    }
-                }
+    } else if (arg1 == 0x101 && slot->secondaryItemId != 0 && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE &&
+               slot->secondaryQty != 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
+            slot->secondaryQty--;
+            Gp_ConsumeScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->secondaryItemId, 1);
+            count = *counter;
+            if (count <= 0xF423E) {
+                *counter = count + 1;
             }
         }
     }
