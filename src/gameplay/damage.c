@@ -2,6 +2,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
+#include <psyq/gtemac.h>
 
 #include "common.h"
 #include "gte.h"
@@ -112,40 +113,52 @@ static inline u16 _damageGetPlayerAttackReaction(s32 attackKey)
     return Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.outcome.hitReaction;
 }
 
-/// Packs one live attack entry without retaining its table address.
+/// Packs one attack entry into a category-4 collision key for its victim.
+///
+/// `attack` must point to a live entry; it is borrowed and unchanged. The low
+/// 12 power bits occupy bits 0..11, and the low 4 reaction bits occupy bits
+/// 12..15. The result is in 0x40000..0x4FFFF, including category 4 when power
+/// is zero; this helper never returns the zero/no-contact key.
 static inline s32 _damagePackAttackEntry(const DamageAttack* attack)
 {
-    s32 attackKey;
+    s32 attackKey = attack->power & DAMAGE_ATTACK_POWER_MASK;
 
-    attackKey  = attack->power & DAMAGE_ATTACK_POWER_MASK;
     attackKey |= (attack->reaction & DAMAGE_ATTACK_REACTION_MASK) << DAMAGE_ATTACK_REACTION_SHIFT;
     attackKey |= DAMAGE_ATTACK_CATEGORY;
     return attackKey;
 }
 
-/// Measures the retained body-point interpretation from the player's world origin.
+/// Returns the enemy-to-player distance used by critical-hit chance, in game units.
 ///
-/// Requires a live player TMD and a reserved scratch block. The GTE reads
-/// low X, high X and low Y as signed halfwords, so body Z does not participate.
+/// Requires a live enemy coordinate, a live player TMD with at least its first
+/// coordinate, and a complete, word-aligned writable `scratch` block. The
+/// player's cached `workm` must already be current and in the same composition
+/// space as the enemy's; ordinary model coordinates compose into view space.
+/// Composes the enemy's coordinate chain and overwrites the scratch vectors
+/// and GTE rotation/vector/result registers without reserving or releasing storage.
+///
+/// The staged 32-bit body coordinates are read as signed halfwords (low X,
+/// high X, low Y), so body Z does not participate in the Q12 matrix rotation.
+/// Translation, player-relative subtraction and squared length retain 32-bit
+/// arithmetic before `SquareRoot0`; the sum is neither widened nor clamped.
 static inline s32 _damageMeasurePlayerDistance(const Enemy* enemy, const Task* playerTask,
                                                _DamagePlayerDistanceScratch* scratch)
 {
-    GfxCoord* playerCoord;
+    const GfxCoord* playerCoord;
 
+    // Keep the staged word layout: the GTE consumes its first three halfwords.
     actorRenderComposeCoord(enemy->coord);
     scratch->offset.vx = enemy->bodyPos.vx;
     scratch->offset.vy = enemy->bodyPos.vy;
     scratch->offset.vz = enemy->bodyPos.vz;
 
-    gte_SetRotMatrix(&enemy->coord->workm);
-    gte_ldv0(&scratch->offset);
-    gte_rtv0();
-    gte_stlvnl(&scratch->world);
+    gte_ApplyMatrix(&enemy->coord->workm, &scratch->offset, &scratch->world);
 
     scratch->world.vx = enemy->coord->workm.t[0] + scratch->world.vx;
     scratch->world.vy = enemy->coord->workm.t[1] + scratch->world.vy;
     scratch->world.vz = enemy->coord->workm.t[2] + scratch->world.vz;
 
+    // Subtract the player's origin in the same composed coordinate space.
     playerCoord        = playerTask->extra.tmd->coords;
     scratch->offset.vx = scratch->world.vx - playerCoord->workm.t[0];
     scratch->offset.vy = scratch->world.vy - playerCoord->workm.t[1];
