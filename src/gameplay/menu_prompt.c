@@ -1284,51 +1284,39 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     InventoryItemRow*   table;
     InventoryItemRange* scan;
     PlayerStatus*       cfg;
-    s32                 count;
-    s32                 visibleRows;
+    s32                 count = 0;
     s32                 idx;
-    s32                 i;
+    s32                 i = 0;
     s32                 j;
 
-    count = 0;
-    i     = 0;
-    if (arg1 == 0) {
-        // The weapon list shows four rows however many weapons are carried.
-        visibleRows = 4;
-    }
     table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     cfg   = &gPlayerStatus;
     idx   = scan->firstRow;
-    for (; i < scan->rowCount; i++) {
+    for (i = 0; i < scan->rowCount; i++) {
         if ((u8)(table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
             idx++;
             continue;
         }
         if (arg1 == 0) {
             count++;
-            idx++;
-            continue;
-        }
-        // Search the primary, then the secondary load choices of this weapon.
-        for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
-            if (Gp_RelatedQty0.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
-                if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE) {
-                    count++;
-                } else if (cfg->weapon == table[idx].itemId - 0x7F) {
-                    count++;
+        } else {
+            // Search the primary, then the secondary load choices of this weapon.
+            for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
+                if (Gp_RelatedQty0.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
+                    if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
+                        count++;
+                    }
+                    break;
                 }
-                break;
             }
-        }
-        for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
-            if (Gp_RelatedQty1.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
-                if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE) {
-                    count++;
-                } else if (cfg->weapon == table[idx].itemId - 0x7F) {
-                    count++;
+            for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
+                if (Gp_RelatedQty1.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
+                    if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
+                        count++;
+                    }
+                    break;
                 }
-                break;
             }
         }
         idx++;
@@ -1337,8 +1325,9 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     arg0->itemCount                     = count;
     arg0->visibleRowCount.unsignedValue = count;
     if (arg1 == 0) {
+        // The weapon list shows four rows however many weapons are carried.
         arg0->rowHeight                     = 0xF;
-        arg0->visibleRowCount.unsignedValue = visibleRows;
+        arg0->visibleRowCount.unsignedValue = 4;
     } else {
         arg0->rowHeight = 0xF;
     }
