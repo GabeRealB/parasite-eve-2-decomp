@@ -770,7 +770,6 @@ void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
 {
     SPRT_8* p;
     s32     otIdx;
-    s32     u;
 
     otIdx          = 0;
     arg0          -= 6;
@@ -779,28 +778,22 @@ void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
     gGpuPrimCursor = p + 1;
     p->x0          = arg0;
     p->y0          = arg1;
-    if (arg2 == 1) {
-        goto case1;
+    switch (arg2) {
+        case 0:
+            p->u0 = 0xA0;
+            p->v0 = 0x88;
+            break;
+        case 1:
+            p->u0 = 0xA8;
+            p->v0 = 0x80;
+            break;
+        case 2:
+        default:
+            otIdx = -1;
+            p->u0 = 0xA0;
+            p->v0 = 0x80;
+            break;
     }
-    if (arg2 >= 2) {
-        goto default_case;
-    }
-    if (arg2 != 0) {
-        goto default_case;
-    }
-    p->u0 = 0xA0;
-    p->v0 = 0x88;
-    goto after_uv;
-case1:
-    u = 0xA8;
-    goto store;
-default_case:
-    otIdx = -1;
-    u     = 0xA0;
-store:
-    p->u0 = u;
-    p->v0 = 0x80;
-after_uv:
     p->clut = 0x3C0D;
     setlen(p, 3);
     setcode(p, 0x77);
