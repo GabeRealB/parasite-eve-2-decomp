@@ -40,8 +40,8 @@
 #include "../../shared/glow_draw.h"
 
 static void func_dryfield_night_warehouse_8017D610(Task* task);
-static void func_dryfield_night_warehouse_8017D654(Task* task);
-static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s16 arg2);
+static void _dryfieldNightWarehouseRoomIdle(Task* task);
+static void _dryfieldNightWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing, s16 segmentCount);
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
 /// 0x13F0, closed by a `TASK_MESSAGE_TABLE_END` entry.
@@ -52,10 +52,15 @@ extern SVECTOR gGlowPrismCorners[];
 /// Ring radii, parallel to the centres.
 extern s16 D_dryfield_night_warehouse_8017E8D8[];
 
-s32 func_dryfield_night_warehouse_8017D5D0(Task*, s32, s32, s32);
-s32 func_dryfield_night_warehouse_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_warehouse_8017D600(Task*, s32, s32, s32);
-s32 func_dryfield_night_warehouse_8017D608(Task*, s32, s32, s32);
+static s32 _dryfieldNightWarehouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldNightWarehouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _dryfieldNightWarehouseIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _dryfieldNightWarehouseIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Inventory key-item use routed to this room's message table.
+enum {
+    DRYFIELD_NIGHT_WAREHOUSE_MESSAGE_USE_KEY_ITEM = 0x13F1,
+};
 
 extern WorldCollisionGrid         D_dryfield_night_warehouse_8017EF08[1];
 extern WorldCollisionTrigger      D_dryfield_night_warehouse_8017F6F4[4];
@@ -64,10 +69,10 @@ extern WorldCoordRoomAmbientEntry D_dryfield_night_warehouse_8017F824[5];
 extern WorldCoordRoomLights       D_dryfield_night_warehouse_8017F6DC[1];
 
 TaskMessageEntry D_dryfield_night_warehouse_8017E830[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_warehouse_8017D5D8 },
-    { 5105, func_dryfield_night_warehouse_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_warehouse_8017D608 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_warehouse_8017D600 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightWarehouseResolveRoomEvent },
+    { DRYFIELD_NIGHT_WAREHOUSE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWarehouseRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWarehouseIgnoreDirectionAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightWarehouseIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -359,31 +364,39 @@ WorldCollisionSurfaceProperties* D_dryfield_night_warehouse_8017FC24[8] = {
     D_dryfield_night_warehouse_8017FC04,
 };
 
-/// Handler for message 0x13F1 in the room's message table: the room takes no
-/// action and answers 0.
-s32 func_dryfield_night_warehouse_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the warehouse, returning 0 without consuming it.
+///
+/// `DRYFIELD_NIGHT_WAREHOUSE_MESSAGE_USE_KEY_ITEM` supplies an inventory item ID
+/// and an unused second word.
+static s32 _dryfieldNightWarehouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Handler for message 0x13EE in the room's message table: copies the location
-/// record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_night_warehouse_8017D5D8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Permits a room transition with the requested destination unchanged.
+///
+/// Borrows a complete readable request and writable eight-byte reply through
+/// synchronous dispatch; they may be the same record. Copies all fields,
+/// including the query choice and flag ID, and returns 1 in query and execute
+/// modes. Keeps neither pointer and changes no game flags.
+static s32 _dryfieldNightWarehouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
+    *reply = *request;
     return 1;
 }
 
-/// Handler for message 0x13F0 in the room's message table: does nothing and
-/// answers 0.
-s32 func_dryfield_night_warehouse_8017D600(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores every warehouse room command and returns 0.
+///
+/// Both command payload words are unused; no task or scene state changes.
+static s32 _dryfieldNightWarehouseIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// Handler for message 0x13EF in the room's message table: does nothing and
-/// answers 0.
-s32 func_dryfield_night_warehouse_8017D608(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room actions from direction triggers and returns 0.
+///
+/// The borrowed action request and second payload word are never accessed.
+static s32 _dryfieldNightWarehouseIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -397,14 +410,14 @@ static void func_dryfield_night_warehouse_8017D610(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room task: the room idles here and does nothing.
-static void func_dryfield_night_warehouse_8017D654(Task* task)
+/// Keeps the initialized warehouse room task idle until its state changes externally.
+static void _dryfieldNightWarehouseRoomIdle(Task* task)
 {
 }
 
 /// The room task's three states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_warehouse_8017D5C4 = {
-    { func_dryfield_night_warehouse_8017D610, func_dryfield_night_warehouse_8017D654, taskKill },
+    { func_dryfield_night_warehouse_8017D610, _dryfieldNightWarehouseRoomIdle, taskKill },
 };
 
 /// The room task: copies its three-state table onto the stack and runs the
@@ -419,133 +432,154 @@ void func_dryfield_night_warehouse_8017D65C(Task* task)
 
 #include "../../shared/glow_draw_prism.inc.c"
 
-/// Draws the band joining ring `arg1` to ring `arg1 + 1` as `arg2` gouraud
-/// `POLY_G4` segments, starting at an angle that turns with
-/// `gDisplayState.animFrame`. Each corner is rotated by `coord`'s `workm` and
-/// moved by its translation before projection through `GsWSMATRIX`. The corners
-/// on ring `arg1` share a pulsing colour whose red is three quarters of its
-/// green and blue; the corners on ring `arg1 + 1` are black.
-static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s16 arg2)
+/// Draws a rotating, pulsing light beam between two circular local-space rings.
+///
+/// `firstRing` selects a lit centre/radius and the following dark centre/radius;
+/// callers select 0, 2, 4 or 6. Distances use local coordinate units. The
+/// borrowed `coord->workm` must already map these positions into world space.
+/// `segmentCount` is 1..4096 (all callers use 8); angles use 4096 units per
+/// turn with a truncated integer step, so counts not dividing 4096 leave a gap.
+/// World positions narrow to signed 16 bits before view projection.
+///
+/// Requires initialized scratch storage, view matrices, ordering table and
+/// packet arena. Queues one Gouraud quad and additive blend command per segment,
+/// sorted at the last corner's camera Z / 4. Does not clip or test GTE flags.
+static void _dryfieldNightWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing, s16 segmentCount)
 {
-    EffectQuadCornersScratch* blk;
+    enum {
+        DRYFIELD_NIGHT_WAREHOUSE_BEAM_PULSE_PHASE_SHIFT = 10,
+        DRYFIELD_NIGHT_WAREHOUSE_BEAM_BRIGHTNESS_BASE   = 16,
+    };
+
+    EffectQuadCornersScratch* block;
     POLY_G4*                  prim;
     s16                       red;
     s16                       blue;
     s16                       green;
-    s16                       step;
-    s16                       start;
-    s16                       pulse;
+    s16                       angleStep;
+    s16                       startAngle;
+    s16                       brightness;
     s32                       angle;
-    s32                       next;
+    s32                       nextAngle;
 
-    pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
+    brightness = (rsin(gDisplayState.animFrame << DRYFIELD_NIGHT_WAREHOUSE_BEAM_PULSE_PHASE_SHIFT) >> GLOW_TRIG_SHIFT) + DRYFIELD_NIGHT_WAREHOUSE_BEAM_BRIGHTNESS_BASE;
     SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
-    blk   = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
-    start = gDisplayState.animFrame & 0xFFF;
-    step  = 0x1000 / arg2;
+    block      = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
+    startAngle = gDisplayState.animFrame & (GLOW_FULL_TURN - 1);
+    angleStep  = GLOW_FULL_TURN / segmentCount;
     gte_SetTransMatrix(&GsWSMATRIX);
-    red   = pulse * 3 / 4;
-    green = pulse;
-    blue  = pulse;
-    for (angle = start; angle < start + step * arg2; angle = next) {
-        blk->vertices[0].vx = gGlowPrismCorners[arg1].vx +
-                              ((rsin(angle) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
-        blk->vertices[0].vy = gGlowPrismCorners[arg1].vy;
-        blk->vertices[0].vz = gGlowPrismCorners[arg1].vz +
-                              ((rcos(angle) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[0]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[0]);
-        blk->vertices[0].vx += coord->workm.t[0];
-        blk->vertices[0].vy += coord->workm.t[1];
-        next                 = angle + step;
-        blk->vertices[0].vz += coord->workm.t[2];
+    red   = brightness * 3 / 4;
+    green = brightness;
+    blue  = brightness;
+    // Rotate a scratch corner in place with the coordinate's composed matrix.
+    // Captures coord and block. vertexIndex is repeated and must be a
+    // side-effect-free index 0..3. Use only as statements in braced bodies;
+    // the binding is undefined before return.
+#define DRYFIELD_NIGHT_WAREHOUSE_ROTATE_BEAM_CORNER(vertexIndex) \
+    gte_SetRotMatrix(&coord->workm);                             \
+    gte_ldv0(&block->vertices[(vertexIndex)]);                   \
+    gte_rtv0();                                                  \
+    gte_stsv(&block->vertices[(vertexIndex)]);
 
-        blk->vertices[1].vx = gGlowPrismCorners[arg1].vx +
-                              ((rsin(next) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
-        blk->vertices[1].vy = gGlowPrismCorners[arg1].vy;
-        blk->vertices[1].vz = gGlowPrismCorners[arg1].vz +
-                              ((rcos(next) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[1]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[1]);
-        blk->vertices[1].vx += coord->workm.t[0];
-        blk->vertices[1].vy += coord->workm.t[1];
-        blk->vertices[1].vz += coord->workm.t[2];
+    // Generate each ring pair in local XZ, then rotate and translate into world space.
+    for (angle = startAngle; angle < startAngle + angleStep * segmentCount; angle = nextAngle) {
+        block->vertices[0].vx = gGlowPrismCorners[firstRing].vx +
+                                ((rsin(angle) * D_dryfield_night_warehouse_8017E8D8[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[0].vy = gGlowPrismCorners[firstRing].vy;
+        block->vertices[0].vz = gGlowPrismCorners[firstRing].vz +
+                                ((rcos(angle) * D_dryfield_night_warehouse_8017E8D8[firstRing]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_NIGHT_WAREHOUSE_ROTATE_BEAM_CORNER(0);
+        block->vertices[0].vx += coord->workm.t[0];
+        block->vertices[0].vy += coord->workm.t[1];
+        nextAngle              = angle + angleStep;
+        block->vertices[0].vz += coord->workm.t[2];
 
-        blk->vertices[2].vx = gGlowPrismCorners[arg1 + 1].vx +
-                              ((rsin(angle) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
-        blk->vertices[2].vy = gGlowPrismCorners[arg1 + 1].vy;
-        blk->vertices[2].vz = gGlowPrismCorners[arg1 + 1].vz +
-                              ((rcos(angle) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[2]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[2]);
-        blk->vertices[2].vx += coord->workm.t[0];
-        blk->vertices[2].vy += coord->workm.t[1];
-        blk->vertices[2].vz += coord->workm.t[2];
+        block->vertices[1].vx = gGlowPrismCorners[firstRing].vx +
+                                ((rsin(nextAngle) * D_dryfield_night_warehouse_8017E8D8[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[1].vy = gGlowPrismCorners[firstRing].vy;
+        block->vertices[1].vz = gGlowPrismCorners[firstRing].vz +
+                                ((rcos(nextAngle) * D_dryfield_night_warehouse_8017E8D8[firstRing]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_NIGHT_WAREHOUSE_ROTATE_BEAM_CORNER(1);
+        block->vertices[1].vx += coord->workm.t[0];
+        block->vertices[1].vy += coord->workm.t[1];
+        block->vertices[1].vz += coord->workm.t[2];
 
-        blk->vertices[3].vx = gGlowPrismCorners[arg1 + 1].vx +
-                              ((rsin(next) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
-        blk->vertices[3].vy = gGlowPrismCorners[arg1 + 1].vy;
-        blk->vertices[3].vz = gGlowPrismCorners[arg1 + 1].vz +
-                              ((rcos(next) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->vertices[3]);
-        gte_rtv0();
-        gte_stsv(&blk->vertices[3]);
-        blk->vertices[3].vx += coord->workm.t[0];
-        blk->vertices[3].vy += coord->workm.t[1];
-        blk->vertices[3].vz += coord->workm.t[2];
+        block->vertices[2].vx = gGlowPrismCorners[firstRing + 1].vx +
+                                ((rsin(angle) * D_dryfield_night_warehouse_8017E8D8[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[2].vy = gGlowPrismCorners[firstRing + 1].vy;
+        block->vertices[2].vz = gGlowPrismCorners[firstRing + 1].vz +
+                                ((rcos(angle) * D_dryfield_night_warehouse_8017E8D8[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_NIGHT_WAREHOUSE_ROTATE_BEAM_CORNER(2);
+        block->vertices[2].vx += coord->workm.t[0];
+        block->vertices[2].vy += coord->workm.t[1];
+        block->vertices[2].vz += coord->workm.t[2];
 
+        block->vertices[3].vx = gGlowPrismCorners[firstRing + 1].vx +
+                                ((rsin(nextAngle) * D_dryfield_night_warehouse_8017E8D8[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[3].vy = gGlowPrismCorners[firstRing + 1].vy;
+        block->vertices[3].vz = gGlowPrismCorners[firstRing + 1].vz +
+                                ((rcos(nextAngle) * D_dryfield_night_warehouse_8017E8D8[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        DRYFIELD_NIGHT_WAREHOUSE_ROTATE_BEAM_CORNER(3);
+        block->vertices[3].vx += coord->workm.t[0];
+        block->vertices[3].vy += coord->workm.t[1];
+        block->vertices[3].vz += coord->workm.t[2];
+
+        // Project the quad, fading its lit edge to black at the far ring.
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->vertices[0]);
+        gte_ldv0(&block->vertices[0]);
         gte_rtps();
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
         setPolyG4(prim);
         gte_stsxy(&prim->x0);
-        gte_ldv3(&blk->vertices[1], &blk->vertices[2], &blk->vertices[3]);
+        gte_ldv3(&block->vertices[1], &block->vertices[2], &block->vertices[3]);
         gte_rtpt();
         gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stszotz(&blk->depth);
+        gte_stszotz(&block->depth);
         setRGB0(prim, red, green, blue);
         setRGB1(prim, red, green, blue);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, blk->depth);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
     }
+#undef DRYFIELD_NIGHT_WAREHOUSE_ROTATE_BEAM_CORNER
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 }
 
-/// Per-frame effect on the room's coordinate task: recomputes the task's composed
-/// matrix and then draws the room geometry. The current visit is the stage-visit byte
-/// `gGameSession->location.loc.view` taken as a bit index, and each pose is gated on that
-/// bit being one of a fixed set of visits.
-void func_dryfield_night_warehouse_8017E778(Task* arg0)
+void dryfieldNightWarehouseDrawGlowsTask(Task* task)
 {
-    GfxCoord* coord;
-    s32       mask;
+    enum {
+        DRYFIELD_NIGHT_WAREHOUSE_BEAM_SEGMENTS               = 8,
+        DRYFIELD_NIGHT_WAREHOUSE_FIRST_BEAM_RING             = 0,
+        DRYFIELD_NIGHT_WAREHOUSE_SECOND_BEAM_RING            = 2,
+        DRYFIELD_NIGHT_WAREHOUSE_THIRD_BEAM_RING             = 4,
+        DRYFIELD_NIGHT_WAREHOUSE_FOURTH_BEAM_RING            = 6,
+        DRYFIELD_NIGHT_WAREHOUSE_PRISM_FIRST_CORNER          = 8,
+        DRYFIELD_NIGHT_WAREHOUSE_FIRST_BEAM_VIEWS            = 1 << 2,
+        DRYFIELD_NIGHT_WAREHOUSE_PRISM_AND_SECOND_BEAM_VIEWS = (1 << 2) | (1 << 3) | (1 << 6) | (1 << 9),
+        DRYFIELD_NIGHT_WAREHOUSE_LAST_BEAMS_VIEWS            = (1 << 2) | (1 << 3) | (1 << 4) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 9),
+    };
 
-    coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->location.loc.view;
+    GfxCoord* coord;
+    s32       viewMask;
+
+    coord    = task->extra.coordBody->coord;
+    viewMask = 1 << gGameSession->location.loc.view;
     actorRenderComposeCoord(coord);
-    if (mask & 0x24C) {
-        _glowDrawPrism(coord, 8);
+    // Select visible lights with the room-local view ID, before camera remapping.
+    if (viewMask & DRYFIELD_NIGHT_WAREHOUSE_PRISM_AND_SECOND_BEAM_VIEWS) {
+        _glowDrawPrism(coord, DRYFIELD_NIGHT_WAREHOUSE_PRISM_FIRST_CORNER);
     }
-    if (mask & 4) {
-        func_dryfield_night_warehouse_8017DFF4(coord, 0, 8);
+    if (viewMask & DRYFIELD_NIGHT_WAREHOUSE_FIRST_BEAM_VIEWS) {
+        _dryfieldNightWarehouseDrawLightBeam(coord, DRYFIELD_NIGHT_WAREHOUSE_FIRST_BEAM_RING, DRYFIELD_NIGHT_WAREHOUSE_BEAM_SEGMENTS);
     }
-    if (mask & 0x24C) {
-        func_dryfield_night_warehouse_8017DFF4(coord, 2, 8);
+    if (viewMask & DRYFIELD_NIGHT_WAREHOUSE_PRISM_AND_SECOND_BEAM_VIEWS) {
+        _dryfieldNightWarehouseDrawLightBeam(coord, DRYFIELD_NIGHT_WAREHOUSE_SECOND_BEAM_RING, DRYFIELD_NIGHT_WAREHOUSE_BEAM_SEGMENTS);
     }
-    if (mask & 0x3DC) {
-        func_dryfield_night_warehouse_8017DFF4(coord, 4, 8);
-        func_dryfield_night_warehouse_8017DFF4(coord, 6, 8);
+    if (viewMask & DRYFIELD_NIGHT_WAREHOUSE_LAST_BEAMS_VIEWS) {
+        _dryfieldNightWarehouseDrawLightBeam(coord, DRYFIELD_NIGHT_WAREHOUSE_THIRD_BEAM_RING, DRYFIELD_NIGHT_WAREHOUSE_BEAM_SEGMENTS);
+        _dryfieldNightWarehouseDrawLightBeam(coord, DRYFIELD_NIGHT_WAREHOUSE_FOURTH_BEAM_RING, DRYFIELD_NIGHT_WAREHOUSE_BEAM_SEGMENTS);
     }
 }

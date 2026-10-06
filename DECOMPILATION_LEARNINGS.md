@@ -139996,7 +139996,7 @@ non-inlined function computing the same walk (with a different mask) is the
 hint that one exists. Seen in `func_dryfield_water_tower_8017EB7C`
 (93.8% → 99.8%).
 
-## Two `sh` stores to one 4-byte stack word are two `s16` spills, not a struct (func_dryfield_night_warehouse_8017DFF4, 2026-09-23)
+## Two `sh` stores to one 4-byte stack word are two `s16` spills, not a struct (_dryfieldNightWarehouseDrawLightBeam, 2026-09-23)
 
 **Symptom.** The target stores one value to both `0x20($sp)` and `0x22($sp)`, while
 its other halfword spills sit 8 bytes apart (`0x10`, `0x18`, `0x28`, `0x30`).
@@ -140011,13 +140011,13 @@ paradoxical `(subreg:SI (reg:HI))` gets `align == -1`, which is 8-byte aligned a
 byte, gets a plain 2-byte, 2-aligned slot. So two such pseudos spilled back to back
 share one word. Slot order is pseudo order, and pseudo order is declaration order.
 
-**Fix.** Declare separate `s16` locals in slot order (`red; blue; green; step;
-start`). If the target stores them late, make them copies of an unspilled temp,
+**Fix.** Declare separate `s16` locals in slot order (`red; blue; green; angleStep;
+startAngle`). If the target stores them late, make them copies of an unspilled temp,
 not the computed value itself. A spill store sits at the pseudo's definition:
 ```c
-pulse = (rsin(...) >> 12) + 0x10;   /* stays in a register */
+brightness = (rsin(...) >> 12) + 0x10;   /* stays in a register */
 ...
-red = pulse * 3 / 4; green = pulse; blue = pulse;
+red = brightness * 3 / 4; green = brightness; blue = brightness;
 ```
 
 ## A call-argument load placed first in its case means the case has no store of its own: `break` to the shared reset (func_dryfield_gas_station_801803C0, 2026-09-23)
