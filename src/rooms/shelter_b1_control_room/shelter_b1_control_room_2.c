@@ -103,16 +103,29 @@ void func_shelter_b1_control_room_8017F100(Task* arg0)
     taskKill(arg0);
 }
 
-/// Draws the six capsule glows and orange disc shared by mapped views 2 and 3.
-static inline void _shelterB1ControlRoomDrawCapsuleGlows(void)
+/// Queues the six capsule glows and orange disc common to mapped views 2 and 3.
+///
+/// Borrows the room's fixed world points for this call. Requires the composed
+/// view matrix, an initialized scratch stack and the current frame's depth
+/// ordering table and packet arena. Accepted points must have nonzero projected
+/// depth (camera Z / 4); negative projection flags skip the affected glow. The arena needs
+/// space for up to 40 Gouraud quads and their additive blend commands, and
+/// queued packets remain live until the frame's GPU work completes.
+static inline void _shelterB1ControlRoomDrawCapsuleAndDiscGlows(void)
 {
+    enum {
+        SHELTER_B1_CONTROL_ROOM_CAPSULE_COUNT       = 6,
+        SHELTER_B1_CONTROL_ROOM_CAPSULE_POINT_COUNT = 2,
+    };
+
+    // The capsule endpoint pairs precede the orange disc's centre in the table.
     _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[0], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
-    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
-    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
-    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[6], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
-    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[8], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
-    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[10], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
-    glowDrawDisc(&D_shelter_b1_control_room_80181BD4[12], SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[SHELTER_B1_CONTROL_ROOM_CAPSULE_POINT_COUNT], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[2 * SHELTER_B1_CONTROL_ROOM_CAPSULE_POINT_COUNT], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[3 * SHELTER_B1_CONTROL_ROOM_CAPSULE_POINT_COUNT], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[4 * SHELTER_B1_CONTROL_ROOM_CAPSULE_POINT_COUNT], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    _glowDrawCapsule(&D_shelter_b1_control_room_80181BD4[5 * SHELTER_B1_CONTROL_ROOM_CAPSULE_POINT_COUNT], SHELTER_B1_CONTROL_ROOM_CAPSULE_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_CAPSULE_RGB_NIBBLES);
+    glowDrawDisc(&D_shelter_b1_control_room_80181BD4[SHELTER_B1_CONTROL_ROOM_CAPSULE_COUNT * SHELTER_B1_CONTROL_ROOM_CAPSULE_POINT_COUNT], SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_ORANGE_DISC_RGB_NIBBLES);
 }
 
 void shelterB1ControlRoomDrawGlowsTask(Task* task)
@@ -135,10 +148,10 @@ void shelterB1ControlRoomDrawGlowsTask(Task* task)
     mappedViewIndex = viewGetMappedIndex();
     switch (mappedViewIndex) {
         case 2:
-            _shelterB1ControlRoomDrawCapsuleGlows();
+            _shelterB1ControlRoomDrawCapsuleAndDiscGlows();
             break;
         case 3:
-            _shelterB1ControlRoomDrawCapsuleGlows();
+            _shelterB1ControlRoomDrawCapsuleAndDiscGlows();
             glowDrawDisc(&D_shelter_b1_control_room_80181BD4[14], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
             glowDrawDisc(&D_shelter_b1_control_room_80181BD4[15], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
             glowDrawDisc(&D_shelter_b1_control_room_80181BD4[16], SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RADIUS_SCALE, SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES);
