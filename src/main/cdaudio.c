@@ -825,19 +825,16 @@ static s32 CdAudio_DriveRead(void)
                 driverStatus->failureKind = CD_AUDIO_FAILURE_SECTOR;
                 goto error;
             }
-            if (CdAudio_Ctl.waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
-                if (driverStatus->readTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
-                    readState = &CdAudio_Tbl;
-                    if (readState->waveLoadResult != CD_AUDIO_WAVE_LOAD_RESULT_RUNNING) {
-                        if (readState->waveLoadResult == CD_AUDIO_WAVE_LOAD_RESULT_DONE) {
-                            goto do_pause;
-                        }
-                        goto error;
+            if (CdAudio_Ctl.waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS && driverStatus->readTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
+                readState = &CdAudio_Tbl;
+                if (readState->waveLoadResult != CD_AUDIO_WAVE_LOAD_RESULT_RUNNING) {
+                    if (readState->waveLoadResult == CD_AUDIO_WAVE_LOAD_RESULT_DONE) {
+                        goto do_pause;
                     }
-                    driverStatus->readTicks = driverStatus->readTicks + 1;
-                    break;
+                    goto error;
                 }
-                goto timeout;
+                driverStatus->readTicks = driverStatus->readTicks + 1;
+                break;
             }
             goto timeout;
         case CD_AUDIO_WAVE_LOAD_STEP_PAUSE:
