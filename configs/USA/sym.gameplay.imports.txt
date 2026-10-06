@@ -1815,7 +1815,7 @@ dryfieldNightMotelRoom4DrawFlaresTask = 0x8017D990; // type:func absolute:True o
 
 dryfieldNightParkingLotDrawGlowsTask = 0x8017DC88; // type:func absolute:True owner=dryfield_night_parking_lot shared=rooms
 
-func_dryfield_night_toilet_8017D9F8 = 0x8017D9F8; // type:func absolute:True owner=dryfield_night_toilet shared=rooms
+dryfieldNightToiletDrawFlareTask = 0x8017D9F8; // type:func absolute:True owner=dryfield_night_toilet shared=rooms
 
 dryfieldNightMotelLobbyDrawGlowsTask = 0x801812F8; // type:func absolute:True owner=dryfield_night_motel_lobby
 

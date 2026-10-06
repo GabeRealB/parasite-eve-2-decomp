@@ -49,9 +49,13 @@ extern SVECTOR D_dryfield_night_toilet_8017DAA8[];
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
 extern TaskDesc Actor04000_D0C6FC;
 
-s32 func_dryfield_night_toilet_8017D678(Task*, s32, s32, s32);
-s32 func_dryfield_night_toilet_8017D680(Task*, s32, s32, s32);
-s32 func_dryfield_night_toilet_8017D688(Task*, s32, s32, s32);
+/// Room-message ID carrying the inventory's key-item use request.
+enum { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32  _dryfieldNightToiletRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32  _dryfieldNightToiletIgnoreCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 executionMode);
+static s32  _dryfieldNightToiletIgnoreActionRequest(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _dryfieldNightToiletIdleRoomTask(Task* unusedTask);
 
 extern WorldCollisionGrid     D_dryfield_night_toilet_8017DD88[1];
 extern WorldCollisionOccluder D_dryfield_night_toilet_8017F2C4[1];
@@ -61,9 +65,9 @@ extern WorldCoordRoomLights   D_dryfield_night_toilet_8017EE84[1];
 
 TaskMessageEntry D_dryfield_night_toilet_8017DA70[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantParkingLotMsg },
-    { 5105, func_dryfield_night_toilet_8017D678 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_toilet_8017D688 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_toilet_8017D680 },
+    { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM, _dryfieldNightToiletRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightToiletIgnoreActionRequest },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightToiletIgnoreCommandMessage },
     { ROOM_MESSAGE_SOUND, toiletSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -473,26 +477,36 @@ WorldCollisionSurfaceProperties* D_dryfield_night_toilet_8017F3D8[8] = {
 };
 
 static void func_dryfield_night_toilet_8017D690(Task* task);
-static void func_dryfield_night_toilet_8017D71C(Task* task);
 
 #include "../../shared/room_variants_parking_lot.inc.c"
 
 #include "../../shared/toilet_sound_msg.inc.c"
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_toilet_8017D678(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the night toilet.
+///
+/// Returns the inventory menu's unusable result without reading either payload,
+/// consuming an item or changing room state. All arguments are ignored.
+static s32 _dryfieldNightToiletRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg)
+{
+    enum { DRYFIELD_NIGHT_TOILET_KEY_ITEM_UNUSABLE = 0 };
+
+    return DRYFIELD_NIGHT_TOILET_KEY_ITEM_UNUSABLE;
+}
+
+/// Ignores room commands from CAP playback and direction triggers.
+///
+/// All arguments are ignored and no room state changes. Returns 0;
+/// the senders discard the result.
+static s32 _dryfieldNightToiletIgnoreCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 executionMode)
 {
     return 0;
 }
 
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_toilet_8017D680(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests from direction triggers.
+///
+/// The request is borrowed during synchronous dispatch but never accessed or
+/// retained. Returns 0; the sender discards the result. All arguments are ignored.
+static s32 _dryfieldNightToiletIgnoreActionRequest(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -512,14 +526,17 @@ static void func_dryfield_night_toilet_8017D690(Task* task)
     task->state = task->state + 1;
 }
 
-/// Second state of the room task: the room has nothing to do each frame.
-static void func_dryfield_night_toilet_8017D71C(Task* task)
+/// Keeps the initialized room task idle with its message table available.
+///
+/// State 1 does no per-frame work and leaves the task and state unchanged;
+/// state 2 selects the separate teardown callback.
+static void _dryfieldNightToiletIdleRoomTask(Task* unusedTask)
 {
 }
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_night_toilet_8017D5C4 = {
-    { func_dryfield_night_toilet_8017D690, func_dryfield_night_toilet_8017D71C, taskKill },
+    { func_dryfield_night_toilet_8017D690, _dryfieldNightToiletIdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
@@ -534,19 +551,24 @@ void func_dryfield_night_toilet_8017D724(Task* task)
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"
 
-/// Draws the room's glow sprite (texture cell 1, half-extent 0x200) at the
-/// point the current camera view (`gGameSession->location.loc.view`) shows: view 4
-/// uses the second point, views 5 and 9 the first, and every other view draws
-/// nothing.
-void func_dryfield_night_toilet_8017D9F8(Task* unused)
+void dryfieldNightToiletDrawFlareTask(Task* unusedTask)
 {
+    enum {
+        DRYFIELD_NIGHT_TOILET_VIEW_SECOND_FLARE_POINT  = 4,
+        DRYFIELD_NIGHT_TOILET_VIEW_FIRST_FLARE_POINT_A = 5,
+        DRYFIELD_NIGHT_TOILET_VIEW_FIRST_FLARE_POINT_B = 9,
+        DRYFIELD_NIGHT_TOILET_FLARE_TEXTURE_COLUMN     = 1,
+        // Pixel half-extent is radius scale * 39 / (camera Z / 4).
+        DRYFIELD_NIGHT_TOILET_FLARE_RADIUS_SCALE = 0x200,
+    };
+
     switch (gGameSession->location.loc.view) {
-        case 4:
-            glowDrawFlareClipped(&D_dryfield_night_toilet_8017DAA8[0], 1, 0x200);
+        case DRYFIELD_NIGHT_TOILET_VIEW_SECOND_FLARE_POINT:
+            glowDrawFlareClipped(D_dryfield_night_toilet_8017DAA8, DRYFIELD_NIGHT_TOILET_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_TOILET_FLARE_RADIUS_SCALE);
             break;
-        case 5:
-        case 9:
-            glowDrawFlareClipped(&D_dryfield_night_toilet_8017DAA0[0], 1, 0x200);
+        case DRYFIELD_NIGHT_TOILET_VIEW_FIRST_FLARE_POINT_A:
+        case DRYFIELD_NIGHT_TOILET_VIEW_FIRST_FLARE_POINT_B:
+            glowDrawFlareClipped(D_dryfield_night_toilet_8017DAA0, DRYFIELD_NIGHT_TOILET_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_TOILET_FLARE_RADIUS_SCALE);
             break;
     }
 }

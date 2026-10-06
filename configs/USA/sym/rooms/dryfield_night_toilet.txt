@@ -52,7 +52,11 @@ D_map_dryfield_full_8017BCC8 = 0x8017BCC8; // absolute:True owner=map_dryfield_f
 D_map_dryfield_full_8017BD38 = 0x8017BD38; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017BDF8 = 0x8017BDF8; // absolute:True owner=map_dryfield_full
 
-func_dryfield_night_toilet_8017D9F8 = 0x8017D9F8; // type:func
+dryfieldNightToiletDrawFlareTask = 0x8017D9F8; // type:func
 glowDrawFlareClipped = 0x8017D77C; // type:func
 roomVariantParkingLotMsg = 0x8017D5D0; // type:func
 toiletSoundMsg = 0x8017D644; // type:func
+_dryfieldNightToiletRejectKeyItemUse = 0x8017d678; // type:func
+_dryfieldNightToiletIgnoreCommandMessage = 0x8017d680; // type:func
+_dryfieldNightToiletIgnoreActionRequest = 0x8017d688; // type:func
+_dryfieldNightToiletIdleRoomTask = 0x8017d71c; // type:func

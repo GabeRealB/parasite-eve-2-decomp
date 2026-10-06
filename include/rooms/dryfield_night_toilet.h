@@ -30,7 +30,18 @@ extern SpriteView D_dryfield_night_toilet_8017EC40[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_toilet_8017F3D8[];
 
-void func_dryfield_night_toilet_8017D9F8(Task* unused);
+/// Draws the night toilet's flickering light flare selected by the camera view.
+///
+/// Effect-bank 6 callback for slot 0x10C. View 4 selects the second world point;
+/// views 5 and 9 select the first, and every other view draws nothing. The task
+/// is unused. Texture column 1 uses a perspective radius scale of 512, giving
+/// a pixel half-extent of 512 * 39 / (camera Z / 4).
+///
+/// Requires the room overlay and flare texture loaded, a composed view matrix,
+/// scratch space and a current GPU packet arena and ordering table. A selected
+/// flare reserves one packet even when rejected by near clipping; queued
+/// geometry borrows the frame arena until GPU completion. Retains no task data.
+void dryfieldNightToiletDrawFlareTask(Task* unusedTask);
 
 void func_dryfield_night_toilet_8017D724(Task* task);
 
