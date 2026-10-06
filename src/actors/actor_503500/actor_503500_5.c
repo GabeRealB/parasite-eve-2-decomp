@@ -1710,7 +1710,9 @@ static void func_actor_503500_80145C50(Task* arg0)
                 pan               = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
-            goto next;
+            work->phaseFrames = 0;
+            work->phase++;
+            return;
         case ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE:
             if (gGameSession->eventState == 0) {
                 Gp_SpawnPadLerp(1, 0xFF, 0xFF);
@@ -1720,7 +1722,6 @@ static void func_actor_503500_80145C50(Task* arg0)
             }
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        next:
             work->phaseFrames = 0;
             work->phase++;
             return;
