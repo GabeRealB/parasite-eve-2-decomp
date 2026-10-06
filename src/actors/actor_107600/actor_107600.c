@@ -1847,7 +1847,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
                 damage            = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDistance, 0, 0);
                 work->hitCooldown = Gp_GetIdParam2(work->contacts[i].key.value);
                 work->hitDamage   = damage;
-                func_800DA6E8(&enemy->node, damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 enemy->hp -= damage;
                 if (enemy->hp <= 0) {
                     enemy->hp = 0;

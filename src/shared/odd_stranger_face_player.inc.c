@@ -25,7 +25,7 @@ void oddStrangerFacePlayer(Task* arg0)
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         oddStrangerDrive(arg0);
         work->hitBody.radius = ODD_STRANGER_BODY_RADIUS;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);

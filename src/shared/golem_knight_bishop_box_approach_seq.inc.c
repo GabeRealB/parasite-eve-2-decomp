@@ -57,7 +57,7 @@ void golemKnightBishopBoxApproachSeq(Task* arg0)
             work->colorBlendFadeFrames   = 0xA;
             work->appearSound            = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             if (work->hitCooldown == 0) {
                 work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->hurtBody.key    = work->actorId | 0x30000;

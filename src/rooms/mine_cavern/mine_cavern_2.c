@@ -3109,7 +3109,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
         blk->damage             = Gp_ComputeDamage(blk->hitKey, blk->playerDistance, 0, 0);
         blk->damage             = D_mine_cavern_8018EAF4[blk->hitKey & 0x7F];
         arg0->hp               -= blk->damage;
-        func_800DA6E8(&arg0->node, blk->damage, 0);
+        worldTargetAddReadoutAmount(&arg0->node, blk->damage, 0);
         if (arg0->hp <= 0) {
             blk->destroyedTargets = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
             if (!((blk->destroyedTargets >> (u16)arg1->spawnArg1.value) & 1)) {

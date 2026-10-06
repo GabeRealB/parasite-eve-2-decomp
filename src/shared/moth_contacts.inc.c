@@ -50,7 +50,7 @@ void mothContacts(Task* arg0)
         case 1:
             arg0->state                           = 2;
             ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             break;
         case 2:
             arg0->state      = (s32)state;
@@ -68,7 +68,7 @@ void mothContacts(Task* arg0)
                 damage = 1;
                 amount = 1;
             }
-            func_800DA6E8(&((Enemy*)arg0->spawnArg2.pointer)->node, amount, 0);
+            worldTargetAddReadoutAmount(&((Enemy*)arg0->spawnArg2.pointer)->node, amount, 0);
             damageAccumulateLifeDrainHp(arg0->spawnArg2.pointer, work->hitContacts[0].key.value, damage, 0);
             ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
             func_800FDB18(Gp_GetIdParam1((s32)work->hitContacts[0].key.value) & 0xFFFF, arg0->extra.tmd->coords, 0,

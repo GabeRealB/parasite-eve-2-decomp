@@ -5304,7 +5304,7 @@ void Gp_StepPlayerMove(Task* arg0)
             coord->coord.t[2]  += actor->velocity.vz;
             block->savedMatrix  = coord->coord;
             block->speedDivisor = D_80112E10[(u16)actor->movementMode];
-            Gp_GetLockPos(actor->targetNode, &block->targetPosition);
+            worldTargetGetBodyPosition(actor->targetNode, &block->targetPosition);
             block->direction.vx  = abs(coord->coord.t[0] - block->targetPosition.vx);
             block->direction.vx += abs(coord->coord.t[2] - block->targetPosition.vz);
             block->strafeYaw     = 0x640000;
@@ -5444,7 +5444,7 @@ static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* bloc
         block->originOffset.vz = offset->vz;
         actorRenderPlaceCoordOffset(src, &block->originCoord, &block->originOffset);
         lock = &block->targetDelta;
-        Gp_GetLockPos(actor->targetNode, lock);
+        worldTargetGetBodyPosition(actor->targetNode, lock);
         lock->vx -= block->originCoord.coord.t[0];
         lock->vy -= block->originCoord.coord.t[1];
         lock->vz -= block->originCoord.coord.t[2];
@@ -5506,7 +5506,7 @@ static inline s32 _gpAimPitchLockDelta(GameActor* actor, _PlayerActorAimPitchScr
     s32      dz;
 
     lock = &block->targetPosition;
-    Gp_GetLockPos(actor->targetNode, lock);
+    worldTargetGetBodyPosition(actor->targetNode, lock);
     delta     = &block->targetDelta;
     delta->vx = lock->vx - block->originCoord.coord.t[0];
     delta->vy = lock->vy - block->originCoord.coord.t[1];
@@ -8647,7 +8647,7 @@ static void Gp_ArmLockOnState(Task* arg0)
     if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
         if (inner->statePhase != 0) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             if (inner->aimTransitionPending != 0) {
                 inner->aimTransitionPending = 0;
                 if (node != NULL) {
@@ -9139,7 +9139,7 @@ static void Gp_PlayerNormalState1(Task* arg0)
     if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
         if (inner->statePhase != 0) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             if (inner->aimTransitionPending != 0) {
                 inner->aimTransitionPending = 0;
                 if (node != NULL) {

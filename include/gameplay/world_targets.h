@@ -12,7 +12,19 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
+/// Adds a signed amount to a target's floating damage or healing readout.
+///
+/// Non-negative amounts (including zero) share a non-negative total; negative
+/// amounts share a negative total. A target can therefore occupy two of the
+/// 32 slots. A missing total takes the first empty slot; a full table drops
+/// the addition. The sum narrows to signed 16 bits without clamping, and each
+/// addition restarts the readout's 20-draw-pass lifetime. This does not change HP.
+///
+/// Pass a non-NULL enemy target entry. The borrowed pointer is only compared
+/// and retained here; tracking refreshes its screen position, and unlinking
+/// leaves the last position for the rest of the readout's lifetime.
+/// `unusedArg` is ignored.
+void worldTargetAddReadoutAmount(WorldTargetNode* node, s32 amount, s32 unusedArg);
 
 /// Releases actor locks on `node` and removes it from target tracking.
 ///
@@ -40,9 +52,15 @@ void worldTargetLinkNode(WorldTargetNode* node);
 /// have live `GameActor` work blocks.
 s32 worldTargetGetActorLockMask(const WorldTargetNode* node);
 
-/// Locks actor slot 0 onto `node`, releasing whichever node held it, and marks
-/// `node` lockable.
-void Gp_AssignNodeSlot0(WorldTargetNode* node);
+/// Sets the player's lock to `node` and enables lock-on to that target.
+///
+/// `node` must be a live, non-NULL enemy target entry. If the player task exists,
+/// clears its previous target's mark and replaces its borrowed target pointer.
+/// Always marks `node` targeted and clears only `WORLD_TARGET_NOT_LOCKABLE`,
+/// even without a player task. Retains list membership and the companion's
+/// target pointer. The previous mark is cleared even if the companion holds
+/// that node. No storage is freed or transferred.
+void worldTargetSetPlayerLock(WorldTargetNode* node);
 
 /// Releases actor locks on `node` and disables further lock-on to it.
 ///
@@ -56,9 +74,24 @@ void* Gp_FindLockNode(Task* arg0);
 
 void* Gp_FindLockNodePad(Task* arg0);
 
-void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out);
-
-void Gp_ArmStateF0(s32 arg0);
+/// Writes the target's body point in world-space game coordinates.
+///
+/// `node` is an enemy's embedded target entry; list membership is not required.
+/// NULL prints a diagnostic and writes zero. `outPosition` must provide three
+/// writable, word-aligned signed 32-bit components (12 bytes); no pad word is
+/// accessed and no pointer is retained. Keep the output disjoint from the
+/// enemy's body point and coordinate storage.
+///
+/// A body already in the world frame is copied directly. Otherwise refreshes
+/// the enemy's coordinate cache, removes the current view transform and applies
+/// the resulting matrix to its body point. The GTE path takes signed 16-bit
+/// input components and saturates each result to -32768..32767 before storing
+/// it as a 32-bit word; the direct copy retains all 32 bits. GTE error flags
+/// are not checked. Requires a live, acyclic coordinate
+/// chain beneath the view coordinate, current view state, and an initialized
+/// scratch stack with 40 bytes plus the called transform's 48-byte reservation.
+/// Releases scratch before return and changes GTE transform/arithmetic state.
+void worldTargetGetBodyPosition(const WorldTargetNode* node, VECTOR3* outPosition);
 
 void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1);
 

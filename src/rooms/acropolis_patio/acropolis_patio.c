@@ -2060,7 +2060,7 @@ void func_acropolis_patio_8017DFE4(s32 arg0)
 {
     if (arg0 != 0) {
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         return;
     }
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;

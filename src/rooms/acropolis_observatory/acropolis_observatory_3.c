@@ -970,7 +970,7 @@ WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[8] = {
 /// `gAcropolisObservatoryPlayerAnimationSets`; it does nothing at all while the
 /// attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is set. States 1, 2 and 4 just
 /// tick, state 3 waits for the shared field-actor byte to reach 2 and arms
-/// `Gp_ArmStateF0`, state 5 republishes the player's weapon to slot 3 and puts
+/// `sceneEngageBattle`, state 5 republishes the player's weapon to slot 3 and puts
 /// the session back into field mode, and state 6 releases slot 3 (msg 0x3F1)
 /// and kills the task.
 ///
@@ -1025,7 +1025,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             break;
         case 3:
             if (gSceneCombatState.actor03700Wave == 2) {
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
                 task->state = task->state + 1;
             }
             break;

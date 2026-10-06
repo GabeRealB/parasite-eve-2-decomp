@@ -1893,7 +1893,7 @@ static void func_actor_401000_80138F50(Task* arg0)
         work->state = ODD_STRANGER_STATE_ALERT;
     }
     if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = ODD_STRANGER_STATE_ALERT;
     }
     oddStrangerDrive(arg0);

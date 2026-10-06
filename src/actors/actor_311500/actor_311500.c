@@ -451,7 +451,7 @@ static s16 func_actor_311500_80162DDC(Task* arg0)
         }
         enemy->hp -= damage;
         worldCollisionClearContacts(work->hitContacts);
-        func_800DA6E8(&enemy->node, damage, 0);
+        worldTargetAddReadoutAmount(&enemy->node, damage, 0);
     }
     return work->hitKey;
 }

@@ -26174,7 +26174,7 @@ node->flags = val & 0xFE;
 ```
 
 `u8 val` with the same pin does not stick (QImode). `worldTargetLinkNode` is the
-example; the sibling `Gp_AssignNodeSlot0` needs no pin because its load and
+example; the sibling `worldTargetSetPlayerLock` needs no pin because its load and
 `= 1` stay in one block.
 
 ## `<< 1` keeps the doubled operand; `* 2` gets reassociated
@@ -28032,8 +28032,8 @@ if (found == NULL) {
     /* allocate */
 }
 if (found != NULL) {
-    found->timer = 0x14;
-    found->val += arg1;
+    found->framesLeft = 0x14;
+    found->amount += amount;
 }
 ```
 
@@ -28052,12 +28052,12 @@ if (found == NULL) {
     }
 } else {
 update:
-    found->field_6 = 0x14;
-    found->field_4 += arg1;
+    found->framesLeft = 0x14;
+    found->amount += amount;
 }
 ```
 
-`func_800DA6E8` is the example. The follow-up `if (found != NULL)`
+`worldTargetAddReadoutAmount` is the example. The follow-up `if (found != NULL)`
 form stuck at 75% with only that control-flow shape different. The
 first search also needs a goto-back loop (not `do`/`while`) so the
 first `lw 0(p)` is not peeled off `&Gp_LockSlots` — same anti-peel
@@ -31080,7 +31080,7 @@ world = &gGfxViewCoord;
 
 Reversing those two lines swaps the `lw` / `lui`. Keeping `world` also
 makes `&world->workm` `addiu a0, s5, 0x24` instead of a fresh
-`la Gfx_ViewWorldMtx`. `Gp_GetLockPos` is the example.
+`la Gfx_ViewWorldMtx`. `worldTargetGetBodyPosition` is the example.
 
 A full `MATRIX` applied to a `VECTOR3` is `gte_SetRotMatrix` +
 `gte_SetTransMatrix` + `gte_ldlvl` + `gte_rtirtr()`
@@ -45446,7 +45446,7 @@ the copy, the call result lands straight in `$s4` and the shift reads `$s4`.
 Declaring the destination `s16` makes the assignment a HImode `subreg` move that
 cse cannot merge with the SImode shift, so both registers survive. Every later
 use of the short then re-extends on its own, which is exactly the target's
-`sll`/`sra` pairs around the `damageAccumulateLifeDrainHp` / `func_800DA6E8` arguments.
+`sll`/`sra` pairs around the `damageAccumulateLifeDrainHp` / `worldTargetAddReadoutAmount` arguments.
 
 Doubling that short wants `amount += amount;` (or `<<= 1`), one `sll s4,s4,1`.
 `amount * 2` on a `short` compiles to `sll 16` / `srl 15` instead, because GCC
@@ -109400,7 +109400,7 @@ re-derived from the target `.s` after the shape was in place:
 | turn clamp | `> 0x10` / `< -0x10` | `> 0` / `< 0`, i.e. zero-or-negative |
 | `animId` | 9 | 0x13 |
 | `hitBody.radius = 0x1AE` | after `func_actor_401000_80132EF0` | before the 0x898/0x8A2/0x89E writes |
-| spawn-arm tail | `Gp_ArmStateF0(1)` | `work->stateTimer = 0` |
+| spawn-arm tail | `sceneEngageBattle(1)` | `work->stateTimer = 0` |
 
 The clamp is the one to read carefully off the asm rather than off the twin's
 source: `if (x > 0) x = 0; if (x < 0) x = 0;` is two independent tests, not an
@@ -149242,8 +149242,8 @@ being duplicated); only its `goto done` went, as the store and a `return`.
 
 ### A giv is reduced unless the biv has several increments
 
-`func_800DA6E8` scans with `p++` written in three arms. With one `p++` (in
-the `for` header or at the end of the body) loop.c reduces `&p->amount` to its
+`worldTargetAddReadoutAmount` scans with `readout++` written in three arms. With one `readout++` (in
+the `for` header or at the end of the body) loop.c reduces `&readout->amount` to its
 own register (`addiu a2,v1,4`, `lh v0,0(a2)`): the benefit of a giv is
 lowered by `add_cost * biv_count`, so three increments leave it unreduced.
 The `for` with `break` matches only with the three increments kept.

@@ -803,7 +803,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
 /// player-body contact in `senseContacts` (through `wakeRequested`, or the
 /// global flag `gSceneCombatState.signals.bytes.enemyAlert`) wakes it -
 /// `ACTOR_207200_STATE_ACTIVE`, a random 0..89 delay in `wakeDelay` and
-/// `Gp_ArmStateF0(1)`. Then runs the idle cycle in `animId`: the idle loop
+/// `sceneEngageBattle(1)`. Then runs the idle cycle in `animId`: the idle loop
 /// restarts after 0x5B frames and rolls a 30% chance of the fidget, which plays
 /// the room-tagged sound on frame 5 and returns to the idle loop after 0x2D
 /// frames.
@@ -832,7 +832,7 @@ static void func_actor_207200_8014B628(Task* arg0)
             gRandomLcgState        = rnd;
             work->senseBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->wakeDelay        = hi % 90;
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
         }
         worldCollisionClearContacts(work->senseContacts);
     }
@@ -1171,7 +1171,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     work->hitCooldown = n;
                 }
                 if (work->headLost != 0 && arg0->killCountdown == 0) {
-                    func_800DA6E8(&enemy->node, damage, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                     if (damage != 0) {
                         arg0->state++;
                         work->animId = ACTOR_207200_ANIM_DEATH;
@@ -1179,7 +1179,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                         return;
                     }
                 } else {
-                    func_800DA6E8(&enemy->node, 0, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, 0, 0);
                 }
                 if (work->state == ACTOR_207200_STATE_DORMANT) {
                     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480006;
@@ -1243,7 +1243,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 case 6:
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 2, NULL);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    func_800DA6E8(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
+                    worldTargetAddReadoutAmount(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
                     func_actor_207200_8014D128(arg0);
                     work->hasBurst = 1;
                     arg0->state++;
@@ -1306,7 +1306,7 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
     coord = arg0->extra.tmd->coords;
 
     ctx->hp = (s16)((u16)ctx->hp - arg1);
-    func_800DA6E8(&ctx->node, arg1, 0);
+    worldTargetAddReadoutAmount(&ctx->node, arg1, 0);
     if ((s16)ctx->hp <= 0) {
         if (work->headLost == 0) {
             ctx->hp = 1;
@@ -1504,7 +1504,7 @@ static void func_actor_207200_8014CFEC(Task* arg0)
     ctx  = arg0->spawnArg2.pointer;
 
     Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, NULL);
-    func_800DA6E8(&ctx->node, ctx->hp - 1, 0);
+    worldTargetAddReadoutAmount(&ctx->node, ctx->hp - 1, 0);
     D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstHead;
     effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
     if (effect != NULL) {

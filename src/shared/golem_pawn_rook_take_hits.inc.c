@@ -123,7 +123,7 @@ void golemPawnRookTakeHits(Task* arg0)
                                 work->screamEffect              = NULL;
                             }
                         }
-                        func_800DA6E8(&enemy->node, 0, 0);
+                        worldTargetAddReadoutAmount(&enemy->node, 0, 0);
                         cooldown = Gp_GetIdParam2(work->hurtContacts[i].key.value);
                         if (cooldown > 0) {
                             work->hitCooldown = cooldown;
@@ -149,7 +149,7 @@ void golemPawnRookTakeHits(Task* arg0)
                 if (work->screamCharges != 0 && (work->hurtContacts[i].key.value & 0x8000)) {
                     damage >>= 2;
                 }
-                func_800DA6E8(&enemy->node, damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 damageAccumulateLifeDrainHp(enemy, work->hurtContacts[i].key.value, damage, 0);
                 enemy->hp -= damage;
                 if (enemy->hp <= 0) {

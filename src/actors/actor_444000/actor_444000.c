@@ -4659,7 +4659,7 @@ body:
         work->groups3To5Pool = (s16)D_actor_444000_80144A38.hpMax;
     }
 
-    func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
+    worldTargetAddReadoutAmount(&work->escorts[0]->node, sc->damage, 0);
     work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(work->escorts[0]->task->extra.tmd->coords);
     sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
@@ -6646,7 +6646,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         work->escorts[1]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else if (work->hostExposed != 0) {
         if (worldTargetGetActorLockMask(&work->escorts[3]->node) != 0) {
-            Gp_AssignNodeSlot0(&enemy->node);
+            worldTargetSetPlayerLock(&enemy->node);
         }
         enemy->node.state.parts.flags            = WORLD_TARGET_HIDE_HP;
         work->escorts[3]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
@@ -6654,7 +6654,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         work->escorts[1]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     } else {
         if (worldTargetGetActorLockMask(&enemy->node) != 0) {
-            Gp_AssignNodeSlot0(&work->escorts[3]->node);
+            worldTargetSetPlayerLock(&work->escorts[3]->node);
         }
         enemy->node.state.parts.flags            = WORLD_TARGET_NOT_LOCKABLE;
         work->escorts[3]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
@@ -7018,7 +7018,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement, 
 }
 
 /// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
-/// heal counter, files a negative "damage" with `func_800DA6E8` so the HUD
+/// heal counter, files a negative "damage" with `worldTargetAddReadoutAmount` so the HUD
 /// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
 /// `summonsAlive` down, re-arms `deathDelay` and drops either tracked
 /// enemy whose HP has run out.
@@ -7030,7 +7030,7 @@ s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             work->pendingHeals++;
-            func_800DA6E8(&obj->node, -0x64, 0);
+            worldTargetAddReadoutAmount(&obj->node, -0x64, 0);
             if (obj->hp > 0) {
                 obj->hp += 0x64;
             }

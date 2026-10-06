@@ -924,7 +924,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, amount, 0);
-                    func_800DA6E8(&enemy->node, amount, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
@@ -988,7 +988,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
         tick                     = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
-            func_800DA6E8(&enemy->node, tick, 0);
+            worldTargetAddReadoutAmount(&enemy->node, tick, 0);
             if (enemy->hp < 0) {
                 enemy->hp = 0;
             }

@@ -36,6 +36,6 @@ void golemPawnRookIdleState(Task* arg0)
         work->step     = 0;
         work->anim     = 2;
         work->timer    = 0;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
 }

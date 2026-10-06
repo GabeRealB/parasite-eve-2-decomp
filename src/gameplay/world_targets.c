@@ -1,4 +1,5 @@
 #include "world_targets.h"
+#include "scene_combat.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -54,6 +55,16 @@ typedef struct {
     byte    unused18[32]; // Reserved with the block but never accessed; role unproven
 } _WorldTargetLockScanScratch;
 STATIC_ASSERT_SIZEOF(_WorldTargetLockScanScratch, 0x38);
+
+/// Scratch-stack reservation for converting a target's body point to world space.
+///
+/// The leading eight bytes are reserved but never accessed. The relative matrix
+/// occupies the remaining 32 bytes and is borrowed only during the conversion.
+typedef struct {
+    byte   unused[8];   // Reserved but never accessed; role unproven
+    MATRIX bodyToWorld; // Target-coordinate to world-coordinate transform
+} _WorldTargetPositionScratch;
+STATIC_ASSERT_SIZEOF(_WorldTargetPositionScratch, 0x28);
 
 /// Scratch-stack block for projecting one target's body point to the screen.
 ///
@@ -460,53 +471,62 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
         }
     }
     if (best != NULL) {
-        Gp_GetLockPos(best, out);
+        worldTargetGetBodyPosition(best, out);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetLockScanScratch);
     return best;
 }
 
-void func_800DA6E8(void* arg0, s32 arg1, s32 arg2)
+void worldTargetAddReadoutAmount(WorldTargetNode* node, s32 amount, s32 unusedArg)
 {
     WorldTargetReadout* found;
-    s32                 i;
-    WorldTargetReadout* p;
+    s32                 readoutIndex;
+    WorldTargetReadout* readout;
 
-    found = NULL;
-    i     = 0;
-    p     = Gp_LockSlots;
-    // Non-negative totals and healing totals occupy separate slots.
-    for (; i < 0x20; i++) {
-        if (p->binding.node == arg0) {
-            if (arg1 >= 0) {
-                if (p->amount >= 0) {
-                    found = p;
-                    break;
-                }
-                p++;
-            } else if (p->amount < 0) {
-                found = p;
-                break;
-            } else {
-                p++;
-            }
-        } else {
-            p++;
-        }
+    // Finds the existing sign-class total, writing found and advancing the scan locals.
+    // Reads Gp_LockSlots and captures node, amount, found, readoutIndex and readout.
+    // Inputs may be read repeatedly; each break exits only the search loop.
+#define WORLD_TARGET_FIND_READOUT()                                       \
+    {                                                                     \
+        found        = NULL;                                              \
+        readoutIndex = 0;                                                 \
+        readout      = Gp_LockSlots;                                      \
+        for (; readoutIndex < ARRAY_SIZE(Gp_LockSlots); readoutIndex++) { \
+            if (readout->binding.node == node) {                          \
+                if (amount >= 0) {                                        \
+                    if (readout->amount >= 0) {                           \
+                        found = readout;                                  \
+                        break;                                            \
+                    }                                                     \
+                    readout++;                                            \
+                } else if (readout->amount < 0) {                         \
+                    found = readout;                                      \
+                    break;                                                \
+                } else {                                                  \
+                    readout++;                                            \
+                }                                                         \
+            } else {                                                      \
+                readout++;                                                \
+            }                                                             \
+        }                                                                 \
     }
+
+    // Keep damage and healing in separate totals for the same target.
+    WORLD_TARGET_FIND_READOUT();
+#undef WORLD_TARGET_FIND_READOUT
     if (found == NULL) {
-        for (i = 0, p = Gp_LockSlots; i < 0x20; i++, p++) {
-            if (p->binding.node == NULL) {
-                found           = p;
-                p->binding.node = arg0;
-                found->amount   = 0;
+        for (readoutIndex = 0, readout = Gp_LockSlots; readoutIndex < ARRAY_SIZE(Gp_LockSlots); readoutIndex++, readout++) {
+            if (readout->binding.node == NULL) {
+                found                 = readout;
+                readout->binding.node = node;
+                found->amount         = 0;
                 break;
             }
         }
     }
     if (found != NULL) {
         found->framesLeft = WORLD_TARGET_READOUT_FRAMES;
-        found->amount    += arg1;
+        found->amount    += amount;
     }
 }
 
@@ -764,25 +784,27 @@ s32 worldTargetGetActorLockMask(const WorldTargetNode* node)
     return mask;
 }
 
-void Gp_AssignNodeSlot0(WorldTargetNode* node)
+void worldTargetSetPlayerLock(WorldTargetNode* node)
 {
-    Task*            work;
+    enum { WORLD_TARGET_NOT_TARGETED = 0,
+           WORLD_TARGET_TARGETED     = 1 };
+    Task*            playerTask;
     GameActor*       actor;
     WorldTargetNode* previous;
-    u8               val;
+    u8               flags;
 
-    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    if (work != NULL) {
-        actor    = work->work;
+    playerTask = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    if (playerTask != NULL) {
+        actor    = playerTask->work;
         previous = actor->targetNode;
         if (previous != NULL) {
-            previous->state.parts.targeted = 0;
+            previous->state.parts.targeted = WORLD_TARGET_NOT_TARGETED;
         }
         actor->targetNode = node;
     }
-    val                        = node->state.parts.flags;
-    node->state.parts.targeted = 1;
-    node->state.parts.flags    = val & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
+    flags                      = node->state.parts.flags;
+    node->state.parts.targeted = WORLD_TARGET_TARGETED;
+    node->state.parts.flags    = flags & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
 }
 
 void worldTargetDisableNodeLockOn(WorldTargetNode* node)
@@ -834,41 +856,42 @@ static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
     return Gp_ScanLockNodes(arg0, pos, flag);
 }
 
-void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out)
+void worldTargetGetBodyPosition(const WorldTargetNode* node, VECTOR3* outPosition)
 {
-    GfxCoord* world;
-    GfxCoord* coord;
-    u8*       head;
-    MATRIX*   mat;
+    GfxCoord*                    worldCoord;
+    GfxCoord*                    bodyCoord;
+    _WorldTargetPositionScratch* scratchTop;
+    MATRIX*                      bodyToWorld;
 
-    if (arg0 == NULL) {
+    if (node == NULL) {
         printf(Gp_StrGetLockPosNull);
-        out->vx = 0;
-        out->vy = 0;
-        out->vz = 0;
+        outPosition->vx = 0;
+        outPosition->vy = 0;
+        outPosition->vz = 0;
         return;
     }
 
-    coord = GP_NODE_ENEMY(arg0)->coord;
-    world = &gGfxViewCoord;
-    if (coord == world) {
-        out->vx = GP_NODE_ENEMY(arg0)->bodyPos.vx;
-        out->vy = GP_NODE_ENEMY(arg0)->bodyPos.vy;
-        out->vz = GP_NODE_ENEMY(arg0)->bodyPos.vz;
+    bodyCoord  = GP_NODE_ENEMY(node)->coord;
+    worldCoord = &gGfxViewCoord;
+    if (bodyCoord == worldCoord) {
+        outPosition->vx = GP_NODE_ENEMY(node)->bodyPos.vx;
+        outPosition->vy = GP_NODE_ENEMY(node)->bodyPos.vy;
+        outPosition->vz = GP_NODE_ENEMY(node)->bodyPos.vz;
         return;
     }
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - 0x28;
-    actorRenderComposeCoord(coord);
-    mat = (MATRIX*)(head - 0x20);
-    gfxMakeRelativeTransform(&world->workm, &coord->workm, mat);
-    gte_SetRotMatrix(mat);
-    gte_SetTransMatrix(mat);
-    gte_ldlvl(&GP_NODE_ENEMY(arg0)->bodyPos);
+    // Remove the view transform before applying the enemy's local body point.
+    scratchTop                                        = SCRATCH_STACK_CURSOR(_WorldTargetPositionScratch);
+    SCRATCH_STACK_CURSOR(_WorldTargetPositionScratch) = scratchTop - 1;
+    actorRenderComposeCoord(bodyCoord);
+    bodyToWorld = &(scratchTop - 1)->bodyToWorld;
+    gfxMakeRelativeTransform(&worldCoord->workm, &bodyCoord->workm, bodyToWorld);
+    gte_SetRotMatrix(bodyToWorld);
+    gte_SetTransMatrix(bodyToWorld);
+    gte_ldlvl(&GP_NODE_ENEMY(node)->bodyPos);
     gte_rtirtr();
-    gte_stlvl(out);
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    gte_stlvl(outPosition);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPositionScratch);
 }
 
 /// Empties every floating readout, retaining each slot's last screen position.
@@ -1061,12 +1084,13 @@ void gpuUploadImages(const GpuImageUpload* uploadList)
     SCRATCH_STACK_RELEASE_BLOCK(RECT);
 }
 
-void Gp_InitStateF0(void)
+void sceneResetCombatState(void)
 {
     SceneCombatState* combat;
     McSaveData*       save;
     u8                difficulty;
 
+    // Clear encounter accounting and group coordination before the new tasks run.
     combat                                      = &gSceneCombatState;
     gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
     combat->signals.bytes.endDelayFrames        = 0;
@@ -1098,6 +1122,7 @@ void Gp_InitStateF0(void)
     combat->actor00300AttackAlert               = 0;
     combat->golemPawnRookDeathAlert             = 0;
     combat->field_2A                            = 0;
+    // A cleared normal save uses the replay difficulty row; training stays normal.
     if (attachmentIsTrainingMode() == 1) {
         combat->difficulty = SCENE_COMBAT_DIFFICULTY_NORMAL;
     } else {
@@ -1112,7 +1137,7 @@ void Gp_InitStateF0(void)
     }
 }
 
-void Gp_ArmStateF0(s32 arg0)
+void sceneEngageBattle(s32 unusedArg)
 {
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_ENGAGED;

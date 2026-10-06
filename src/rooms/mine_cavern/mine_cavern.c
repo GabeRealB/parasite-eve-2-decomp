@@ -431,7 +431,7 @@ void func_mine_cavern_8017E0B4(void)
     if (gSceneCombatState.battleRefs == 0) {
         (sceneAcquireBattleRef)(0);
     }
-    Gp_ArmStateF0(1);
+    sceneEngageBattle(1);
 }
 
 void func_mine_cavern_8017E0F4(s32 arg0)

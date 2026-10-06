@@ -45,7 +45,7 @@ void maggotCaterpillarAimState(Task* arg0)
         work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_POUNCE;
         work->step      = 0;
         work->animId    = MAGGOT_CATERPILLAR_ANIM_POUNCE;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) + 1;
 }

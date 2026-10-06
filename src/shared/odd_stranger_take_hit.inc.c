@@ -131,7 +131,7 @@ void oddStrangerTakeHit(Task* arg0)
             }
             damageAccumulateLifeDrainHp(enemy, s->hitKey, s->damage, 0);
             enemy->hp -= s->damage;
-            func_800DA6E8(&enemy->node, s->damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, s->damage, 0);
             work->recentDamage += s->damage;
             effect              = s->criticalEffect;
             if (effect != -1) {
@@ -312,7 +312,7 @@ void oddStrangerTakeHit(Task* arg0)
             }
             if (s->damage != 0) {
                 enemy->hp -= s->damage;
-                func_800DA6E8(&enemy->node, s->damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, s->damage, 0);
 #if ODD_STRANGER_VARIANT == 1
                 if (work->state == ODD_STRANGER_STATE_CHASE || work->state == ODD_STRANGER_STATE_STALK || work->state == ODD_STRANGER_STATE_GRAB || work->state == ODD_STRANGER_STATE_WATCH) {
                     work->state = ODD_STRANGER_STATE_FLINCH;

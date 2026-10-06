@@ -36,7 +36,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
     }
     if (part->hitCooldown == 0 && (part->contacts[0].key.value & 0xFFFF0000) == 0x20000) {
         if (part->contacts[0].key.value & 0x8000) {
-            func_800DA6E8(&arg0->node, 0, 0);
+            worldTargetAddReadoutAmount(&arg0->node, 0, 0);
         } else {
             vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
@@ -46,7 +46,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
                 damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
-            func_800DA6E8(&arg0->node, damage, 0);
+            worldTargetAddReadoutAmount(&arg0->node, damage, 0);
             arg0->hp -= damage;
             if (arg0->hp <= 0) {
                 arg1->state                                                = 2;

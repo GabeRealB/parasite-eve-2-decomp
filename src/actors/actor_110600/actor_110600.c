@@ -2297,7 +2297,7 @@ static void func_actor_110600_80136210(Task* arg0)
         }
         damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
         enemy->hp = (u16)enemy->hp - (u16)scratch->damage;
-        func_800DA6E8(&enemy->node, scratch->damage, 0);
+        worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(arg0->extra.tmd->coords);
         scratch->hitOffset.vx = (s16)(scratch->hitPos.vx - (u16)arg0->extra.tmd->coords->workm.t[0]);
@@ -2361,7 +2361,7 @@ static void func_actor_110600_80136210(Task* arg0)
         }
         if (scratch->damage != 0) {
             enemy->hp = (u16)enemy->hp - (u16)scratch->damage;
-            func_800DA6E8(&enemy->node, scratch->damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
             if (work->state != ACTOR_110600_STATE_STATUS_HOLD) {
                 work->blendActive  = 1;
                 work->blendAnimId  = 0xB;

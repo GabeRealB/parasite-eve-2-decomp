@@ -1116,17 +1116,17 @@ void func_actor_800200_801626EC(Task* task)
 
 static void func_actor_800200_80162750(Task* arg0)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    GfxCoord*      target;
-    u8*            head;
-    VECTOR3*       vec;
-    void*          lock;
-    u32            state;
-    u8*            tbl;
-    s32            dist;
-    s32            diff;
+    GameActor*       actor;
+    CompanionWork*   companion;
+    GfxCoord*        coord;
+    GfxCoord*        target;
+    u8*              head;
+    VECTOR3*         vec;
+    WorldTargetNode* lock;
+    u32              state;
+    u8*              tbl;
+    s32              dist;
+    s32              diff;
 
     coord                    = arg0->extra.tmd->coords;
     target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
@@ -1141,7 +1141,7 @@ static void func_actor_800200_80162750(Task* arg0)
         lock              = Gp_FindLockNode(arg0);
         actor->targetNode = lock;
         if (lock != NULL) {
-            Gp_GetLockPos(lock, vec);
+            worldTargetGetBodyPosition(lock, vec);
             playerActorGetPointDelta(coord, vec, vec);
             dist  = playerActorPlanarLength(((VECTOR3*)(head - 0x10))->vx, vec->vz);
             dist /= 1024;
@@ -1155,7 +1155,7 @@ static void func_actor_800200_80162750(Task* arg0)
             case 0:
                 break;
             case 1:
-                Gp_GetLockPos(actor->targetNode, &actor->destination);
+                worldTargetGetBodyPosition(actor->targetNode, &actor->destination);
                 func_actor_800200_80165408(arg0, 6);
                 break;
             case 2:
@@ -1998,7 +1998,7 @@ static void func_actor_800200_80164180(Task* arg0)
     node                     = actor->targetNode;
     if (node != NULL) {
         if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            Gp_GetLockPos(node, vec);
+            worldTargetGetBodyPosition(node, vec);
         } else {
             actor->statePhase = 2;
         }
@@ -2077,7 +2077,7 @@ static void func_actor_800200_8016436C(Task* arg0)
         node              = Gp_FindLockNode(arg0);
         actor->targetNode = node;
         if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            Gp_GetLockPos(node, vec);
+            worldTargetGetBodyPosition(node, vec);
         } else {
             companion->activity.combat.repeatsRemaining = 1;
         }
@@ -2195,7 +2195,7 @@ static inline void _actor800200StartWait(Task* task, GameActor* actor, GfxCoord*
         node              = Gp_FindLockNode(task);
         actor->targetNode = node;
         if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            Gp_GetLockPos(node, vec);
+            worldTargetGetBodyPosition(node, vec);
             dist = playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec);
             dist = dist / 640;
             if (dist >= 8) {

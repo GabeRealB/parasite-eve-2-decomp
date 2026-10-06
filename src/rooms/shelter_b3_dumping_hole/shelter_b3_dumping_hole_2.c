@@ -800,7 +800,7 @@ EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80180034 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -820,7 +820,7 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FCA0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = Gp_ArmStateF0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -3910,7 +3910,7 @@ static s32 _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, 
 }
 
 /// States of the task that works through the room's 16 enemy slots: set-up,
-/// the first three slot spawns, a 15-frame wait before `Gp_ArmStateF0`, and a
+/// the first three slot spawns, a 15-frame wait before `sceneEngageBattle`, and a
 /// loop that starts the next slot while fewer than three are live and ends
 /// once all 16 have been cleared.
 static const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
@@ -4027,7 +4027,7 @@ static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
     if (++work->frames == 15) {
         (sceneAcquireBattleRef)(0);
         gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_ARMED;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         arg0->state += 1;
     }
 }

@@ -52,6 +52,4 @@ void worldTargetClearActorTargetMarks(void);
 
 s32 Gp_GrantLocationItems(InventoryItemRange* arg0);
 
-void Gp_InitStateF0(void);
-
 #endif // GAMEPLAY_PRIVATE_WORLD_TARGETS_H

@@ -2318,7 +2318,7 @@ static void func_actor_400600_80133B88(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         func_actor_400600_80138B5C(arg0, 0);
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         rnd                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState    = rnd;
         work->hideCooldown = ((rnd >> 0x10) & 0x3F) + 0x1E;
@@ -2328,7 +2328,7 @@ static void func_actor_400600_80133B88(Task* arg0)
         return;
     }
     if ((s16)func_actor_400600_80136FA8(arg0) != 0) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
 }
 
@@ -3390,7 +3390,7 @@ static void func_actor_400600_80136968(Task* arg0)
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount, 0);
-                    func_800DA6E8(&enemy->node, amount, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, amount, 0);
                     enemy->hp -= amount;
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
@@ -3460,7 +3460,7 @@ static void func_actor_400600_80136968(Task* arg0)
         tick                     = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
-            func_800DA6E8(&enemy->node, tick, 0);
+            worldTargetAddReadoutAmount(&enemy->node, tick, 0);
             if (enemy->hp < 0) {
                 enemy->hp = 0;
             }
@@ -5056,7 +5056,7 @@ static void func_actor_400600_8013B150(Task* arg0)
         work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work2           = (_Actor400600ZebraStalkerWork*)arg0->work;
         arg0->state     = 1;
         work2->state    = 0;
@@ -5104,7 +5104,7 @@ static void func_actor_400600_8013B2A8(Task* arg0)
         work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work2           = (_Actor400600ZebraStalkerWork*)arg0->work;
         arg0->state     = 1;
         work2->state    = 0;

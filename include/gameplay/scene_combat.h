@@ -10,6 +10,13 @@
 /// and scripted encounters hold battle references until they die or retire.
 extern SceneCombatState gSceneCombatState;
 
+/// Engages an idle scene battle, retaining every other combat field.
+///
+/// Only the idle phase changes to engaged; engaged, finished and resumed phases
+/// are retained. This does not acquire a battle reference or reset rewards.
+/// `unusedArg` is ignored and retained for event-script callback compatibility.
+void sceneEngageBattle(s32 unusedArg);
+
 /// One-based selectors accepted by `sceneLatchActionSignal`, rather than masks.
 enum {
     SCENE_COMBAT_ACTION_SIGNAL_NONE               = 0,

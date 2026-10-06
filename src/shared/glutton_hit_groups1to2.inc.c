@@ -158,7 +158,7 @@ void gluttonHitGroups1To2(Task* arg0)
 
         damageAccumulateLifeDrainHp(host, sc->attackKey, sc->damage, 0);
         host->hp -= sc->damage;
-        func_800DA6E8(&work->escorts[3]->node, sc->damage, 0);
+        worldTargetAddReadoutAmount(&work->escorts[3]->node, sc->damage, 0);
         work->groups1To2Pool -= sc->damage;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         esc3     = work->escorts[3];

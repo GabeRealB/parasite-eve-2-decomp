@@ -1057,7 +1057,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
 /// parameter may ask for a stagger or, with the shield down, for
 /// `Gp_SetObjFlag2` or `Gp_SetObjFlag4`. The hit credits Life Drain healing
 /// through `damageAccumulateLifeDrainHp`, updates the readout through
-/// `func_800DA6E8`, and reduces HP; at 0 the actor goes to
+/// `worldTargetAddReadoutAmount`, and reduces HP; at 0 the actor goes to
 /// `ACTION_DEFEATED`, and `staggerDamage` reaching 0x1A4 (or the stagger
 /// request) sends it to `ACTION_STAGGER`, breaking a charge in progress.
 /// Either ends `ringEffect`. A new id sparks `func_800FDB18` once, and
@@ -1115,7 +1115,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                 snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000D;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            func_800DA6E8(&ctx->node, damage, 0);
+            worldTargetAddReadoutAmount(&ctx->node, damage, 0);
             if (damage != 0) {
                 switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
                     case 0:
@@ -1287,7 +1287,7 @@ static void func_actor_105100_8013329C(Task* arg0, Enemy* arg1)
     work = arg0->work;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
         if (--work->engageDelay <= 0) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             gStageSceneMusicEntry = 0xA;
         }
     }
@@ -2523,7 +2523,7 @@ static void func_actor_105100_80135E54(Task* arg0)
         tick = Gp_TickObjFlag4(enemy) << 0x10;
         if (tick != 0) {
             damage = tick >> 0x12;
-            func_800DA6E8(&enemy->node, damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
             state     = (u16)enemy->hp - damage;
             enemy->hp = state;
             state   <<= 0x10;
@@ -2585,7 +2585,7 @@ static void func_actor_105100_80135FCC(Task* arg0)
     if (D_actor_105100_80141398.hpMax < (s16)hp) {
         enemy->hp = D_actor_105100_80141398.hpMax;
     }
-    func_800DA6E8(&enemy->node, -0x50, 0);
+    worldTargetAddReadoutAmount(&enemy->node, -0x50, 0);
     Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL, NULL, 0, NULL);
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000C;
     pan = (s8)worldCoordGetOriginAudioPan(coord);

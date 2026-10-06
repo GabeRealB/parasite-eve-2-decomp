@@ -1,7 +1,7 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
 /// Damage reaction of the first enemy: `arg1` comes off its HP and goes
-/// through `func_800DA6E8`. A depleted enemy is killed through
+/// through `worldTargetAddReadoutAmount`. A depleted enemy is killed through
 /// `sucklercephKill` and put into its death state with a five-frame
 /// countdown. A live one plays the hurt sound from the set `variant` picks,
 /// re-arms `field_2CC`, and while animation 1 plays latches `wakeRequested`.
@@ -19,7 +19,7 @@ void sucklercephTakeDamage(Task* arg0, s32 arg1)
     coord      = obj->coords;
     work       = arg0->work;
     enemy->hp -= arg1;
-    func_800DA6E8(&enemy->node, arg1, 0);
+    worldTargetAddReadoutAmount(&enemy->node, arg1, 0);
     if (enemy->hp < 0) {
         sucklercephKill(arg0, 0);
         arg0->state         = 2;

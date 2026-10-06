@@ -127,7 +127,7 @@ void golemKnightBishopTakeHits(Task* arg0)
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                 }
-                func_800DA6E8(&enemy->node, damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 damageAccumulateLifeDrainHp(enemy, work->hurtContacts[i].key.value, damage, 0);
                 enemy->hp             -= damage;
                 work->interruptDamage += damage;

@@ -32,6 +32,7 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -3184,7 +3185,7 @@ void func_dryfield_water_tower_80180194(void)
     ActorCommand                       msg;
 
     if (work->actorCommandSent == 0) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         msg.context.loc.stage = gGameSession->location.loc.stage;
         msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;

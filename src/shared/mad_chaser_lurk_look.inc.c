@@ -29,7 +29,7 @@ void madChaserLurkLookAround(Task* arg0)
         angle          = (u16)work->spineYaw;
         work->spineYaw = angle + ((s16)((aim - angle) * 16) >> 6);
         if (++work->lookFrames >= 0x10) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             state2           = (MadChaserWork*)arg0->work;
             state2->state    = 3;
             state2->subState = 0;

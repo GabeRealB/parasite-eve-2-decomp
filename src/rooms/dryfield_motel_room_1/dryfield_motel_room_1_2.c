@@ -25,6 +25,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1218,7 +1219,7 @@ void func_dryfield_motel_room_1_8017DF08(void)
     _DryfieldMotelRoom1EventWork* work = D_dryfield_motel_room_1_8018159C->work;
     ActorCommand                  msg;
 
-    Gp_ArmStateF0(1);
+    sceneEngageBattle(1);
     msg.context.loc.stage = gGameSession->location.loc.stage;
     msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = 3;

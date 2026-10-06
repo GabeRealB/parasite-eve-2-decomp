@@ -81,7 +81,7 @@ void golemPawnRookApproachState(Task* arg0)
         work->step     = 0;
         work->anim     = 2;
         work->timer    = 0;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
 
     SCRATCH_STACK_RELEASE_BYTES(0x10);

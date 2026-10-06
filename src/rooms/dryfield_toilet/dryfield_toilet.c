@@ -15,6 +15,7 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -285,5 +286,5 @@ void func_dryfield_toilet_8017DCB0(void)
 
 void func_dryfield_toilet_8017DCD0(s32 arg0)
 {
-    Gp_ArmStateF0(arg0);
+    sceneEngageBattle(arg0);
 }

@@ -2019,7 +2019,7 @@ static void func_actor_800300_80162A98(Task* arg0)
     src                      = extra->coords;
     if (node != NULL) {
         if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            Gp_GetLockPos(node, vec);
+            worldTargetGetBodyPosition(node, vec);
         } else {
             actor->statePhase = 2;
         }
@@ -2117,7 +2117,7 @@ static void func_actor_800300_80162D74(Task* arg0)
     lock                     = actor->targetNode;
     if (lock != NULL) {
         if (!(lock->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            Gp_GetLockPos(lock, vec);
+            worldTargetGetBodyPosition(lock, vec);
         } else {
             actor->statePhase = 2;
         }

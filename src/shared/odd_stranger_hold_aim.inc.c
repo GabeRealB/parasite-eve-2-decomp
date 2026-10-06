@@ -5,7 +5,7 @@
 /// rather than +-0x10, so the actor only ever rotates one way; the animation
 /// slot is `ODD_STRANGER_HOLD_AIM_CLIP` and `hitBody.field_1C` is written
 /// before the other state words; and the spawn arm clears the `stateTimer` latch
-/// on its way out instead of arming state F0.
+/// on its way out instead of engaging battle.
 void oddStrangerHoldAim(Task* arg0)
 {
     OddStrangerWork*   work;

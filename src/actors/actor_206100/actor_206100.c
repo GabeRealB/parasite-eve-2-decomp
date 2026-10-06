@@ -419,7 +419,7 @@ static void func_actor_206100_8014D8E8(Task* task);
 ///
 /// `stateFrames` is held at 0x1E -- the frame `func_actor_206100_8014D574` fires
 /// the explosion on -- by arming the global `gSceneCombatState` flag again through
-/// `Gp_ArmStateF0` instead of advancing it, so the sub-state never leaves it;
+/// `sceneEngageBattle` instead of advancing it, so the sub-state never leaves it;
 /// every earlier frame just advances the counter.  The shared companion tick
 /// `func_actor_206100_8014DEAC` then runs, and the two slots
 /// `D_actor_206100_80158CBC` are walked by index, each handled on its own:
@@ -1473,7 +1473,7 @@ static void func_actor_206100_8014B8B4(Task* task)
 /// `Gp_ComputeDamage` and `damageRollCriticalHit` -- a successful roll scales the
 /// damage and selects the effect kind. The result credits any Life Drain
 /// healing through `damageAccumulateLifeDrainHp`, updates the damage readout
-/// through `func_800DA6E8`, and is subtracted from the enemy's `hp`.
+/// through `worldTargetAddReadoutAmount`, and is subtracted from the enemy's `hp`.
 /// The id's low parameter then picks one of the three flag
 /// setters, one of the hit reaction sizes, or clears the hit flag again, and
 /// the `0x7F`/`0x8000` pair on an id ending 0x1C forces the light reaction and
@@ -1571,7 +1571,7 @@ static void func_actor_206100_8014BAA8(Task* task)
                         break;
                 }
                 damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, amount, 0);
-                func_800DA6E8(&enemy->node, amount, 0);
+                worldTargetAddReadoutAmount(&enemy->node, amount, 0);
                 enemy->hp -= amount;
                 if ((s16)enemy->hp < 0) {
                     enemy->hp = 0;
@@ -1597,7 +1597,7 @@ static void func_actor_206100_8014BAA8(Task* task)
         tick = (s16)tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
-            func_800DA6E8(&enemy->node, tick, 0);
+            worldTargetAddReadoutAmount(&enemy->node, tick, 0);
             if ((s16)enemy->hp < 0) {
                 enemy->hp = 0;
             }
@@ -2783,7 +2783,7 @@ static void func_actor_206100_8014DD3C(Task* task)
 
     work = task->work;
     if (work->stateFrames == 0x1E) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     } else {
         work->stateFrames = work->stateFrames + 1;
     }

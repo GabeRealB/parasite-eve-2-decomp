@@ -28,7 +28,7 @@ void ratReactions(Task* arg0)
     if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         damage = Gp_TickObjFlag4(ctx);
         if (damage != 0) {
-            func_800DA6E8(&ctx->node, damage, 0);
+            worldTargetAddReadoutAmount(&ctx->node, damage, 0);
             remaining = ctx->hp - damage;
             ctx->hp   = remaining;
             if ((s16)remaining <= 0) {

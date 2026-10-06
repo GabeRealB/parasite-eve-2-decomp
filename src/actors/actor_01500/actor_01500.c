@@ -1077,7 +1077,7 @@ static void Actor01500_Fn004EC(Task* actor)
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
-                    func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
+                    worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
                     Actor01500_Fn00AFC(actor, damage);
                     switch (Gp_GetIdParam0(work->contacts[i].key.value) & 0xFFFF) {
@@ -1245,7 +1245,7 @@ static void Actor01500_Fn00CA4(Task* actor)
         work->loopSound   = ACTOR_01500_SOUND_ALERT;
         work->timer       = 0;
         work->hoverOffset = 0;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     } else {
         if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
             if (work->timer == 0) {
@@ -1285,7 +1285,7 @@ static void Actor01500_Fn00CA4(Task* actor)
             work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
             work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
             work->timer          = val;
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
@@ -1935,7 +1935,7 @@ static void Actor01500_Fn020D8(Task* arg0)
         work->roused         = 1;
         work->timer          = delay;
         work->hoverOffset    = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1FF;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
@@ -2039,7 +2039,7 @@ static void Actor01500_Fn025C8(Task* actor)
         damage = Gp_TickObjFlag4(enemy);
         if (damage != 0) {
             Actor01500_Fn00AFC(actor, damage);
-            func_800DA6E8(&enemy->node, damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
         }
         if (Gp_ObjFlag4Expired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;

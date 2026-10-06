@@ -442,7 +442,7 @@ static void func_actor_205200_8014AB98(Task* arg0)
                     D_actor_205200_8015B458.span  = 0xF;
                     D_actor_205200_8015B458.scale = 0xA0;
                     taskSpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
-                    Gp_ArmStateF0(1);
+                    sceneEngageBattle(1);
                     work->pendingWavePhase = SCREEN_WAVE_RAMP_FALLING;
                     sndEvtRequestScriptStart(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);
                 }
@@ -587,7 +587,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 continue;
             }
             if (part->contacts[i].key.value & 0x8000) {
-                func_800DA6E8(&enemy->node, 0, 0);
+                worldTargetAddReadoutAmount(&enemy->node, 0, 0);
                 break;
             }
             vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -598,7 +598,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 damage *= 4;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
-            func_800DA6E8(&enemy->node, damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
             enemy->hp -= damage;
             if (enemy->hp <= 0) {
                 arg0->state                                                         = ACTOR_205200_PART_TASK_DOWN;

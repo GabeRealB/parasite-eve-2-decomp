@@ -1102,10 +1102,10 @@ static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task)
     taskKill(task);
 }
 
-/// Passes `arg0` to `Gp_ArmStateF0` and marks item 0x10A as seen.
+/// Passes `arg0` to `sceneEngageBattle` and marks item 0x10A as seen.
 void func_dryfield_main_street_8017E2F4(s32 arg0)
 {
-    Gp_ArmStateF0(arg0);
+    sceneEngageBattle(arg0);
     Gp_SetItemSeenBit(0x10A, 1);
 }
 

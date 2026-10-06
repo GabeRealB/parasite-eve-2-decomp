@@ -17,7 +17,7 @@
 /// part's world translation and `ratan2` of the pair against the part's facing
 /// gives the yaw `contactYaw`, wrapped to +/-0x800. The damage is doubled,
 /// credits Life Drain healing through `damageAccumulateLifeDrainHp`, updates
-/// the readout through `func_800DA6E8`, and is taken from the host's HP, which is
+/// the readout through `worldTargetAddReadoutAmount`, and is taken from the host's HP, which is
 /// mirrored onto the three escorts sharing its pool.
 ///
 /// The second arm runs the same tick when `reactionFlags` has damage over time
@@ -110,7 +110,7 @@ void gluttonHitGroup0(Task* arg0)
         sc->damage *= 2;
         damageAccumulateLifeDrainHp(enemy, sc->attackKey, sc->damage, 0);
         enemy->hp -= sc->damage;
-        func_800DA6E8(&enemy->node, sc->damage, 0);
+        worldTargetAddReadoutAmount(&enemy->node, sc->damage, 0);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         esc3     = work->escorts[3];
         hp       = enemy->hp;

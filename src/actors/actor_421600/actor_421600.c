@@ -2412,7 +2412,7 @@ static void func_actor_421600_801354D8(Task* arg0)
             }
             scratch->damage = scratch->damage * 2;
             enemy->hp       = (s16)((u16)enemy->hp - (u16)scratch->damage);
-            func_800DA6E8(&enemy->node, scratch->damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
             totalDamage        = work->recentDamage + (u16)scratch->damage;
             work->recentDamage = totalDamage;
             if (enemy->hp <= 0) {
@@ -2473,7 +2473,7 @@ static void func_actor_421600_801354D8(Task* arg0)
             enemy->hp  = (s16)((u16)enemy->hp - (u16)scratch->damage);
             tickDamage = scratch->damage;
             if (tickDamage != 0) {
-                func_800DA6E8(&enemy->node, tickDamage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, tickDamage, 0);
                 if (enemy->hp <= 0) {
                     D_actor_421600_80151268 -= 1;
                     poisonState              = work->state;
@@ -3077,7 +3077,7 @@ static void func_actor_421600_8013947C(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         ctx->hp -= 0xF;
-        func_800DA6E8(&ctx->node, 0xF, 0);
+        worldTargetAddReadoutAmount(&ctx->node, 0xF, 0);
         if (ctx->hp <= 0) {
             ctx->hp = 1;
         }
@@ -3214,7 +3214,7 @@ static void func_actor_421600_8013A554(Task* arg0)
         obj                         = arg0->extra.tmd;
         ctx                         = arg0->spawnArg2.pointer;
         ctx->node.state.parts.flags = 0;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         obj->flags = 0;
         tmdAllocPrimitiveBuffer(obj);
         work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;

@@ -2652,7 +2652,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
             if (work->hitContacts[i].key.value & 8) {
                 if ((_actor403600Rand() & 3) == 0) {
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, 0);
-                    func_800DA6E8(&enemy->node, 999, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, 999, 0);
                     work->defeated = 1;
                     return;
                 }
@@ -2748,7 +2748,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
     temp_s0     = arg0->spawnArg2.pointer;
     work        = arg0->work;
     temp_s0->hp = (u16)temp_s0->hp - arg1;
-    func_800DA6E8(&temp_s0->node, arg1, 0);
+    worldTargetAddReadoutAmount(&temp_s0->node, arg1, 0);
     if (temp_s0->hp <= 0) {
         if (gPlayerStatus.hp <= 0) {
             temp_s0->hp = 0xA;
@@ -3745,7 +3745,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     work->lifetime           = (s16)(((randomState >> 0x10) % 0x32) + 0xBB8);
     gRandomLcgState          = randomState;
     if (task->spawnArg1.value != 0) {
-        Gp_AssignNodeSlot0(&enemy->node);
+        worldTargetSetPlayerLock(&enemy->node);
     }
     _actor403600UpdateAnimation(task, 20);
     work->animRate     = 0x10;
@@ -4675,7 +4675,7 @@ static void func_actor_403600_80141C7C(Task* arg0, s32 arg1)
     enemy     = arg0->spawnArg2.pointer;
     work      = arg0->work;
     enemy->hp = (u16)enemy->hp - arg1;
-    func_800DA6E8(&enemy->node, arg1, 0);
+    worldTargetAddReadoutAmount(&enemy->node, arg1, 0);
     if (enemy->hp <= 0) {
         work->defeated = 1;
     }

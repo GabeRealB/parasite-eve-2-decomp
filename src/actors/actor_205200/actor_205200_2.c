@@ -488,7 +488,7 @@ static void func_actor_205200_8014BD4C(Task* arg0)
     if (work->hitCooldown == 0) {
         for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
             if ((work->hitContacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
-                func_800DA6E8(&((Enemy*)arg0->spawnArg2.pointer)->node, 0, 0);
+                worldTargetAddReadoutAmount(&((Enemy*)arg0->spawnArg2.pointer)->node, 0, 0);
                 switch (Gp_GetIdParam0(work->hitContacts[i].key.value) & 0xFFFF) {
                     case 1:
                         found = 1;

@@ -1579,7 +1579,7 @@ static void Actor01900_Fn02A50(Task* arg0)
             }
             damageAccumulateLifeDrainHp(enemy, s->hitKey, s->damage, 0);
             enemy->hp -= s->damage;
-            func_800DA6E8(&enemy->node, s->damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, s->damage, 0);
             work->recentDamage += s->damage;
             effect              = s->criticalEffect;
             if (effect != -1) {
@@ -1717,7 +1717,7 @@ static void Actor01900_Fn02A50(Task* arg0)
             if (s->damage != 0) {
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 enemy->hp              -= s->damage;
-                func_800DA6E8(&enemy->node, s->damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, s->damage, 0);
                 state = work->state;
                 if (state == ACTOR_01900_STATE_CHASE || state == ACTOR_01900_STATE_STRIKE || state == ACTOR_01900_STATE_APPROACH || state == ACTOR_01900_STATE_ALERT_REPEAT) {
                     work->state = ACTOR_01900_STATE_FLINCH;
@@ -1815,7 +1815,7 @@ static __inline__ s32 Actor01900_ArmIfPlayerLevel(Task* arg0)
     if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         dy = arg0->extra.tmd->coords->coord.t[1] - player->extra.tmd->coords->coord.t[1];
         if (ABS(dy) < 0x1F4) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             return 1;
         }
     }

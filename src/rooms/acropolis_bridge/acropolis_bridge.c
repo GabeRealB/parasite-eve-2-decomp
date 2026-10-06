@@ -5411,7 +5411,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     work = (_AcropolisBridgeEnemyWork*)task->work;
     if (work->stateEntered != 0) {
         enemy = (Enemy*)task->spawnArg2.pointer;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         height                        = work->walker.speed;
         walker                        = &work->walker;
@@ -5838,7 +5838,7 @@ void func_acropolis_bridge_80187310(Task* task)
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         worldTargetDisableNodeLockOn(&enemy->node);
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && gSceneCombatState.battleRefs != 0) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
         }
         work->deathFrame = 0;
     }
@@ -5884,7 +5884,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         worldTargetDisableNodeLockOn(&enemy->node);
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && gSceneCombatState.battleRefs != 0) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
         }
         if (enemy->hp > 0) {
             Gp_ReleaseStateF0Add(task, 0x29);
@@ -5947,7 +5947,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
         }
         damageAccumulateLifeDrainHp(enemy, attackId, damage, 0);
         enemy->hp -= damage;
-        func_800DA6E8(&enemy->node, damage, 0);
+        worldTargetAddReadoutAmount(&enemy->node, damage, 0);
         work->hp -= damage;
         enemy->hp = work->hp;
         if (work->hp > 0) {

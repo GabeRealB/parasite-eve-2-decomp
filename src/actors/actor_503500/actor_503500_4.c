@@ -833,7 +833,7 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING);
@@ -1339,7 +1339,7 @@ static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPar
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         func_actor_503500_8013CA74(arg0, ACTOR_503500_REAR_PART_STATE_DYING);
@@ -1698,7 +1698,7 @@ static inline void _actor503500ChainBaseHandleHit(Task* arg0, _Actor503500ChainB
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_DYING);
@@ -2252,7 +2252,7 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
@@ -2709,7 +2709,7 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING);
@@ -3514,7 +3514,7 @@ static void func_actor_503500_80140BE8(Task* arg0)
                 dmg = Gp_TickObjFlag4(enemy);
                 if (dmg != 0) {
                     enemy->hp -= dmg;
-                    func_800DA6E8(&enemy->node, dmg, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
                     work->slowFrames = 8;
                     if (enemy->hp <= 0) {
                         enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
@@ -3572,7 +3572,7 @@ static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500Lun
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         if (work->state < ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING) {
@@ -4574,7 +4574,7 @@ static inline void _actor503500ArmHandleHit(Task* arg0, _Actor503500ArmWork* wor
             work->recoveryFrames = ACTOR_503500_ARM_RECOVERY_FRAMES;
         }
     }
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     switch (Gp_GetIdParam0(id) & 0xFFFF) {
         case 0:
         case 5:

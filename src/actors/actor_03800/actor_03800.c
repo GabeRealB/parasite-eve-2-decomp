@@ -992,7 +992,7 @@ static void Actor03800_Fn00974(Task* arg0)
     if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         damage = Gp_TickObjFlag4(ctx);
         if (damage != 0) {
-            func_800DA6E8(&ctx->node, (s32)damage, 0);
+            worldTargetAddReadoutAmount(&ctx->node, (s32)damage, 0);
             remaining = ctx->hp - damage;
             ctx->hp   = remaining;
             if ((s16)remaining <= 0) {
@@ -1106,7 +1106,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                         damage *= 3;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 4, NULL);
                     }
-                    func_800DA6E8(&ctx->node, damage, 0);
+                    worldTargetAddReadoutAmount(&ctx->node, damage, 0);
                     damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
@@ -1216,7 +1216,7 @@ static void Actor03800_Fn00A98(Task* arg0)
     work->attackTouched = 0;
     result              = worldCollisionCountContactsByKind(work->attackContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY);
     if (result != 0) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->attackTouched = 1;
         work->alerted       = 1;
         if ((work->mode == ACTOR_03800_MODE_FLOOR) && (work->overturned == 0) && (work->action != ACTOR_03800_ACTION_LEAP_AWAY)) {
@@ -2374,7 +2374,7 @@ static void Actor03800_Fn034B0(Task* arg0)
             work->hitBody.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->gridBody.flags   |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             work->fallSpeed   = 0x80;
             work->timer       = 0x5A;
             work->mode        = ACTOR_03800_MODE_FLOOR;

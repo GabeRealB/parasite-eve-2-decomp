@@ -10,5 +10,5 @@ void madChaserStartAlert(Task* arg0)
     work->animId          = 0xF;
     work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     work->subState        = work->subState + 1;
-    Gp_ArmStateF0(1);
+    sceneEngageBattle(1);
 }

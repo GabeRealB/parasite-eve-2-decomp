@@ -1235,7 +1235,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
         work->animId      = 9;
         func_actor_356100_80163508(arg0);
         work->hitRadius = 0x180;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);

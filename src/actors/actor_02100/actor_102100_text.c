@@ -712,7 +712,7 @@ static void Actor02100_Fn004C4(Task* arg0)
     if (work->hitCooldown == 0) {
         if ((work->hitContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
             if (work->hitContacts[0].key.value & 0x8000) {
-                func_800DA6E8(&enemy->node, 0, 0);
+                worldTargetAddReadoutAmount(&enemy->node, 0, 0);
             } else if ((((u32)work->hitContacts[0].key.value >> 8) & 0x3F) < 0x21U) {
                 src             = gPlayerActorTasks[((u32)work->hitContacts[0].key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
@@ -729,7 +729,7 @@ static void Actor02100_Fn004C4(Task* arg0)
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, 0);
                 }
                 enemy->hp -= damage;
-                func_800DA6E8(&enemy->node, damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 work->hitThisTick = 1;
                 if (enemy->hp <= 0) {
                     Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002400, 0);
@@ -1041,7 +1041,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
     }
 
     if (work->targetKind != ACTOR_02100_TARGET_NONE) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         if (work->weapon == ACTOR_02100_WEAPON_GUN) {
             mode = ACTOR_02100_MODE_GUN;
         } else {
@@ -1092,7 +1092,7 @@ static void Actor02100_Fn011C4(Task* arg0)
                 index = 0;
             }
             if (Actor02100_D03E2C[index] == 0 && enemy->hp > 0) {
-                Gp_GetLockPos(&enemy->node, &scratch->lockPos);
+                worldTargetGetBodyPosition(&enemy->node, &scratch->lockPos);
                 scratch->delta.vx = scratch->lockPos.vx - coord->coord.t[0];
                 scratch->delta.vy = scratch->lockPos.vy - coord->coord.t[1];
                 scratch->delta.vz = scratch->lockPos.vz - coord->coord.t[2];
@@ -1175,7 +1175,7 @@ static s32 Actor02100_Fn014E4(Task* arg0)
             lock = &((Enemy*)work->target->spawnArg2.pointer)->node;
             // The lock position is written over the three components of `vec`, then
             // narrowed for the GTE and rotated back into `vec` in view space.
-            Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
+            worldTargetGetBodyPosition(lock, (VECTOR3*)&scratch->vec);
             scratch->shortVec.vx = scratch->vec.vx;
             scratch->shortVec.vy = scratch->vec.vy;
             scratch->shortVec.vz = scratch->vec.vz;

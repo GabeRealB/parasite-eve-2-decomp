@@ -106,7 +106,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                     }
                     damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount, 0);
                 }
-                func_800DA6E8(&enemy->node, amount, 0);
+                worldTargetAddReadoutAmount(&enemy->node, amount, 0);
                 enemy->hp -= amount;
                 if (work->reactionMode != one) {
                     if (enemy->hp <= 0) {

@@ -27,7 +27,7 @@ void sucklercephDormantTick(Task* arg0)
         work->state           = SUCKLERCEPH_STATE_AWAKE;
         work->awakeStage      = SUCKLERCEPH_AWAKE_STAGE_CRAWL;
         work->senseBody.flags = (u16)(work->senseBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     worldCollisionClearContacts(&work->senseContact);
     if (work->animId == SUCKLERCEPH_ANIM_IDLE) {

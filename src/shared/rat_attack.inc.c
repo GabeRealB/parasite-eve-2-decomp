@@ -29,7 +29,7 @@ void ratAttack(Task* arg0)
     coord = obj->coords;
     switch (work->step) {
         case 0:
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             if (work->targetCoord == 0) {
                 work->targetCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
             }

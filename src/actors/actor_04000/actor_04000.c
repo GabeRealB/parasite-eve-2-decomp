@@ -1274,7 +1274,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, ActorCommand* command, s32 arg3)
                         arg0->extra.tmd->coords->coord.t[1] = -0xF0;
                         arg0->extra.tmd->coords->coord.t[2] = 0x166C;
                         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x3E8, 1);
-                        Gp_ArmStateF0(1);
+                        sceneEngageBattle(1);
                         break;
                     case 1:
                         work->state                         = ACTOR_04000_STATE_SCRIPTED_FALL;
@@ -1570,7 +1570,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
     if (work->stateEntered != 0) {
         obj                                                       = arg1->extra.tmd;
         ((Enemy*)arg1->spawnArg2.pointer)->node.state.parts.flags = 0;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         obj->flags                = 0;
         work->driver.state        = ANIM_DRIVER_STATE_RESTART_1;
         work->driver.rate         = ANIMATION_RATE_ONE;
@@ -1859,7 +1859,7 @@ static void Actor04000_Fn026FC(Enemy* arg0, Task* arg1)
     d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 2000)) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = ACTOR_04000_STATE_ROUSE;
     }
 }
@@ -1892,7 +1892,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
         work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         animDriverTick(arg1);
         work->chaseFarFrames = 0;
         return;
@@ -2110,7 +2110,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         work->burstAttackBody.pos.vx = arg1->extra.tmd->coords->coord.t[0];
         work->burstAttackBody.pos.vy = arg1->extra.tmd->coords->coord.t[1];
         work->burstAttackBody.pos.vz = arg1->extra.tmd->coords->coord.t[2];
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         if (work->lastCommandContext == 0x1003) {
             Actor04000_D0C718[arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
         }
@@ -2310,7 +2310,7 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
         sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
         damageAccumulateLifeDrainHp(arg0, sc->hitKey, sc->damage, 0);
-        func_800DA6E8(&arg0->node, sc->damage, 0);
+        worldTargetAddReadoutAmount(&arg0->node, sc->damage, 0);
         arg0->hp -= sc->damage;
         if (arg0->hp <= 0) {
             work->state = ACTOR_04000_STATE_DEATH_BURST;
@@ -3265,7 +3265,7 @@ void Actor04000_Fn06F54(Task* arg0)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 5) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
                 return;
             }
         }

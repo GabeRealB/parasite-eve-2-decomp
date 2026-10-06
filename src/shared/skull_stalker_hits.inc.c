@@ -80,7 +80,7 @@ void skullStalkerHits(Task* arg0)
                     damage *= 4;
                 }
                 damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, damage, 0);
-                func_800DA6E8(&enemy->node, damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->variant != 0) {
                         snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit;

@@ -1950,7 +1950,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 break;
         }
         damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, (s32)damage, 0);
-        func_800DA6E8(&enemy->node, (s32)damage, 0);
+        worldTargetAddReadoutAmount(&enemy->node, (s32)damage, 0);
         enemy->hp = (u16)enemy->hp - damage;
         if (lastId != work->bodyContacts[i].key.value) {
             lastId = work->bodyContacts[i].key.value;

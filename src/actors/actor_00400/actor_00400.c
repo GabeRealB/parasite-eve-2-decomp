@@ -1763,7 +1763,7 @@ static void Actor00400_Fn01B90(Task* arg0)
                         break;
                 }
                 damageAccumulateLifeDrainHp(obj, work->hitContacts[i].key.value, amount, 0);
-                func_800DA6E8(&obj->node, amount, 0);
+                worldTargetAddReadoutAmount(&obj->node, amount, 0);
                 obj->hp -= amount;
                 if ((s16)obj->hp < 0) {
                     obj->hp = 0;
@@ -1793,7 +1793,7 @@ static void Actor00400_Fn01B90(Task* arg0)
             if ((s16)obj->hp < 0) {
                 obj->hp = 0;
             }
-            func_800DA6E8(&obj->node, tick, 0);
+            worldTargetAddReadoutAmount(&obj->node, tick, 0);
             if ((s16)obj->hp < 0) {
                 obj->hp = 0;
             }
@@ -1888,7 +1888,7 @@ static s16 Actor00400_Fn02154(Task* arg0)
             work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
         } else if (req == ACTOR_00400_HIT_REACTION_FLINCH) {
             gSceneCombatState.signals.bytes.enemyAlert = 1;
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             work->shakeFrames = 10;
             work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
             return 0;
@@ -3479,7 +3479,7 @@ static void Actor00400_Fn05320(Task* arg0)
         armed = 0;
         if (w1->targetDistance < 0xDAC && (u32)(w1->targetBearing - 0x600) >= 0x400U) {
             gSceneCombatState.signals.bytes.enemyAlert = 1;
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             armed        = 1;
             w2           = arg0->work;
             w2->state    = ACTOR_00400_SWIM_STATE_DIVE;
@@ -4348,7 +4348,7 @@ static void Actor00400_Fn077F4(Task* arg0)
     handlers = Actor00400_D00134;
     if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
         gSceneCombatState.signals.bytes.enemyAlert = 1;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     } else if (gSceneCombatState.signals.bytes.enemyAlert != 0) {
         work2           = arg0->work;
         work2->state    = ACTOR_00400_SWIM_STATE_DIVE;
@@ -5249,7 +5249,7 @@ static inline s16 _actor00400StrandedNoticeTarget(Task* arg0)
     if (work->targetDistance < 0xDAC) {
         if ((u32)(work->targetBearing - 0x600) >= 0x400U) {
             gSceneCombatState.signals.bytes.enemyAlert = 1;
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             active      = 1;
             w           = arg0->work;
             w->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
@@ -5267,7 +5267,7 @@ static void Actor00400_Fn09124(Task* arg0)
     work = arg0->work;
     if (_actor00400StrandedNoticeTarget(arg0) == 0) {
         if ((Actor00400_Fn02154(arg0) << 0x10) != 0) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             return;
         }
         if (work->hitTaken != 0) {

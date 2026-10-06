@@ -623,7 +623,7 @@ static void Actor02400_Fn00C08(Task* task)
                 }
                 dmg = damage;
                 damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
-                func_800DA6E8(&((Enemy*)task->spawnArg2.pointer)->node, dmg, 0);
+                worldTargetAddReadoutAmount(&((Enemy*)task->spawnArg2.pointer)->node, dmg, 0);
                 if ((enemy->hp -= damage) <= 0) {
                     task->state = 2;
                 }
@@ -730,7 +730,7 @@ static void Actor02400_Fn01420(Task* task)
         work->scale.vy = ONE;
         work->scale.vz = ONE;
         work->counter  = 0;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
 }

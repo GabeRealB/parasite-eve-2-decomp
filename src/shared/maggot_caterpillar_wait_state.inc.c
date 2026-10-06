@@ -32,7 +32,7 @@ void maggotCaterpillarWaitState(Task* arg0)
             if ((SquareRoot0((dx * dx) + (dz * dz)) < MAGGOT_CATERPILLAR_WAKE_RANGE) || (work->struck != 0) || (gSceneCombatState.signals.bytes.enemyAlert == 2)) {
                 work->step   = 1;
                 work->animId = MAGGOT_CATERPILLAR_ANIM_WAKE;
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             break;
         case 1:

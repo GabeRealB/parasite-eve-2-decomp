@@ -1607,7 +1607,7 @@ static void Actor00300_Fn00E54(Task* arg0)
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
                 damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, work->hitDamage, 0);
-                func_800DA6E8(&enemy->node, work->hitDamage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, work->hitDamage, 0);
                 enemy->hp -= work->hitDamage;
                 if (enemy->hp <= 0) {
                     if (work->burstStage == 0) {
@@ -1786,7 +1786,7 @@ static void Actor00300_Fn01678(Task* arg0)
         work->action     = ACTOR_00300_ACTION_PURSUE;
         work->actionStep = 0;
         work->alertTimer = ACTOR_00300_ALERT_TICKS;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         gSceneCombatState.actor00300AttackAlert = 0;
     }
     SCRATCH_STACK_RELEASE_BYTES(0x10);
@@ -2289,7 +2289,7 @@ static void Actor00300_Fn028D0(Task* arg0)
                 work->anim         = ACTOR_00300_ANIM_RECOVER;
                 currentEnemy       = arg0->spawnArg2.pointer;
                 currentEnemy->hp   = (u16)currentEnemy->hp + 0x64;
-                func_800DA6E8(&enemy->node, -0x64, 0);
+                worldTargetAddReadoutAmount(&enemy->node, -0x64, 0);
                 burst = Gp_SpawnEff(gRoomEffectSparkEmitterId, coord, 0, NULL);
                 if (burst != NULL) {
                     taskReparent(arg0, burst->task);
@@ -3240,7 +3240,7 @@ static void Actor00300_Fn04A2C(Task* arg0)
         damage          = Gp_TickObjFlag4(enemy);
         work->hitDamage = damage;
         if (damage != 0) {
-            func_800DA6E8(&enemy->node, (s32)damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, (s32)damage, 0);
             enemy->hp        = (u16)enemy->hp - (u16)work->hitDamage;
             work->action     = ACTOR_00300_ACTION_HURT;
             work->actionStep = 0;

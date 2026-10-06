@@ -866,7 +866,7 @@ static void Actor01200_Fn01040(Enemy* arg0, Task* arg1)
     d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 2000)) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = ACTOR_01200_STATE_ROUSE;
     }
 }
@@ -895,7 +895,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
         work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
         animDriverTick(arg1);
         work->chaseFarFrames = 0;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         return;
     }
     head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
@@ -1346,7 +1346,7 @@ static void Actor01200_Fn02918(Enemy* arg0, Task* arg1)
         sc->hitYaw = angle;
         sc->hitYaw = actorWrapAngle(angle);
         Actor01200_Fn026A0(arg1, sc->hitYaw, sc->hitKey);
-        func_800DA6E8(&arg0->node, sc->damage, 0);
+        worldTargetAddReadoutAmount(&arg0->node, sc->damage, 0);
         arg0->hp -= sc->damage;
         if (arg0->hp <= 0) {
             arg0->spawnState = 0;

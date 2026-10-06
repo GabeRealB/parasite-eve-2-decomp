@@ -2626,7 +2626,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
                 work->phase++;
                 taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
                 return;
             }
             break;
@@ -2764,7 +2764,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
                     if (work->captionStep == 0xB) {
                         work->timer = 0xF;
                         work->phase++;
-                        Gp_ArmStateF0(1);
+                        sceneEngageBattle(1);
                     }
                     work->captionStep++;
                 }
@@ -2904,7 +2904,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                 work->phase++;
                 taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             break;
         case 4:
@@ -3114,7 +3114,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                 taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             break;
         case 6:

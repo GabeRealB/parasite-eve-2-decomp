@@ -1462,7 +1462,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         kind = Gp_GetIdParam0((s32)hitKey) & 0xFFFF;
         if (kind < 0xA) {
             if (kind >= 8) {
-                func_800DA6E8(&enemy->node, 0, 0);
+                worldTargetAddReadoutAmount(&enemy->node, 0, 0);
             }
         }
     } else if ((s32)damage > 0) {
@@ -1554,7 +1554,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
         damageAccumulateLifeDrainHp(enemy, (s32)hitKey, (s32)damage, 0);
-        func_800DA6E8(&enemy->node, (s32)damage, 0);
+        worldTargetAddReadoutAmount(&enemy->node, (s32)damage, 0);
         if (work->hp > 0) {
             hp        = (u16)work->hp - damage;
             work->hp  = hp;
@@ -2460,7 +2460,7 @@ static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 work->lookYaw = goal;
             }
         } else {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             work->stateStep++;
         }
     } else if (latch == 2) {
@@ -2565,7 +2565,7 @@ static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, 
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rng;
         work->state     = ((rng >> 0x10) & 4) ? ACTOR_01100_STATE_PUNCH_LEFT : ACTOR_01100_STATE_PUNCH_RIGHT;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->stateStep = 0;
         return;
     }
@@ -2578,7 +2578,7 @@ static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, 
     dist = _actor01100DistSqToPlayer(task->extra.tmd->coords);
     kind = work->entryId;
     if (((kind == 0xB) && (dist <= 0x89543F)) || ((kind == 0x31) && (dist <= 0x22550F))) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state         = ACTOR_01100_STATE_SPIT;
         work->stateStep     = 0;
         task->killCountdown = 0;

@@ -44,7 +44,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 if (work->ambushFollower == 0) {
                     gSceneCombatState.maggotCaterpillarAmbushReady = 1;
                 }
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
                 work->step              = 1;
                 work->animId            = MAGGOT_CATERPILLAR_ANIM_DROP;
                 work->fallSpeed         = gMaggotCaterpillarDropSpeed[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
@@ -67,7 +67,7 @@ void maggotCaterpillarAmbushState(Task* actor)
                 if (work->ambushFollower == 0) {
                     gSceneCombatState.maggotCaterpillarAmbushReady = 1;
                 }
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
                 work->step              = 2;
                 work->animId            = MAGGOT_CATERPILLAR_ANIM_LAND;
                 work->fallSpeed         = gMaggotCaterpillarDropSpeed[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
@@ -116,7 +116,7 @@ void maggotCaterpillarAmbushState(Task* actor)
             break;
         case 3:
             if (work->animFrame >= 0x1E) {
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
                 work->behaviour         = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step              = 0;
                 work->animId            = MAGGOT_CATERPILLAR_ANIM_IDLE;

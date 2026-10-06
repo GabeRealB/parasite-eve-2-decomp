@@ -3993,7 +3993,7 @@ static void func_actor_403100_8013335C(Task* arg0)
                         break;
                 }
                 damageAccumulateLifeDrainHp(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, scaledDamage, 0);
-                func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
+                worldTargetAddReadoutAmount(&D_actor_403100_8015580C->node, scaledDamage, 0);
                 hp                          = (u16)D_actor_403100_8015580C->hp - scaledDamage;
                 D_actor_403100_8015580C->hp = hp;
                 if ((s16)hp < 0) {
@@ -4057,7 +4057,7 @@ static void func_actor_403100_8013335C(Task* arg0)
         tickDamage = (u32)Gp_TickObjFlag4(D_actor_403100_8015580C) >> 2;
         if ((s16)tickDamage != 0) {
             D_actor_403100_8015580C->hp = (u16)((u16)D_actor_403100_8015580C->hp - tickDamage);
-            func_800DA6E8(&D_actor_403100_8015580C->node, (s16)tickDamage, 0);
+            worldTargetAddReadoutAmount(&D_actor_403100_8015580C->node, (s16)tickDamage, 0);
             if ((s16)D_actor_403100_8015580C->hp < 0) {
                 D_actor_403100_8015580C->hp = 0U;
             }
@@ -5388,7 +5388,7 @@ static void func_actor_403100_80136830(Task* arg0)
     armTimer      = D_actor_403100_80155808->engageDelay;
     if (armTimer != 0) {
         if ((armTimer == 1) && (D_actor_403100_8015580C->hp > 0)) {
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
         }
         D_actor_403100_80155808->engageDelay = (s16)((u16)D_actor_403100_80155808->engageDelay - 1);
     }

@@ -2320,7 +2320,7 @@ static void Actor00100_Fn0375C(Task* arg0)
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, (s32)(effect), NULL);
             }
             ctx->hp = ctx->hp - scratch->damage;
-            func_800DA6E8(&ctx->node, scratch->damage, 0);
+            worldTargetAddReadoutAmount(&ctx->node, scratch->damage, 0);
             totalDamage        = work->recentDamage + (u16)scratch->damage;
             work->recentDamage = totalDamage;
             if (ctx->hp <= 0) {
@@ -2361,7 +2361,7 @@ static void Actor00100_Fn0375C(Task* arg0)
             ctx->hp    = ctx->hp - scratch->damage;
             tickDamage = scratch->damage;
             if (tickDamage != 0) {
-                func_800DA6E8(&ctx->node, (s32)tickDamage, 0);
+                worldTargetAddReadoutAmount(&ctx->node, (s32)tickDamage, 0);
                 if (ctx->hp <= 0) {
                     poisonState = work->state;
                     if ((poisonState != 4) && (poisonState != 7) && (poisonState != 0xB) && (poisonState != 0x11)) {
@@ -2613,7 +2613,7 @@ static void Actor00100_Fn070DC(Task* arg0)
     work->lookYawTarget    = (s16)finalDelta;
     magnitude              = abs(scratch->yawFromPlayer - scratch->playerYaw);
     if (magnitude >= 0x601) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = 0x1C;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
@@ -2649,7 +2649,7 @@ static void Actor00100_Fn07650(Task* arg0)
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         ctx->hp = ctx->hp - 0xF;
-        func_800DA6E8(&ctx->node, 0xF, 0);
+        worldTargetAddReadoutAmount(&ctx->node, 0xF, 0);
         if (ctx->hp <= 0) {
             ctx->hp = 1;
         } else {
@@ -2742,7 +2742,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
     scratch->turn          = (s16)finalDelta;
     work->lookYawTarget    = (s16)finalDelta;
     if (abs(scratch->screen.vx) < 0x78 && abs(scratch->screen.vy) < 0x64 && abs(scratch->turn) < 0x200) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = 0x1C;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00100ScreenWatchScratch);
@@ -3467,7 +3467,7 @@ static void Actor00100_Fn0B658(Task* arg0)
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->animRate                                        = work->baseRate;
         desertChaserAnimTick(arg0);
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

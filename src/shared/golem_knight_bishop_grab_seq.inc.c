@@ -123,7 +123,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->playerAnim.blendFrames          = 0;
                 sc->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->playerAnim, 0);
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
                 work->interruptDamage = 0;
                 if (work->hitCooldown == 0) {
                     work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;

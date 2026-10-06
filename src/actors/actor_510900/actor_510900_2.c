@@ -912,7 +912,7 @@ static void func_actor_510900_80135744(Task* arg0)
                         break;
                 }
                 enemy->hp -= dmg;
-                func_800DA6E8(&enemy->node, dmg, 0);
+                worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
                 if (enemy->hp <= 0) {
                     if (work->lethalAttackPhase < 2) {
                         work->lethalAttackPhase = 0;
@@ -1020,7 +1020,7 @@ static void func_actor_510900_80135744(Task* arg0)
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     loss                       = Gp_LookupIdField((u16)work->bodyContacts[i].key.value, 1);
                     enemy->hp                 -= loss;
-                    func_800DA6E8(&enemy->node, loss, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, loss, 0);
                     if (enemy->hp <= 0) {
                         if (work->lethalAttackPhase < 2) {
                             work->lethalAttackPhase = 0;

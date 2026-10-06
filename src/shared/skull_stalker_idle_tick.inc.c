@@ -60,7 +60,7 @@ void skullStalkerIdleTick(Task* arg0)
         }
         work->senseBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->frontSenseBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     worldCollisionClearContacts(work->senseContacts);
     animId = work->animId;

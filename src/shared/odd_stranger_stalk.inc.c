@@ -37,7 +37,7 @@ void oddStrangerStalk(Task* arg0)
         work->dashCount         = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->stateTimer  = 0;
         work->exitCounter = 0;
         if ((arg0->spawnArg1.value >> 16) == 0x10) {

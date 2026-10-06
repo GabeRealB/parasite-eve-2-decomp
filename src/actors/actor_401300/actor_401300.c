@@ -2552,7 +2552,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             enemy->hp -= s->damage;
-            func_800DA6E8(&enemy->node, s->damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, s->damage, 0);
             if (work->state == ACTOR_401300_STATE_DORMANT_SCRIPTED) {
                 sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
@@ -2668,7 +2668,7 @@ static void func_actor_401300_80134F90(Task* arg0)
             }
             if (s->damage != 0) {
                 enemy->hp -= s->damage;
-                func_800DA6E8(&enemy->node, s->damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, s->damage, 0);
                 if (work->state == ACTOR_401300_STATE_CHASE || work->state == ACTOR_401300_STATE_STALK || work->state == ACTOR_401300_STATE_GRAB || work->state == ACTOR_401300_STATE_GRAB_WINDUP) {
                     work->state = ACTOR_401300_STATE_FLINCH;
                 } else if (work->state == ACTOR_401300_STATE_STATUS_HOLD) {
@@ -2880,7 +2880,7 @@ static void func_actor_401300_80136238(Task* arg0)
         work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         func_actor_401300_80133A3C(arg0);
         work->hitBody.radius = 0x280;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->jointPairTarget = 0x200;
         work->jointPairStep   = 0x20;
         return;
@@ -3769,7 +3769,7 @@ static void func_actor_401300_80139520(Task* arg0)
         work->state = ACTOR_401300_STATE_ALERT;
     }
     if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = ACTOR_401300_STATE_ALERT;
     }
     func_actor_401300_80133A3C(arg0);
@@ -3837,11 +3837,11 @@ static void func_actor_401300_801397F8(Task* arg0)
     d->vz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 3000)) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = ACTOR_401300_STATE_ALERT;
     }
     if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = ACTOR_401300_STATE_ALERT;
     }
 }
@@ -4381,7 +4381,7 @@ static void func_actor_401300_8013CBAC(Task* arg0)
         work->field_D1C         = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->stateTimer    = 0;
         work->blockedFrames = 0;
     }

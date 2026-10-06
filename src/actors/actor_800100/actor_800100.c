@@ -1733,7 +1733,7 @@ static void func_actor_800100_80164184(Task* arg0)
 }
 
 /// Lock-on drive for the actor's `statePhase` state machine. Builds a `VECTOR3`
-/// at `the scratch stack - 0x10` from the lock node (`Gp_GetLockPos`, or the
+/// at `the scratch stack - 0x10` from the lock node (`worldTargetGetBodyPosition`, or the
 /// linked object's coord when `actor->targetNode` is set but flagged), plays the
 /// 5/6 child-slot animation on entry, mirrors `actionValue` into `turnSign` and
 /// resets the actor's move once the aim is close enough.
@@ -1760,7 +1760,7 @@ static void func_actor_800100_801643F4(Task* arg0)
     src                              = extra->coords;
     if (node != NULL) {
         if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-            Gp_GetLockPos(node, pos);
+            worldTargetGetBodyPosition(node, pos);
         } else {
             actor->statePhase = 2;
         }
@@ -1807,7 +1807,7 @@ static inline s32 _actor800100LockTargetTurn(Task* task, GameActor* actor, VECTO
     if (actor->targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
         actor->targetNode = Gp_FindLockNodePad(task);
     }
-    Gp_GetLockPos(actor->targetNode, pos);
+    worldTargetGetBodyPosition(actor->targetNode, pos);
     val = func_8010BCF4(task, pos);
     if (val < 0) {
         val = -val;
@@ -1816,7 +1816,7 @@ static inline s32 _actor800100LockTargetTurn(Task* task, GameActor* actor, VECTO
 }
 
 /// Second arm of the lock-on drive: builds the lock position at
-/// `the scratch stack - 0x10` (`Gp_GetLockPos`, or `Gp_FindLockNodePad` when
+/// `the scratch stack - 0x10` (`worldTargetGetBodyPosition`, or `Gp_FindLockNodePad` when
 /// `targetNode` is flagged) and measures the distance to it with
 /// `func_8010BCF4`. Close enough latches `statePhase` to 1 and plays the slot-7
 /// child animation; otherwise the target is handed to `Gp_TrackAllyLockTarget`
@@ -1891,7 +1891,7 @@ static void func_actor_800100_80164710(Task* arg0)
     switch (actor->statePhase) {
         case 0:
             lock = actor->targetNode;
-            if ((lock == NULL) || (coord = arg0->extra.tmd->coords, Gp_GetLockPos(lock, &block->targetPoint), playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta), ((playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
+            if ((lock == NULL) || (coord = arg0->extra.tmd->coords, worldTargetGetBodyPosition(lock, &block->targetPoint), playerActorGetPointDelta(coord, &block->targetPoint, &block->targetDelta), ((playerActorPlanarLength(block->targetDelta.vx, block->targetDelta.vz) < 0x301) != 0))) {
                 actor2                 = arg0->work;
                 actor2->mode           = GAME_ACTOR_MODE_NORMAL;
                 actor2->state          = 4;
@@ -1974,7 +1974,7 @@ static void func_actor_800100_80164940(Task* arg0)
         case 0:
             actor->statePhase    = flag;
             actor->turnRateIndex = flag;
-            Gp_GetLockPos(actor->targetNode, pos);
+            worldTargetGetBodyPosition(actor->targetNode, pos);
             if (func_8010BCF4(arg0, pos) < 0) {
                 actor->actionValue = flag;
                 arg                = 6;
@@ -1987,7 +1987,7 @@ static void func_actor_800100_80164940(Task* arg0)
             /* fallthrough */
         case 1:
             actor->turnSign = (u8)actor->actionValue;
-            Gp_GetLockPos(actor->targetNode, pos);
+            worldTargetGetBodyPosition(actor->targetNode, pos);
             val  = func_8010BCF4(arg0, pos);
             dist = actor->stateTimer;
             if (val < 0) {
@@ -2048,7 +2048,7 @@ static void func_actor_800100_80164940(Task* arg0)
 /// latches into the `0xA` / child-slot-1 chain, keeping the old `state` in
 /// `stateAux` and clearing the aim offset on `companionWork`. Otherwise it reserves
 /// a `_Actor800100TargetScratch` on the scratch stack, fills `targetPoint`
-/// either from the lock node (`Gp_GetLockPos`) or from the player's model
+/// either from the lock node (`worldTargetGetBodyPosition`) or from the player's model
 /// coordinate, runs the `statePhase` switch, measures the planar length of
 /// `targetDelta`, and drops back to child slot 9 once the target is within the
 /// rolled reach. Both arms end by handing `targetPoint` to `func_8010BD88` /
@@ -2099,7 +2099,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
     node  = actor->targetNode;
     if (node != NULL) {
         if ((node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) == 0) {
-            Gp_GetLockPos(node, &block->targetPoint);
+            worldTargetGetBodyPosition(node, &block->targetPoint);
         } else {
             actor->statePhase = 2;
         }
@@ -2673,7 +2673,7 @@ static void func_actor_800100_801659EC(Task* arg0)
     node                          = Gp_FindLockNode(arg0);
     actor->targetNode             = node;
     if (node != NULL) {
-        Gp_GetLockPos(node, lock);
+        worldTargetGetBodyPosition(node, lock);
         playerActorGetPointDelta(coord, lock, lock);
         kind = playerActorPlanarLength(*(s32*)lock, lock->vz);
         mode = 2;

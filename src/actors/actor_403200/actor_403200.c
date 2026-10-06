@@ -4232,7 +4232,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 /// Each group's scan is `_gluttonScanGroup`, and the effect with the re-read of
 /// the key `_gluttonHitLanded`. `esc3` / `esc0` / `esc1` and
 /// the `hp` load are the sibling's arrangement, but evaluated before
-/// `func_800DA6E8` so `host->field_40` is still in a register and the three
+/// `worldTargetAddReadoutAmount` so `host->field_40` is still in a register and the three
 /// stores reuse it; the pool subtraction after them carries the same `field_40`
 /// value for the same reason.
 static void func_actor_403200_8013A4A0(Task* arg0)
@@ -4318,7 +4318,7 @@ static void func_actor_403200_8013A4A0(Task* arg0)
             work->groups3To5Pool = 0x32;
         }
 
-        func_800DA6E8(&work->escorts[0]->node, sc->damage, 0);
+        worldTargetAddReadoutAmount(&work->escorts[0]->node, sc->damage, 0);
         work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(work->escorts[0]->task->extra.tmd->coords);
         sc->offset.vx = sc->contactPoint.vx - work->escorts[0]->task->extra.tmd->coords->workm.t[0];
@@ -6406,7 +6406,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         work->escorts[1]->node.state.parts.flags = nodeFlags;
     } else if (work->hostExposed != 0) {
         if (worldTargetGetActorLockMask(&work->escorts[3]->node) != 0) {
-            Gp_AssignNodeSlot0(&arg0->node);
+            worldTargetSetPlayerLock(&arg0->node);
         }
         arg0->node.state.parts.flags             = WORLD_TARGET_HIDE_HP;
         work->escorts[3]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
@@ -6414,7 +6414,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         work->escorts[1]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     } else {
         if (worldTargetGetActorLockMask(&arg0->node) != 0) {
-            Gp_AssignNodeSlot0(&work->escorts[3]->node);
+            worldTargetSetPlayerLock(&work->escorts[3]->node);
         }
         arg0->node.state.parts.flags             = WORLD_TARGET_NOT_LOCKABLE;
         nodeFlags                                = 8;
@@ -6780,7 +6780,7 @@ s32 func_actor_403200_8014196C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 #include "../../shared/actor_messages_place.inc.c"
 
 /// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
-/// heal counter, files a negative "damage" with `func_800DA6E8` so the HUD
+/// heal counter, files a negative "damage" with `worldTargetAddReadoutAmount` so the HUD
 /// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
 /// `summonsAlive` down and, once it has run out, re-arms the enemy's
 /// `deathDelay`. Same body as `func_actor_444000_80143E68` without its tracked
@@ -6793,7 +6793,7 @@ s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 0:
             work->pendingHeals++;
-            func_800DA6E8(&enemy->node, -0x64, 0);
+            worldTargetAddReadoutAmount(&enemy->node, -0x64, 0);
             if (enemy->hp > 0) {
                 enemy->hp += 0x64;
             }

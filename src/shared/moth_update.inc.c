@@ -2,7 +2,7 @@
 
 /// Task state 1. Shows or hides the model and target lock with the combat
 /// actor-control state (paused: colour only). Otherwise runs the contact pass
-/// and the part oscillation, becomes alerted (arming state F0) once another
+/// and the part oscillation, becomes alerted (engaging battle) once another
 /// moth has died, steers and drifts, recomposes the root coordinate, updates
 /// the colour and plays sound 8 on a 1-in-128 roll.
 void mothUpdate(Enemy* arg0, Task* arg1)
@@ -31,7 +31,7 @@ void mothUpdate(Enemy* arg0, Task* arg1)
     mothOscillateParts(arg1);
     if (work->alerted == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
         work->alerted = 1;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     mothSteer(arg1);
     mothDrift(arg1);

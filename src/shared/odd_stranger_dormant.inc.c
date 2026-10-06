@@ -50,12 +50,12 @@ void oddStrangerDormant(Task* arg0)
     d->vz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!oddStrangerOutOfRange(d, work->noticeRadius)) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work->state = ODD_STRANGER_STATE_ALERT;
     }
     if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
 #if ODD_STRANGER_VARIANT == 1
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
 #endif
         work->state = ODD_STRANGER_STATE_ALERT;
     }

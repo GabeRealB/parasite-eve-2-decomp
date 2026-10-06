@@ -137,7 +137,7 @@ void maggotCaterpillarEntranceState(Task* arg0)
                 randomDelay        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
                 gRandomLcgState    = randomDelay;
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             break;
     }

@@ -122,7 +122,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserEffectArgStorage, 96);
 #define DESERT_CHASER_CLIP_TURN_PROBE  0x12
 #define DESERT_CHASER_SLOT_RATE(work)  ((work)->baseRate) /* the chaser's own rate */
 /* seeing the player raises the alert and starts the chase */
-#define DESERT_CHASER_NOTICE(work) (Gp_ArmStateF0(1), (work)->state = 0x26)
+#define DESERT_CHASER_NOTICE(work) (sceneEngageBattle(1), (work)->state = 0x26)
 /* how near the player has to be before a steering chaser closes in */
 #define DESERT_CHASER_CLOSE_IN 2000
 #else

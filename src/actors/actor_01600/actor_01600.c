@@ -1971,7 +1971,7 @@ static void Actor01600_Fn0131C(Task* arg0, s32 damage)
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
     ctx->hp = (u16)(ctx->hp - damage);
-    func_800DA6E8(&ctx->node, damage, 0);
+    worldTargetAddReadoutAmount(&ctx->node, damage, 0);
     work->reactionDelay = 1;
     if ((s16)ctx->hp <= 0) {
         work->dead             = 1;
@@ -2172,7 +2172,7 @@ static void Actor01600_Fn017BC(Task* actor)
         work->pathSearchPhase       = ACTOR_01600_PATH_SEARCH_PROBE_TARGET;
         work->sight.body.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->pathProbe.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     worldCollisionClearContacts(rec);
     if (work->noiseHeard == 1) {
@@ -4161,7 +4161,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
                     coord->coord.t[1] = pos2->vy;
                     coord->coord.t[2] = pos2->vz;
                 }
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             ctx->node.state.parts.flags = 0;
             work->active                = 1;

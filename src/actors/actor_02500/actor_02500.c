@@ -871,7 +871,7 @@ static void Actor02500_Fn00494(Task* actor)
                         }
                     }
                     damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
-                    func_800DA6E8(&ctx->node, damage, 0);
+                    worldTargetAddReadoutAmount(&ctx->node, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
                         work->action            = ACTOR_02500_ACTION_DIE;
@@ -970,7 +970,7 @@ static void Actor02500_Fn00494(Task* actor)
     if (worldCollisionCountContactsByKind(work->noticeContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0 && work->action == ACTOR_02500_ACTION_WANDER) {
         work->action     = ACTOR_02500_ACTION_CHASE;
         work->actionStep = ACTOR_02500_CHASE_STEP_BEGIN;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
     }
     worldCollisionClearContacts(work->noticeContacts);
     SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
@@ -1281,7 +1281,7 @@ static void Actor02500_Fn012F0(Task* actor)
             if (work->timer >= 0x1F) {
                 work->action     = ACTOR_02500_ACTION_CHASE;
                 work->actionStep = ACTOR_02500_CHASE_STEP_BEGIN;
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             break;
     }

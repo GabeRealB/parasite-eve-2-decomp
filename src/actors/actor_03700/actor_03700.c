@@ -962,7 +962,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
                 } else {
                     work->deathEffect = (Gp_GetIdParam1(id) & 0xFFFF) == 7;
                 }
-                func_800DA6E8(&((Enemy*)task->spawnArg2.pointer)->node, damage, 0);
+                worldTargetAddReadoutAmount(&((Enemy*)task->spawnArg2.pointer)->node, damage, 0);
                 damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->contacts[i].key.value, damage, 0);
                 if ((s32)damage > 0) {
                     ((Enemy*)task->spawnArg2.pointer)->hp = 0;
@@ -1618,7 +1618,7 @@ static s32 Actor03700_Fn01DFC(Task* task)
     ret                            = 0;
     if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_MASK)) || (gSceneCombatState.actor03700Flags & SCENE_COMBAT_ACTOR03700_ALERT)) {
         ret = 1;
-        Gp_ArmStateF0(ret);
+        sceneEngageBattle(ret);
         soundId   = ((Enemy*)task->spawnArg2.pointer)->placeKey;
         soundId >>= 0xC;
         soundId <<= 8;
@@ -1962,7 +1962,7 @@ static void Actor03700_Fn027DC(Task* task)
                 work->action     = ACTOR_03700_ACTION_CHASE;
                 work->actionStep = 0;
                 work->timer      = 0;
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             break;
     }
@@ -2025,7 +2025,7 @@ static void Actor03700_Fn029C0(Task* task)
             if (abs(work->targetPos.vy - coord->coord.t[1]) < 40) {
                 work->actionStep = 3;
                 work->timer      = 30;
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             break;
         case 3:

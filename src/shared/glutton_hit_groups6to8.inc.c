@@ -17,7 +17,7 @@
 ///
 /// The second escort carries the damage and the effect, but `sc->contactYaw` is the
 /// yaw of the contact point relative to the first escort's facing. `esc3` /
-/// `esc0` / `esc1` and the `hp` load sit after `func_800DA6E8`, unlike the
+/// `esc0` / `esc1` and the `hp` load sit after `worldTargetAddReadoutAmount`, unlike the
 /// group 3-5 handler.
 ///
 /// Groups 6 and 7 share one `gluttonHitEffect` call through `coord` and `id`,
@@ -126,7 +126,7 @@ void gluttonHitGroups6To8(Task* arg0)
         }
         damageAccumulateLifeDrainHp(host, sc->attackKey, sc->damage, 0);
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
-        func_800DA6E8(&work->escorts[1]->node, sc->damage, 0);
+        worldTargetAddReadoutAmount(&work->escorts[1]->node, sc->damage, 0);
 #endif
         host->hp             -= sc->damage;
         work->groups6To8Pool -= sc->damage;
@@ -156,7 +156,7 @@ void gluttonHitGroups6To8(Task* arg0)
         }
 
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        func_800DA6E8(&work->escorts[1]->node, sc->damage, 0);
+        worldTargetAddReadoutAmount(&work->escorts[1]->node, sc->damage, 0);
         esc3     = work->escorts[3];
         hp       = host->hp;
         esc0     = work->escorts[0];

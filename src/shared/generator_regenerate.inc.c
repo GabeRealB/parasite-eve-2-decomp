@@ -17,7 +17,7 @@ void generatorRegenerate(Task* arg0)
         work->regenTimer = timer;
         if ((timer << 0x10) <= 0) {
             enemy->hp = enemy->hp + 1;
-            func_800DA6E8(&enemy->node, -1, 0);
+            worldTargetAddReadoutAmount(&enemy->node, -1, 0);
             work->regenTimer = 5;
         }
     }

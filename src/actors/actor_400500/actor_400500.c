@@ -2618,7 +2618,7 @@ static void func_actor_400500_8013456C(Task* arg0)
                 }
                 amount16 = amount;
                 damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount16, 0);
-                func_800DA6E8(&enemy->node, amount16, 0);
+                worldTargetAddReadoutAmount(&enemy->node, amount16, 0);
                 hp        = (u16)enemy->hp - amount;
                 enemy->hp = hp;
                 if ((hp << 16) <= 0) {
@@ -2693,7 +2693,7 @@ static void func_actor_400500_8013456C(Task* arg0)
         tick = tmp;
         if (tick != 0) {
             enemy->hp = (u16)enemy->hp - tmp;
-            func_800DA6E8(&enemy->node, tick, 0);
+            worldTargetAddReadoutAmount(&enemy->node, tick, 0);
             if (enemy->hp < 0) {
                 enemy->hp = 0;
             }
@@ -4849,7 +4849,7 @@ static void func_actor_400500_80139448(Task* arg0)
 
     work = (_Actor400500GrayStalkerWork*)arg0->work;
     if (work->targetDist < 0x9C4) {
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050004;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));

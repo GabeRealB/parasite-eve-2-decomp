@@ -33,6 +33,7 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+#include "gameplay/scene_combat.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -605,7 +606,7 @@ void func_dryfield_breezeway_8017E2D4(void)
 
 void func_dryfield_breezeway_8017E350(void)
 {
-    Gp_ArmStateF0(1);
+    sceneEngageBattle(1);
 }
 
 void func_dryfield_breezeway_8017E370(s16 arg0)

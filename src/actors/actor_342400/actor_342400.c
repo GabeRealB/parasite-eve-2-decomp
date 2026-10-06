@@ -517,7 +517,7 @@ static void func_actor_342400_80162A34(Task* arg0)
     if (++work->frames == 15) {
         (sceneAcquireBattleRef)(0);
         gGameSession->spawnPhase[1] = GAME_SESSION_SPAWN_ARMED;
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         arg0->state++;
     }
 }

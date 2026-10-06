@@ -20,11 +20,11 @@
 #include "pad_input.h"
 #include "player_actor.h"
 #include "gameplay/room.h"
+#include "scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "world_collision.h"
-#include "world_targets.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -177,7 +177,7 @@ void func_800AA548(s32 arg0)
     }
     Gp_SpawnPlaces(sess);
     Gp_SpawnArea(sess);
-    Gp_InitStateF0();
+    sceneResetCombatState();
     Task_Spawn(1, 0xF, 0, 0);
     Task_Spawn(1, 0x10, 0, 0);
     // Read arrival effects after the room's setup has run.

@@ -1335,7 +1335,7 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     enemy->hp -= dmg;
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     if (enemy->hp <= 0) {
         func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_DEFEATED);
         work->defeated = 1;
@@ -2966,7 +2966,7 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         func_actor_503500_80138490(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING);
@@ -3733,7 +3733,7 @@ static void func_actor_503500_801398D0(Task* arg0)
                 dmg = Gp_TickObjFlag4(enemy);
                 if (dmg != 0) {
                     enemy->hp -= dmg;
-                    func_800DA6E8(&enemy->node, dmg, 0);
+                    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
                     work->slowFrames = 8;
                     if (enemy->hp <= 0) {
                         enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
@@ -3790,7 +3790,7 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
         crit = 1;
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    func_800DA6E8(&enemy->node, dmg, 0);
+    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_DYING);

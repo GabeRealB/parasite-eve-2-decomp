@@ -2829,7 +2829,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
             damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
-            func_800DA6E8(&enemy->node, scratch->damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if (enemy->hp <= 0 && gPlayerStatus.hp <= 0) {
                 enemy->hp = 1;
@@ -2946,7 +2946,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
             damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
-            func_800DA6E8(&enemy->node, scratch->damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
             if ((work->state == ACTOR_403000_STATE_DROP && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) || work->state == ACTOR_403000_STATE_DROP_CATCH || work->state == ACTOR_403000_STATE_AMBUSH || work->playerCaught == 1) {
                 if (enemy->hp <= 0) {
@@ -2980,7 +2980,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             }
             if (scratch->damage != 0) {
                 scratch->damage >>= 2;
-                func_800DA6E8(&enemy->node, scratch->damage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
                 enemy->hp -= scratch->damage;
                 if ((work->state == ACTOR_403000_STATE_DROP && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) || work->state == ACTOR_403000_STATE_DROP_CATCH || work->state == ACTOR_403000_STATE_AMBUSH || work->playerCaught == 1) {
                     if (enemy->hp <= 0) {

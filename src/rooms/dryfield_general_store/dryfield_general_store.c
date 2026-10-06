@@ -1691,7 +1691,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
 /// Arms `gSceneCombatState` with `arg0`.
 void func_dryfield_general_store_8017E130(s32 arg0)
 {
-    Gp_ArmStateF0(arg0);
+    sceneEngageBattle(arg0);
 }
 
 void dryfieldGeneralStoreNoOpEffectTask(Task* unusedTask)

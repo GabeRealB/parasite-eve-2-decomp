@@ -59,7 +59,7 @@ void generatorBodyHit(Task* arg0)
                 scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
                 Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
             }
-            func_800DA6E8(&enemy->node, damage, 0);
+            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
             damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, damage, 0);
             enemy->hp -= damage;
             if (enemy->hp <= 0) {

@@ -73,7 +73,7 @@ void ratContacts(Task* actor)
                         damage *= 4;
                         Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
-                    func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
+                    worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->hitContacts[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {

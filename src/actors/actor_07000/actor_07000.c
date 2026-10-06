@@ -1310,7 +1310,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             work->animId = ACTOR_07000_SLOUCH_ANIM_WATCH;
             if (work->animFrames >= 18) {
                 sceneSetEnemyAlert(1);
-                Gp_ArmStateF0(1);
+                sceneEngageBattle(1);
             }
             Actor07000_Fn047F4(arg0->extra.tmd->coords, &distance);
             if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) == 0 || distance >= 5000U) {
@@ -1328,7 +1328,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             worldCollisionClearContacts(work->senseContacts);
             break;
         case ACTOR_07000_SLOUCH_ENGAGED_STRIKE:
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             work->animId       = ACTOR_07000_SLOUCH_ANIM_STRIKE;
             work->forwardSpeed = 0;
             Actor07000_Fn047F4(arg0->extra.tmd->coords, &distance);
@@ -1365,7 +1365,7 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             }
             break;
         case ACTOR_07000_SLOUCH_ENGAGED_SPIT:
-            Gp_ArmStateF0(1);
+            sceneEngageBattle(1);
             work->animId = ACTOR_07000_SLOUCH_ANIM_SPIT;
             if (work->animFrames == 48) {
                 Actor07000_Fn062A8(arg0);
@@ -1606,7 +1606,7 @@ static void Actor07000_Fn04274(Task* arg0, s32 arg1)
     coord      = obj->coords;
     work       = arg0->work;
     enemy->hp -= arg1;
-    func_800DA6E8(&enemy->node, arg1, 0);
+    worldTargetAddReadoutAmount(&enemy->node, arg1, 0);
     if (enemy->hp <= 0) {
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), SOUND_SCRIPT_STOP_NO_FADE);
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;

@@ -2024,7 +2024,7 @@ static void func_actor_405800_80133CD0(Task* arg0)
             work->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_SHOW;
             work->cloakPhase   = 0;
         }
-        Gp_ArmStateF0(1);
+        sceneEngageBattle(1);
         work2           = (_Actor405800IvoryStalkerWork*)arg0->work;
         work2->state    = 0xC;
         work2->subState = 0;
@@ -2843,7 +2843,7 @@ static void func_actor_405800_80136388(Task* arg0)
                     Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
                 damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount, 0);
-                func_800DA6E8(&enemy->node, amount, 0);
+                worldTargetAddReadoutAmount(&enemy->node, amount, 0);
                 enemy->hp -= amount;
                 if (enemy->hp < 0) {
                     enemy->hp = 0;
@@ -2911,7 +2911,7 @@ static void func_actor_405800_80136388(Task* arg0)
         tick                     = tmp;
         if (tick != 0) {
             enemy->hp -= tmp;
-            func_800DA6E8(&enemy->node, tick, 0);
+            worldTargetAddReadoutAmount(&enemy->node, tick, 0);
             if (enemy->hp < 0) {
                 enemy->hp = 0;
             }
