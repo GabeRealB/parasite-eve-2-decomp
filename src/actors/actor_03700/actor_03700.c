@@ -866,6 +866,30 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
 /// deals its damage and spawns the hit effect. Any damage kills, recording
 /// `deathEffect`; a hit that only repels sends an actor off its perch into
 /// `ACTION_RETREAT`, or into `ACTION_RELEASE` while it holds the player.
+/// Moves the root by the grid response `response` of `func_800E0C10`: 1 adds the
+/// push-out it returned, 2 restores the previous position, anything else leaves it.
+static inline void _actor03700ApplyGridResponse(GfxCoord* coord, _Actor03700Work* work, ActorContactOverlapPushScratch* scratch, s32 response)
+{
+    s32 z;
+
+    switch (response) {
+        case 1:
+            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            z                  = coord->coord.t[2] + scratch->delta.fixed.vz.halves.integer;
+            break;
+        case 2:
+            coord->coord.t[0] = work->prevPos.vx;
+            coord->coord.t[1] = work->prevPos.vy;
+            z                 = work->prevPos.vz;
+            break;
+        case 0:
+        default:
+            return;
+    }
+    coord->coord.t[2] = z;
+}
+
 static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
 {
     ActorContactOverlapPushScratch* scratch;
@@ -874,9 +898,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
     _Actor03700Work*                work;
     s32                             push;
     s32                             reach;
-    s32                             res;
     s32                             i;
-    s32                             z;
     s32                             val;
     s32                             ex;
     s32                             ey;
@@ -890,26 +912,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
     work    = task->work;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
     coord   = task->extra.tmd->coords;
-    res     = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
-    if (res == 1)
-        goto move_delta;
-    if (res < 2)
-        goto move_done;
-    if (res == 2)
-        goto move_absolute;
-    goto move_done;
-move_delta:
-    coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-    coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-    z                  = coord->coord.t[2] + scratch->delta.fixed.vz.halves.integer;
-    goto move_z;
-move_absolute:
-    coord->coord.t[0] = work->prevPos.vx;
-    coord->coord.t[1] = work->prevPos.vy;
-    z                 = work->prevPos.vz;
-move_z:
-    coord->coord.t[2] = z;
-move_done:
+    _actor03700ApplyGridResponse(coord, work, scratch, func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL));
     i                    = 0;
     work->touchingPlayer = 0;
     do {
@@ -1670,36 +1673,23 @@ static void Actor03700_Fn01F48(Task* task)
             } else {
                 next += step;
             }
-            goto store;
+            work->yaw = next;
         }
     } else {
         step = work->turnRate;
-        if (diff > 0) {
-            if (step >= 0x1000 - diff) {
-                goto snap;
+        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+            work->yaw = work->targetYaw;
+        } else {
+            wrapStep = work->turnRate;
+            cur      = work->yaw;
+            if (diff > 0) {
+                next = cur - wrapStep;
             } else {
-                goto turn;
+                next = cur + wrapStep;
             }
-        } else if (step >= 0x1000 + diff) {
-            goto snap;
-        } else {
-            goto turn;
+            work->yaw = next;
         }
-    snap:
-        work->yaw = work->targetYaw;
-        goto done;
-    turn:
-        wrapStep = work->turnRate;
-        cur      = work->yaw;
-        if (diff > 0) {
-            next = cur - wrapStep;
-        } else {
-            next = cur + wrapStep;
-        }
-    store:
-        work->yaw = next;
     }
-done:
     rot->vx = 0;
     rot->vy = work->yaw;
     rot->vz = 0;
@@ -2085,30 +2075,19 @@ static void Actor03700_Fn03004(Enemy* enemy, Task* task)
     work  = task->work;
     coord = obj->coords;
     one   = 1;
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            obj->flags                    = 0;
+            enemy->node.state.parts.flags = 0;
+            break;
+        case 1:
+            Actor03700_Fn034A0(task);
+            return;
+        case 2:
+            obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = one;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags                    = 0;
-    enemy->node.state.parts.flags = 0;
-    goto default_body;
-case2:
-    obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    enemy->node.state.parts.flags = one;
-    return;
-default_body:
     if (work->action < ACTOR_03700_ACTION_WAVE_WAIT) {
         Actor03700_Fn0042C(task, obj, one);
     }
@@ -2127,7 +2106,6 @@ default_body:
     Actor03700_Fn033F0(task);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-case1:
     Actor03700_Fn034A0(task);
 }
 
