@@ -1914,24 +1914,26 @@ static __inline__ s32 Actor401300_InRange(Task* arg0)
     sv.vx = outp->vx;
     sv.vy = outp->vy;
     sv.vz = outp->vz;
-loop:
-    if (p->parent != NULL) {
-        if (p != view) {
-            gte_SetTransMatrix(&p->coord);
-            gte_SetRotMatrix(&p->coord);
-            gte_ldv0(svp);
-            gte_rtv0tr();
-            gte_stlvnl(vecp);
-            gte_stflg(flagp);
-            sv.vx = vec.vx;
-            sv.vy = vec.vy;
-            sv.vz = vec.vz;
-            p     = p->parent;
-            goto loop;
+    for (;;) {
+        if (p->parent != NULL) {
+            if (p != view) {
+                gte_SetTransMatrix(&p->coord);
+                gte_SetRotMatrix(&p->coord);
+                gte_ldv0(svp);
+                gte_rtv0tr();
+                gte_stlvnl(vecp);
+                gte_stflg(flagp);
+                sv.vx = vec.vx;
+                sv.vy = vec.vy;
+                sv.vz = vec.vz;
+                p     = p->parent;
+                continue;
+            }
+            outp->vx = sv.vx;
+            outp->vy = sv.vy;
+            outp->vz = sv.vz;
         }
-        outp->vx = sv.vx;
-        outp->vy = sv.vy;
-        outp->vz = sv.vz;
+        break;
     }
     ret = (u16)(out.vz + 0x12B) < 0xA27;
     if (ret != 0) {
@@ -5356,24 +5358,26 @@ static __inline__ s32 Actor401300_InRangeFlag(Task* arg0)
     sv.vx = outp->vx;
     sv.vy = outp->vy;
     sv.vz = outp->vz;
-loop:
-    if (p->parent != NULL) {
-        if (p != view) {
-            gte_SetTransMatrix(&p->coord);
-            gte_SetRotMatrix(&p->coord);
-            gte_ldv0(svp);
-            gte_rtv0tr();
-            gte_stlvnl(vecp);
-            gte_stflg(flagp);
-            sv.vx = vec.vx;
-            sv.vy = vec.vy;
-            sv.vz = vec.vz;
-            p     = p->parent;
-            goto loop;
+    for (;;) {
+        if (p->parent != NULL) {
+            if (p != view) {
+                gte_SetTransMatrix(&p->coord);
+                gte_SetRotMatrix(&p->coord);
+                gte_ldv0(svp);
+                gte_rtv0tr();
+                gte_stlvnl(vecp);
+                gte_stflg(flagp);
+                sv.vx = vec.vx;
+                sv.vy = vec.vy;
+                sv.vz = vec.vz;
+                p     = p->parent;
+                continue;
+            }
+            outp->vx = sv.vx;
+            outp->vy = sv.vy;
+            outp->vz = sv.vz;
         }
-        outp->vx = sv.vx;
-        outp->vy = sv.vy;
-        outp->vz = sv.vz;
+        break;
     }
     cmp = (u16)(out.vz + 0x12B) < 0xA27;
     if (cmp == 0) {
