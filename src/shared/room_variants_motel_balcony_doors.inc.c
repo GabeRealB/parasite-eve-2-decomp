@@ -32,8 +32,8 @@ s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, Ro
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
         if (ROOM_EVENT_ACTIVE != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
             Gp_SetItemSeenBit(0x113, 1);
         }
     } else if (msg->areaId == 0x1F) {
@@ -45,8 +45,8 @@ s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, Ro
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
         if (ROOM_EVENT_ACTIVE != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
             Gp_SetItemSeenBit(0x113, 1);
         }
     } else if (msg->areaId == 0x1E) {

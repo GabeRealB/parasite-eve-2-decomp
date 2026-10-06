@@ -99,8 +99,8 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             ret = 2;
         }
         if (ROOM_EVENT_ACTIVE != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
             Gp_SetItemSeenBit(0x113, 1);
         }
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_093) == 0) {
@@ -119,8 +119,8 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             ret = 2;
         }
         if (ROOM_EVENT_ACTIVE != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
             Gp_SetItemSeenBit(0x113, 1);
         }
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_094) == 0) {

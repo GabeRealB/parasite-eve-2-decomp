@@ -150,7 +150,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
                                         Gp_PubItemQty   = 1;
                                         Gp_PubItemReady = 1;
                                     } else if ((u32)(*tail - 0xA0) < 0x20U) {
-                                        if (Gp_GetCurBit2Flag(arg0) != 3) {
+                                        if (areaGetCurrentObjectState(arg0) != 3) {
                                             idx           = *tail - 0xA0;
                                             Gp_PubItemQty = stacks[idx].packQty;
                                         } else {

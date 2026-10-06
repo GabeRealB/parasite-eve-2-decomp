@@ -864,7 +864,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
                 }
             } else {
                 cfg->bp -= price;
-                Gp_GiveItem(scan, itemId, -1);
+                inventoryGiveItem(scan, itemId, INVENTORY_GIVE_ONE_PACK);
                 obj->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         } else {
@@ -955,7 +955,7 @@ static void Shop_ChargeTask(Task* task)
             supply             = Gp_GetItemMap(slotId);
             Shop_Data_8018762C = supply;
             itemId             = supply->weaponItemId;
-            slot               = Gp_GetItemSlot(itemId);
+            slot               = equipmentGetWeaponLoad(itemId);
             if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
                 Shop_Data_80187628 = slot->primaryQty;
                 slot->primaryQty   = Gp_GetRelatedQty(itemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
@@ -1013,7 +1013,7 @@ static inline s32 Shop_AddItemCount(s32 item, s32 count)
         count += Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
     } else {
         scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-        rec  = Gp_GetItemTable(scan) + scan->firstRow;
+        rec  = inventoryGetRangeTable(scan) + scan->firstRow;
         n    = scan->rowCount;
         for (i = 0; i < n; i++) {
             if (rec[i].itemId == item) {
@@ -1178,7 +1178,7 @@ static void Shop_QuantityTask(Task* task)
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             gPlayerStatus.bp -= price * task->extraState.value;
             for (i = 0; i < task->extraState.value; i++) {
-                Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId, -1);
+                inventoryGiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId, INVENTORY_GIVE_ONE_PACK);
             }
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             parentObj->result = USER_INTERFACE_RESULT_CONFIRM;

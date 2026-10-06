@@ -273,7 +273,7 @@ void func_mine_gorge_8017D828(Task* arg0)
         func_800E8634(D_mine_gorge_8017E2F0, 0, D_mine_gorge_8017E500);
     } else {
         taskKill(arg0);
-        Gp_ClearCollectedBit(0x11F);
+        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_OAK_BOARD);
     }
     arg0->state = arg0->state + 1;
 }

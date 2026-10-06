@@ -127,9 +127,9 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                 // Count two-bit flags whose value is 0, 1 or 3.
                 val = 0;
                 for (i = 0; i < command->bitFlagCount; i++) {
-                    if (Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 0 ||
-                        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 1 ||
-                        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 3) {
+                    if (areaGetCurrentObjectState(command->bitFlagIndex + i) == 0 ||
+                        areaGetCurrentObjectState(command->bitFlagIndex + i) == 1 ||
+                        areaGetCurrentObjectState(command->bitFlagIndex + i) == 3) {
                         val++;
                     }
                 }

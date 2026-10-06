@@ -2788,7 +2788,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
         if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
             Gp_StartCapSlot(3, 1, 0);
         } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_LEFT) {
-            Gp_ClearCollectedBit(0x104);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_BLUE_KEY);
             sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 1);
             gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 2);
@@ -2826,7 +2826,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
         if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
             Gp_StartCapSlot(4, 1, 0);
         } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_RIGHT) {
-            Gp_ClearCollectedBit(0x103);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_RED_KEY);
             sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | 2);
             _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
@@ -3704,7 +3704,7 @@ static void func_acropolis_security_room_80182574(Task* task)
 
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
-    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
     viewGetMappedIndex();
     if (flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

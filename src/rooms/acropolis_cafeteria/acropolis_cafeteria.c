@@ -1190,7 +1190,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 
     switch (task->state) {
         case 0:
-            if (Gp_GetCurBit2Flag(3) == 1) {
+            if (areaGetCurrentObjectState(3) == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
                 task->state = task->state + 1;
             } else {
@@ -1207,7 +1207,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 
         case 2:
             if (capIsBusy() == 0) {
-                if (Gp_GetCurBit2Flag(3) == 1) {
+                if (areaGetCurrentObjectState(3) == 1) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 1, 0);
                     task->state = task->state + 1;
                 } else {
@@ -1303,7 +1303,7 @@ s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
         if (gameFlagGetNibble(0) >= 2 || D_acropolis_cafeteria_80184164 >= 2) {
-            if (Gp_GetCurBit2Flag(4) == 1 || Gp_GetCurBit2Flag(4) == 0) {
+            if (areaGetCurrentObjectState(4) == 1 || areaGetCurrentObjectState(4) == 0) {
                 Gp_StartCapSlot(7, 1, 0);
             }
         }

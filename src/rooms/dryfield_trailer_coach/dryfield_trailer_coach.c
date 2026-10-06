@@ -1619,7 +1619,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                 func_800E3FAC(0xA2, 0xF);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
                 Gp_ApplyAreaRecs(D_dryfield_trailer_coach_80189C50);
-            } else if (Gp_HasCollectedBit(0x111) == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_TRAILER_COACH_04F) != 0) {
+            } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_MONKEY_WRENCH) == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_TRAILER_COACH_04F) != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_0FD) == 0) {
                     gameFlagSetNibble(GAME_FLAG_0FD, 1);
                     func_800E8614(D_dryfield_trailer_coach_80186D2C, 0);

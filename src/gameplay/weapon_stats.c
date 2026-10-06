@@ -178,7 +178,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         D_80114D80 = D_8010E984;
         eqRow      = Gp_WeaponStats[cfg->weapon];
     } else if ((u32)(arg1 - 0xA0) < 0x20U) {
-        slot    = Gp_GetItemSlot(cfg->weapon + 0x7F);
+        slot    = equipmentGetWeaponLoad(cfg->weapon + 0x7F);
         list    = &D_8010E9CC;
         itemRow = gpAmmoStats(arg1);
         if (Gp_ReloadMode == 2) {
@@ -409,7 +409,7 @@ void Gp_EquipSummaryTask(Task* arg0)
         }
     } else if (mode == 1) {
         uiDrawPanelLabel(&(obj)->panel, Gp_StrAmmoCaps);
-        slotp = Gp_GetItemSlot(cfg->weapon + 0x7F);
+        slotp = equipmentGetWeaponLoad(cfg->weapon + 0x7F);
         item  = slotp->primaryItemId;
         if (Gp_ReloadMode == 2) {
             item = slotp->secondaryItemId;
@@ -755,7 +755,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
         rec = Gp_FindItemById(item);
         qty = rec->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
         if (Gp_ReloadMode == 0) {
-            load = Gp_GetItemSlot(spawnArg);
+            load = equipmentGetWeaponLoad(spawnArg);
             if (load->primaryItemId == item) {
                 qty += load->primaryQty;
             } else if (load->secondaryItemId == item) {
@@ -851,7 +851,7 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
 
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     mode = Gp_ReloadMode;
-    slot = Gp_GetItemSlot(arg1);
+    slot = equipmentGetWeaponLoad(arg1);
     n    = 0;
     if (mode != 2) {
         for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {

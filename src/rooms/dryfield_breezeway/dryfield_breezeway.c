@@ -563,10 +563,10 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
                 Gp_RunCapCmd1(5);
             } else {
                 if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != 4) {
-                    if (Gp_HasCollectedBit(0x115) != 0) {
+                    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_FACTORY_KEY) != 0) {
                         gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 3);
                     } else if (gameFlagGetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE) != 0) {
-                        if (Gp_HasCollectedBit(0x11B) == 0) {
+                        if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BOTTLECAP_MAGNET) == 0) {
                             if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != 6) {
                                 gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 5);
                             }
@@ -582,7 +582,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
         case 3:
             if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) >= 2) {
                 if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                    if (Gp_GetCurBit2Flag(6) == 1) {
+                    if (areaGetCurrentObjectState(6) == 1) {
                         taskSpawnFromTable(D_dryfield_breezeway_80181E10, 0, 0, 0);
                         gameFlagSetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE, 1);
                     }

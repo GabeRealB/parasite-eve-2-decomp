@@ -461,7 +461,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     s32                  y;
 
     cfg    = &gPlayerStatus;
-    slot   = Gp_GetItemSlot(cfg->weapon + 0x7F);
+    slot   = equipmentGetWeaponLoad(cfg->weapon + 0x7F);
     count2 = -1;
     if (Pad_RemapState->hideHud != 0) {
         return;
@@ -1296,7 +1296,7 @@ static void Gp_UseItemTask(HudState* hud)
                 }
                 if (Gp_StateC08.activeIndex >= ATTACHMENT_SPELL_COUNT) {
                     Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
-                    Gp_RemoveItem(NULL, Gp_SelItemRec, 0);
+                    inventoryRemoveItemRow(NULL, Gp_SelItemRec, 0);
                 }
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex] < 0x270F) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex]++;
@@ -1693,7 +1693,7 @@ void Gp_HudTask(HudState* hud)
             if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
                 if (gGameSession->hideHud == 0) {
                     func_800A57B0(hud);
-                    if (func_800B9D80(0x100000) != 0) {
+                    if (equipmentHasEffect(EQUIPMENT_EFFECT_MOTION_DETECTOR) != 0) {
                         if (gGameSession->sceneUpdatesPaused == 0) {
                             Gp_DrawHudSprites(hud);
                         }
@@ -1737,7 +1737,7 @@ void Gp_HudTask(HudState* hud)
 
     if (hud->suppression <= HUD_SUPPRESS_NONE) {
         if (gGameSession->eventState == 0) {
-            if (func_800B9D80(0x4000) != 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_MEDICAL_INSPECTION) != 0) {
                 GameSession* session;
 
                 session = gGameSession;

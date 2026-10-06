@@ -179,8 +179,8 @@ static inline s32 _gpIsEquippedItem(s32 id)
     if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
         (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
         (((u32)(id - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-         ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == id) ||
-          (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == id)))) {
+         ((equipmentGetWeaponLoad(p->weapon + 0x7F)->primaryItemId == id) ||
+          (equipmentGetWeaponLoad(p->weapon + 0x7F)->secondaryItemId == id)))) {
         ret = 1;
     }
     return ret;
@@ -244,7 +244,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 
                 menu = &D_8010E8AC;
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                table = Gp_GetItemTable(scan);
+                table = inventoryGetRangeTable(scan);
                 count = scan->rowCount;
                 table = &table[scan->firstRow];
                 for (i = 0; i < count; i++) {
@@ -287,7 +287,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 
                 slot = D_8010E8AC.selectedItemIndex + 1;
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                rec   = Gp_GetItemTable(scan);
+                rec   = inventoryGetRangeTable(scan);
                 count = scan->rowCount;
                 rec   = &rec[scan->firstRow];
                 for (i = 0; i < count; i++, rec++) {
@@ -310,7 +310,7 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     InventoryItemRange* scan;
 
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = Gp_GetItemTable(scan);
+    table = inventoryGetRangeTable(scan);
     count = 0;
     table = &table[scan->firstRow];
     for (i = 0; i < scan->rowCount; i++, table++) {

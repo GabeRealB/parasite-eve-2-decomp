@@ -331,7 +331,7 @@ void Gp_DrawHudSprites(HudState* hud)
     func_800A63B4(cx, cy, 0);
     node  = gWorldTargetListHead;
     block = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
-    mode  = func_800B9D80(0x400);
+    mode  = equipmentHasEffect(EQUIPMENT_EFFECT_ARMOR_MOTION_DETECTOR);
     for (; node != NULL; node = node->next) {
         if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
             block->position.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
@@ -634,7 +634,7 @@ static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)
     s32                         val;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_HudTargetHpReadoutScratch);
-    if (func_800B9D80(0x100000) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_MOTION_DETECTOR) != 0) {
         scratch->x = 0x6A;
         scratch->y = -0x35;
     } else {

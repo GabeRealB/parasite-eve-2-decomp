@@ -706,7 +706,7 @@ static void Gp_EnqueueWeaponCd(void)
             EquipmentWeaponLoad* slot;
 
             param1[0] = 0x10;
-            slot      = Gp_GetItemSlot(item + 0x7F);
+            slot      = equipmentGetWeaponLoad(item + 0x7F);
             if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
                 attach = slot->secondaryItemId - 0x9F;
                 if (attach == 0xB) {

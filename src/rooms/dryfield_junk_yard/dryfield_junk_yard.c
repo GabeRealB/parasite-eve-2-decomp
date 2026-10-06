@@ -1660,7 +1660,7 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
 
     enemy      = task->spawnArg2.pointer;
     tmd        = task->extra.tmd;
-    flag       = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    flag       = areaGetCurrentObjectState((u8)enemy->placeKey);
     tmd->flags = 0;
     if (flag == 2) {
         tmd->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);

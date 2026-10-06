@@ -1354,19 +1354,19 @@ void func_actor_146300_80131ECC(Task* task)
             Gp_AgeFlag119();
             switch (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
                 case 2:
-                    if (Gp_HasCollectedBit(0x119) == 0) {
+                    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
                         Gp_RunCapCmd1(0x12);
                         task->state++;
                     } else {
-                        Gp_ClearCollectedBit(0x119);
+                        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
                         D_actor_146300_80142824 = 0x13;
                         gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 3);
                         task->state = 0xA;
                     }
                     break;
                 case 3:
-                    if (Gp_HasCollectedBit(0x119) == 0) {
-                        if (Gp_GetCurBit2Flag(0x1F) == 1) {
+                    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
+                        if (areaGetCurrentObjectState(0x1F) == 1) {
                             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
                             D_actor_146300_80142824 = 0x13;
                             task->state             = 0x14;
@@ -1375,15 +1375,15 @@ void func_actor_146300_80131ECC(Task* task)
                             task->state++;
                         }
                     } else {
-                        Gp_ClearCollectedBit(0x119);
+                        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
                         D_actor_146300_80142824 = 0x14;
                         gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 4);
                         task->state = 0xA;
                     }
                     break;
                 case 4:
-                    if (Gp_HasCollectedBit(0x119) == 0) {
-                        if (Gp_GetCurBit2Flag(0x20) == 1) {
+                    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
+                        if (areaGetCurrentObjectState(0x20) == 1) {
                             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
                             D_actor_146300_80142824 = 0x14;
                             task->state             = 0x14;
@@ -1392,13 +1392,13 @@ void func_actor_146300_80131ECC(Task* task)
                             task->state++;
                         }
                     } else {
-                        Gp_ClearCollectedBit(0x119);
+                        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
                         gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 5);
                         task->state = 0x1E;
                     }
                     break;
                 case 5:
-                    if (Gp_GetCurBit2Flag(0x21) == 1) {
+                    if (areaGetCurrentObjectState(0x21) == 1) {
                         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
                         task->state = 0x28;
                     } else {
@@ -1460,8 +1460,8 @@ void func_actor_146300_8013224C(void)
             TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
             break;
         case 3:
-            if (Gp_HasCollectedBit(0x119) == 0) {
-                if (Gp_GetCurBit2Flag(0x1F) == 1) {
+            if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
+                if (areaGetCurrentObjectState(0x1F) == 1) {
                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);
@@ -1471,8 +1471,8 @@ void func_actor_146300_8013224C(void)
             }
             break;
         case 4:
-            if (Gp_HasCollectedBit(0x119) == 0) {
-                if (Gp_GetCurBit2Flag(0x20) == 1) {
+            if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
+                if (areaGetCurrentObjectState(0x20) == 1) {
                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137AAC, 0);
                 } else {
                     TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), 0x7D3, &D_actor_146300_80137B38, 0);

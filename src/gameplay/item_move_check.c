@@ -53,22 +53,22 @@ UiListRowCallback Gp_ItemActionFns[3] = {
 /* Gives `scan` one `weapon` and loads it with `ammo`. */
 #define GP_GIVE_LOADED(scan, weapon, ammo)           \
     do {                                             \
-        Gp_GiveItem(scan, weapon, 1);                \
+        inventoryGiveItem(scan, weapon, 1);          \
         Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
     } while (0)
 
 /* Clears the carried inventory, equips the starting armour, restores HP/MP,
  * and gives the initial supplies and their attachment slots. */
-#define _gpInitStartingItems(scan, cfg)                \
-    do {                                               \
-        Gp_ClearScanItems(scan);                       \
-        Gp_GiveItem(scan, 0x60, 1);                    \
-        Gp_EquipMod(0x60);                             \
-        (cfg)->hp = (cfg)->hpMax;                      \
-        (cfg)->mp = (cfg)->mpMax;                      \
-        Gp_GiveItem(scan, 0x92, 1);                    \
-        Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1; \
-        Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+#define _gpInitStartingItems(scan, cfg)                      \
+    do {                                                     \
+        Gp_ClearScanItems(scan);                             \
+        inventoryGiveItem(scan, 0x60, 1);                    \
+        Gp_EquipMod(0x60);                                   \
+        (cfg)->hp = (cfg)->hpMax;                            \
+        (cfg)->mp = (cfg)->mpMax;                            \
+        inventoryGiveItem(scan, 0x92, 1);                    \
+        inventoryGiveItem(scan, 0x40, 1)->attachSlot    = 1; \
+        inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
     } while (0)
 
 /* Item table a scan window lies in. */
@@ -85,7 +85,7 @@ s32 Gp_CanMoveItems(void)
 
     src     = &Gp_MoveScanSrc;
     ret     = 0;
-    table   = Gp_GetItemTable(src);
+    table   = inventoryGetRangeTable(src);
     row     = src->firstRow;
     count   = Gp_CountScanItems(src + 1);
     blocked = 0; /* nothing sets it, yet the original still tests it */

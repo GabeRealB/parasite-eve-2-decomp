@@ -83,7 +83,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    slot  = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F);
+    slot  = equipmentGetWeaponLoad(gPlayerStatus.weapon + 0x7F);
     /* Reloaded rather than reused: the store leaves the block address in a
        caller-saved register and the copy into `spot` is a second read of
        `SCRATCH_STACK_CURSOR_SLOT` that CSE folds back onto it, which is what keeps the
@@ -310,7 +310,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
 
     work                = (WeaponGrenadeWork*)arg0->work;
     coord               = arg0->extra.tmd->coords;
-    slot                = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F);
+    slot                = equipmentGetWeaponLoad(gPlayerStatus.weapon + 0x7F);
     scratch             = SCRATCH_STACK_RESERVE_BLOCK(_M4a1GrenadeFlightScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {

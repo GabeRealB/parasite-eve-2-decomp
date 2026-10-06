@@ -218,9 +218,9 @@ the file only marks the hand-off point.
 ```c
 val = 0;
 for (i = 0; i < command->bitFlagCount; i++)
-    if (Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 0 ||
-        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 1 ||
-        Gp_GetCurBit2Flag(command->bitFlagIndex + i) == 3)
+    if (areaGetCurrentObjectState(command->bitFlagIndex + i) == 0 ||
+        areaGetCurrentObjectState(command->bitFlagIndex + i) == 1 ||
+        areaGetCurrentObjectState(command->bitFlagIndex + i) == 3)
         val++;
 if ((flags & CAP_COMMAND_BRANCH) && val == 0) goto nextIndex;
 Gp_StartCapSlot(index, mode, val);

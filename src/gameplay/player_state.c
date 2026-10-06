@@ -417,7 +417,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (arg1 & PLAYER_STATUS_DARKNESS) {
             inner = work->work;
-            if (func_800B9D80(0x101) == 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_DARKNESS) == 0) {
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
                 inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
                 func_800EC9C8();
@@ -427,7 +427,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         }
         if (mask & PLAYER_STATUS_PARALYSIS) {
             inner = work->work;
-            if (func_800B9D80(0x102) == 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_PARALYSIS) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
                 inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->paralysisProgress   = 0;
@@ -437,7 +437,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         }
         if (mask & PLAYER_STATUS_POISON) {
             inner = work->work;
-            if (func_800B9D80(0x104) == 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_POISON) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
                 inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->poisonDamageTicks   = 0;
@@ -446,7 +446,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         }
         if (mask & PLAYER_STATUS_SILENCE) {
             inner = work->work;
-            if (func_800B9D80(0x108) == 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_SILENCE) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
                 inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x10);
@@ -454,7 +454,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         }
         if (mask & 0x20) {
             inner = work->work;
-            if (func_800B9D80(0x110) == 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20) == 0) {
                 gPlayerStatus.statusFlags |= 0x20;
                 inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x20);
@@ -462,7 +462,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         }
         if (mask & PLAYER_STATUS_CONFUSION) {
             inner = work->work;
-            if (func_800B9D80(0x120) == 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_CONFUSION) == 0) {
                 gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
                 inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
@@ -472,7 +472,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
         }
         if (mask & PLAYER_STATUS_BERSERKER) {
             inner = work->work;
-            if (func_800B9D80(0x140) == 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
                 inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 Gp_SetState1CPe(0x80);
@@ -497,7 +497,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 GameActor* inner;
 
                 inner = arg0->work;
-                if (func_800B9D80(0x101) != 0) {
+                if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_DARKNESS) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
@@ -511,7 +511,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 GameActor* inner;
 
                 inner = arg0->work;
-                if (func_800B9D80(0x102) != 0) {
+                if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_PARALYSIS) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
@@ -525,7 +525,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 GameActor* inner;
 
                 inner = arg0->work;
-                if (func_800B9D80(0x104) != 0) {
+                if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_POISON) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
@@ -541,7 +541,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 GameActor* inner;
 
                 inner = arg0->work;
-                if (func_800B9D80(0x108) != 0) {
+                if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_SILENCE) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
@@ -553,7 +553,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 GameActor* inner;
 
                 inner = arg0->work;
-                if (func_800B9D80(0x110) != 0) {
+                if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= 0x20;
@@ -565,7 +565,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 GameActor* inner;
 
                 inner = arg0->work;
-                if (func_800B9D80(0x120) != 0) {
+                if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_CONFUSION) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
@@ -579,7 +579,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 GameActor* inner;
 
                 inner = arg0->work;
-                if (func_800B9D80(0x140) != 0) {
+                if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) != 0) {
                     return;
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
@@ -667,16 +667,16 @@ s32 Gp_ApplyHpDamage(s16 arg0)
 
     amount = arg0;
     ret    = 0;
-    if (func_800B9D80(0x40000) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_HOLY_WATER) != 0) {
         amount = arg0 - (arg0 >> 2);
     }
-    if (func_800B9D80(0x800) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_MP_GENERATION) != 0) {
         gPlayerStatus.mp += amount / 5;
         if (gPlayerStatus.mpMax < gPlayerStatus.mp) {
             gPlayerStatus.mp = gPlayerStatus.mpMax;
         }
     }
-    if (func_800B9D80(0x200) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_IMPACT) != 0) {
         p = &gPlayerStatus;
         if (p->hp >= 5 && amount >= p->hp) {
             slot   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -862,7 +862,7 @@ static void func_8010AE98(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (func_800B9D80(0x101) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_DARKNESS) != 0) {
         return;
     }
     gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
@@ -877,7 +877,7 @@ static void func_8010AF04(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (func_800B9D80(0x102) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_PARALYSIS) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
@@ -892,7 +892,7 @@ static void func_8010AF6C(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (func_800B9D80(0x104) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_POISON) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
@@ -906,7 +906,7 @@ static void func_8010AFC0(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (func_800B9D80(0x108) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_SILENCE) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
@@ -919,7 +919,7 @@ static void func_8010B010(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (func_800B9D80(0x110) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= 0x20;
@@ -932,7 +932,7 @@ static void func_8010B060(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (func_800B9D80(0x120) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_CONFUSION) != 0) {
         return;
     }
     gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
@@ -947,7 +947,7 @@ static void func_8010B0C8(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if (func_800B9D80(0x140) != 0) {
+    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;

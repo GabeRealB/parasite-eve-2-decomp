@@ -3,7 +3,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/area_flags.h"
 #include "area_flags.h"
@@ -24,6 +24,25 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+/// Collection-bit packing and the bit that starts the Ice Bag's age timer.
+enum {
+    INVENTORY_COLLECTION_ID_MASK       = 0x7F,
+    INVENTORY_COLLECTION_BITS_PER_WORD = 32,
+    INVENTORY_COLLECTED_ICE_BAG_BIT    = INVENTORY_COLLECTION_ID_ICE_BAG & INVENTORY_COLLECTION_ID_MASK
+};
+
+/// Catalogue ids tested for armour attachment effects in this translation unit.
+enum {
+    INVENTORY_ITEM_LIPSTICK       = 0x0B,
+    INVENTORY_ITEM_MD_PLAYER      = 0x0E,
+    INVENTORY_ITEM_SKULL_CRYSTAL  = 0x36,
+    INVENTORY_ITEM_MEDICINE_WHEEL = 0x37,
+    INVENTORY_ITEM_HOLY_WATER     = 0x38,
+    INVENTORY_ITEM_OFUDA          = 0x39,
+    INVENTORY_ITEM_HUNTER_GOGGLES = 0x3F,
+    INVENTORY_ITEM_GPS            = 0x40
+};
+
 extern u8 Gp_StrMore[];
 
 extern u8 Gp_StrAttachAvail[];
@@ -33,16 +52,6 @@ extern UiObjectDesc Gp_BoostPanelDesc;
 static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
 
 static inline void _gpClearEquipSlot(s32 item);
-
-static inline void _gpConsumeScanQty(InventoryItemRange* scan, s32 item, s32 n);
-
-static __inline void func_800B996C_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2);
-
-static inline s32 _gpGetModLevel(s32 item);
-
-static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 item, s32 color, s32 one);
-
-static __inline__ s32 Gp_HasStockedItemInline(s32 arg0);
 
 static inline void _gpClearScanItems(InventoryItemRange* scan);
 
@@ -66,22 +75,22 @@ UiObjectDesc Gp_BoostPanelDesc   = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20,
 /* Gives `scan` one `weapon` and loads it with `ammo`. */
 #define GP_GIVE_LOADED(scan, weapon, ammo)           \
     do {                                             \
-        Gp_GiveItem(scan, weapon, 1);                \
+        inventoryGiveItem(scan, weapon, 1);          \
         Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
     } while (0)
 
 /* Clears the carried inventory, equips the starting armour, restores HP/MP,
  * and gives the initial supplies and their attachment slots. */
-#define _gpInitStartingItems(scan, cfg)                \
-    do {                                               \
-        Gp_ClearScanItems(scan);                       \
-        Gp_GiveItem(scan, 0x60, 1);                    \
-        Gp_EquipMod(0x60);                             \
-        (cfg)->hp = (cfg)->hpMax;                      \
-        (cfg)->mp = (cfg)->mpMax;                      \
-        Gp_GiveItem(scan, 0x92, 1);                    \
-        Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1; \
-        Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+#define _gpInitStartingItems(scan, cfg)                      \
+    do {                                                     \
+        Gp_ClearScanItems(scan);                             \
+        inventoryGiveItem(scan, 0x60, 1);                    \
+        Gp_EquipMod(0x60);                                   \
+        (cfg)->hp = (cfg)->hpMax;                            \
+        (cfg)->mp = (cfg)->mpMax;                            \
+        inventoryGiveItem(scan, 0x92, 1);                    \
+        inventoryGiveItem(scan, 0x40, 1)->attachSlot    = 1; \
+        inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
     } while (0)
 
 /* Item table a scan window lies in. */
@@ -133,111 +142,141 @@ static inline void _gpClearEquipSlot(s32 item)
         slot->secondaryQty = 0;
     }
 }
-static inline void _gpConsumeScanQty(InventoryItemRange* scan, s32 item, s32 n)
+/// Frees a writable inventory row by clearing its id, quantity and attachment.
+static inline void _inventoryClearItemRow(InventoryItemRow* row)
+{
+    row->itemId     = INVENTORY_ITEM_NONE;
+    row->qty        = 0;
+    row->attachSlot = INVENTORY_ATTACHMENT_NONE;
+}
+
+/// Consumes units from the first row with `itemId` in a writable range.
+///
+/// A negative quantity removes that row's whole quantity; excess consumption
+/// clamps to zero. A zero remainder clears the id, quantity and attachment.
+/// The range must fit its table; a missing item leaves every row unchanged.
+static inline void _inventoryConsumeFirstStack(InventoryItemRange* range, s32 itemId, s32 quantity)
 {
     InventoryItemRow* table;
-    s32               qty;
-    s32               i;
-    s32               left;
+    s32               stackQuantity;
+    s32               rowIndex;
+    s32               remainingQuantity;
 
-    table = _gpScanTable(scan);
-    qty   = 0;
-    for (i = scan->firstRow; i < scan->firstRow + scan->rowCount; i++) {
-        if (table[i].itemId == item) {
-            qty = table[i].qty;
+    table         = _gpScanTable(range);
+    stackQuantity = 0;
+    for (rowIndex = range->firstRow; rowIndex < range->firstRow + range->rowCount; rowIndex++) {
+        if (table[rowIndex].itemId == itemId) {
+            stackQuantity = table[rowIndex].qty;
             break;
         }
     }
-    if (i != scan->firstRow + scan->rowCount) {
-        if (n < 0) {
-            n = qty;
+    if (rowIndex != range->firstRow + range->rowCount) {
+        if (quantity < 0) {
+            quantity = stackQuantity;
         }
-        left = qty - n;
-        if (left < 0) {
-            left = 0;
+        remainingQuantity = stackQuantity - quantity;
+        if (remainingQuantity < 0) {
+            remainingQuantity = 0;
         }
-        if (left == 0) {
-            table[i].itemId     = INVENTORY_ITEM_NONE;
-            table[i].qty        = 0;
-            table[i].attachSlot = INVENTORY_ATTACHMENT_NONE;
+        if (remainingQuantity == 0) {
+            _inventoryClearItemRow(&table[rowIndex]);
         } else {
-            table[i].qty = left;
+            table[rowIndex].qty = remainingQuantity;
         }
     }
 }
-static __inline void func_800B996C_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2)
+/// Clears a separate item row or consumes its first matching quantity stack.
+///
+/// Ids below `INVENTORY_CONSUMABLE_ITEM_FIRST` clear `row` regardless of
+/// `quantity`, and permit NULL `range`. Other ids require a valid writable
+/// range and consume its first matching row, which need not be `row`.
+static __inline void _inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32 quantity)
 {
-    s32 item;
+    s32 itemId;
 
-    item = arg1->itemId;
-    if (item < 0xA0) {
-        arg1->itemId     = INVENTORY_ITEM_NONE;
-        arg1->qty        = 0;
-        arg1->attachSlot = INVENTORY_ATTACHMENT_NONE;
+    itemId = row->itemId;
+    if (itemId < INVENTORY_CONSUMABLE_ITEM_FIRST) {
+        _inventoryClearItemRow(row);
     } else {
-        _gpConsumeScanQty(arg0, item, arg2);
+        _inventoryConsumeFirstStack(range, itemId, quantity);
     }
 }
-static inline s32 _gpGetModLevel(s32 item)
+/// Returns an armour's base plus saved bonus attachment slots, capped at ten.
+///
+/// Armour item ids 0x60..0x7F index the live save; other ids return zero.
+static inline s32 _equipmentGetArmorAttachmentSlotCount(s32 armorItemId)
 {
-    s32         ret;
-    s32         idx;
-    ArmorStats* stats;
+    enum { EQUIPMENT_ARMOR_ITEM_FIRST = 0x60,
+           EQUIPMENT_ARMOR_ITEM_COUNT = 0x20 };
+    s32               slotCount;
+    s32               armorIndex;
+    const ArmorStats* armorStats;
 
-    idx = item - 0x60;
-    ret = 0;
-    if ((u32)idx < 0x20) {
-        stats = &Gp_ModStatAttrs[(item)-0x60];
-        ret   = stats->baseAttachmentSlots;
-        ret  += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[idx];
-        if (ret >= ARMOR_ATTACHMENT_SLOT_MAX + 1) {
-            ret = ARMOR_ATTACHMENT_SLOT_MAX;
+    armorIndex = armorItemId - EQUIPMENT_ARMOR_ITEM_FIRST;
+    slotCount  = 0;
+    if ((u32)armorIndex < EQUIPMENT_ARMOR_ITEM_COUNT) {
+        armorStats = &Gp_ModStatAttrs[armorItemId - EQUIPMENT_ARMOR_ITEM_FIRST];
+        slotCount  = armorStats->baseAttachmentSlots;
+        slotCount += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[armorIndex];
+        if (slotCount > ARMOR_ATTACHMENT_SLOT_MAX) {
+            slotCount = ARMOR_ATTACHMENT_SLOT_MAX;
         }
     }
-    return ret;
+    return slotCount;
 }
-static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 item, s32 color, s32 one)
+/// Draws an encoded prefix followed by an item's name on one panel text line.
+///
+/// X/Y are content pixels under `textDrawUiLine`'s contract. The name starts
+/// four pixels beyond the prefix's measured width and uses a fixed packed RGB
+/// colour. `prefixColorRgb` is packed RGB; `drawMode` narrows to a signed byte
+/// selecting `TEXT_DRAW_*`. Text and object are borrowed without modification.
+static inline void _itemMenuDrawPrefixedItemName(const UiObject* object, s32 x, s32 y, const u8* prefixText, s32 itemId, u32 prefixColorRgb, s32 drawMode)
 {
-    s32 width;
+    enum { ITEM_MENU_ITEM_NAME_COLOR_RGB = 0x037A78 };
+    s32 itemNameOffsetX;
 
-    textDrawUiLine(obj, x, y, str, color, one, TEXT_ALIGNMENT_LEFT);
-    width = textMeasureLineWidth(str) + 4;
-    textDrawUiLine(obj, x + width, y, itemGetText(item, ITEM_TEXT_NAME, 0), 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, x, y, prefixText, prefixColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    itemNameOffsetX = textMeasureLineWidth(prefixText) + 4;
+    textDrawUiLine(object, x + itemNameOffsetX, y, itemGetText(itemId, ITEM_TEXT_NAME, 0), ITEM_MENU_ITEM_NAME_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
 }
-static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
+/// Returns whether a carried row of `itemId` occupies a positive armour slot.
+///
+/// Searches the carried range's selected table. Quantity is not tested; the
+/// equipped-armour marker and unattached rows do not qualify.
+static __inline__ s32 _inventoryHasAttachedItem(s32 itemId)
 {
-    InventoryItemRange* scan;
-    InventoryItemRow*   table;
-    s32                 i;
-    s32                 ret;
-    s32                 count;
+    const InventoryItemRange* range;
+    const InventoryItemRow*   row;
+    s32                       rowIndex;
+    s32                       hasAttachedItem;
+    s32                       rowCount;
 
-    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    ret  = 0;
-    switch (scan->tableId) {
+    range           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    hasAttachedItem = 0;
+    switch (range->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            table = Gp_ItemTable2;
+            row = Gp_ItemTable2;
             break;
         case INVENTORY_ITEM_TABLE_INDIRECT:
-            table = Gp_ItemTable1;
+            row = Gp_ItemTable1;
             break;
         default:
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
+            row = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
-    i      = 0;
-    table += scan->firstRow;
-    count  = scan->rowCount;
-    for (; i < count; i++) {
-        if (table->attachSlot > INVENTORY_ATTACHMENT_NONE) {
-            if (table->itemId == arg0) {
-                ret = 1;
+    rowIndex = 0;
+    row     += range->firstRow;
+    rowCount = range->rowCount;
+    for (; rowIndex < rowCount; rowIndex++) {
+        if (row->attachSlot > INVENTORY_ATTACHMENT_NONE) {
+            if (row->itemId == itemId) {
+                hasAttachedItem = 1;
                 break;
             }
         }
-        table++;
+        row++;
     }
-    return ret;
+    return hasAttachedItem;
 }
 static inline void _gpClearScanItems(InventoryItemRange* scan)
 {
@@ -337,7 +376,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     item = gPlayerStatus.armor + 0x5F;
     if (arg1->state == 0) {
         arg1->status = 0xFF;
-        if (_gpGetModLevel(item) < ARMOR_ATTACHMENT_SLOT_MAX) {
+        if (_equipmentGetArmorAttachmentSlotCount(item) < ARMOR_ATTACHMENT_SLOT_MAX) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[item - 0x60]++;
         } else {
             arg1->status = 0x1A;
@@ -351,7 +390,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             uiSetPanelContentSize(&(arg0)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
             (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
             (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
-            func_800B996C_RemoveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
+            _inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
             arg1->killCountdown = 0xBC;
             arg1->state++;
         }
@@ -369,7 +408,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     uiDrawPanelLabel(&(arg0)->panel, Gp_StrNotice2);
     color = 0x606060;
     row   = y + 0xF;
-    _gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, 1);
+    _itemMenuDrawPrefixedItemName(arg0, x, row, Gp_StrMore, item, color, TEXT_DRAW_OUTLINED);
     row += 0xF;
     textDrawUiLine(arg0, x, row, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
 
@@ -401,7 +440,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
         }
         Gp_RecalcMaxMp();
         cfg->mp = cfg->mpMax;
-        func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
+        _inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
         uiSpawnObject(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
     saved                 = arg1->spawnArg1.value;
@@ -442,7 +481,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
             cfg->hp = cfg->hpMax;
         }
         cfg->hp = cfg->hpMax;
-        func_800B996C_RemoveItem(0, Gp_SelItemRec, 1);
+        _inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
         uiSpawnObject(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
     }
     saved                 = arg1->spawnArg1.value;
@@ -451,120 +490,121 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
     arg1->spawnArg1.value = saved;
 }
 
-s32 func_800B9D80(s32 arg0)
+s32 equipmentHasEffect(s32 effectSelector)
 {
-    PlayerStatus* cfg;
-    ArmorStats*   attr;
-    s32           features;
-    s32           ret;
-    s32           stateA;
-    s32           stateB;
+    const PlayerStatus* status;
+    const ArmorStats*   armorStats;
+    s32                 armorFeatures;
+    s32                 effectActive;
+    s32                 bodyProtected;
+    s32                 mindProtected;
 
-    ret      = 0;
-    features = 0;
-    stateA   = 0;
-    stateB   = 0;
-    cfg      = &gPlayerStatus;
-    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        attr     = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
-        features = attr->features;
+    effectActive  = 0;
+    armorFeatures = 0;
+    bodyProtected = 0;
+    mindProtected = 0;
+    status        = &gPlayerStatus;
+    if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+        armorStats    = &Gp_ModStatAttrs[status->armor - 1];
+        armorFeatures = armorStats->features;
     }
+    // Metabolism and the two wards protect different groups of status effects.
     if ((Gp_StateC08.metabolismTicks > 0) || (Gp_StateC08.bodyWard != 0)) {
-        stateA = 1;
+        bodyProtected = 1;
     }
     if ((Gp_StateC08.metabolismTicks > 0) || (Gp_StateC08.mindWard != 0)) {
-        stateB = 1;
+        mindProtected = 1;
     }
 
-    switch (arg0) {
-        case 0x101:
-            if (Gp_HasStockedItemInline(0x3F) || stateA) {
-                ret = 1;
+    switch (effectSelector) {
+        case EQUIPMENT_EFFECT_RESIST_DARKNESS:
+            if (_inventoryHasAttachedItem(INVENTORY_ITEM_HUNTER_GOGGLES) || bodyProtected) {
+                effectActive = 1;
             }
             break;
-        case 0x102:
-            if (stateA || (features & ARMOR_FEATURE_RESIST_PARALYSIS)) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_RESIST_PARALYSIS:
+            if (bodyProtected || (armorFeatures & ARMOR_FEATURE_RESIST_PARALYSIS)) {
+                effectActive = 1;
             }
             break;
-        case 0x104:
-            if (stateA || (features & ARMOR_FEATURE_RESIST_POISON)) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_RESIST_POISON:
+            if (bodyProtected || (armorFeatures & ARMOR_FEATURE_RESIST_POISON)) {
+                effectActive = 1;
             }
             break;
-        case 0x108:
-            ret = Gp_HasStockedItemInline(0xB);
-            if (stateB || (features & ARMOR_FEATURE_RESIST_SILENCE)) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_RESIST_SILENCE:
+            effectActive = _inventoryHasAttachedItem(INVENTORY_ITEM_LIPSTICK);
+            if (mindProtected || (armorFeatures & ARMOR_FEATURE_RESIST_SILENCE)) {
+                effectActive = 1;
             }
             break;
-        case 0x110:
+        case EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20:
             break;
-        case 0x120:
-            ret = Gp_HasStockedItemInline(0xE);
-            if (stateB || (features & ARMOR_FEATURE_RESIST_CONFUSION)) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_RESIST_CONFUSION:
+            effectActive = _inventoryHasAttachedItem(INVENTORY_ITEM_MD_PLAYER);
+            if (mindProtected || (armorFeatures & ARMOR_FEATURE_RESIST_CONFUSION)) {
+                effectActive = 1;
             }
             break;
-        case 0x140:
-            if (stateB || Gp_HasStockedItemInline(0xE)) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_RESIST_BERSERKER:
+            if (mindProtected || _inventoryHasAttachedItem(INVENTORY_ITEM_MD_PLAYER)) {
+                effectActive = 1;
             }
             break;
-        case 0x200:
-            if (features & ARMOR_FEATURE_RESIST_IMPACT) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_RESIST_IMPACT:
+            if (armorFeatures & ARMOR_FEATURE_RESIST_IMPACT) {
+                effectActive = 1;
             }
             break;
-        case 0x400:
-            if (features & ARMOR_FEATURE_MOTION_DETECTOR) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_ARMOR_MOTION_DETECTOR:
+            if (armorFeatures & ARMOR_FEATURE_MOTION_DETECTOR) {
+                effectActive = 1;
             }
             break;
-        case 0x800:
-            if (features & ARMOR_FEATURE_MP_GENERATION) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_MP_GENERATION:
+            if (armorFeatures & ARMOR_FEATURE_MP_GENERATION) {
+                effectActive = 1;
             }
             break;
-        case 0x1000:
-            if (features & ARMOR_FEATURE_HP_RECOVERY) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_HP_RECOVERY:
+            if (armorFeatures & ARMOR_FEATURE_HP_RECOVERY) {
+                effectActive = 1;
             }
             break;
-        case 0x2000:
-            if (features & ARMOR_FEATURE_QUICK_FIRE) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_QUICK_FIRE:
+            if (armorFeatures & ARMOR_FEATURE_QUICK_FIRE) {
+                effectActive = 1;
             }
             break;
-        case 0x4000:
-            if (features & ARMOR_FEATURE_MEDICAL_INSPECTION) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_MEDICAL_INSPECTION:
+            if (armorFeatures & ARMOR_FEATURE_MEDICAL_INSPECTION) {
+                effectActive = 1;
             }
             break;
-        case 0x8000:
-            if (features & ARMOR_FEATURE_MP_RECOVERY) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_MP_RECOVERY:
+            if (armorFeatures & ARMOR_FEATURE_MP_RECOVERY) {
+                effectActive = 1;
             }
             break;
-        case 0x10000:
-            ret = Gp_HasStockedItemInline(0x36);
+        case EQUIPMENT_EFFECT_SKULL_CRYSTAL:
+            effectActive = _inventoryHasAttachedItem(INVENTORY_ITEM_SKULL_CRYSTAL);
             break;
-        case 0x20000:
-            ret = Gp_HasStockedItemInline(0x39);
+        case EQUIPMENT_EFFECT_OFUDA:
+            effectActive = _inventoryHasAttachedItem(INVENTORY_ITEM_OFUDA);
             break;
-        case 0x40000:
-            ret = Gp_HasStockedItemInline(0x38);
+        case EQUIPMENT_EFFECT_HOLY_WATER:
+            effectActive = _inventoryHasAttachedItem(INVENTORY_ITEM_HOLY_WATER);
             break;
-        case 0x80000:
-            ret = Gp_HasStockedItemInline(0x37);
+        case EQUIPMENT_EFFECT_MEDICINE_WHEEL:
+            effectActive = _inventoryHasAttachedItem(INVENTORY_ITEM_MEDICINE_WHEEL);
             break;
-        case 0x100000:
-            if (Gp_HasStockedItemInline(0x40) || (features & ARMOR_FEATURE_MOTION_DETECTOR)) {
-                ret = 1;
+        case EQUIPMENT_EFFECT_MOTION_DETECTOR:
+            if (_inventoryHasAttachedItem(INVENTORY_ITEM_GPS) || (armorFeatures & ARMOR_FEATURE_MOTION_DETECTOR)) {
+                effectActive = 1;
             }
             break;
     }
-    return ret;
+    return effectActive;
 }
 
 void Gp_ResetInventory(void)
@@ -728,49 +768,14 @@ void Gp_ClearScanItems(InventoryItemRange* scan)
     _gpClearScanItems(scan);
 }
 
-InventoryItemRow* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
+InventoryItemRow* inventoryGiveItem(const InventoryItemRange* range, s32 itemId, s32 quantity)
 {
-    return inventoryAddItem(arg0, arg1, arg2);
+    return inventoryAddItem(range, itemId, quantity);
 }
 
-s32 Gp_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2)
+s32 inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32 quantity)
 {
-    InventoryItemRow* table;
-    s32               item;
-    s32               qty;
-    s32               i;
-
-    item = arg1->itemId;
-    if (item < 0xA0) {
-        arg1->itemId     = INVENTORY_ITEM_NONE;
-        arg1->qty        = 0;
-        arg1->attachSlot = INVENTORY_ATTACHMENT_NONE;
-    } else {
-        table = _gpScanTable(arg0);
-        qty   = 0;
-        for (i = arg0->firstRow; i < arg0->firstRow + arg0->rowCount; i++) {
-            if (table[i].itemId == item) {
-                qty = table[i].qty;
-                break;
-            }
-        }
-        if (i != arg0->firstRow + arg0->rowCount) {
-            if (arg2 < 0) {
-                arg2 = qty;
-            }
-            arg2 = qty - arg2;
-            if (arg2 < 0) {
-                arg2 = 0;
-            }
-            if (arg2 == 0) {
-                table[i].itemId     = INVENTORY_ITEM_NONE;
-                table[i].qty        = 0;
-                table[i].attachSlot = INVENTORY_ATTACHMENT_NONE;
-            } else {
-                table[i].qty = arg2;
-            }
-        }
-    }
+    _inventoryRemoveItemRow(range, row, quantity);
     return 0;
 }
 
@@ -785,30 +790,31 @@ void Gp_ClearCollectedBits(void)
     }
 }
 
-void Gp_SetCollectedBit(s32 arg0)
+void inventorySetCollectedBit(s32 collectionId)
 {
-    s32* p;
-    s32  bit;
+    s32* word;
+    s32  bitIndex;
 
-    p    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
-    bit  = arg0 & 0x7F;
-    p   += bit / 32;
-    bit %= 32;
-    *p  |= 1 << bit;
-    if ((arg0 & 0x7F) == 0x19) {
+    word      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
+    bitIndex  = collectionId & INVENTORY_COLLECTION_ID_MASK;
+    word     += bitIndex / INVENTORY_COLLECTION_BITS_PER_WORD;
+    bitIndex %= INVENTORY_COLLECTION_BITS_PER_WORD;
+    *word    |= 1 << bitIndex;
+    // Refresh the age marker even when the Ice Bag bit was already set.
+    if ((collectionId & INVENTORY_COLLECTION_ID_MASK) == INVENTORY_COLLECTED_ICE_BAG_BIT) {
         gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime;
     }
 }
 
-void Gp_ClearCollectedBit(s32 arg0)
+void inventoryClearCollectedBit(s32 collectionId)
 {
-    s32* p;
+    s32* word;
 
-    p     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
-    arg0 &= 0x7F;
-    p    += arg0 / 32;
-    arg0 %= 32;
-    *p   &= ~(1 << arg0);
+    word          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
+    collectionId &= INVENTORY_COLLECTION_ID_MASK;
+    word         += collectionId / INVENTORY_COLLECTION_BITS_PER_WORD;
+    collectionId %= INVENTORY_COLLECTION_BITS_PER_WORD;
+    *word        &= ~(1 << collectionId);
 }
 
 s32 Gp_CountCollectedBits(void)
@@ -879,9 +885,9 @@ s32 Gp_CountScanItems(InventoryItemRange* arg0)
     return ret;
 }
 
-EquipmentWeaponLoad* Gp_GetItemSlot(s32 arg0)
+EquipmentWeaponLoad* equipmentGetWeaponLoad(s32 weaponItemId)
 {
-    return &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
+    return &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
 }
 
 s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
@@ -893,7 +899,7 @@ s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
     s32                  end;
     s32                  itemId;
 
-    table = Gp_GetItemTable(arg0);
+    table = inventoryGetRangeTable(arg0);
     count = 0;
     if ((u32)(arg1 - 0xA0) < 0x20) {
         i   = arg0->firstRow;
@@ -948,37 +954,37 @@ void Gp_ClearEquipSlot(s32 arg0)
     }
 }
 
-void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
+void equipmentClearSelectedRemovableLoads(s32 weaponItemId, s32 loadSelection)
 {
-    EquipmentWeaponLoad* slot;
-    s32                  found = 0;
-    s32                  i;
+    EquipmentWeaponLoad* load;
+    s32                  hasBuiltInSupply = 0;
+    s32                  supplyIndex;
 
-    if ((u32)(arg0 - 0x80) >= 0x20) {
+    if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) {
         return;
     }
 
-    slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
-        if (arg0 == Gp_ItemMaps[i].weaponItemId) {
-            found = 1;
+    load = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    for (supplyIndex = 0; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
+        if (weaponItemId == Gp_ItemMaps[supplyIndex].weaponItemId) {
+            hasBuiltInSupply = 1;
             break;
         }
     }
 
-    if (arg1 != 2) {
-        if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
-            slot->primaryItemId = INVENTORY_ITEM_NONE;
-            slot->primaryQty    = 0;
+    if (loadSelection != EQUIPMENT_CLEAR_LOAD_SECONDARY) {
+        if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
+            load->primaryItemId = INVENTORY_ITEM_NONE;
+            load->primaryQty    = 0;
         }
     }
 
-    if (arg1 != 1) {
-        if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
-            if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-                slot->secondaryItemId = INVENTORY_ITEM_NONE;
+    if (loadSelection != EQUIPMENT_CLEAR_LOAD_PRIMARY) {
+        if ((hasBuiltInSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
+            if (load->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+                load->secondaryItemId = INVENTORY_ITEM_NONE;
             }
-            slot->secondaryQty = 0;
+            load->secondaryQty = 0;
         }
     }
 }
@@ -990,7 +996,7 @@ s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1)
     InventoryItemRow* table;
 
     index = arg0->firstRow;
-    table = Gp_GetItemTable(arg0);
+    table = inventoryGetRangeTable(arg0);
     if ((u32)(arg1 - 0xA0) < 0x20) {
         ret = (s16)Gp_FindScanQty(table, arg0, &index, arg1);
     } else {
@@ -999,36 +1005,9 @@ s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1)
     return ret;
 }
 
-void Gp_ConsumeScanQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
+void inventoryConsumeFirstStack(InventoryItemRange* range, s32 itemId, s32 quantity)
 {
-    InventoryItemRow* table;
-    s32               qty;
-    s32               i;
-
-    table = _gpScanTable(arg0);
-    qty   = 0;
-    for (i = arg0->firstRow; i < arg0->firstRow + arg0->rowCount; i++) {
-        if (table[i].itemId == arg1) {
-            qty = table[i].qty;
-            break;
-        }
-    }
-    if (i != arg0->firstRow + arg0->rowCount) {
-        if (arg2 < 0) {
-            arg2 = qty;
-        }
-        arg2 = qty - arg2;
-        if (arg2 < 0) {
-            arg2 = 0;
-        }
-        if (arg2 == 0) {
-            table[i].itemId     = INVENTORY_ITEM_NONE;
-            table[i].qty        = 0;
-            table[i].attachSlot = INVENTORY_ATTACHMENT_NONE;
-        } else {
-            table[i].qty = arg2;
-        }
-    }
+    _inventoryConsumeFirstStack(range, itemId, quantity);
 }
 
 s32 Gp_FillRelated(s32 arg0, s32 arg1)
@@ -1063,37 +1042,37 @@ s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
     return ret == 0;
 }
 
-s32 Gp_GetCurBit2Flag(s32 arg0)
+s32 areaGetCurrentObjectState(s32 objectId)
 {
-    s32  stage;
-    u32* p;
-    u32  word;
-    s32  shift;
+    s32        stageId;
+    const u32* stateWord;
+    u32        packedStates;
+    s32        stateShift;
 
-    stage = gGameSession->location.loc.stage;
-    p     = &Gp_Bit2Banks[stage].objectStates[arg0 >> 4];
-    shift = (arg0 & 0xF) * 2;
-    word  = *p;
-    word &= 3 << shift;
-    return word >> shift;
+    stageId       = gGameSession->location.loc.stage;
+    stateWord     = &Gp_Bit2Banks[stageId].objectStates[objectId >> 4];
+    stateShift    = (objectId & 0xF) * 2;
+    packedStates  = *stateWord;
+    packedStates &= AREA_OBJECT_PLACE_STATE_MASK << stateShift;
+    return packedStates >> stateShift;
 }
 
-s32 Gp_HasCollectedBit(s32 arg0)
+s32 inventoryHasCollectedBit(s32 collectionId)
 {
-    s32* p;
-    s32  val;
+    const s32* word;
+    s32        maskedBit;
 
-    p     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
-    arg0 &= 0x7F;
-    p    += arg0 / 32;
-    arg0 %= 32;
-    val   = *p & (1 << arg0);
-    return val != 0;
+    word          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
+    collectionId &= INVENTORY_COLLECTION_ID_MASK;
+    word         += collectionId / INVENTORY_COLLECTION_BITS_PER_WORD;
+    collectionId %= INVENTORY_COLLECTION_BITS_PER_WORD;
+    maskedBit     = *word & (1 << collectionId);
+    return maskedBit != 0;
 }
 
-InventoryItemRow* Gp_GetItemTable(InventoryItemRange* arg0)
+InventoryItemRow* inventoryGetRangeTable(const InventoryItemRange* range)
 {
-    switch (arg0->tableId) {
+    switch (range->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             return Gp_ItemTable2;
         case INVENTORY_ITEM_TABLE_INDIRECT:

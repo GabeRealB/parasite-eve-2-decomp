@@ -311,7 +311,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
             if (extra != 0) {
                 dmg = dmg * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][0] / 100;
             }
-            if (func_800B9D80(0x10000) != 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_SKULL_CRYSTAL) != 0) {
                 dmg = dmg * 120 / 100;
             }
         }
@@ -340,7 +340,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         pc              = (u16)(rnd % 10) + 100;
         dmg             = dmg * pc / 100;
 
-        if (func_800B9D80(0x20000) != 0) {
+        if (equipmentHasEffect(EQUIPMENT_EFFECT_OFUDA) != 0) {
             dmg = dmg * 150 / 100;
         }
 

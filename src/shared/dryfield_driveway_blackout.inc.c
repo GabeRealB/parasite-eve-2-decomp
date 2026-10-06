@@ -13,7 +13,7 @@ void drivewayBlackoutTask(Task* arg0)
         func_800E8634(gDrivewayBlackoutScript, 0, gDrivewayBlackoutTail);
     } else {
         taskKill(arg0);
-        Gp_ClearCollectedBit(0x114);
+        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

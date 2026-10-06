@@ -991,7 +991,7 @@ void func_actor_260400_80149E38(void)
             gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
             break;
         case 1:
-            if ((Gp_GetCurBit2Flag(4) == 1) || (Gp_GetCurBit2Flag(5) == 1)) {
+            if ((areaGetCurrentObjectState(4) == 1) || (areaGetCurrentObjectState(5) == 1)) {
                 func_800E8614(D_actor_260400_8014D118, 0);
             } else {
                 func_800E8614(D_actor_260400_8014D208, 0);

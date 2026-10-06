@@ -1213,7 +1213,7 @@ s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg
 s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
-        if ((Gp_GetCurBit2Flag(0x13) == 0) || (Gp_GetCurBit2Flag(0x13) == 1)) {
+        if ((areaGetCurrentObjectState(0x13) == 0) || (areaGetCurrentObjectState(0x13) == 1)) {
             Gp_RunCapCmd1(5);
         } else {
             Gp_StartCapSlot(2, 1, 0);
@@ -1706,7 +1706,7 @@ void func_acropolis_roof_garden_80180160(Task* task)
 
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
-    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
     view  = viewGetMappedIndex();
     if (view >= 8) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

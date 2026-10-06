@@ -86,7 +86,7 @@ void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
 {
     TmdObject* obj = task->extra.tmd;
 
-    if (Gp_GetCurBit2Flag((u8)((Enemy*)task->spawnArg2.pointer)->placeKey) == 2) {
+    if (areaGetCurrentObjectState((u8)((Enemy*)task->spawnArg2.pointer)->placeKey) == 2) {
         obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;

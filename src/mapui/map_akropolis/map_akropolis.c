@@ -309,7 +309,7 @@ s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1)
         i = 0;
         p = D_map_akropolis_8017A9AC;
         do {
-            Gp_SetCollectedBit(*p++);
+            inventorySetCollectedBit(*p++);
             i++;
         } while (i < 4);
         D_map_akropolis_8017A9A8 = 0;

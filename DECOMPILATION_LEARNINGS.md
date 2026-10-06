@@ -24925,7 +24925,7 @@ return val != 0;
 ```
 
 Inlining `(1 << (index % 32))` without first assigning `index %= 32` drops
-back to the `srav` form. `Gp_HasCollectedBit` is the example.
+back to the `srav` form. `inventoryHasCollectedBit` is the example.
 
 ## `if (p != NULL) goto body; return NULL` emits `bnez` + `j` epilogue
 
@@ -25009,7 +25009,7 @@ return (word & (3 << shift)) >> shift;
 `word` must be a separate statement: folding `*p` into the return lets
 `li a0,K` sneak back in front of the load. `Gp_GetBit2Flag` is the example.
 
-The one-arg sibling `Gp_GetCurBit2Flag` already keeps `$a0` live (the index is
+The one-arg sibling `areaGetCurrentObjectState` already keeps `$a0` live (the index is
 shifted in place), so the `:: "r"(index)` barrier is not needed. `$a1` is
 free instead, and GCC hoists `li a1,K` at the top. Clobber `$a1` after
 the load so K rematerializes in the now-dead pointer register:
@@ -25020,7 +25020,7 @@ asm volatile("" ::: "a1");
 return (word & (3 << shift)) >> shift;
 ```
 
-### Natural C replacement for `Gp_GetCurBit2Flag` (2026-09-27)
+### Natural C replacement for `areaGetCurrentObjectState` (2026-09-27)
 
 The one-argument reader above no longer needs either hack. Read the stage into
 a local, take `p = &Gp_Bit2Banks[stage].objectStates[index >> 4]`, and update the
@@ -25042,11 +25042,11 @@ first. The pointer then occupies v1 and the word v0; sched2 puts `li v1,3`
 in the load delay. Folding the load into the return or adding an inline
 packed-flag accessor alone produced the same nonmatching assembly.
 
-Controlled inputs in `nonmatchings/Gp_GetCurBit2Flag-dehack`: `base_2.i`
+Controlled inputs in `nonmatchings/areaGetCurrentObjectState-dehack`: `base_2.i`
 SHA-256 `7be21a43b80aed34e14d9144de9191082b4e214dd2904d1de1caca7c2c11e5f2`;
 `base_5.i` SHA-256
 `ae0b3b8b19bbef05cdad96e1783ec86dda6fe6664f47f28a299981db445a4044`.
-This supersedes the clobber advice for `Gp_GetCurBit2Flag`; the two-argument
+This supersedes the clobber advice for `areaGetCurrentObjectState`; the two-argument
 reader was not changed or tested here.
 
 ## Barrier the shift so `li v0,K` is not hoisted above `andi`/`sll`
@@ -25611,7 +25611,7 @@ for (i = 3; i >= 0; i--) {
 
 `bit = 0` before `word = *p` matches the target's `move v1, zero` / `lw`
 order. This is the loop counterpart of the single-bit `p += i/32; i %= 32;
-val = *p & (1 << i)` form (`Gp_HasCollectedBit`). `Gp_CountCollectedBits` is the example.
+val = *p & (1 << i)` form (`inventoryHasCollectedBit`). `Gp_CountCollectedBits` is the example.
 
 ## Init `ret = NULL` so a table pointer stays in `$a1`
 
@@ -25889,7 +25889,7 @@ val = obj->field_1 & 2;
 return val != 0; /* andi 2; sltu v0, zero, v0 */
 ```
 
-`Gp_GetAreaFlag2` is the example. Same shape as `Gp_HasCollectedBit` / `Gp_HasItemSeenBit`
+`Gp_GetAreaFlag2` is the example. Same shape as `inventoryHasCollectedBit` / `Gp_HasItemSeenBit`
 but needed even for a constant 1-bit mask.
 
 ## Assign loop setup before consuming a jal return so it fills `andi` / `addiu`
@@ -26513,7 +26513,7 @@ constant 0 is rematerialized after the hi is consumed:
 ```c
 rec   = NULL;
 scan  = &gMcSaveData.carriedItems;
-table = Gp_GetItemTable(scan);
+table = inventoryGetRangeTable(scan);
 i     = 0;
 table = &table[scan->firstRow];
 count = scan->rowCount;
@@ -28985,7 +28985,7 @@ after_loop:
 
 `qty = 0` plus the volatile keeps `move t0, 0` in the case-1 delay slot
 (so that jump skips the join). Without the pin, `qty = 0` sinks into a
-later delay slot and the gap collapses. `Gp_RemoveItem` is the example.
+later delay slot and the gap collapses. `inventoryRemoveItemRow` is the example.
 A loop-local `qty = rec->qty` stuck at 93% with only that block
 after the loop instead of in the switch.
 
@@ -30270,12 +30270,12 @@ is also `$a0` of a later call.
 
 ## Reuse the id `$s0` as the lookup pointer; compare the next field first
 
-An item id that later becomes the `Gp_GetItemSlot` result wants to stay
+An item id that later becomes the `equipmentGetWeaponLoad` result wants to stay
 in `$s0`. A separate `EquipmentWeaponLoad* slot` takes `$s2` and parks the id
 fields in `$s0`. Assign the pointer back into the same `s32`:
 
 ```c
-item   = (s32)Gp_GetItemSlot(item);
+item   = (s32)equipmentGetWeaponLoad(item);
 loadedItemId = ((EquipmentWeaponLoad*)item)->primaryItemId;
 ```
 
@@ -32144,7 +32144,7 @@ temp:
 ```c
 register EquipmentWeaponLoad* slot asm("a0");
 
-slot = Gp_GetItemSlot(item + 0x7F);
+slot = equipmentGetWeaponLoad(item + 0x7F);
 asm volatile("" : "+r"(slot));
 attach = slot->field_2;
 if (attach != 0 && attach != 0xFF) {
@@ -32158,7 +32158,7 @@ if (attach != 0 && attach != 0xFF) {
 
 ## Inline a helper with literal `0` so field loads use `$zero`
 
-Copying `Gp_RemoveItem` and writing `scan = NULL` / `((InventoryItemRange*)0)->field`
+Copying `inventoryRemoveItemRow` and writing `scan = NULL` / `((InventoryItemRange*)0)->field`
 keeps a 0 in a GPR (`t1`) or CSEs that 0 with an earlier `state == 0` into
 `$s2`, so the target's `lbu r, off($zero)` never appears. A
 `static __inline` helper whose first argument is the scan pointer, called
@@ -32166,7 +32166,7 @@ as `helper(0, rec, 1)`, lets GCC 2.8.1 (`-finline`) substitute `$zero` for
 every `index->field_*` load.
 
 The third inlined arg then wants `$a3` (and `loop_end` `$a1`), matching
-the non-inlined `Gp_RemoveItem` shape after `$a0` is freed. Pin the
+the non-inlined `inventoryRemoveItemRow` shape after `$a0` is freed. Pin the
 short-lived `table` / `end` / `newQty` temps onto the same `$v1` and
 `loop_end` onto `$a1` so `i + count` overwrites the table pointer after
 `base = table`:
@@ -32793,14 +32793,14 @@ register EquipmentWeaponLoad* slot asm("s0");
 register s32         a0id asm("a0");
 PlayerStatus*        cfg;
 
-ret  = Gp_GetItemSlot(id);
+ret  = equipmentGetWeaponLoad(id);
 a0id = id;
 slot = ret;
 cfg  = &gPlayerStatus;
 Gp_ClearEquipSlot(a0id);
 ```
 
-Pinning `cfg` here, or writing `slot = Gp_GetItemSlot(id)` directly,
+Pinning `cfg` here, or writing `slot = equipmentGetWeaponLoad(id)` directly,
 restores `lui s2` / `move a0` in the delay slot. `Gp_DiscardWarnTask` is the
 example.
 
@@ -35009,7 +35009,7 @@ tooFar = (u32)sq < (u32)lum;
 
 ## `three = 3` hoists into `$v1` and steals the `lhu` id; idx/off coalesce
 
-A merged `Gp_GetCurBit2Flag` + `Gp_SetCurBit2Flag` body wants:
+A merged `areaGetCurrentObjectState` + `Gp_SetCurBit2Flag` body wants:
 
 ```
 lhu    v1, 0(s1)          # id
@@ -35913,7 +35913,7 @@ keeps the split `%hi` in `$s1` for the later `%lo` load:
 
 ```c
 scan  = &gMcSaveData.carriedItems;
-table = Gp_GetItemTable(scan);
+table = inventoryGetRangeTable(scan);
 idx   = ((volatile InventoryItemRange*)&gMcSaveData.carriedItems)->firstRow;
 count = scan->rowCount;
 ```
@@ -36232,7 +36232,7 @@ rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
 ## Put a later call's constant in each wrap-select arm
 
 Inlining the 0xC angle wrap (`func_80103E7C`) leaves the three `lhu` /
-`j join` paths with a free delay. A later `func_800B9D80(0x2000)` wants
+`j join` paths with a free delay. A later `equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE)` wants
 `li a0, 0x2000` in those delays, not a hoisted `lui` of `SCRATCH_STACK_CURSOR_SLOT`
 for the wrap pop. Assign the flag inside every arm so the `li` is live at
 the join:
@@ -36320,8 +36320,8 @@ parameter is only used inside a branch, the original usually passed it
 on to a second inline helper called in that branch. That puts the copy
 in the branch's own block, where sched1 cannot move it, and delay-slot
 filling then drops it into the `beqz` delay slot. `Gp_UiBoostAttach` is
-the example: `func_800B996C_RemoveItem` hands its else branch to
-`_gpConsumeScanQty`, which removed a `USE_REG` and six register pins.
+the example: `_inventoryRemoveItemRow` hands its else branch to
+`_inventoryConsumeFirstStack`, which removed a `USE_REG` and six register pins.
 
 ## Hold the previous `$s0` dest live so `addiu s0, v0, N` fills the `jal` delay
 
@@ -36440,7 +36440,7 @@ A dummy `$v0` temp plus `menu = p` coalesced back to `lui s4`.
 
 ## A search over a scan window at a fixed global needs no hand-built `%hi/%lo`
 
-A loop that re-reads `lui t0, %hi(gMcSaveData+0x5BC)` after `Gp_GetItemTable`
+A loop that re-reads `lui t0, %hi(gMcSaveData+0x5BC)` after `inventoryGetRangeTable`
 and indexes by `lbu %lo(...)(t0)` looks like a hand-placed address pair, and an
 earlier body pinned `$8`, faked the `lui` in asm and moved the `found = rec`
 assignment behind gotos to reproduce it. It is the ordinary scan idiom:
@@ -36449,7 +36449,7 @@ assignment behind gotos to reproduce it. It is the ordinary scan idiom:
 col   = i % 5;
 row   = i / 5;
 scan  = &gMcSaveData.carriedItems;
-rec   = Gp_GetItemTable(scan);
+rec   = inventoryGetRangeTable(scan);
 found = NULL;
 rec   = &rec[scan->firstRow];
 for (j = 0; j < scan->rowCount; j++, rec++) {
@@ -39505,7 +39505,7 @@ Three independent knobs fixed it, in this order:
 Also worth remembering: when the only remaining diff is a single **branch
 target offset**, the control flow is wrong, not the schedule. Here
 `beqz v0, 0x2b4` vs `beqz v0, 0x288` on the `if (flag)` test was the whole
-signal that the `func_800B9D80(0x10000)` call belonged *inside* that `if`
+signal that the `equipmentHasEffect(EQUIPMENT_EFFECT_SKULL_CRYSTAL)` call belonged *inside* that `if`
 block, not after it.
 
 ## Ternary assignment leaves the `move` copies and lets combine drop a later `andi`
@@ -39589,7 +39589,7 @@ The fix is to make the table index its own induction variable whose initial
 value is the non-constant base:
 
 ```c
-tbl  = Gp_GetItemTable(scanSrc);
+tbl  = inventoryGetRangeTable(scanSrc);
 base = scanSrc->firstRow;          /* lbu stays before the guard */
 i    = 0;
 if (scanSrc->rowCount != 0) {      /* explicit guard, else GCC adds a second */
@@ -43370,7 +43370,7 @@ the tail and a `break` — and let GCC 2.8.1 cross-jump the copies back together
 ```c
 switch (task->state) {
     case 0:
-        if (Gp_GetCurBit2Flag(3) == 1) {
+        if (areaGetCurrentObjectState(3) == 1) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FA, 0, 0);
             task->state = task->state + 1;      /* duplicated, not `goto` */
         } else {
@@ -43887,7 +43887,7 @@ case 6:
     cmd = gameFlagGetNibble(0x3A) <= 0 ? 0xC : 6;
     goto run_cap;
 case 8:
-    if (Gp_GetCurBit2Flag(0x1C) != 1) {
+    if (areaGetCurrentObjectState(0x1C) != 1) {
         cmd = 9;
         goto run_cap;
     }
@@ -85362,7 +85362,7 @@ copy in the join block: the `lo_sum` destination is a pseudo with no tie to the
 Writing the call in each arm instead:
 
 ```c
-if (Gp_GetCurBit2Flag(3) == temp_v0) {
+if (areaGetCurrentObjectState(3) == temp_v0) {
     func_800E8614((s32)&D_actor_161500_801378D8, 0);
 } else {
     func_800E8614((s32)&D_actor_161500_801376F8, 0);
@@ -89151,18 +89151,18 @@ reader with the same immediate:
 
 ```c
 D_80062735 = 1;
-_mineForkedTunnelSetSpriteBatchesHidden(Gp_GetCurBit2Flag(1) == 2);
+_mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(1) == 2);
 ```
 
 The target stores the flag through a *copy* of the call's argument register -
 `li a0,1` / `lui v1,%hi(D_80062735)` / `addu v0,a0,zero` / `jal
-Gp_GetCurBit2Flag` / `sb v0,%lo(D_80062735)(v1)`:
+areaGetCurrentObjectState` / `sb v0,%lo(D_80062735)(v1)`:
 
 ```
 addiu a0,$zero,1     # the argument of the following call
 lui   v1,%hi(D_80062735)
 addu  v0,a0,$zero    # the store value, a copy of that same constant
-jal   Gp_GetCurBit2Flag
+jal   areaGetCurrentObjectState
 sb    v0,%lo(D_80062735)(v1)
 ```
 
@@ -90031,7 +90031,7 @@ The same split holds when the offset is written as the index: taking the
 element's *address* folds it. `Gp_ModStatAttrs[armor + 0x5F].features` keeps
 `addiu 0x5f` before the `sll 3`, whereas `attr = &Gp_ModStatAttrs[armor + 0x5F];
 attr->features` (`&` of an ARRAY_REF is rebuilt as `pointer + int`) emits
-`sll 3; addu` against `%lo(Gp_ModStatAttrs+0x2f8)` (func_800B9D80). Where splat
+`sll 3; addu` against `%lo(Gp_ModStatAttrs+0x2f8)` (equipmentHasEffect). Where splat
 names that folded address after an unrelated symbol (`Gp_RelatedQty0+0x78`),
 a matched function had been hand-building `armor * 8 + &sym` with pins; the
 address-of form removed them.
@@ -92268,7 +92268,7 @@ no other source change. Inputs: `base.c` 94.737% (`insert=1 delete=1`),
 
 `func_mine_gorge_8017D828` matched 100.000% with zero penalties on the *first
 scoring build* of its m2c seed. The only edits were filling in m2c's `?`
-placeholders - `void Gp_ClearCollectedBit(s32 index);` and plain `extern s32`
+placeholders - `void inventoryClearCollectedBit(s32 index);` and plain `extern s32`
 data declarations - so the branch shape m2c recovered was already exact and the
 "write it from the asm first" instinct would only have added risk. Give the
 minimal-edit baseline its score before rewriting anything.
@@ -92349,7 +92349,7 @@ from *before* the branch. So the store belongs in the block ahead of the `bne`,
 after the flag call — compute the flag into a local first:
 
 ```c
-flag = Gp_GetCurBit2Flag(obj->field_8);
+flag = areaGetCurrentObjectState(obj->field_8);
 tmd->field_C = 0;
 if (flag == 2) {
     tmd->field_C = 0x84;
@@ -141566,7 +141566,7 @@ cse can equate with the constant (100%):
 
 ```c
 if (arg2 == 3) {
-    if (Gp_GetCurBit2Flag(6) == 2 && gameFlagGetNibble(0x7A) >= 6) {
+    if (areaGetCurrentObjectState(6) == 2 && gameFlagGetNibble(0x7A) >= 6) {
         arg2 = 5;
     }
     Gp_SpawnIfCapIdle(arg2, 0);
@@ -143520,7 +143520,7 @@ addresses the set is `lo_sum` and does not `rtx_equal_p` its `REG_EQUIV`
 symbol. This spelling still needed one `SOFT_TOUCH_REG(save)`; the follow-up
 below removes it.
 
-The `SCHED_BARRIER` between `Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2`
+The `SCHED_BARRIER` between `inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2`
 and the next give/equip pair did have a natural source: a `do { } while (0)`
 macro around the pair. Its loop notes fence sched1, so the store stays ahead
 of the next call's argument setup.
@@ -149544,7 +149544,7 @@ attempts; left as it was.
   tasks. An arm that stores a second field has to store it *first*
   (`control.word = INACTIVE; result = CANCEL;`): the merged `sh` is the arm's
   last insn, and the image has the other store in the jump's delay slot. The
-  two `Gp_GiveItem` / `Gp_ConsumeScanQty` pairs sharing the consume call
+  two `inventoryGiveItem` / `inventoryConsumeFirstStack` pairs sharing the consume call
   through `consumeScan = ...; goto consume_transfer;` are the two calls written
   in each arm; the image's `j; addiu a0,s0,4` is the cross-jump.
 - **`check = 3; goto compare_room; ... check = 0x11; compare_room: if (room !=
@@ -151063,7 +151063,7 @@ s32 count = 0;
 s32 n;
 s32 i = 0;                      /* redundant: every loop sets it again */
 ...
-slot = Gp_GetItemSlot(arg1);
+slot = equipmentGetWeaponLoad(arg1);
 n    = 0;
 if (mode != 2) {
     for (i = 0; i < 3; i++) { ... }
@@ -151636,7 +151636,7 @@ merged. Written as a cursor,
 
 ```c
 row = y + 0xF;
-_gpDrawPromptItem(arg0, x, row, Gp_StrMore, item, color, 1);
+_itemMenuDrawPrefixedItemName(arg0, x, row, Gp_StrMore, item, color, 1);
 row += 0xF;
 textDrawUiLine(arg0, x, row, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
 ```

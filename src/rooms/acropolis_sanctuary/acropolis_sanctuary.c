@@ -1770,7 +1770,7 @@ static void func_acropolis_sanctuary_801802E0(Task* task);
 /// The room task's per-frame state. Once the session reaches phase 3
 /// (`gameFlagGetNibble(2)` still 0), advances that flag and applies the
 /// room's one-shot state, then disables the action triggers while
-/// `Gp_GetCurBit2Flag(0x1C)` is 2. `mask` is
+/// `areaGetCurrentObjectState(0x1C)` is 2. `mask` is
 /// a local because the target CSEs `~0x40` into a register and uses `and`
 /// rather than nine `andi`s.
 static void func_acropolis_sanctuary_8017D5E0(Task* task)
@@ -1797,7 +1797,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
     }
-    if (Gp_GetCurBit2Flag(0x1C) == 2) {
+    if (areaGetCurrentObjectState(0x1C) == 2) {
         mask = ~WORLD_COLLISION_TRIGGER_ENABLED;
         p0   = &(D_acropolis_sanctuary_80183AE4 + 6)[0];
         p3   = &(D_acropolis_sanctuary_80183AE4 + 6)[3];
@@ -2700,7 +2700,7 @@ void func_acropolis_sanctuary_80180264(Task* task)
     s32        flag;
     s32        view;
 
-    flag = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    flag = areaGetCurrentObjectState((u8)enemy->placeKey);
     view = viewGetMappedIndex();
     if (view == 0xB || view == 0xD || flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2721,7 +2721,7 @@ static void func_acropolis_sanctuary_801802E0(Task* task)
 
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
-    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
     viewGetMappedIndex();
     if (flag == 2) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

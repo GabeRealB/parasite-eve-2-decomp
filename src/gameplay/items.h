@@ -25,7 +25,18 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 struct UiObject;
 
-s32 Gp_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2);
+/// Quantity request that consumes the whole first matching stack.
+enum { INVENTORY_REMOVE_WHOLE_STACK = -1 };
+
+/// Removes a separate item row or consumes its first matching quantity stack.
+///
+/// Ids below 0xA0 clear `row`'s id, quantity and attachment, ignoring quantity
+/// and permitting NULL `range`. Other ids search the range's first matching
+/// row, which can differ from `row`: negative quantities consume it all,
+/// excess consumption clamps to zero, and zero remainder clears its fields.
+/// A missing match changes nothing. The row must be writable and any used
+/// range must fit its writable table. Weapon loads are left intact. Returns 0.
+s32 inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32 quantity);
 
 /// Confirmation UI for raising `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus` of the equipped
 /// 0x60–0x7F item (`gPlayerStatus.armor`). If the clamped level is
@@ -41,7 +52,41 @@ void Gp_UiBoostMp(struct UiObject* arg0, Task* arg1);
 /// `Gp_BoostPanelDesc`. `Gp_NoticePanelTask` is called with `spawnArg1` forced to 0x1C.
 void Gp_UiBoostHp(struct UiObject* arg0, Task* arg1);
 
-s32 func_800B9D80(s32 arg0);
+/// Exact selectors for effects supplied by armour, attached items or active wards.
+///
+/// These are individual query ids, not combinable flags or PlayerStatus masks.
+/// The timed status at player-status bit 0x20 has an unproven gameplay role;
+/// its resistance selector always returns zero.
+enum {
+    EQUIPMENT_EFFECT_RESIST_DARKNESS        = 0x101,
+    EQUIPMENT_EFFECT_RESIST_PARALYSIS       = 0x102,
+    EQUIPMENT_EFFECT_RESIST_POISON          = 0x104,
+    EQUIPMENT_EFFECT_RESIST_SILENCE         = 0x108,
+    EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20 = 0x110,
+    EQUIPMENT_EFFECT_RESIST_CONFUSION       = 0x120,
+    EQUIPMENT_EFFECT_RESIST_BERSERKER       = 0x140,
+    EQUIPMENT_EFFECT_RESIST_IMPACT          = 0x200,
+    EQUIPMENT_EFFECT_ARMOR_MOTION_DETECTOR  = 0x400,
+    EQUIPMENT_EFFECT_MP_GENERATION          = 0x800,
+    EQUIPMENT_EFFECT_HP_RECOVERY            = 0x1000,
+    EQUIPMENT_EFFECT_QUICK_FIRE             = 0x2000,
+    EQUIPMENT_EFFECT_MEDICAL_INSPECTION     = 0x4000,
+    EQUIPMENT_EFFECT_MP_RECOVERY            = 0x8000,
+    EQUIPMENT_EFFECT_SKULL_CRYSTAL          = 0x10000,
+    EQUIPMENT_EFFECT_OFUDA                  = 0x20000,
+    EQUIPMENT_EFFECT_HOLY_WATER             = 0x40000,
+    EQUIPMENT_EFFECT_MEDICINE_WHEEL         = 0x80000,
+    EQUIPMENT_EFFECT_MOTION_DETECTOR        = 0x100000
+};
+
+/// Returns whether one equipment effect is available to the player.
+///
+/// Reads equipped armour features, positive attachment slots in the carried
+/// range, and active Metabolism/body/mind wards. Item quantity is not tested.
+/// `effectSelector` is one exact `EQUIPMENT_EFFECT_*` id; unknown ids return 0.
+/// The armour-only motion-detector query controls radar zoom, while the general
+/// query also accepts attached GPS. Returns 0 or 1 without modifying state.
+s32 equipmentHasEffect(s32 effectSelector);
 
 void Gp_ApplyBit2Bank(s32 arg0);
 
@@ -51,9 +96,29 @@ s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1);
 
 void Gp_ClearEquipSlot(s32 arg0);
 
-void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1);
+/// Which weapon loads `equipmentClearSelectedRemovableLoads` clears.
+enum {
+    EQUIPMENT_CLEAR_LOAD_BOTH      = 0,
+    EQUIPMENT_CLEAR_LOAD_PRIMARY   = 1,
+    EQUIPMENT_CLEAR_LOAD_SECONDARY = 2
+};
 
-void Gp_ConsumeScanQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+/// Clears selected removable weapon loads while preserving built-in supplies.
+///
+/// Selection 1 clears primary, 2 secondary, and every other value clears both.
+/// Weapon ids outside 0x80..0x9F are ignored. Cleared loads lose their item id
+/// and quantity, except that an unavailable secondary slot keeps its marker.
+/// The saved record remains owned by the live save; inventory totals are intact.
+void equipmentClearSelectedRemovableLoads(s32 weaponItemId, s32 loadSelection);
+
+/// Consumes units from the first matching item row in a writable range.
+///
+/// A negative quantity consumes the whole first row; excess consumption clamps
+/// to zero. Zero remainder clears its id, quantity and attachment. A missing
+/// item changes nothing. The range must fit its table. Quantity counts item
+/// units, including loaded ammunition; weapon-load records are left intact.
+/// The range descriptor is not modified and no pointer is retained.
+void inventoryConsumeFirstStack(InventoryItemRange* range, s32 itemId, s32 quantity);
 
 s32 Gp_FillRelated(s32 arg0, s32 arg1);
 
@@ -150,7 +215,7 @@ extern u8 Gp_ItemSortKeyA0[];
 void inventorySortItems(const InventoryItemRange* range, s32 unused);
 
 /// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with
-/// `Gp_GiveItem` first, then an existing stack is moved onto the slot when
+/// `inventoryGiveItem` first, then an existing stack is moved onto the slot when
 /// it is empty. Other ids overwrite the slot (re-adding the previous item).
 InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3);
 

@@ -172,22 +172,22 @@ u16 D_80114B32 = 0x1131;
 /* Gives `scan` one `weapon` and loads it with `ammo`. */
 #define GP_GIVE_LOADED(scan, weapon, ammo)           \
     do {                                             \
-        Gp_GiveItem(scan, weapon, 1);                \
+        inventoryGiveItem(scan, weapon, 1);          \
         Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
     } while (0)
 
 /* Clears the carried inventory, equips the starting armour, restores HP/MP,
  * and gives the initial supplies and their attachment slots. */
-#define _gpInitStartingItems(scan, cfg)                \
-    do {                                               \
-        Gp_ClearScanItems(scan);                       \
-        Gp_GiveItem(scan, 0x60, 1);                    \
-        Gp_EquipMod(0x60);                             \
-        (cfg)->hp = (cfg)->hpMax;                      \
-        (cfg)->mp = (cfg)->mpMax;                      \
-        Gp_GiveItem(scan, 0x92, 1);                    \
-        Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1; \
-        Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+#define _gpInitStartingItems(scan, cfg)                      \
+    do {                                                     \
+        Gp_ClearScanItems(scan);                             \
+        inventoryGiveItem(scan, 0x60, 1);                    \
+        Gp_EquipMod(0x60);                                   \
+        (cfg)->hp = (cfg)->hpMax;                            \
+        (cfg)->mp = (cfg)->mpMax;                            \
+        inventoryGiveItem(scan, 0x92, 1);                    \
+        inventoryGiveItem(scan, 0x40, 1)->attachSlot    = 1; \
+        inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
     } while (0)
 
 /* Item table a scan window lies in. */
@@ -238,7 +238,7 @@ s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1)
     s32               limit;
 
     if (arg1 >= 0x100) {
-        return Gp_HasCollectedBit(arg1);
+        return inventoryHasCollectedBit(arg1);
     }
 
     acc = 0;
@@ -710,11 +710,11 @@ s32 Gp_AgeFlag119(void)
     u16* markMinutes;
 
     ret = 0;
-    if (Gp_HasCollectedBit(0x119) != 0) {
+    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) != 0) {
         markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
         if ((s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= 2) {
-            Gp_ClearCollectedBit(0x119);
-            Gp_SetCollectedBit(0x11A);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
+            inventorySetCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER);
             ret = 1;
         }
     }
@@ -725,11 +725,11 @@ void Gp_AgeFlag119Void(void)
 {
     u16* markMinutes;
 
-    if (Gp_HasCollectedBit(0x119) != 0) {
+    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) != 0) {
         markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
         if ((s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= 2) {
-            Gp_ClearCollectedBit(0x119);
-            Gp_SetCollectedBit(0x11A);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
+            inventorySetCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER);
         }
     }
 }

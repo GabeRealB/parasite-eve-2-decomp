@@ -270,7 +270,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             }
             return;
         case 2:
-            if (Gp_HasCollectedBit(0x121) != 0) {
+            if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BOWMANS_CARD) != 0) {
                 Gp_RunCapCmd(1, 0);
             } else {
                 Gp_RunCapCmd(2, 0);

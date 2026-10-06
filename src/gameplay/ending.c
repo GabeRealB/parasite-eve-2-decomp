@@ -261,13 +261,13 @@ void func_800A087C(Task* arg0)
             D_80114BDC = gSceneCombatState.bpReward;
             D_80114BDE = gSceneCombatState.expReward;
             D_80114BE0 = gSceneCombatState.mpReward;
-            if (func_800B9D80(0x8000) != 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_MP_RECOVERY) != 0) {
                 D_80114BE4 = ((u32)(gSceneCombatState.mpReward - 1) >> 2) + 1;
                 if (D_80114BE4 >= 100) {
                     D_80114BE4 = 99;
                 }
             }
-            if (func_800B9D80(0x1000) != 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_HP_RECOVERY) != 0) {
                 add        = (u16)gSceneCombatState.mpReward;
                 D_80114BE2 = add;
                 cfg->hp   += add;

@@ -141,7 +141,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
 
                 cfg->weapon = id - 0x7F;
 
-                table = Gp_GetItemTable(scanEquip);
+                table = inventoryGetRangeTable(scanEquip);
                 table = &table[scanEquip->firstRow];
                 count = scanEquip->rowCount;
                 for (i = 0; i < count; i++) {
@@ -161,7 +161,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
             relId = 0;
             qty   = 0;
             held  = cfg->weapon + 0x7F;
-            slot  = Gp_GetItemSlot(held);
+            slot  = equipmentGetWeaponLoad(held);
             if (Gp_EquipRelatedBank(0, held, id, 0) == 0) {
                 Gp_PendingRelatedId = id;
                 Gp_RelatedPending   = flag;
@@ -193,7 +193,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
             if (qty > 0) {
                 scanRel = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                 hit     = NULL;
-                table   = Gp_GetItemTable(scanRel);
+                table   = inventoryGetRangeTable(scanRel);
                 i       = 0;
                 table   = &table[scanRel->firstRow];
                 count   = scanRel->rowCount;
@@ -207,10 +207,10 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                 if (found != NULL && found->attachSlot == INVENTORY_ATTACHMENT_NONE) {
                     slotNum  = -1;
                     scanFree = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                    Gp_GetItemTable(scanFree);
+                    inventoryGetRangeTable(scanFree);
                     for (k = 0; k < 3; k++) {
                         avail = 1;
-                        table = Gp_GetItemTable(scanFree);
+                        table = inventoryGetRangeTable(scanFree);
                         i     = 0;
                         table = &table[scanFree->firstRow];
                         count = scanFree->rowCount;
@@ -230,7 +230,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                     if (slotNum == -1) {
                         scanId = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                         hit    = NULL;
-                        table  = Gp_GetItemTable(scanId);
+                        table  = inventoryGetRangeTable(scanId);
                         i      = 0;
                         table  = &table[scanId->firstRow];
                         count  = scanId->rowCount;
@@ -429,7 +429,7 @@ static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1)
                     }
                     break;
                 case 0x3E:
-                    if (func_800B9D80(0x140) == 0) {
+                    if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) == 0) {
                         ret = 0;
                     }
                     break;
@@ -498,7 +498,7 @@ void func_800D6334(Task* task)
         selectedX    = x + selectedSlot * 13;
         firstRec     = NULL;
         firstScan    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-        firstTable   = Gp_GetItemTable(firstScan);
+        firstTable   = inventoryGetRangeTable(firstScan);
         firstI       = 0;
         firstTable   = &firstTable[firstScan->firstRow];
         firstCount   = firstScan->rowCount;
@@ -536,7 +536,7 @@ void func_800D6334(Task* task)
             if (slot != D_8010F884) {
                 selected = NULL;
                 scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                table    = Gp_GetItemTable(scan);
+                table    = inventoryGetRangeTable(scan);
                 i        = 0;
                 table    = &table[scan->firstRow];
                 for (; i < scan->rowCount; i++) {
@@ -573,7 +573,7 @@ void func_800D6334(Task* task)
                 useSlot  = D_8010F884;
                 useRec   = NULL;
                 useScan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                useTable = Gp_GetItemTable(useScan);
+                useTable = inventoryGetRangeTable(useScan);
                 useI     = 0;
                 useTable = &useTable[useScan->firstRow];
                 useCount = useScan->rowCount;
@@ -648,7 +648,7 @@ InventoryItemRow* Gp_FindItemById(s32 arg0)
 
     rec   = NULL;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = Gp_GetItemTable(scan);
+    table = inventoryGetRangeTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
     count = scan->rowCount;
@@ -671,7 +671,7 @@ static InventoryItemRow* Gp_FindItemByKind(s32 arg0)
 
     rec   = NULL;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = Gp_GetItemTable(scan);
+    table = inventoryGetRangeTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
     count = scan->rowCount;
@@ -693,7 +693,7 @@ InventoryItemRow* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1)
     InventoryItemRow* rec;
 
     rec   = NULL;
-    table = Gp_GetItemTable(arg1);
+    table = inventoryGetRangeTable(arg1);
     i     = 0;
     table = &table[arg1->firstRow];
     count = arg1->rowCount;

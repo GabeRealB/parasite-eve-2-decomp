@@ -495,7 +495,7 @@ void func_mist_parking_80183EAC(Task* task)
                 return;
             }
             prize = talk->prizeIndex;
-            if (Gp_GetCurBit2Flag(prize + 0x20) != 1) {
+            if (areaGetCurrentObjectState(prize + 0x20) != 1) {
                 gameFlagSetNibble(prize + 0x125, 3);
             }
             talk->prizeTimer = 10;

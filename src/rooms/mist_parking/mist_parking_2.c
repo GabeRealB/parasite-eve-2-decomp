@@ -814,13 +814,13 @@ void func_mist_parking_80182A44(Task* task)
                 case 3:
                     for (i = 0; i < 4; i++) {
                         flag = i + 0x125;
-                        if (gameFlagGetNibble(flag) == 2 && Gp_GiveItem(Gp_ScanPtrs[3], D_mist_parking_8018FBFC[i], D_mist_parking_8018FC10[i]) != 0) {
+                        if (gameFlagGetNibble(flag) == 2 && inventoryGiveItem(Gp_ScanPtrs[3], D_mist_parking_8018FBFC[i], D_mist_parking_8018FC10[i]) != 0) {
                             gameFlagSetNibble(flag, 3);
                             Gp_SetCurBit2Flag(i + 0x20, 2);
                         }
                     }
                     if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE) == 2 && func_800B7420(0x6C) == 0) {
-                        if (Gp_GiveItem(D_8010D55C, 0x6C, 1) != 0) {
+                        if (inventoryGiveItem(D_8010D55C, 0x6C, 1) != 0) {
                             gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE, 3);
                             Gp_SetCurBit2Flag(0x24, 2);
                         }
@@ -850,7 +850,7 @@ void func_mist_parking_80182A44(Task* task)
                 return;
             }
             prize = announcement->prizeIndex;
-            if (Gp_GetCurBit2Flag(prize + 0x20) != 1) {
+            if (areaGetCurrentObjectState(prize + 0x20) != 1) {
                 gameFlagSetNibble(prize + 0x125, 3);
             }
             announcement->prizeTimer = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;

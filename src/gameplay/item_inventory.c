@@ -857,22 +857,22 @@ ItemDesc Gp_KeyItemDescs[] = {
 /* Gives `scan` one `weapon` and loads it with `ammo`. */
 #define GP_GIVE_LOADED(scan, weapon, ammo)           \
     do {                                             \
-        Gp_GiveItem(scan, weapon, 1);                \
+        inventoryGiveItem(scan, weapon, 1);          \
         Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
     } while (0)
 
 /* Clears the carried inventory, equips the starting armour, restores HP/MP,
  * and gives the initial supplies and their attachment slots. */
-#define _gpInitStartingItems(scan, cfg)                \
-    do {                                               \
-        Gp_ClearScanItems(scan);                       \
-        Gp_GiveItem(scan, 0x60, 1);                    \
-        Gp_EquipMod(0x60);                             \
-        (cfg)->hp = (cfg)->hpMax;                      \
-        (cfg)->mp = (cfg)->mpMax;                      \
-        Gp_GiveItem(scan, 0x92, 1);                    \
-        Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1; \
-        Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+#define _gpInitStartingItems(scan, cfg)                      \
+    do {                                                     \
+        Gp_ClearScanItems(scan);                             \
+        inventoryGiveItem(scan, 0x60, 1);                    \
+        Gp_EquipMod(0x60);                                   \
+        (cfg)->hp = (cfg)->hpMax;                            \
+        (cfg)->mp = (cfg)->mpMax;                            \
+        inventoryGiveItem(scan, 0x92, 1);                    \
+        inventoryGiveItem(scan, 0x40, 1)->attachSlot    = 1; \
+        inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
     } while (0)
 
 void func_800B8014(void)
@@ -956,35 +956,35 @@ void func_800B8014(void)
         _gpInitStartingItems(scan, cfg);
     }
     GP_GIVE_LOADED(scan, 0x81, 0xA0);
-    Gp_GiveItem(scan, 2, 1)->attachSlot = 3;
-    scans                               = Gp_ScanPtrs;
-    scan                                = scans[1];
+    inventoryGiveItem(scan, 2, 1)->attachSlot = 3;
+    scans                                     = Gp_ScanPtrs;
+    scan                                      = scans[1];
     Gp_ClearScanItems(scan);
-    Gp_GiveItem(scan, 1, 1);
-    Gp_GiveItem(scan, 1, 1);
-    Gp_GiveItem(scan, 4, 1);
+    inventoryGiveItem(scan, 1, 1);
+    inventoryGiveItem(scan, 1, 1);
+    inventoryGiveItem(scan, 4, 1);
     scan = scans[2];
     Gp_ClearScanItems(scan);
-    Gp_GiveItem(scan, 1, 1);
-    Gp_GiveItem(scan, 1, 1);
+    inventoryGiveItem(scan, 1, 1);
+    inventoryGiveItem(scan, 1, 1);
     Gp_ClearScanItems(scans[3]);
     scan = scans[4];
     Gp_ClearScanItems(scan);
-    Gp_GiveItem(scan, 0xA0, -1);
-    Gp_GiveItem(scan, 4, 1);
-    Gp_GiveItem(scan, 4, 1);
+    inventoryGiveItem(scan, 0xA0, INVENTORY_GIVE_ONE_PACK);
+    inventoryGiveItem(scan, 4, 1);
+    inventoryGiveItem(scan, 4, 1);
     Gp_ClearScanItems(scans[6]);
     Gp_ClearScanItems(scans[5]);
     scan = scans[8];
     Gp_ClearScanItems(scan);
-    Gp_GiveItem(scan, 0xAC, 0x14);
-    Gp_GiveItem(scan, 0xA9, 8);
-    Gp_SetCollectedBit(0x106);
+    inventoryGiveItem(scan, 0xAC, 0x14);
+    inventoryGiveItem(scan, 0xA9, 8);
+    inventorySetCollectedBit(INVENTORY_COLLECTION_ID_MIST_BADGE);
     stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     if (stageAreaKey == GAME_LOCATION_KEY(1, 0x14, 0, 0)) {
         Gp_ResetInventory();
-        Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 1);
+        inventoryGiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 1);
         Gp_EquipHeld(0x81);
     }
 }

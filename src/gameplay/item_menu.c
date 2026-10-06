@@ -292,13 +292,13 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
     switch (arg0->result) {
         case 0x26:
             scanSrc = &Gp_MoveScanSrc;
-            tbl     = Gp_GetItemTable(scanSrc);
+            tbl     = inventoryGetRangeTable(scanSrc);
             base    = scanSrc->firstRow;
             i       = 0;
             if (scanSrc->rowCount != 0) {
                 do {
                     if (tbl[base].itemId != INVENTORY_ITEM_NONE) {
-                        Gp_GiveItem(&Gp_MoveScanDst, tbl[base].itemId, tbl[base].qty);
+                        inventoryGiveItem(&Gp_MoveScanDst, tbl[base].itemId, tbl[base].qty);
                         tbl[base].itemId = INVENTORY_ITEM_NONE;
                         tbl[base].qty    = 0;
                     }
@@ -357,12 +357,12 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                 recDst = Gp_GetScanSlot(dst, rowDst, 0);
                 qtyDst = recDst->qty;
                 idDst  = recDst->itemId;
-                Gp_RemoveItem(dst, recDst, qtyDst);
+                inventoryRemoveItemRow(dst, recDst, qtyDst);
                 src    = dst - 1;
                 recSrc = Gp_GetScanSlot(src, rowSrc, 0);
                 qtySrc = recSrc->qty;
                 idSrc  = recSrc->itemId;
-                Gp_RemoveItem(src, recSrc, qtySrc);
+                inventoryRemoveItemRow(src, recSrc, qtySrc);
                 Gp_SetScanItem(dst, rowDst, idSrc, qtySrc);
                 Gp_SetScanItem(src, rowSrc, idDst, qtyDst);
                 if ((u8)(recDst->itemId + 0x80) < 0x20) {
@@ -377,12 +377,12 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                     qtyA            = recA->qty;
                     idA             = recA->itemId;
                     attachmentSlotA = recA->attachSlot;
-                    Gp_RemoveItem(scan, recA, qtyA);
+                    inventoryRemoveItemRow(scan, recA, qtyA);
                     recB            = Gp_GetScanSlot(scan, rowB, 0);
                     qtyB            = recB->qty;
                     idB             = recB->itemId;
                     attachmentSlotB = recB->attachSlot;
-                    Gp_RemoveItem(scan, recB, qtyB);
+                    inventoryRemoveItemRow(scan, recB, qtyB);
                     Gp_SetScanItem(scan, rowA, idB, qtyB)->attachSlot = attachmentSlotB;
                     Gp_SetScanItem(scan, rowB, idA, qtyA)->attachSlot = attachmentSlotA;
                 }
@@ -780,8 +780,8 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else {
-            Gp_RemoveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value)), rec, qty);
-            Gp_GiveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item, qty);
+            inventoryRemoveItemRow((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value)), rec, qty);
+            inventoryGiveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item, qty);
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -1116,13 +1116,13 @@ void func_800BDF6C(Task* task)
             transferQty = split->containerQty - split->containerInitialQty;
             if (transferQty > 0) {
                 sourceScan = &Gp_MoveScanSrc;
-                Gp_GiveItem(sourceScan, task->spawnArg1.value, transferQty);
-                Gp_ConsumeScanQty(sourceScan + 1, task->spawnArg1.value, transferQty);
+                inventoryGiveItem(sourceScan, task->spawnArg1.value, transferQty);
+                inventoryConsumeFirstStack(sourceScan + 1, task->spawnArg1.value, transferQty);
             } else if (transferQty < 0) {
                 transferQty = -transferQty;
                 dstScan     = &Gp_MoveScanDst;
-                Gp_GiveItem(dstScan, task->spawnArg1.value, transferQty);
-                Gp_ConsumeScanQty(dstScan - 1, task->spawnArg1.value, transferQty);
+                inventoryGiveItem(dstScan, task->spawnArg1.value, transferQty);
+                inventoryConsumeFirstStack(dstScan - 1, task->spawnArg1.value, transferQty);
             }
             obj->result = USER_INTERFACE_RESULT_DISMISS;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
@@ -1207,13 +1207,13 @@ static inline void _gpDropOrphanedWeaponLoads(void)
     s32                  loadedItemId;
 
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    rec  = Gp_GetItemTable(scan);
+    rec  = inventoryGetRangeTable(scan);
     i    = 0;
     rec  = &rec[scan->firstRow];
     if (scan->rowCount != 0) {
         do {
             if ((u8)(rec->itemId + 0x80) < 0x20) {
-                slot         = Gp_GetItemSlot(rec->itemId);
+                slot         = equipmentGetWeaponLoad(rec->itemId);
                 loadedItemId = slot->primaryItemId;
                 // Battery 0xB9 is a built-in primary supply and has no carried stack.
                 if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != 0xB9)) {
@@ -1354,7 +1354,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         extra->flags   = 0;
         arg0->state++;
     } else if (arg0->state == 1) {
-        if (Gp_GetCurBit2Flag((u8)enemy->placeKey) != 2) {
+        if (areaGetCurrentObjectState((u8)enemy->placeKey) != 2) {
             if (arg0->status != 0) {
                 arg0->killCountdown = 0;
                 switch (stageAreaKey) {
@@ -1634,7 +1634,7 @@ s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request, s32 arg3)
     flag                     = 1;
     arg0->status             = flag;
     arg0->extraState.pointer = request;
-    if (Gp_GetCurBit2Flag((u8)enemy->placeKey) == 2) {
+    if (areaGetCurrentObjectState((u8)enemy->placeKey) == 2) {
         request->done = flag;
     }
     return 0;

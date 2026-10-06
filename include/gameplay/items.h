@@ -35,7 +35,21 @@ void Gp_RecalcMaxMp(void);
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
 void Gp_EquipMod(s32 arg0);
 
-InventoryItemRow* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+/// Default pack and full-stack quantity requests for `inventoryGiveItem`.
+enum {
+    INVENTORY_GIVE_ONE_PACK   = -1,
+    INVENTORY_GIVE_FULL_STACK = -2
+};
+
+/// Adds item units to a range and borrows the affected writable row, or NULL.
+///
+/// Consumables (0xA0..0xBF) share the first matching stack, capped at its
+/// catalogue capacity. Other ids allocate a free row with quantity one.
+/// Negative quantities request one pack, except `INVENTORY_GIVE_FULL_STACK`,
+/// which requests maximum capacity. `itemId` must be 1..0xFF and the range
+/// must fit its writable table. The descriptor is not modified. Sorting,
+/// transfers or resetting the backing table can replace the returned item.
+InventoryItemRow* inventoryGiveItem(const InventoryItemRange* range, s32 itemId, s32 quantity);
 
 /// Unequips `gPlayerStatus.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
@@ -58,19 +72,85 @@ void Gp_ClearScanItems(InventoryItemRange* arg0);
 
 s32 Gp_CountScanItems(InventoryItemRange* arg0);
 
-EquipmentWeaponLoad* Gp_GetItemSlot(s32 arg0);
+/// Borrows the live save's writable load record for a weapon item id.
+///
+/// `weaponItemId` must be 0x80..0x9F; there is no bounds check. The record is
+/// indexed by item id, independently of inventory position or equipment.
+/// Loading or resetting the live save can replace its contents.
+EquipmentWeaponLoad* equipmentGetWeaponLoad(s32 weaponItemId);
 
 s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1);
 
-s32 Gp_GetCurBit2Flag(s32 arg0);
+/// Returns one packed two-bit object state from the session's current stage.
+///
+/// `objectId` must be 0..63 and the current stage must be 1..5. Neither is
+/// checked. A packed enemy place key must first be narrowed to its low byte.
+/// The result is 0..3; ordinary pickup completion stores 2 unless it is 3.
+/// Night Dryfield shares daytime Dryfield's words. Stage selection follows
+/// the current session, whereas `Gp_SetCurBit2Flag` follows the live save.
+s32 areaGetCurrentObjectState(s32 objectId);
 
-s32 Gp_HasCollectedBit(s32 arg0);
+/// Returns 1 if a live-save collection bit is set, otherwise 0.
+///
+/// Only the low seven bits of `collectionId` select the bit. Key-item ids
+/// 0x100..0x17F and their zero-based bit indices therefore address the same
+/// 128-bit set, which also records item-related events.
+s32 inventoryHasCollectedBit(s32 collectionId);
 
-void Gp_ClearCollectedBit(s32 arg0);
+/// Catalogue ids used as live-save collection bits for items and rescue bonuses.
+///
+/// The collection APIs keep each id's low seven bits.
+enum {
+    INVENTORY_COLLECTION_ID_PARTHENON_KEY        = 0x101,
+    INVENTORY_COLLECTION_ID_RED_KEY              = 0x103,
+    INVENTORY_COLLECTION_ID_BLUE_KEY             = 0x104,
+    INVENTORY_COLLECTION_ID_ARMORY_CARDKEY       = 0x105,
+    INVENTORY_COLLECTION_ID_MIST_BADGE           = 0x106,
+    INVENTORY_COLLECTION_ID_MENDEL_JOURNAL       = 0x107,
+    INVENTORY_COLLECTION_ID_MIST_SEARCH_WARRANT  = 0x109,
+    INVENTORY_COLLECTION_ID_NMC_PHOTO            = 0x10A,
+    INVENTORY_COLLECTION_ID_MANUAL               = 0x10B,
+    INVENTORY_COLLECTION_ID_DRYFIELD_MAP         = 0x10C,
+    INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY     = 0x10F,
+    INVENTORY_COLLECTION_ID_MONKEY_WRENCH        = 0x111,
+    INVENTORY_COLLECTION_ID_LOBBY_KEY            = 0x112,
+    INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY     = 0x113,
+    INVENTORY_COLLECTION_ID_WIRE_ROPE            = 0x114,
+    INVENTORY_COLLECTION_ID_FACTORY_KEY          = 0x115,
+    INVENTORY_COLLECTION_ID_TRUCK_KEY            = 0x116,
+    INVENTORY_COLLECTION_ID_JERRY_CAN            = 0x117,
+    INVENTORY_COLLECTION_ID_GASOLINE             = 0x118,
+    INVENTORY_COLLECTION_ID_ICE_BAG              = 0x119,
+    INVENTORY_COLLECTION_ID_BAG_OF_WATER         = 0x11A,
+    INVENTORY_COLLECTION_ID_BOTTLECAP_MAGNET     = 0x11B,
+    INVENTORY_COLLECTION_ID_SUV_KEY              = 0x11E,
+    INVENTORY_COLLECTION_ID_OAK_BOARD            = 0x11F,
+    INVENTORY_COLLECTION_ID_BOWMANS_CARD         = 0x121,
+    INVENTORY_COLLECTION_ID_PIERCE_RESCUE_BONUS  = 0x12F,
+    INVENTORY_COLLECTION_ID_SOLDIER_RESCUE_BONUS = 0x130
+};
 
-InventoryItemRow* Gp_GetItemTable(InventoryItemRange* arg0);
+/// Clears the live-save collection bit selected by an id's low seven bits.
+///
+/// Accepts the same key-item ids or bit indices as `inventoryHasCollectedBit`.
+/// The play-time marker is left intact.
+void inventoryClearCollectedBit(s32 collectionId);
 
-void Gp_SetCollectedBit(s32 arg0);
+/// Borrows the writable table selected by a range, before its first-row offset.
+///
+/// Table id 1 selects the current indirect table, 2 the gameplay area-grant
+/// rows, and every other value the live save's rows. The descriptor must be
+/// readable and the selected table must remain available while used. Saved
+/// storage lasts with the resident save, area-grant storage with gameplay;
+/// the indirect table's owner determines its lifetime. No rows are inspected.
+InventoryItemRow* inventoryGetRangeTable(const InventoryItemRange* range);
+
+/// Sets the live-save collection bit selected by an id's low seven bits.
+///
+/// Accepts the same key-item ids or bit indices as `inventoryHasCollectedBit`.
+/// Setting the Ice Bag bit (0x19, item id 0x119) also refreshes its play-time
+/// marker from the live save, even if the bit was already set.
+void inventorySetCollectedBit(s32 collectionId);
 
 s32 Gp_AgeFlag119(void);
 

@@ -405,13 +405,13 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
     if (msg->actionId == 6) {
         if (gGameSession->location.loc.variant == 2) {
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
-                if (Gp_HasCollectedBit(0x113) == 0) {
+                if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY) == 0) {
                     Gp_MsgPlayerWeapon(0);
                     taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 6, 0);
-                } else if (Gp_HasCollectedBit(0x117) == 0 && Gp_HasCollectedBit(0x118) == 0) {
+                } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) == 0 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
                     Gp_MsgPlayerWeapon(0);
                     taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 7, 0);
-                } else if (Gp_HasCollectedBit(0x118) == 0) {
+                } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
                     Gp_MsgPlayerWeapon(0);
                     taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
                 } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
@@ -423,7 +423,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
                                   D_dryfield_night_garage_801831B8);
                     gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, 1);
                     func_800E3FAC(0xA2, 0x17);
-                    Gp_ClearCollectedBit(0x118);
+                    inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
                 }
             } else {

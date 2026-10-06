@@ -293,7 +293,7 @@ s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32 bit2;
 
     if (arg2 == 7) {
-        bit2 = Gp_GetCurBit2Flag(7);
+        bit2 = areaGetCurrentObjectState(7);
         if (bit2 == 1) {
             Gp_StartCapSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
             if (D_neo_ark_shrine_80181E74 == 2) {

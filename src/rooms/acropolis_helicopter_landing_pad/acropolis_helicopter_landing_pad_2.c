@@ -1341,8 +1341,8 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
     switch (temp_v1) {
         case 0:
             Gp_FillPlayerHpMp();
-            Gp_ClearCollectedBit(0x101);
-            Gp_ClearCollectedBit(0x102);
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_PARTHENON_KEY);
+            inventoryClearCollectedBit(0x102);
             Gp_SetItemSeenBit(0x102, 1);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);

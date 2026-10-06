@@ -1566,7 +1566,7 @@ void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
 
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
-    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
     viewGetMappedIndex();
     if (flag == 2) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

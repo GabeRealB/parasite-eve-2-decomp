@@ -403,7 +403,7 @@ void Gp_MenuRootTask(Task* arg0)
             D_80114DE8 = cfg->weapon;
             D_80114DE4 = cfg->weaponSlotItem;
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-                D_80114DE0 = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
+                D_80114DE0 = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
             }
             Gp_AgeFlag119Void();
             arg0->killCountdown = 1;
@@ -541,7 +541,7 @@ void Gp_MenuRootTask(Task* arg0)
             cfg = &gPlayerStatus;
             Gp_SyncHeldRelated();
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-                secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
+                secondaryItemId = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
             }
             if ((D_80114DE8 == cfg->weapon) && (D_80114DE4 == cfg->weaponSlotItem) &&
                 (D_80114DE0 == secondaryItemId)) {
@@ -574,7 +574,7 @@ void Gp_MenuRootTask(Task* arg0)
             cfg             = &gPlayerStatus;
             secondaryItemId = -1;
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-                secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
+                secondaryItemId = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
             }
             if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||
                 (D_80114DE0 != secondaryItemId)) {

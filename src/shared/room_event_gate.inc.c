@@ -30,7 +30,7 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
     }
     ret = 1;
     if (got == 0) {
-        if (Gp_HasCollectedBit(req->collectedBit) != 0 || req->collectedBit == 0) {
+        if (inventoryHasCollectedBit(req->collectedBit) != 0 || req->collectedBit == 0) {
             ret = 2;
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventMsg  = *msg;

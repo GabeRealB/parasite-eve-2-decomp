@@ -66,7 +66,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
         _cfg    = &gPlayerStatus;                                                       \
         _n      = (index);                                                              \
-        _rec    = Gp_GetItemTable(_scan);                                               \
+        _rec    = inventoryGetRangeTable(_scan);                                        \
         (found) = _i = 0;                                                               \
         _rec         = &_rec[_scan->firstRow];                                          \
         for (; _i < _scan->rowCount; _i++) {                                            \
@@ -90,7 +90,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         (count) = 0;                                                                    \
         _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
         _cfg    = &gPlayerStatus;                                                       \
-        _rec    = Gp_GetItemTable(_scan);                                               \
+        _rec    = inventoryGetRangeTable(_scan);                                        \
         _i      = 0;                                                                    \
         _rec    = &_rec[_scan->firstRow];                                               \
         for (; _i < _scan->rowCount; _i++) {                                            \
@@ -110,7 +110,7 @@ static inline s32 _gpFindSpareArmor(s32 index)
 
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     cfg   = &gPlayerStatus;
-    rec   = Gp_GetItemTable(scan);
+    rec   = inventoryGetRangeTable(scan);
     found = i = 0;
     rec       = &rec[scan->firstRow];
     for (; i < scan->rowCount; i++) {
@@ -225,7 +225,7 @@ void Gp_AttachListTask(Task* task)
             obj->panel.style   |= USER_INTERFACE_PANEL_TITLE_STYLE;
             if (task->spawnArg1.value & 0x10000) {
                 if (val != 0) {
-                    slot = Gp_GetItemSlot(val);
+                    slot = equipmentGetWeaponLoad(val);
                     if ((val == 0x92) || (val == 0x99) || (val == 0x96)) {
                         task->state = 3;
                     } else if (val == 0x95) {
@@ -515,7 +515,7 @@ void Gp_ReloadPromptTask(Task* arg0)
     uiDrawPanelLabel(&(obj)->panel, Gp_StrReload);
     if (arg0->state == 0) {
         if (lo == 0) {
-            slot        = Gp_GetItemSlot(hi);
+            slot        = equipmentGetWeaponLoad(hi);
             arg0->state = 0x10;
             if (Gp_ReloadMode == 1) {
                 if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
@@ -537,7 +537,7 @@ void Gp_ReloadPromptTask(Task* arg0)
                 arg0->state = 0x20;
                 text        = Gp_StrRemovedAmmo;
             }
-            Gp_ClearEquipSlotSel(hi, Gp_ReloadMode);
+            equipmentClearSelectedRemovableLoads(hi, Gp_ReloadMode);
             other = textMeasureLineWidth((const u8*)Gp_StrRemoved);
         } else {
             Gp_SetItemSeenBit(lo, 1);
@@ -661,7 +661,7 @@ void Gp_EquipPromptTask(Task* arg0)
                     if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                         prev->attachSlot = rec->attachSlot;
                     } else {
-                        Gp_ClearEquipSlotSel(prev->itemId, 0);
+                        equipmentClearSelectedRemovableLoads(prev->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
                     }
                 }
                 p->weapon = val - 0x7F;

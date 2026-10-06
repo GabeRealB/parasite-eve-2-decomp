@@ -1535,7 +1535,7 @@ void func_actor_161500_801322A0(void)
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         temp_v0 = gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE);
         if (temp_v0 == 1) {
-            if (Gp_GetCurBit2Flag(3) == temp_v0) {
+            if (areaGetCurrentObjectState(3) == temp_v0) {
                 func_800E8614(D_actor_161500_801378D8, 0);
             } else {
                 func_800E8614(D_actor_161500_801376F8, 0);

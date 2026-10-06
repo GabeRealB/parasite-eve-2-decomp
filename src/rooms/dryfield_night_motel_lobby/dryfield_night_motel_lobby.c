@@ -260,7 +260,7 @@ static void func_dryfield_night_motel_lobby_8017FDE8(Task* task)
 {
     s32 temp_v0;
 
-    temp_v0 = Gp_HasCollectedBit(0x113);
+    temp_v0 = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY);
     if ((temp_v0 != 0) && (D_dryfield_night_motel_lobby_801844D4 == 0)) {
         func_800E3FAC(0xA2, 0x14);
     }

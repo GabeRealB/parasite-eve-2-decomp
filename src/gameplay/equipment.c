@@ -108,7 +108,7 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
     if (arg1 == 1 && slot->primaryItemId != INVENTORY_ITEM_NONE && slot->primaryQty != 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
             slot->primaryQty--;
-            Gp_ConsumeScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->primaryItemId, 1);
+            inventoryConsumeFirstStack(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->primaryItemId, 1);
             count = *counter;
             if (count <= 0xF423E) {
                 *counter = count + 1;
@@ -118,7 +118,7 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
                slot->secondaryQty != 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
             slot->secondaryQty--;
-            Gp_ConsumeScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->secondaryItemId, 1);
+            inventoryConsumeFirstStack(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->secondaryItemId, 1);
             count = *counter;
             if (count <= 0xF423E) {
                 *counter = count + 1;
@@ -144,7 +144,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                               i;
 
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = Gp_GetItemTable(scan);
+    table = inventoryGetRangeTable(scan);
     if ((u32)(arg1 - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
         return -1;
     }
@@ -217,7 +217,7 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                               limited;
     s32                               used;
 
-    table     = Gp_GetItemTable(arg0);
+    table     = inventoryGetRangeTable(arg0);
     useSecond = 0;
     if ((u32)(arg2 - 0xA0) >= 0x20 || (u32)(arg1 - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
         return -1;

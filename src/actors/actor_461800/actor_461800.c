@@ -1044,10 +1044,10 @@ void func_actor_461800_8013229C(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) {
-            Gp_SetCollectedBit(0x130);
+            inventorySetCollectedBit(INVENTORY_COLLECTION_ID_SOLDIER_RESCUE_BONUS);
         }
         if (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) != 0) {
-            Gp_SetCollectedBit(0x12F);
+            inventorySetCollectedBit(INVENTORY_COLLECTION_ID_PIERCE_RESCUE_BONUS);
         }
         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) == 0 && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) == 0) {
             gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;

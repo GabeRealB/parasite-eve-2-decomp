@@ -2608,8 +2608,8 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
         Gp_RunCapCmd1(0x11);
     }
     if (arg2 == 5) {
-        if (Gp_HasCollectedBit(0x118) == 0) {
-            Gp_HasCollectedBit(0x117);
+        if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
+            inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
             var_a2 = 0;
         } else {
             var_a2 = 1;
@@ -2617,7 +2617,7 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
         Gp_StartCapSlot(0x12, 1, var_a2);
     }
     if ((arg2 == 0x17) && (gGameSession->location.loc.room == 4)) {
-        if (Gp_HasCollectedBit(0x11E) != 0) {
+        if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_SUV_KEY) != 0) {
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 0) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 1);
             } else {
@@ -2668,7 +2668,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     gGameSession->hideHud = 1;
     D_80115768            = 1;
     SetDispMask(0);
-    Gp_ClearCollectedBit(0x117);
+    inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
     func_800E8634(D_dryfield_night_gas_station_801840AC, 0, D_dryfield_night_gas_station_801841FC);
     func_800E3FAC(0xA2, 0x16);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;

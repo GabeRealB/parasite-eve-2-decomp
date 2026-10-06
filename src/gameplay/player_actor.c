@@ -299,7 +299,7 @@ extern u8 D_80112E2C[][2];
 
 /// u16 turn-rate rows indexed by `gPlayerStatus.weapon`. `Gp_AimYawToLock`
 /// clamps the wrapped yaw delta to this value (or 1.5x when
-/// `func_800B9D80(0x2000)` is set).
+/// `equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE)` is set).
 extern u16 D_80112E30[];
 
 /// NULL-terminated `GpuImageUpload*` lists for `func_801030CC`. Indexed as
@@ -5458,7 +5458,7 @@ static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* bloc
             block->yaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
             block->yaw = _playerActorShortestTurn(actor->rotation.vy, block->yaw);
             limit      = (s16)D_80112E30[gPlayerStatus.weapon];
-            if (func_800B9D80(0x2000) != 0) {
+            if (equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE) != 0) {
                 limit += limit >> 1;
             }
             if (block->yaw > limit) {
@@ -8083,7 +8083,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    item = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F)->secondaryItemId;
+                    item = equipmentGetWeaponLoad(gPlayerStatus.weapon + 0x7F)->secondaryItemId;
                     if (item - 0x9F > 0) {
                         variant = ((item - 0xA0) % 3) << 24;
                     }
@@ -9370,7 +9370,7 @@ static void func_801095BC(s32* arg0)
 
     p = &gPlayerStatus;
     if (p->weapon == 0x1B) {
-        *arg0 = Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId - 0x9F;
+        *arg0 = equipmentGetWeaponLoad(p->weapon + 0x7F)->secondaryItemId - 0x9F;
         if (*arg0 < 0) {
             *arg0 = 0xA;
         }

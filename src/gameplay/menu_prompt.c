@@ -810,7 +810,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
             col   = i % 5;
             row   = i / 5;
             scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            rec   = Gp_GetItemTable(scan);
+            rec   = inventoryGetRangeTable(scan);
             found = NULL;
             rec   = &rec[scan->firstRow];
             for (j = 0; j < scan->rowCount; j++, rec++) {
@@ -969,7 +969,7 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     arg2 += 0x13;
     if (item > 0) {
         if (item != 0x92) {
-            slot         = Gp_GetItemSlot(item);
+            slot         = equipmentGetWeaponLoad(item);
             loadedItemId = slot->primaryItemId;
             count        = slot->primaryQty;
             if (loadedItemId != 0) {
@@ -1008,8 +1008,8 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->weapon == (arg3 - 0x7F))) ||
         (((u32)(arg3 - 0x60) < 0x20U) && (cfg->armor == (arg3 - 0x5F))) ||
         (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-         ((Gp_GetItemSlot(cfg->weapon + 0x7F)->primaryItemId == arg3) ||
-          (Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId == arg3)))) {
+         ((equipmentGetWeaponLoad(cfg->weapon + 0x7F)->primaryItemId == arg3) ||
+          (equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId == arg3)))) {
         equipped = 1;
     }
     if (equipped != 0) {
@@ -1028,7 +1028,7 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     } else {
         hasMod = 0;
         if ((u32)(arg3 - 0x80) < 0x20U) {
-            slot = Gp_GetItemSlot(arg3);
+            slot = equipmentGetWeaponLoad(arg3);
             if (((slot->primaryQty != 0) && (Gp_FindItemById(slot->primaryItemId) != NULL)) ||
                 ((slot->secondaryQty != 0) && (Gp_FindItemById(slot->secondaryItemId) != NULL))) {
                 hasMod = 1;
@@ -1140,7 +1140,7 @@ static inline InventoryItemRow* _gpNthLooseRec(InventoryItemRange* scan, s32 ind
     s32               count;
     s32               n;
 
-    table = Gp_GetItemTable(scan);
+    table = inventoryGetRangeTable(scan);
     found = NULL;
     i     = 0;
     count = scan->rowCount;
@@ -1343,7 +1343,7 @@ static __inline__ void countItemRows(UiList* menu)
     s32                 id;
 
     scan            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table           = Gp_GetItemTable(scan);
+    table           = inventoryGetRangeTable(scan);
     table           = &table[scan->firstRow];
     menu->itemCount = scan->rowCount;
     count           = scan->rowCount;
@@ -1564,7 +1564,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
             s32                 count;
 
             scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            table = Gp_GetItemTable(scan);
+            table = inventoryGetRangeTable(scan);
             if (item != 0) {
                 table = &table[scan->firstRow];
                 count = scan->rowCount;
@@ -1601,7 +1601,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                     InventoryItemRow* rec;
 
                     p = &gPlayerStatus;
-                    Gp_ClearEquipSlotSel(item, 0);
+                    equipmentClearSelectedRemovableLoads(item, EQUIPMENT_CLEAR_LOAD_BOTH);
                     rec       = Gp_SelItemRec;
                     p->weapon = rec->itemId - 0x7F;
                     Gp_SetItemSeenBit(rec->itemId, 1);
@@ -1678,7 +1678,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
     count  = 0;
     weapon = gPlayerStatus.weapon + 0x7F;
     if (weapon >= 0x80) {
-        slot = Gp_GetItemSlot(weapon);
+        slot = equipmentGetWeaponLoad(weapon);
         if (prompt->currentItemIndex == 1) {
             item  = slot->primaryItemId;
             count = slot->primaryQty;
@@ -1808,7 +1808,7 @@ static inline void _gpWeaponMenuSetRows(UiList* menu)
     EquipmentWeaponLoad* slot;
 
     id   = gPlayerStatus.weapon + 0x7F;
-    slot = Gp_GetItemSlot(id);
+    slot = equipmentGetWeaponLoad(id);
     if (id < 0x80 || id == 0x92) {
         menu->itemCount = 1;
     } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
@@ -1989,7 +1989,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         s32                 i;
         row   = prompt->currentItemIndex;
         scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-        table = Gp_GetItemTable(scan);
+        table = inventoryGetRangeTable(scan);
         found = NULL;
         i     = 0;
         item  = 0;
@@ -2284,7 +2284,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     s32                 i;
 
                     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                    table = Gp_GetItemTable(scan);
+                    table = inventoryGetRangeTable(scan);
                     table = &table[scan->firstRow];
                     for (i = 0; i < scan->rowCount; i++, table++) {
                         if (table->itemId == item) {
@@ -2537,8 +2537,8 @@ static inline s32 _gpIsEquippedItem(s32 id)
     if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
         (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
         (((u32)(id - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-         ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == id) ||
-          (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == id)))) {
+         ((equipmentGetWeaponLoad(p->weapon + 0x7F)->primaryItemId == id) ||
+          (equipmentGetWeaponLoad(p->weapon + 0x7F)->secondaryItemId == id)))) {
         ret = 1;
     }
     return ret;
@@ -2550,7 +2550,7 @@ InventoryItemRow* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 ar
     s32               i;
     InventoryItemRow* rec;
 
-    table = Gp_GetItemTable(arg0);
+    table = inventoryGetRangeTable(arg0);
     rec   = NULL;
     table = &table[arg0->firstRow];
     for (i = 0; i < arg0->rowCount; i++, table++) {

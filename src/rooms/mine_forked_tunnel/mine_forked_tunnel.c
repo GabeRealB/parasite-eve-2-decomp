@@ -1887,7 +1887,7 @@ s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 
 s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    if ((arg2 == 2) && (Gp_GetCurBit2Flag(1) == 1)) {
+    if ((arg2 == 2) && (areaGetCurrentObjectState(1) == 1)) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_152) == 0) {
             Gp_RunCapCmd1(5);
         } else {
@@ -1925,7 +1925,7 @@ static void func_mine_forked_tunnel_8017E1E8(Task* arg0)
     arg0->msgTable = D_mine_forked_tunnel_80181C80;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     gStageSceneMusicEntry = 1;
-    _mineForkedTunnelSetSpriteBatchesHidden(Gp_GetCurBit2Flag(1) == 2);
+    _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(1) == 2);
     arg0->state = (s32)(arg0->state + 1);
 }
 

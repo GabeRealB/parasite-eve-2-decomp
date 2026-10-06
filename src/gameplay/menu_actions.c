@@ -362,7 +362,7 @@ static InventoryItemRow* func_800CE980(InventoryItemRange* arg0, s32 arg1)
     s32               count;
     InventoryItemRow* rec;
 
-    table = Gp_GetItemTable(arg0);
+    table = inventoryGetRangeTable(arg0);
     i     = 0;
     rec   = NULL;
     table = &table[arg0->firstRow];
@@ -384,7 +384,7 @@ static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1)
     s32               count;
     InventoryItemRow* rec;
 
-    table = Gp_GetItemTable(arg0);
+    table = inventoryGetRangeTable(arg0);
     i     = 0;
     rec   = NULL;
     table = &table[arg0->firstRow];
@@ -438,8 +438,8 @@ static s32 Gp_IsEquippedItem(s32 arg0)
     if ((((u32)(arg0 - 0x80) < 0x20U) && (p->weapon == arg0 - 0x7F)) ||
         (((u32)(arg0 - 0x60) < 0x20U) && (p->armor == arg0 - 0x5F)) ||
         (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-         ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == arg0) ||
-          (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == arg0)))) {
+         ((equipmentGetWeaponLoad(p->weapon + 0x7F)->primaryItemId == arg0) ||
+          (equipmentGetWeaponLoad(p->weapon + 0x7F)->secondaryItemId == arg0)))) {
         ret = 1;
     }
     return ret;
@@ -456,7 +456,7 @@ static InventoryItemRow* func_800CECC0(InventoryItemRange* arg0, s32 arg1)
     s32               i;
     InventoryItemRow* rec;
 
-    table = Gp_GetItemTable(arg0);
+    table = inventoryGetRangeTable(arg0);
     rec   = NULL;
     table = &table[arg0->firstRow];
     for (i = 0; i < arg0->rowCount; i++, table++) {
@@ -578,7 +578,7 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
     count = 0;
     p     = &gPlayerStatus;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = Gp_GetItemTable(scan);
+    table = inventoryGetRangeTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
     for (; i < scan->rowCount; i++) {
@@ -708,7 +708,7 @@ void Gp_EquipHeld(s32 arg0)
             if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                 prev->attachSlot = rec->attachSlot;
             } else {
-                Gp_ClearEquipSlotSel(prev->itemId, 0);
+                equipmentClearSelectedRemovableLoads(prev->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
             }
         }
         p->weapon = arg0 - 0x7F;
@@ -2142,7 +2142,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                     EquipmentWeaponLoad* slot;
                     PlayerStatus*        cfg;
 
-                    slot = Gp_GetItemSlot(id);
+                    slot = equipmentGetWeaponLoad(id);
                     cfg  = &gPlayerStatus;
                     Gp_ClearEquipSlot(id);
                     slot->field_4 = 0;
@@ -2155,7 +2155,7 @@ void Gp_DiscardWarnTask(Task* arg0)
 
                     i = 0x80;
                     do {
-                        slot = Gp_GetItemSlot(i);
+                        slot = equipmentGetWeaponLoad(i);
                         if (slot->primaryItemId == id) {
                             slot->primaryItemId = INVENTORY_ITEM_NONE;
                             slot->primaryQty    = 0;
@@ -2175,7 +2175,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                         cfg->armor = PLAYER_STATUS_EQUIPMENT_NONE;
                     }
                 }
-                Gp_RemoveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, rec, -1);
+                inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, rec, INVENTORY_REMOVE_WHOLE_STACK);
             }
             parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
         }

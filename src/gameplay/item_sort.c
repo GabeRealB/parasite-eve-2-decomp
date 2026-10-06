@@ -239,22 +239,22 @@ u8 Gp_ItemSortKeyA0[33] = {
 /* Gives `scan` one `weapon` and loads it with `ammo`. */
 #define GP_GIVE_LOADED(scan, weapon, ammo)           \
     do {                                             \
-        Gp_GiveItem(scan, weapon, 1);                \
+        inventoryGiveItem(scan, weapon, 1);          \
         Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
     } while (0)
 
 /* Clears the carried inventory, equips the starting armour, restores HP/MP,
  * and gives the initial supplies and their attachment slots. */
-#define _gpInitStartingItems(scan, cfg)                \
-    do {                                               \
-        Gp_ClearScanItems(scan);                       \
-        Gp_GiveItem(scan, 0x60, 1);                    \
-        Gp_EquipMod(0x60);                             \
-        (cfg)->hp = (cfg)->hpMax;                      \
-        (cfg)->mp = (cfg)->mpMax;                      \
-        Gp_GiveItem(scan, 0x92, 1);                    \
-        Gp_GiveItem(scan, 0x40, 1)->attachSlot    = 1; \
-        Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+#define _gpInitStartingItems(scan, cfg)                      \
+    do {                                                     \
+        Gp_ClearScanItems(scan);                             \
+        inventoryGiveItem(scan, 0x60, 1);                    \
+        Gp_EquipMod(0x60);                                   \
+        (cfg)->hp = (cfg)->hpMax;                            \
+        (cfg)->mp = (cfg)->mpMax;                            \
+        inventoryGiveItem(scan, 0x92, 1);                    \
+        inventoryGiveItem(scan, 0x40, 1)->attachSlot    = 1; \
+        inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
     } while (0)
 
 /// Borrows the complete row table selected by a range, before its first-row offset.
@@ -596,7 +596,7 @@ InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s
 
     table = _inventoryGetRangeTable(arg0);
     if ((u32)(arg2 - 0xA0) < 0x20U) {
-        dest = Gp_GiveItem(arg0, arg2, arg3);
+        dest = inventoryGiveItem(arg0, arg2, arg3);
         i    = arg0->firstRow;
         if (table[i + arg1].itemId == INVENTORY_ITEM_NONE) {
             row = i;
@@ -626,7 +626,7 @@ InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s
             qty          = dest->qty;
             dest->itemId = arg2;
             dest->qty    = 1;
-            Gp_GiveItem(arg0, item, qty);
+            inventoryGiveItem(arg0, item, qty);
         }
     }
     return dest;

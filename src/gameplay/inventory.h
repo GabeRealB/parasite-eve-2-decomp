@@ -57,7 +57,7 @@ static inline InventoryItemRow* gpItemRowRef(InventoryItemRow* row)
 /// The result borrows `rows`; `index` must name a row in that table.
 #define gpItemRowAt(rows, index) gpItemRowRef(&(rows)[index])
 
-/// Inline form of `Gp_GetItemSlot`: weapon `item`'s entry in the save's
+/// Inline form of `equipmentGetWeaponLoad`: weapon `item`'s entry in the save's
 /// per-weapon equipment table.
 static inline EquipmentWeaponLoad* gpItemSlot(s32 item)
 {

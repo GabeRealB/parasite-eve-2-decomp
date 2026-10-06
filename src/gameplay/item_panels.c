@@ -599,7 +599,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         if (arg2 < 0x100) {
             if (arg2 < 4) {
                 if (hp < cfg->hpMax) {
-                    Gp_RemoveItem(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
                 }
                 if (arg2 == 3) {
                     cfg->hp = cfg->hpMax;
@@ -610,13 +610,13 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 }
             } else if (arg2 == 5) {
                 if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
-                    Gp_RemoveItem(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
                 }
                 cfg->mp = cfg->mp + 0x50;
                 cfg->hp = cfg->hp + 0x14;
             } else if ((u32)(arg2 - 6) < 2U) {
                 if (mp < cfg->mpMax) {
-                    Gp_RemoveItem(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
                 }
                 if (arg2 == 7) {
                     cfg->mp = cfg->mpMax;
@@ -625,7 +625,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 }
             } else if (arg2 == 0x3D) {
                 if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
-                    Gp_RemoveItem(0, Gp_SelItemRec, 1);
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
                 }
                 cfg->mp = cfg->mpMax;
                 cfg->hp = cfg->hpMax;
@@ -782,30 +782,30 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         }
         if (arg1->status == 0xFF) {
             cfg        = &gPlayerStatus;
-            slotSrc    = Gp_GetItemSlot(src);
-            slotDst    = Gp_GetItemSlot(result);
+            slotSrc    = equipmentGetWeaponLoad(src);
+            slotDst    = equipmentGetWeaponLoad(result);
             rec        = Gp_FindItemById(src);
             newWork    = memCalloc(sizeof(_ItemMenuWeaponCreateWork), 0);
             scanInit   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             arg1->work = newWork;
-            Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);
+            inventoryRemoveItemRow(scanInit, Gp_SelItemRec, 1);
             rec->itemId = result;
-            Gp_ClearEquipSlotSel(result, 0);
+            equipmentClearSelectedRemovableLoads(result, EQUIPMENT_CLEAR_LOAD_BOTH);
             slotDst->primaryItemId = slotSrc->primaryItemId;
             Gp_EquipRelatedItem(scanInit, result, slotDst->primaryItemId, slotSrc->primaryQty);
             if ((extra == 0) && (slotDst->secondaryItemId == slotSrc->secondaryItemId)) {
                 slotDst->secondaryQty = slotSrc->secondaryQty;
             }
-            Gp_ClearEquipSlotSel(src, 0);
+            equipmentClearSelectedRemovableLoads(src, EQUIPMENT_CLEAR_LOAD_BOTH);
             if (cfg->weapon == (src - 0x7F)) {
                 temp        = result;
                 cfg->weapon = temp - 0x7F;
             }
             if (extra != 0) {
-                Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, extra, -1);
+                inventoryGiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, extra, INVENTORY_GIVE_ONE_PACK);
             }
             if (bonus != 0) {
-                Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, bonus, -1);
+                inventoryGiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, bonus, INVENTORY_GIVE_ONE_PACK);
             }
             temp                          = result;
             newWork->createdWeaponItemId  = temp;
@@ -975,7 +975,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         uiSetPanelContentSize(&(arg0)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
         (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
         (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
-        Gp_RemoveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
+        inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
 
         i   = (arg2 - 0xF) / 3;
         n   = arg2 - 0xF;
@@ -1274,7 +1274,7 @@ void Gp_PickupTask(Task* arg0)
         desc = D_8010F02C;
         uiSpawnObject(desc, 0, 0, 1, obj);
         if (arg0->spawnArg1.value != 0) {
-            Gp_SetCollectedBit(Gp_PubItemLoc);
+            inventorySetCollectedBit(Gp_PubItemLoc);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             one     = 1;
             spawned = uiSpawnObject(desc + 3, Gp_PubItemLoc | 0x10000, one, one, obj);
@@ -1466,12 +1466,12 @@ void Gp_PickupAskTask(Task* arg0)
                         if (Gp_PubItemLoc < 0xC0U) {
                             scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
                             if (Gp_CanAddItem(scan, Gp_PubItemLoc) != 0) {
-                                Gp_GiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
+                                inventoryGiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
                             } else {
                                 childObj->resultValue = 0x34;
                             }
                         } else if (Gp_PubItemLoc < 0x200U) {
-                            Gp_SetCollectedBit(Gp_PubItemLoc);
+                            inventorySetCollectedBit(Gp_PubItemLoc);
                         }
                     }
                     obj->resultValue = childObj->resultValue;
@@ -1826,7 +1826,7 @@ void Gp_PickupResultTask(Task* arg0)
                 case 0:
                 case 1:
                     if (obj->resultValue == 0x33) {
-                        if (Gp_GetCurBit2Flag((u8)enemy->placeKey) != 3) {
+                        if (areaGetCurrentObjectState((u8)enemy->placeKey) != 3) {
                             Gp_SetCurBit2Flag((u8)enemy->placeKey, 2);
                         }
                     }

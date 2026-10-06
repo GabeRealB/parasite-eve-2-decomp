@@ -2291,7 +2291,7 @@ static void func_actor_548100_80134E94(Task* arg0)
             }
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
             gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), value);
-            Gp_ClearCollectedBit(work->usedItem);
+            inventoryClearCollectedBit(work->usedItem);
         }
     } else {
         Gp_StartCapSlot(6, 0, 4);
@@ -2305,7 +2305,7 @@ static void func_actor_548100_80134F64(Task* arg0)
     _Actor548100Work* work = arg0->work;
 
     if (capIsBusy() == 0) {
-        if (Gp_GetCurBit2Flag(work->pickupObject) == 2) {
+        if (areaGetCurrentObjectState(work->pickupObject) == 2) {
             // The player took the battery back: empty the socket.
             gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), 0);
             gameFlagSetNibble(GAME_FLAG_110, 1);

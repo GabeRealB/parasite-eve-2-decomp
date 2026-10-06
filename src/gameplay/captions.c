@@ -306,7 +306,7 @@ void func_800E44A0(Task* task)
             if (D_801155AC == 0) {
                 D_801155A0.actionId = Gp_CapTable[(s16)D_801155AE].actionId;
                 if (D_801155A0.actionId < (CAP_SEQUENCE_CHILD_ACTION_BASE + 1U)) {
-                    if (Gp_GetCurBit2Flag(D_801155A0.actionId) == 2) {
+                    if (areaGetCurrentObjectState(D_801155A0.actionId) == 2) {
                         D_801155AC          = 1;
                         D_801155A0.done     = 1;
                         D_801155A0.accepted = 1;

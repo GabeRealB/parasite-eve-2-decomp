@@ -1118,7 +1118,7 @@ static void func_shelter_r47_80183484(Task* task)
         mark = D_shelter_r47_801875C4[state->page];
     }
     if (state->page != SHELTER_R47_MAP_PAGE_NEO_ARK) {
-        if (state->openMode != SHELTER_R47_MAP_MODE_TIMED && state->page == SHELTER_R47_MAP_PAGE_B1 && Gp_HasCollectedBit(0x12D) != 0) {
+        if (state->openMode != SHELTER_R47_MAP_MODE_TIMED && state->page == SHELTER_R47_MAP_PAGE_B1 && inventoryHasCollectedBit(0x12D) != 0) {
             shade         += 0x30;
             p              = gGpuPrimCursor;
             gGpuPrimCursor = p + 1;

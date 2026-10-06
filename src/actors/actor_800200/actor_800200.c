@@ -1219,7 +1219,7 @@ static void func_actor_800200_80162990(Task* arg0)
                     func_actor_800200_801654EC(arg0, 0);
                     return;
                 }
-                if (companionGetPlayerPlanarDistance(coord) >= 0xE00 || (companion->waypointIndex == 2 && Gp_HasCollectedBit(0x114) == 0)) {
+                if (companionGetPlayerPlanarDistance(coord) >= 0xE00 || (companion->waypointIndex == 2 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE) == 0)) {
                     actor->stateAux   = 2;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
@@ -1236,7 +1236,7 @@ static void func_actor_800200_80162990(Task* arg0)
             func_actor_800200_80165408(arg0, mode);
             return;
         case 2:
-            if ((companionGetPlayerPlanarDistance(coord) < 0xC01 && companion->waypointIndex < 2) || (companion->waypointIndex == state && Gp_HasCollectedBit(0x114) != 0)) {
+            if ((companionGetPlayerPlanarDistance(coord) < 0xC01 && companion->waypointIndex < 2) || (companion->waypointIndex == state && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE) != 0)) {
                 companion->waypointIndex++;
                 actor->stateAux = 1;
                 return;

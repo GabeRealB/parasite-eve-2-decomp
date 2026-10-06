@@ -70,8 +70,8 @@ void Gp_InitStarterInv(void)
     s32                  three;
     u16                  hp;
     u16                  mp;
-    s32                  flag105;
-    s32                  flag107;
+    s32                  hadArmoryCardkey;
+    s32                  hadMendelJournal;
 
     scan                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     save                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
@@ -97,14 +97,14 @@ void Gp_InitStarterInv(void)
             item = rec->itemId;
             if (item != 0) {
                 if ((u8)(item + 0x63) < 3) {
-                    Gp_GiveItem(dest, 0x3D, 1);
+                    inventoryGiveItem(dest, 0x3D, 1);
                 } else if (item == 0x8A) {
-                    Gp_GiveItem(dest, 0x3C, 1);
+                    inventoryGiveItem(dest, 0x3C, 1);
                 } else if (item == 0x65) {
-                    Gp_GiveItem(dest, 0xD, 1);
+                    inventoryGiveItem(dest, 0xD, 1);
                 } else if ((item != 0x81) && (item != 0xA0) && (item != 0x60) &&
                            (item != 0x40) && (item != 0x92)) {
-                    Gp_GiveItem(dest, rec->itemId, rec->qty);
+                    inventoryGiveItem(dest, rec->itemId, rec->qty);
                 }
             }
             i++;
@@ -131,37 +131,37 @@ void Gp_InitStarterInv(void)
     }
     three = 3;
     Gp_ApplyItemMap();
-    Gp_GiveItem(scan, 0x63, 1);
+    inventoryGiveItem(scan, 0x63, 1);
     gGameSession->loadedCharacterId = GAME_SESSION_CHARACTER_NOT_LOADED;
     cfg->weapon                     = PLAYER_STATUS_EQUIPMENT_NONE;
     cfg->resourceVariant            = three;
     Gp_EquipMod(0x63);
-    added             = Gp_GiveItem(scan, 0x40, 1);
+    added             = inventoryGiveItem(scan, 0x40, 1);
     added->attachSlot = 1;
-    added             = Gp_GiveItem(scan, 2, 1);
+    added             = inventoryGiveItem(scan, 2, 1);
     added->attachSlot = 2;
-    added             = Gp_GiveItem(scan, 0x81, 1);
+    added             = inventoryGiveItem(scan, 0x81, 1);
     added->attachSlot = three;
-    Gp_GiveItem(scan, 0xA0, 0x64);
+    inventoryGiveItem(scan, 0xA0, 0x64);
     Gp_EquipRelatedItem(scan, 0x81, 0xA0, -1);
-    Gp_GiveItem(scan, 0x92, 1);
-    cfg2     = &gPlayerStatus;
-    hp       = cfg2->hpMax;
-    mp       = cfg2->mpMax;
-    cfg2->hp = hp;
-    cfg2->mp = mp;
-    flag105  = Gp_HasCollectedBit(0x105);
-    flag107  = Gp_HasCollectedBit(0x107);
+    inventoryGiveItem(scan, 0x92, 1);
+    cfg2             = &gPlayerStatus;
+    hp               = cfg2->hpMax;
+    mp               = cfg2->mpMax;
+    cfg2->hp         = hp;
+    cfg2->mp         = mp;
+    hadArmoryCardkey = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ARMORY_CARDKEY);
+    hadMendelJournal = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_MENDEL_JOURNAL);
     Gp_ClearCollectedBits();
-    if (flag105 != 0) {
-        Gp_SetCollectedBit(0x105);
+    if (hadArmoryCardkey != 0) {
+        inventorySetCollectedBit(INVENTORY_COLLECTION_ID_ARMORY_CARDKEY);
     }
-    if (flag107 != 0) {
-        Gp_SetCollectedBit(0x107);
+    if (hadMendelJournal != 0) {
+        inventorySetCollectedBit(INVENTORY_COLLECTION_ID_MENDEL_JOURNAL);
     }
-    Gp_SetCollectedBit(0x106);
-    Gp_SetCollectedBit(0x10C);
-    Gp_SetCollectedBit(0x10B);
-    Gp_SetCollectedBit(0x10A);
-    Gp_SetCollectedBit(0x109);
+    inventorySetCollectedBit(INVENTORY_COLLECTION_ID_MIST_BADGE);
+    inventorySetCollectedBit(INVENTORY_COLLECTION_ID_DRYFIELD_MAP);
+    inventorySetCollectedBit(INVENTORY_COLLECTION_ID_MANUAL);
+    inventorySetCollectedBit(INVENTORY_COLLECTION_ID_NMC_PHOTO);
+    inventorySetCollectedBit(INVENTORY_COLLECTION_ID_MIST_SEARCH_WARRANT);
 }

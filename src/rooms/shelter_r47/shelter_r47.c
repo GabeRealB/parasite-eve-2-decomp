@@ -759,7 +759,7 @@ static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE) != 0) {
-            if (Gp_GetCurBit2Flag(0x22) == arg2) {
+            if (areaGetCurrentObjectState(0x22) == arg2) {
                 Gp_RunCapCmd1(0x2A);
                 return 0;
             }

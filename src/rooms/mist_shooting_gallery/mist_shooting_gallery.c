@@ -960,27 +960,27 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
             break;
         case 3:
             Gp_SetItemSeenBit(0x40, 1);
-            Gp_GiveItem(scan, 0x40, 1);
+            inventoryGiveItem(scan, 0x40, 1);
             break;
         case 4:
             Gp_SetItemSeenBit(0x40, 1);
             Gp_SetItemSeenBit(5, 1);
-            Gp_GiveItem(scan, 0x40, 1)->attachSlot = 2;
-            Gp_GiveItem(scan, 5, 1)->attachSlot    = 3;
-            Gp_GiveItem(scan, 5, 1)->attachSlot    = 4;
-            Gp_DebugAttachLevels[0xA]              = 1;
-            Gp_DebugAttachLevels[1]                = 1;
+            inventoryGiveItem(scan, 0x40, 1)->attachSlot = 2;
+            inventoryGiveItem(scan, 5, 1)->attachSlot    = 3;
+            inventoryGiveItem(scan, 5, 1)->attachSlot    = 4;
+            Gp_DebugAttachLevels[0xA]                    = 1;
+            Gp_DebugAttachLevels[1]                      = 1;
             break;
         case 5:
             Gp_SetItemSeenBit(0x40, 1);
             Gp_SetItemSeenBit(1, 1);
             Gp_SetItemSeenBit(6, 1);
-            Gp_GiveItem(scan, 0x40, 1);
-            Gp_GiveItem(scan, 1, 1);
-            Gp_GiveItem(scan, 1, 1);
-            Gp_GiveItem(scan, 1, 1);
-            Gp_GiveItem(scan, 6, 1);
-            Gp_GiveItem(scan, 6, 1);
+            inventoryGiveItem(scan, 0x40, 1);
+            inventoryGiveItem(scan, 1, 1);
+            inventoryGiveItem(scan, 1, 1);
+            inventoryGiveItem(scan, 1, 1);
+            inventoryGiveItem(scan, 6, 1);
+            inventoryGiveItem(scan, 6, 1);
             Gp_DebugAttachLevels[0xA] = 1;
             Gp_DebugAttachLevels[1]   = 1;
             break;
@@ -1031,10 +1031,10 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             *weaponIdx = item - 0x7F;
             Gp_ResetScanDefault();
             Gp_ClearScanItems(scan);
-            Gp_GiveItem(scan, item, 1);
-            Gp_GiveItem(scan, 0x6C, 1);
+            inventoryGiveItem(scan, item, 1);
+            inventoryGiveItem(scan, 0x6C, 1);
             Gp_EquipMod(0x6C);
-            Gp_GiveItem(scan, ammo, 0x3E7)->attachSlot = selected;
+            inventoryGiveItem(scan, ammo, 0x3E7)->attachSlot = selected;
             Gp_EquipRelatedItem(scan, item, ammo, -1);
             Gp_FillHpMp();
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;

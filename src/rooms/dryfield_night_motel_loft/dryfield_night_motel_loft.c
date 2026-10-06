@@ -413,7 +413,7 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
         D_dryfield_night_motel_loft_8018092C.command = 1;
         TASK_MESSAGE_DISPATCH_POINTER(Gp_LookupSlot4(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
     }
-    func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
+    func_dryfield_night_motel_loft_8017D9BC(areaGetCurrentObjectState(0xA) == 2);
     arg0->state = (s32)(arg0->state + 1);
 }
 
@@ -423,14 +423,14 @@ static void func_dryfield_night_motel_loft_8017D808(Task* arg0)
 /// task present, sets the nibble and starts the room's event.
 static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
 {
-    func_dryfield_night_motel_loft_8017D9BC(Gp_GetCurBit2Flag(0xA) == 2);
-    if (Gp_GetCurBit2Flag(0xA) == 2) {
+    func_dryfield_night_motel_loft_8017D9BC(areaGetCurrentObjectState(0xA) == 2);
+    if (areaGetCurrentObjectState(0xA) == 2) {
         {
             WorldCollisionTrigger* object = &D_dryfield_night_motel_loft_801803F4[1];
             object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
         }
     }
-    if (Gp_HasCollectedBit(0x117) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && Gp_LookupSlot4(0)) {
+    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && Gp_LookupSlot4(0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN, 1);
         func_800E8614(D_dryfield_night_motel_loft_8017EB78, 0);
         func_800E3FAC(0xA2, 0x15);

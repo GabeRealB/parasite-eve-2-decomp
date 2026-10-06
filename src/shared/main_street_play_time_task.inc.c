@@ -9,8 +9,8 @@ void mainStreetPlayTimeTask(Task* task)
         if (capGetVariantKey() == 1) {
             Gp_MarkPlayTime();
         }
-        if (Gp_HasCollectedBit(0x119) != 0 && Gp_HasCollectedBit(0x11A) != 0) {
-            Gp_ClearCollectedBit(0x11A);
+        if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) != 0 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER) != 0) {
+            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER);
         }
         taskKill(task);
     }

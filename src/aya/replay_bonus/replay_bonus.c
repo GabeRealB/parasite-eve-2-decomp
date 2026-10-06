@@ -252,7 +252,7 @@ static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
 
     i = 0x101;
     do {
-        if (Gp_HasCollectedBit(i) != 0) {
+        if (inventoryHasCollectedBit(i) != 0) {
             found = 1;
             p     = D_replay_bonus_8011908C;
             j     = 0;

@@ -1583,7 +1583,7 @@ void func_acropolis_cafeteria_801827C4(Task* task)
 
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
-    if (Gp_GetCurBit2Flag((u8)enemy->placeKey) != 2) {
+    if (areaGetCurrentObjectState((u8)enemy->placeKey) != 2) {
         tmd->lightMtx = &D_acropolis_cafeteria_8018D5C0;
         tmd->colorMtx = &D_acropolis_cafeteria_8018D5A0;
         tmd->flags    = 0;
@@ -1610,7 +1610,7 @@ void func_acropolis_cafeteria_8018286C(Task* task)
 
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
-    flag  = Gp_GetCurBit2Flag((u8)enemy->placeKey);
+    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
     if ((viewGetMappedIndex() & 0xFF) != 9) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
@@ -1640,7 +1640,7 @@ static void func_acropolis_cafeteria_80182954(Task* task)
     }
     tmd->lightMtx = &D_acropolis_cafeteria_8018D640;
     tmd->colorMtx = &D_acropolis_cafeteria_8018D620;
-    if (Gp_GetCurBit2Flag(0xA) == 2) {
+    if (areaGetCurrentObjectState(0xA) == 2) {
         tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
@@ -1666,7 +1666,7 @@ static void func_acropolis_cafeteria_80182A08(Task* task)
             tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    if (Gp_GetCurBit2Flag(0xB) == 2) {
+    if (areaGetCurrentObjectState(0xB) == 2) {
         tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
