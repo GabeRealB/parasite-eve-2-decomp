@@ -2560,7 +2560,6 @@ static void Actor00100_Fn070DC(Task* arg0)
     GfxCoord*          coord;
     GfxCoord*          coord2;
     TmdObject*         obj;
-    s16                delta;
     s32                playerX;
     s16                z;
     s16                targetYaw;
