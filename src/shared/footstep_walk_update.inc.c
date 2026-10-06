@@ -22,13 +22,13 @@ void footstepWalkUpdate(Task* task)
             if (work->st.travel != 0) {
                 switch (gFootstepWalkMode) {
                     case 0:
-                        actorMoveModelForward(task, 0x3C);
+                        _actorMovementStepModelForward(task, 0x3C);
                         break;
                     case 1:
-                        actorMoveModelForward(task, -0xF);
+                        _actorMovementStepModelForward(task, -0xF);
                         break;
                     case 2:
-                        actorMoveModelForward(task, 0x19);
+                        _actorMovementStepModelForward(task, 0x19);
                         break;
                 }
                 if (--work->st.travel == 0) {

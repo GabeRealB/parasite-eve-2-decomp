@@ -130297,7 +130297,7 @@ live_length`, 33 refs over 121 vs the enemy pointer's 20 over 178), so the work
 pointer takes `$s1` and the enemy pointer — dead by then — reuses `$s0`.
 
 **Fix.** Give the sequence its own `static __inline__` helper taking the pointer,
-the way the sibling `Actor123200_StepForward` / `actorMoveModelForward` are
+the way the sibling `Actor123200_StepForward` / `_actorMovementBuildDisplacement` are
 written:
 
 ```c
@@ -151388,8 +151388,8 @@ No instruction changes; only the order of allocation does.
   the reserve followed by `vec = SCRATCH_STACK_CURSOR(T)`: the new cursor is a
   temporary, `vec` a copy of it, and cse writes the first field through the
   old cursor (`sh ...,-8(old)`) because the bare address has the older
-  equivalent. The `head[-1].vx` spelled out in `actorMoveForwardNonzero`,
-  `actorMoveModelForward` and `actorStepForward` (`include/actors/actor.h`)
+  equivalent. The `head[-1].vx` spelled out in `actorMoveForwardNonzero`
+  and `actorStepForward` (`include/actors/actor.h`)
   may be this same artifact; not checked.
 - The `.sched` dump prints each ready list with priorities
   (`7f000001` = a boosted birth) and ends with `register N life shortened from

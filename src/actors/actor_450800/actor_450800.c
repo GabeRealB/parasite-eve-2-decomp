@@ -2893,13 +2893,13 @@ static void func_actor_450800_80132448(Task* task)
             if (work->st.travel != 0) {
                 switch (work->walkMode) {
                     case ACTOR_450800_WALK_FAST:
-                        actorMoveModelForward(task, 0x3C);
+                        _actorMovementStepModelForward(task, 0x3C);
                         break;
                     case ACTOR_450800_WALK_BACKWARD:
-                        actorMoveModelForward(task, -0xF);
+                        _actorMovementStepModelForward(task, -0xF);
                         break;
                     case ACTOR_450800_WALK_SLOW:
-                        actorMoveModelForward(task, 0x19);
+                        _actorMovementStepModelForward(task, 0x19);
                         break;
                 }
                 if (--work->st.travel == 0) {

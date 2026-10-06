@@ -1303,30 +1303,24 @@ static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
     }
 }
 
-/// `_actorMovementStepForward` applied to the root coordinate of `task`'s model.
-static __inline__ void actorMoveModelForward(Task* task, s16 amount)
+/// Translates a task's model root along its normalized local Z axis.
+///
+/// `modelTask` must own a live TMD model with at least one coordinate. `stepDistance`
+/// is a signed distance in parent-coordinate units per call; negative values
+/// move backward. The step includes Y and removes the local matrix's scale.
+/// SDK normalization and GTE quantization can change the resulting magnitude.
+///
+/// Live `actorsFrozen` equal to 1 skips the step. Otherwise zero distance still
+/// runs the calculation and marks composition dirty. The initialized scratch
+/// stack must have room for one aligned `SVECTOR` (eight bytes), released before
+/// return with its `pad` untouched. GTE state is overwritten; no pointer is
+/// retained. Collision correction and walk-frame accounting belong to callers.
+static __inline__ void _actorMovementStepModelForward(Task* modelTask, s16 stepDistance)
 {
-    GfxCoord* coord;
-    SVECTOR*  head;
-    SVECTOR*  vec;
+    GfxCoord* rootCoord;
 
-    coord = task->extra.tmd->coords;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-        vec                           = head - 1;
-        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        gfxReadMatrixZAxis(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        coord->coord.t[0]  += head[-1].vx;
-        coord->coord.t[1]  += vec->vy;
-        coord->coord.t[2]  += vec->vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-    }
+    rootCoord = modelTask->extra.tmd->coords;
+    _actorMovementStepForward(rootCoord, stepDistance);
 }
 
 /// Rebuilds `coord`'s rotation as a turn about Y by its current heading at

@@ -6,7 +6,7 @@
  * task that hangs the second model off part 7 under the walker's lighting.
  * pairWalkUpdate comes in two versions: pair_walk_update.inc.c, and
  * pair_walk_update_model.inc.c, which walks the model 12 units a frame through
- * actorMoveModelForward. The packages with the second version also share the
+ * _actorMovementStepModelForward. The packages with the second version also share the
  * spawn state (pair_walk_spawn.inc.c) and the walk-to message
  * (pair_walk_to.inc.c), and define pairWalkExit themselves.
  *

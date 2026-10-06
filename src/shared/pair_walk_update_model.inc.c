@@ -27,7 +27,7 @@ void pairWalkUpdate(Task* task)
         } while (0);
         animId = work->st.animId;
         if (animId == 4 && work->st.travel != 0) {
-            actorMoveModelForward(task, 0xC);
+            _actorMovementStepModelForward(task, 0xC);
             work->st.travel--;
             if (work->st.travel == 0) {
                 work->blendFrames = 0xA;
