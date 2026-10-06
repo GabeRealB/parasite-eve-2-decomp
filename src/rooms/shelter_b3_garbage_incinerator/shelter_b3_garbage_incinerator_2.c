@@ -835,7 +835,8 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             if (gGameSession->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_NONE) {
                 func_shelter_b3_garbage_incinerator_8018507C();
-                goto kill;
+                taskKill(task);
+                return;
             }
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
@@ -849,7 +850,8 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                     task->state = 4;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
-                    goto kill;
+                    taskKill(task);
+                    return;
             }
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
@@ -935,7 +937,6 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_COMPLETE;
             Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
-        kill:
             taskKill(task);
             return;
     }
