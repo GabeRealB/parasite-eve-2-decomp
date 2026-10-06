@@ -1803,6 +1803,24 @@ static void func_actor_800100_801643F4(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
+/// The size of the turn to the actor's lock target, whose position is left in
+/// `pos`. A target that can no longer be locked is replaced with the next lock
+/// node first.
+static inline s32 _actor800100LockTargetTurn(Task* task, GameActor* actor, VECTOR3* pos)
+{
+    s32 val;
+
+    if (actor->targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
+        actor->targetNode = Gp_FindLockNodePad(task);
+    }
+    Gp_GetLockPos(actor->targetNode, pos);
+    val = func_8010BCF4(task, pos);
+    if (val < 0) {
+        val = -val;
+    }
+    return val;
+}
+
 /// Second arm of the lock-on drive: builds the lock position at
 /// `the scratch stack - 0x10` (`Gp_GetLockPos`, or `Gp_FindLockNodePad` when
 /// `targetNode` is flagged) and measures the distance to it with
@@ -1810,9 +1828,6 @@ static void func_actor_800100_801643F4(Task* arg0)
 /// child animation; otherwise the target is handed to `Gp_TrackAllyLockTarget`
 /// with 1. `statePhase` 2/3 waits for the chain to reach 3, which resets the
 /// move fields and plays the slots 9/6 pair.
-///
-/// `track:` sits between the state store and `case 1` so the hand-off is
-/// emitted after the store; the store's fall into case 1 is therefore a jump.
 static void func_actor_800100_80164580(Task* arg0)
 {
     void**     scratch;
@@ -1832,25 +1847,13 @@ static void func_actor_800100_80164580(Task* arg0)
 
     switch (actor->statePhase) {
         case 0:
-            if (actor->targetNode != NULL) {
-                if (actor->targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
-                    actor->targetNode = Gp_FindLockNodePad(arg0);
-                }
-                Gp_GetLockPos(actor->targetNode, pos);
-                val = func_8010BCF4(arg0, pos);
-                if (val < 0) {
-                    val = -val;
-                }
-                if (val >= 0x201) {
-                    goto track;
-                }
+            if (actor->targetNode == NULL || _actor800100LockTargetTurn(arg0, actor, pos) < 0x201) {
+                actor->statePhase = flag;
+            } else {
+                Gp_TrackAllyLockTarget(arg0, 1);
+                break;
             }
-            actor->statePhase = flag;
-            goto caseOne;
-        track:
-            Gp_TrackAllyLockTarget(arg0, 1);
-            break;
-        caseOne:
+            /* fallthrough */
         case 1:
             arg                   = 7;
             actor->animationState = arg;
