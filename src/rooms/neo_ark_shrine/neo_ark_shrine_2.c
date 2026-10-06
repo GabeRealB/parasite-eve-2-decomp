@@ -1661,26 +1661,20 @@ void neoArkShrineFlareTask(Task* task)
     }
 }
 
-/// Sets a flare's four screen edges from its projected centre and half-extent.
+/// Sets a shrine flare quad's square around its projected light centre.
 ///
-/// The half-extent is narrowed to an unsigned halfword before the edge
-/// arithmetic; each result is narrowed to a signed screen-coordinate halfword.
+/// Borrows the writable `flare` packet and read-only `projection` for this call.
+/// Requires initialized `sx`, `sy` and `radius`, all in pixels; only the low
+/// unsigned 16 bits of `radius` supply the square's half-extent. Vertices
+/// 0, 1, 2 and 3 become top-left, top-right, bottom-left and bottom-right,
+/// respectively, with each coordinate wrapping to signed 16 bits.
+/// The caller supplies the packet header, texture, colour and linkage.
 static inline void _neoArkShrineSetFlareBounds(POLY_FT4* flare, const GlowCentreScratch* projection)
 {
-    s16 edge;
-
-    edge      = projection->sx - (u16)projection->radius;
-    flare->x2 = edge;
-    flare->x0 = edge;
-    edge      = projection->sx + (u16)projection->radius;
-    flare->x3 = edge;
-    flare->x1 = edge;
-    edge      = projection->sy - (u16)projection->radius;
-    flare->y1 = edge;
-    flare->y0 = edge;
-    edge      = projection->sy + (u16)projection->radius;
-    flare->y3 = edge;
-    flare->y2 = edge;
+    flare->x0 = flare->x2 = projection->sx - (u16)projection->radius;
+    flare->x1 = flare->x3 = projection->sx + (u16)projection->radius;
+    flare->y0 = flare->y1 = projection->sy - (u16)projection->radius;
+    flare->y2 = flare->y3 = projection->sy + (u16)projection->radius;
 }
 
 /// Draws a flickering textured flare at a shrine light's world position.
