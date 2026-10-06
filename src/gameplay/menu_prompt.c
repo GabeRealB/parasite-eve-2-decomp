@@ -77,7 +77,6 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
 {
     const u8*     text;
     u32           textColorRgb;
-    s32           one;
     TaskSpawnArg  val;
     s32           flag;
     s32           scale;
@@ -87,10 +86,9 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
     if (val.value != 0) {
         if (val.unsignedValue > 0xFFFF) {
             textColorRgb = uiGetTextColor(arg0, USER_INTERFACE_TEXT_COLOR_NORMAL);
-            one          = 1;
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-            text = textSkipLines(val.pointer, one);
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, textColorRgb, 1, TEXT_ALIGNMENT_LEFT);
+            text = textSkipLines(val.pointer, 1);
+            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, textColorRgb, 1, TEXT_ALIGNMENT_LEFT);
         } else if ((u32)(val.value - 0x300) < 0x100U) {
             Gp_DrawCastCostLines(arg0, val.value);
         }
