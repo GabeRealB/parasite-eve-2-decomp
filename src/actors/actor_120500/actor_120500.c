@@ -357,15 +357,13 @@ void func_actor_120500_80131E58(Task* arg0)
     GameLoc     key;
     CdCmdQueue* queue;
     s16         slot;
-    Task*       task;
 
-    task  = arg0;
     queue = &gCdCmdQueue;
-    switch (task->state) {
+    switch (arg0->state) {
         case 0:
             SetDispMask(0);
             Mem_AllocAuxWithImages(1);
-            task->state = task->state + 1;
+            arg0->state = arg0->state + 1;
             return;
         case 1:
             key          = gGameSession->location;
@@ -373,7 +371,7 @@ void func_actor_120500_80131E58(Task* arg0)
             slot         = streamFindMovieSlot(&key.loc, 0, 0);
             slotParam[0] = slot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state = task->state + 1;
+            arg0->state = arg0->state + 1;
             return;
         case 2:
             if (queue->movieReady == 0) {
@@ -381,12 +379,12 @@ void func_actor_120500_80131E58(Task* arg0)
             }
             sndEvtRequestScriptStart(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0, 0);
             SetDispMask(1);
-            task->state = task->state + 1;
+            arg0->state = arg0->state + 1;
             return;
         case 3:
             if (CdCmd_IsIdle() & 0xFFFF) {
                 SetDispMask(0);
-                task->state = task->state + 1;
+                arg0->state = arg0->state + 1;
                 return;
             }
             if (Pad_CheckFlag800() == 0) {
@@ -394,14 +392,14 @@ void func_actor_120500_80131E58(Task* arg0)
             }
             SetDispMask(0);
             CdCmd_ActivatePhase1();
-            task->state = task->state + 1;
+            arg0->state = arg0->state + 1;
             return;
         case 4:
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
             }
             Stream_ResetRestoreState();
-            task->state = task->state + 1;
+            arg0->state = arg0->state + 1;
             return;
         case 5:
             if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
@@ -410,7 +408,7 @@ void func_actor_120500_80131E58(Task* arg0)
             taskSpawnFromTableOnDefaultList(D_actor_120500_80138418, 1, 8, 0);
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
-            taskKill(task);
+            taskKill(arg0);
             displayResumeGameLoop();
             return;
     }
