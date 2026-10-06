@@ -1,78 +1,86 @@
 /* Part of the Acropolis glows library; see acropolis_glows.h. */
 
-/// Glow sprite task: queues one camera-facing, semi-transparent `POLY_FT4`
-/// centred on the task's coordinate frame. The frame's translation is
-/// projected through `GsWSMATRIX` into a `RoomGlowSpriteScratch` block, and
-/// the quad is a square of half-extent `0x6180 / otz` around the projected
-/// point, so it shrinks with distance; nothing is drawn at `otz` 0x10 or less.
+/// Reserves a textured quad and initializes its DMA length and packet code.
 ///
-/// `Task::spawnArg1` (0..2) selects the 0x27x0x27 texture cell at
-/// `u = (arg + 1) * 0x28`, `v = 0x10` on tpage 0x2B, the clut
-/// `0x4380 | ((arg + 2) & 0x3F)`, and the grey level: a base of
-/// 0x20 / 0x60 / 0x20, plus 0x08 / 0x10 / 0x0C on odd
-/// `gDisplayState.animFrame`s.
-///
-/// The work block in `spawnArg2` is released after the quad is queued, so
-/// each spawn draws a single frame.
-void ACROPOLIS_GLOWS_LAMP_TASK(Task* task)
+/// Requires word-aligned space at `gGpuPrimCursor`; no capacity check occurs.
+/// Only the packet header is initialized. The caller fills and links the quad;
+/// its frame-arena storage must remain live until GPU completion.
+static __inline__ POLY_FT4* _glowLampReserveQuad(void)
 {
+    POLY_FT4* quad;
+
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    return quad;
+}
+
+void GLOW_LAMP_TASK(Task* task)
+{
+    enum {
+        GLOW_LAMP_VARIANT_COUNT               = 3,
+        GLOW_LAMP_FIRST_TEXTURE_COLUMN        = 1,
+        GLOW_LAMP_FIRST_PALETTE_OFFSET        = 2,
+        GLOW_LAMP_TEXTURE_TOP_V               = 16,
+        GLOW_LAMP_HALF_EXTENT_DEPTH_PRODUCT   = 0x6180, // Pixel half-side times camera Z / 4
+        GLOW_LAMP_BRIGHT_BASE_INTENSITY       = 96,
+        GLOW_LAMP_LAST_VARIANT_INTENSITY_STEP = 12
+    };
     GfxCoord*              coord;
     EffectWork*            work;
-    RoomGlowSpriteScratch* blk;
-    POLY_FT4*              prim;
-    s32                    grey;
-    s32                    clut;
+    RoomGlowSpriteScratch* projection;
+    POLY_FT4*              quad;
+    s32                    intensity;
+    s32                    paletteWord;
 
+    // Project the composed origin after narrowing its world coordinates to s16.
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
-    blk              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-    blk->worldPos.vx = coord->workm.t[0];
-    blk->worldPos.vy = coord->workm.t[1];
-    blk->worldPos.vz = coord->workm.t[2];
+    projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+    projection->worldPos.vx = coord->workm.t[0];
+    projection->worldPos.vy = coord->workm.t[1];
+    projection->worldPos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->worldPos);
+    gte_ldv0(&projection->worldPos);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&blk->screenPos);
-    gte_stszotz(&blk->otz);
-    if (blk->otz >= 0x11) {
-        u8 base[3] = { 0x20, 0x60, 0x20 };
-        u8 step[3] = { 0x08, 0x10, 0x0C };
+    quad = _glowLampReserveQuad();
+    gte_stsxy(&projection->screenPos);
+    gte_stszotz(&projection->otz);
+    if (projection->otz >= GLOW_MIN_DEPTH) {
+        u8 baseIntensity[GLOW_LAMP_VARIANT_COUNT]         = { GLOW_FLICKER_BASE_INTENSITY, GLOW_LAMP_BRIGHT_BASE_INTENSITY, GLOW_FLICKER_BASE_INTENSITY };
+        u8 oddFrameIntensityStep[GLOW_LAMP_VARIANT_COUNT] = { GLOW_FLICKER_INTENSITY_STEP, 1 << GLOW_BRIGHT_FLICKER_SHIFT, GLOW_LAMP_LAST_VARIANT_INTENSITY_STEP };
 
-        grey        = base[task->spawnArg1.value] + (gDisplayState.animFrame & 1) * step[task->spawnArg1.value];
-        prim->code |= 2;
-        prim->tpage = 0x2B;
-        prim->r0    = grey;
-        prim->g0    = grey;
-        prim->b0    = grey;
-        // Assigning through an `s32` keeps the load of `spawnArg1` in SImode;
-        // storing the expression straight into the `u16` field lets the front
-        // end shorten the whole chain and the load becomes an `lhu`.
-        clut            = ((task->spawnArg1.value + 2) & 0x3F) | 0x4380;
-        prim->clut      = clut;
-        prim->u0        = (task->spawnArg1.value + 1) * 0x28;
-        prim->v0        = 0x10;
-        prim->u1        = (task->spawnArg1.value + 1) * 0x28 + 0x27;
-        prim->v1        = 0x10;
-        prim->u2        = (task->spawnArg1.value + 1) * 0x28;
-        prim->v2        = 0x37;
-        prim->u3        = (task->spawnArg1.value + 1) * 0x28 + 0x27;
-        prim->v3        = 0x37;
-        blk->halfExtent = 0x6180 / blk->otz;
-        prim->x0 = prim->x2 = blk->screenPos.vx - blk->halfExtent;
-        prim->x1 = prim->x3 = blk->screenPos.vx + blk->halfExtent;
-        prim->y0 = prim->y1 = blk->screenPos.vy - blk->halfExtent;
-        prim->y2 = prim->y3 = blk->screenPos.vy + blk->halfExtent;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        // The full spawn word selects one of three independently tinted texture cells.
+        intensity = baseIntensity[task->spawnArg1.value] + (gDisplayState.animFrame & 1) * oddFrameIntensityStep[task->spawnArg1.value];
+        setSemiTrans(quad, 1);
+        quad->tpage = GLOW_FLARE_TEXTURE_PAGE;
+        quad->r0    = intensity;
+        quad->g0    = intensity;
+        quad->b0    = intensity;
+        // Keep the palette expression word-sized before the halfword packet store.
+        paletteWord            = ((task->spawnArg1.value + GLOW_LAMP_FIRST_PALETTE_OFFSET) & GLOW_FLARE_PALETTE_OFFSET_MASK) | GLOW_FLARE_PALETTE_BASE;
+        quad->clut             = paletteWord;
+        quad->u0               = (task->spawnArg1.value + GLOW_LAMP_FIRST_TEXTURE_COLUMN) * GLOW_FLARE_CELL_STRIDE;
+        quad->v0               = GLOW_LAMP_TEXTURE_TOP_V;
+        quad->u1               = (task->spawnArg1.value + GLOW_LAMP_FIRST_TEXTURE_COLUMN) * GLOW_FLARE_CELL_STRIDE + GLOW_FLARE_CELL_LAST_TEXEL;
+        quad->v1               = GLOW_LAMP_TEXTURE_TOP_V;
+        quad->u2               = (task->spawnArg1.value + GLOW_LAMP_FIRST_TEXTURE_COLUMN) * GLOW_FLARE_CELL_STRIDE;
+        quad->v2               = GLOW_LAMP_TEXTURE_TOP_V + GLOW_FLARE_CELL_LAST_TEXEL;
+        quad->u3               = (task->spawnArg1.value + GLOW_LAMP_FIRST_TEXTURE_COLUMN) * GLOW_FLARE_CELL_STRIDE + GLOW_FLARE_CELL_LAST_TEXEL;
+        quad->v3               = GLOW_LAMP_TEXTURE_TOP_V + GLOW_FLARE_CELL_LAST_TEXEL;
+        projection->halfExtent = GLOW_LAMP_HALF_EXTENT_DEPTH_PRODUCT / projection->otz;
+        quad->x0 = quad->x2 = projection->screenPos.vx - projection->halfExtent;
+        quad->x1 = quad->x3 = projection->screenPos.vx + projection->halfExtent;
+        quad->y0 = quad->y1 = projection->screenPos.vy - projection->halfExtent;
+        quad->y2 = quad->y3 = projection->screenPos.vy + projection->halfExtent;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
+    // A clipped draw still consumes its packet and retires this counted one-shot effect.
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     effectKillTask(work, task);
 }
 
-#undef ACROPOLIS_GLOWS_LAMP_TASK
+#undef GLOW_LAMP_TASK

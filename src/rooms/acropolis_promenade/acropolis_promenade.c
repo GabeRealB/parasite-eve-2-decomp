@@ -2421,7 +2421,11 @@ void acropolisPromenadeGroundGlowTask(Task* task)
     effectKillTask(work, task);
 }
 
-#define ACROPOLIS_GLOWS_LAMP_TASK func_acropolis_promenade_8017F0BC
+/// Binds the included lamp glow to the promenade's exported `void (Task*)` callback.
+///
+/// Define this function identifier immediately before the lamp fragment, which
+/// undefines it. No arguments, conditional alternatives or tokens are constructed.
+#define GLOW_LAMP_TASK acropolisPromenadeGlowLampTask
 #include "../../shared/acropolis_glows_lamp.inc.c"
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"

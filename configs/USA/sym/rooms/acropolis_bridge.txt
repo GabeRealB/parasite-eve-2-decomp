@@ -154,7 +154,7 @@ acropolisBridgeGlowStarTask = 0x801812F4; // type:func
 
 acropolisBridgeGroundGlowTask = 0x801819C8; // type:func
 
-func_acropolis_bridge_80181D28 = 0x80181D28; // type:func
+acropolisBridgeGlowLampTask = 0x80181D28; // type:func
 
 acropolisBridgeFallingStreakTask = 0x80180320; // type:func
 

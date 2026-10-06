@@ -282,7 +282,7 @@ enum {
     /// along Z then Y while the room's effect gate holds in view mode 9; sprayed by
     /// 0x6009D.
     EFFECT_ACROPOLIS_CAFETERIA_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x061),
-    /// One-frame lamp glow sprite (ACROPOLIS_GLOWS_LAMP_TASK: one of three flickering
+    /// One-frame lamp glow sprite (GLOW_LAMP_TASK: one of three flickering
     /// lamp cells); the promenade respawns it each frame at the lamps its view mask
     /// allows.
     EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x062),

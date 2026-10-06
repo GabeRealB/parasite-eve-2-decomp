@@ -55231,10 +55231,10 @@ the copy to survive.
 
 ## An `int` expression stored into a `u16` field narrows its own source load
 
-`func_acropolis_promenade_8017F0BC` builds a clut word from a `s32` task field:
+`acropolisPromenadeGlowLampTask` builds a clut word from a `s32` task field:
 
 ```c
-prim->clut = ((task->spawnArg1 + 2) & 0x3F) | 0x4380;   /* lhu 0x34(s1) */
+quad->clut = ((task->spawnArg1.value + 2) & 0x3F) | 0x4380;   /* lhu 0x34(s1) */
 ```
 
 The target loads the same field with `lw` everywhere, including here. The
@@ -55249,8 +55249,8 @@ Routing the value through an `s32` local blocks the shortening, because the
 conversion then applies to a `VAR_DECL` rather than to a binary operator:
 
 ```c
-clut       = ((task->spawnArg1 + 2) & 0x3F) | 0x4380;
-prim->clut = clut;                                      /* lw 0x34(s1) */
+paletteWord = ((task->spawnArg1.value + 2) & 0x3F) | 0x4380;
+quad->clut  = paletteWord;                              /* lw 0x34(s1) */
 ```
 
 The tell is a one-instruction `lw` vs `lhu` (or `lb`/`lbu`) diff on a field the

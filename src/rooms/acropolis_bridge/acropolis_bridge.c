@@ -4321,7 +4321,11 @@ void acropolisBridgeGroundGlowTask(Task* task)
     effectKillTask(work, task);
 }
 
-#define ACROPOLIS_GLOWS_LAMP_TASK func_acropolis_bridge_80181D28
+/// Binds the included lamp glow to the bridge's exported `void (Task*)` callback.
+///
+/// Define this function identifier immediately before the lamp fragment, which
+/// undefines it. No arguments, conditional alternatives or tokens are constructed.
+#define GLOW_LAMP_TASK acropolisBridgeGlowLampTask
 #include "../../shared/acropolis_glows_lamp.inc.c"
 
 s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, s32 arg2, s32 arg3)

@@ -108,7 +108,7 @@ acropolisPromenadeScreenDripTask = 0x8017E394; // type:func
 
 acropolisPromenadeGroundGlowTask = 0x8017ED44; // type:func
 
-func_acropolis_promenade_8017F0BC = 0x8017F0BC; // type:func
+acropolisPromenadeGlowLampTask = 0x8017F0BC; // type:func
 glowDrawTintedDiscNoBias = 0x8017F434; // type:func
 bridgeModelSetup = 0x8017DAA4; // type:func
 _acropolisPromenadeRefuseKeyItem = 0x8017d8d8; // type:func
