@@ -1805,9 +1805,7 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
             }
             return var_v0;
         }
-        goto block_17;
     }
-block_17:
     if ((arg2->areaId == 8) && (gameFlagGetNibble(0) < 5)) {
         var_v0 = 0;
         if (arg2->queryOnly == 0) {
