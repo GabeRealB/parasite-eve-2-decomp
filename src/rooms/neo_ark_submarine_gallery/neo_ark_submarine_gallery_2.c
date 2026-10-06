@@ -928,12 +928,25 @@ WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[8] = {
     D_neo_ark_submarine_gallery_801858D4,
 };
 
-/// Draws two capsules from consecutive endpoint pairs in a four-point run.
+/// Draws two additive capsule glows from consecutive world-space endpoint pairs.
 ///
-/// Borrows `worldPoints[0..3]` for the call and preserves their draw order.
-/// `radiusScale` and `packedColor` use the capsule drawer's perspective-size
-/// and RGB-nibble encoding. Requires the current view, initialized scratch
-/// stack and frame arena with room for twelve quads and their blend commands.
+/// `worldPoints` supplies four readable, word-aligned SVECTORs, paired as
+/// [0, 1] and [2, 3] and borrowed only during the call. Projects each capsule
+/// through the current view in that order; a negative GTE flag at either
+/// endpoint rejects that capsule without suppressing the other.
+///
+/// The signed low halfword of `radiusScale` gives each pixel radius as
+/// `radiusScale * 64 / depth`. Depth is camera Z / 4, reduced by 64 when
+/// greater than 80 in this gallery; accepted endpoints require nonzero depth.
+/// `packedColor` bits 8..11, 4..7 and 0..3 supply red, green and blue nibbles
+/// scaled by 16, with bit 3 set in each channel on odd animation frames.
+/// Both capsules share the radius scale and colour.
+///
+/// Requires the composed view and projection settings, an initialized scratch
+/// stack with room for one `OverlayPointPairScratch`, and the current ordering
+/// table and frame arena with room for up to twelve Gouraud quads and their
+/// additive blend commands. Releases scratch between capsules; queued packets
+/// remain live until GPU drawing completes. Does not restore GTE state.
 static inline void _neoArkSubmarineGalleryDrawGlowPair(const SVECTOR worldPoints[4], s32 radiusScale, s32 packedColor)
 {
     _glowDrawCapsule(&worldPoints[0], radiusScale, packedColor);
