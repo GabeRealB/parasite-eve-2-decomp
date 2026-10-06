@@ -1235,35 +1235,31 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
 
     work = arg0->work;
     if (work->playerTask == NULL) {
-    ret1:
         return 1;
     }
-    if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
-        return 0;
-    }
-    if ((u16)work->playerAnimation < 0x2FU) {
-        goto ret1;
-    }
+    if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+        if ((u16)work->playerAnimation >= 0x2FU) {
+            i   = (u16)work->playerAnimation - 0x2FU;
+            sel = &D_actor_136100_8013F1EC[i];
+            id  = *sel;
+            if (id >= 0) {
+                idx = (u16)*sel + 0x2FU;
 
-    i   = (u16)work->playerAnimation - 0x2FU;
-    sel = &D_actor_136100_8013F1EC[i];
-    id  = *sel;
-    if (id < 0) {
-        goto ret1;
+                msgWork                  = arg0->work;
+                weaponId                 = gPlayerStatus.weapon;
+                id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                rec.source.index         = id;
+                msgWork->playerAnimation = idx;
+                rec.animationId          = idx;
+                rec.blend                = ANIMATION_BLEND_INTERPOLATE;
+                rec.blendFrames          = 0xA;
+                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
+            }
+        }
+        return 1;
     }
-    idx = (u16)*sel + 0x2FU;
-
-    msgWork                  = arg0->work;
-    weaponId                 = gPlayerStatus.weapon;
-    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.source.index         = id;
-    msgWork->playerAnimation = idx;
-    rec.animationId          = idx;
-    rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-    rec.blendFrames          = 0xA;
-    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
-    goto ret1;
+    return 0;
 }
 
 static s32 func_actor_136100_80131FBC(Task* arg0)
