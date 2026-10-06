@@ -386,7 +386,8 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
                 break;
             }
             Gp_TriggerPeIfArmed();
-            goto advance;
+            arg0->state++;
+            break;
         case 2:
             D_shelter_1f_bulwark_80180EC0.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_1f_bulwark_80180EC0.phase      = SCREEN_FADE_RUNNING;
@@ -394,19 +395,20 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
             arg0->killCountdown = 0;
             sndEvtRequestScriptStart(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
-            goto advance;
+            arg0->state++;
+            break;
         case 3:
             arg0->killCountdown++;
             if (arg0->killCountdown < 0x1F) {
                 break;
             }
-            goto advance;
+            arg0->state++;
+            break;
         case 5:
             gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
             taskSpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
         case 4:
         case 6:
-        advance:
             arg0->state++;
             break;
         case 7:
