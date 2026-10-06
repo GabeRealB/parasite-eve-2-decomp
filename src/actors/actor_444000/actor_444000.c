@@ -5141,8 +5141,6 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
                                                     PlayerStatus* cfg)
 {
     GfxCoord* coord;
-    GfxCoord* facing;
-    s16       angle;
     s32       yaw;
 
     sc->anchor.vz = 0;
@@ -5153,22 +5151,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
     sc->offset.vx = sc->anchor.vx - player->extra.tmd->coords->coord.t[0];
     sc->offset.vy = 0;
     sc->offset.vz = sc->anchor.vz - player->extra.tmd->coords->coord.t[2];
-    facing        = player->extra.tmd->coords;
-    angle         = ratan2(sc->offset.vx, sc->offset.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    yaw           = angle;
+    yaw           = actorYawTo(player->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
     sc->playerYaw = yaw;
     if (abs(sc->playerYaw) > 0x400) {
         if (sc->playerYaw > 0) {
@@ -5183,25 +5166,10 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
     coord          = player->extra.tmd->coords;
     sc->playerYaw += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 
-    sc->offset.vx = player->extra.tmd->coords->coord.t[0] - sc->anchor.vx;
-    sc->offset.vy = 0;
-    sc->offset.vz = player->extra.tmd->coords->coord.t[2] - sc->anchor.vz;
-    facing        = task->extra.tmd->coords;
-    angle         = ratan2(sc->offset.vx, sc->offset.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    if (angle < 0) {
-    wrapUp2:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp2;
-        }
-    } else {
-    wrapDown2:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown2;
-        }
-    }
-    work->neckYawTarget = angle;
+    sc->offset.vx       = player->extra.tmd->coords->coord.t[0] - sc->anchor.vx;
+    sc->offset.vy       = 0;
+    sc->offset.vz       = player->extra.tmd->coords->coord.t[2] - sc->anchor.vz;
+    work->neckYawTarget = actorYawTo(task->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
 
     VectorNormalSS(&sc->offset, &sc->offset);
     gte_lddp(0x384);
