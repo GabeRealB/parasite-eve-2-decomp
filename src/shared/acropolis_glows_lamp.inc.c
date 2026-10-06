@@ -1,15 +1,20 @@
 /* Part of the Acropolis glows library; see acropolis_glows.h. */
 
-/// Reserves a textured quad and initializes its DMA length and packet code.
+/// Reserves one textured-quad packet in the current frame arena for a lamp glow.
 ///
-/// Requires word-aligned space at `gGpuPrimCursor`; no capacity check occurs.
-/// Only the packet header is initialized. The caller fills and links the quad;
-/// its frame-arena storage must remain live until GPU completion.
+/// Requires word-aligned, writable space for `sizeof(POLY_FT4)` bytes at
+/// `gGpuPrimCursor`; advances the cursor by one packet without checking capacity.
+/// Sets only the DMA payload length and base textured-quad code. The link
+/// address, colour, coordinates and texture fields remain untouched; the caller
+/// fills and links the packet before submission.
+///
+/// Clipping a draw does not reclaim its reservation. The returned packet is
+/// borrowed until its frame arena is reused after GPU completion, and must not
+/// be freed or retained across that reuse.
 static __inline__ POLY_FT4* _glowLampReserveQuad(void)
 {
-    POLY_FT4* quad;
+    POLY_FT4* quad = gGpuPrimCursor;
 
-    quad           = gGpuPrimCursor;
     gGpuPrimCursor = quad + 1;
     setPolyFT4(quad);
     return quad;
