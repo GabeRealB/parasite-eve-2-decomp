@@ -3415,9 +3415,8 @@ s32 func_actor_403200_80134A14(Task* arg0, s16 arg1)
     _Actor403200ViewAnchors anchors;
     Task*                   obj;
     s32                     dist;
-    s32                     value;
     s32                     view;
-    s32                     flag;
+    s32                     current;
 
     view    = viewGetMappedIndex() & 0xFF;
     obj     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -3434,130 +3433,99 @@ s32 func_actor_403200_80134A14(Task* arg0, s16 arg1)
                 if (dist < 0x2261) {
                     return 3;
                 }
-                value = 2;
-                flag  = dist < 0x2FA8;
-                if (!flag) {
-                    value = 4;
+                if (dist < 0x2FA8) {
+                    return 2;
                 }
-                goto done;
-            } else {
-                flag = view;
-                if (flag == 3) {
-                    value = 2;
-                    flag  = dist < 0x2262;
-                    if (flag) {
-                        value = 3;
-                    }
-                    goto done;
-                }
-                if (flag == 2) {
-                    if (dist < 0x1E14) {
-                        return 3;
-                    }
-                    flag = dist < 0x2FA9;
-                    if (flag) {
-                        value = 2;
-                    } else {
-                        value = 4;
-                    }
-                    goto done;
-                }
-                if (flag == 4) {
-                    value = 2;
-                    flag  = dist < 0x2E18;
-                    if (!flag) {
-                        value = 4;
-                    }
-                    goto done;
-                }
-                value = 1;
-                goto done;
+                return 4;
             }
+            current = view;
+            if (current == 3) {
+                if (dist > 0x2261) {
+                    return 2;
+                }
+                return 3;
+            }
+            if (current == 2) {
+                if (dist < 0x1E14) {
+                    return 3;
+                }
+                if (dist > 0x2FA8) {
+                    return 4;
+                }
+                return 2;
+            }
+            if (current == 4) {
+                if (dist < 0x2E18) {
+                    return 2;
+                }
+                return 4;
+            }
+            return 1;
         case 1:
-            flag = view;
-            if ((flag != 0x22) && (flag != 4)) {
-                value = 0x22;
-                flag  = dist < 0x2455;
-            } else {
-                if (flag == 0x22) {
-                    value = 4;
-                    flag  = dist < 0x2456;
-                    if (flag) {
-                        value = 0x22;
-                    }
-                    goto done;
+            current = view;
+            if ((current != 0x22) && (current != 4)) {
+                if (dist < 0x2455) {
+                    return 0x22;
                 }
-                if (flag == 4) {
-                    value = 0x22;
-                    flag  = dist < 0x2260;
-                } else {
-                    value = 1;
-                    goto done;
+                return 4;
+            }
+            if (current == 0x22) {
+                if (dist > 0x2455) {
+                    return 4;
                 }
+                return 0x22;
             }
-            if (!flag) {
-                value = 4;
+            if (current == 4) {
+                if (dist < 0x2260) {
+                    return 0x22;
+                }
+                return 4;
             }
-            goto done;
+            return 1;
         case 2:
-            flag = view;
-            if ((flag != 0x25) && (flag != 0x19)) {
-                value = 0x25;
-                flag  = dist < 0x1E5A;
-            } else {
-                if (flag == 0x25) {
-                    value = 0x19;
-                    flag  = dist < 0x1E5B;
-                    if (flag) {
-                        value = 0x25;
-                    }
-                    goto done;
+            current = view;
+            if ((current != 0x25) && (current != 0x19)) {
+                if (dist < 0x1E5A) {
+                    return 0x25;
                 }
-                if (flag == 0x19) {
-                    value = 0x25;
-                    flag  = dist < 0x1B58;
-                } else {
-                    value = 1;
-                    goto done;
+                return 0x19;
+            }
+            if (current == 0x25) {
+                if (dist > 0x1E5A) {
+                    return 0x19;
                 }
+                return 0x25;
             }
-            if (!flag) {
-                value = 0x19;
+            if (current == 0x19) {
+                if (dist < 0x1B58) {
+                    return 0x25;
+                }
+                return 0x19;
             }
-            goto done;
+            return 1;
         case 3:
-            flag = view;
-            if ((flag != 0x25) && (flag != 0x1E)) {
-                flag  = obj->extra.tmd->coords->coord.t[0];
-                value = 0x25;
-                flag  = flag < 0x4268;
-            } else {
-                if (flag == 0x25) {
-                    flag  = obj->extra.tmd->coords->coord.t[0];
-                    value = 0x1E;
-                    flag  = flag < 0x4651;
-                    if (flag) {
-                        value = 0x25;
-                    }
-                    goto done;
+            current = view;
+            if ((current != 0x25) && (current != 0x1E)) {
+                if (obj->extra.tmd->coords->coord.t[0] < 0x4268) {
+                    return 0x25;
                 }
-                if (flag == 0x1E) {
-                    flag  = obj->extra.tmd->coords->coord.t[0];
-                    value = 0x25;
-                    flag  = flag < 0x4268;
-                } else {
-                    value = 1;
-                    goto done;
+                return 0x1E;
+            }
+            if (current == 0x25) {
+                if (obj->extra.tmd->coords->coord.t[0] > 0x4650) {
+                    return 0x1E;
                 }
+                return 0x25;
             }
-            if (!flag) {
-                value = 0x1E;
+            if (current == 0x1E) {
+                if (obj->extra.tmd->coords->coord.t[0] < 0x4268) {
+                    return 0x25;
+                }
+                return 0x1E;
             }
-            goto done;
+            return 1;
     }
-    value = 1;
-done:
-    return value;
+    return 1;
 }
 
 /// The enemy's walk-out state: a reset request re-arms the block (the two
