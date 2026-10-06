@@ -1792,7 +1792,8 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, _MidiSong* song, _MidiTra
                 do {
                 } while (*var_t0++ != 0xF7);
             }
-            goto f7_body;
+            var_t0 += 1;
+            break;
         case MIDI_TRACK_COMMAND_CALL:
             // Save the return delta, then jump relative to the end of the call command.
             if (track->callDepth < ARRAY_SIZE(track->savedCursors.returnAddresses)) {
@@ -1816,40 +1817,35 @@ static u8* Midi_HandleMetaSysex(s32 unused1, u8* arg1, _MidiSong* song, _MidiTra
             }
             break;
         case 0xF7:
-            goto f7_body;
-        case 0xFF:
-            var_t0 += 1;
-            temp_v1 = *var_t0;
-            if (temp_v1 == MIDI_TRACK_META_END) {
-                goto eot;
-            }
-            if (temp_v1 == 0x51) {
-                goto tempo;
-            }
-            goto vlq;
-        eot:
-            track->ended = true;
-        f7_body:
             var_t0 += 1;
             break;
-        tempo: {
-            u32 tempo_val;
-            tempo_val  = var_t0[2] << 16;
-            tempo_val |= var_t0[3] << 8;
-            tempo_val |= var_t0[4];
-            var_t0    += 5;
-            // Quarter notes per minute, truncated to a byte on store.
-            song->pendingTempoOffsetBpm = 0;
-            song->pendingTempoBpm       = MIDI_MICROSECONDS_PER_MINUTE / tempo_val;
-        } break;
-        vlq: {
-            s32 hdrLen;
+        case 0xFF:
+            var_t0 += 1;
+            switch (*var_t0) {
+                case MIDI_TRACK_META_END:
+                    track->ended = true;
+                    var_t0      += 1;
+                    break;
+                case 0x51: {
+                    u32 tempo_val;
+                    tempo_val  = var_t0[2] << 16;
+                    tempo_val |= var_t0[3] << 8;
+                    tempo_val |= var_t0[4];
+                    var_t0    += 5;
+                    // Quarter notes per minute, truncated to a byte on store.
+                    song->pendingTempoOffsetBpm = 0;
+                    song->pendingTempoBpm       = MIDI_MICROSECONDS_PER_MINUTE / tempo_val;
+                } break;
+                default: {
+                    s32 hdrLen;
 
-            var_a0 = _midiReadVlq(var_t0 + 1, &sp0);
-            /* The meta type byte and the length's own bytes precede the data. */
-            hdrLen  = sp0 + 1;
-            var_t0 += var_a0 + hdrLen;
-        } break;
+                    var_a0 = _midiReadVlq(var_t0 + 1, &sp0);
+                    /* The meta type byte and the length's own bytes precede the data. */
+                    hdrLen  = sp0 + 1;
+                    var_t0 += var_a0 + hdrLen;
+                } break;
+            }
+            break;
         default:
             var_t0 = NULL;
             break;
