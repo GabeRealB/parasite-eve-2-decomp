@@ -2230,7 +2230,6 @@ static void func_actor_421600_801354D8(Task* arg0)
     s32                        state5;
     s16                        damageState;
     s16                        deathState;
-    s16                        hurtState;
     s16                        poisonState;
     s16                        state0;
     s16                        state1;
@@ -2239,7 +2238,6 @@ static void func_actor_421600_801354D8(Task* arg0)
     s16                        state4;
     s16                        wrapped;
     s16                        hitState;
-    s16                        nextDeathState;
     GfxCoord*                  objectCoord;
     s32                        tickDamage;
     s32                        dxSquared;
@@ -2424,46 +2422,38 @@ static void func_actor_421600_801354D8(Task* arg0)
             if (enemy->hp <= 0) {
                 D_actor_421600_80151268 -= 1;
                 if ((Gp_GetIdParam0(scratch->hitKey) & 0xFFFF) == 4) {
-                    nextDeathState = 8;
-                    goto setDeathState;
-                }
-                deathState = work->state;
-                if (deathState == 33 || deathState == 17 || deathState == 11 ||
-                    deathState == 4) {
-                    work->state     = 11;
-                    work->prevState = -1;
-                } else if (deathState == 7) {
-                    work->state = 21;
-                    deathSound  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
-                    deathPan    = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    sndEvtRequestScriptStart(deathSound, deathPan,
-                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    work->state = 8;
                 } else {
-                    hurtSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
-                    hurtPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-                    sndEvtRequestScriptStart(hurtSound, hurtPan,
-                                             (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-                    nextDeathState = 20;
-                setDeathState:
-                    work->state = nextDeathState;
+                    deathState = work->state;
+                    if (deathState == 33 || deathState == 17 || deathState == 11 ||
+                        deathState == 4) {
+                        work->state     = 11;
+                        work->prevState = -1;
+                    } else if (deathState == 7) {
+                        work->state = 21;
+                        deathSound  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
+                        deathPan    = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+                        sndEvtRequestScriptStart(deathSound, deathPan,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                    } else {
+                        hurtSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40010008;
+                        hurtPan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+                        sndEvtRequestScriptStart(hurtSound, hurtPan,
+                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+                        work->state = 20;
+                    }
                 }
                 work->broadcast.context.loc.stage = 9;
                 work->broadcast.context.loc.area  = 1;
                 work->broadcast.command           = 3;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &work->broadcast, ACTOR_COMMAND_MESSAGE_APPLY);
             } else {
-                if ((s16)totalDamage >= 0x47) {
-                    hurtState = work->state;
-                    if ((hurtState != 0x21) && (hurtState != 0x14) &&
-                        (hurtState != 0x11) && (hurtState != 7) &&
-                        (work->lastCommand.fields.command != 1)) {
-                        soundBase   = 0x40010008;
-                        work->state = 0x14;
-                    } else {
-                        goto normalHitSound;
-                    }
+                if (((s16)totalDamage >= 0x47) && (work->state != 0x21) && (work->state != 0x14) &&
+                    (work->state != 0x11) && (work->state != 7) &&
+                    (work->lastCommand.fields.command != 1)) {
+                    soundBase   = 0x40010008;
+                    work->state = 0x14;
                 } else {
-                normalHitSound:
                     soundBase = 0x40010007;
                 }
                 hitSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
