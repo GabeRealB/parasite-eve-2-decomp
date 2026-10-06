@@ -33,6 +33,7 @@
 #include "../../shared/walker.h"
 
 static void _footstepWalkUpdate(Task* task);
+static void _footstepWalkExit(Task* task);
 static void _footstepWalkPlayStepSound(Task* task);
 static void _footstepWalkTickAnim(void);
 static void _footstepWalkResetAnim(void);
@@ -78,8 +79,8 @@ extern _Actor151000AnimationBankExtensionStorage D_actor_151000_8013336C;
 /// runner sets it to 10 when a walk ends.
 extern s16 gFootstepWalkBlendFrames;
 
-/// Fade countdown: `func_actor_151000_80131EE0` seeds it, and the fade task
-/// `func_actor_151000_80131E24` draws while it is non-zero.
+/// The scripts switch `_actor151000BlackoutTask` on and off through
+/// `_actor151000SetBlackout`.
 extern s32 D_actor_151000_8013D378;
 
 /// The enemy's work block, published by its spawn handler and by its task
@@ -95,7 +96,7 @@ extern Task* gFootstepWalkTask;
 /// opcode.
 extern s16 gFootstepWalkMode;
 
-/// Descriptor of the fade task `func_actor_151000_80131E24`.
+/// Descriptor of the blackout task `_actor151000BlackoutTask`.
 extern TaskDesc D_actor_151000_80133360;
 
 /// The enemy's message table and the animation data its work block's slots
@@ -111,14 +112,14 @@ static void func_actor_151000_80132450(Enemy* enemy, Task* task);
 static TmdSource _gActor151000AyaBreaBody;
 void             func_actor_151000_801323F4(Task*);
 
-s32 func_actor_151000_801327C8(Task*, s32, s32, s32);
-s32 func_actor_151000_8013288C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32 _actor151000SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 flags, s32 unusedArgument);
+static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 
 extern AnimationPlayRequest D_actor_151000_801333F0;
 extern AnimationPlayRequest D_actor_151000_80133404;
-void                        func_actor_151000_80131EE0(s32);
+static void                 _actor151000SetBlackout(s32 enabled);
 
-void func_actor_151000_80131E24(Task*);
+static void _actor151000BlackoutTask(Task* task);
 
 static AnimationPackedPose _gActor151000Animation00ED8Bank1[2] = {
 #include "assets/actor_151000_animation_00ED8_bank1.inc"
@@ -186,7 +187,7 @@ static AnimationSet _gActor151000Animation01518 = {
     { NULL, _gActor151000Animation01518Bank1, NULL, NULL, _gActor151000Animation01518Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_151000_80133360 = { { { TASK_BODY_NONE, 192 } }, func_actor_151000_80131E24, { .value = 0 } };
+TaskDesc D_actor_151000_80133360 = { { { TASK_BODY_NONE, 192 } }, _actor151000BlackoutTask, { .value = 0 } };
 
 _Actor151000AnimationBankExtensionStorage D_actor_151000_8013336C = { .data = { { &_gActor151000Animation00ED8, &_gActor151000Animation012A0, &_gActor151000Animation01518 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 
@@ -224,7 +225,7 @@ EvsCommand D_actor_151000_801334EC[47] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_151000_8013346C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_151000_8013349C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_151000_80133468 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_151000_80131EE0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -237,7 +238,7 @@ EvsCommand D_actor_151000_801334EC[47] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_151000_80131EE0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_80133404 } }, { .value = 0 } },
@@ -272,7 +273,7 @@ EvsCommand D_actor_151000_80133954[15] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_151000_80131EE0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_8013336C.data.playRequests[5] } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -673,9 +674,9 @@ s16 gFootstepWalkBlendFrames = 8;
 
 TaskMessageEntry gFootstepWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_151000_801327C8 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor151000SetWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_151000_8013288C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor151000ApplyWalkerCommand },
     { ACTOR_MESSAGE_WALK_TO, _footstepWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -833,36 +834,57 @@ Task* gFootstepWalkTask;
 
 s16 gFootstepWalkMode;
 
-/// The fade task: while the countdown `D_actor_151000_8013D378` is non-zero,
-/// draws a full-screen black `TILE` into ordering table slot 0xA; once it is
-/// zero the task kills itself.
-void func_actor_151000_80131E24(Task* task)
+/// Queues the scene's opaque black cover in the current frame's packet arena.
+///
+/// Requires space for one aligned `TILE` and a live ordering table with tag 10.
+/// Coordinates and extent are pixels relative to the draw origin; the packet
+/// belongs to the frame until GPU drawing completes.
+static __inline__ void _actor151000DrawBlackoutTile(void)
 {
+    enum {
+        ACTOR_151000_BLACKOUT_WIDTH_PIXELS  = 320,
+        ACTOR_151000_BLACKOUT_HEIGHT_PIXELS = 256,
+        ACTOR_151000_BLACKOUT_OT_TAG        = 10
+    };
+
     TILE* tile;
 
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    SetTile(tile);
+    tile->r0 = 0;
+    tile->g0 = 0;
+    tile->b0 = 0;
+    tile->x0 = -ACTOR_151000_BLACKOUT_WIDTH_PIXELS / 2;
+    tile->y0 = -ACTOR_151000_BLACKOUT_HEIGHT_PIXELS / 2;
+    tile->w  = ACTOR_151000_BLACKOUT_WIDTH_PIXELS;
+    tile->h  = ACTOR_151000_BLACKOUT_HEIGHT_PIXELS;
+    addPrim(gGpuCurrentOt + ACTOR_151000_BLACKOUT_OT_TAG, tile);
+}
+
+/// Covers the scene in opaque black until its script clears the blackout switch.
+///
+/// Each enabled update queues one 320-by-256-pixel tile; there is no colour ramp
+/// or countdown. The first disabled update kills this live task without drawing.
+static void _actor151000BlackoutTask(Task* task)
+{
     if (D_actor_151000_8013D378 != 0) {
-        tile           = gGpuPrimCursor;
-        gGpuPrimCursor = tile + 1;
-        SetTile(tile);
-        tile->r0 = 0;
-        tile->g0 = 0;
-        tile->b0 = 0;
-        tile->x0 = -0xA0;
-        tile->y0 = -0x80;
-        tile->w  = 0x140;
-        tile->h  = 0x100;
-        addPrim(gGpuCurrentOt + 0xA, tile);
+        _actor151000DrawBlackoutTile();
     } else {
         taskKill(task);
     }
 }
 
-/// Starts a fade to black lasting `frames` frames: seeds the countdown and,
-/// unless it is zero, spawns the fade task.
-void func_actor_151000_80131EE0(s32 frames)
+/// Switches the scene's opaque black cover on or off from an event script.
+///
+/// Zero disables drawing and lets existing cover tasks exit on their next update.
+/// Every nonzero call stores the complete argument word and spawns another cover
+/// task; callers normally enable once, then clear it on completion or skip.
+/// The package and task descriptor must remain loaded while cover tasks are live.
+static void _actor151000SetBlackout(s32 enabled)
 {
-    D_actor_151000_8013D378 = frames;
-    if (frames != 0) {
+    D_actor_151000_8013D378 = enabled;
+    if (enabled != 0) {
         taskSpawnFromTable(&D_actor_151000_80133360, 0, 0, 0);
     }
 }
@@ -894,9 +916,12 @@ void func_actor_151000_801323F4(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// Exit callback the spawn handler installs on the enemy's task: tears down
-/// the enemy the task was spawned for.
-void footstepWalkExit(Task* task)
+/// Releases the walker's enemy and begins teardown of its task and model.
+///
+/// `task` must be live with its owned `Enemy` in `spawnArg2.pointer`.
+/// Enemy storage is invalid on return; task work and the model follow
+/// `taskKill`'s immediate/deferred release rules. Do not use the task afterwards.
+static void _footstepWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -911,40 +936,60 @@ void footstepWalkExit(Task* task)
 
 #include "../../shared/footstep_walk_play.inc.c"
 
-/// Visibility opcode: applies `arg2` to the model of the task published in
-/// `gFootstepWalkTask` - bit 0 shows it (flags 0) rather than hiding it
-/// (0x80), and bit 1 ORs in 0x4.
-s32 func_actor_151000_801327C8(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces the published walker's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
+///
+/// Requires a live TMD model in `gFootstepWalkTask`. Bit 0 permits active drawing;
+/// without it the model is excluded. Bit 1 suppresses automatic buffer allocation.
+/// All other model flags are cleared and other request bits are ignored. No buffer
+/// is allocated or released. The receiver, message ID and second payload are
+/// ignored. Returns 0.
+static s32 _actor151000SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 flags, s32 unusedArgument)
 {
-    TmdObject* obj;
+    enum {
+        ACTOR_151000_WALKER_DRAW_SHOW             = 1 << 0,
+        ACTOR_151000_WALKER_DRAW_SKIP_AUTO_BUFFER = 1 << 1
+    };
 
-    obj = gFootstepWalkTask->extra.tmd;
-    if (arg2 & 1) {
-        obj->flags = 0;
+    TmdObject* model;
+
+    model = gFootstepWalkTask->extra.tmd;
+    if (flags & ACTOR_151000_WALKER_DRAW_SHOW) {
+        model->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (flags & ACTOR_151000_WALKER_DRAW_SKIP_AUTO_BUFFER) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
 
 #include "../../shared/footstep_walk_place.inc.c"
 
-/// Message handler: message 0 arms the turn countdown `turnFrames` at 0x14
-/// frames, message 1 sets `playFootsteps`, which turns the footsteps on. Anything else does nothing.
-s32 func_actor_151000_8013288C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Applies turn or footstep commands to the published walker.
+///
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` with live `gFootstepWalkWork` and a
+/// command borrowed only for this call. Command 0 schedules twenty turning
+/// updates while the turn clip plays; it does not select that clip. Command 1
+/// enables footstep sounds until work teardown. Other commands do nothing.
+/// Context tags, receiver, message ID and second payload are ignored. Returns 0.
+static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
-    s32 kind;
+    enum {
+        ACTOR_151000_WALKER_COMMAND_TURN             = 0,
+        ACTOR_151000_WALKER_COMMAND_ENABLE_FOOTSTEPS = 1,
+        ACTOR_151000_WALKER_TURN_UPDATES             = 20
+    };
 
-    kind = msg->command;
-    switch (kind) {
-        case 0:
-            gFootstepWalkWork->turnFrames = 0x14;
+    s32 commandId;
+
+    commandId = command->command;
+    switch (commandId) {
+        case ACTOR_151000_WALKER_COMMAND_TURN:
+            gFootstepWalkWork->turnFrames = ACTOR_151000_WALKER_TURN_UPDATES;
             break;
-        case 1:
-            gFootstepWalkWork->playFootsteps = kind;
+        case ACTOR_151000_WALKER_COMMAND_ENABLE_FOOTSTEPS:
+            gFootstepWalkWork->playFootsteps = commandId;
             break;
     }
     return 0;

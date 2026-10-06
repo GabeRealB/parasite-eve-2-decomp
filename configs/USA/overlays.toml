@@ -5249,7 +5249,7 @@ objects = [
 ]
 
 [actors.overlays.actor_151000]
-label = "Code starts at 0x4: GCC hoisted the lui/lw of the fade countdown above the fade task's addiu $sp prologue, so the span detector starts 8 bytes late; the fade task descriptor names 0x80131E24 as the entry"
+label = "Code starts at 0x4: GCC hoisted the lui/lw of the blackout switch above the blackout task's addiu $sp prologue, so the span detector starts 8 bytes late; the blackout task descriptor names 0x80131E24 as the entry"
 slot = 1
 id = 144
 text = ["0x4", "0xCB4"]

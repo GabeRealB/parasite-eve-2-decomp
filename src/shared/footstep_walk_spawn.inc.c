@@ -25,7 +25,7 @@ void footstepWalkSpawn(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = footstepWalkExit;
+    task->exitCallback               = _footstepWalkExit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;

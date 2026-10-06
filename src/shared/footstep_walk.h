@@ -7,8 +7,8 @@
  * left and plays a panned step sound on each foot cue. The 'walk to' message
  * (0x7DD) turns the model to face its target and divides the planar distance
  * by the mode's distance per update to obtain a whole-frame travel count.
- * The exit callback, footstepWalkExit, is the
- * package's own.
+ * Each sound-enabled carrier provides a private task exit callback that
+ * releases its enemy and begins task teardown.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. Each carrier declares its private function instances there and
@@ -114,7 +114,6 @@ typedef struct {
 } FootstepWalkWork;
 STATIC_ASSERT_SIZEOF(FootstepWalkWork, 0x4C0);
 
-void footstepWalkExit(Task* task);
 void footstepWalkSpawn(Enemy* enemy, Task* task);
 
 #endif /* SRC_SHARED_FOOTSTEP_WALK_H */

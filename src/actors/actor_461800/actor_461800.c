@@ -46,6 +46,7 @@
 #include "../../shared/walker.h"
 
 static void _footstepWalkUpdate(Task* task);
+static void _footstepWalkExit(Task* task);
 static void _footstepWalkPlayStepSound(Task* task);
 static void _footstepWalkTickAnim(void);
 static void _footstepWalkResetAnim(void);
@@ -1285,10 +1286,12 @@ void func_actor_461800_80133554(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` of the second variant: hands the task's `Enemy`
-/// (parked in `Task::spawnArg2` by the spawn descriptor) back to
-/// `enemyDestroy`.
-void footstepWalkExit(Task* task)
+/// Releases the walker's enemy and begins teardown of its task and model.
+///
+/// `task` must be live with its owned `Enemy` in `spawnArg2.pointer`.
+/// Enemy storage is invalid on return; task work and the model follow
+/// `taskKill`'s immediate/deferred release rules. Do not use the task afterwards.
+static void _footstepWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }

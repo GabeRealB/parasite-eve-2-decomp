@@ -39,6 +39,7 @@
 #include "../../shared/pair_walk.h"
 
 static void _footstepWalkUpdate(Task* task);
+static void _footstepWalkExit(Task* task);
 static void _footstepWalkPlayStepSound(Task* task);
 static void _footstepWalkTickAnim(void);
 static void _footstepWalkResetAnim(void);
@@ -1196,9 +1197,12 @@ void func_actor_535700_80132478(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// Exit callback the first enemy's spawn handler installs on its task: tears
-/// down the enemy the task was spawned for.
-void footstepWalkExit(Task* task)
+/// Releases the walker's enemy and begins teardown of its task and model.
+///
+/// `task` must be live with its owned `Enemy` in `spawnArg2.pointer`.
+/// Enemy storage is invalid on return; task work and the model follow
+/// `taskKill`'s immediate/deferred release rules. Do not use the task afterwards.
+static void _footstepWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
