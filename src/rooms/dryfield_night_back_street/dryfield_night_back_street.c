@@ -495,13 +495,31 @@ void func_dryfield_night_back_street_8017D788(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws the two lamp flares and two light shafts shared by views 2 and 3.
+/// Draws view 2's two textured flares and two grey light shafts, also used by view 3.
+///
+/// Requires the active view transform, flare textures, an initialized scratch
+/// stack and space in the current frame's primitive arena and ordering table.
+/// Accepted points must have nonzero camera-Z / 4 depths. Points are borrowed
+/// only during drawing; queued packets use the frame's arena until GPU completion.
 static inline void _dryfieldNightBackStreetDrawView2Glows(void)
 {
-    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[4], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[5], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[0], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
-    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[2], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
+    enum {
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_SHAFT_START  = 0,
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_SHAFT_START = 2,
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_FLARE_POINT  = 4,
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_FLARE_POINT = 5,
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FLARE_TEXTURE      = 0,
+    };
+
+    // Each shaft borrows its start point and the next point as its two ends.
+    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_FLARE_POINT],
+                   DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FLARE_TEXTURE, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_FLARE_POINT],
+                   DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FLARE_TEXTURE, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_SHAFT_START],
+                   DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
+    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_SHAFT_START],
+                   DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
 }
 
 void dryfieldNightBackStreetDrawGlowsTask(Task* task)
