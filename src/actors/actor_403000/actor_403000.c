@@ -3409,6 +3409,23 @@ static inline s8 Actor403000_Cell(GfxCoord* coord)
     return cell;
 }
 
+/// Which way round the ring of cells to go for a cell difference of `diff`
+/// (own cell minus the player's): -1 when the difference is below -5 or in
+/// 0..4, 1 otherwise.
+static inline s8 _actor403000RingSide(s16 diff)
+{
+    if (diff < -5) {
+        return -1;
+    }
+    if (diff < 0) {
+        return 1;
+    }
+    if (diff < 5) {
+        return -1;
+    }
+    return 1;
+}
+
 /// Turn toward the camera target (state 4) and, once facing it, walk at it
 /// (state 2): hand off to state 8 or 7 by distance, or to state 4 with a
 /// fresh `watchRingDir` direction when the heading error grows past 0x300.
@@ -3458,26 +3475,14 @@ static void func_actor_403000_80137084(Task* arg0)
     }
     func_actor_403000_80133AF8(arg0);
     if (work->requestedAnimId == 4) {
-        t     = &scratch->offset;
-        pos   = arg0->extra.tmd->coords;
-        t->vx = wip->coordMtx->t[0] - pos->coord.t[0];
-        t->vy = wip->coordMtx->t[1] - pos->coord.t[1];
-        t->vz = wip->coordMtx->t[2] - pos->coord.t[2];
-        rot   = arg0->extra.tmd->coords;
-        angle = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto loop_neg;
-            }
-        } else {
-        loop_pos:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos;
-            }
-        }
+        t             = &scratch->offset;
+        pos           = arg0->extra.tmd->coords;
+        t->vx         = wip->coordMtx->t[0] - pos->coord.t[0];
+        t->vy         = wip->coordMtx->t[1] - pos->coord.t[1];
+        t->vz         = wip->coordMtx->t[2] - pos->coord.t[2];
+        rot           = arg0->extra.tmd->coords;
+        angle         = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
+        angle         = actorWrapAngle(angle);
         scratch->turn = mag = angle;
         work->neckYawTarget = mag;
         if (scratch->turn > 0x40) {
@@ -3495,26 +3500,14 @@ static void func_actor_403000_80137084(Task* arg0)
     }
     if (work->requestedAnimId == 2) {
         ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-        t     = &scratch->offset;
-        pos2  = arg0->extra.tmd->coords;
-        t->vx = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
-        t->vy = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
-        t->vz = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
-        rot2  = arg0->extra.tmd->coords;
-        angle = ratan2(t->vx, t->vz) - ratan2(-rot2->coord.m[2][0], rot2->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg2:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto loop_neg2;
-            }
-        } else {
-        loop_pos2:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos2;
-            }
-        }
+        t             = &scratch->offset;
+        pos2          = arg0->extra.tmd->coords;
+        t->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
+        t->vy         = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
+        t->vz         = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
+        rot2          = arg0->extra.tmd->coords;
+        angle         = ratan2(t->vx, t->vz) - ratan2(-rot2->coord.m[2][0], rot2->coord.m[2][2]);
+        angle         = actorWrapAngle(angle);
         scratch->turn = mag = angle;
         work->neckYawTarget = mag;
         coord               = arg0->extra.tmd->coords;
@@ -3549,19 +3542,7 @@ static void func_actor_403000_80137084(Task* arg0)
             scratch->cell       = Actor403000_Cell(arg0->extra.tmd->coords);
             work->state         = ACTOR_403000_STATE_TURN;
             diff                = scratch->cell - scratch->playerCell;
-            if (diff < -5) {
-                goto neg;
-            }
-            if (diff < 0) {
-                goto pos;
-            }
-            if (diff < 5) {
-            neg:
-                sign = -1;
-            } else {
-            pos:
-                sign = 1;
-            }
+            sign                = _actor403000RingSide(diff);
             work->turnRingDir = work->watchRingDir = -sign;
         }
         if (scratch->turn > 0x40) {
