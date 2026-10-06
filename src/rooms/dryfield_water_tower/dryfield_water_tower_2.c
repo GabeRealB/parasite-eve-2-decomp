@@ -2466,10 +2466,25 @@ static inline u16 _dryfieldWaterTowerStepFrames(Task* task)
 /// view's `_DryfieldWaterTowerViewVolume` entry gives. State 4 waits for `eventState`, sends
 /// 0x7DA with 3 unless `runResult` is 2, restores the blocks again, sets nibble
 /// 0x55 to 1 and returns `runResult`.
+/// Volume of the running-cap sound for the view the scene is showing: the
+/// view's percentage in `D_dryfield_water_tower_80182350` of 127, or full
+/// volume for a view the table does not list.
+static inline s32 _dryfieldWaterTowerViewVolume(Task* arg0)
+{
+    _DryfieldWaterTowerPropSceneWork* work = arg0->work;
+    u16                               i;
+
+    for (i = 0; D_dryfield_water_tower_80182350[i].viewIndex != DRYFIELD_WATER_TOWER_VIEW_VOLUME_END; i++) {
+        if (D_dryfield_water_tower_80182350[i].viewIndex == Gp_FindViewIndex((u8)work->currentView)) {
+            return D_dryfield_water_tower_80182350[i].percent * 127 / 100;
+        }
+    }
+    return 0x7F;
+}
+
 static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
 {
     _DryfieldWaterTowerPropSceneWork* state = arg0->work;
-    _DryfieldWaterTowerPropSceneWork* work;
     GameSession*                      session;
     ActorCommand                      msg0;
     ActorCommand                      msg2;
@@ -2478,8 +2493,6 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
     u8                                objA;
     u8                                objB;
     s32                               reason;
-    u16                               i;
-    s32                               volume;
 
     switch (state->phase) {
         case DRYFIELD_WATER_TOWER_RUN_PHASE_START:
@@ -2553,16 +2566,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 state->runResult = DRYFIELD_WATER_TOWER_RUN_TIMED_OUT;
                 state->phase++;
             }
-            work = arg0->work;
-            for (i = 0; D_dryfield_water_tower_80182350[i].viewIndex != DRYFIELD_WATER_TOWER_VIEW_VOLUME_END; i++) {
-                if (D_dryfield_water_tower_80182350[i].viewIndex == Gp_FindViewIndex((u8)work->currentView)) {
-                    volume = D_dryfield_water_tower_80182350[i].percent * 127 / 100;
-                    goto play;
-                }
-            }
-            volume = 0x7F;
-        play:
-            SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, volume & 0xFF);
+            SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, _dryfieldWaterTowerViewVolume(arg0) & 0xFF);
             return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
 
         case DRYFIELD_WATER_TOWER_RUN_PHASE_ENDING_SCRIPT:
