@@ -3514,21 +3514,9 @@ static void func_actor_421600_8013B00C(Task* arg0)
     turn->delta.vy = 0;
     turn->delta.vz = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
     desertChaserAnimTick(arg0);
-    coord2 = arg0->extra.tmd->coords;
-    angle  = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    if (angle < 0) {
-    loop_neg:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto loop_neg;
-        }
-    } else {
-    loop_pos:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto loop_pos;
-        }
-    }
+    coord2              = arg0->extra.tmd->coords;
+    angle               = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+    angle               = actorWrapAngle(angle);
     wrapped             = angle;
     turn->angle         = wrapped;
     work->lookYawTarget = wrapped;
