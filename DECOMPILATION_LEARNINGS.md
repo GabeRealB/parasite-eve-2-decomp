@@ -150543,3 +150543,69 @@ constant).
   if (p != view) { ...; p = p->parent; goto loop; } store; }`) is `for (;;) {
   if (p->parent) { if (p != view) { ...; continue; } store; } break; }`;
   `actorTransformToView` in `include/actors/actor.h` has the same shape.
+
+## Removing `goto`: unsigned switch trees, range cases, and when a written-out tail does not merge (stage, cdsync, player_state, 2026-10-06)
+
+- **`beq 1; beqz; beq 2; beq 3; j default` is a four-case `switch` on an
+  unsigned index** (`Display_TransitionLoad`). Signed, the root (1) has two
+  unbounded children and the emitter splits with `slti x,2`. Unsigned, the
+  left node 0 is bounded (type minimum below, the root above), so the split is
+  `x < 1`, which comes out as `beqz`, and the right list `2 3` follows
+  linearly. The fix was the field's type (`u32 transitionStep`), not a cast.
+- **Reading the pivot gives the number of nodes, including ones that only
+  reach `default`.** `beq 4; sltiu x,5 -> default; beq 1; beq 3`
+  (`Display_SpawnFromMode`) pivots on the third of `1 3 4 ...`, so two single
+  values or one range sat above 4 (a range counts twice in
+  `balance_case_nodes`). `beq 2; sltiu x,3 -> default; beq 3; bne 4`
+  (`func_8010B348`) and `beq 1; slti x,2 -> default; bnez` (`func_800A63B4`)
+  are four and three nodes with one no-op node whose test was deleted in
+  front of the jump to the same label. The value of such a node is not
+  recoverable; it is marked as a placeholder in the source.
+- **`slti x,2; beqz kill; bltz kill` is `case 0: case 1:` with a `default`**
+  (`func_mist_parking_80183634`): a range node is emitted as two signed bound
+  tests. `if (x >= 2 || x < 0)` folds to one `sltiu`.
+- **`li v0,-1; sh` into a field declared `u16` is an `s16` field.** The `neg`
+  local in `Mdec_ResolveStreamBuffer` was standing in for the field's type
+  (`imageDecodeStep`); with `s16` the `(s16)` casts at its switches go too.
+  The same function's `i = 0; found = 0; key = *arg0;` in front of
+  `for (; i < N; i++)` fixes the order of the three initial moves.
+- **A tail written out in each arm merges only if cse knows the same things
+  on every copy.** `Task_AllocIdMap`: `gStageMusicLoadState = 0xFF;
+  taskKill(task); return;` copied into the deferred-start arm shared its 0xFF
+  with an earlier `== 0xFF` compare (`li s3,255`, frame 8 bytes larger). Put
+  the other copy where nothing is known instead: the allocation failure as an
+  early return at the top, and the late arms as `if (deferred) { ... } else if
+  (...) { ...; return; }` falling into the one tail at the end.
+  `func_aya_20900_80115A14` has no such way out: one arm does `phase += 1`
+  before the shared block and cse reuses that register for the block's own
+  `phase += 1`, the other arm calls a function first and reloads. Written out
+  or as an inline the two copies differ (7 insns longer); the `goto` stays.
+- **`if (p == NULL) { cleanup; return NULL; }` twice does not give a cleanup
+  block in the middle with a backward branch** (`Gp_SpawnAlly`). With one
+  predecessor each, jump.c moves the blocks in front of the function's end
+  label, merges them there, and the first plain `return NULL` then merges
+  with their `v0 = 0` as well. Seven nestings gave the block at the end or
+  after the second allocation. A label on the first block (`fail:` inside the
+  `if`) and `goto fail` from the second test keeps it; the leading
+  `if (task != NULL) goto have_task; return NULL;` is an ordinary early
+  return once the block stays put.
+- **A narrow local whose uses all sit in the extended basic block of its
+  definition is replaced by the temporary it was computed from**
+  (`Actor04000_Fn00FDC`). `id = rec & 0x3FF` (`u16`) followed by `v = id` is
+  `andi a1,v0,0x3ff; andi v1,a1,0xffff` in the image. The if / else-if form
+  with the check written in each arm reproduces the block order exactly, but
+  the stores of `id` are then reachable without crossing a label, cse
+  rewrites them to the mask temporary, the set of `id` dies and combine folds
+  the zero-extension to `move v1,a1`. In the `goto` form the stores sit behind
+  the `check:` label. Not converted.
+- **Three hand-expanded copies of a poll with `temp = K; goto join` are the
+  inline that already existed for the sibling** (`CdCmd_SeekL` and
+  `CdCmd_SyncPoll`, 29 gotos, plus the `one`, `p`, `temp`, `status` locals).
+  The inline has to be defined above its caller. The shared flush tail is
+  written in both states; `return 0` in the earlier state and `break` in the
+  last one makes the last copy the survivor. The 8 bytes of unused stack are
+  still an unused local.
+- **A constant local documented as needed can be an artefact of the `goto`
+  beside it.** `madChaserSpawnHidden`'s `two = 2` and `kind` were both
+  unnecessary once the failure path was written twice instead of as a jump
+  into the second `if`.
