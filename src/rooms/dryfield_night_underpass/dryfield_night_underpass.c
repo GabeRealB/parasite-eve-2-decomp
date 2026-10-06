@@ -45,8 +45,11 @@ extern TaskMessageEntry D_dryfield_night_underpass_8017DCF0[];
 extern SVECTOR          D_dryfield_night_underpass_8017DD20[8];
 extern s16              D_dryfield_night_underpass_8017DD60[8];
 
-s32 func_dryfield_night_underpass_8017D900(Task*, s32, s32, s32);
-s32 func_dryfield_night_underpass_8017D908(Task*, s32, s32, s32);
+enum { DRYFIELD_NIGHT_UNDERPASS_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32  _dryfieldNightUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unused);
+static s32  _dryfieldNightUnderpassIgnoreRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unused);
+static void _dryfieldNightUnderpassIdleTask(Task* unusedTask);
 
 extern WorldCollisionGrid     D_dryfield_night_underpass_8017E6D4[1];
 extern WorldCollisionOccluder D_dryfield_night_underpass_8017FBE0[3];
@@ -62,8 +65,8 @@ TaskDesc gUnderpassSwitchTaskDesc[2] = {
 
 TaskMessageEntry D_dryfield_night_underpass_8017DCF0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantUnderpassMsg },
-    { 5105, func_dryfield_night_underpass_8017D900 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_underpass_8017D908 },
+    { DRYFIELD_NIGHT_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldNightUnderpassRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightUnderpassIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },
     { ROOM_MESSAGE_SOUND, underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -690,7 +693,6 @@ WorldCollisionSurfaceProperties* D_dryfield_night_underpass_80180374[8] = {
 };
 
 static void func_dryfield_night_underpass_8017D910(Task* task);
-static void func_dryfield_night_underpass_8017D954(Task* task);
 
 #include "../../shared/underpass_switches_task.inc.c"
 
@@ -702,14 +704,20 @@ static void func_dryfield_night_underpass_8017D954(Task* task);
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-/// Handler for message 0x13F1: does nothing and returns 0.
-s32 func_dryfield_night_underpass_8017D900(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects every key-item use request in the nighttime underpass.
+///
+/// Ignores all arguments and returns zero, selecting the item menu's
+/// "no use now" response. No inventory or room state changes.
+static s32 _dryfieldNightUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unused)
 {
     return 0;
 }
 
-/// Handler for message 0x13EF: does nothing and returns 0.
-s32 func_dryfield_night_underpass_8017D908(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action trigger requests in the nighttime underpass.
+///
+/// The borrowed `DirectionActionRequest` is neither read nor retained.
+/// Returns zero; the direction dispatcher discards the result.
+static s32 _dryfieldNightUnderpassIgnoreRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
     return 0;
 }
@@ -723,15 +731,15 @@ static void func_dryfield_night_underpass_8017D910(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Second state of the room task: idles.
-static void func_dryfield_night_underpass_8017D954(Task* task)
+/// Keeps the initialized nighttime underpass room task alive and idle.
+static void _dryfieldNightUnderpassIdleTask(Task* unusedTask)
 {
 }
 
 /// State handlers of the room task `func_dryfield_night_underpass_8017D95C`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_underpass_8017D5C4 = {
-    { func_dryfield_night_underpass_8017D910, func_dryfield_night_underpass_8017D954, taskKill },
+    { func_dryfield_night_underpass_8017D910, _dryfieldNightUnderpassIdleTask, taskKill },
 };
 
 /// Room task: runs the state handler `D_dryfield_night_underpass_8017D5C4`
@@ -746,29 +754,28 @@ void func_dryfield_night_underpass_8017D95C(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Per-frame effect: draws the glow anchors the current visit lights, one per
-/// offset in `D_...DD20` whose `D_...DD60` bitmask contains the visit's bit
-/// (`gGameSession->location.loc.view`). The whole effect is skipped unless the room flag
-/// (`gameFlagGetNibble(0x53)`) is clear.
-void func_dryfield_night_underpass_8017DC3C(Task* unused)
+void dryfieldNightUnderpassDrawFlaresTask(Task* unusedTask)
 {
-    s32      mask;
-    s32      i;
-    SVECTOR* vec;
-    s16*     flags;
+    enum {
+        DRYFIELD_NIGHT_UNDERPASS_FLARE_TEXTURE_INDEX = 0,
+        DRYFIELD_NIGHT_UNDERPASS_FLARE_RADIUS_SCALE  = 640,
+    };
 
-    mask = 1 << gGameSession->location.loc.view;
+    s32            viewMask;
+    s32            flareIndex;
+    const SVECTOR* flarePosition;
+    const s16*     flareViewMasks;
+
+    viewMask = 1 << gGameSession->location.loc.view;
     if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
-        i     = 0;
-        vec   = D_dryfield_night_underpass_8017DD20;
-        flags = D_dryfield_night_underpass_8017DD60;
-        do {
-            if (mask & *flags) {
-                _glowDrawFlare(vec, 0, 0x280);
+        // Each position's mask uses the view ID directly as its bit index.
+        flareIndex     = 0;
+        flarePosition  = D_dryfield_night_underpass_8017DD20;
+        flareViewMasks = D_dryfield_night_underpass_8017DD60;
+        for (; flareIndex < (s32)ARRAY_SIZE(D_dryfield_night_underpass_8017DD20); flarePosition++, flareIndex++, flareViewMasks++) {
+            if (viewMask & *flareViewMasks) {
+                _glowDrawFlare(flarePosition, DRYFIELD_NIGHT_UNDERPASS_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_UNDERPASS_FLARE_RADIUS_SCALE);
             }
-            vec++;
-            i++;
-            flags++;
-        } while (i < 8);
+        }
     }
 }

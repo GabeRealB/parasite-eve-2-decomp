@@ -96768,7 +96768,7 @@ call, m2c's re-assignment through a temp is what keeps the two `high`s apart.
 Reach for the single-expression form even when the temp form looks equivalent -
 the register penalties it leaves are not a scheduling problem.
 
-## m2c hoists a guarded loop's counter init above the `if`, and the init's home is what fills the branch delay slot (func_dryfield_night_underpass_8017DC3C, 2026-09-16)
+## m2c hoists a guarded loop's counter init above the `if`, and the init's home is what fills the branch delay slot (dryfieldNightUnderpassDrawFlaresTask, 2026-09-16)
 
 A `do`/`while` loop wrapped in a guard comes out of m2c with the counter's
 zero-init *before* the guard, because m2c assigns it where it first renders the
@@ -98310,7 +98310,7 @@ is identical (96.263%, `regs=4 reorder=2 branch=2` against 100.000% all-zero for
 a one-statement difference).
 
 The direction is not the rule — the corpus entry for
-`func_dryfield_night_underpass_8017DC3C` is the same mechanism with the init
+`dryfieldNightUnderpassDrawFlaresTask` is the same mechanism with the init
 hoisted too *high* and needing to move down into its guard. What is general is
 that an `= 0` init's position is load-bearing and m2c's position for it came from
 the target's own schedule. Take from a matched sibling the control flow, the
