@@ -2033,10 +2033,12 @@ static void Actor01600_Fn01420(Task* arg0)
     switch (work->behavior) {
         case ACTOR_01600_BEHAVIOR_ROAM:
             Actor01600_Fn017BC(arg0);
-            goto tick;
+            Actor01600_Fn06744(arg0);
+            break;
         case ACTOR_01600_BEHAVIOR_ATTACK:
             Actor01600_Fn020F8(arg0);
-            goto tick;
+            Actor01600_Fn06744(arg0);
+            break;
         case ACTOR_01600_BEHAVIOR_STAGGER:
             Actor01600_Fn06F10(arg0);
             work->stateTimer = work->stateTimer + 1;
@@ -2056,7 +2058,9 @@ static void Actor01600_Fn01420(Task* arg0)
                 work->stateTimer        = 0;
                 work->sight.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            goto clear;
+            work->forwardSpeed = 0;
+            Actor01600_Fn06744(arg0);
+            break;
         case ACTOR_01600_BEHAVIOR_BUILDUP:
             Actor01600_Fn06F10(arg0);
             work->animRequest = 0x13;
@@ -2065,7 +2069,9 @@ static void Actor01600_Fn01420(Task* arg0)
                 work->animRequest       = 0x19;
                 work->sight.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            goto clear;
+            work->forwardSpeed = 0;
+            Actor01600_Fn06744(arg0);
+            break;
         case ACTOR_01600_BEHAVIOR_POSED:
             work->animRequest = 0x11;
             break;
@@ -2088,16 +2094,11 @@ static void Actor01600_Fn01420(Task* arg0)
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
                 work->animRequest = 0x16;
             }
-            goto clear;
+            work->forwardSpeed = 0;
+            Actor01600_Fn06744(arg0);
+            break;
     }
-    goto tail;
 
-clear:
-    work->forwardSpeed = 0;
-tick:
-    Actor01600_Fn06744(arg0);
-
-tail:
     state = work->animRequest;
     one   = 1;
     if (state == one || state == 0x16 || state == 0x15 || state == 0x10 ||
