@@ -661,10 +661,14 @@ void dryfieldNightParkingLotDrawGlowsTask(Task* task)
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"
 
-/// Initializes a grey capsule wedge with a lit centre and black rim.
+/// Prepares the GPU header and colours of one grey capsule-cap quad.
 ///
-/// Borrows one writable quad; vertex 2 receives the 0..255 intensity in all
-/// RGB channels. The caller supplies coordinates, sorting and additive blending.
+/// Borrows one writable `POLY_G4` through `wedge` for this call. Vertex 2 receives
+/// `centreIntensity` (0..255) in each RGB byte; vertices 0, 1 and 3 are black.
+/// The packet has eight payload words and an opaque, untextured Gouraud-quad
+/// command. Before submission, the caller fills all four screen positions,
+/// supplies the ordering-table link, enables semitransparency and queues the
+/// additive blend mode. Packet storage belongs to the caller's frame arena.
 static inline void _dryfieldNightParkingLotInitCapsuleWedge(POLY_G4* wedge, u8 centreIntensity)
 {
     setPolyG4(wedge);
