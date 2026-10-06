@@ -859,26 +859,27 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_5_80181230[8] = {
     D_dryfield_night_motel_room_5_80181210,
 };
 
-/// Night motel room 5 draw: queues one of the room's three glowing discs for
-/// the view the session byte `gGameSession->location.loc.view` names - views 3 and 8 the
-/// disc at `D_...DA58` with half-extent 0x200, 2 and 7 the one at `D_...DA60`
-/// with 0x240, 4 and 9 the one at `D_...DA68` with 0x200. Views outside the 2..9
-/// span draw nothing. `jump.c` cross-jumps the 3/8 call into the 4/9 one, whose
-/// `jal` the 2/7 call also redirects to.
-void func_dryfield_night_motel_room_5_8017D9A4(Task* unused)
+void dryfieldNightMotelRoom5DrawFlareTask(Task* unusedTask)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_ROOM_5_FLARE_TEXTURE_COLUMN     = 1,
+        DRYFIELD_NIGHT_MOTEL_ROOM_5_SMALL_FLARE_RADIUS_SCALE = 0x200,
+        DRYFIELD_NIGHT_MOTEL_ROOM_5_LARGE_FLARE_RADIUS_SCALE = 0x240,
+    };
+
+    // Pixel half-extent is radiusScale * 39 / (camera Z / 4).
     switch (gGameSession->location.loc.view) {
         case 3:
         case 8:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_5_8017DA58[0], 1, 0x200);
+            glowDrawFlareClipped(D_dryfield_night_motel_room_5_8017DA58, DRYFIELD_NIGHT_MOTEL_ROOM_5_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_MOTEL_ROOM_5_SMALL_FLARE_RADIUS_SCALE);
             break;
         case 2:
         case 7:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_5_8017DA60[0], 1, 0x240);
+            glowDrawFlareClipped(D_dryfield_night_motel_room_5_8017DA60, DRYFIELD_NIGHT_MOTEL_ROOM_5_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_MOTEL_ROOM_5_LARGE_FLARE_RADIUS_SCALE);
             break;
         case 4:
         case 9:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_5_8017DA68[0], 1, 0x200);
+            glowDrawFlareClipped(D_dryfield_night_motel_room_5_8017DA68, DRYFIELD_NIGHT_MOTEL_ROOM_5_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_MOTEL_ROOM_5_SMALL_FLARE_RADIUS_SCALE);
             break;
     }
 }

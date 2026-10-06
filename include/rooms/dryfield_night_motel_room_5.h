@@ -30,7 +30,15 @@ extern SpriteView D_dryfield_night_motel_room_5_80180994[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_5_80181230[];
 
-void func_dryfield_night_motel_room_5_8017D9A4(Task* unused);
+/// Draws the night motel room 5 light flare selected by the logical camera view.
+///
+/// Effect-bank 6 callback for slot 0x118. Views 3/8, 2/7 and 4/9 select
+/// separate world points; every other view draws nothing. The task is unused.
+/// Requires the room overlay and flare texture to remain loaded, a composed
+/// view matrix, scratch space and a current GPU packet arena and ordering table.
+/// One selected flare reserves one packet even when rejected by near clipping;
+/// queued geometry borrows the frame arena until GPU completion.
+void dryfieldNightMotelRoom5DrawFlareTask(Task* unusedTask);
 
 void func_dryfield_night_motel_room_5_8017D6D0(Task* task);
 

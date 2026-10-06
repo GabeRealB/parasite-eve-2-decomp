@@ -4856,9 +4856,9 @@ So the data's declaration and the variable/merge structure are both irrelevant
 here - only the pre-shared single call reproduces `lui $v0`. Do not chase the
 declaration; write the second call and let `jump.c` cross-jump the tails.
 
-`func_dryfield_night_motel_room_5_8017D9A4` is the three-arm instance of the
+`dryfieldNightMotelRoom5DrawFlareTask` is the three-arm instance of the
 same rule, and it shows how the *case order* follows from the merge. Its arms
-are 3/8 and 4/9 (both `Room_Draw20(&p, 1, 0x200)`) and 2/7 (`&p, 1, 0x240`), and
+are 3/8 and 4/9 (both `glowDrawFlareClipped(&p, 1, 0x200)`) and 2/7 (`&p, 1, 0x240`), and
 the ROM lays them out 3/8, 2/7, 4/9 - neither numeric order nor table order.
 Cross-jumping keeps the *later* arm's tail, so the surviving copy is what fixes
 the layout: writing the `case` list in the ROM's body order (3, 8, 2, 7, 4, 9)

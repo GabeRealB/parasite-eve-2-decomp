@@ -61,6 +61,6 @@ D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700
 D_map_dryfield_full_8017C968 = 0x8017C968; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017C9C8 = 0x8017C9C8; // absolute:True owner=map_dryfield_full
 
-func_dryfield_night_motel_room_5_8017D9A4 = 0x8017D9A4; // type:func
+dryfieldNightMotelRoom5DrawFlareTask = 0x8017D9A4; // type:func
 glowDrawFlareClipped = 0x8017D728; // type:func
 roomVariantMotelBalconyMsg = 0x8017D5F8; // type:func
