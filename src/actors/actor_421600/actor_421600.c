@@ -2590,7 +2590,6 @@ static void func_actor_421600_80136138(Task* arg0)
     s16               playerZone, zone;
     s16               nextZone;
     s16               angle;
-    s32               wrapped;
 
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
@@ -2688,9 +2687,8 @@ static void func_actor_421600_80136138(Task* arg0)
     coord2              = arg0->extra.tmd->coords;
     angle               = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     angle               = actorWrapAngle(angle);
-    wrapped             = angle;
-    turn->angle         = wrapped;
-    work->lookYawTarget = wrapped;
+    turn->angle         = angle;
+    work->lookYawTarget = angle;
     if (turn->angle >= 0x21)
         turn->angle = 0x20;
     if (turn->angle < -0x20)
