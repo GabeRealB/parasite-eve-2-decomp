@@ -56,6 +56,20 @@ enum {
     ACTOR_342100_BLAZE_SCENE_RUNNING = 1, // Event script playing; the scene ends when the session's event state clears
 };
 
+/// Weapon-bank selectors computed from the saved character and equipped weapon.
+enum {
+    ACTOR_342100_BLAZE_PRIMARY_CHARACTER      = 1,
+    ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET    = 1,
+    ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET = 0x22,
+};
+
+/// Fade phases selected by this package's burn script.
+enum {
+    ACTOR_342100_BLAZE_FADE_FAST_RED = 2,
+    ACTOR_342100_BLAZE_FADE_SLOW_RED = 3,
+    ACTOR_342100_BLAZE_FADE_TO_WHITE = 4,
+};
+
 /// Work block of the package's blaze controller, the task that burns the
 /// player once the dumping hole's scene clock has run out with the player
 /// still alive.
@@ -85,23 +99,37 @@ extern Task* D_actor_342100_80164BB8;
 /// Single-entry spawn table `func_actor_342100_80163454` starts as entry 3.
 extern TaskDesc D_actor_342100_80164B78[];
 
-s32 func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Records a burn clip and sends its synchronous, collision-disabled play request.
+///
+/// `workValue` is a live controller work pointer; `requestValue` is a writable
+/// local AnimationPlayRequest. Arguments must be stable and side-effect-free: `workValue`
+/// and `animationIdValue` are evaluated twice, and `requestValue` six times.
+/// The receiver borrows the request only until dispatch returns. This compound
+/// statement captures no caller identifiers and produces no result.
+#define ACTOR_342100_SEND_BLAZE_ANIMATION(workValue, requestValue, animationIdValue, bankIndexValue, blendFramesValue) \
+    {                                                                                                                  \
+        (requestValue).source.index         = (bankIndexValue);                                                        \
+        (workValue)->animationId            = (animationIdValue);                                                      \
+        (requestValue).animationId          = (animationIdValue);                                                      \
+        (requestValue).blend                = ANIMATION_BLEND_INTERPOLATE;                                             \
+        (requestValue).blendFrames          = (blendFramesValue);                                                      \
+        (requestValue).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                       \
+        TASK_MESSAGE_DISPATCH_POINTER((workValue)->playerTask, ANIMATION_MESSAGE_PLAY, &(requestValue), 0);            \
+    }
 
-void func_actor_342100_8016334C(s32 arg0);
+static s32 _actor342100HandleBlazeFadeState(Task* receiver, s32 unusedMessageId, s32 fadeState, s32 unusedSecondArg);
 
-void func_actor_342100_801633D0(s32 arg0);
+static void _actor342100PlayBlazeAnimation(s32 clipIndex);
+
+static void _actor342100SetBlazeFadeState(s32 fadeState);
 
 void func_actor_342100_80163408(void);
 
 void func_actor_342100_80163454(s32 arg0);
 
-void func_actor_342100_80163518(void);
+static void _actor342100TriggerBlazeDeath(void);
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
-
-/// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the base
-/// weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the alternate
-/// set -- 1 means the second block, anything else the `+0x22` one.
 
 /// Single-entry spawn table of the screen-wave task
 /// `screenWaveGridTask`: `func_actor_342100_80163408` starts entry 0
@@ -113,7 +141,7 @@ extern TaskDesc D_actor_342100_801648DC[];
 /// three live entries and the null word that ends them.
 extern AnimationSet* D_actor_342100_80164900[4];
 
-/// Animation step table `func_actor_342100_801629B8` walks: `s16` entries
+/// Animation step table `_actor342100AdvanceBlazeAnimation` walks: `s16` entries
 /// holding the clip one step on from the work block's `animationId`, both less
 /// `ANIMATION_BANK_BASE_SET_COUNT`; the first three entries are `-1`, which ends
 /// the chain, and only the fourth is live. Sits directly after
@@ -252,7 +280,7 @@ TaskDesc D_actor_342100_801648DC[2] = {
 s32 gScreenWaveRamp = 256;
 
 TaskMessageEntry gBlazeFadeMessages[1] = {
-    { BLAZE_FADE_MESSAGE_SET_STATE, func_actor_342100_80163344 },
+    { BLAZE_FADE_MESSAGE_SET_STATE, _actor342100HandleBlazeFadeState },
 };
 
 AnimationSet* D_actor_342100_80164900[4] = {
@@ -323,23 +351,23 @@ u16 gBlazePlayerParts[16] = {
 };
 
 EvsCommand D_actor_342100_801649C8[18] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_8016334C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_80163454 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_801633D0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeFadeState }, { .value = ACTOR_342100_BLAZE_FADE_FAST_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_8016334C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80162C88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80163408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_8016334C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_80163454 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_801633D0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeFadeState }, { .value = ACTOR_342100_BLAZE_FADE_SLOW_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_801633D0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeFadeState }, { .value = ACTOR_342100_BLAZE_FADE_TO_WHITE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80163518 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342100TriggerBlazeDeath }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -362,48 +390,46 @@ ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
 
 POLY_FT4 gScreenWaveGrid[2][30][8] = { 0 };
 
-static s32 func_actor_342100_801629B8(Task* arg0);
 static s32 func_actor_342100_80162F54(Task* arg0);
 
 #include "../../shared/screen_wave_grid.inc.c"
 
 #include "../../shared/incinerator_blaze_fade.inc.c"
 
-/// Advance the encounter's animation one step: the work block's `playerTask` is
-/// queried with 0x3ED and a non-zero answer stops the chain with 0; `animationId`
-/// is range-checked against `ANIMATION_BANK_BASE_SET_COUNT` (the first bank index
-/// the table can name) and the table's entry shifted up by that base, a negative
-/// entry ending it with 1 as well.
-/// The step that survives re-sends `AnimationPlayRequest {setId, anim, ANIMATION_BLEND_INTERPOLATE, 0xA, ANIMATION_WORLD_COLLISION_DISABLE}` as
-/// message 0x3E8 -- `func_actor_342100_8016334C`'s tail with `field_C` = 0xA --
-/// to the same target, and reports 1.
-static s32 func_actor_342100_801629B8(Task* arg0)
+/// Starts a burn clip's successor once the player's animation has settled.
+///
+/// The controller and any non-NULL player task must remain live. An extension
+/// animation ID must index `D_actor_342100_80164910` after subtracting
+/// `ANIMATION_BANK_BASE_SET_COUNT`; a negative entry has no successor. The
+/// script supplies clips 0..2, whose entries all terminate. Successors blend
+/// over ten frames with world collision disabled; their clip data stays loaded.
+/// Returns 0 while the player is still animating, otherwise 1, including when
+/// a successor was just requested or no player task is recorded. As with
+/// `_actor342100PlayBlazeAnimation`, bank selection for other character IDs
+/// has an unproven valid index domain.
+static s32 _actor342100AdvanceBlazeAnimation(Task* controller)
 {
+    enum { ACTOR_342100_BLAZE_CHAIN_BLEND_FRAMES = 10 };
     _Actor342100BlazeWork* work;
-    _Actor342100BlazeWork* msgWork;
-    AnimationPlayRequest   msg;
-    s16                    anim;
+    _Actor342100BlazeWork* dispatchWork;
+    AnimationPlayRequest   request;
+    s16                    animationId;
     s32                    weaponId;
-    s32                    setId;
+    s32                    bankIndex;
 
-    work = arg0->work;
+    work = controller->work;
     if (work->playerTask == NULL) {
         return 1;
     }
+    // A clip's boundary pose must settle before requesting its successor.
     if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         if (work->animationId >= ANIMATION_BANK_BASE_SET_COUNT) {
             if (D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] >= 0) {
-                anim                     = D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
-                msgWork                  = arg0->work;
-                weaponId                 = gPlayerStatus.weapon;
-                setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                msg.source.index         = setId;
-                msgWork->animationId     = anim;
-                msg.animationId          = anim;
-                msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-                msg.blendFrames          = 0xA;
-                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
+                animationId  = D_actor_342100_80164910[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
+                dispatchWork = controller->work;
+                weaponId     = gPlayerStatus.weapon;
+                bankIndex    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342100_BLAZE_PRIMARY_CHARACTER) ? weaponId + ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET : weaponId + ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET;
+                ACTOR_342100_SEND_BLAZE_ANIMATION(dispatchWork, request, animationId, bankIndex, ACTOR_342100_BLAZE_CHAIN_BLEND_FRAMES);
             }
         }
         return 1;
@@ -503,7 +529,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 ///
 /// Referenced from the `0x0D` entry of the command table in
 /// `D_actor_342100_801649C8` (+0x90), next to the same-shaped entries naming
-/// `func_actor_342100_8016334C` / `func_actor_342100_801633D0` /
+/// `_actor342100PlayBlazeAnimation` / `_actor342100SetBlazeFadeState` /
 /// `func_actor_342100_80163408` / `func_actor_342100_80163454`. That entry
 /// passes it no arguments, which is why the declaration is `(void)`.
 void func_actor_342100_80162C88(void)
@@ -591,7 +617,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             }
             return 1;
     }
-    func_actor_342100_801629B8(arg0);
+    _actor342100AdvanceBlazeAnimation(arg0);
     return 0;
 }
 
@@ -684,44 +710,53 @@ void func_actor_342100_801630A4(Task* arg0)
     }
 }
 
-s32 func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Applies the first integer payload of `BLAZE_FADE_MESSAGE_SET_STATE`.
+///
+/// The receiver is the live fade task. Stores the complete signed state word;
+/// the message ID and second payload are ignored. The result is unspecified
+/// and must be discarded, as it is by the burn script's sender.
+static s32 _actor342100HandleBlazeFadeState(Task* receiver, s32 unusedMessageId, s32 fadeState, s32 unusedSecondArg)
 {
-    arg0->state = arg2;
+    receiver->state = fadeState;
     // Senders discard the result; this callback leaves the return word unspecified.
 }
 
-/// Point the overlay's slot-3 task at the animation set
-/// `arg0 + ANIMATION_BANK_BASE_SET_COUNT` and hand the work block's
-/// `animationId` the same value, then install the set with
-/// message 0x3E8. The set's block is `gPlayerStatus.weapon + 1` under the alternate
-/// weapon configuration and `gPlayerStatus.weapon + 0x22` otherwise; its `field_4` is the
-/// same halfword the block keeps, `field_8` is 1 and `field_C` 0xF.
-void func_actor_342100_8016334C(s32 arg0)
+/// Plays one of the burn script's three extension clips on the player.
+///
+/// `clipIndex` is 0..2 in the script, relative to
+/// `ANIMATION_BANK_BASE_SET_COUNT`. The resulting animation ID is narrowed to s16
+/// before both recording it and sending the request. The controller, player,
+/// selected weapon bank and copied clip data must remain live. Playback uses a
+/// fifteen-frame blend and disables world collision. The preserved bank-selector
+/// branch for other character IDs has an unproven valid index domain.
+static void _actor342100PlayBlazeAnimation(s32 clipIndex)
 {
+    enum { ACTOR_342100_BLAZE_SCRIPT_BLEND_FRAMES = 15 };
     _Actor342100BlazeWork* work;
-    AnimationPlayRequest   msg;
-    s16                    anim;
+    AnimationPlayRequest   request;
+    s16                    animationId;
     s32                    weaponId;
-    s32                    setId;
+    s32                    bankIndex;
 
-    work                     = D_actor_342100_80164BB8->work;
-    anim                     = arg0 + ANIMATION_BANK_BASE_SET_COUNT;
-    weaponId                 = gPlayerStatus.weapon;
-    setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    msg.source.index         = setId;
-    work->animationId        = anim;
-    msg.animationId          = anim;
-    msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-    msg.blendFrames          = 0xF;
-    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
+    work        = D_actor_342100_80164BB8->work;
+    animationId = clipIndex + ANIMATION_BANK_BASE_SET_COUNT;
+    weaponId    = gPlayerStatus.weapon;
+    bankIndex   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342100_BLAZE_PRIMARY_CHARACTER) ? weaponId + ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET : weaponId + ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET;
+    ACTOR_342100_SEND_BLAZE_ANIMATION(work, request, animationId, bankIndex, ACTOR_342100_BLAZE_SCRIPT_BLEND_FRAMES);
 }
 
-void func_actor_342100_801633D0(s32 arg0)
+#undef ACTOR_342100_SEND_BLAZE_ANIMATION
+
+/// Selects the active burn fade's next colour ramp from the event script.
+///
+/// The published controller and its initialized fade task must remain live.
+/// The script selects fast red, slow red, then white; the signed state word is
+/// forwarded unchanged, with no bounds check and no result consumed.
+static void _actor342100SetBlazeFadeState(s32 fadeState)
 {
     _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
 
-    taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, arg0, 0);
+    taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, fadeState, 0);
 }
 
 /// Seed the spawn entry's two parameters and start the task that consumes
@@ -761,7 +796,12 @@ void func_actor_342100_80163454(s32 arg0)
     work->bodyFireTask->spawnArg1.value = 1;
 }
 
-void func_actor_342100_80163518(void)
+/// Triggers player death while preserving the burn scene's display.
+///
+/// The script runs this immediately before its end command clears event state,
+/// allowing the normal death monitor to accept zero HP. The preserve-display
+/// restart path skips the ordinary death image and framebuffer clear.
+static void _actor342100TriggerBlazeDeath(void)
 {
     gPlayerStatus.hp          = 0;
     gGameSession->restartMode = GAME_SESSION_RESTART_PRESERVE_DISPLAY;

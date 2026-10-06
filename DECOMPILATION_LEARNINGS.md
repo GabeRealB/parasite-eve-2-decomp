@@ -46832,10 +46832,10 @@ through:
 
 ```c
 weaponId = D_80073BA9;
-setId    = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;   /* 100% */
+bankIndex = (D_8007218A == 1) ? weaponId + 1 : weaponId + 0x22;   /* 100% */
 ```
 
-`func_actor_342100_8016334C` (actors/actor_342100): `base = D_80073BA9;
+`_actor342100PlayBlazeAnimation` (actors/actor_342100): `base = D_80073BA9;
 base = (D_8007218A == 1) ? base + 1 : base + 0x22;` scored 70.543% with
 `branch=1 insert=6 delete=4` and `blocks=3/4`, `calls_match=False`; splitting the
 variable was the only change to reach 100.000%, all penalties zero.
@@ -84839,7 +84839,7 @@ Open `base.score.json` before the first `./build.sh`: at 100.000% with zero
 penalties, re-score once to confirm and go straight to retyping the body into
 the project's own structs.
 
-`func_actor_342100_801633D0` was that shape. The seed's
+`_actor342100SetBlazeFadeState` was that shape. The seed's
 `M2C_FIELD(M2C_FIELD(D_actor_342100_80164BB8, void **, 0x1C), s32 *, 0x34)`
 compiled to the exact target bytes, and the only real work was `Task::work`
 plus the work block's `fadeTask` — which is a `Task*`, since that load feeds
@@ -128291,7 +128291,7 @@ Inputs: `base.i`
 `7a0284f65936d8b53432a91e92bd19dba70dcb5941e13c5f7fca50e0d6d08a92` (match,
 100.000% on the first build).
 
-## Several identical `return <const>;` blocks are merged by the *last* `jump_optimize` call; a `goto` on the last of them plus a `COMPILER_BARRIER()` after its label is what keeps the target's shape (func_actor_342100_801629B8, 2026-09-17)
+## Several identical `return <const>;` blocks are merged by the *last* `jump_optimize` call; a `goto` on the last of them plus a `COMPILER_BARRIER()` after its label is what keeps the target's shape (_actor342100AdvanceBlazeAnimation, 2026-09-17)
 
 **Correction (2026-09-27): the barrier is unnecessary when every completed
 path uses the same return block.** Keep the first `ret1: return 1;`, and use
@@ -128311,7 +128311,7 @@ The original barrier-based explanation below is retained as history.
 A function whose early exits all `return 1;` compiles each one to
 `[v0=1][USE v0][j return_label][barrier][return_label]` (the `USE` is
 `expand_value_return`'s, stmt.c). The target of
-`func_actor_342100_801629B8` keeps the *first* such block where its `if` put it,
+`_actor342100AdvanceBlazeAnimation` keeps the *first* such block where its `if` put it,
 with the last table check's `bltz` branching *back* to it, and the first branch
 staying a `bnez` over it; a plain guard-return chain instead merges every
 `return 1` into one block at the end and inverts the first branch to a `beqz`
@@ -149674,7 +149674,7 @@ attempts; left as it was.
   (plain returns; the clip step as a `void` inline between the guards and a
   final `return 1`) is cross-jumped with the final one, the first branch is
   inverted to `beqz a0,<final>` and the function is 2 insns shorter. The same
-  body is `func_actor_342100_801629B8` and the one in `actor_136100.c`.
+  body is `_actor342100AdvanceBlazeAnimation` and the one in `actor_136100.c`.
 - Not converted beyond one `goto move`: `func_m4a1_grenade_8011D994`
   (`grenadeShellFly` has the same body). The detonation block as an inline
   called at its four sites does not merge back: with four copies cse gives the
@@ -150227,7 +150227,7 @@ attempts; left as it was.
 ## Goto removal, batch 22: the `ret1:` chain, the companion's drive states, a stop tail (2026-10-06)
 
 - **`if (!p) { ret1: return 1; } if (busy) return 0; if (a) goto ret1; if (b)
-  goto ret1; ...send...; goto ret1;`** (`func_actor_342100_801629B8`,
+  goto ret1; ...send...; goto ret1;`** (`_actor342100AdvanceBlazeAnimation`,
   `func_actor_136100_80131EC4`; the 2026-09-17 / 09-27 entries for the first
   kept the gotos) is positive nesting with `return 0` *last*:
   `if (!p) return 1; if (!busy) { if (a') { if (b') { send } } return 1; }

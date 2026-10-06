@@ -40,3 +40,8 @@ D_shelter_b3_dumping_hole_8018B57C = 0x8018B57C; // absolute:True owner=shelter_
 screenWaveGridTask = 0x80161E70; // type:func
 blazeFadeTask = 0x80162748; // type:func
 blazeBodyFireTask = 0x80162DDC; // type:func
+_actor342100AdvanceBlazeAnimation = 0x801629b8; // type:func
+_actor342100HandleBlazeFadeState = 0x80163344; // type:func
+_actor342100PlayBlazeAnimation = 0x8016334c; // type:func
+_actor342100SetBlazeFadeState = 0x801633d0; // type:func
+_actor342100TriggerBlazeDeath = 0x80163518; // type:func
