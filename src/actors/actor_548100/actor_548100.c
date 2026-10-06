@@ -990,8 +990,6 @@ static void func_actor_548100_80132684(Task* task)
 {
     _Actor548100Work* work = task->work;
     s32               kind;
-    s32               state;
-    s32               cmd;
 
     D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
     D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
@@ -1003,10 +1001,8 @@ static void func_actor_548100_80132684(Task* task)
             case 4:
                 if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
                     Gp_StartCapSlot(6, 0, 0);
-                    state = 2;
                 } else if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
                     Gp_StartCapSlot(6, 1, 3);
-                    state = 2;
                 } else {
                     if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 1) {
                         work->pickupObject = 4;
@@ -1017,41 +1013,33 @@ static void func_actor_548100_80132684(Task* task)
                     }
                     Gp_SetCurBit2Flag(work->pickupObject, 1);
                     Gp_StartCapSlot(6, 0, kind);
-                    state = 7;
+                    task->state = 7;
+                    return;
                 }
                 break;
             case 5:
                 Gp_RunCapCmd(5, 0);
-                state = 8;
-                break;
+                task->state = 8;
+                return;
             case 6:
-                cmd = 4;
-                goto run;
-            case 7:
-                cmd = 7;
-                goto run;
-            case 8:
-                cmd = 9;
-                goto run;
-            case 9:
-                cmd = 8;
-            run:
-                Gp_RunCapCmd(cmd, 0);
-                state = 2;
+                Gp_RunCapCmd(4, 0);
                 break;
-            default:
-                goto def;
+            case 7:
+                Gp_RunCapCmd(7, 0);
+                break;
+            case 8:
+                Gp_RunCapCmd(9, 0);
+                break;
+            case 9:
+                Gp_RunCapCmd(8, 0);
+                break;
         }
+        task->state = 2;
+    } else if (work->usedItem != 0) {
+        task->state = 6;
     } else {
-        state = work->usedItem;
-        if (state != 0) {
-            state = 6;
-        } else {
-        def:
-            state = 2;
-        }
+        task->state = 2;
     }
-    task->state = state;
 }
 
 /// Player pressed the action button on this actor's map marker with the marker
