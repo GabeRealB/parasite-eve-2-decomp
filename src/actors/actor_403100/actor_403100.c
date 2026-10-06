@@ -3963,7 +3963,6 @@ static void func_actor_403100_8013335C(Task* arg0)
     s32 i;
     u16 hp;
     u32 tickDamage;
-    u32 kind;
     s32 expired;
 
     effectKind                        = 0;
@@ -3995,17 +3994,14 @@ static void func_actor_403100_8013335C(Task* arg0)
                 }
                 func_800E2C78(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, scaledDamage, 0);
                 func_800DA6E8(&D_actor_403100_8015580C->node, scaledDamage, 0);
-                do {
-                    hp                          = (u16)D_actor_403100_8015580C->hp - scaledDamage;
-                    D_actor_403100_8015580C->hp = hp;
-                    if ((s16)hp < 0) {
-                        D_actor_403100_8015580C->hp = 0U;
-                    }
-                    func_800FDB18(Gp_GetIdParam1(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
-                    D_actor_403100_80155808->hitReaction = 1;
-                    kind                                 = Gp_GetIdParam0(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF;
-                } while (0);
-                switch (kind) {
+                hp                          = (u16)D_actor_403100_8015580C->hp - scaledDamage;
+                D_actor_403100_8015580C->hp = hp;
+                if ((s16)hp < 0) {
+                    D_actor_403100_8015580C->hp = 0U;
+                }
+                func_800FDB18(Gp_GetIdParam1(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
+                D_actor_403100_80155808->hitReaction = 1;
+                switch (Gp_GetIdParam0(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF) {
                     case 0:
                         break;
                     case 1:
