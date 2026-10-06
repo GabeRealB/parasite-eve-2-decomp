@@ -2586,7 +2586,6 @@ static void func_actor_421600_80136138(Task* arg0)
     ActorTurnScratch *head, *turn;
     Enemy*            ctx;
     TmdObject*        obj;
-    GfxCoord *        coord3, *coord4;
     s16               playerZone, zone;
     s16               nextZone;
     s16               angle;
@@ -2692,12 +2691,10 @@ static void func_actor_421600_80136138(Task* arg0)
     if (turn->angle < -0x20)
         turn->angle = -0x20;
     work->waistYawTarget = turn->angle;
-    coord3               = arg0->extra.tmd->coords;
-    turn->angle          = turn->angle + ratan2(-coord3->coord.m[2][0], coord3->coord.m[2][2]);
+    turn->angle          = turn->angle + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (work->blendActive == 0) {
-        coord4 = arg0->extra.tmd->coords;
-        actorMoveForward(coord4, 0x14);
+        actorMoveForward(arg0->extra.tmd->coords, 0x14);
     }
     ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &turn->delta);
     func_actor_421600_80133334(arg0->extra.tmd->coords);
