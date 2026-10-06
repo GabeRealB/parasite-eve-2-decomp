@@ -1253,7 +1253,6 @@ static void func_actor_403600_8013A444(Task* arg0)
     u16                   temp_v0_34;
     u16                   temp_v0_35;
     u16                   temp_v0_9;
-    u16                   var_v0_6;
     u32                   temp_v0;
     u32                   temp_v0_12;
     u32                   temp_v0_13;
@@ -1575,7 +1574,6 @@ static void func_actor_403600_8013A444(Task* arg0)
                     work->verticalSpeed = 0;
                     if (work->phaseFrame >= 0xA) {
                         work->aimMode = ACTOR_403600_AIM_PLAYER_LEVEL;
-                    block_172:
                         func_actor_403600_8013DFE0(arg0);
                     }
                     if (work->phaseFrame >= 0x26) {
@@ -1654,9 +1652,8 @@ static void func_actor_403600_8013A444(Task* arg0)
                         var_s0              = &work->worldCoord;
                         var_a0              = var_s0;
                         temp_s4             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54160004;
-                    block_134:
-                        temp_s0_12 = (s8)worldCoordGetOriginAudioPan(var_a0);
-                        temp_v0_13 = worldCoordGetOriginAudioDepth(var_s0);
+                        temp_s0_12          = (s8)worldCoordGetOriginAudioPan(var_a0);
+                        temp_v0_13          = worldCoordGetOriginAudioDepth(var_s0);
                         sndEvtRequestScriptStart(temp_s4, temp_s0_12, (s32)(((temp_v0_13 >> 0x1F) + temp_v0_13) << 0x17) >> 0x18);
                         return;
                     }
@@ -1710,10 +1707,8 @@ static void func_actor_403600_8013A444(Task* arg0)
                     }
                     if (work->phaseFrame >= work->actionParam) {
                         sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                        var_v0_6 = 7;
-                    block_189:
                         work->phaseFrame = 0;
-                        work->animId     = var_v0_6;
+                        work->animId     = 7;
                         return;
                     }
                     break;
