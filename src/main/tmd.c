@@ -476,150 +476,143 @@ void tmdBuildBufferHalf(TmdObject* model)
     workspace->texturePageOffset = model->texturePageOffset;
     // Scale the byte representation, then sign-extend it to an encoded CLUT displacement.
     workspace->encodedClutOffset = (s32)((u32)(u8)model->clutRowOffset << 24) >> (24 - TMD_ENCODED_CLUT_ROW_SHIFT);
-    goto readOpcode;
 
     for (;;) {
-        switch (opcode) {
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
-                handler = tmdBuildStreamGt3LayeredBase;
-                if (useOffsetLayer != 0) {
-                    handler = tmdBuildStreamGt3OffsetLayer;
-                }
-                break;
-            case TMD_STREAM_GT3_CORNER_NORMALS:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT1:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT3:
-                handler = tmdBuildStreamGt3;
-                break;
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
-                handler = tmdBuildStreamGt4LayeredBase;
-                if (useOffsetLayer != 0) {
-                    handler = tmdBuildStreamGt4OffsetLayer;
-                }
-                break;
-            case TMD_STREAM_GT4_CORNER_NORMALS:
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS:
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT1:
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT3:
-                handler = tmdBuildStreamGt4;
-                break;
-            case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
-            case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM | TMD_STREAM_CORNER_COLORS:
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_ACTOR_DRAW_VARIANT1:
-                handler = tmdBuildStreamGt3PreXform;
-                break;
-            case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM:
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
-            case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM | TMD_STREAM_CORNER_COLORS:
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_ACTOR_DRAW_VARIANT1:
-                handler = tmdBuildStreamGt4PreXform;
-                break;
-            case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_LAYERED_TEXTURE:
-                handler = tmdBuildStreamGt3PreXformEnvLayer;
-                if (useOffsetLayer != 0) {
-                    handler = tmdBuildStreamGt3PreXformOffsetLayer;
-                }
-                break;
-            case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_LAYERED_TEXTURE:
-                handler = tmdBuildStreamGt4PreXformEnvLayer;
-                if (useOffsetLayer != 0) {
-                    handler = tmdBuildStreamGt4PreXformOffsetLayer;
-                }
-                break;
-            case TMD_STREAM_GT3_ONE_NORMAL:
-            case TMD_STREAM_GT3_ONE_NORMAL | TMD_STREAM_SEMI_TRANS:
-                handler = tmdBuildStreamGt3OneNormal;
-                break;
-            case TMD_STREAM_GT4_ONE_NORMAL:
-            case TMD_STREAM_GT4_ONE_NORMAL | TMD_STREAM_SEMI_TRANS:
-                handler = tmdBuildStreamGt4OneNormal;
-                break;
-            case TMD_STREAM_FT3:
-            case TMD_STREAM_FT3 | TMD_STREAM_SEMI_TRANS:
-                handler = modelLightingStreamPrimFt3;
-                break;
-            case TMD_STREAM_FT4:
-            case TMD_STREAM_FT4 | TMD_STREAM_SEMI_TRANS:
-                handler = modelLightingStreamPrimFt4;
-                break;
-            case TMD_STREAM_GT3_ELEMENT_COLOR:
-                handler = tmdBuildStreamGt3ElemColor;
-                break;
-            case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_CORNER_COLORS:
-                handler = tmdBuildStreamGt3CornerColors;
-                break;
-            case TMD_STREAM_GT4_ELEMENT_COLOR:
-                handler = tmdBuildStreamGt4ElemColor;
-                break;
-            case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_CORNER_COLORS:
-                handler = tmdBuildStreamGt4CornerColors;
-                break;
-            case TMD_STREAM_GT4_UNLIT:
-                handler = tmdBuildStreamGt4Unlit;
-                break;
-            case TMD_STREAM_F3:
-                handler = modelLightingStreamPrimF3;
-                break;
-            case TMD_STREAM_F4:
-                handler = modelLightingStreamPrimF4;
-                break;
-            case TMD_STREAM_F3 | TMD_STREAM_PRE_XFORM:
-                handler = modelLightingStreamPrimF3PreXform;
-                break;
-            case TMD_STREAM_F4 | TMD_STREAM_PRE_XFORM:
-                handler = modelLightingStreamPrimF4PreXform;
-                break;
-            case TMD_STREAM_G4_ONE_NORMAL:
-            case TMD_STREAM_G4_CORNER_NORMALS:
-            case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS:
-            case TMD_STREAM_G4_ONE_NORMAL | TMD_STREAM_LAYERED_TEXTURE:
-            case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
-            case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS | TMD_STREAM_LAYERED_TEXTURE:
-                handler = modelLightingReserveStreamPrimG4;
-                break;
-            default:
-                handler = tmdSkipStreamRecord;
-                break;
-            case TMD_STREAM_G3_ONE_NORMAL:
-            case TMD_STREAM_G3_CORNER_NORMALS:
-            case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS:
-            case TMD_STREAM_G3_ONE_NORMAL | TMD_STREAM_LAYERED_TEXTURE:
-            case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
-            case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS | TMD_STREAM_LAYERED_TEXTURE:
-                handler = modelLightingReserveStreamPrimG3;
-                break;
+        // Terminator at entry, or after a group marker. Leave the word in place.
+        opcode = *stream;
+        if (opcode == TMD_STREAM_END) {
+            break;
         }
-
-        // Ignore the resolved draw slot and decode little-endian count/word stride.
-        workspace->opcode     = *stream;
-        stream               += 2;
-        workspace->elemStride = ((u16*)stream)[0];
-        workspace->elemCount  = ((u16*)stream)[1];
-        stream               += 1;
-        stream                = handler(workspace, 0, stream);
-        opcode                = *stream;
-
-        while (1) {
-            if (opcode != TMD_STREAM_GROUP_END) {
-                break;
+        while (opcode != TMD_STREAM_GROUP_END) {
+            switch (opcode) {
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
+                    handler = tmdBuildStreamGt3LayeredBase;
+                    if (useOffsetLayer != 0) {
+                        handler = tmdBuildStreamGt3OffsetLayer;
+                    }
+                    break;
+                case TMD_STREAM_GT3_CORNER_NORMALS:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT1:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT3:
+                    handler = tmdBuildStreamGt3;
+                    break;
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
+                    handler = tmdBuildStreamGt4LayeredBase;
+                    if (useOffsetLayer != 0) {
+                        handler = tmdBuildStreamGt4OffsetLayer;
+                    }
+                    break;
+                case TMD_STREAM_GT4_CORNER_NORMALS:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT1:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT2:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_ACTOR_DRAW_VARIANT3:
+                    handler = tmdBuildStreamGt4;
+                    break;
+                case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
+                case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM | TMD_STREAM_CORNER_COLORS:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_ACTOR_DRAW_VARIANT1:
+                    handler = tmdBuildStreamGt3PreXform;
+                    break;
+                case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
+                case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_PRE_XFORM | TMD_STREAM_CORNER_COLORS:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_ACTOR_DRAW_VARIANT1:
+                    handler = tmdBuildStreamGt4PreXform;
+                    break;
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_LAYERED_TEXTURE:
+                    handler = tmdBuildStreamGt3PreXformEnvLayer;
+                    if (useOffsetLayer != 0) {
+                        handler = tmdBuildStreamGt3PreXformOffsetLayer;
+                    }
+                    break;
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_LAYERED_TEXTURE:
+                    handler = tmdBuildStreamGt4PreXformEnvLayer;
+                    if (useOffsetLayer != 0) {
+                        handler = tmdBuildStreamGt4PreXformOffsetLayer;
+                    }
+                    break;
+                case TMD_STREAM_GT3_ONE_NORMAL:
+                case TMD_STREAM_GT3_ONE_NORMAL | TMD_STREAM_SEMI_TRANS:
+                    handler = tmdBuildStreamGt3OneNormal;
+                    break;
+                case TMD_STREAM_GT4_ONE_NORMAL:
+                case TMD_STREAM_GT4_ONE_NORMAL | TMD_STREAM_SEMI_TRANS:
+                    handler = tmdBuildStreamGt4OneNormal;
+                    break;
+                case TMD_STREAM_FT3:
+                case TMD_STREAM_FT3 | TMD_STREAM_SEMI_TRANS:
+                    handler = modelLightingStreamPrimFt3;
+                    break;
+                case TMD_STREAM_FT4:
+                case TMD_STREAM_FT4 | TMD_STREAM_SEMI_TRANS:
+                    handler = modelLightingStreamPrimFt4;
+                    break;
+                case TMD_STREAM_GT3_ELEMENT_COLOR:
+                    handler = tmdBuildStreamGt3ElemColor;
+                    break;
+                case TMD_STREAM_GT3_ELEMENT_COLOR | TMD_STREAM_CORNER_COLORS:
+                    handler = tmdBuildStreamGt3CornerColors;
+                    break;
+                case TMD_STREAM_GT4_ELEMENT_COLOR:
+                    handler = tmdBuildStreamGt4ElemColor;
+                    break;
+                case TMD_STREAM_GT4_ELEMENT_COLOR | TMD_STREAM_CORNER_COLORS:
+                    handler = tmdBuildStreamGt4CornerColors;
+                    break;
+                case TMD_STREAM_GT4_UNLIT:
+                    handler = tmdBuildStreamGt4Unlit;
+                    break;
+                case TMD_STREAM_F3:
+                    handler = modelLightingStreamPrimF3;
+                    break;
+                case TMD_STREAM_F4:
+                    handler = modelLightingStreamPrimF4;
+                    break;
+                case TMD_STREAM_F3 | TMD_STREAM_PRE_XFORM:
+                    handler = modelLightingStreamPrimF3PreXform;
+                    break;
+                case TMD_STREAM_F4 | TMD_STREAM_PRE_XFORM:
+                    handler = modelLightingStreamPrimF4PreXform;
+                    break;
+                case TMD_STREAM_G4_ONE_NORMAL:
+                case TMD_STREAM_G4_CORNER_NORMALS:
+                case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS:
+                case TMD_STREAM_G4_ONE_NORMAL | TMD_STREAM_LAYERED_TEXTURE:
+                case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
+                case TMD_STREAM_G4_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS | TMD_STREAM_LAYERED_TEXTURE:
+                    handler = modelLightingReserveStreamPrimG4;
+                    break;
+                default:
+                    handler = tmdSkipStreamRecord;
+                    break;
+                case TMD_STREAM_G3_ONE_NORMAL:
+                case TMD_STREAM_G3_CORNER_NORMALS:
+                case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS:
+                case TMD_STREAM_G3_ONE_NORMAL | TMD_STREAM_LAYERED_TEXTURE:
+                case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE:
+                case TMD_STREAM_G3_CORNER_NORMALS | TMD_STREAM_CORNER_COLORS | TMD_STREAM_LAYERED_TEXTURE:
+                    handler = modelLightingReserveStreamPrimG3;
+                    break;
             }
-            stream++;
-        readOpcode:
-            opcode = *stream;
-            // Terminator at entry, or after a group marker. Leave the word in place.
-            if (opcode == TMD_STREAM_END) {
-                goto done;
-            }
+
+            // Ignore the resolved draw slot and decode little-endian count/word stride.
+            workspace->opcode     = *stream;
+            stream               += 2;
+            workspace->elemStride = ((u16*)stream)[0];
+            workspace->elemCount  = ((u16*)stream)[1];
+            stream               += 1;
+            stream                = handler(workspace, 0, stream);
+            opcode                = *stream;
         }
+        stream++;
     }
-done:
     SCRATCH_STACK_RELEASE_BLOCK(TmdStreamWorkspace);
 }
 
