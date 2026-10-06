@@ -245,7 +245,7 @@ extern ActorTransform           D_actor_335800_80164EA4[5];
 s32                             func_actor_335800_8016343C(Task*, s32, s32, s32);
 s32                             func_actor_335800_8016354C(Task* task, s32 msgId, ActorCommand* request, s32);
 s32                             func_actor_335800_80163880(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
-s32                             func_actor_335800_80163F3C(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
+static s32                      _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 s32                             func_actor_335800_80163FB8(Task*, s32, s32, s32);
 s32                             func_actor_335800_80164098(Task*, s32, s32, s32);
 void                            func_actor_335800_80162040(void);
@@ -934,7 +934,7 @@ TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 
 TaskMessageEntry D_actor_335800_80172EA8[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
-    { ACTOR_MESSAGE_PLACE, func_actor_335800_80163F3C },
+    { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_335800_80163FB8 },
     { ACTOR_MESSAGE_WALK_TO, func_actor_335800_80163880 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_335800_80164098 },
@@ -1838,10 +1838,10 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
     return 0;
 }
 
-/// A second copy of the handler, under this file's own name.
-#define actorMsgPlaceEuler func_actor_335800_80163F3C
+/// Selects the private placement handler for the Flint model task.
+#define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
 #include "../../shared/actor_messages_place_euler.inc.c"
-#undef actorMsgPlaceEuler
+#undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode, s32 arg3)
 {

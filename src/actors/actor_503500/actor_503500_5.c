@@ -296,7 +296,7 @@ static const TaskFuncTable3 D_actor_503500_801321F4 = {
 static AnimationSet _gActor503500Animation444F4;
 static AnimationSet _gActor503500Animation446CC;
 static TmdSource    _gActor503500Actor361100Model06038;
-s32                 func_actor_503500_80146664(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
+static s32          _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 s32                 func_actor_503500_801466E0(Task*, s32, s32, s32);
 s32                 func_actor_503500_801467C0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 void                func_actor_503500_801463C0(Task*);
@@ -1205,7 +1205,7 @@ TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 
 TaskMessageEntry D_actor_503500_80176530[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
-    { ACTOR_MESSAGE_PLACE, func_actor_503500_80146664 },
+    { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_503500_801466E0 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_503500_801467C0 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1998,10 +1998,10 @@ static void func_actor_503500_80146524(Task* arg0)
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// A second copy of the handler, under this file's own name.
-#define actorMsgPlaceEuler func_actor_503500_80146664
+/// Selects the private placement handler for the actor-361100 model task.
+#define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
 #include "../../shared/actor_messages_place_euler.inc.c"
-#undef actorMsgPlaceEuler
+#undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode, s32 arg3)
 {

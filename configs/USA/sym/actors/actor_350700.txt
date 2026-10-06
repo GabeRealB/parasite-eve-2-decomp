@@ -90,6 +90,7 @@ actorMotionStartWalk = 0x801630C0; // type:func
 actorMotionArrive19 = 0x80162070; // type:func
 actorMotionPlayAnim19 = 0x80162860; // type:func
 actorMsgPlaceEuler = 0x80162998; // type:func
+_actorMsgPlaceEuler = 0x801637C4; // type:func
 modelPlacementAttachPart = 0x801632CC; // type:func
 reverseWalkUpdate = 0x80161E88; // type:func
 reverseWalkStartMsg = 0x801621B4; // type:func

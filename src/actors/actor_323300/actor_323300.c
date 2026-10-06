@@ -162,7 +162,7 @@ static void func_actor_323300_801627B4(Task* arg0);
 static void func_actor_323300_801634B0(Task* arg0);
 static void func_actor_323300_80163510(Task* arg0);
 static void func_actor_323300_8016359C(Task* arg0, s16 arg1);
-static s32  func_actor_323300_8016369C(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
+static s32  _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32  func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
@@ -860,7 +860,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
     tmdBuildBufferHalf(extra);
     tmdBuildBufferHalf(extra);
     func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
-    func_actor_323300_8016369C(arg0, 0x7D3, &D_actor_323300_80174AB0, 0);
+    _actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_80174AB0, 0);
 
     // Snapshot the model's rest shape into the room's morph record.
     morph = &D_dryfield_toilet_801865D0;
@@ -1089,10 +1089,10 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
     arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// A second copy of the handler, under this file's own name.
-#define actorMsgPlaceEuler func_actor_323300_8016369C
+/// Selects the private placement handler for the Lesser Stranger model task.
+#define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
 #include "../../shared/actor_messages_place_euler.inc.c"
-#undef actorMsgPlaceEuler
+#undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// Play-animation handler of the Lesser Stranger, the twin of
 /// `actorMotionPlayAnim19` for a block that keeps its playback values as the

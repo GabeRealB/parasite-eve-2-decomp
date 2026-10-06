@@ -181,7 +181,7 @@ static const _Actor135400GaryDouglasPlaces D_actor_135400_80131E48 = {
 
 static TmdSource _gActor135400FlintBody;
 s32              func_actor_135400_80132D24(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_135400_80132E40(Task* task, s32 msgId, ActorTransform* args, s32);
+static s32       _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 s32              func_actor_135400_80132EBC(Task*, s32, s32, s32);
 void             func_actor_135400_80132AF4(Task*);
 
@@ -568,7 +568,7 @@ TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 
 TaskMessageEntry D_actor_135400_8013F8E4[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_135400_80132D24 },
-    { ACTOR_MESSAGE_PLACE, func_actor_135400_80132E40 },
+    { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_135400_80132EBC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1045,10 +1045,10 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
     return 0;
 }
 
-/// A second copy, under this file's own name.
-#define actorMsgPlaceEuler func_actor_135400_80132E40
+/// Selects the private placement handler for the Flint model task.
+#define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
 #include "../../shared/actor_messages_place_euler.inc.c"
-#undef actorMsgPlaceEuler
+#undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// The second task's 0x7D5 handler, the same mode switch as
 /// `func_actor_135400_801327E8` on this task's model alone. Mode 2 does not

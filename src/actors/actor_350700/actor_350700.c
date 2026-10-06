@@ -119,7 +119,7 @@ static TmdSource _gActor350700KyleMadiganBody;
 static TmdSource _gActor350700KyleMadiganHandRight;
 static TmdSource _gActor350700KyleMadiganHandLeft;
 static TmdSource _gActor350700KyleMadiganGun;
-s32              func_actor_350700_801637C4(Task* task, s32 msgId, ActorTransform* args, s32 arg3);
+static s32       _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 s32              func_actor_350700_80163840(Task*, s32, s32, s32);
 s32              func_actor_350700_8016395C(Task*, s32, s32, s32);
 void             func_actor_350700_80163274(Task*);
@@ -531,7 +531,7 @@ TaskDesc D_actor_350700_801708DC[4] = {
 
 TaskMessageEntry D_actor_350700_8017090C[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
-    { ACTOR_MESSAGE_PLACE, func_actor_350700_801637C4 },
+    { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_350700_80163840 },
     { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_350700_8016395C },
@@ -879,10 +879,10 @@ static void func_actor_350700_80163528(Task* task)
 
 #include "../../shared/actor_motion_play.inc.c"
 
-/// A second copy of the handler, under this file's own name.
-#define actorMsgPlaceEuler func_actor_350700_801637C4
+/// Selects the private placement handler for the Kyle Madigan model task.
+#define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
 #include "../../shared/actor_messages_place_euler.inc.c"
-#undef actorMsgPlaceEuler
+#undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
 /// message's mode word, run against the `TmdObject` parked in `Task::extra`,

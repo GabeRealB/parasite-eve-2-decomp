@@ -478,3 +478,4 @@ bezierCurveCoefficients = 0x8013AC6C; // type:func allow_duplicated:True
 bezierCurveEvaluate = 0x80141A44; // type:func allow_duplicated:True
 bezierCurveCoefficients = 0x801422B8; // type:func allow_duplicated:True
 actorMsgPlaceEuler = 0x80132508; // type:func
+_actorMsgPlaceEuler = 0x80146664; // type:func
