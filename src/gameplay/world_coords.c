@@ -1446,20 +1446,22 @@ static inline void _worldCoordApplyActorHitFlash(Enemy* enemy, MATRIX* colorMtx)
     enemy->colorMode &= ENEMY_COLOR_HIT_FLASH_CLEAR;
 }
 
-/// Clears all nine actor light-colour coefficients while preserving ambient translation.
+/// Zeros the directional light colours for an actor's black colour mode.
 ///
-/// colorMtx must be writable; its ambient translation is left unchanged.
-static inline void _worldCoordClearActorLightColor(MATRIX* colorMtx)
+/// `colorRows` supplies a writable 3x3 of signed Q12 coefficients, with RGB
+/// rows and one column per light. Only those 18 bytes are written; the enclosing
+/// matrix's alignment bytes and ambient RGB translation are preserved.
+static inline void _worldCoordClearActorLightColor(s16 colorRows[3][3])
 {
-    colorMtx->m[0][0] = 0;
-    colorMtx->m[0][1] = 0;
-    colorMtx->m[0][2] = 0;
-    colorMtx->m[1][0] = 0;
-    colorMtx->m[1][1] = 0;
-    colorMtx->m[1][2] = 0;
-    colorMtx->m[2][0] = 0;
-    colorMtx->m[2][1] = 0;
-    colorMtx->m[2][2] = 0;
+    colorRows[0][0] = 0;
+    colorRows[0][1] = 0;
+    colorRows[0][2] = 0;
+    colorRows[1][0] = 0;
+    colorRows[1][1] = 0;
+    colorRows[1][2] = 0;
+    colorRows[2][0] = 0;
+    colorRows[2][1] = 0;
+    colorRows[2][2] = 0;
 }
 
 /// Applies one actor colour mode to a writable light-colour 3x3.
@@ -1516,7 +1518,7 @@ static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 color
                 _worldCoordApplyActorHitFlash(enemy, colorMtx);
                 break;
             }
-            _worldCoordClearActorLightColor(colorMtx);
+            _worldCoordClearActorLightColor(colorMtx->m);
             break;
 
         case ENEMY_COLOR_DEFAULT:
@@ -1531,20 +1533,24 @@ static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 color
 #undef WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT
 }
 
-/// Copies the nine light-colour coefficients between disjoint matrices, preserving ambient.
+/// Saves sampled directional light colours for an actor colour-mode blend.
 ///
-/// destination must be writable and source readable; translations are not accessed.
-static inline void _worldCoordCopyActorLightColor(MATRIX* destination, const MATRIX* source)
+/// `destination` and `source` supply writable and readable 3x3 coefficient
+/// arrays, respectively, in disjoint storage. Rows are RGB and columns are
+/// lights; signed Q12 values are copied unchanged. Exactly 18 bytes are copied,
+/// leaving the enclosing matrices' alignment bytes and ambient RGB untouched.
+/// The caller owns both arrays; neither pointer is retained.
+static inline void _worldCoordCopyActorLightColor(s16 destination[3][3], const s16 source[3][3])
 {
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
+    destination[0][0] = source[0][0];
+    destination[0][1] = source[0][1];
+    destination[0][2] = source[0][2];
+    destination[1][0] = source[1][0];
+    destination[1][1] = source[1][1];
+    destination[1][2] = source[1][2];
+    destination[2][0] = source[2][0];
+    destination[2][1] = source[2][1];
+    destination[2][2] = source[2][2];
 }
 
 void worldCoordUpdateActorColor(Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3)
@@ -1572,7 +1578,7 @@ void worldCoordUpdateActorColor(Enemy* enemy, const void* worldPosition, s32 unu
             _worldCoordRemapActorColor(enemy, colorMtx, currentMode);
         } else {
             // Keep the same sampled coefficients; ambient is never copied or blended.
-            _worldCoordCopyActorLightColor(&blendScratch->previousColor, colorMtx);
+            _worldCoordCopyActorLightColor(blendScratch->previousColor.m, colorMtx->m);
             // The current remap may consume a hit flash before the previous remap.
             _worldCoordRemapActorColor(enemy, colorMtx, currentMode);
             _worldCoordRemapActorColor(enemy, &blendScratch->previousColor, (enemy->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
