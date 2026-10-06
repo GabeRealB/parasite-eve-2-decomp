@@ -42,6 +42,15 @@ enum {
     ACTOR_210700_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
 };
 
+/// Eye-texture command accepted by this actor's message table.
+enum { ACTOR_210700_MESSAGE_SET_EYES = 0x7E0 };
+
+/// Ground-shadow half extent in world-coordinate units.
+enum { ACTOR_210700_GROUND_SHADOW_HALF_SIZE = 0x400 };
+
+/// No primitive-buffer release is pending in the actor's signed tick counter.
+enum { ACTOR_210700_BUFFER_FREE_NONE = -1 };
+
 /// Work block of Rupert Broderick's body, the package's one actor.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
@@ -75,29 +84,30 @@ extern AnimationSet*  D_actor_210700_801585AC[7];
 extern AnimationSet** D_actor_210700_801585C8[1];
 
 /// The actor's message table, parked in `Task::msgTable`: 0x7D3
-/// `func_actor_210700_8014A224`, 0x7D4 `func_actor_210700_8014A344`, 0x7D5
-/// `func_actor_210700_8014A3D4`, 0x7E0 `func_actor_210700_8014A4B0`.
+/// `_actor210700PlayAnimation`, 0x7D4 `_actor210700Place`, 0x7D5
+/// `_actor210700SetModelDraw`, 0x7E0 `_actor210700SetEyes`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
 extern TaskMessageEntry D_actor_210700_801585D8[];
 
-/// Eye images the blink and the 0x7E0 handler post over the
-/// model's texture.
-
-static void func_actor_210700_80149F90(Task* task);
-static void func_actor_210700_8014A0AC(Task* task);
-static void func_actor_210700_8014A1E8(Task* task);
-static void func_actor_210700_8014A208(Task* arg0);
-s32         func_actor_210700_8014A224(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
-s32         func_actor_210700_8014A344(Task* task, s32 arg1, ActorTransform* args, s32 arg3);
+static void _actor210700UpdateBlink(Task* task);
+static void _actor210700Task(Task* task);
+static void _actor210700Init(Task* task);
+static void _actor210700Update(Task* task);
+static void _actor210700Exit(Task* task);
+static void _actor210700BindLighting(Task* task);
+static s32  _actor210700PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
+static s32  _actor210700Place(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg);
+static s32  _actor210700SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedSecondArg);
+static s32  _actor210700SetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedSecondArg);
 
 /// The actor's three task states - spawn, tick and teardown - which
-/// `func_actor_210700_80149F38` runs by `Task::state`.
+/// `_actor210700Task` runs by `Task::state`.
 static const TaskFuncTable3 D_actor_210700_80149E24 = { {
-    func_actor_210700_80149F90,
-    func_actor_210700_8014A0AC,
-    func_actor_210700_8014A1E8,
+    _actor210700Init,
+    _actor210700Update,
+    _actor210700Exit,
 } };
 
 static AnimationSet _gActor210700Animation0CC20;
@@ -107,11 +117,6 @@ static AnimationSet _gActor210700Animation0D72C;
 static AnimationSet _gActor210700Animation0DB7C;
 static AnimationSet _gActor210700Animation0DE04;
 static TmdSource    _gActor210700RupertBroderickBody1;
-s32                 func_actor_210700_8014A224(Task*, s32, AnimationPlayRequest*, s32);
-s32                 func_actor_210700_8014A344(Task* task, s32 msgId, ActorTransform* args, s32);
-s32                 func_actor_210700_8014A3D4(Task*, s32, s32, s32);
-s32                 func_actor_210700_8014A4B0(Task*, s32, s32, s32);
-void                func_actor_210700_80149F38(Task*);
 
 static AnimationPackedPose _gActor210700Animation01E2CBank1[49] = {
 #include "assets/actor_210700_animation_01E2C_bank1.inc"
@@ -1067,41 +1072,82 @@ AnimationSet** D_actor_210700_801585C8[1] = {
     D_actor_210700_801585AC,
 };
 
-TaskDesc D_actor_210700_801585CC = { { { TASK_BODY_TMD, 192 } }, func_actor_210700_80149F38, { .model = &_gActor210700RupertBroderickBody1 } };
+TaskDesc D_actor_210700_801585CC = { { { TASK_BODY_TMD, 192 } }, _actor210700Task, { .model = &_gActor210700RupertBroderickBody1 } };
 
 TaskMessageEntry D_actor_210700_801585D8[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_210700_8014A224 },
-    { ACTOR_MESSAGE_PLACE, func_actor_210700_8014A344 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_210700_8014A3D4 },
-    { 2016, func_actor_210700_8014A4B0 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor210700PlayAnimation },
+    { ACTOR_MESSAGE_PLACE, _actor210700Place },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor210700SetModelDraw },
+    { ACTOR_210700_MESSAGE_SET_EYES, _actor210700SetEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_actor_210700_80149E30(Task* arg0);
+/// Model-relative eye-texture location: Y/height count rows, width counts VRAM words.
+enum {
+    ACTOR_210700_EYE_TEXTURE_Y_ROWS      = 40,
+    ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS = 24,
+    ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS = 16,
+};
 
-/// Blink state of the actor, run by the tick state: runs
-/// `_Actor210700Work::blinkCountdown` down one a frame while `blinkStep` names
-/// the eye image due next, and on the frame it goes below zero posts that
-/// image over the 0x18x0x10 eye rect at (0, 0x28) -- restarting the countdown
-/// from `blinkFrameDelay` and advancing `blinkStep` after the closed and
-/// half-open eyes, or clearing `blinkStep` after the open ones, which ends the
-/// blink.
-static void func_actor_210700_80149E30(Task* arg0)
+/// Fills the model-relative rectangle replaced by an eye-texture upload.
+///
+/// Expands to four statements. Invoke as a standalone statement in a braced
+/// block, never as an unbraced conditional or loop body.
+/// Requires a stable writable RECT lvalue without evaluation side effects,
+/// evaluated four times. X counts two positions per VRAM word. No caller
+/// locals are captured, and no address is retained.
+#define ACTOR_210700_INIT_EYE_TEXTURE_RECT(eyeRect)     \
+    (eyeRect).x = 0;                                    \
+    (eyeRect).y = ACTOR_210700_EYE_TEXTURE_Y_ROWS;      \
+    (eyeRect).w = ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS; \
+    (eyeRect).h = ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS
+
+/// Projects model part 1 onto the ground and draws its shadow when a floor is found.
+///
+/// Requires a side-effect-free live TMD task pointer with part 1's cached
+/// transform, and a stable writable VECTOR3 lvalue. The task is evaluated once;
+/// the point once on a miss and twice on a hit. Uses the current global room
+/// shadow shade; neither argument's address is retained.
+#define ACTOR_210700_DRAW_GROUND_SHADOW(task, groundPoint)                                                                     \
+    do {                                                                                                                       \
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&(task)->extra.tmd->coords[1].workm), &(groundPoint)) != 0) {        \
+            effectDrawGroundShadow(&(groundPoint), ACTOR_210700_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade); \
+        }                                                                                                                      \
+    } while (0)
+
+/// Advances all animated body parts once, retaining the model root's placement.
+///
+/// Requires the work rig to be bound and slots 1..19 initialized. Playback
+/// retains its borrowed model, bank and clip data; slot zero is untouched.
+static inline void _actor210700TickAnimationSlots(_Actor210700Work* work)
+{
+    s32 slotIndex;
+
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
+    }
+}
+
+/// Advances the pending blink through closed, half-open and open eye textures.
+///
+/// Requires the actor's live work block and TMD body. Each active step decrements
+/// the signed 16-bit countdown, uploading when its stored value becomes negative.
+/// Closed and half-open eyes last `blinkFrameDelay + 1` ticks; the open step ends
+/// the blink without resetting the countdown. Texture pixels remain borrowed by
+/// the GPU queue after each upload.
+static void _actor210700UpdateBlink(Task* task)
 {
     _Actor210700Work* work;
-    RECT              rect;
+    RECT              eyeRect;
 
-    work   = arg0->work;
-    rect.x = 0;
-    rect.y = 0x28;
-    rect.w = 0x18;
-    rect.h = 0x10;
+    work = task->work;
+    ACTOR_210700_INIT_EYE_TEXTURE_RECT(eyeRect);
 
     switch (work->blinkStep) {
         case ACTOR_210700_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_210700_8015858C[0], &rect);
+                actorRenderUploadTexture(task, &D_actor_210700_8015858C[0], &eyeRect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -1109,7 +1155,7 @@ static void func_actor_210700_80149E30(Task* arg0)
         case ACTOR_210700_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_210700_8015826C[0], &rect);
+                actorRenderUploadTexture(task, &D_actor_210700_8015826C[0], &eyeRect);
                 work->blinkCountdown = work->blinkFrameDelay;
                 work->blinkStep      = work->blinkStep + 1;
             }
@@ -1117,42 +1163,46 @@ static void func_actor_210700_80149E30(Task* arg0)
         case ACTOR_210700_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_210700_80157F4C[0], &rect);
+                actorRenderUploadTexture(task, &D_actor_210700_80157F4C[0], &eyeRect);
                 work->blinkStep = ACTOR_210700_BLINK_NONE;
             }
             break;
     }
 }
 
-/// The actor's task entry: runs the handler for the task's current state out
-/// of `D_actor_210700_80149E24` - spawn, per-frame tick or teardown - copying
-/// the table onto the stack before the call.
-void func_actor_210700_80149F38(Task* task)
+/// Dispatches Rupert Broderick's body task to initialization, update or teardown.
+///
+/// `task->state` must be 0 (initialize), 1 (update) or 2 (exit). The task owns a
+/// twenty-part TMD body and carries its scene-owned `Enemy` in `spawnArg2`.
+/// State zero allocates the work block; exit may release the task's resources.
+static void _actor210700Task(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_210700_80149E24;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_210700_80149E24;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// Spawn state: allocates the zeroed work block into `Task::work` (handing
-/// the task to `enemyTaskExit` if that fails), marks no bank bound, no clip
-/// applied and no buffer free pending, hides the model, then runs its own
-/// place and play-animation handlers directly to place the actor at the
-/// origin - which shows it again - and start clip 1 of bank 0. It draws the
-/// ground shadow under the model's second part, points the model at the work
-/// block's light / colour matrices, installs the message table and the exit
-/// callback, and advances to the tick state.
-static void func_actor_210700_80149F90(Task* task)
+/// Initializes the body at the origin with its default animation and message handlers.
+///
+/// Requires a live twenty-part TMD task with a scene-owned `Enemy` in `spawnArg2`.
+/// Owns a zeroed primary-heap work block until task teardown; allocation failure
+/// starts teardown immediately. Successful initialization advances to state 1.
+static void _actor210700Init(Task* task)
 {
-    _Actor210700Work*    work;
-    TmdObject*           extra;
-    ActorTransform       args;
-    AnimationPlayRequest anim;
-    VECTOR3              pos;
+    enum {
+        ACTOR_210700_INITIAL_BANK      = 0,
+        ACTOR_210700_INITIAL_ANIMATION = 1,
+    };
 
-    extra = task->extra.tmd;
-    work  = memCalloc(sizeof(_Actor210700Work), 0);
+    _Actor210700Work*    work;
+    TmdObject*           model;
+    ActorTransform       initialPlacement;
+    AnimationPlayRequest initialAnimation;
+    VECTOR3              groundPoint;
+
+    model = task->extra.tmd;
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -1160,223 +1210,247 @@ static void func_actor_210700_80149F90(Task* task)
     task->work          = work;
     work->animId        = ACTOR_MODEL_STATE_NONE;
     work->bank          = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown = -1;
-    extra->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    args.pos.vx         = 0;
-    args.pos.vy         = 0;
-    args.pos.vz         = 0;
-    args.rot.vx         = 0;
-    args.rot.vy         = 0;
-    args.rot.vz         = 0;
-    func_actor_210700_8014A344(task, ACTOR_MESSAGE_PLACE, &args, 0);
-    anim.source.index = 0;
-    anim.animationId  = 1;
-    anim.blend        = ANIMATION_BLEND_RESET;
-    func_actor_210700_8014A224(task, ACTOR_MESSAGE_PLAY_ANIMATION, &anim, 0);
-    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-        effectDrawGroundShadow(&pos, 0x400, gRoomEffectState->groundShadowShade);
-    }
-    func_actor_210700_8014A208(task);
+    work->freeCountdown = ACTOR_210700_BUFFER_FREE_NONE;
+    model->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+
+    // Placement enables drawing; seed only the request components the handlers read.
+    initialPlacement.pos.vx = 0;
+    initialPlacement.pos.vy = 0;
+    initialPlacement.pos.vz = 0;
+    initialPlacement.rot.vx = 0;
+    initialPlacement.rot.vy = 0;
+    initialPlacement.rot.vz = 0;
+    _actor210700Place(task, ACTOR_MESSAGE_PLACE, &initialPlacement, 0);
+    initialAnimation.source.index = ACTOR_210700_INITIAL_BANK;
+    initialAnimation.animationId  = ACTOR_210700_INITIAL_ANIMATION;
+    initialAnimation.blend        = ANIMATION_BLEND_RESET;
+    _actor210700PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &initialAnimation, 0);
+    ACTOR_210700_DRAW_GROUND_SHADOW(task, groundPoint);
+    _actor210700BindLighting(task);
     task->msgTable     = D_actor_210700_801585D8;
-    task->exitCallback = func_actor_210700_8014A1E8;
+    task->exitCallback = _actor210700Exit;
     task->state++;
 }
 
-/// Tick state: while an animation is running ticks slots 1..0x13 and draws
-/// the ground shadow under the model's second part. While the game session's
-/// view is ready it invalidates and rebuilds that part's coordinate and hands
-/// it to `worldCoordSetModelLighting`. It then runs the blink and counts `freeCountdown`
-/// down, freeing the model buffers on the tick that finds it at 0.
-static void func_actor_210700_8014A0AC(Task* task)
+/// Updates body animation, ground shadow, room lighting, blinking and buffer release.
+///
+/// Requires successful initialization. Advances animation slots 1..19 once per
+/// call when enabled. Lighting is refreshed only with a ready view. A pending
+/// buffer release occurs on the call entering with countdown zero, after which
+/// the counter becomes the inactive sentinel.
+static void _actor210700Update(Task* task)
 {
     _Actor210700Work* work;
-    TmdObject*        ext;
-    VECTOR3           pos;
-    s32               i;
+    TmdObject*        model;
+    VECTOR3           groundPoint;
 
-    work = task->work;
-    ext  = task->extra.tmd;
+    work  = task->work;
+    model = task->extra.tmd;
     if (work->ticking != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
-        }
+        _actor210700TickAnimationSlots(work);
     }
-    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-        effectDrawGroundShadow(&pos, 0x400, gRoomEffectState->groundShadowShade);
-    }
+    ACTOR_210700_DRAW_GROUND_SHADOW(task, groundPoint);
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, ARRAY_SIZE(work->light.m));
     }
-    func_actor_210700_80149E30(task);
+    _actor210700UpdateBlink(task);
+
+    // Release only when the countdown was already zero at entry.
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
 
-/// The actor's teardown state and `Task::exitCallback`: hands the task to
-/// `enemyTaskExit`.
-static void func_actor_210700_8014A1E8(Task* task)
+/// Releases the actor's target-tracking object and starts task teardown.
+///
+/// Used by task state 2 and the exit callback. Requires the live `Enemy` in
+/// `spawnArg2`; task teardown releases the work block and schedules body release.
+static void _actor210700Exit(Task* task)
 {
     enemyTaskExit(task);
 }
 
-/// Points the model at the work block's light and colour matrices, so the
-/// actor is lit from its own block rather than the defaults.
-static void func_actor_210700_8014A208(Task* arg0)
+/// Binds the model to the actor's private light-direction and light-colour matrices.
+///
+/// Requires initialized work and a live TMD body. Both matrix pointers borrow
+/// the work block and remain valid until task teardown releases it.
+static void _actor210700BindLighting(Task* task)
 {
-    TmdObject*        ext;
+    TmdObject*        model;
     _Actor210700Work* work;
 
-    work          = arg0->work;
-    ext           = arg0->extra.tmd;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    work            = task->work;
+    model           = task->extra.tmd;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
 }
 
-/// Play-animation handler: starts a clip. A bank index different from the
-/// one the rig is bound to binds the rig to that entry of
-/// `D_actor_210700_801585C8` and forgets the applied clip; a clip different
-/// from the applied one then seeds slots 1..0x13 with it - blending over six
-/// frames when the request's `blend` is set, whatever its `blendFrames`, and
-/// from the clip's start otherwise - ticks them once and enables the per-frame
-/// tick. Always returns 0.
-s32 func_actor_210700_8014A224(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
+/// Selects a body animation, blending changed clips over six normal-rate frames.
+///
+/// Requires initialized work, the twenty-part model and a request readable during
+/// dispatch. `source.index` must be 0 and `animationId` must select a loaded clip
+/// 1..6. Drives slots 1..19, retaining the root placement. A changed bank rebinds
+/// playback and forces clip selection; the same bank and clip do not restart.
+/// Nonzero `blend` uses six frames, ignoring `blendFrames`; zero resets each slot.
+/// Blending requires previously initialized slots; the first selection from
+/// zeroed work must reset them.
+/// The request is not retained, but animation data remain borrowed during playback.
+/// The message ID, second argument and `enableWorldCollision` are ignored. Returns 0.
+static s32 _actor210700PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
-    _Actor210700Work* work;
-    s32               i;
-    TmdObject*        ext;
+    enum { ACTOR_210700_ANIMATION_BLEND_FRAMES = 6 };
 
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->bank) {
-        work->bank   = msg->source.index;
+    _Actor210700Work* work;
+    s32               slotIndex;
+    TmdObject*        model;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    if (request->source.index != work->bank) {
+        work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_210700_801585C8[work->bank], ext, work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_210700_801585C8[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
-    if (msg->animationId != work->animId) {
-        work->animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET) {
-            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, 6);
+    if (request->animationId != work->animId) {
+        work->animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, ACTOR_210700_ANIMATION_BLEND_FRAMES);
             }
         } else {
-            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-                animationResetSlot(&work->rig.anim, i, work->animId);
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->animId);
             }
         }
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
-        }
+        // Apply the first pose immediately before enabling subsequent frame updates.
+        _actor210700TickAnimationSlots(work);
         work->ticking = 1;
     }
     return 0;
 }
 
-/// Message-0x7D4 handler: places the actor. Writes the payload's translation
-/// into the root coordinate's local matrix and its Euler angles into the
-/// coordinate's `rot` slot, rebuilds the rotation from them, clears `composeStamp` so
-/// the world matrix is recomputed, and clears `TmdObject::flags` bit 0x80 to
-/// show the model. Always returns 0.
-s32 func_actor_210700_8014A344(Task* task, s32 arg1, ActorTransform* args, s32 arg3)
+/// Places the model root, records its Euler angles and enables active drawing.
+///
+/// Requires a live TMD body and a placement readable during dispatch. Position
+/// uses the root parent's coordinate frame; angles use 4096 units per turn in
+/// SDK `RotMatrix` order. Only X/Y/Z components are read, and no payload pointer
+/// is retained. Invalidates the composed transform without allocating a buffer.
+/// The message ID and second argument are ignored. Returns 0.
+static s32 _actor210700Place(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg)
 {
-    GfxCoord*  coord;
-    TmdObject* extra;
+    GfxCoord*  rootCoord;
+    TmdObject* model;
 
-    extra               = task->extra.tmd;
-    coord               = extra->coords;
-    coord->coord.t[0]   = args->pos.vx;
-    coord->coord.t[1]   = args->pos.vy;
-    coord->coord.t[2]   = args->pos.vz;
-    coord->param.rot.vx = args->rot.vx;
-    coord->param.rot.vy = args->rot.vy;
-    coord->param.rot.vz = args->rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model                   = task->extra.tmd;
+    rootCoord               = model->coords;
+    rootCoord->coord.t[0]   = placement->pos.vx;
+    rootCoord->coord.t[1]   = placement->pos.vy;
+    rootCoord->coord.t[2]   = placement->pos.vz;
+    rootCoord->param.rot.vx = placement->rot.vx;
+    rootCoord->param.rot.vy = placement->rot.vy;
+    rootCoord->param.rot.vz = placement->rot.vz;
+    RotMatrix(&rootCoord->param.rot, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->flags           &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     return 0;
 }
 
-/// Message-0x7D5 handler: sets the model's visibility and mode bit from the
-/// message's mode word. `TmdObject::flags` bit 0x80 hides the model and bit
-/// 0x4 is the one modes 2 and 3 raise. Mode 0 hides the model and drops 0x4,
-/// 1 shows it, reallocates its buffers through `tmdAllocPrimitiveBuffer` and drops
-/// 0x4, 2 hides it, raises 0x4 and starts the work block's `freeCountdown`
-/// at two ticks to freeing the buffers, and 3 shows it and raises 0x4. Handled
-/// modes return 0; anything else returns 1 and changes nothing.
-s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode, s32 arg3)
+/// Sets active visibility and automatic-buffer policy, optionally scheduling release.
+///
+/// Requires initialized work and a live TMD body. Modes: 0 hide with automatic
+/// allocation enabled; 1 show, explicitly allocate if absent and enable automatic
+/// allocation; 2 hide, disable automatic allocation and release after two
+/// intervening update calls; 3 show with automatic allocation disabled. Other
+/// model flags and any already pending release are retained in modes 0, 1 and 3.
+/// Allocation failure is ignored. The message ID and second argument are ignored.
+/// Returns 0 for modes 0..3, or 1 without changes for other values.
+static s32 _actor210700SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedSecondArg)
 {
-    TmdObject*        obj;
+    enum {
+        ACTOR_210700_MODEL_DRAW_HIDE_AUTO     = 0,
+        ACTOR_210700_MODEL_DRAW_SHOW_ALLOCATE = 1,
+        ACTOR_210700_MODEL_DRAW_HIDE_RELEASE  = 2,
+        ACTOR_210700_MODEL_DRAW_SHOW_KEEP     = 3,
+    };
+
+    TmdObject*        model;
     _Actor210700Work* work;
-    s32               ret;
+    s32               invalidMode;
 
-    obj  = arg0->extra.tmd;
-    work = arg0->work;
-    ret  = 0;
+    model       = task->extra.tmd;
+    work        = task->work;
+    invalidMode = 0;
 
-    switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+    switch (drawMode) {
+        case ACTOR_210700_MODEL_DRAW_HIDE_AUTO:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_210700_MODEL_DRAW_SHOW_ALLOCATE:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_210700_MODEL_DRAW_HIDE_RELEASE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            // This mode value also supplies the two-tick release countdown.
+            work->freeCountdown = drawMode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_210700_MODEL_DRAW_SHOW_KEEP:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            invalidMode = 1;
             break;
     }
-    return ret;
+    return invalidMode;
 }
 
-/// Message-0x7E0 handler: posts one of the actor's three eye images over the
-/// 0x18x0x10 eye rect at (0, 0x28) -- the closed eyes
-/// `D_actor_210700_8015858C[0]` for mode 1, the open eyes
-/// `D_actor_210700_80157F4C[0]` for modes 0 and 2, and the half-open eyes
-/// `D_actor_210700_8015826C[0]` for mode 3, which also starts a blink,
-/// `blinkStep` at the closed eyes and `blinkFrameDelay` at 1. Any other mode
-/// leaves the image NULL and returns 0.
-/// The mode-1 case is written first because the compiler lays the case bodies
-/// out in source order and that is the order the retail image has them in.
-s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
+/// Selects an eye texture or starts the half-open/closed/half-open/open blink.
+///
+/// Requires initialized work and a live TMD body. Modes 0 and 2 upload open eyes,
+/// 1 uploads closed eyes, and 3 uploads half-open eyes and starts a blink with
+/// two ticks each for the subsequent closed and half-open images. The existing
+/// countdown is retained; immediate image commands do not cancel a pending blink.
+/// The message ID and second argument are ignored. Returns the texture uploader's
+/// result for a handled mode, or 0 without an upload for other values. Static
+/// texture pixels remain live while the GPU queue borrows them.
+static s32 _actor210700SetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedSecondArg)
 {
-    RECT            rect;
+    enum {
+        ACTOR_210700_EYES_OPEN           = 0,
+        ACTOR_210700_EYES_CLOSED         = 1,
+        ACTOR_210700_EYES_OPEN_ALTERNATE = 2,
+        ACTOR_210700_EYES_BLINK          = 3,
+        ACTOR_210700_BLINK_FRAME_DELAY   = 1,
+    };
+
+    RECT            eyeRect;
     GpuImageUpload* uploadList;
-    s32             ret;
+    s32             uploadResult;
 
-    ret    = 0;
-    rect.x = 0;
-    rect.y = 0x28;
-    rect.w = 0x18;
-    rect.h = 0x10;
+    uploadResult = 0;
+    ACTOR_210700_INIT_EYE_TEXTURE_RECT(eyeRect);
 
-    switch (mode) {
-        case 1:
+    switch (eyeMode) {
+        case ACTOR_210700_EYES_CLOSED:
             uploadList = &D_actor_210700_8015858C[0];
             break;
-        case 0:
-        case 2:
+        case ACTOR_210700_EYES_OPEN:
+        case ACTOR_210700_EYES_OPEN_ALTERNATE:
             uploadList = &D_actor_210700_80157F4C[0];
             break;
-        case 3:
-            ((_Actor210700Work*)arg0->work)->blinkStep       = ACTOR_210700_BLINK_CLOSED;
-            ((_Actor210700Work*)arg0->work)->blinkFrameDelay = 1;
+        case ACTOR_210700_EYES_BLINK:
+            ((_Actor210700Work*)task->work)->blinkStep       = ACTOR_210700_BLINK_CLOSED;
+            ((_Actor210700Work*)task->work)->blinkFrameDelay = ACTOR_210700_BLINK_FRAME_DELAY;
             uploadList                                       = &D_actor_210700_8015826C[0];
             break;
         default:
@@ -1385,7 +1459,10 @@ s32 func_actor_210700_8014A4B0(Task* arg0, s32 arg1, s32 mode, s32 arg3)
     }
 
     if (uploadList != NULL) {
-        ret = actorRenderUploadTexture(arg0, uploadList, &rect);
+        uploadResult = actorRenderUploadTexture(task, uploadList, &eyeRect);
     }
-    return ret;
+    return uploadResult;
 }
+
+#undef ACTOR_210700_DRAW_GROUND_SHADOW
+#undef ACTOR_210700_INIT_EYE_TEXTURE_RECT

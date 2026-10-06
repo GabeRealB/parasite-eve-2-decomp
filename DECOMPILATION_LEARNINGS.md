@@ -145990,16 +145990,16 @@ it at the copy, leaving the temporary to die in `$v0`.
 When a pointer local is a `move` of its own load, try initialising whatever
 dereferences it before the local itself.
 
-## A local pinned to `$v1` for a message field copied into the work block is a store order the scheduler undid (func_actor_210700_8014A224, 2026-09-27)
+## A local pinned to `$v1` for a message field copied into the work block is a store order the scheduler undid (_actor210700PlayAnimation, 2026-09-27)
 
-The 0x7D3 animation handlers compare `msg->source.index` with the work block's
+The 0x7D3 animation handlers compare `request->source.index` with the work block's
 current source, then store `-1` into the animation id and the new source.
 The target stores `-1` first and indexes the source table from the loaded value
 in place (`sll v1,v1,2`). The seed copied the field into a local pinned to
 `$v1`; unpinned, the local lands in `$a1` and the index gets its own register.
-Without a local, in that store order, the `-1` store may alias `msg` and forces
+Without a local, in that store order, the `-1` store may alias `request` and forces
 a reload of `source.index`. Writing the source store first -
-`work->bank = msg->source.index; work->animId = -1;` and indexing with
+`work->bank = request->source.index; work->animId = -1;` and indexing with
 `work->bank` - lets cse reuse the compare's load for both, and sched1
 swaps the two non-aliasing stores back into the target's order. Where a pinned
 local stands in for a field that is copied and then reused, try the store
