@@ -961,15 +961,21 @@ void func_dryfield_cellar_8017D784(Task* task)
 
 #include "../../shared/glow_draw_flare_local.inc.c"
 
-/// Draws two consecutive local flare points with one texture and perspective scale.
+/// Draws the cellar's pair of local-point flares with a shared texture and size.
 ///
-/// `points` supplies two readable local-unit positions; both it and `coord`
-/// are borrowed for the call. Each call reserves a flare packet before depth
-/// clipping, including for invisible points. Arguments are evaluated once.
-static inline void _dryfieldCellarDrawGlowPair(const GfxCoord* coord, const SVECTOR points[2], s32 textureIndex, s32 radiusScale)
+/// Borrows `localPoints`, a complete two-position array in local game units,
+/// and `coord` for this call. `coord->workm` must be current and map into
+/// `GsWSMATRIX`'s input space; the projection, scratch stack, ordering table
+/// and packet arena must be ready. The signed low halfword of `textureIndex`
+/// selects a flare column (0..2); that of `radiusScale` gives a pixel half-extent
+/// of `radiusScale * 39 / (camera Z / 4)` after transformed coordinates narrow
+/// to s16.
+/// Draws element 0 before element 1, reserving two packets even when depth
+/// clipping rejects either point. Queued packets live until GPU completion.
+static inline void _dryfieldCellarDrawGlowPair(const GfxCoord* coord, const SVECTOR (*localPoints)[2], s32 textureIndex, s32 radiusScale)
 {
-    _glowDrawFlareLocal(coord, &points[0], textureIndex, radiusScale);
-    _glowDrawFlareLocal(coord, &points[1], textureIndex, radiusScale);
+    _glowDrawFlareLocal(coord, &(*localPoints)[0], textureIndex, radiusScale);
+    _glowDrawFlareLocal(coord, &(*localPoints)[1], textureIndex, radiusScale);
 }
 
 void dryfieldCellarDrawGlowsTask(Task* task)
@@ -987,9 +993,9 @@ void dryfieldCellarDrawGlowsTask(Task* task)
     coord = task->extra.coordBody->coord;
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_CELLAR_GLOW_SWITCH_ON) {
         if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_2) {
-            _dryfieldCellarDrawGlowPair(coord, D_dryfield_cellar_8017DBBC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
+            _dryfieldCellarDrawGlowPair(coord, &D_dryfield_cellar_8017DBBC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
         } else if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_3) {
-            _dryfieldCellarDrawGlowPair(coord, D_dryfield_cellar_8017DBCC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
+            _dryfieldCellarDrawGlowPair(coord, &D_dryfield_cellar_8017DBCC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
         }
     }
 }
