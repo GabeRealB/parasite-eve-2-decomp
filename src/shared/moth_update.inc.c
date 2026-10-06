@@ -10,41 +10,23 @@ void mothUpdate(Enemy* arg0, Task* arg1)
     TmdObject* obj;
     MothWork*  work;
     GfxCoord*  coord;
-    s32        state;
-    s32        one;
 
     work  = arg1->work;
     obj   = arg1->extra.tmd;
-    state = gSceneCombatState.actorControl;
     coord = obj->coords;
-    one   = 1;
-    if (state == one) {
-        goto case1;
+    switch (gSceneCombatState.actorControl) {
+        case 0:
+            obj->flags                   = 0;
+            arg0->node.state.parts.flags = 0;
+            break;
+        case 1:
+            mothUpdateColor(arg1);
+            return;
+        case 2:
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    obj->flags                   = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case1:
-    mothUpdateColor(arg1);
-    return;
-case2:
-    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     mothContacts(arg1);
     mothOscillateParts(arg1);
     if (work->alerted == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
