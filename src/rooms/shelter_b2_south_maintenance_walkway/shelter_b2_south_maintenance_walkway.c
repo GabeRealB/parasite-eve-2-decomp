@@ -583,7 +583,11 @@ void shelterB2SouthMaintenanceWalkwayRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Selects this room's task implementations for effects spawned by gameplay.
+/// Installs this room's packed bank-6 task IDs for the six shared combat effects.
+///
+/// Call after room-effect controller initialization and before spawning these
+/// effects. The selectors persist until cleared or replaced; this overlay must
+/// remain loaded while the selected effect tasks run.
 static inline void _shelterB2SouthMaintenanceWalkwaySelectEffectTasks(void)
 {
     gRoomEffectFlashId        = EFFECT_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FLASH;
