@@ -30,7 +30,12 @@ extern SpriteView D_dryfield_night_g_r_kitchen_8017E6A8[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_g_r_kitchen_8017EC04[];
 
-void func_dryfield_night_g_r_kitchen_8017E1E4(Task* unused);
+/// Draws the nighttime kitchen's two grey light shafts for view 2 or 3 each frame.
+///
+/// Other views emit no packets. The task argument is unused. Requires the room
+/// overlay to remain loaded, a composed view, an initialized scratch stack and
+/// space in the current frame's primitive arena and depth ordering table.
+void dryfieldNightGRKitchenDrawLightShaftsTask(Task* unusedTask);
 
 void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task);
 

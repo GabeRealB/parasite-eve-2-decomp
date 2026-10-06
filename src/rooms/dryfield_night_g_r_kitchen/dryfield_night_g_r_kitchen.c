@@ -73,9 +73,14 @@ extern TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 
-s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, s32, s32);
-s32 func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, s32, s32);
-s32 func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, s32, s32);
+static s32 _dryfieldNightGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg);
+static s32 _dryfieldNightGRKitchenIgnoreCommand(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
+static s32 _dryfieldNightGRKitchenIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Inventory key-item use routed to this room's message table.
+enum {
+    DRYFIELD_NIGHT_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM = 0x13F1,
+};
 
 extern WorldCollisionGrid    D_dryfield_night_g_r_kitchen_8017E554[1];
 extern WorldCollisionTrigger D_dryfield_night_g_r_kitchen_8017E864[2];
@@ -86,9 +91,9 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, grKitchenDoorMsg },
-    { 5105, func_dryfield_night_g_r_kitchen_8017D8BC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_g_r_kitchen_8017D950 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_g_r_kitchen_8017D948 },
+    { DRYFIELD_NIGHT_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM, _dryfieldNightGRKitchenRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGRKitchenIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightGRKitchenIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -281,7 +286,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 0, 222, 254 } };
 RoomEventReq gRoomEventReq;
 
 static void func_dryfield_night_g_r_kitchen_8017D958(Task* task);
-static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task);
+static void _dryfieldNightGRKitchenIdleState(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -289,22 +294,34 @@ static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task);
 
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-/// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the nighttime kitchen without consuming the item.
+///
+/// `keyItemId` is an inventory item ID; the menu treats the zero reply as unusable.
+/// All arguments are ignored and no room state changes.
+static s32 _dryfieldNightGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg)
 {
-    return 0;
+    enum {
+        DRYFIELD_NIGHT_G_R_KITCHEN_KEY_ITEM_USE_REJECTED = 0,
+    };
+
+    return DRYFIELD_NIGHT_G_R_KITCHEN_KEY_ITEM_USE_REJECTED;
 }
 
 #include "../../shared/g_r_kitchen_door_msg.inc.c"
 
-/// The room's handler for message 0x13F0: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D948(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `ROOM_MESSAGE_COMMAND`, returning zero without changing room state.
+///
+/// Both payload words are unused, including CAP's command selector and mode.
+static s32 _dryfieldNightGRKitchenIgnoreCommand(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D950(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `DIRECTION_MESSAGE_ROOM_ACTION`, returning zero without changing room state.
+///
+/// The borrowed action request is neither read nor retained; the sender's second
+/// payload word is zero. All arguments are ignored.
+static s32 _dryfieldNightGRKitchenIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -318,15 +335,15 @@ static void func_dryfield_night_g_r_kitchen_8017D958(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room entry task: idles.
-static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task)
+/// Keeps the initialized room task idle while its installed message table remains live.
+static void _dryfieldNightGRKitchenIdleState(Task* task)
 {
 }
 
 /// The room entry task's three states: install the room's message table,
 /// idle, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_g_r_kitchen_8017D5DC = {
-    { func_dryfield_night_g_r_kitchen_8017D958, func_dryfield_night_g_r_kitchen_8017D99C, taskKill },
+    { func_dryfield_night_g_r_kitchen_8017D958, _dryfieldNightGRKitchenIdleState, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which
@@ -341,19 +358,20 @@ void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task)
 
 #include "../../shared/glow_draw_shaft.inc.c"
 
-/// Picks the pair of light shafts `_glowDrawShaft`
-/// draws from the current view index (`gGameSession->location.loc.view`, 2 or 3);
-/// any other view draws nothing.
-void func_dryfield_night_g_r_kitchen_8017E1E4(Task* unused)
+void dryfieldNightGRKitchenDrawLightShaftsTask(Task* unusedTask)
 {
+    enum {
+        // Pixel radius is this scale times 64, divided by camera Z / 4.
+        DRYFIELD_NIGHT_G_R_KITCHEN_LIGHT_SHAFT_RADIUS_SCALE = 256,
+    };
     u8 view;
 
     view = gGameSession->location.loc.view;
     if (view == 2) {
-        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[0], 0x100);
-        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[2], 0x100);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[0], DRYFIELD_NIGHT_G_R_KITCHEN_LIGHT_SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E27C[2], DRYFIELD_NIGHT_G_R_KITCHEN_LIGHT_SHAFT_RADIUS_SCALE);
     } else if (view == 3) {
-        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[0], 0x100);
-        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[2], 0x100);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[0], DRYFIELD_NIGHT_G_R_KITCHEN_LIGHT_SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(&D_dryfield_night_g_r_kitchen_8017E29C[2], DRYFIELD_NIGHT_G_R_KITCHEN_LIGHT_SHAFT_RADIUS_SCALE);
     }
 }
