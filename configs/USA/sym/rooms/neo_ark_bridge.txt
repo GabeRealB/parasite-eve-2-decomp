@@ -67,13 +67,13 @@ D_map_neo_ark_8017C350 = 0x8017C350; // absolute:True owner=map_neo_ark
 
 func_neo_ark_bridge_8017E954 = 0x8017E954; // type:func
 
-func_neo_ark_bridge_8017EF70 = 0x8017EF70; // type:func
+neoArkBridgeWaterRippleTask = 0x8017EF70; // type:func
 
-func_neo_ark_bridge_8017F3F8 = 0x8017F3F8; // type:func
+neoArkBridgeWaterDriftTask = 0x8017F3F8; // type:func
 
-func_neo_ark_bridge_8017FF84 = 0x8017FF84; // type:func
+neoArkBridgeRoomVisualEffectsFlashTask = 0x8017FF84; // type:func
 
-func_neo_ark_bridge_801809E8 = 0x801809E8; // type:func
+neoArkBridgeRoomVisualEffectsTwinTrailTask = 0x801809E8; // type:func
 
 func_neo_ark_bridge_801812D0 = 0x801812D0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180228; // type:func
@@ -85,3 +85,4 @@ waterDistortBandTask = 0x8017E28C; // type:func
 waterRefractionTask = 0x8017D638; // type:func
 _waterDrawSpin = 0x8017F8B4; // type:func
 _waterDrawTile = 0x8017FCA0; // type:func
+_neoArkBridgeDrawPulsingRedStar = 0x8017eb08; // type:func

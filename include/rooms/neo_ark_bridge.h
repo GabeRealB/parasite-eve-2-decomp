@@ -49,13 +49,65 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[];
 
 void func_neo_ark_bridge_8017E954(Task* arg0);
 
-void func_neo_ark_bridge_8017EF70(Task* task);
+/// Advances and draws an expanding, fading water-surface ripple for the bridge.
+///
+/// Requires a counted effect with a coordinate body, owned zeroed `EffectWork`
+/// in `spawnArg2.pointer` and initial state 0. `spawnArg1` bits 0..11 give the
+/// initial local half-side in coordinate units (0..4095); higher bits are ignored.
+/// Each running update grows it by 32, draws, then dims by 2, for 32 draws at
+/// brightness 64..2. The first update sets a random yaw, composed on the next.
+/// Non-running controls redraw retained values; cancellation draws once before
+/// retiring. Retirement frees the work and coordinate body and decrements the
+/// effect count. The room overlay and water textures must stay loaded, with
+/// initialized scratch storage and frame packet space available for drawing.
+void neoArkBridgeWaterRippleTask(Task* task);
 
-void func_neo_ark_bridge_8017F3F8(Task* task);
+/// Advances and draws an eight-cell water-spray particle for the bridge.
+///
+/// Requires a counted effect with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body, initial state 0 and animation index 0. `spawnArg1` bits
+/// 0..11 give perspective size, 12..15 updates per cell (0 selects 1), and
+/// 16..23 launch speed in parent-space coordinate units per update (0 selects 64).
+/// Bits 24..27 choose direction (0 stationary, 1 upward burst, 2 all-axis spray,
+/// 3 narrow upward jet, 5 spawn-offset direction; others leave it zero).
+/// A supplied nonzero `EffectWork::move` bypasses direction generation and
+/// scaling. Nonzero bits 28..31 select an upright tile; otherwise the sprite
+/// retains a random angle at 4096 units per turn.
+///
+/// The first running update initializes without drawing or moving. Later
+/// updates draw, move and add 6 to signed-halfword Y velocity, retaining its
+/// low 16 bits; stationary particles skip movement and gravity. Cells 0..7
+/// each last the decoded period. Suspended controls redraw retained state;
+/// cancellation retires without drawing. Retirement frees the work and body
+/// and decrements the effect count. The room overlay and water textures must
+/// stay loaded, with initialized scratch storage and frame packet space.
+void neoArkBridgeWaterDriftTask(Task* task);
 
-void func_neo_ark_bridge_8017FF84(Task* task);
+/// Runs the bridge's charging pink flash, peak screen tint and fading star.
+///
+/// Requires a counted effect with a coordinate body, owned `EffectWork` in
+/// `spawnArg2.pointer` and initial state 0. `spawnArg1.value` starts as a
+/// positive charge duration in running updates and is consumed as a countdown.
+/// Nonzero room effect controls pause without drawing; controls 4 and above,
+/// state 3 or fade completion retire the work, task and body and decrement
+/// the effect count. The room overlay must remain loaded, with scratch and
+/// frame packet storage available while drawing.
+void neoArkBridgeRoomVisualEffectsFlashTask(Task* task);
 
-void func_neo_ark_bridge_801809E8(Task* task);
+/// Draws a fading blue beam between two offsets on the bridge effect's parent.
+///
+/// Requires a counted effect with a coordinate body, owned `EffectWork` in
+/// `spawnArg2.pointer`, initial state 0 and null `Task::work`. Its borrowed
+/// `EffectWork::parent` coordinate and the room overlay must remain live.
+/// Allocates eight world-space snapshots per endpoint in `Task::work`;
+/// allocation failure resets age and retries on the next active update.
+/// `spawnArg1.value` is the release age in active updates (2..32767 before
+/// signed-halfword age wraps; 0 leaves lifetime to external teardown).
+/// Initialization advances age without drawing or testing expiry. Control
+/// values below 2 advance the trail; values 2 and above freeze without drawing
+/// or canceling it. Teardown frees both histories, effect work and the body.
+/// Drawing requires initialized scratch storage and frame packet space.
+void neoArkBridgeRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_neo_ark_bridge_801812D0(Task* task);
 

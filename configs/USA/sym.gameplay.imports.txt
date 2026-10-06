@@ -832,13 +832,13 @@ func_mine_secret_passage_80180D58 = 0x80180D58; // type:func absolute:True owner
 
 func_neo_ark_bridge_8017E954 = 0x8017E954; // type:func absolute:True owner=neo_ark_bridge
 
-func_neo_ark_bridge_8017EF70 = 0x8017EF70; // type:func absolute:True owner=neo_ark_bridge
+neoArkBridgeWaterRippleTask = 0x8017EF70; // type:func absolute:True owner=neo_ark_bridge
 
-func_neo_ark_bridge_8017F3F8 = 0x8017F3F8; // type:func absolute:True owner=neo_ark_bridge
+neoArkBridgeWaterDriftTask = 0x8017F3F8; // type:func absolute:True owner=neo_ark_bridge
 
-func_neo_ark_bridge_8017FF84 = 0x8017FF84; // type:func absolute:True owner=neo_ark_bridge
+neoArkBridgeRoomVisualEffectsFlashTask = 0x8017FF84; // type:func absolute:True owner=neo_ark_bridge
 
-func_neo_ark_bridge_801809E8 = 0x801809E8; // type:func absolute:True owner=neo_ark_bridge
+neoArkBridgeRoomVisualEffectsTwinTrailTask = 0x801809E8; // type:func absolute:True owner=neo_ark_bridge
 
 func_neo_ark_bridge_801812D0 = 0x801812D0; // type:func absolute:True owner=neo_ark_bridge
 

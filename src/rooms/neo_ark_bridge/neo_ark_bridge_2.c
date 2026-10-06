@@ -52,7 +52,7 @@ extern SVECTOR D_neo_ark_bridge_80181F58;
 extern SVECTOR D_neo_ark_bridge_80181F60;
 extern SVECTOR D_neo_ark_bridge_80181F68;
 
-static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2);
+static void _neoArkBridgeDrawPulsingRedStar(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale);
 
 extern TaskDesc D_actor_100400_80147E48;
 
@@ -711,7 +711,8 @@ WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[8] = {
 /// only acts while `viewGetMappedIndex()` reports the two side views 5 or 6 and no
 /// state-1C flag is set: two LCG rolls each spawn effect 0x60070 at
 /// `D_neo_ark_bridge_80181F60` / `D_neo_ark_bridge_80181F68` on a 1-in-4, then
-/// the sprite at `D_neo_ark_bridge_80181F58` is drawn for 0x600 frames.
+/// the red star at `D_neo_ark_bridge_80181F58` is drawn with pulse step 0x600
+/// angle units per animation frame and radius scale 0xC0.
 void func_neo_ark_bridge_8017E954(Task* arg0)
 {
     s32 view;
@@ -750,110 +751,147 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
                                         &D_neo_ark_bridge_80181F68);
                         }
                     }
-                    func_neo_ark_bridge_8017EB08(&D_neo_ark_bridge_80181F58, 0x600, 0xC0);
+                    _neoArkBridgeDrawPulsingRedStar(&D_neo_ark_bridge_80181F58, 0x600, 0xC0);
                 }
             }
             break;
     }
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, if
-/// the resulting OTZ is at least 0x11, queues two gouraud `POLY_G4` diamonds
-/// and two gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a
-/// signed half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1`
-/// scales `gDisplayState.animFrame` into `rsin` so the lit vertex pulses on red
-/// as `rsin(...) / 34 + 0x78`.
-static void func_neo_ark_bridge_8017EB08(SVECTOR* arg0, s32 arg1, s32 arg2)
+/// Reserves a red-centred, black-rimmed half of the marker's diamond.
+///
+/// Returns this frame's borrowed `POLY_G4`; `redIntensity` supplies its low
+/// byte. The caller supplies coordinates, ordering and blend state, and the
+/// frame packet arena must have room for the complete primitive.
+static inline POLY_G4* _neoArkBridgeAllocatePulsingStarHalf(s32 redIntensity)
 {
-    u8*                      head;
-    GlowCentreRadiusScratch* block;
-    POLY_G4*                 prim;
-    LINE_G3*                 line;
-    s32                      sine;
-    s32                      pulse;
-    s32                      radius;
-    s32                      i;
-    s32                      t1;
-    s32                      t2;
-    s32                      twice;
-    u16                      sx;
-    u16                      sy;
+    POLY_G4* diamondHalf;
 
-    {
-        void** scratch;
-        u8*    tmp;
+    diamondHalf    = gGpuPrimCursor;
+    gGpuPrimCursor = diamondHalf + 1;
+    setPolyG4(diamondHalf);
+    setRGB0(diamondHalf, 0, 0, 0);
+    setRGB1(diamondHalf, 0, 0, 0);
+    setRGB2(diamondHalf, redIntensity, 0, 0);
+    setRGB3(diamondHalf, 0, 0, 0);
+    return diamondHalf;
+}
 
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - sizeof(*block));
-        block   = (GlowCentreRadiusScratch*)tmp;
-    }
+/// Reserves a ray with a red centre and black endpoints for this frame's marker.
+///
+/// Returns a borrowed `LINE_G3`, advancing the packet cursor by its full size.
+/// `redIntensity` supplies its low byte; coordinates, ordering and blend state
+/// remain for the caller. The frame packet arena must have room.
+static inline LINE_G3* _neoArkBridgeAllocatePulsingStarRay(s32 redIntensity)
+{
+    LINE_G3* ray;
 
+    ray            = gGpuPrimCursor;
+    gGpuPrimCursor = ray + 1;
+    setLineG3(ray);
+    setRGB0(ray, 0, 0, 0);
+    setRGB1(ray, redIntensity, 0, 0);
+    setRGB2(ray, 0, 0, 0);
+    return ray;
+}
+
+/// Draws a pulsing red diamond and two diagonal rays at a world-space marker.
+///
+/// Borrows `worldPoint` for this call, projecting it through the current view.
+/// `pulseRate` gives signed angle units per animation frame (4096 per turn);
+/// `radiusScale` gives a signed perspective half-extent, scaled by
+/// 32 / (SZ3 / 4) to screen pixels. Only depths of 17 or
+/// above draw. Colour pulses between 0 and 240; one ray extends twice as far
+/// as the diamond. Coordinate stores retain their low 16 bits.
+///
+/// Requires an initialized scratch stack with one `GlowCentreRadiusScratch`
+/// free, and frame packet space for two `POLY_G4` and two `LINE_G3` packets.
+/// The current depth ordering table must cover indices 0..1023. Scratch is
+/// released before return; frame packets remain live until GPU consumption.
+/// No pointer is retained and GTE state is overwritten.
+static void _neoArkBridgeDrawPulsingRedStar(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale)
+{
+    enum {
+        NEO_ARK_BRIDGE_STAR_MIN_DEPTH     = 17,
+        NEO_ARK_BRIDGE_STAR_RADIUS_SCALE  = 32,
+        NEO_ARK_BRIDGE_STAR_PULSE_DIVISOR = 34,
+        NEO_ARK_BRIDGE_STAR_BASE_RED      = 0x78,
+    };
+
+    GlowCentreRadiusScratch* scratchEnd;
+    GlowCentreRadiusScratch* projection;
+    POLY_G4*                 diamondHalf;
+    LINE_G3*                 ray;
+    s32                      pulseSine;
+    s32                      redIntensity;
+    s32                      screenRadius;
+    s32                      partIndex;
+    s32                      xRadiusMultiple;
+    s32                      yRadiusMultiple;
+    s32                      verticalSide;
+    u16                      screenX;
+    u16                      screenY;
+
+    scratchEnd = *SCRATCH_STACK_CURSOR_SLOT;
+    projection = (*SCRATCH_STACK_CURSOR_SLOT = scratchEnd - 1);
+
+    // Project the centre; the depth threshold keeps the radius divisor positive.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&((GlowCentreRadiusScratch*)(head - sizeof(*block)))->sx);
-    gte_stszotz(&block->otz);
-    if (((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz >= 0x11) {
-        sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / ((GlowCentreRadiusScratch*)(head - sizeof(*block)))->otz;
-        i             = 0;
-        pulse         = sine / 34 + 0x78;
-        block->radius = radius;
+    gte_stsxy(&(scratchEnd - 1)->sx);
+    gte_stszotz(&projection->otz);
+    if ((scratchEnd - 1)->otz >= NEO_ARK_BRIDGE_STAR_MIN_DEPTH) {
+        pulseSine          = rsin(gDisplayState.animFrame * pulseRate);
+        screenRadius       = (radiusScale * NEO_ARK_BRIDGE_STAR_RADIUS_SCALE) / (scratchEnd - 1)->otz;
+        partIndex          = 0;
+        redIntensity       = pulseSine / NEO_ARK_BRIDGE_STAR_PULSE_DIVISOR + NEO_ARK_BRIDGE_STAR_BASE_RED;
+        projection->radius = screenRadius;
+        // Two triangular halves fill the red-centred diamond.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, pulse, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx - (u16)block->radius;
-            sx       = block->sx;
-            prim->x2 = sx;
-            prim->x1 = sx;
-            prim->x3 = block->sx + (u16)block->radius;
-            sy       = block->sy;
-            prim->y3 = sy;
-            prim->y2 = sy;
-            prim->y0 = sy;
-            twice    = i * 2;
-            prim->y1 = (block->sy - (u16)block->radius) + (block->radius * twice);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-            i++;
-        } while (i < 2);
+            diamondHalf     = _neoArkBridgeAllocatePulsingStarHalf(redIntensity);
+            diamondHalf->x0 = projection->sx - (u16)projection->radius;
+            screenX         = projection->sx;
+            diamondHalf->x2 = screenX;
+            diamondHalf->x1 = screenX;
+            diamondHalf->x3 = projection->sx + (u16)projection->radius;
+            screenY         = projection->sy;
+            diamondHalf->y3 = screenY;
+            diamondHalf->y2 = screenY;
+            diamondHalf->y0 = screenY;
+            verticalSide    = partIndex * 2;
+            diamondHalf->y1 = (projection->sy - (u16)projection->radius) + (projection->radius * verticalSide);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    diamondHalf);
+            gpuSetPrimitiveBlendMode(diamondHalf, GPU_BLEND_ADD, projection->otz);
+            partIndex++;
+        } while (partIndex < 2);
 
-        i = 0;
+        // Both rays meet at the centre; the second has twice the first's reach.
+        partIndex = 0;
         do {
-            line           = gGpuPrimCursor;
-            gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, pulse, 0, 0);
-            setRGB2(line, 0, 0, 0);
-            t1       = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->sx + (block->radius * t1);
-            line->y0 = block->sy - (block->radius * t2);
-            line->x1 = block->sx;
-            line->y1 = block->sy;
-            line->x2 = block->sx - (block->radius * t1);
-            line->y2 = block->sy + (block->radius * t2);
-            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
-                    line);
-            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
-            i = t2;
-        } while (i < 2);
+            ray             = _neoArkBridgeAllocatePulsingStarRay(redIntensity);
+            xRadiusMultiple = partIndex * 3 - 1;
+            yRadiusMultiple = partIndex + 1;
+            ray->x0         = projection->sx + (projection->radius * xRadiusMultiple);
+            ray->y0         = projection->sy - (projection->radius * yRadiusMultiple);
+            ray->x1         = projection->sx;
+            ray->y1         = projection->sy;
+            ray->x2         = projection->sx - (projection->radius * xRadiusMultiple);
+            ray->y2         = projection->sy + (projection->radius * yRadiusMultiple);
+            addPrim((&gGpuCurrentOt[((u32)projection->otz << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)]),
+                    ray);
+            gpuSetPrimitiveBlendMode(ray, GPU_BLEND_ADD, projection->otz);
+            partIndex = yRadiusMultiple;
+        } while (partIndex < 2);
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiusScratch);
 }
 
 #include "../../shared/water_ripple_task.inc.c"
 
-void func_neo_ark_bridge_8017EF70(Task* task)
+void neoArkBridgeWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
@@ -862,7 +900,7 @@ void func_neo_ark_bridge_8017EF70(Task* task)
 
 #include "../../shared/water_drift_task.inc.c"
 
-void func_neo_ark_bridge_8017F3F8(Task* task)
+void neoArkBridgeWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
@@ -875,14 +913,14 @@ void func_neo_ark_bridge_8017F3F8(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_bridge_8017FF84(Task* arg0)
+void neoArkBridgeRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_bridge_801809E8(Task* task)
+void neoArkBridgeRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

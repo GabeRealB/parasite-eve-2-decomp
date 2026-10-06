@@ -916,8 +916,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionWaterDriftTaskU16FixedCoord, { NULL } },                   // 0x177
     { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandWaterRippleTaskFixedCoord, { NULL } },                       // 0x178
     { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandWaterDriftTaskU16FixedCoord, { NULL } },                     // 0x179
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017EF70, { NULL } },                                // 0x17A
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017F3F8, { NULL } },                                // 0x17B
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeWaterRippleTask, { NULL } },                                 // 0x17A
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeWaterDriftTask, { NULL } },                                  // 0x17B
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLeafFallTask, { NULL } },                             // 0x17C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sterilization_room_801823D8, { NULL } },                 // 0x17D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08DrawGlowsTask, { NULL } },                               // 0x17E
@@ -1019,7 +1019,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_south_promenade_8017D720, { NULL } },                       // 0x1DE
     { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineRoomVisualEffectsFlashTask, { NULL } },                      // 0x1DF
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryRoomVisualEffectsFlashTask, { NULL } },                  // 0x1E0
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017FF84, { NULL } },                                // 0x1E1
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeRoomVisualEffectsFlashTask, { NULL } },                      // 0x1E1
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pyramid_8017DC50, { NULL } },                               // 0x1E2
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08RoomVisualEffectsTwinTrailTask, { NULL } },              // 0x1E3
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8018177C, { NULL } },                      // 0x1E4
@@ -1047,7 +1047,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_south_promenade_8017E184, { NULL } },                       // 0x1FA
     { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineRoomVisualEffectsTwinTrailTask, { NULL } },                  // 0x1FB
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryRoomVisualEffectsTwinTrailTask, { NULL } },              // 0x1FC
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_801809E8, { NULL } },                                // 0x1FD
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkBridgeRoomVisualEffectsTwinTrailTask, { NULL } },                  // 0x1FD
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pyramid_8017E6B4, { NULL } },                               // 0x1FE
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017F8FC, { NULL } },                            // 0x1FF
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_80182064, { NULL } },                      // 0x200
