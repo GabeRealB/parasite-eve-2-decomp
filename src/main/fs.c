@@ -1653,7 +1653,7 @@ u8 Fs_LoadImageStrip(s32 mode)
             {
                 u8 value = *scan++;
                 if (value != 0) {
-                    goto strip_done;
+                    break;
                 }
             }
             Fs_ChunkReadPtr++;
@@ -1669,7 +1669,6 @@ u8 Fs_LoadImageStrip(s32 mode)
                 return 0;
             }
         } while (1);
-    strip_done:
         D5B498_8006D748 = 0;
     }
 }
