@@ -150225,3 +150225,73 @@ attempts; left as it was.
   an unconditional jump puts a barrier. `if (t >= 0) { store } else { return
   1; }` in front of the loop does not help: jump.c's "if (foo) bar; else
   break;" swap moves the return in front of the store.
+## Goto removal, batch 25: an inline's block note keeps a `break` loop unrotated; a hand-rotated scan was cse's register choice (main CD/file code, 2026-10-06)
+
+- **`for (;;) { if (hit) { copy; found = 1; break; } if (last) break; p++; }`
+  is rotated only because of where the first `break` sits.** `expand_end_loop`
+  (stmt.c) scans from the loop top for an exit jump and takes the first
+  *unconditional* jump to the end label it meets before a `CODE_LABEL`, a call
+  or a `NOTE_INSN_BLOCK_BEG/END`; a `break` at the end of the first `if` block
+  is such a jump, and the whole test-and-hit block is duplicated in front of
+  the loop (`func_800DEC80`: 42 insns longer, which is why the 2026-09-26 entry
+  kept `goto done_search`). An inlined call in the hit block puts a block note
+  in front of the `break`, the scan stops there, and the loop stays as written.
+  The three hit blocks were the same three-line point copy, now
+  `_worldCollisionCopyContactPoint(out, contact)`; six gotos went with it. So a
+  `goto` out of a `for (;;)` whose hit block repeats elsewhere is worth one try
+  as "inline for the block, `break` for the jump". A block-scoped local in the
+  loop body has the same effect (`func_replay_bonus_80115D60`, below).
+- **`i = 0; if ((u32)sector < (u32)len) { do { ...; goto after; } while (i < len); }`
+  was `for (i = 0; i < len; i++) { ...; break; }`** (`Fs_LoadFile`, five
+  scans). The odd entry test comparing `sector` is cse's doing: `sltu` takes a
+  register first operand, so the duplicated entry test `0 < len` cannot hold
+  the constant and cse canonicalises `i` to the oldest register known to be
+  zero, which is `sector` (`sltu v0,s0,t0`). That only happens where cse's path
+  reaches the case (a compare-tree case label with one user, followed under
+  `-fcse-follow-jumps`); in the `default:` case, reached from several jumps,
+  the test comes out as `len != 0` instead, which the old source spelled
+  `(len = Fs_FileTableLen) != 0`. With the `do`/`while` spelling a `break`
+  did not match (33 insns longer, registers renumbered from the top; the
+  cause was not isolated); with the `for` it matches first try.
+  A scan whose entry test compares an unrelated zero-valued variable is a
+  plain counted `for`.
+- **A status poll `ret = poll(); if (ret != 1) { if (ret < 2) { if (ret == 0)
+  return; goto out; } if (ret != 2) goto out; CdFlush(); } body`** is
+  `switch ((s16)poll()) { case 0: return; case 2: CdFlush(); /* fallthrough */
+  case 1: body; break; }` with the default falling out of the inner switch
+  (`CdCmd_HandleFileLoad`, `CdCmd_HandleMount`, `CdCmd_HandleStreamDecode`; 33
+  of 35 gotos in the three went, most of them this way). Where no path tests zero the list still needs
+  `case 0:` next to `default:` for the `slti 2` node. A state whose default
+  path runs the *next* state's code (`case 3` of the file load) is the inner
+  switch followed by a fallthrough; a state-1 body reached from three places
+  in state 0 is that body written after the switch, with `case 1: break;
+  default: return;` (`CdCmd_HandleStreamDecode`).
+- **`p = &gCdCmdQueue;` re-assigned at a label two gotos reach** is an inline
+  with its own `p` (`_cdCmdFinishSceneAudio`, called at the three sites of
+  `CdCmd_ProcessPhase1`).
+- Not converted, and why:
+  - `state->step = 4; goto do_load;` from state 0 of `CdCmd_HandleFileLoad`
+    into state 4. Written out (`step = 4; Fs_LoadFile(...); step++; break;`)
+    the copy has no label between the store and the call; in the build the
+    call's first argument load sits above the store (`lhu; li v1,4; j; sh`)
+    and the merge starts one insn into the load block, so the store no
+    longer shares `sh v0,step` with state 3's `step++`. The `goto end_check`
+    beside it could only go if state 0 fell out of its inner switch, which it
+    cannot while it also falls through into state 1; duplicating the end test
+    in the `default:` un-merges the shared `ret == 0` test.
+  - `cancelStep = FINISH; goto case_2;` in `CdCmd_ProcessPhase1` /
+    `CdCmd_ProcessPhase2` (state 0 jumping over state 1 into state 2). The
+    stop block written twice merges only its two tails; the leading
+    `jal; sll; bnez` stays double because the two tails end at labels
+    cross-jumping created itself. Writing the copy's arms the other way round
+    gives the same RTL.
+  - `step = 6; goto case6;` in `Gp_StepCdAudioCmd`: an inline for state 6's
+    body called from both states is not merged at all (39 insns longer).
+  - `func_replay_bonus_80115D60`'s two `found = 1; L: if (*p != id) { j++; p++;
+    if (j >= N) found = 0; else goto L; }` scans. `for (;;)` with `if/else
+    break` is rotated (the `found = 0; break;` is the first unconditional exit
+    jump). With a block-local `u16 listed = *p;` at the top of the body both
+    loops have the image's shape and length, and with `id` widened to `s32`
+    (as `u8` its zero-extension is hoisted to the preheader) what remains is
+    `$a2/$a3` swapped between `rec` and `id` in the first scan: as a real loop
+    the uses of `id` weigh more than `rec`'s.
