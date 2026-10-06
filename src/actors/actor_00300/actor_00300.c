@@ -2563,30 +2563,18 @@ static void Actor00300_Fn032BC(Task* arg0)
         }
     } else {
         step = work->turnRate;
-        if (diff > 0) {
-            if (step >= 0x1000 - diff) {
-                goto snap;
+        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+            work->yaw = work->targetYaw;
+        } else {
+            wrapStep = work->turnRate;
+            cur      = work->yaw;
+            if (diff > 0) {
+                work->yaw = cur - wrapStep;
             } else {
-                goto turn;
+                work->yaw = cur + wrapStep;
             }
-        } else if (step >= 0x1000 + diff) {
-            goto snap;
-        } else {
-            goto turn;
-        }
-    snap:
-        work->yaw = work->targetYaw;
-        goto done;
-    turn:
-        wrapStep = work->turnRate;
-        cur      = work->yaw;
-        if (diff > 0) {
-            work->yaw = cur - wrapStep;
-        } else {
-            work->yaw = cur + wrapStep;
         }
     }
-done:
     sc->rot.vx = 0;
     sc->rot.vy = work->yaw;
     sc->rot.vz = 0;
@@ -2834,24 +2822,21 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
     work  = arg1->work;
     mode  = gSceneCombatState.actorControl;
     coord = obj->coords;
-    if (mode == 1)
-        goto case1;
-    if (mode < 2)
-        goto common;
-    if (mode == 2)
-        goto case2;
-    goto common;
-case1:
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    return;
-case2:
-    obj->flags                             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->drainModelTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    return;
-common:
+    switch (mode) {
+        case 1:
+            vec.vx = coord->workm.t[0];
+            vec.vy = coord->workm.t[1];
+            vec.vz = coord->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            return;
+        case 2:
+            obj->flags                             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->drainModelTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        case 0:
+        default:
+            break;
+    }
     switch (work->actionStep) {
         case 0:
             work->deathScaleY  = 0x1000;
