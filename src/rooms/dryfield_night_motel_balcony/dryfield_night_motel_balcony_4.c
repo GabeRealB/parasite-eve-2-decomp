@@ -4194,7 +4194,8 @@ void dryfieldNightMotelBalconyFlameTask(Task* task)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
 
     // Draw the composed starting position; local movement dirties the next cache.
@@ -4258,7 +4259,6 @@ void dryfieldNightMotelBalconyFlameTask(Task* task)
                 fadeRgb[0] = fadeRgb[1] = fadeRgb[2] = (lifetimeFrames - ageFrames) * DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FADE_STEP;
                 _dryfieldNightMotelBalconyDrawFlame(task, fadeRgb, ageFrames);
             } else {
-            release:
                 effectKillTask(work, task);
             }
             break;
