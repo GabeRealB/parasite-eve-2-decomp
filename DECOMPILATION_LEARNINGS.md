@@ -149685,3 +149685,46 @@ attempts; left as it was.
   return 1;` needs the pointer step in the `for` header: with `*p++` in the
   test the two increments trade places around the branch
   (`func_actor_403600_80138D9C`).
+### Goto removal, batch 16: stores in the arms instead of a value local, a reset in both arms (2026-10-06)
+
+- **`cmd = K; goto run;` into `run: call(cmd); state = 2; break;`, with a
+  `state` local stored once at the end** (`func_actor_548100_80132684`). The
+  local was standing for `task->state = K` written in the arms. Three forms
+  with the local fail: the call and `state = 2` in each case keeps the *first*
+  copy of the call (batch 09's case), and in both that form and an inline
+  returning the next state the two `Gp_StartCapSlot(...); state = 2;` arms are
+  merged, which the image does not do. What matches: the arms that end in
+  state 2 `break` with only their call, `task->state = 2;` is written once
+  after the switch, the two odd arms store their own state and `return`, and
+  the no-choice path is `else if (work->usedItem != 0) task->state = 6; else
+  task->state = 2;`. Marks to read this from: two arms that differ in one
+  argument and are *not* merged (they end in jumps to the switch's end with
+  one matching insn in front, and jump-against-jump needs two); `bnez x,L;
+  li v0,6; li v0,2; L: sw` for a two-way constant store (cross-jumping merges
+  the two `sw`, reorg then inverts the branch around the jump; with a register
+  local jump.c turns it into `v = 2; if (x) v = 6` before that, the other way
+  round); every `j L; li v0,K` is reorg taking the constant from in front of
+  the merged store.
+- **`if (state != 0) { ...; if (work->state != 0) goto skip; } <reset>; skip:`**
+  (`func_actor_444000_80142F28`) is the reset written in both arms,
+  `if (state != 0) { ...; if (work->state == 0) reset(); } else { reset(); }`,
+  with the reset a `static inline void`. The first copy is merged into the
+  `else` one and the jumps collapse to the image's `bnez skip` falling into
+  the reset. Two forms that fail: a value-returning inline holding the body
+  (`if (state == 0 || body(...) == 0)`) with the body's `SVECTOR` as its own
+  local turns the vector's address into a register (`addiu a2,sp,32`, the
+  stores go through it); with the vector passed in from the caller another
+  scratch address is kept in `$s3` across the call.
+- **`default: goto done;` past a call that follows the switch**
+  (`func_neo_ark_power_plant_2_8017D61C`) is the call written in each case
+  with `break`, not `default: return 0;` (the `move v0,zero` is then local to
+  the arm, 2 insns longer; the `break` vs `return 0` entry above).
+- A mode ladder on `gSceneCombatState.actorControl` whose mode 0 has a body
+  (`golemKnightBishopFrameState`, four functions of `actor_510900_2.c`) is
+  `switch { case 0: ...; break; case 1: ...; return; case 2: ...; return; }`
+  with the cases in image order; a mode 1 that jumped to the function's last
+  call is that call and a `return`. The `one = 1` local goes each time.
+  `func_actor_510900_8013A9BC` keeps `next = 2`, `held->state = state` and
+  `status = grabbed`: with the constants written in place more tails merge
+  (1 insn shorter). `Actor00100_Fn0A288` keeps `excludedState = 21` (`$a1`
+  becomes `$v0`).
