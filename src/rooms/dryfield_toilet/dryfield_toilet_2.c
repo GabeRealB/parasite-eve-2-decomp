@@ -2555,23 +2555,29 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
     effectKillTask(mem, arg0);
 }
 
-/// Places both opposite corner pairs of a puff at its fixed screen-space rotation.
+/// Sets the screen corners of a jet puff's rotated square around its projected centre.
 ///
-/// `projection` supplies the projected centre and a positive depth. `work->scale`
-/// is a world size and `work->angle` uses 4096 units per turn. Corner offsets
-/// retain Q12 trig rounding and the signed 32-bit sizing arithmetic.
-static inline void _dryfieldToiletSetJetPuffCorners(POLY_FT4* quad, OverlaySpriteScratch* projection, const EffectWork* work)
+/// `projection` must be a live scratch block with a screen centre and positive
+/// depth (SZ3 / 4). The signed halfword sources supply size and an angle in 4096
+/// units per turn; this puff initializes both to 0..4095. Size times the cell's
+/// 31-texel UV span divided by depth gives the half-diagonal in pixels before
+/// rotation.
+/// Each component rereads the sources and truncates the signed division before
+/// its Q12 trig product. The second diagonal leaves its offsets in `projection`;
+/// screen coordinates narrow to packet halfwords. No pointers are retained.
+static inline void _dryfieldToiletSetJetPuffCorners(POLY_FT4* quad, OverlaySpriteScratch* projection, const s16* sizeSource, const s16* angleSource)
 {
-    enum { PUFF_SIZE_PROJECTION_SCALE = 31 };
+    enum { PUFF_SIZE_PROJECTION_SCALE = 31 }; // UV span of the 32-texel puff cell
 
-    projection->cornerDx = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rsin(work->angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
-    projection->cornerDy = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rcos(work->angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    // Place opposite corners on each of two perpendicular screen-space diagonals.
+    projection->cornerDx = (((*sizeSource * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rsin(*angleSource)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    projection->cornerDy = (((*sizeSource * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rcos(*angleSource)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
     quad->x0             = projection->screenPos.vx + projection->cornerDx;
     quad->x3             = projection->screenPos.vx - projection->cornerDx;
     quad->y0             = projection->screenPos.vy - projection->cornerDy;
     quad->y3             = projection->screenPos.vy + projection->cornerDy;
-    projection->cornerDx = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rsin(work->angle + ROOM_VISUAL_EFFECTS_FULL_TURN / 4)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
-    projection->cornerDy = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rcos(work->angle + ROOM_VISUAL_EFFECTS_FULL_TURN / 4)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    projection->cornerDx = (((*sizeSource * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rsin(*angleSource + ROOM_VISUAL_EFFECTS_FULL_TURN / 4)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    projection->cornerDy = (((*sizeSource * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rcos(*angleSource + ROOM_VISUAL_EFFECTS_FULL_TURN / 4)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
     quad->x1             = projection->screenPos.vx + projection->cornerDx;
     quad->x2             = projection->screenPos.vx - projection->cornerDx;
     quad->y1             = projection->screenPos.vy - projection->cornerDy;
@@ -2671,7 +2677,7 @@ void dryfieldToiletJetPuffTask(Task* task)
         quad->code |= PUFF_RAW_TEXTURE_BLEND_FLAGS;
         setUVWH(quad, (work->age / work->period) << PUFF_TEXTURE_CELL_SHIFT, PUFF_TEXTURE_ROW,
                 PUFF_TEXTURE_CELL_LAST, PUFF_TEXTURE_CELL_LAST);
-        _dryfieldToiletSetJetPuffCorners(quad, projection, work);
+        _dryfieldToiletSetJetPuffCorners(quad, projection, &work->scale, &work->angle);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
