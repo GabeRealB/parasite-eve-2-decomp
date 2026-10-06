@@ -3081,7 +3081,8 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
         case 0:
             arg0->work = memCalloc(SHELTER_B3_DUMPING_HOLE_SHARD_WORK_BYTES, 0);
             if (arg0->work == NULL) {
-                goto kill;
+                taskKill(arg0);
+                break;
             }
             work          = arg0->work;
             coord->parent = &gGfxViewCoord;
@@ -3140,11 +3141,9 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             gte_stszotz(&otz);
             sy = sxy >> 16;
             sx = sxy;
-            if (sx < -0xA0) {
-                goto kill;
-            }
-            if (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0) {
-            kill:
+            /* The grouping keeps the two x tests apart: as direct operands of
+             * one `||` they fold into a single unsigned range compare. */
+            if (sx < -0xA0 || (sx > 0xA0 || sy < -0x78 || sy > 0x78 || otz < 0)) {
                 taskKill(arg0);
                 break;
             }
