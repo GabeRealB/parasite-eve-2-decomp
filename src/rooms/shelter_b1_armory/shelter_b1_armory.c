@@ -290,25 +290,25 @@ void func_shelter_b1_armory_8018034C(Task* task)
     }
 }
 
+/// Answers 1 when a pending room-action trigger with `parameter0` 0xFF was hit.
+static inline s32 _shelterB1ArmoryRoomTriggerHit(void)
+{
+    WorldCollisionTrigger* node;
+
+    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
+        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /// Answers 1 and spawns the armory task when a hit room-action trigger with
 /// `parameter0` 0xFF exists and `arg2` is 0x105, 0x121 or 0x122. Event nibble
 /// 0xF0 selects the task's parameter; on 0x105 a first visit also sets it.
 s32 func_shelter_b1_armory_80180468(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    WorldCollisionTrigger* node;
-    s32                    found;
-
-    node = Gp_PendingObj4C;
-    while (node != NULL) {
-        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-            found = 1;
-            goto check;
-        }
-        node = node->next;
-    }
-    found = 0;
-check:
-    if (found != 0) {
+    if (_shelterB1ArmoryRoomTriggerHit() != 0) {
         if (arg2 == 0x105) {
             gGameSession->eventState = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
