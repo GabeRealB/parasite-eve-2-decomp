@@ -149055,3 +149055,47 @@ puts the success after the call and also turns the reload of `cfg->weapon`
 into `move a2,v0` (the image reloads it because the weapon id variable was
 overwritten with the effect id first). Its early-outs and the 0x19/0x1C choice
 nest normally, and `kind = 0x16` was not needed (10 gotos -> 5).
+
+### More goto forms: a jump into a loop, `break` vs `return 0`, and which duplicate survives (batch of 16, 2026-10-06)
+
+- **`goto readOpcode;` into the middle of `for (;;) { switch ...; while (1) {
+  if (op != GROUP_END) break; stream++; readOpcode: op = *stream; if (op ==
+  END) goto done; } }`** (`tmdBuildBufferHalf`) is two ordinary nested loops:
+  `for (;;) { op = *stream; if (op == END) break; while (op != GROUP_END) {
+  switch ...; op = *stream; } stream++; }`. The image's single `GROUP_END`
+  test at the bottom with `j` to the `END` test at entry is what the plain
+  nesting compiles to; first try. The resolver above it in `src/main/tmd.c`
+  has the same shape.
+- **`goto running;` to a label in front of the function's final `return 0;`**
+  is `break` out of the switch, not `return 0;`. With `return 0;` the
+  `move v0,zero` is local to the arm and reorg puts it in the jump's delay
+  slot (`sh; j epilogue; move v0,zero`); with `break` the jump goes to the
+  shared `move v0,zero` and the store fills the slot (`j; sh`), which is what
+  the image has (`func_acropolis_plaza_8017FB50`; every `return 0;` at a case
+  end could then be `break` as well).
+- **Which copy of a duplicated tail survives depends on how the copies end.**
+  When one copy falls through into the join, that copy (the later one) is
+  kept. When *both* copies end in a jump to the same label, the *earlier* one
+  was kept and the later arm jumps backward into it: the two arms of
+  `func_acropolis_plaza_8017DFE0`'s same-direction seek, written out in full
+  as `if (side == 0) { if (fwd == WALK) { ... } } else if (side == 1) { ... }`,
+  reproduce `view = ...; L_eqShared:` with its backward `j`, because both end
+  by jumping to the `frameStep = FINE` store that cross-jumping had already
+  merged into the following `else` branch. Five gotos and the `view` local
+  went this way. So a backward jump into an earlier arm is not by itself
+  evidence of a hand-written `goto`.
+- **`case 4: tbl = A; goto common; ... case 7: tbl = D; default: common:
+  <shared code>`** next to a case with its own code is a switch that only
+  picks the table, the shared code after it, and the odd case ending in the
+  final call and a `return` (`func_acropolis_plaza_8017DE24`). An inline
+  holding the shared code, called per case, did not merge (registers differ).
+- **A cancel guard `if (control != RUNNING) { if (control < CANCEL_MIN) return;
+  goto release; }` with `release:` on the last `effectKillTask` of the
+  function** is `effectKillTask(work, task); return;` in the guard; seven room
+  effect tasks, first try each.
+- Not converted: `_acropolisPlazaFindPlacedEnemy`'s scan. Every `break` form
+  (`while (a && b)`, `while` + `break`, guarded `do` + `break`, an index helper
+  with `for` + `return`) either rotates on the wrong test or keeps the entry
+  test's load for the first compare of the body; the image reloads the byte at
+  the loop top. `func_acropolis_plaza_8017DFE0` keeps one `goto` from state 5
+  back into state 2 (an inline for state 2's body would need its own `slot[]`).
