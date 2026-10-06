@@ -1,22 +1,31 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// "Start animation" opcode: the request's blend selects between the two start
-/// paths the runner `footstepWalkUpdate` dispatches on, and only the blended one
-/// carries a frame count, which it leaves in `gFootstepWalkBlendFrames`. The runner is then
-/// run once on the task published in `gFootstepWalkTask`. Returns -1,
-/// without touching the work block, when the clip id is 0x23 or more.
-s32 footstepWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Starts the published walker's requested animation synchronously.
+///
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` through `gFootstepWalkTask` and
+/// `gFootstepWalkWork`; the receiver argument, message ID and second payload
+/// are ignored. A nonzero blend uses `request->blendFrames` in whole frames
+/// (0..2047); reset ignores that duration. The request is borrowed only for
+/// this call, but selected clips and rig storage must stay live for playback.
+///
+/// Returns -1 without changing state for IDs 35 and above, otherwise zero.
+/// The upper-bound check alone does not validate negative IDs or unloaded
+/// table entries; callers must select a loaded clip with tracks 1 through 18.
+/// Bank selection and collision options in the request are ignored.
+static s32 _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    if (args->animationId < 0x23) {
-        gFootstepWalkWork->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
+    enum { FOOTSTEP_WALK_CLIP_ID_LIMIT = 35 };
+
+    if (request->animationId < FOOTSTEP_WALK_CLIP_ID_LIMIT) {
+        gFootstepWalkWork->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gFootstepWalkBlendFrames    = args->blendFrames;
+            gFootstepWalkBlendFrames    = request->blendFrames;
         } else {
             gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gFootstepWalkWork->st.field_6 = 0;
-        footstepWalkUpdate(gFootstepWalkTask);
+        _footstepWalkUpdate(gFootstepWalkTask);
         return 0;
     }
     return -1;

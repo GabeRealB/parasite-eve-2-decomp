@@ -1,17 +1,19 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// Blended reseed: reseeds animation slots 1..0x12 of the work block from the
-/// current animation id with the latched reset argument
-/// `gFootstepWalkBlendFrames`, and records that id as the one now playing.
-void footstepWalkQuietBlendAnim(void)
+/// Captures parts 1 through 18 of the quiet walker and blends to its requested clip.
+///
+/// The published work block must have a bound rig, initialized slots and
+/// loaded tracks for `st.animId`. `gFootstepWalkBlendFrames` counts whole
+/// frames (0..2047). Each slot advances once during pose capture, with the
+/// borrowed-buffer and scratch/GTE contract of `animationSeekSlotWithBlend`.
+/// Part 0 is left alone; `st.appliedAnimId` records the newly selected clip.
+static void _footstepWalkQuietBlendAnim(void)
 {
-    s32 i;
+    s32 slotIndex;
 
-    i = 1;
-    do {
-        animationSeekSlotWithBlend(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId, 0,
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(gFootstepWalkWork->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&gFootstepWalkWork->rig.anim, slotIndex, gFootstepWalkWork->st.animId, 0,
                                    gFootstepWalkBlendFrames);
-        i++;
-    } while (i < 0x13);
+    }
     gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
 }

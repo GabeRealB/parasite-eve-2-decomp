@@ -160,12 +160,12 @@ gFootstepWalkMode = 0x801438A8; // size:0x2 defined:True
 
 D_neo_ark_r31_8017DC54 = 0x8017DC54; // absolute:True owner=neo_ark_r31 shared=rooms
 footstepWalkSpawn = 0x8013307C; // type:func
-footstepWalkUpdate = 0x801331E4; // type:func
-footstepWalkPlaySteps = 0x8013365C; // type:func
-footstepWalkTickAnim = 0x80133724; // type:func
-footstepWalkResetAnim = 0x80133770; // type:func
-footstepWalkBlendAnim = 0x8013380C; // type:func
-footstepWalkTo = 0x80133A3C; // type:func
+_footstepWalkUpdate = 0x801331E4; // type:func
+_footstepWalkPlayStepSound = 0x8013365C; // type:func
+_footstepWalkTickAnim = 0x80133724; // type:func
+_footstepWalkResetAnim = 0x80133770; // type:func
+_footstepWalkBlendAnim = 0x8013380C; // type:func
+_footstepWalkSetWalkTarget = 0x80133A3C; // type:func
 footstepWalkExit = 0x80133634; // type:func
 scriptedWalkUpdate = 0x80132660; // type:func
 _scriptedWalkTickAnim = 0x80132C28; // type:func
@@ -173,6 +173,6 @@ scriptedWalkResetAnim = 0x80132C74; // type:func
 scriptedWalkBlendAnim = 0x80132D04; // type:func
 scriptedWalkTo = 0x80132F44; // type:func
 walkerDrawShadowShaded = 0x80132AD8; // type:func
-footstepWalkPlace = 0x80133970; // type:func
+_footstepWalkPlace = 0x80133970; // type:func
 scriptedWalkPlace = 0x80132EA4; // type:func
-footstepWalkPlay = 0x80133898; // type:func
+_footstepWalkPlayAnimation = 0x80133898; // type:func

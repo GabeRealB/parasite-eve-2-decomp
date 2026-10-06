@@ -1,17 +1,20 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// Plain reseed: marks animation slots 1..0x12 of the work block reset-pending
-/// and reseeds each of them from the current animation id, then records that id
-/// as the one now playing.
-void footstepWalkQuietResetAnim(void)
+/// Restarts parts 1 through 18 of the quiet walker on its requested clip.
+///
+/// The published work block must have a bound rig and loaded tracks for
+/// `st.animId`. Reset requires the live storage and indices described by
+/// `animationResetSlot`; it leaves slots at `ANIMATION_RATE_ONE` without
+/// advancing or writing a pose. Part 0 is untouched and `st.appliedAnimId`
+/// records the selected clip.
+static void _footstepWalkQuietResetAnim(void)
 {
-    s32 i;
+    s32 slotIndex;
 
-    i = 1;
-    do {
-        gFootstepWalkWork->rig.slots[i].rate = 1;
-        animationResetSlot(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId);
-        i++;
-    } while (i < 0x13);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(gFootstepWalkWork->rig.slots); slotIndex++) {
+        // The reset replaces this preliminary sixteenth-frame rate with normal speed.
+        gFootstepWalkWork->rig.slots[slotIndex].rate = FOOTSTEP_WALK_PRE_RESET_RATE;
+        animationResetSlot(&gFootstepWalkWork->rig.anim, slotIndex, gFootstepWalkWork->st.animId);
+    }
     gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
 }

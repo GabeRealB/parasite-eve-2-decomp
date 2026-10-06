@@ -6,11 +6,17 @@
  * with a 10-frame blend when it runs out, turns while the turn clip has frames
  * left and plays a panned step sound on each foot cue. The 'walk to' message
  * (0x7DD) turns the model to face its target and divides the planar distance
- * into the mode's step count. The exit callback, footstepWalkExit, is the
+ * by the mode's distance per update to obtain a whole-frame travel count.
+ * The exit callback, footstepWalkExit, is the
  * package's own.
  *
  * Include this header in the prologue and each fragment at its function's
- * position. The walker's state belongs to the package, which defines it at
+ * position. Each carrier declares its private function instances there and
+ * defines FOOTSTEP_WALK_WORK_T when including the walk-target fragment, as
+ * its allocated work type (FootstepWalkWork or FootstepWalkQuietWork). That
+ * fragment uses the selected type at
+ * Task::work. This binding is a type name, with no argument evaluation.
+ * The walker's state belongs to the package, which defines it at
  * its own positions under these names:
  *
  *   FootstepWalkWork* gFootstepWalkWork         the published work block; a
@@ -41,12 +47,45 @@
 
 #include "main/task_types.h"
 
+/// Travel modes accepted by the walk-target handler; these do not select a clip.
+enum {
+    FOOTSTEP_WALK_MODE_FORWARD      = 0,
+    FOOTSTEP_WALK_MODE_BACKWARD     = 1,
+    FOOTSTEP_WALK_MODE_SLOW_FORWARD = 2
+};
+
+/// Positive distances per moving update, in the model root's parent space.
+/// Backward mode negates its distance when translating the model.
+enum {
+    FOOTSTEP_WALK_FORWARD_DISTANCE      = 60,
+    FOOTSTEP_WALK_BACKWARD_DISTANCE     = 15,
+    FOOTSTEP_WALK_SLOW_FORWARD_DISTANCE = 25
+};
+
+/// Clip keys whose playback permits travel or turning, and the travel-end pose.
+/// The three walk keys all use the independently selected travel mode.
+enum {
+    FOOTSTEP_WALK_ANIM_WALK_2  = 2,
+    FOOTSTEP_WALK_ANIM_TURN    = 3,
+    FOOTSTEP_WALK_ANIM_IDLE    = 13,
+    FOOTSTEP_WALK_ANIM_WALK_14 = 14,
+    FOOTSTEP_WALK_ANIM_WALK_15 = 15
+};
+
+/// Turn increment in 1/4096 turns per update, and travel-end blend in whole frames.
+enum {
+    FOOTSTEP_WALK_TURN_ANGLE_PER_UPDATE = 51,
+    FOOTSTEP_WALK_IDLE_BLEND_FRAMES     = 10
+};
+
+/// Preliminary rate in sixteenths of a frame, overwritten by slot reset's normal rate.
+enum { FOOTSTEP_WALK_PRE_RESET_RATE = 1 };
+
 /// Work block of a footstep walker that plays no step sounds, allocated
 /// zeroed at its full size by the walker's spawn state and kept both at
 /// `Task::work` and in the walker's `gFootstepWalkWork`.
 ///
-/// It is also what `FootstepWalkWork` opens with, which is how the walk-to
-/// handler views the block of either walker. The model object borrows `light`
+/// It is also what `FootstepWalkWork` opens with. The model object borrows `light`
 /// and `color` for as long as the block lives.
 typedef struct {
     MATRIX          light;      // Light-direction matrix lent to the model object
@@ -77,18 +116,5 @@ STATIC_ASSERT_SIZEOF(FootstepWalkWork, 0x4C0);
 
 void footstepWalkExit(Task* task);
 void footstepWalkSpawn(Enemy* enemy, Task* task);
-void footstepWalkUpdate(Task* task);
-void footstepWalkPlaySteps(Task* task);
-void footstepWalkTickAnim(void);
-void footstepWalkResetAnim(void);
-void footstepWalkBlendAnim(void);
-s32  footstepWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
-s32  footstepWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
-
-s32 footstepWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
-
-void footstepWalkQuietUpdate(Task* task);
-void footstepWalkQuietResetAnim(void);
-void footstepWalkQuietBlendAnim(void);
 
 #endif /* SRC_SHARED_FOOTSTEP_WALK_H */

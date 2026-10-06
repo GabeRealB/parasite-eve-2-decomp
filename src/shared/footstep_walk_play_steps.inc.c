@@ -1,34 +1,50 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// Plays a step sound whenever animation slot 1 rolls onto a new record whose
-/// flags nibble is 0x10 or 0x20 - the two feet - panned and attenuated from
-/// the second coordinate of the task's model. The record is latched in
-/// `stepRecord` so each one fires once.
-void footstepWalkPlaySteps(Task* task)
+/// Queues one spatial footstep when slot 1 enters a record with either foot cue.
+///
+/// `task->work` must hold the live sound walker's bound rig. Slot 1's borrowed
+/// clip data and its latched record pointer stay valid while the rig uses them.
+/// A buffered pose has no record; repeated records, no cue and both cue bits
+/// together sound nothing. Every new record is latched, including uncued ones.
+/// The model needs composed coordinate 1 for pan and attenuation and the
+/// scratch/GTE state required by `worldCoordGetOriginAudioPan`. Queue failure
+/// is ignored; the same held record is not retried. Pan and attenuation are
+/// narrowed to signed bytes before being passed as argument words.
+static void _footstepWalkPlayStepSound(Task* task)
 {
-    FootstepWalkWork*      work;
-    GfxCoord*              obj;
-    const AnimationRecord* rec;
-    s32                    cueBits;
-    s32                    id;
-    s32                    pan;
+    enum {
+        FOOTSTEP_WALK_SOUND_CUE_1_ENTRY = 16,
+        FOOTSTEP_WALK_SOUND_CUE_2_ENTRY = 15,
+        FOOTSTEP_WALK_SOUND_ENTRY_BASE  = 100
+    };
 
-    work = task->work;
-    obj  = task->extra.tmd->coords + 1;
-    rec  = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
-    if (rec == NULL || rec == work->stepRecord) {
+    FootstepWalkWork*      work;
+    GfxCoord*              soundCoord;
+    const AnimationRecord* record;
+    s32                    cueBits;
+    s32                    soundRequest;
+    s32                    panOffset;
+    s8                     attenuation;
+
+    work       = task->work;
+    soundCoord = task->extra.tmd->coords + 1;
+    record     = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
+    if (record == NULL || record == work->stepRecord) {
         return;
     }
-    work->stepRecord = rec;
-    cueBits          = rec->flags & ANIMATION_RECORD_CUE_MASK;
+    work->stepRecord = record;
+    cueBits          = record->flags & ANIMATION_RECORD_CUE_MASK;
     if (cueBits != ANIMATION_RECORD_CUE_1 && cueBits != ANIMATION_RECORD_CUE_2) {
         return;
     }
-    id = 0x1000000F;
+    // The loaded type-1 bank's footstep entries are 115 and 116.
+    soundRequest = SOUND_SCRIPT_REQUEST_TYPE_1 | FOOTSTEP_WALK_SOUND_CUE_2_ENTRY;
     if (cueBits == ANIMATION_RECORD_CUE_1) {
-        id = 0x10000010;
+        soundRequest = SOUND_SCRIPT_REQUEST_TYPE_1 | FOOTSTEP_WALK_SOUND_CUE_1_ENTRY;
     }
-    id += 0x64;
-    pan = (s8)worldCoordGetOriginAudioPan(obj);
-    sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+    soundRequest += FOOTSTEP_WALK_SOUND_ENTRY_BASE;
+    // Keep the pan's signed-byte conversion before querying attenuation.
+    panOffset   = (s8)worldCoordGetOriginAudioPan(soundCoord);
+    attenuation = worldCoordGetOriginAudioDepth(soundCoord);
+    sndEvtRequestScriptStart(soundRequest, panOffset, attenuation);
 }

@@ -32,13 +32,23 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 // Exported instance: rooms spawn from this package's table by name.
-#define gPairWalkTasks gActor535700PairWalkTasks
+#define gPairWalkTasks       gActor535700PairWalkTasks
+#define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
 #include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
 
+static void _footstepWalkUpdate(Task* task);
+static void _footstepWalkPlayStepSound(Task* task);
+static void _footstepWalkTickAnim(void);
+static void _footstepWalkResetAnim(void);
+static void _footstepWalkBlendAnim(void);
+static s32  _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
+static s32  _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
+
 /// Reset argument the first enemy's "play animation" opcode leaves behind:
-/// `footstepWalkBlendAnim` forwards it to every reseeded slot, and the
+/// `_footstepWalkBlendAnim` forwards it to every reseeded slot, and the
 /// runner sets it to 10 when a walk ends.
 extern s16 gFootstepWalkBlendFrames;
 
@@ -56,7 +66,7 @@ extern FootstepWalkWork* gFootstepWalkWork;
 /// handlers can reach its model.
 extern Task* gFootstepWalkTask;
 
-/// Picks the distance `footstepWalkUpdate` walks the model each frame:
+/// Picks the distance `_footstepWalkUpdate` walks the model each frame:
 /// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
 extern s16 gFootstepWalkMode;
 
@@ -732,11 +742,11 @@ static AnimationSet _gActor535700Animation0BC60 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 TaskMessageEntry gFootstepWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, footstepWalkPlay },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_535700_8013284C },
-    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_535700_80132910 },
-    { ACTOR_MESSAGE_WALK_TO, footstepWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _footstepWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1176,7 +1186,7 @@ void func_actor_535700_80132478(Task* task)
 }
 
 #define walkerFrame      func_actor_535700_801324D4
-#define walkerUpdate     footstepWalkUpdate
+#define walkerUpdate     _footstepWalkUpdate
 #define walkerDrawShadow walkerDrawShadowShaded
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame

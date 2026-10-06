@@ -48,6 +48,6 @@ void footstepWalkSpawn(Enemy* enemy, Task* task)
     gFootstepWalkWork->stepRecord    = NULL;
     gFootstepWalkWork->playFootsteps = 0;
     task->msgTable                   = gFootstepWalkMsgTable;
-    footstepWalkUpdate(task);
+    _footstepWalkUpdate(task);
     task->state += 1;
 }

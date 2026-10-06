@@ -25,9 +25,17 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define FOOTSTEP_WALK_WORK_T FootstepWalkQuietWork
 #include "../../shared/footstep_walk.h"
 #include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
+
+static void _footstepWalkQuietUpdate(Task* task);
+static void _footstepWalkQuietResetAnim(void);
+static void _footstepWalkQuietBlendAnim(void);
+static void _footstepWalkTickAnim(void);
+static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
+static s32  _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
 /// The clips the package's scene adds to the player's animation bank, with the
 /// records stored after them.
@@ -68,7 +76,7 @@ extern Task* D_actor_451100_8014E748;
 /// Reset argument the first actor forwards to every reseeded slot.
 extern s16 gFootstepWalkBlendFrames;
 
-/// Picks the distance `footstepWalkQuietUpdate` walks the model each frame:
+/// Picks the distance `_footstepWalkQuietUpdate` walks the model each frame:
 /// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
 extern s16 gFootstepWalkMode;
 
@@ -909,9 +917,9 @@ s16 gFootstepWalkBlendFrames = 8;
 TaskMessageEntry D_actor_451100_8013F704[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_451100_80132538 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_451100_801325C8 },
-    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_451100_8013268C },
-    { ACTOR_MESSAGE_WALK_TO, footstepWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _footstepWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1516,7 +1524,7 @@ static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
     gFootstepWalkWork->st.travel  = 0;
     gFootstepWalkWork->turnFrames = 0;
     task->msgTable                = D_actor_451100_8013F704;
-    footstepWalkQuietUpdate(task);
+    _footstepWalkQuietUpdate(task);
     task->state += 1;
 }
 
@@ -1539,7 +1547,7 @@ void func_actor_451100_801322D4(Task* task)
 }
 
 #define walkerFrame      func_actor_451100_80132330
-#define walkerUpdate     footstepWalkQuietUpdate
+#define walkerUpdate     _footstepWalkQuietUpdate
 #define walkerDrawShadow walkerDrawShadowShaded
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1574,7 +1582,7 @@ s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args,
             gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gFootstepWalkWork->st.field_6 = 0;
-        footstepWalkQuietUpdate(D_actor_451100_8014E748);
+        _footstepWalkQuietUpdate(D_actor_451100_8014E748);
         return 0;
     }
     return -1;

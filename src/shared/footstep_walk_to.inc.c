@@ -1,42 +1,53 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// "Walk to" opcode: records `mode` in `gFootstepWalkMode`, turns the
-/// model to face `target` (away from it in mode 1) caching the yaw in the work
-/// block, and leaves in `travel` the planar distance divided by the walk's
-/// frame count: 0x3C in mode 0, 0xF in mode 1 and 0x19 in mode 2.
-s32 footstepWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode)
+/// Faces a planar target and schedules the whole moving updates needed to approach it.
+///
+/// Handles `ACTOR_MESSAGE_WALK_TO` for a live task with a
+/// `FOOTSTEP_WALK_WORK_T` block and model root. `target` is borrowed xyz in
+/// the root's parent space; Y is ignored. `mode` must be a
+/// `FOOTSTEP_WALK_MODE_*` value (0 forward 60, 1 backward 15, 2 forward 25
+/// parent-coordinate units per update). Backward mode faces away from the target.
+/// The selected mode is stored as a signed halfword.
+///
+/// Stores floor(planar distance / positive step distance) in `st.travel`,
+/// discarding a fractional update; movement begins only while a walk clip is
+/// playing. Coordinate differences and their squared sum must fit signed 32
+/// bits. Mode bounds are unchecked. Heading uses 4096 units per turn and is
+/// narrowed to 16 bits. Returns zero and retains no target pointer.
+static s32 _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode)
 {
-    GfxCoord*              coord;
-    FootstepWalkQuietWork* work; // The head either walker's block opens with
-    s32                    dx;
-    s32                    dz;
-    s32                    steps;
-    s32                    dist;
-    s32                    angle;
+    GfxCoord*             rootCoord;
+    FOOTSTEP_WALK_WORK_T* work;
+    s32                   deltaX;
+    s32                   deltaZ;
+    s32                   stepDistance;
+    s32                   planarDistance;
+    s32                   targetYaw;
 
-    coord             = task->extra.tmd->coords;
+    rootCoord         = task->extra.tmd->coords;
     work              = task->work;
     gFootstepWalkMode = mode;
-    dx                = target->vx - coord->coord.t[0];
-    dz                = target->vz - coord->coord.t[2];
-    angle             = ratan2(dx, dz);
-    work->st.yaw      = angle;
-    if (gFootstepWalkMode == 1) {
-        work->st.yaw = angle + 0x800;
+    deltaX            = target->vx - rootCoord->coord.t[0];
+    deltaZ            = target->vz - rootCoord->coord.t[2];
+    targetYaw         = ratan2(deltaX, deltaZ);
+    work->st.yaw      = targetYaw;
+    if (gFootstepWalkMode == FOOTSTEP_WALK_MODE_BACKWARD) {
+        work->st.yaw = targetYaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     }
-    gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
-    dist = SquareRoot0(dx * dx + dz * dz);
+    gfxRotMatrixY(&rootCoord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
+    // Travel counts updates, rather than distance units or animation records.
+    planarDistance = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ);
     switch (gFootstepWalkMode) {
-        case 0:
-            steps = 0x3C;
+        case FOOTSTEP_WALK_MODE_FORWARD:
+            stepDistance = FOOTSTEP_WALK_FORWARD_DISTANCE;
             break;
-        case 1:
-            steps = 0xF;
+        case FOOTSTEP_WALK_MODE_BACKWARD:
+            stepDistance = FOOTSTEP_WALK_BACKWARD_DISTANCE;
             break;
-        case 2:
-            steps = 0x19;
+        case FOOTSTEP_WALK_MODE_SLOW_FORWARD:
+            stepDistance = FOOTSTEP_WALK_SLOW_FORWARD_DISTANCE;
             break;
     }
-    work->st.travel = dist / steps;
+    work->st.travel = planarDistance / stepDistance;
     return 0;
 }

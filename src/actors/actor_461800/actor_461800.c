@@ -36,6 +36,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/neo_ark_r31.h"
+#define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
 /// Selects the scripted walker's writable signed-halfword approach mode.
 ///
@@ -43,6 +44,15 @@
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #include "../../shared/scripted_walk.h"
 #include "../../shared/walker.h"
+
+static void _footstepWalkUpdate(Task* task);
+static void _footstepWalkPlayStepSound(Task* task);
+static void _footstepWalkTickAnim(void);
+static void _footstepWalkResetAnim(void);
+static void _footstepWalkBlendAnim(void);
+static s32  _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
+static s32  _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
 static s16 _gScriptedWalkModeStorage[2];
 
@@ -91,7 +101,7 @@ extern s16 gScriptedWalkBlendFrames;
 /// Reset argument the second variant forwards to every reseeded slot.
 extern s16 gFootstepWalkBlendFrames;
 
-/// Approach mode the last `footstepWalkTo` call selected.
+/// Approach mode the last `_footstepWalkSetWalkTarget` call selected.
 extern s16 gFootstepWalkMode;
 
 static void func_actor_461800_80132A0C(Enemy* enemy, Task* task);
@@ -810,11 +820,11 @@ static AnimationSet _gActor461800Animation11970 = {
 s16 gFootstepWalkBlendFrames = 8;
 
 TaskMessageEntry gFootstepWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, footstepWalkPlay },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_461800_80133928 },
-    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_461800_801339EC },
-    { ACTOR_MESSAGE_WALK_TO, footstepWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _footstepWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1268,7 +1278,7 @@ void func_actor_461800_80133554(Task* task)
 }
 
 #define walkerFrame      func_actor_461800_801335B0
-#define walkerUpdate     footstepWalkUpdate
+#define walkerUpdate     _footstepWalkUpdate
 #define walkerDrawShadow func_actor_461800_80133B98
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame

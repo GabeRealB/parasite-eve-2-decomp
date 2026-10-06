@@ -28,6 +28,12 @@
 #include "../../shared/footstep_walk.h"
 #include "../../shared/walker.h"
 
+static void _footstepWalkQuietUpdate(Task* task);
+static void _footstepWalkQuietResetAnim(void);
+static void _footstepWalkQuietBlendAnim(void);
+static void _footstepWalkTickAnim(void);
+static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
+
 /// The clips the package adds to the player's animation bank, with the records
 /// stored after them.
 ///
@@ -1344,7 +1350,7 @@ s16 gFootstepWalkBlendFrames = 8;
 TaskMessageEntry D_actor_260500_80159D80[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_260500_8014A6C4 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_260500_8014A754 },
-    { ACTOR_MESSAGE_PLACE, footstepWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_260500_8014A818 },
     { ACTOR_MESSAGE_WALK_TO, func_actor_260500_8014A83C },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1603,7 +1609,7 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
     gFootstepWalkWork->st.travel  = 0;
     gFootstepWalkWork->turnFrames = 0;
     task->msgTable                = D_actor_260500_80159D80;
-    footstepWalkQuietUpdate(task);
+    _footstepWalkQuietUpdate(task);
     task->state++;
 }
 
@@ -1625,7 +1631,7 @@ void func_actor_260500_8014A460(Task* task)
 }
 
 #define walkerFrame      func_actor_260500_8014A4BC
-#define walkerUpdate     footstepWalkQuietUpdate
+#define walkerUpdate     _footstepWalkQuietUpdate
 #define walkerDrawShadow walkerDrawShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1661,7 +1667,7 @@ s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* prese
             gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         gFootstepWalkWork->st.field_6 = 0;
-        footstepWalkQuietUpdate(D_actor_260500_80159E50);
+        _footstepWalkQuietUpdate(D_actor_260500_80159E50);
         return 0;
     }
     return -1;
