@@ -2232,14 +2232,21 @@ void effectDrawInnerGlowBand(const GfxCoord* coord, s16 innerRadius, s32 width, 
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-/// Releases a screen effect's counted work before teardown runs child exit callbacks.
+/// Releases one counted effect's work and performs default task teardown.
 ///
-/// `effectState` is the live room controller; `work` is this task's owned
-/// primary-heap allocation. The task's body must not own the same allocation.
-static inline void _effectReleaseScreenTask(RoomEffectState* effectState, EffectWork* work, Task* task)
+/// `task` must be live and counted in the live `effectState` controller. Call
+/// once per effect. `effectWork` must be NULL or the original pointer to its
+/// owned primary-heap allocation, separate from `Task::work`. Release nested
+/// resources and unlink external nodes before calling.
+///
+/// The count decreases even for NULL, and work is freed before child exit
+/// handlers run. Calls `taskKill` directly, bypassing this task's replacement
+/// exit callback; its task/body lifetime rules apply. The spawn-argument
+/// pointer is left unchanged after release.
+static inline void _effectReleaseCountedTask(RoomEffectState* effectState, void* effectWork, Task* task)
 {
     effectState->effectCount--;
-    memFree(work);
+    memFree(effectWork);
     taskKill(task);
 }
 
@@ -2323,7 +2330,7 @@ static void _effectDarknessScreenDimTaskE8(Task* task)
                 effectDrawScreenTint(rgb, GPU_BLEND_SUBTRACT);
             } else {
                 gRoomEffectState->screenFxFlags &= (u16)~ROOM_EFFECT_SCREEN_FADE_QUAD;
-                _effectReleaseScreenTask(gRoomEffectState, work, task);
+                _effectReleaseCountedTask(gRoomEffectState, work, task);
             }
             break;
     }
@@ -2359,7 +2366,7 @@ static void _effectStatusScreenTintTaskF(Task* task)
     effectState = gRoomEffectState;
     work        = task->spawnArg2.pointer;
     if (effectState->peFadeMask != task->spawnArg1.value) {
-        _effectReleaseScreenTask(effectState, work, task);
+        _effectReleaseCountedTask(effectState, work, task);
         return;
     }
 
@@ -2375,7 +2382,7 @@ static void _effectStatusScreenTintTaskF(Task* task)
         effectDrawScreenTint(rgb, packedTint >> (3 * EFFECT_STATUS_TINT_COLOR_NIBBLE_BITS));
     }
     if (work->scale >= EFFECT_STATUS_TINT_PHASE_END) {
-        _effectReleaseScreenTask(gRoomEffectState, work, task);
+        _effectReleaseCountedTask(gRoomEffectState, work, task);
     }
 }
 
