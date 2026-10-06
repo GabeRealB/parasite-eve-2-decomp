@@ -3276,7 +3276,6 @@ static void func_actor_510900_8013A9BC(Task* task)
     s16                           next;
     s32                           grabbed;
     s32                           i;
-    s32                           one;
     s32                           snd;
     s32                           pan;
     s32                           dmg;
@@ -3291,113 +3290,99 @@ static void func_actor_510900_8013A9BC(Task* task)
     ctx                                    = task->spawnArg2.pointer;
     state                                  = work->state;
     parent                                 = task->parent->work;
-    one                                    = 1;
-    if (state == one) {
-        goto case1;
-    }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto end;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto end;
-case0:
-    if (parent->present == 0) {
-        work->status = ACTOR_510900_HELIPAD_LIGHT_STATUS_STOPPED;
-        work->state  = ACTOR_510900_HELIPAD_LIGHT_DONE;
-        goto end;
-    }
-    ctx->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
-    dmg                         = work->bodyContacts[0].key.value;
-    work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.parts.targeted == one &&
-        Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
-        grabbed = 1;
-    }
-    if (parent->slashedLight == work->lightIndex + 1 && parent->lightSlashStruck == 1) {
-        grabbed              = 1;
-        parent->slashedLight = -1;
-    }
-    if (grabbed == 1) {
-        work->status = grabbed;
-        work->state  = grabbed;
-        i            = 1;
-        do {
-            animationSeekSlotWithBlend(&work->anim, i, 2, 0, 0);
-            i++;
-        } while (i < 0xB);
-        scratch->rot.vx = 0;
-        scratch->rot.vy = 0x80;
-        scratch->rot.vz = 0;
-        eff             = Gp_SpawnEff((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), coord, 0, &scratch->rot);
-        if (eff != NULL) {
-            spawned          = eff->task;
-            work->sparksTask = spawned;
-            taskReparent(task, spawned);
-        }
-        Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x200, &scratch->rot);
-        work->sparkFrames  = 0x78;
-        work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        snd                = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100004;
-        pan                = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-    }
-    worldCollisionClearContacts(work->bodyContacts);
-    goto end;
-case1:
-    if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
-        work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    }
-    worldCollisionClearContacts(work->blastContacts);
-    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[9]);
-    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[8]);
-    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[7]);
-    acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[6]);
-    work->sparkFrames--;
-    next = 2;
-    if (work->sparkFrames <= 0) {
-        Task* held;
+    switch (state) {
+        case 0:
+            if (parent->present == 0) {
+                work->status = ACTOR_510900_HELIPAD_LIGHT_STATUS_STOPPED;
+                work->state  = ACTOR_510900_HELIPAD_LIGHT_DONE;
+                break;
+            }
+            ctx->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
+            dmg                         = work->bodyContacts[0].key.value;
+            work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.parts.targeted == 1 &&
+                Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
+                grabbed = 1;
+            }
+            if (parent->slashedLight == work->lightIndex + 1 && parent->lightSlashStruck == 1) {
+                grabbed              = 1;
+                parent->slashedLight = -1;
+            }
+            if (grabbed == 1) {
+                work->status = grabbed;
+                work->state  = grabbed;
+                i            = 1;
+                do {
+                    animationSeekSlotWithBlend(&work->anim, i, 2, 0, 0);
+                    i++;
+                } while (i < 0xB);
+                scratch->rot.vx = 0;
+                scratch->rot.vy = 0x80;
+                scratch->rot.vz = 0;
+                eff             = Gp_SpawnEff((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), coord, 0, &scratch->rot);
+                if (eff != NULL) {
+                    spawned          = eff->task;
+                    work->sparksTask = spawned;
+                    taskReparent(task, spawned);
+                }
+                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x200, &scratch->rot);
+                work->sparkFrames  = 0x78;
+                work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                snd                = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100004;
+                pan                = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            }
+            worldCollisionClearContacts(work->bodyContacts);
+            break;
+        case 1:
+            if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+                work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            }
+            worldCollisionClearContacts(work->blastContacts);
+            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[9]);
+            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[8]);
+            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[7]);
+            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[6]);
+            work->sparkFrames--;
+            next = 2;
+            if (work->sparkFrames <= 0) {
+                Task* held;
 
-        work->status       = next;
-        work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        held               = work->sparksTask;
-        if (held != NULL) {
-            held->state = state;
-        }
-    } else {
-        Task* held;
+                work->status       = next;
+                work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                held               = work->sparksTask;
+                if (held != NULL) {
+                    held->state = state;
+                }
+            } else {
+                Task* held;
 
-        if (parent->present != 0) {
-            goto end;
-        }
-        work->status       = next;
-        work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        held               = work->sparksTask;
-        if (held != NULL) {
-            held->state      = 2;
-            work->sparksTask = NULL;
-        }
-    }
-    work->state = next;
-    goto end;
-case2:
-    if (parent->present == 0) {
-        Task* held;
+                if (parent->present != 0) {
+                    break;
+                }
+                work->status       = next;
+                work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                held               = work->sparksTask;
+                if (held != NULL) {
+                    held->state      = 2;
+                    work->sparksTask = NULL;
+                }
+            }
+            work->state = next;
+            break;
+        case 2:
+            if (parent->present == 0) {
+                Task* held;
 
-        held = work->sparksTask;
-        if (held != NULL) {
-            held->state      = state;
-            work->sparksTask = NULL;
-        }
+                held = work->sparksTask;
+                if (held != NULL) {
+                    held->state      = state;
+                    work->sparksTask = NULL;
+                }
+            }
+            break;
     }
-end:
     if (work->lightIndex == 2) {
         parent->light2State = work->state;
     }
