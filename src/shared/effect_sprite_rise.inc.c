@@ -7,14 +7,20 @@
 #error "Bind EFFECT_SPRITE_RISE_TASK to the carrier's void (Task*) callback before inclusion"
 #endif
 
-/// Draws the rising sprite's current cell and angle with one random palette.
+/// Draws one additive rising-sprite animation cell with a fresh palette selection.
 ///
-/// Borrows live work and a composed coordinate cache. `index` is a cell 0..7,
-/// `angle` a size numerator 0..4095 and `scale` a screen angle 0..4095, in
-/// 4096 units per turn. Consumes one unsigned LCG step even if projection
-/// rejects the quad. Requires scratch storage and capacity for one quad packet;
-/// neither input pointer is retained.
-static __inline__ void _effectSpriteRiseDrawRandomPalette(const GfxCoord* coord, const EffectWork* work)
+/// `cachedCoord->workm.t` supplies the cached translation for projection through
+/// `GsWSMATRIX`; the local transform is not recomposed. `spriteWork->index`
+/// selects cell 0..7, `angle` is the perspective size numerator 0..4095, and
+/// `scale` is the fixed screen rotation 0..4095, in 4096 units per turn.
+///
+/// Advances the unsigned 32-bit LCG once, reducing its upper halfword modulo six
+/// for palette 0..5. The palette occupies bits 12..15 above the rotation's low
+/// twelve bits. The random step is consumed even when projection drops the quad.
+/// Borrows both inputs without changing or retaining them. Requires initialized
+/// scratch storage and frame-arena capacity for one quad; inputs must not overlap
+/// that storage. An accepted packet lives through GPU drawing.
+static __inline__ void _effectSpriteRiseDrawRandomPalette(const GfxCoord* cachedCoord, const EffectWork* spriteWork)
 {
     enum {
         EFFECT_SPRITE_RISE_PALETTE_COUNT = 6,
@@ -22,8 +28,12 @@ static __inline__ void _effectSpriteRiseDrawRandomPalette(const GfxCoord* coord,
         EFFECT_SPRITE_RISE_RANDOM_SHIFT  = 16
     };
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    effectDrawSpinningBillboard(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> EFFECT_SPRITE_RISE_RANDOM_SHIFT) % EFFECT_SPRITE_RISE_PALETTE_COUNT) << EFFECT_SPRITE_RISE_PALETTE_SHIFT));
+    u16 packedAnglePalette;
+
+    // Select before projection so rejected sprites still consume their random step.
+    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    packedAnglePalette = spriteWork->scale | (((gRandomLcgState >> EFFECT_SPRITE_RISE_RANDOM_SHIFT) % EFFECT_SPRITE_RISE_PALETTE_COUNT) << EFFECT_SPRITE_RISE_PALETTE_SHIFT);
+    effectDrawSpinningBillboard(cachedCoord, spriteWork->index, spriteWork->angle, packedAnglePalette);
 }
 
 void EFFECT_SPRITE_RISE_TASK(Task* task)
