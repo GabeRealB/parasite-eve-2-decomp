@@ -652,16 +652,22 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
 
 #include "../../shared/effect_sprite_rise.inc.c"
 
-/// Seeds one persistent glow-flicker offset per chain from the shared random sequence.
+/// Initializes a persistent alternating-glow phase for each of the room's eight chains.
 ///
-/// Advances the sequence once per byte and retains bits 16..23. The glow
-/// drawer uses each byte's low bit to offset the actor's alternating tick.
+/// Consumes eight draws from `gRandomLcgState`, advancing with unsigned 32-bit
+/// wraparound and storing state bits 16..23 in each byte. The drawer indexes
+/// the slots by chain number modulo eight and adds each byte's low bit to the
+/// actor's tick parity. These phases persist until another initialization,
+/// which replaces all eight bytes and consumes eight more draws.
 static inline void _shelterB1PodServiceGantrySeedGlowFlicker(void)
 {
-    s32 chainIndex;
+    enum {
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_RANDOM_BYTE_SHIFT = 16
+    };
+    s32 flickerSlot;
 
-    for (chainIndex = 0; chainIndex < ARRAY_SIZE(D_shelter_b1_pod_service_gantry_8018256C); chainIndex++) {
-        D_shelter_b1_pod_service_gantry_8018256C[chainIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+    for (flickerSlot = 0; flickerSlot < ARRAY_SIZE(D_shelter_b1_pod_service_gantry_8018256C); flickerSlot++) {
+        D_shelter_b1_pod_service_gantry_8018256C[flickerSlot] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_RANDOM_BYTE_SHIFT;
     }
 }
 
