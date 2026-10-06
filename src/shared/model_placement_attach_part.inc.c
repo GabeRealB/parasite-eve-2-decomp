@@ -14,12 +14,20 @@
 #ifndef SRC_SHARED_MODEL_PLACEMENT_LINK_MODEL_TO_PART
 #define SRC_SHARED_MODEL_PLACEMENT_LINK_MODEL_TO_PART
 
-/// Links a model's root to a parent part and borrows the parent's lighting.
+/// Attaches a child model's root to a parent part and shares its lighting matrices.
 ///
-/// Both models must be live, the child must have coordinate 0, and
-/// `parentPartIndex` must be in [0, parentModel->partCount). The parent ancestry
-/// must not contain the child's root. The local transform stays unchanged.
-static inline void _modelPlacementLinkModelToPart(TmdObject* childModel, TmdObject* parentModel, s32 parentPartIndex)
+/// Both model descriptors must be live, and the child must have coordinate 0.
+/// `parentPartIndex` is a signed coordinate element index in
+/// [0, parentModel->partCount). The selected part's ancestry must be acyclic
+/// and must not contain the child's root; these requirements are not checked.
+///
+/// The child's local matrix is retained relative to its new parent part.
+/// Its cached composition is marked stale and must be rebuilt before use.
+/// Copies the parent's current light-direction and light-colour matrix pointers;
+/// matrix edits stay shared, while later replacement of those pointers is not
+/// tracked. The borrowed coordinate and matrices must outlive the child's uses.
+/// Resource lifetime and task teardown remain the caller's responsibility.
+static inline void _modelPlacementLinkModelToPart(TmdObject* childModel, const TmdObject* parentModel, s32 parentPartIndex)
 {
     GfxCoord* childRoot;
     GfxCoord* parentPart;
