@@ -55992,7 +55992,7 @@ the pin, not source order, is what reprioritises the ready list.
 
 ## One local per RNG draw, not one local reused for all of them
 
-**Problem.** `func_m4a1_pyke_8011D7D4` draws from `gRandomLcgState` four times, in
+**Problem.** `m4a1PykeFlameTask` draws from `gRandomLcgState` four times, in
 four different basic blocks. Written the obvious way — one `u32 ang` declared
 at the top and assigned at each site — the function stalls at 95.5% with
 `regs=39`, and every one of the four `sw $v0, %lo(gRandomLcgState)($a2)` stores
@@ -56023,7 +56023,7 @@ The `Sweep one store's position` entry above sweeps a store through a *run of
 adjacent struct stores*. The same sweep is worth running when the stores are
 separated by an unrelated statement.
 
-`func_m4a1_pyke_8011D7D4` builds the `SVECTOR` that `gte_ApplyMatrixSV` rotates
+`m4a1PykeFlameTask` builds the `SVECTOR` that `gte_ApplyMatrixSV` rotates
 in place out of three halfword stores, with the LCG draw for the middle one
 sitting between them:
 
@@ -110794,7 +110794,7 @@ allocation one, and pinning the pointer is one line.
 
 ## A 0.99-shape sibling in another family is a template: diff the two targets, then port it
 
-`actor800100PykeFlameTask` (actors) listed `func_m4a1_pyke_8011D7D4` (weapons)
+`actor800100PykeFlameTask` (actors) listed `m4a1PykeFlameTask` (weapons)
 at 0.99 in all three `overlay_dup_index.py similar` classes. `find` reported no
 shared body, so nothing was due for promotion - but the sibling's *matched C*
 was the answer: porting it into this overlay's own names and types matched
@@ -113155,7 +113155,7 @@ had to land before the score cleared 99%: the six-effect arm writes its
 `Gp_SpawnEff` tail out in *both* parity branches (cross-jumping shares the `jal`,
 `func_actor_160900_80133880`), and each block declares its own `s32 pan` rather
 than one shared local, so each becomes a local quantity the `extendhisi` temp can
-join (`func_m4a1_pyke_8011D7D4`). From the 54.396% m2c seed. Compiler SHA256
+join (`m4a1PykeFlameTask`). From the 54.396% m2c seed. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
 `base_10.i` SHA256
 `91c445af40512be33c9ac3edbd48bde713ef687821992194b9bcdc0df2975961`.

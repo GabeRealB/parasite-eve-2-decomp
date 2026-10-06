@@ -2045,7 +2045,7 @@ energyballImpactRingTask = 0x8013107C; // type:func absolute:True owner=energyba
 
 func_pyrokinesis_8012FAC8 = 0x8012FAC8; // type:func absolute:True owner=pyrokinesis
 
-func_m4a1_pyke_8011D7D4 = 0x8011D7D4; // type:func absolute:True owner=m4a1_pyke
+m4a1PykeFlameTask = 0x8011D7D4; // type:func absolute:True owner=m4a1_pyke
 
 func_actor_800100_80161F20 = 0x80161F20; // type:func absolute:True owner=actor_800100
 

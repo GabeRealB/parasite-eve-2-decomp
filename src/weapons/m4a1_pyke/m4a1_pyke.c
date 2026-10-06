@@ -173,8 +173,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
 #define PYKE_FLAME_KEY 0x21C1E
 #include "../../shared/pyke_flame_task.inc.c"
 
-/// Per-frame task for one flame the Pyke throws (see pyke_flame.h).
-void func_m4a1_pyke_8011D7D4(Task* task)
+void m4a1PykeFlameTask(Task* task)
 {
     _pykeFlameTask(task);
 }
