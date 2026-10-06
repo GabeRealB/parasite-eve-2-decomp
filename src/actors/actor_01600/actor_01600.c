@@ -4288,7 +4288,10 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 rot.vy            = 0x600;
                 rot.vz            = 0;
                 RotMatrix(&rot, &coord->coord);
-                goto setFlags;
+                obj         = arg0->extra.tmd;
+                obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                obj         = arg0->extra.tmd;
+                obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
         case 2:
@@ -4374,7 +4377,6 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         case 7:
             work->colorRefresh = 1;
             if ((u32)(variant - 1) < 4) {
-            setFlags:
                 obj         = arg0->extra.tmd;
                 obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 obj         = arg0->extra.tmd;
