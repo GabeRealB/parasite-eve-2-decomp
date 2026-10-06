@@ -3041,17 +3041,16 @@ void func_dryfield_night_gas_station_801807D4(s32 arg0)
     if (t == NULL) {
         return;
     }
-    if (arg0 >= 2) {
-        goto kill;
+    switch (arg0) {
+        case 0:
+        case 1:
+            t->spawnArg1.value = arg0;
+            break;
+        default:
+            taskKill(D_dryfield_night_gas_station_801907A4);
+            D_dryfield_night_gas_station_801907A4 = NULL;
+            break;
     }
-    if (arg0 < 0) {
-        goto kill;
-    }
-    t->spawnArg1.value = arg0;
-    return;
-kill:
-    taskKill(D_dryfield_night_gas_station_801907A4);
-    D_dryfield_night_gas_station_801907A4 = NULL;
 }
 
 /// The room's tracked-task timer, run once a frame while `D_801156F9` is
