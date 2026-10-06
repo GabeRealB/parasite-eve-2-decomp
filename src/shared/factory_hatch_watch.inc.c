@@ -10,16 +10,12 @@ s32 factoryHatchWatch(Task* task)
     s32               flag  = gameFlagGetNibble(GAME_FLAG_FACTORY_HATCH_OPEN);
     s32               state = flag & 0xFF;
 
-    if (state == 1) {
-        if (work->prevFlag == 0) {
-            work->state = FACTORY_HATCH_STATE_OPEN;
-            goto reset;
-        }
-    }
-    if (((flag & 0xFF) == 0) && (work->prevFlag == 1)) {
+    if (state == 1 && work->prevFlag == 0) {
+        work->state = FACTORY_HATCH_STATE_OPEN;
+        work->step  = 0;
+    } else if (((flag & 0xFF) == 0) && (work->prevFlag == 1)) {
         work->state = FACTORY_HATCH_STATE_CLOSE;
-    reset:
-        work->step = 0;
+        work->step  = 0;
     }
     work->prevFlag = flag;
     return 0;
