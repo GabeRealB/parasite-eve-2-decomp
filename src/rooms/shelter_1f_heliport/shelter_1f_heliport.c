@@ -818,6 +818,6 @@ static void func_shelter_1f_heliport_801807C0(void)
 
 #include "../../shared/follow_collision_rebuild.inc.c"
 
-void func_shelter_1f_heliport_80180B4C(Task* unused)
+void shelter1fHeliportNoOpEffectTask(Task* unusedTask)
 {
 }

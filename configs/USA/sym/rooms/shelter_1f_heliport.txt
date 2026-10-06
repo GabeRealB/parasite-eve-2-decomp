@@ -160,7 +160,7 @@ gRoomEventStagedMsg = 0x80182CA8; // size:0x8 defined:True
 D_shelter_1f_heliport_80182CB0 = 0x80182CB0; // size:0x4 defined:True
 gRoomEventLatched = 0x80182CB4; // size:0xC defined:True
 
-func_shelter_1f_heliport_80180B4C = 0x80180B4C; // type:func
+shelter1fHeliportNoOpEffectTask = 0x80180B4C; // type:func
 Shop_SelectStock = 0x8017D730; // type:func
 Shop_ItemRow = 0x8017DDA0; // type:func
 Shop_AddItem = 0x8017E22C; // type:func

@@ -37,6 +37,11 @@ void func_shelter_1f_heliport_80180768(Task* task);
 // Called by the actor overlay's event scripts while this room is loaded.
 void func_shelter_1f_heliport_801802AC(s32 arg0);
 
-void func_shelter_1f_heliport_80180B4C(Task* unused);
+/// No-op per-frame callback for the heliport's room-effect slot.
+///
+/// Gameplay effect bank 6, slot 0x166 passes a live `unusedTask`, which is
+/// ignored. The task and its resources remain live for external teardown.
+/// The heliport overlay must remain loaded while the task can invoke this callback.
+void shelter1fHeliportNoOpEffectTask(Task* unusedTask);
 
 #endif // INCLUDE_ROOMS_SHELTER_1F_HELIPORT_H
