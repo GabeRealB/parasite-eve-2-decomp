@@ -81,8 +81,6 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
     TaskSpawnArg  val;
     s32           flag;
     s32           scale;
-    s32           height;
-    s32           width;
     UiObjectDesc* desc;
 
     val = arg1->spawnArg1;
@@ -149,15 +147,11 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         scale = 2;
     } else {
         uiSetPanelContentSize(&(arg0)->panel, 0, uiGetTextRowsHeight(2) + 1);
-        width  = arg0->panel.bounds.unsignedRect.h;
-        height = 0x4C;
-        goto store;
+        arg0->panel.bounds.unsignedRect.y = 0x4C - arg0->panel.bounds.unsignedRect.h;
+        return;
     }
     uiSetPanelContentSize(&(arg0)->panel, 0, uiGetTextRowsHeight(scale) + 1);
-    width  = arg0->panel.bounds.unsignedRect.h;
-    height = 0x68;
-store:
-    arg0->panel.bounds.unsignedRect.y = height - width;
+    arg0->panel.bounds.unsignedRect.y = 0x68 - arg0->panel.bounds.unsignedRect.h;
 }
 
 void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
@@ -1355,20 +1349,15 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
                 do {
                     temp = j + off;
                     if (table1[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)] == arg1) {
-                        if (rec2->attachSlot > INVENTORY_ATTACHMENT_NONE) {
-                            goto increment;
+                        if (rec2->attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == item) {
+                        increment:
+                            count++;
                         }
-                        if (cfg->weapon != item) {
-                            goto next;
-                        }
-                    increment:
-                        count++;
-                        goto next;
+                        break;
                     }
                     j++;
                 } while (j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds));
             }
-        next:
             rec++;
             i++;
         } while (i < scan->rowCount);
