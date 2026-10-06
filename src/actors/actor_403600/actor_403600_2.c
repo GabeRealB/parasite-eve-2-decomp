@@ -1228,7 +1228,6 @@ static void func_actor_403600_8013A444(Task* arg0)
     s32                   temp_v1_7;
     s32                   var_s2;
     s32                   var_v0_12;
-    s32                   var_v0_14;
     s32                   temp_s0_11;
     s32                   temp_s0_12;
     s32                   temp_s0_14;
@@ -1720,8 +1719,10 @@ static void func_actor_403600_8013A444(Task* arg0)
                     break;
                 case 1:
                     if (work->phaseFrame >= 0x33) {
-                        work->aimMode = ACTOR_403600_AIM_PLAYER;
-                        goto block_230;
+                        work->aimMode    = ACTOR_403600_AIM_PLAYER;
+                        work->action     = ACTOR_403600_ACTION_CHOOSE;
+                        work->phaseFrame = 0;
+                        return;
                     }
                     break;
             }
@@ -2223,10 +2224,14 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->phaseFrame = 0;
                         work->animId     = 0xAU;
                     }
-                    if (work->damageTaken < 0xC8) {
-                        return;
+                    if (work->damageTaken >= 0xC8) {
+                        func_actor_403600_80141B24(arg0);
+                        work->forwardSpeed  = 0U;
+                        work->verticalSpeed = 0;
+                        work->action        = ACTOR_403600_ACTION_CHOOSE;
+                        work->phaseFrame    = 0;
                     }
-                    goto block_229;
+                    return;
                 case 10:
                     func_actor_403600_8013F608(arg0);
                     temp_v1_11 = work->phaseFrame;
@@ -2271,17 +2276,13 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->phaseFrame       = 0;
                     }
                     if ((work->damageTaken >= 0xC8) && (work->phaseFrame < 0x32)) {
-                        goto block_229;
+                        func_actor_403600_80141B24(arg0);
+                        work->forwardSpeed  = 0U;
+                        work->verticalSpeed = 0;
+                        work->action        = ACTOR_403600_ACTION_CHOOSE;
+                        work->phaseFrame    = 0;
                     }
                     break;
-                block_229:
-                    func_actor_403600_80141B24(arg0);
-                    work->forwardSpeed  = 0U;
-                    work->verticalSpeed = 0;
-                block_230:
-                    work->action     = ACTOR_403600_ACTION_CHOOSE;
-                    work->phaseFrame = 0;
-                    return;
             }
             break;
         case ACTOR_403600_ACTION_MELEE:
@@ -2349,8 +2350,12 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->phaseFrame   = 0;
                         work->animId       = 0xDU;
                         func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
-                        var_v0_14 = sp10 < 0x7D0U;
-                        goto block_266;
+                        if (sp10 >= 0x7D0U) {
+                            work->animBlendFrames = 8;
+                            work->forwardSpeed    = 0U;
+                            work->phaseFrame      = 0;
+                            work->action          = ACTOR_403600_ACTION_CHOOSE;
+                        }
                     }
                     break;
                 case 13:
@@ -2368,9 +2373,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     if (work->phaseFrame == 0xE) {
                         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
                     }
-                    var_v0_14 = work->phaseFrame < 0x23;
-                block_266:
-                    if (var_v0_14 == 0) {
+                    if (work->phaseFrame >= 0x23) {
                         work->animBlendFrames = 8;
                         work->forwardSpeed    = 0U;
                         work->phaseFrame      = 0;
