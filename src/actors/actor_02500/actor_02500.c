@@ -1573,43 +1573,28 @@ static void Actor02500_Fn01E60(Enemy* arg0, Task* arg1)
     TmdObject*       temp_a1;
     GfxCoord*        temp_s2;
     s32              state;
-    s32              one;
 
     temp_a1 = arg1->extra.tmd;
     state   = gSceneCombatState.actorControl;
     work    = arg1->work;
     temp_s2 = temp_a1->coords;
-    one     = 1;
-    if (state == one) {
-        goto case1;
+    switch (state) {
+        case 0:
+            temp_a1->flags               = 0;
+            arg0->node.state.parts.flags = 0;
+            break;
+        case 1:
+            if (work->action == ACTOR_02500_ACTION_AMBUSH) {
+                return;
+            }
+            Actor02500_Fn023D8(arg1);
+            Actor02500_Fn02430(arg1);
+            return;
+        case 2:
+            temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = 1;
+            return;
     }
-    if (state >= 2) {
-        goto ge2;
-    }
-    if (state == 0) {
-        goto case0;
-    }
-    goto default_body;
-ge2:
-    if (state == 2) {
-        goto case2;
-    }
-    goto default_body;
-case0:
-    temp_a1->flags               = 0;
-    arg0->node.state.parts.flags = 0;
-    goto default_body;
-case1:
-    if (work->action == ACTOR_02500_ACTION_AMBUSH) {
-        return;
-    }
-    Actor02500_Fn023D8(arg1);
-    goto tail;
-case2:
-    temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-default_body:
     if (arg0->reactionFlags != 0) {
         Actor02500_Fn01F8C(arg1);
     }
@@ -1623,11 +1608,9 @@ default_body:
     temp_s2->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(temp_s2);
     Actor02500_Fn023D8(arg1);
-    if (work->action == ACTOR_02500_ACTION_AMBUSH) {
-        return;
+    if (work->action != ACTOR_02500_ACTION_AMBUSH) {
+        Actor02500_Fn02430(arg1);
     }
-tail:
-    Actor02500_Fn02430(arg1);
 }
 
 static void Actor02500_Fn01F8C(Task* actor)
