@@ -449,17 +449,12 @@ static s32 func_actor_403600_80138D9C(s16* arg0)
 {
     s32 i;
 
-    i = 0;
-loop:
-    i++;
-    if (*arg0 == 0) {
-        arg0++;
-        if (i < 0x20) {
-            goto loop;
+    for (i = 0; i < 0x20; i++, arg0++) {
+        if (*arg0 != 0) {
+            return 0;
         }
-        return 1;
     }
-    return 0;
+    return 1;
 }
 
 /// Projects the origin of coordinate 1 and passes its depth on.
