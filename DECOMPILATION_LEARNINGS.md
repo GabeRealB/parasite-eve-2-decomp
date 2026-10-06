@@ -150139,7 +150139,7 @@ attempts; left as it was.
 - **One mention of a global in a loop is not hoisted, three are**
   (`func_800AA120`). Its three queue arms each jumped to a shared
   `D_80114C70++; break;`. With the increment written in all three, loop.c
-  hoists the symbol's `lui` out of the loop (savings 3); with one increment
+  hoists the symbol's `lui` out of the loop; with one increment
   after the arms and `continue` in the skip arm the skip arm is laid out
   before the increment. The image's form has two: the two arms of the inner
   `if` share one `D_80114C70++; break;` after it, the `else if` arm has its
