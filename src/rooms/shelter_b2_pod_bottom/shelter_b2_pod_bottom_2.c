@@ -328,16 +328,21 @@ void shelterB2PodBottomShadowTask(Task* task)
 #define EFFECT_SPRITE_ROTATED_DEPTH_BIAS 1
 #include "../../shared/effect_sprite_draw_rotated.inc.c"
 
-/// Projects a band segment while preserving the first corner before RTPT.
+/// Projects the four corners of one shock-ring quad into screen coordinates.
 ///
-/// Borrows a live, initialized scratch block with both 16-point rims. The GTE
-/// projection matrices must be set, and `segmentIndex` is 0..15, wrapping at
-/// the seam. Updates the four screen corners and only the final RTPT flags.
-/// Leaves the final SZ3 in the GTE for depth sorting; retains no pointer.
+/// Borrows a writable `EffectBandScratch` whose two rims contain world-space
+/// signed-halfword positions. Requires the GTE camera matrices and projection
+/// settings to be loaded and `segmentIndex` in 0..EFFECT_BAND_SEGMENT_COUNT-1.
+/// Screen corners 0/1 come from the current/next top vertex and corners 2/3
+/// from the current/next bottom vertex; the next index wraps at the seam.
+/// Stores only the final RTPT's flags, ignoring the first corner's RTPS flags.
+/// Leaves corner 3's depth in GTE SZ3 for the caller to sort with; `scratch->otz`
+/// is untouched. Retains no pointer and leaves both rims intact.
 static inline void _shelterB2PodBottomProjectShockRingSegment(EffectBandScratch* scratch, s32 segmentIndex)
 {
     s32 nextSegmentIndex;
 
+    // Save corner 0 before RTPT replaces the SXY FIFO with corners 1..3.
     gte_ldv0(&scratch->topRing[segmentIndex]);
     gte_rtps();
     gte_stsxy(&scratch->sxy0);
@@ -707,11 +712,14 @@ void shelterB2PodBottomEnergyRingTask(Task* task)
     effectKillTask(work, task);
 }
 
-/// Initializes a Gouraud glow wedge with a coloured centre and a black rim.
+/// Initializes a Gouraud glow wedge's packet header and vertex colours.
 ///
-/// Borrows one writable G4 packet; sets its length, command and all four RGBs.
-/// Vertex 2 receives the supplied bytes. The caller supplies coordinates,
-/// ordering-table linkage and additive blending. Retains no pointer.
+/// Borrows one writable `POLY_G4`. Vertex 2 receives the supplied RGB bytes;
+/// vertices 0, 1 and 3 are black. The light-beam caps place vertex 2 at their
+/// projected centre and the black vertices on their circular rim.
+/// Sets the G4 length and opaque command. Coordinates and the ordering-table
+/// address are untouched; the caller supplies them and enables blending.
+/// Retains no pointer.
 static inline void _shelterB2PodBottomInitGlowWedge(POLY_G4* quad, u8 red, u8 green, u8 blue)
 {
     setPolyG4(quad);
