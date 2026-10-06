@@ -106,23 +106,16 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
     slot    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
     counter = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[arg0 - 0x80];
 
-    if (arg1 == 1) {
-        if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
-            count = slot->primaryQty;
-            if (count != 0) {
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-                    slot->primaryQty = count - 1;
-                    Gp_ConsumeScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->primaryItemId, 1);
-                    count = *counter;
-                    if (count <= 0xF423E) {
-                        *counter = count + 1;
-                    }
-                }
-                goto done;
+    if (arg1 == 1 && slot->primaryItemId != INVENTORY_ITEM_NONE && slot->primaryQty != 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
+            slot->primaryQty--;
+            Gp_ConsumeScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->primaryItemId, 1);
+            count = *counter;
+            if (count <= 0xF423E) {
+                *counter = count + 1;
             }
         }
-    }
-    if (arg1 == 0x101) {
+    } else if (arg1 == 0x101) {
         count = slot->secondaryItemId;
         if (count != 0) {
             if (count != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
@@ -142,7 +135,6 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
         }
     }
 
-done:
     if (!(arg1 & 0x100)) {
         return slot->primaryQty;
     }
