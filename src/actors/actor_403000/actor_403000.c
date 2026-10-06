@@ -2146,105 +2146,144 @@ static s32 func_actor_403000_801337E0(Task* arg0, Actor403000Work* work)
     return ret;
 }
 
-static void func_actor_403000_80133AF8(Task* arg0)
+static inline void _actor403000SeekSlots(Task* arg0)
 {
-    Actor403000Work* seekWork;
-    Actor403000Work* resetWork;
-    Actor403000Work* turnWork;
-    Actor403000Work* secondaryWork;
-    Actor403000Work* tickWork;
     Actor403000Work* work;
     s32              animation;
+    s32              i;
+
+    work = arg0->work;
+    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
+        work->slots[i].rate = work->animRate;
+        animation           = work->requestedAnimId;
+        animationSeekSlotWithBlend(&work->anim, i, (s16)animation, 0, D_actor_403000_80158364[work->animId][animation]);
+    }
+    work->animId = work->requestedAnimId;
+}
+
+static inline void _actor403000RestartSlots(Task* arg0)
+{
+    Actor403000Work* work;
+    s32              i;
+
+    work = arg0->work;
+    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
+        work->slots[i].rate = work->animRate;
+        animationResetSlot(&work->anim, i, work->requestedAnimId);
+    }
+    work->animId = work->requestedAnimId;
+}
+
+static inline void _actor403000RestartOverlaySlots(Task* arg0)
+{
+    Actor403000Work* work;
+    s32              i;
+
+    work                = arg0->work;
+    work->overlayRate   = 0x20;
+    work->overlayWeight = 0x800;
+    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
+        work->slots[i].rate = work->overlayRate;
+        animationResetSlot(&work->blendAnim, i, work->overlayAnimId);
+    }
+}
+
+static inline void _actor403000TickSlots(Task* arg0)
+{
+    Actor403000Work* work;
+    s32              i;
+
+    work = arg0->work;
+    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
+        work->slots[i].rate = work->animRate;
+        animationTickSlot(&work->anim, i);
+    }
+}
+
+/// Clamp the foreleg yaw target to +-0x200, move `forelegYaw` toward it by at
+/// most 0xC and turn joint 10 by the negated result.
+static inline void _actor403000TurnForeleg(Task* arg0)
+{
+    Actor403000Work* work;
     s32              updatedTurn;
     s16              currentTurn;
+    s32              signedTurn;
+    s32              delta;
+    u16              originalTurn;
+    u16              updatedTurnBits;
+    s32              targetTurn;
+
+    work         = arg0->work;
+    targetTurn   = (u16)work->forelegYawTarget;
+    originalTurn = targetTurn;
+    if ((s16)targetTurn >= 0x201) {
+        targetTurn = 0x200;
+    }
+    if ((s16)originalTurn < -0x200) {
+        targetTurn = -0x200;
+    }
+    signedTurn  = (s16)targetTurn;
+    currentTurn = work->forelegYaw;
+    if (currentTurn < signedTurn) {
+        if ((signedTurn - currentTurn) >= 0xD) {
+            work->forelegYaw = (s16)((u16)work->forelegYaw + 0xC);
+        } else {
+            work->forelegYaw = (s16)targetTurn;
+        }
+    }
+    updatedTurn     = work->forelegYaw;
+    updatedTurnBits = (u16)work->forelegYaw;
+    if ((s16)targetTurn < updatedTurn) {
+        delta = updatedTurn - (s16)targetTurn;
+        if (delta < 0) {
+            delta = -delta;
+        }
+        if (delta >= 0xD) {
+            work->forelegYaw = (s16)(updatedTurnBits - 0xC);
+        } else {
+            work->forelegYaw = (s16)targetTurn;
+        }
+    }
+    ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)work->forelegYaw * -1));
+    arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+static void func_actor_403000_80133AF8(Task* arg0)
+{
+    Actor403000Work* work;
     s16              thirdAngle;
     s16              state;
     s32              currentAngle;
     s32              targetAngle;
     s16              angle;
-    s32              seekSlotIndex;
-    s32              resetSlotIndex;
-    s32              secondarySlotIndex;
-    s32              tickSlotIndex;
-    s32              signedTurn;
     s32              sound;
-    s32              resetIndex;
-    s32              secondaryIndex;
-    s32              tickIndex;
-    s32              seekIndex;
-    s32              delta;
-    AnimationSlot*   tickSlot;
-    AnimationSlot*   resetSlot;
-    AnimationSlot*   secondarySlot;
     s32              pan;
     s32              currentAngleBits;
-    u16              originalTurn;
     s32              targetAngleBits;
-    u16              updatedTurnBits;
     s16              clampedAngle;
-    s32              targetTurn;
 
     work  = arg0->work;
     state = work->animStart;
     if (state == ACTOR_403000_ANIM_BLEND_IN) {
         if (work->animId != work->requestedAnimId) {
-            seekWork  = work;
-            seekIndex = 1;
-            do {
-                seekSlotIndex               = seekIndex;
-                work->slots[seekIndex].rate = seekWork->animRate;
-                animation                   = seekWork->requestedAnimId;
-                animationSeekSlotWithBlend(&seekWork->anim, seekSlotIndex, (s16)(animation), 0, D_actor_403000_80158364[seekWork->animId][animation]);
-                seekIndex += 1;
-            } while (seekIndex < ARRAY_SIZE(work->slots));
-            seekWork->animId = seekWork->requestedAnimId;
+            _actor403000SeekSlots(arg0);
         }
         work->animStart  = ACTOR_403000_ANIM_PLAYING;
         work->animFrames = 0;
         memFillBytes(work->slotCueIndex, 0U, sizeof(work->slotCueIndex));
     } else if (state == ACTOR_403000_ANIM_RESTART) {
-        resetWork  = work;
-        resetIndex = 1;
-        resetSlot  = work->slots;
-        do {
-            resetSlotIndex    = resetIndex;
-            resetSlot[1].rate = resetWork->animRate;
-            resetSlot        += 1;
-            animationResetSlot(&resetWork->anim, resetSlotIndex, resetWork->requestedAnimId);
-            resetIndex += 1;
-        } while (resetIndex < ARRAY_SIZE(work->slots));
-        resetWork->animId = resetWork->requestedAnimId;
-        work->animStart   = ACTOR_403000_ANIM_PLAYING;
-        work->animFrames  = 0U;
+        _actor403000RestartSlots(arg0);
+        work->animStart  = ACTOR_403000_ANIM_PLAYING;
+        work->animFrames = 0U;
         memFillBytes(work->slotCueIndex, 0U, sizeof(work->slotCueIndex));
     }
     if (work->overlayStart == ACTOR_403000_ANIM_RESTART) {
-        secondaryWork                = arg0->work;
-        secondaryIndex               = 1;
-        secondarySlot                = secondaryWork->slots;
-        secondaryWork->overlayRate   = 0x20;
-        secondaryWork->overlayWeight = 0x800;
-        do {
-            secondarySlotIndex    = secondaryIndex;
-            secondarySlot[1].rate = secondaryWork->overlayRate;
-            secondarySlot        += 1;
-            animationResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, secondaryWork->overlayAnimId);
-            secondaryIndex += 1;
-        } while (secondaryIndex < ARRAY_SIZE(work->slots));
+        _actor403000RestartOverlaySlots(arg0);
         work->overlayStart = ACTOR_403000_ANIM_PLAYING;
     }
     work->animFrames = (u16)(work->animFrames + 1);
     if (work->overlayActive == 0) {
-        tickWork  = arg0->work;
-        tickIndex = 1;
-        tickSlot  = tickWork->slots;
-        do {
-            tickSlotIndex    = tickIndex;
-            tickSlot[1].rate = tickWork->animRate;
-            animationTickSlot(&tickWork->anim, tickSlotIndex);
-            tickSlot  += 1;
-            tickIndex += 1;
-        } while (tickIndex < ARRAY_SIZE(work->slots));
+        _actor403000TickSlots(arg0);
     } else {
         func_actor_403000_801336B4(arg0);
         if (work->blendSlots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
@@ -2287,39 +2326,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         func_actor_403000_80133444(arg0);
     }
     if (work->forelegYawEnabled == 1) {
-        turnWork     = arg0->work;
-        targetTurn   = (u16)turnWork->forelegYawTarget;
-        originalTurn = targetTurn;
-        if ((s16)targetTurn >= 0x201) {
-            targetTurn = 0x200;
-        }
-        if ((s16)originalTurn < -0x200) {
-            targetTurn = -0x200;
-        }
-        signedTurn  = (s16)targetTurn;
-        currentTurn = turnWork->forelegYaw;
-        if (currentTurn < signedTurn) {
-            if ((signedTurn - currentTurn) >= 0xD) {
-                turnWork->forelegYaw = (s16)((u16)turnWork->forelegYaw + 0xC);
-            } else {
-                turnWork->forelegYaw = (s16)targetTurn;
-            }
-        }
-        updatedTurn     = turnWork->forelegYaw;
-        updatedTurnBits = (u16)turnWork->forelegYaw;
-        if ((s16)targetTurn < updatedTurn) {
-            delta = updatedTurn - (s16)targetTurn;
-            if (delta < 0) {
-                delta = -delta;
-            }
-            if (delta >= 0xD) {
-                turnWork->forelegYaw = (s16)(updatedTurnBits - 0xC);
-            } else {
-                turnWork->forelegYaw = (s16)targetTurn;
-            }
-        }
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->forelegYaw * -1));
-        arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
+        _actor403000TurnForeleg(arg0);
     }
     if (work->torsoSwayEnabled == 1) {
         func_actor_403000_801332E8(arg0);
