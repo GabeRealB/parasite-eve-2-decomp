@@ -3666,11 +3666,17 @@ static void _mcStateAcknowledgeFormatFailure(Task* task, McWork* work)
     }
 }
 
-/// Release an allocated save transfer and enter the access-failure prompt.
+/// Fail a timed-out save dialog and release its optional section-transfer buffer.
 ///
-/// Called after the I/O wait limit, without polling or cancelling an SDK request.
-static inline void _mcAbortSaveTransfer(Task* dialogTask, McWork* dialogWork)
+/// The caller checks the card wait counter after running the state handler;
+/// allocation failure, refused submission and pending I/O can reach the limit.
+/// `dialogTask` and `dialogWork` must belong to the same live save dialog, and
+/// `buffer` must be `NULL` or its owned primary-heap allocation. The next state
+/// dispatch resets the retained counter and draws the access-failure prompt.
+/// Any pending SDK request is left running.
+static inline void _mcHandleSaveTimeout(Task* dialogTask, McWork* dialogWork)
 {
+    // Keep the active heap cursor unchanged when there is no transfer to release.
     if (dialogWork->buffer != NULL) {
         memFree(dialogWork->buffer);
         dialogWork->buffer = NULL;
@@ -3694,7 +3700,7 @@ void mcSaveDialogTask(Task* dialogTask)
     }
     states.funcs[dialogState](dialogTask, dialogWork);
     if (dialogWork->cardTimer >= MEMORY_CARD_IO_ABORT_FRAMES) {
-        _mcAbortSaveTransfer(dialogTask, dialogWork);
+        _mcHandleSaveTimeout(dialogTask, dialogWork);
     }
     // Advance the random sequence also used to generate new card filenames.
     Mc_LastRandomValue = rand();
