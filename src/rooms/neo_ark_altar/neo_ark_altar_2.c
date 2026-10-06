@@ -102,7 +102,7 @@ extern s16 D_neo_ark_altar_8017F068[];
 extern _NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
 extern AreaApplyRec     D_neo_ark_altar_8018007C[];
 
-static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3);
+static void _neoArkAltarDrawTileWallSide(const SVECTOR* floorStart, const SVECTOR* floorEnd, const SVECTOR* raisedStart, const SVECTOR* unusedRaisedEnd);
 static s16  func_neo_ark_altar_8017EC34(_NeoArkAltarTile* table, s16 x, s16 z);
 static s16  func_neo_ark_altar_8017E260(Task* task);
 static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1);
@@ -485,15 +485,15 @@ s16 D_neo_ark_altar_801800B0[16];
 
 static void func_neo_ark_altar_8017ED60(Task* task);
 
-static void func_neo_ark_altar_8017EDBC(Task* task);
+static void _neoArkAltarWaitForTileSequence(Task* task);
 
 static void func_neo_ark_altar_8017EDF8(Task* task);
 
-static void func_neo_ark_altar_8017EE30(Task* task);
+static void _neoArkAltarFadeToBlack(Task* task);
 
 static void func_neo_ark_altar_8017EE90(Task* task);
 
-static void func_neo_ark_altar_8017EF00(Task* task);
+static void _neoArkAltarSelectPostSequenceRoom(Task* task);
 
 static void func_neo_ark_altar_8017EF34(Task* task);
 
@@ -954,89 +954,102 @@ static s16 func_neo_ark_altar_8017E260(Task* task)
     return 3;
 }
 
-/// Draws one side of a raised altar tile as 32 horizontal strips. `p0` and
-/// `p1` are the side's top corners and `p2` the corner below `p0`; only the
-/// height difference `p2 - p0` is used, split into 32 equal steps, and `p3` is
-/// not read. Each strip that projects without a clipping error becomes a
-/// Gouraud quad whose top edge is shade `c` and bottom edge `c - 6`, linked at
-/// its projected depth together with a 0xE100002A draw-mode packet; the shade
-/// only steps down for strips that are drawn.
-static void func_neo_ark_altar_8017E658(SVECTOR* p0, SVECTOR* p1, SVECTOR* p2, SVECTOR* p3)
+/// Sets a wall strip's grayscale gradient from its lower edge to its upper edge.
+static inline void _neoArkAltarShadeWallStrip(POLY_G4* strip, u8 lowerShade, u8 upperShade)
 {
-    SVECTOR  v0;
-    SVECTOR  v1;
-    SVECTOR  v2;
-    SVECTOR  v3;
-    long     sxy0;
-    long     sxy1;
-    long     sxy2;
-    long     sxy3;
-    long     p;
-    long     flag;
-    s32      otz;
-    s16      step;
-    s32      i;
-    u8       c;
-    u8       c2;
-    POLY_G4* poly;
-    DR_MODE* dr;
+    strip->r0 = lowerShade;
+    strip->g0 = lowerShade;
+    strip->b0 = lowerShade;
+    strip->r1 = lowerShade;
+    strip->g1 = lowerShade;
+    strip->b1 = lowerShade;
+    strip->r2 = upperShade;
+    strip->g2 = upperShade;
+    strip->b2 = upperShade;
+    strip->r3 = upperShade;
+    strip->g3 = upperShade;
+    strip->b3 = upperShade;
+}
 
-    c     = 0xC0;
-    step  = (p2->vy - p0->vy) / 32;
-    v0.vx = p0->vx;
-    v0.vy = p0->vy;
-    v0.vz = p0->vz;
-    v1.vx = p1->vx;
-    v1.vy = p1->vy;
-    v1.vz = p1->vz;
-    v2.vx = p0->vx;
-    v2.vy = p0->vy + step;
-    v2.vz = p0->vz;
-    v3.vx = p1->vx;
-    v3.vy = p1->vy + step;
-    v3.vz = p1->vz;
-    for (i = 0; i < 32; i++) {
-        otz    = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-        v0.vy  = v2.vy;
-        v2.vy += step;
-        v1.vy  = v3.vy;
-        v3.vy += step;
-        if (flag >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 8);
-            setcode(poly, 0x3A);
-            GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-            GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-            GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-            GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-            c2                             = c - 6;
-            poly->r0                       = c;
-            poly->g0                       = c;
-            poly->b0                       = c;
-            poly->r1                       = c;
-            poly->g1                       = c;
-            poly->b1                       = c;
-            poly->r2                       = c2;
-            poly->g2                       = c2;
-            poly->b2                       = c2;
-            poly->r3                       = c2;
-            poly->g3                       = c2;
-            poly->b3                       = c2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE100002A;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), dr);
-            c = c2;
+/// Draws one raised altar-tile side as additive grayscale Gouraud strips.
+///
+/// The floor endpoints use world coordinates; only `raisedStart->vy` supplies
+/// the raised height, toward negative Y. The signed height difference is divided
+/// into 32 steps with truncation toward zero. `unusedRaisedEnd` is not read.
+/// The caller must install the world-to-view GTE transform and provide a current
+/// ordering table and word-aligned packet arena with room for up to 32 pairs
+/// of `POLY_G4` and `DR_MODE`. Packets remain live until GPU drawing completes.
+static void _neoArkAltarDrawTileWallSide(const SVECTOR* floorStart, const SVECTOR* floorEnd, const SVECTOR* raisedStart, const SVECTOR* unusedRaisedEnd)
+{
+    enum {
+        NEO_ARK_ALTAR_WALL_STRIP_COUNT = 32,
+        NEO_ARK_ALTAR_WALL_FLOOR_SHADE = 0xC0,
+        NEO_ARK_ALTAR_WALL_SHADE_STEP  = 6,
+    };
+    SVECTOR  lowerStart;
+    SVECTOR  lowerEnd;
+    SVECTOR  upperStart;
+    SVECTOR  upperEnd;
+    long     screenLowerStart;
+    long     screenLowerEnd;
+    long     screenUpperStart;
+    long     screenUpperEnd;
+    long     unusedDepthCue;
+    long     projectionFlags;
+    s32      depth;
+    s16      heightStep;
+    s32      stripIndex;
+    u8       lowerShade;
+    u8       upperShade;
+    POLY_G4* wallStrip;
+    DR_MODE* blendCommand;
+
+    lowerShade    = NEO_ARK_ALTAR_WALL_FLOOR_SHADE;
+    heightStep    = (raisedStart->vy - floorStart->vy) / NEO_ARK_ALTAR_WALL_STRIP_COUNT;
+    lowerStart.vx = floorStart->vx;
+    lowerStart.vy = floorStart->vy;
+    lowerStart.vz = floorStart->vz;
+    lowerEnd.vx   = floorEnd->vx;
+    lowerEnd.vy   = floorEnd->vy;
+    lowerEnd.vz   = floorEnd->vz;
+    upperStart.vx = floorStart->vx;
+    upperStart.vy = floorStart->vy + heightStep;
+    upperStart.vz = floorStart->vz;
+    upperEnd.vx   = floorEnd->vx;
+    upperEnd.vy   = floorEnd->vy + heightStep;
+    upperEnd.vz   = floorEnd->vz;
+    for (stripIndex = 0; stripIndex < NEO_ARK_ALTAR_WALL_STRIP_COUNT; stripIndex++) {
+        depth          = RotTransPers4(&lowerStart, &lowerEnd, &upperStart, &upperEnd, &screenLowerStart, &screenLowerEnd, &screenUpperStart, &screenUpperEnd, &unusedDepthCue, &projectionFlags);
+        lowerStart.vy  = upperStart.vy;
+        upperStart.vy += heightStep;
+        lowerEnd.vy    = upperEnd.vy;
+        upperEnd.vy   += heightStep;
+        // Rejected projections advance the geometry but leave the shade unchanged.
+        if (projectionFlags >= 0) {
+            wallStrip      = gGpuPrimCursor;
+            gGpuPrimCursor = wallStrip + 1;
+            setPolyG4(wallStrip);
+            setSemiTrans(wallStrip, true);
+            GPU_PRIMITIVE_XY_WORD(wallStrip, 0) = screenLowerStart;
+            GPU_PRIMITIVE_XY_WORD(wallStrip, 1) = screenLowerEnd;
+            GPU_PRIMITIVE_XY_WORD(wallStrip, 2) = screenUpperStart;
+            GPU_PRIMITIVE_XY_WORD(wallStrip, 3) = screenUpperEnd;
+            upperShade                          = lowerShade - NEO_ARK_ALTAR_WALL_SHADE_STEP;
+            _neoArkAltarShadeWallStrip(wallStrip, lowerShade, upperShade);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), wallStrip);
+            blendCommand   = gGpuPrimCursor;
+            gGpuPrimCursor = blendCommand + 1;
+            // Prepending the mode at the same depth makes it execute before the strip.
+            setDrawTPage(blendCommand, false, false, getTPage(0, GPU_BLEND_ADD, 640, 0));
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), blendCommand);
+            lowerShade = upperShade;
         }
     }
 }
 
 /// Walls in one altar tile. The view matrix is re-derived from
 /// `gGfxViewCoord` and `gGfxViewCoord.workm` pushed into the GTE first, then each
-/// of the tile's four sides goes to `func_neo_ark_altar_8017E658` as its two
+/// of the tile's four sides goes to `_neoArkAltarDrawTileWallSide` as its two
 /// corners at the floor height `y0` and at `y0 - arg1`, so `arg1` is how far a
 /// side drops below the tile. The sides walk the tile rectangle
 /// `(x, z) -> (x + width, z) -> (x + width, z + depth) -> (x, z + depth)` as
@@ -1076,7 +1089,7 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     p3.vx = tile->x + tile->width;
     p3.vy = y1;
     p3.vz = tile->z;
-    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
 
     p0.vx = tile->x + tile->width;
     p0.vy = y0;
@@ -1090,7 +1103,7 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     p3.vx = tile->x + tile->width;
     p3.vy = y1;
     p3.vz = tile->z + tile->depth;
-    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
 
     p0.vx = tile->x;
     p0.vy = y0;
@@ -1104,7 +1117,7 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     p3.vx = tile->x + tile->width;
     p3.vy = y1;
     p3.vz = tile->z + tile->depth;
-    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
 
     p0.vx = tile->x;
     p0.vy = y0;
@@ -1118,7 +1131,7 @@ static void func_neo_ark_altar_8017E92C(s16 arg0, s32 arg1)
     p3.vx = tile->x;
     p3.vy = y1;
     p3.vz = tile->z + tile->depth;
-    func_neo_ark_altar_8017E658(&p0, &p1, &p2, &p3);
+    _neoArkAltarDrawTileWallSide(&p0, &p1, &p2, &p3);
 }
 
 /// Returns the `id` of the first tile in `table` whose rectangle contains
@@ -1141,12 +1154,12 @@ static s16 func_neo_ark_altar_8017EC34(_NeoArkAltarTile* table, s16 x, s16 z)
 /// and a view change before control returns to the tile sequence.
 static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
     func_neo_ark_altar_8017ED60,
-    func_neo_ark_altar_8017EDBC,
+    _neoArkAltarWaitForTileSequence,
     func_neo_ark_altar_8017DF0C,
     func_neo_ark_altar_8017EDF8,
-    func_neo_ark_altar_8017EE30,
+    _neoArkAltarFadeToBlack,
     func_neo_ark_altar_8017EE90,
-    func_neo_ark_altar_8017EF00,
+    _neoArkAltarSelectPostSequenceRoom,
     func_neo_ark_altar_8017EF34,
 };
 
@@ -1172,11 +1185,17 @@ static void func_neo_ark_altar_8017ED60(Task* arg0)
     arg0->state         = (s32)(arg0->state + 1);
 }
 
-static void func_neo_ark_altar_8017EDBC(Task* arg0)
+/// Waits three callback frames before entering the altar's tile-sequence state.
+///
+/// The preceding initialization state sets `Task::killCountdown` to zero;
+/// this state uses that signed 16-bit storage as an elapsed-frame counter.
+static void _neoArkAltarWaitForTileSequence(Task* task)
 {
-    arg0->killCountdown = arg0->killCountdown + 1;
-    if (arg0->killCountdown >= 3) {
-        arg0->state = (s32)(arg0->state + 1);
+    enum { NEO_ARK_ALTAR_START_WAIT_FRAMES = 3 };
+
+    task->killCountdown = task->killCountdown + 1;
+    if (task->killCountdown >= NEO_ARK_ALTAR_START_WAIT_FRAMES) {
+        task->state = task->state + 1;
     }
 }
 
@@ -1187,17 +1206,26 @@ static void func_neo_ark_altar_8017EDF8(Task* arg0)
     arg0->state         = (s32)(arg0->state + 1);
 }
 
-static void func_neo_ark_altar_8017EE30(Task* arg0)
+/// Fades the scene to black before the movie for the second solved tile sequence.
+///
+/// The preceding state clears `Task::killCountdown`; each callback adds six
+/// brightness units. On reaching 256 it clamps to 255 and advances the state.
+/// The clamped frame still draws the full-screen subtractive overlay.
+static void _neoArkAltarFadeToBlack(Task* task)
 {
-    u8 temp_a0;
+    enum {
+        NEO_ARK_ALTAR_FADE_STEP = 6,
+        NEO_ARK_ALTAR_FADE_MAX  = 0xFF,
+    };
+    u8 shade;
 
-    arg0->killCountdown = arg0->killCountdown + 6;
-    if (arg0->killCountdown >= 0x100) {
-        arg0->killCountdown = 0xFF;
-        arg0->state         = (s32)(arg0->state + 1);
+    task->killCountdown = task->killCountdown + NEO_ARK_ALTAR_FADE_STEP;
+    if (task->killCountdown >= NEO_ARK_ALTAR_FADE_MAX + 1) {
+        task->killCountdown = NEO_ARK_ALTAR_FADE_MAX;
+        task->state         = task->state + 1;
     }
-    temp_a0 = (u8)arg0->killCountdown;
-    fadeDrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_SUBTRACT);
+    shade = (u8)task->killCountdown;
+    fadeDrawOverlay(shade, shade, shade, GPU_BLEND_SUBTRACT);
 }
 
 static void func_neo_ark_altar_8017EE90(Task* arg0)
@@ -1211,18 +1239,22 @@ static void func_neo_ark_altar_8017EE90(Task* arg0)
     arg0->state           = (s32)(arg0->state + 1);
 }
 
-static void func_neo_ark_altar_8017EF00(Task* arg0)
+/// Selects altar room 2 in live and saved state and requests a view reload.
+///
+/// Runs after the second solved sequence launches its movie task, then advances
+/// to the state that restores player control and tile-sequence processing.
+static void _neoArkAltarSelectPostSequenceRoom(Task* task)
 {
+    enum { NEO_ARK_ALTAR_POST_SEQUENCE_ROOM = 2 };
     s16* viewDirty;
 
-    /* Through a pointer rather than as a member: a member store is struct
-       memory, which the scheduler lets the store to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` pass, and the
-       original keeps the two in source order. */
+    // Keep the reload request before both location updates; the pointer store
+    // preserves that order under this compiler's memory scheduler.
     viewDirty                                                  = &gGameSession->viewDirty;
     *viewDirty                                                 = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-    gGameSession->location.loc.room                            = 2;
-    arg0->state                                                = (s32)(arg0->state + 1);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
+    gGameSession->location.loc.room                            = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
+    task->state                                                = task->state + 1;
 }
 
 static void func_neo_ark_altar_8017EF34(Task* arg0)
@@ -1234,6 +1266,6 @@ static void func_neo_ark_altar_8017EF34(Task* arg0)
     arg0->state           = 2;
 }
 
-void func_neo_ark_altar_8017EF84(Task* unused)
+void neoArkAltarEffectNoopTask(Task* unusedTask)
 {
 }

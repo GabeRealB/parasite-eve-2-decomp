@@ -48,4 +48,8 @@ D_neo_ark_altar_801800AC = 0x801800AC; // size:0x2 defined:True
 D_neo_ark_altar_8017EFC0 = 0x8017EFC0; // size:0x18 defined:True
 D_neo_ark_altar_801800B0 = 0x801800B0; // size:0x20 defined:True
 
-func_neo_ark_altar_8017EF84 = 0x8017EF84; // type:func
+neoArkAltarEffectNoopTask = 0x8017EF84; // type:func
+_neoArkAltarDrawTileWallSide = 0x8017e658; // type:func
+_neoArkAltarWaitForTileSequence = 0x8017edbc; // type:func
+_neoArkAltarFadeToBlack = 0x8017ee30; // type:func
+_neoArkAltarSelectPostSequenceRoom = 0x8017ef00; // type:func

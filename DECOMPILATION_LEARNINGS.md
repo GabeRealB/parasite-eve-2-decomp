@@ -3922,13 +3922,13 @@ to fold, so no `lh` was ever available). `Task::killCountdown` is `s16`, is
 read as `lh` by the many matched `gameplay` callers that load it without
 arithmetic, and must stay `s16`.
 
-`func_neo_ark_altar_8017EDBC` matched at 100% first try as a plain struct-field
+`_neoArkAltarWaitForTileSequence` matched at 100% first try as a plain struct-field
 read-modify-write; the m2c seed's `u16` temp and the struct version compile to
 identical bytes (preprocessed `902aea30bf6837ccd34a631b5afb1ee8c7da5149e8e5b82cb78eafb6c37852b2`
 and `dda2f0028068f6cf7e16beccb0f0b689773653d108d0cda8d1f0ac0fc4f7fbf5`).
 
 The same holds when the clamp arm stores a constant and bumps a neighbouring
-field: `func_neo_ark_altar_8017EE30` (step +6, then `>= 0x100` → store `0xFF`
+field: `_neoArkAltarFadeToBlack` (step +6, then `>= 0x100` → store `0xFF`
 and `index->state + 1`, then a `(u8)` reload of the field handed to
 `fadeDrawOverlay`) is `lhu` / `addiu` / `sh` / `sll` / `sra` / `slti` with no
 second load, and matched 100% first try as
@@ -86672,7 +86672,7 @@ Inputs: parent `base.i`
 `base_1.i` `cf7aa853c3f1d898ce0d16becc453dbadcd4f44e533dc30a150cd05305229f6d`
 (100.000%), target
 `28d5ddced61b0004626849971d4f5e3db3ac7199f5810868233c103429ff2847`.
-## sched1 memory output deps hinge on MEM_IN_STRUCT_P, not on the access itself (func_neo_ark_altar_8017EF00, 2026-09-15)
+## sched1 memory output deps hinge on MEM_IN_STRUCT_P, not on the access itself (_neoArkAltarSelectPostSequenceRoom, 2026-09-15)
 
 `gGameSession->viewDirty = 1;` and `*(s16*)((u8*)gGameSession + 0x52) = 1;`
 compile to the same bytes but schedule differently, because the struct form's
@@ -89819,7 +89819,7 @@ Inputs: `base.i` (99.800%)
 
 ## A MEM_IN_STRUCT_P schedule difference can surface as a pure `regs` penalty (func_dryfield_breezeway_8017DDB0, 2026-09-15)
 
-The mirror of the `func_neo_ark_altar_8017EF00` entry above, where the struct
+The mirror of the `_neoArkAltarSelectPostSequenceRoom` entry above, where the struct
 form *was* the fix: here its effect reaches all the way through the scheduler
 into the allocator, so the only symptom is a swapped `$v0`/`$v1`.
 
@@ -90060,7 +90060,7 @@ the two forms differing in exactly one bit per store:
 
 The struct member store carries `MEM_IN_STRUCT_P`; the `u8*` cast drops it, and
 sched1's memory-dependence analysis consults that flag (the clauses are quoted
-in the `func_neo_ark_altar_8017EF00` entry above, where the flag's *absence* was
+in the `_neoArkAltarSelectPostSequenceRoom` entry above, where the flag's *absence* was
 the fix — so which form is right is a per-function question, not "fields always
 win"). Cast form: sched1 leaves the tail in source order and spends its hoisting
 on the first call's argument setup. Struct form: it hoists `high`+store into the
@@ -119125,7 +119125,7 @@ and it decided two things here:
   in-struct *and* fixed); clause 2 needs the store non-in-struct, so the
   dependence stood. A scalar store of the same address drops it and the load
   schedules first - the same `output_dependence` clause as the
-  `func_neo_ark_altar_8017EF00` note above, in the opposite direction: there
+`_neoArkAltarSelectPostSequenceRoom` note above, in the opposite direction: there
   the struct form was the fix, here it was the defect.
 
 The union was never needed. **A signed halfword accumulator whose result is
@@ -122335,7 +122335,7 @@ to a natural `switch` (dropping m2c's gotos and the phantom second argument to
 `Gp_MsgPlayerWeapon`, which is `void Gp_MsgPlayerWeapon(s32)` - see
 `include/gameplay/3CD8.h:442`) 97.760%; `gSceneCombatState.actorControl = 2;` 99.920%;
 `D_801153F4[0] = 2;` 100.000%. Contrast this with the store-side entries above
-(`func_neo_ark_altar_8017EF00`, `actor_107600`): those match a *store* against a
+(`_neoArkAltarSelectPostSequenceRoom`, `actor_107600`): those match a *store* against a
 later *load*; here the missing edge is what lets a load hoist, and the observable
 consequence is a cross-jump boundary rather than a delay slot.
 

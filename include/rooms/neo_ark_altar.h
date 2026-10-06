@@ -27,7 +27,10 @@ extern SpriteView D_neo_ark_altar_8017FE38[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_altar_8018005C[];
 
-void func_neo_ark_altar_8017EF84(Task* unused);
+/// Leaves the altar's bank-6 effect task (slot 0x15A) unchanged.
+///
+/// `unusedTask` is ignored: this callback draws nothing and does not end the task.
+void neoArkAltarEffectNoopTask(Task* unusedTask);
 
 void func_neo_ark_altar_8017D9E8(Task* task);
 

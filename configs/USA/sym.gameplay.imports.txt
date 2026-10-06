@@ -1909,7 +1909,7 @@ func_neo_ark_power_plant_1_8017DA18 = 0x8017DA18; // type:func absolute:True own
 
 func_neo_ark_south_promenade_8017D6D0 = 0x8017D6D0; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 
-func_neo_ark_altar_8017EF84 = 0x8017EF84; // type:func absolute:True owner=neo_ark_altar
+neoArkAltarEffectNoopTask = 0x8017EF84; // type:func absolute:True owner=neo_ark_altar
 
 shelterB6TrainingRoomGlowTask = 0x8017DDE8; // type:func absolute:True owner=shelter_b6_training_room shared=rooms
 
