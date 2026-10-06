@@ -1865,42 +1865,39 @@ static void Actor00400_Fn01B90(Task* arg0)
 static s16 Actor00400_Fn02154(Task* arg0)
 {
     _Actor00400Work* work;
-    s16              state;
     s16              req;
 
     work = arg0->work;
-    if (work->hitTaken != 1) {
-        goto fail;
+    if (work->hitTaken == 1) {
+        req = work->hitReaction;
+        if (req == ACTOR_00400_HIT_REACTION_LIGHT) {
+            work->state       = ACTOR_00400_STATE_RECOIL_LIGHT;
+            work->subState    = 0;
+            work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
+        } else if (req == ACTOR_00400_HIT_REACTION_HEAVY) {
+            work->state       = ACTOR_00400_STATE_RECOIL_HEAVY;
+            work->subState    = 0;
+            work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
+        } else if (req == ACTOR_00400_HIT_REACTION_STATUS) {
+            work->state       = ACTOR_00400_STATE_STATUS_HOLD;
+            work->subState    = 0;
+            work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
+        } else if (req == ACTOR_00400_HIT_REACTION_BLAST) {
+            work->state       = ACTOR_00400_STATE_RECOIL_HEAVY;
+            work->subState    = 0;
+            work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
+        } else if (req == ACTOR_00400_HIT_REACTION_FLINCH) {
+            gSceneCombatState.signals.bytes.enemyAlert = 1;
+            Gp_ArmStateF0(1);
+            work->shakeFrames = 10;
+            work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
+            return 0;
+        } else {
+            work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
+            return 0;
+        }
+        return 1;
     }
-    req = work->hitReaction;
-    if (req == ACTOR_00400_HIT_REACTION_LIGHT) {
-        state = ACTOR_00400_STATE_RECOIL_LIGHT;
-    } else if (req == ACTOR_00400_HIT_REACTION_HEAVY) {
-        state = ACTOR_00400_STATE_RECOIL_HEAVY;
-    } else if (req == ACTOR_00400_HIT_REACTION_STATUS) {
-        state = ACTOR_00400_STATE_STATUS_HOLD;
-    } else if (req == ACTOR_00400_HIT_REACTION_BLAST) {
-        state = ACTOR_00400_STATE_RECOIL_HEAVY;
-    } else {
-        goto other;
-    }
-    work->state       = state;
-    work->subState    = 0;
-    work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
-    goto ok;
-other:
-    if (req == ACTOR_00400_HIT_REACTION_FLINCH) {
-        gSceneCombatState.signals.bytes.enemyAlert = 1;
-        Gp_ArmStateF0(1);
-        work->shakeFrames = 10;
-        work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
-        return 0;
-    }
-    work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
-    goto fail;
-ok:
-    return 1;
-fail:
     return 0;
 }
 
