@@ -94622,7 +94622,7 @@ assignment to 1 already sits in the branch's delay slot:
 object dump": which pseudo holds it is decided before the block's own
 quantities are placed, so moving the return out of the branch is the fix and a
 register pin is not needed.
-## Differing call arguments do not block a cross-jump; the merge only needs the shared tail (func_dryfield_night_motel_lobby_801812F8, 2026-09-16)
+## Differing call arguments do not block a cross-jump; the merge only needs the shared tail (dryfieldNightMotelLobbyDrawGlowsTask, 2026-09-16)
 
 The rule in "Cross-jumping merges duplicate *call* blocks too, not just stores"
 applies to `switch` arms as well, and the arms do not have to be textually
@@ -94631,7 +94631,7 @@ arguments:
 
 ```c
 case 2: ...; func_2200(&E0[3], 1, 0x300); break;
-case 3: ...; func_2200(&E8[3], 1, 0x300); break;
+case 3: ...; func_2200(&E0[4], 1, 0x300); break;
 case 4: ...; func_2200(&E0[1], 2, 0x300); break;
 ```
 

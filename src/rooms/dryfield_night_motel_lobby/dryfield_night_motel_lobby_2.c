@@ -76,7 +76,7 @@ extern TaskDesc D_dryfield_night_motel_lobby_80182814[];
 
 extern AreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
 
-/// World-space points of the markers `func_dryfield_night_motel_lobby_801812F8`
+/// World-space points of the markers `dryfieldNightMotelLobbyDrawGlowsTask`
 /// draws; the second name is the same run from its second entry.
 
 static s16  func_dryfield_night_motel_lobby_80180734(void);
@@ -988,25 +988,37 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-void func_dryfield_night_motel_lobby_801812F8(Task* unused)
+void dryfieldNightMotelLobbyDrawGlowsTask(Task* unusedTask)
 {
+    enum {
+        DRYFIELD_NIGHT_MOTEL_LOBBY_GLOW_PULSE_RATE = 0x60, // Angle units per animation frame (4096 per turn)
+        // Perspective radii are scale * 32 (diamond), 64 (disc outer radius), or 39 (flare), divided by camera Z / 4.
+        DRYFIELD_NIGHT_MOTEL_LOBBY_DIAMOND_RADIUS_SCALE = 0x60,
+        DRYFIELD_NIGHT_MOTEL_LOBBY_DISC_RADIUS_SCALE    = 0x30,
+        DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE   = 0x300,
+        // Each column index also selects its palette on the glow flare texture page.
+        DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_1 = 1,
+        DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_2 = 2,
+    };
+
+    // Select lights by logical view, before camera/image remapping.
     switch (gGameSession->location.loc.view) {
         case 2:
-            _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
-            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
-            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[2], 1, 0x300);
-            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[3], 1, 0x300);
+            _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], DRYFIELD_NIGHT_MOTEL_LOBBY_GLOW_PULSE_RATE, DRYFIELD_NIGHT_MOTEL_LOBBY_DIAMOND_RADIUS_SCALE);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[1], DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_2, DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[2], DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_1, DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[3], DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_1, DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE);
             break;
         case 3:
-            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E8[0], 2, 0x300);
-            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E8[3], 1, 0x300);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[1], DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_2, DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[4], DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_1, DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
-            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);
+            _glowDrawDiamond(&D_dryfield_night_motel_lobby_801828E0[0], DRYFIELD_NIGHT_MOTEL_LOBBY_GLOW_PULSE_RATE, DRYFIELD_NIGHT_MOTEL_LOBBY_DIAMOND_RADIUS_SCALE);
+            _dryfieldNightMotelLobbyDrawFlare(&D_dryfield_night_motel_lobby_801828E0[1], DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_2, DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawPulsingDisc(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x30);
+            _glowDrawPulsingDisc(&D_dryfield_night_motel_lobby_801828E0[0], DRYFIELD_NIGHT_MOTEL_LOBBY_GLOW_PULSE_RATE, DRYFIELD_NIGHT_MOTEL_LOBBY_DISC_RADIUS_SCALE);
             break;
     }
 }
