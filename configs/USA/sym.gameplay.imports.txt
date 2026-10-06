@@ -1993,7 +1993,7 @@ func_hypervelocity_8011D1E8 = 0x8011D1E8; // type:func absolute:True owner=hyper
 
 func_m4a1_pyke_8011D1F8 = 0x8011D1F8; // type:func absolute:True owner=m4a1_pyke
 
-func_m4a1_javelin_8011D1E4 = 0x8011D1E4; // type:func absolute:True owner=m4a1_javelin shared=weapons
+m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_javelin shared=weapons
 
 func_tonfa_baton_8011D1EC = 0x8011D1EC; // type:func absolute:True owner=tonfa_baton shared=weapons
 
@@ -2053,7 +2053,7 @@ func_actor_800100_801624F0 = 0x801624F0; // type:func absolute:True owner=actor_
 
 func_m4a1_hammer_8011DD08 = 0x8011DD08; // type:func absolute:True owner=m4a1_hammer
 
-func_m4a1_javelin_8011F4E8 = 0x8011F4E8; // type:func absolute:True owner=m4a1_javelin
+m4a1JavelinContactFlashTask = 0x8011F4E8; // type:func absolute:True owner=m4a1_javelin
 
 func_actor_510900_8013482C = 0x8013482C; // type:func absolute:True owner=actor_510900
 

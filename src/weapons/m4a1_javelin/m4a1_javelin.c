@@ -30,7 +30,6 @@
 #include "main/display_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
@@ -72,9 +71,21 @@ typedef struct {
 } _M4a1JavelinLineScratch;
 STATIC_ASSERT_SIZEOF(_M4a1JavelinLineScratch, 0x14);
 
-static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
-static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color);
-static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness);
+/// Segment controls, angular units and perspective thickness used by the beam drawers.
+enum {
+    M4A1_JAVELIN_SEGMENT_CAP_NEAR_END  = 1,
+    M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE = 2,
+    M4A1_JAVELIN_FULL_TURN             = 0x1000,
+    M4A1_JAVELIN_HALF_TURN             = 0x800,
+    M4A1_JAVELIN_QUARTER_TURN          = 0x400,
+    M4A1_JAVELIN_EIGHTH_TURN           = 0x200,
+    M4A1_JAVELIN_TRIG_FRACTION_BITS    = 12,
+    M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT  = 0x4000
+};
+
+static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444);
+static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444);
+static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SVECTOR* ringPoint, u16 brightness);
 
 /// Fixed local offset the guide beam's coordinate hangs at.
 static SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
@@ -83,7 +94,7 @@ static SVECTOR D_m4a1_javelin_8011FA90 = { 0, 0x200, 0x20, 0 };
 /// against, rotated into world space by `gGfxViewCoord.workm` first.
 static SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
 
-/// Per-segment `flags` for `func_m4a1_javelin_8011DAB0`, walked from the far
+/// Per-segment `flags` for `_m4a1JavelinDrawBeamSegment`, walked from the far
 /// end (`[5]`, bit 1: retake the beam angle) to the muzzle (`[0]`, bit 0: cap
 /// the near end).
 static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
@@ -91,56 +102,70 @@ static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 /// The four RGB444 beam colours `EffectWork::step` fades through.
 static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
-static void func_m4a1_javelin_8011F4A4(const long* arg0);
+static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
 void        func_m4a1_javelin_8011F5D4(Task* arg0);
 
-/// Per-frame task for the javelin's guide beam. `Task::spawnArg2` is the
-/// `EffectWork` and `Task::extra` reaches the coordinate the beam
-/// hangs on. Cancellation (`gRoomEffectState->effectControl` >=
-/// `ROOM_EFFECT_CONTROL_CANCEL_MIN`) tears the effect down; pause or hide
-/// freezes it.
+/// Allocates and initializes a Gouraud quad for a beam cap or connecting strip.
 ///
-/// - State 0 hangs the coordinate off `EffectWork::parent` at the fixed offset
-///   `D_m4a1_javelin_8011FA90` with an identity rotation, seeds the beam
-///   parameters and falls through to state 1.
-/// - State 1 is the muzzle flare: it refreshes transient light slot 1 with
-///   (`0x100` / `0x1000`) falloff and red intensity that halves every frame, then draws
-///   eight `func_m4a1_javelin_8011EE78` tracers around a ring that widens by
-///   `0x20` a frame until `scale` reaches `0xC0`, which moves it to state 2.
-/// - State 2 is the beam itself. The far end is either the cached
-///   `D_m4a1_javelin_8012EB68` impact point or `EffectWork::move` rotated
-///   into world space, and `pos` is a sixth of the way back towards the
-///   muzzle. Six segments are drawn with
-///   `func_m4a1_javelin_8011DAB0`; while `gRoomEffectState->groundTraceEnabled` is set each
-///   segment also probes `D_m4a1_javelin_8011FA98` (0x800 along +Y) with
-///   `worldCollisionProbeGridSegment` and skins the ground contact with
-///   `func_m4a1_javelin_8011E4A8` as long as the probe keeps hitting. The beam
-///   fades one `D_m4a1_javelin_8011FAAC` colour step every 0x20 of `age`
-///   and releases the work block when the last step runs out.
-void func_m4a1_javelin_8011D1E4(Task* task)
+/// `quad` must be a simple POLY_G4* local lvalue, assigned once and read
+/// repeatedly. Each colour argument is evaluated once; supply zero for the
+/// second centre of a cap. The macro captures and advances `gGpuPrimCursor`
+/// by one packet. Use as a standalone statement inside a braced control body;
+/// it expands to a scoped block. Callers fill positions and link the packet
+/// before submission.
+#define M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, secondRed, secondGreen, secondBlue) \
+    {                                                                                               \
+        (quad)         = gGpuPrimCursor;                                                            \
+        gGpuPrimCursor = (quad) + 1;                                                                \
+        setPolyG4(quad);                                                                            \
+        setRGB0(quad, 0, 0, 0);                                                                     \
+        setRGB1(quad, 0, 0, 0);                                                                     \
+        setRGB2(quad, red, green, blue);                                                            \
+        setRGB3(quad, secondRed, secondGreen, secondBlue);                                          \
+    }
+
+void m4a1JavelinGuideBeamTask(Task* task)
 {
+    enum {
+        M4A1_JAVELIN_GUIDE_INIT             = 0,
+        M4A1_JAVELIN_GUIDE_MUZZLE_FLARE     = 1,
+        M4A1_JAVELIN_GUIDE_BEAM             = 2,
+        M4A1_JAVELIN_BEAM_SEGMENT_COUNT     = ARRAY_SIZE(D_m4a1_javelin_8011FAA0),
+        M4A1_JAVELIN_BEAM_LENGTH            = 8000,
+        M4A1_JAVELIN_FLARE_INITIAL_RADIUS   = 0x600,
+        M4A1_JAVELIN_FLARE_RADIUS_DECREMENT = 0xF0,
+        M4A1_JAVELIN_FLARE_FORWARD_STEP     = 0xC0,
+        M4A1_JAVELIN_FLARE_BRIGHTNESS_STEP  = 0x20,
+        M4A1_JAVELIN_FLARE_MAX_BRIGHTNESS   = 0xC0,
+        M4A1_JAVELIN_GUIDE_HOLD_TICKS       = 32,
+        M4A1_JAVELIN_LIGHT_LIFETIME_TICKS   = 4,
+        M4A1_JAVELIN_BEAM_BASE_RGB444       = 0x36C,
+        M4A1_JAVELIN_PROBE_RAISE            = 0x100,
+        // Actor mode occupies the low halfword, normal firing state 4 the high.
+        M4A1_JAVELIN_PLAYER_FIRING_MODE_STATE = (4 << 16) | GAME_ACTOR_MODE_NORMAL
+    };
     EffectWork*                    work;
     GfxCoord*                      coord;
     GameActor*                     actor;
-    WorldCoordTransientPointLight* lightSlot;
-    GfxCoord*                      light;
-    WorldCoordPointLight*          slot;
-    GfxRotationWords*              dstm;
-    SVECTOR                        pa;
-    SVECTOR                        pb;
-    SVECTOR                        qa;
-    SVECTOR                        qb;
-    s32                            i;
-    s32                            lim;
-    s32                            t;
-    u16                            rnd;
+    WorldCoordTransientPointLight* transientLight;
+    GfxCoord*                      lightCoord;
+    WorldCoordPointLight*          pointLight;
+    SVECTOR                        nearPoint;
+    SVECTOR                        farPoint;
+    SVECTOR                        nearGroundPoint;
+    SVECTOR                        farGroundPoint;
+    s32                            segmentIndex;
+    s32                            flareAngle;
+    s32                            previousHitIndex;
+    s32                            redIntensity;
+    u16                            blueIntensity;
 
-    actor     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    lightSlot = &gWorldCoordTransientPointLights[1];
-    slot      = &lightSlot->light;
-    light     = &lightSlot->light.head.transform.coord;
-    work      = task->spawnArg2.pointer;
-    coord     = task->extra.coordBody->coord;
+    actor          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    transientLight = &gWorldCoordTransientPointLights[1];
+    pointLight     = &transientLight->light;
+    lightCoord     = &transientLight->light.head.transform.coord;
+    work           = task->spawnArg2.pointer;
+    coord          = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -151,320 +176,301 @@ void func_m4a1_javelin_8011D1E4(Task* task)
 
     work->age = work->age + 1;
     switch (task->state) {
-        case 0:
-            dstm                = (GfxRotationWords*)&coord->coord;
-            coord->parent       = work->parent;
-            dstm->m00M01        = ONE;
-            dstm->m02M10        = 0;
-            dstm->m11M12        = ONE;
-            dstm->m20M21        = 0;
-            dstm->m22           = ONE;
+        case M4A1_JAVELIN_GUIDE_INIT:
+            // Attach the beam to the weapon and reset its shared target/directions.
+            coord->parent = work->parent;
+            gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = D_m4a1_javelin_8011FA90.vx;
             coord->coord.t[1]   = D_m4a1_javelin_8011FA90.vy;
             coord->coord.t[2]   = D_m4a1_javelin_8011FA90.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            task->state                = 1;
-            work->move.vy              = 0x1F40;
+            task->state                = M4A1_JAVELIN_GUIDE_MUZZLE_FLARE;
+            work->move.vy              = M4A1_JAVELIN_BEAM_LENGTH;
             work->move.vx              = 0;
             work->move.vz              = 0;
             D_m4a1_javelin_8012EB68.vx = 0;
             D_m4a1_javelin_8012EB68.vy = 0;
             D_m4a1_javelin_8012EB68.vz = 0;
             D_m4a1_javelin_8012EB70    = 0;
-            work->period               = 0x600;
-            work->step                 = 3;
+            work->period               = M4A1_JAVELIN_FLARE_INITIAL_RADIUS;
+            work->step                 = ARRAY_SIZE(D_m4a1_javelin_8011FAAC) - 1;
             D_m4a1_javelin_8012EB62    = 0;
             D_m4a1_javelin_8012EB60    = 0;
             /* fallthrough */
-        case 1:
+        case M4A1_JAVELIN_GUIDE_MUZZLE_FLARE:
+            // Move the narrowing flare ring forward while its spokes brighten.
             actorRenderComposeCoord(coord);
-            lightSlot->framesLeft = 4;
-            slot->inner           = 0x100;
-            slot->outer           = 0x1000;
-            t                     = slot->head.color.r >> 1;
-            slot->head.color.r    = t;
-            slot->head.color.g    = t >> 2;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-            light->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (work->scale == 0xC0) {
-                task->state = 2;
+            transientLight->framesLeft = M4A1_JAVELIN_LIGHT_LIFETIME_TICKS;
+            pointLight->inner          = 0x100;
+            pointLight->outer          = 0x1000;
+            redIntensity               = pointLight->head.color.r >> 1;
+            pointLight->head.color.r   = redIntensity;
+            pointLight->head.color.g   = redIntensity >> 2;
+            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            pointLight->head.color.b   = ((gRandomLcgState >> 16) & 0x700) + 0x400;
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            if (work->scale == M4A1_JAVELIN_FLARE_MAX_BRIGHTNESS) {
+                task->state = M4A1_JAVELIN_GUIDE_BEAM;
             } else {
-                work->scale  = work->scale + 0x20;
-                work->angle  = work->angle + 0xC0;
-                work->period = work->period - 0xF0;
+                work->scale  = work->scale + M4A1_JAVELIN_FLARE_BRIGHTNESS_STEP;
+                work->angle  = work->angle + M4A1_JAVELIN_FLARE_FORWARD_STEP;
+                work->period = work->period - M4A1_JAVELIN_FLARE_RADIUS_DECREMENT;
             }
-            pa.vx = coord->workm.t[0];
-            pa.vy = coord->workm.t[1];
-            pa.vz = coord->workm.t[2];
-            for (i = 0; i < 0x1000; i += 0x200) {
-                pb.vx = (work->period * rsin(i)) >> 12;
-                pb.vy = work->angle;
-                pb.vz = (work->period * rcos(i)) >> 12;
+            nearPoint.vx = coord->workm.t[0];
+            nearPoint.vy = coord->workm.t[1];
+            nearPoint.vz = coord->workm.t[2];
+            for (flareAngle = 0; flareAngle < M4A1_JAVELIN_FULL_TURN; flareAngle += M4A1_JAVELIN_EIGHTH_TURN) {
+                farPoint.vx = (work->period * rsin(flareAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS;
+                farPoint.vy = work->angle;
+                farPoint.vz = (work->period * rcos(flareAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS;
                 gte_SetRotMatrix(&coord->workm);
-                gte_ldv0(&pb);
+                gte_ldv0(&farPoint);
                 gte_rtv0();
-                gte_stsv(&pb);
-                pb.vx = (u16)pb.vx + (u16)pa.vx;
-                pb.vy = (u16)pb.vy + (u16)pa.vy;
-                pb.vz = (u16)pb.vz + (u16)pa.vz;
-                func_m4a1_javelin_8011EE78(&pa, &pb, work->scale);
+                gte_stsv(&farPoint);
+                farPoint.vx = farPoint.vx + nearPoint.vx;
+                farPoint.vy = farPoint.vy + nearPoint.vy;
+                farPoint.vz = farPoint.vz + nearPoint.vz;
+                _m4a1JavelinDrawMuzzleFlareLine(&nearPoint, &farPoint, work->scale);
             }
             return;
-        case 2:
+        case M4A1_JAVELIN_GUIDE_BEAM:
+            // Walk from the tracked/default far end back toward the muzzle.
             actorRenderComposeCoord(coord);
-            lightSlot->framesLeft = 4;
-            slot->inner           = 0x400;
-            slot->outer           = 0x4000;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd                   = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.b    = rnd;
-            slot->head.color.r    = rnd >> 1;
-            slot->head.color.g    = rnd >> 1;
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-            D_m4a1_javelin_8012EB64 = 0;
-            light->composeStamp     = GRAPHICS_COORD_DIRTY;
-            D_m4a1_javelin_8012EB66 = 0;
+            transientLight->framesLeft = M4A1_JAVELIN_LIGHT_LIFETIME_TICKS;
+            pointLight->inner          = 0x400;
+            pointLight->outer          = 0x4000;
+            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            blueIntensity              = ((gRandomLcgState >> 16) & 0x700) + 0x800;
+            pointLight->head.color.b   = blueIntensity;
+            pointLight->head.color.r   = blueIntensity >> 1;
+            pointLight->head.color.g   = blueIntensity >> 1;
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
+            D_m4a1_javelin_8012EB64  = 0;
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            D_m4a1_javelin_8012EB66  = 0;
             if (D_m4a1_javelin_8012EB70 != 0) {
-                pa.vx = coord->workm.t[0];
-                pa.vy = coord->workm.t[1];
-                pa.vz = coord->workm.t[2];
-                pb.vx = D_m4a1_javelin_8012EB68.vx;
-                pb.vy = D_m4a1_javelin_8012EB68.vy;
-                pb.vz = D_m4a1_javelin_8012EB68.vz;
+                nearPoint.vx = coord->workm.t[0];
+                nearPoint.vy = coord->workm.t[1];
+                nearPoint.vz = coord->workm.t[2];
+                farPoint.vx  = D_m4a1_javelin_8012EB68.vx;
+                farPoint.vy  = D_m4a1_javelin_8012EB68.vy;
+                farPoint.vz  = D_m4a1_javelin_8012EB68.vz;
             } else {
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&pb);
-                pa.vx = coord->workm.t[0];
-                pa.vy = coord->workm.t[1];
-                pa.vz = coord->workm.t[2];
-                pb.vx = (u16)pb.vx + (u16)pa.vx;
-                pb.vy = (u16)pb.vy + (u16)pa.vy;
-                pb.vz = (u16)pb.vz + (u16)pa.vz;
+                gte_stsv(&farPoint);
+                nearPoint.vx = coord->workm.t[0];
+                nearPoint.vy = coord->workm.t[1];
+                nearPoint.vz = coord->workm.t[2];
+                farPoint.vx  = farPoint.vx + nearPoint.vx;
+                farPoint.vy  = farPoint.vy + nearPoint.vy;
+                farPoint.vz  = farPoint.vz + nearPoint.vz;
             }
-            work->pos.vx = (pa.vx - pb.vx) / 6;
-            work->pos.vy = (pa.vy - pb.vy) / 6;
-            work->pos.vz = (pa.vz - pb.vz) / 6;
-            pa.vx        = (u16)pb.vx;
-            pa.vy        = (u16)pb.vy;
-            pa.vz        = (u16)pb.vz;
+            work->pos.vx = (nearPoint.vx - farPoint.vx) / M4A1_JAVELIN_BEAM_SEGMENT_COUNT;
+            work->pos.vy = (nearPoint.vy - farPoint.vy) / M4A1_JAVELIN_BEAM_SEGMENT_COUNT;
+            work->pos.vz = (nearPoint.vz - farPoint.vz) / M4A1_JAVELIN_BEAM_SEGMENT_COUNT;
+            nearPoint.vx = farPoint.vx;
+            nearPoint.vy = farPoint.vy;
+            nearPoint.vz = farPoint.vz;
             if (gRoomEffectState->groundTraceEnabled != 0) {
                 gte_SetRotMatrix(&gGfxViewCoord.workm);
                 gte_ldv0(&D_m4a1_javelin_8011FA98);
                 gte_rtv0();
-                gte_stsv(&qb);
-                qb.vx = (u16)qb.vx + (u16)pb.vx;
-                qb.vy = (u16)qb.vy + (u16)pb.vy;
-                qb.vz = (u16)qb.vz + (u16)pb.vz;
-                pb.vy = (u16)pb.vy - 0x100;
-                if (worldCollisionProbeGridSegment(&qb, &pb, &qb, NULL) == 1) {
-                    lim = 6;
+                gte_stsv(&farGroundPoint);
+                farGroundPoint.vx = farGroundPoint.vx + farPoint.vx;
+                farGroundPoint.vy = farGroundPoint.vy + farPoint.vy;
+                farGroundPoint.vz = farGroundPoint.vz + farPoint.vz;
+                farPoint.vy       = farPoint.vy - M4A1_JAVELIN_PROBE_RAISE;
+                if (worldCollisionProbeGridSegment(&farGroundPoint, &farPoint, &farGroundPoint, NULL) == 1) {
+                    previousHitIndex = M4A1_JAVELIN_BEAM_SEGMENT_COUNT;
                 } else {
-                    lim = 5;
+                    previousHitIndex = M4A1_JAVELIN_BEAM_SEGMENT_COUNT - 1;
                 }
-                pb.vy = (u16)pb.vy + 0x100;
-                for (i = 5; i >= 0; i--) {
-                    pa.vx = (u16)pa.vx + work->pos.vx;
-                    pa.vy = (u16)pa.vy + work->pos.vy;
-                    pa.vz = (u16)pa.vz + work->pos.vz;
-                    func_m4a1_javelin_8011DAB0(&pa, &pb, D_m4a1_javelin_8011FAA0[i],
-                                               D_m4a1_javelin_8011FAAC[work->step]);
+                farPoint.vy = farPoint.vy + M4A1_JAVELIN_PROBE_RAISE;
+                for (segmentIndex = M4A1_JAVELIN_BEAM_SEGMENT_COUNT - 1; segmentIndex >= 0; segmentIndex--) {
+                    nearPoint.vx = nearPoint.vx + work->pos.vx;
+                    nearPoint.vy = nearPoint.vy + work->pos.vy;
+                    nearPoint.vz = nearPoint.vz + work->pos.vz;
+                    _m4a1JavelinDrawBeamSegment(&nearPoint, &farPoint, D_m4a1_javelin_8011FAA0[segmentIndex],
+                                                D_m4a1_javelin_8011FAAC[work->step]);
                     gte_SetRotMatrix(&gGfxViewCoord.workm);
                     gte_ldv0(&D_m4a1_javelin_8011FA98);
                     gte_rtv0();
-                    gte_stsv(&qa);
-                    qa.vx = (u16)qa.vx + (u16)pa.vx;
-                    qa.vy = (u16)qa.vy + (u16)pa.vy;
-                    qa.vz = (u16)qa.vz + (u16)pa.vz;
-                    pa.vy = (u16)pa.vy - 0x100;
-                    if (worldCollisionProbeGridSegment(&qa, &pa, &qa, NULL) == 1) {
-                        if (i < lim) {
-                            func_m4a1_javelin_8011E4A8(&qa, &qb, D_m4a1_javelin_8011FAA0[i],
-                                                       D_m4a1_javelin_8011FAAC[work->step >> 1]);
+                    gte_stsv(&nearGroundPoint);
+                    nearGroundPoint.vx = nearGroundPoint.vx + nearPoint.vx;
+                    nearGroundPoint.vy = nearGroundPoint.vy + nearPoint.vy;
+                    nearGroundPoint.vz = nearGroundPoint.vz + nearPoint.vz;
+                    nearPoint.vy       = nearPoint.vy - M4A1_JAVELIN_PROBE_RAISE;
+                    if (worldCollisionProbeGridSegment(&nearGroundPoint, &nearPoint, &nearGroundPoint, NULL) == 1) {
+                        if (segmentIndex < previousHitIndex) {
+                            _m4a1JavelinDrawGroundBeamSegment(&nearGroundPoint, &farGroundPoint, D_m4a1_javelin_8011FAA0[segmentIndex],
+                                                              D_m4a1_javelin_8011FAAC[work->step >> 1]);
                         }
-                        lim = i;
+                        previousHitIndex = segmentIndex;
                     } else {
-                        lim = i - 1;
+                        previousHitIndex = segmentIndex - 1;
                     }
-                    pa.vy = (u16)pa.vy + 0x100;
-                    qb.vx = (u16)qa.vx;
-                    qb.vy = (u16)qa.vy;
-                    qb.vz = (u16)qa.vz;
-                    pb.vx = (u16)pa.vx;
-                    pb.vy = (u16)pa.vy;
-                    pb.vz = (u16)pa.vz;
+                    nearPoint.vy      = nearPoint.vy + M4A1_JAVELIN_PROBE_RAISE;
+                    farGroundPoint.vx = nearGroundPoint.vx;
+                    farGroundPoint.vy = nearGroundPoint.vy;
+                    farGroundPoint.vz = nearGroundPoint.vz;
+                    farPoint.vx       = nearPoint.vx;
+                    farPoint.vy       = nearPoint.vy;
+                    farPoint.vz       = nearPoint.vz;
                 }
             } else {
-                for (i = 5; i >= 0; i--) {
-                    pa.vx = (u16)pa.vx + work->pos.vx;
-                    pa.vy = (u16)pa.vy + work->pos.vy;
-                    pa.vz = (u16)pa.vz + work->pos.vz;
-                    func_m4a1_javelin_8011DAB0(&pa, &pb, D_m4a1_javelin_8011FAA0[i], 0x36C);
-                    pb.vx = (u16)pa.vx;
-                    pb.vy = (u16)pa.vy;
-                    pb.vz = (u16)pa.vz;
+                for (segmentIndex = M4A1_JAVELIN_BEAM_SEGMENT_COUNT - 1; segmentIndex >= 0; segmentIndex--) {
+                    nearPoint.vx = nearPoint.vx + work->pos.vx;
+                    nearPoint.vy = nearPoint.vy + work->pos.vy;
+                    nearPoint.vz = nearPoint.vz + work->pos.vz;
+                    _m4a1JavelinDrawBeamSegment(&nearPoint, &farPoint, D_m4a1_javelin_8011FAA0[segmentIndex], M4A1_JAVELIN_BEAM_BASE_RGB444);
+                    farPoint.vx = nearPoint.vx;
+                    farPoint.vy = nearPoint.vy;
+                    farPoint.vz = nearPoint.vz;
                 }
             }
-            if (work->age >= 0x21) {
+            // Once the hold expires, consume one colour step on every active tick.
+            if (work->age >= M4A1_JAVELIN_GUIDE_HOLD_TICKS + 1) {
                 work->step = work->step - 1;
                 if (work->step < 0) {
                     effectKillTask(work, task);
                 }
-            } else if (*(s32*)&actor->mode != 0x40000) {
-                work->age = work->age + 0x20;
+            } else if (*(s32*)&actor->mode != M4A1_JAVELIN_PLAYER_FIRING_MODE_STATE) {
+                work->age = work->age + M4A1_JAVELIN_GUIDE_HOLD_TICKS;
             }
             break;
     }
 }
 
-/// Draws the javelin's aiming guide: a flat `LINE_F2` from `p0` to `p1` plus
-/// three fans of `POLY_G4` segments, all dropped if either endpoint fails its
-/// `RTPS` `FLAG` check (which also arms `D_m4a1_javelin_8012EB64` so the beam
-/// angle is recomputed on the next visible frame). `color` is an RGB444 word
-/// widened a nibble at a time, brightened by `gDisplayState.animFrame`'s low bit
-/// so the beam flickers every other frame; the fans use two thirds of that.
-/// Bit 1 of `flags` forces the `ratan2` of the on-screen beam direction to be
-/// taken again, otherwise the cached `D_m4a1_javelin_8012EB60` is reused. The
-/// first fan caps the far end, the second (bit 0 of `flags`) caps the near end
-/// and the third sweeps at double rate to skin the beam between the two.
-static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
+/// Draws one additive guide-beam segment between two world points.
+///
+/// Points are read-only, word-aligned SVECTORs in game coordinate units.
+/// `rgb444` packs 0x0RGB; an alternating 16-unit byte bias brightens the line,
+/// and the surrounding Gouraud wedges use two thirds of that brightness.
+/// `segmentFlags` selects the near-end cap and direction refresh with
+/// `M4A1_JAVELIN_SEGMENT_*`. Refresh also draws the far-end cap; otherwise
+/// segments share the cached screen direction (4096 angle units per turn).
+/// A failed endpoint projection emits nothing and requests a direction refresh
+/// on the next visible segment. Uses and releases one scratch block; packets
+/// remain in the current primitive heap and ordering table until GPU completion.
+static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444)
 {
-    u8*                      head;
-    OverlayPointPairScratch* sc;
+    OverlayPointPairScratch* scratch;
     LINE_F2*                 line;
-    POLY_G4*                 prim;
-    s32                      i;
-    s32                      tipAng;
-    s32                      baseAng;
-    s32                      bodyAng;
-    s32                      tint;
-    u32                      rgb;
-    u8                       r;
-    u8                       g;
-    u8                       b;
-    u16                      angle;
+    POLY_G4*                 quad;
+    s32                      wedgeAngle;
+    s32                      farCornerAngle;
+    s32                      nearCornerAngle;
+    s32                      stripAngle;
+    s32                      flickerBias;
+    u32                      expandedRgb444;
+    u8                       red;
+    u8                       green;
+    u8                       blue;
+    u16                      beamAngle;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayPointPairScratch);
-    sc                       = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
 
+    // Project both endpoints before emitting GPU packets.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(p0);
+    gte_ldv0(nearPoint);
     gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->sx0);
-    gte_stflg(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->flag);
-    if (sc->flag >= 0) {
-        gte_stszotz(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->otz0);
-        sc->otz0++;
-        gte_ldv0(p1);
+    gte_stsxy(&scratch->sx0);
+    gte_stflg(&scratch->flag);
+    if (scratch->flag >= 0) {
+        gte_stszotz(&scratch->otz0);
+        scratch->otz0++;
+        gte_ldv0(farPoint);
         gte_rtps();
-        gte_stsxy(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->sx1);
-        gte_stflg(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->flag);
-        if (sc->flag >= 0) {
-            gte_stszotz(&((OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch)))->otz1);
-            rgb = color;
-            r   = (rgb >> 4) & 0xF0;
-            g   = rgb & 0xF0;
-            b   = (color & 0xF) * 0x10;
-            sc->otz1++;
+        gte_stsxy(&scratch->sx1);
+        gte_stflg(&scratch->flag);
+        if (scratch->flag >= 0) {
+            gte_stszotz(&scratch->otz1);
+            expandedRgb444 = rgb444;
+            red            = (expandedRgb444 >> 4) & 0xF0;
+            green          = expandedRgb444 & 0xF0;
+            blue           = (rgb444 & 0xF) * 0x10;
+            scratch->otz1++;
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineF2(line);
-            tint = ((u8)gDisplayState.animFrame & 1) * 0x10;
-            r    = r + tint;
-            g    = g + tint;
-            b    = b + tint;
-            setRGB0(line, r, g, b);
-            line->x0 = sc->sx0;
-            line->y0 = sc->sy0;
-            line->x1 = sc->sx1;
-            line->y1 = sc->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
-            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, sc->otz0);
-            sc->radius0 = 0x4000 / sc->otz0;
-            sc->radius1 = 0x4000 / sc->otz1;
-            r           = r * 2 / 3;
-            g           = g * 2 / 3;
-            b           = b * 2 / 3;
-            if ((flags & 2) || D_m4a1_javelin_8012EB64 != 0) {
-                angle                   = ratan2(line->y1 - line->y0, line->x0 - line->x1);
-                D_m4a1_javelin_8012EB60 = angle;
+            flickerBias = ((u8)gDisplayState.animFrame & 1) * 0x10;
+            red         = red + flickerBias;
+            green       = green + flickerBias;
+            blue        = blue + flickerBias;
+            setRGB0(line, red, green, blue);
+            line->x0 = scratch->sx0;
+            line->y0 = scratch->sy0;
+            line->x1 = scratch->sx1;
+            line->y1 = scratch->sy1;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz0);
+            scratch->radius0 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz0;
+            scratch->radius1 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz1;
+            red              = red * 2 / 3;
+            green            = green * 2 / 3;
+            blue             = blue * 2 / 3;
+            // Share the strip direction and cap its terminal segments.
+            if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || D_m4a1_javelin_8012EB64 != 0) {
+                beamAngle               = ratan2(line->y1 - line->y0, line->x0 - line->x1);
+                D_m4a1_javelin_8012EB60 = beamAngle;
                 D_m4a1_javelin_8012EB64 = 0;
-                for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    tipAng   = i + 0x800;
-                    prim->x0 = (u16)line->x1 + ((sc->radius1 * rsin(tipAng)) >> 12);
-                    prim->y0 = (u16)line->y1 + ((sc->radius1 * rcos(tipAng)) >> 12);
-                    tipAng   = i + 0xA00;
-                    prim->x1 = (u16)line->x1 + ((sc->radius1 * rsin(tipAng)) >> 12);
-                    prim->y1 = (u16)line->y1 + ((sc->radius1 * rcos(tipAng)) >> 12);
-                    prim->x2 = (u16)line->x1;
-                    prim->y2 = (u16)line->y1;
-                    tipAng   = i + 0xC00;
-                    prim->x3 = (u16)line->x1 + ((sc->radius1 * rsin(tipAng)) >> 12);
-                    prim->y3 = (u16)line->y1 + ((sc->radius1 * rcos(tipAng)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz1);
+                for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+                    M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
+                    farCornerAngle = wedgeAngle + M4A1_JAVELIN_HALF_TURN;
+                    quad->x0       = line->x1 + ((scratch->radius1 * rsin(farCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y0       = line->y1 + ((scratch->radius1 * rcos(farCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    farCornerAngle = wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_EIGHTH_TURN);
+                    quad->x1       = line->x1 + ((scratch->radius1 * rsin(farCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y1       = line->y1 + ((scratch->radius1 * rcos(farCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->x2       = line->x1;
+                    quad->y2       = line->y1;
+                    farCornerAngle = wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_QUARTER_TURN);
+                    quad->x3       = line->x1 + ((scratch->radius1 * rsin(farCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y3       = line->y1 + ((scratch->radius1 * rcos(farCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                            quad);
+                    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
                 }
             } else {
-                angle = D_m4a1_javelin_8012EB60;
+                beamAngle = D_m4a1_javelin_8012EB60;
             }
-            if (flags & 1) {
-                for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                    prim           = gGpuPrimCursor;
-                    gGpuPrimCursor = prim + 1;
-                    setPolyG4(prim);
-                    setRGB0(prim, 0, 0, 0);
-                    setRGB1(prim, 0, 0, 0);
-                    setRGB2(prim, r, g, b);
-                    setRGB3(prim, 0, 0, 0);
-                    prim->x0 = (u16)line->x0 + ((sc->radius0 * rsin(i)) >> 12);
-                    prim->y0 = (u16)line->y0 + ((sc->radius0 * rcos(i)) >> 12);
-                    baseAng  = i + 0x200;
-                    prim->x1 = (u16)line->x0 + ((sc->radius0 * rsin(baseAng)) >> 12);
-                    prim->y1 = (u16)line->y0 + ((sc->radius0 * rcos(baseAng)) >> 12);
-                    prim->x2 = (u16)line->x0;
-                    prim->y2 = (u16)line->y0;
-                    baseAng  = i + 0x400;
-                    prim->x3 = (u16)line->x0 + ((sc->radius0 * rsin(baseAng)) >> 12);
-                    prim->y3 = (u16)line->y0 + ((sc->radius0 * rcos(baseAng)) >> 12);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                            prim);
-                    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz0);
+            if (segmentFlags & M4A1_JAVELIN_SEGMENT_CAP_NEAR_END) {
+                for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+                    M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
+                    quad->x0        = line->x0 + ((scratch->radius0 * rsin(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y0        = line->y0 + ((scratch->radius0 * rcos(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    nearCornerAngle = wedgeAngle + M4A1_JAVELIN_EIGHTH_TURN;
+                    quad->x1        = line->x0 + ((scratch->radius0 * rsin(nearCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y1        = line->y0 + ((scratch->radius0 * rcos(nearCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->x2        = line->x0;
+                    quad->y2        = line->y0;
+                    nearCornerAngle = wedgeAngle + M4A1_JAVELIN_QUARTER_TURN;
+                    quad->x3        = line->x0 + ((scratch->radius0 * rsin(nearCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y3        = line->y0 + ((scratch->radius0 * rcos(nearCornerAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                            quad);
+                    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
                 }
             }
-            for (i = (s16)angle; i < (s16)angle + 0x800; i += 0x400) {
-                prim           = gGpuPrimCursor;
-                gGpuPrimCursor = prim + 1;
-                bodyAng        = (s16)angle + ((i - (s16)angle) * 2);
-                setPolyG4(prim);
-                setRGB0(prim, 0, 0, 0);
-                setRGB1(prim, 0, 0, 0);
-                setRGB2(prim, r, g, b);
-                setRGB3(prim, r, g, b);
-                prim->x0 = (u16)line->x0 + ((sc->radius0 * rsin(bodyAng)) >> 12);
-                prim->y0 = (u16)line->y0 + ((sc->radius0 * rcos(bodyAng)) >> 12);
-                prim->x1 = (u16)line->x1 + ((sc->radius1 * rsin(bodyAng)) >> 12);
-                prim->y1 = (u16)line->y1 + ((sc->radius1 * rcos(bodyAng)) >> 12);
-                prim->x2 = (u16)line->x0;
-                prim->y2 = (u16)line->y0;
-                prim->x3 = (u16)line->x1;
-                prim->y3 = (u16)line->y1;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        prim);
-                gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, sc->otz0);
+            for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+                M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, red, green, blue);
+                stripAngle = (s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2);
+                quad->x0   = line->x0 + ((scratch->radius0 * rsin(stripAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->y0   = line->y0 + ((scratch->radius0 * rcos(stripAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->x1   = line->x1 + ((scratch->radius1 * rsin(stripAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->y1   = line->y1 + ((scratch->radius1 * rcos(stripAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->x2   = line->x0;
+                quad->y2   = line->y0;
+                quad->x3   = line->x1;
+                quad->y3   = line->y1;
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        quad);
+                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
             }
         } else {
             D_m4a1_javelin_8012EB64 = 1;
@@ -475,142 +481,120 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
 }
 
-/// Draws the javelin launcher's targeting reticle: a `LINE_F2` between the two
-/// world-space points `p0` and `p1` plus three fans of `POLY_G4` wedges, all
-/// dropped if either endpoint fails its `RTPS` `FLAG` check (which also arms
-/// `D_m4a1_javelin_8012EB66` so the next frame re-measures the angle). Bit 1 of
-/// `flags` forces that re-measurement: `ratan2` of the screen-space delta gives
-/// the reticle's roll, which is cached in `D_m4a1_javelin_8012EB62` and reused
-/// on the frames that do not. Bit 0 adds the near-end fan. `color` is a packed
-/// `0x0RGB` nibble triple; each nibble is widened to a byte, biased by the
-/// 8-unit dither of `gDisplayState.animFrame` and halved. Each fan is four
-/// quarter-turn wedges of radius `0x4000 / otz`, so the reticle keeps a
-/// constant on-screen size as the target moves away.
-static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 color)
+/// Draws the additive ground glow between adjacent beam collision points.
+///
+/// Inputs and `segmentFlags` follow `_m4a1JavelinDrawBeamSegment`; the caller
+/// supplies two successful neighbouring probes in world coordinate units.
+/// The 0x0RGB colour receives an alternating 8-unit bias and is halved.
+/// Direction caching and projection-failure recovery are independent of the
+/// airborne beam. Thickness scales inversely with each endpoint's depth.
+/// Reserves/releases one scratch block and appends packets to the current heap.
+static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444)
 {
-    u8*                      head;
-    OverlayPointPairScratch* sc;
+    OverlayPointPairScratch* scratch;
     LINE_F2*                 line;
-    POLY_G4*                 poly;
-    u32                      dither;
-    u32                      c;
-    u8                       r;
-    u8                       g;
-    u8                       b;
-    u16                      ang;
-    s32                      i;
+    POLY_G4*                 quad;
+    u32                      flickerBias;
+    u32                      expandedRgb444;
+    u8                       red;
+    u8                       green;
+    u8                       blue;
+    u16                      beamAngle;
+    s32                      wedgeAngle;
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayPointPairScratch);
-    sc                       = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
 
+    // Project both endpoints before emitting GPU packets.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(p0);
+    gte_ldv0(nearPoint);
     gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)head)[-1].sx0);
-    gte_stflg(&((OverlayPointPairScratch*)head)[-1].flag);
-    if (sc->flag < 0) {
+    gte_stsxy(&scratch->sx0);
+    gte_stflg(&scratch->flag);
+    if (scratch->flag < 0) {
         goto fail;
     }
-    gte_stszotz(&((OverlayPointPairScratch*)head)[-1].otz0);
-    ((OverlayPointPairScratch*)head)[-1].otz0++;
-    gte_ldv0(p1);
+    gte_stszotz(&scratch->otz0);
+    scratch->otz0++;
+    gte_ldv0(farPoint);
     gte_rtps();
-    gte_stsxy(&((OverlayPointPairScratch*)head)[-1].sx1);
-    gte_stflg(&((OverlayPointPairScratch*)head)[-1].flag);
-    if (sc->flag < 0) {
+    gte_stsxy(&scratch->sx1);
+    gte_stflg(&scratch->flag);
+    if (scratch->flag < 0) {
         goto fail;
     }
-    gte_stszotz(&((OverlayPointPairScratch*)head)[-1].otz1);
+    gte_stszotz(&scratch->otz1);
 
-    sc->otz1++;
+    scratch->otz1++;
     line           = gGpuPrimCursor;
     gGpuPrimCursor = line + 1;
     setLineF2(line);
-    dither = (gDisplayState.animFrame & 1) * 8;
-    c      = color & 0xFFFF;
-    r      = (((c >> 4) & 0xF0) + dither) >> 1;
-    g      = ((c & 0xF0) + dither) >> 1;
-    b      = (((color & 0xF) << 4) + dither) >> 1;
-    setRGB0(line, r, g, b);
-    line->x0 = sc->sx0;
-    line->y0 = sc->sy0;
-    line->x1 = sc->sx1;
-    line->y1 = sc->sy1;
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((OverlayPointPairScratch*)head)[-1].otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    flickerBias    = (gDisplayState.animFrame & 1) * 8;
+    expandedRgb444 = rgb444 & 0xFFFF;
+    red            = (((expandedRgb444 >> 4) & 0xF0) + flickerBias) >> 1;
+    green          = ((expandedRgb444 & 0xF0) + flickerBias) >> 1;
+    blue           = (((rgb444 & 0xF) << 4) + flickerBias) >> 1;
+    setRGB0(line, red, green, blue);
+    line->x0 = scratch->sx0;
+    line->y0 = scratch->sy0;
+    line->x1 = scratch->sx1;
+    line->y1 = scratch->sy1;
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             line);
-    gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, ((OverlayPointPairScratch*)head)[-1].otz0);
-    sc->radius0 = 0x4000 / ((OverlayPointPairScratch*)head)[-1].otz0;
-    sc->radius1 = 0x4000 / sc->otz1;
+    gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz0);
+    scratch->radius0 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz0;
+    scratch->radius1 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz1;
 
-    if ((flags & 2) || D_m4a1_javelin_8012EB66 != 0) {
-        ang                     = ratan2(line->y1 - line->y0, line->x0 - line->x1);
-        D_m4a1_javelin_8012EB62 = ang;
+    // Share the strip direction and cap its terminal segments.
+    if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || D_m4a1_javelin_8012EB66 != 0) {
+        beamAngle               = ratan2(line->y1 - line->y0, line->x0 - line->x1);
+        D_m4a1_javelin_8012EB62 = beamAngle;
         D_m4a1_javelin_8012EB66 = 0;
-        for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setPolyG4(poly);
-            setRGB0(poly, 0, 0, 0);
-            setRGB1(poly, 0, 0, 0);
-            setRGB2(poly, r, g, b);
-            setRGB3(poly, 0, 0, 0);
-            poly->x0 = (u16)line->x1 + ((sc->radius1 * rsin(i + 0x800)) >> 12);
-            poly->y0 = (u16)line->y1 + ((sc->radius1 * rcos(i + 0x800)) >> 12);
-            poly->x1 = (u16)line->x1 + ((sc->radius1 * rsin(i + 0xA00)) >> 12);
-            poly->y1 = (u16)line->y1 + ((sc->radius1 * rcos(i + 0xA00)) >> 12);
-            poly->x2 = line->x1;
-            poly->y2 = line->y1;
-            poly->x3 = (u16)line->x1 + ((sc->radius1 * rsin(i + 0xC00)) >> 12);
-            poly->y3 = (u16)line->y1 + ((sc->radius1 * rcos(i + 0xC00)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-            gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz1);
+        for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+            M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
+            quad->x0 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + M4A1_JAVELIN_HALF_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->y0 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + M4A1_JAVELIN_HALF_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->x1 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_EIGHTH_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->y1 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_EIGHTH_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->x2 = line->x1;
+            quad->y2 = line->y1;
+            quad->x3 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_QUARTER_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->y3 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_QUARTER_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
         }
     } else {
-        ang = D_m4a1_javelin_8012EB62;
+        beamAngle = D_m4a1_javelin_8012EB62;
     }
 
-    if (flags & 1) {
-        for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setPolyG4(poly);
-            setRGB0(poly, 0, 0, 0);
-            setRGB1(poly, 0, 0, 0);
-            setRGB2(poly, r, g, b);
-            setRGB3(poly, 0, 0, 0);
-            poly->x0 = (u16)line->x0 + ((sc->radius0 * rsin(i)) >> 12);
-            poly->y0 = (u16)line->y0 + ((sc->radius0 * rcos(i)) >> 12);
-            poly->x1 = (u16)line->x0 + ((sc->radius0 * rsin(i + 0x200)) >> 12);
-            poly->y1 = (u16)line->y0 + ((sc->radius0 * rcos(i + 0x200)) >> 12);
-            poly->x2 = line->x0;
-            poly->y2 = line->y0;
-            poly->x3 = (u16)line->x0 + ((sc->radius0 * rsin(i + 0x400)) >> 12);
-            poly->y3 = (u16)line->y0 + ((sc->radius0 * rcos(i + 0x400)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-            gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz0);
+    if (segmentFlags & M4A1_JAVELIN_SEGMENT_CAP_NEAR_END) {
+        for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+            M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
+            quad->x0 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->y0 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->x1 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle + M4A1_JAVELIN_EIGHTH_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->y1 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle + M4A1_JAVELIN_EIGHTH_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->x2 = line->x0;
+            quad->y2 = line->y0;
+            quad->x3 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle + M4A1_JAVELIN_QUARTER_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            quad->y3 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle + M4A1_JAVELIN_QUARTER_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
         }
     }
 
-    for (i = (s16)ang; i < (s16)ang + 0x800; i += 0x400) {
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setPolyG4(poly);
-        setRGB0(poly, 0, 0, 0);
-        setRGB1(poly, 0, 0, 0);
-        setRGB2(poly, r, g, b);
-        setRGB3(poly, r, g, b);
-        poly->x0 = (u16)line->x0 + ((sc->radius0 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
-        poly->y0 = (u16)line->y0 + ((sc->radius0 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
-        poly->x1 = (u16)line->x1 + ((sc->radius1 * rsin((s16)ang + ((i - (s16)ang) * 2))) >> 12);
-        poly->y1 = (u16)line->y1 + ((sc->radius1 * rcos((s16)ang + ((i - (s16)ang) * 2))) >> 12);
-        poly->x2 = line->x0;
-        poly->y2 = line->y0;
-        poly->x3 = line->x1;
-        poly->y3 = line->y1;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), poly);
-        gpuSetPrimitiveBlendMode(poly, GPU_BLEND_ADD, sc->otz0);
+    for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+        M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, red, green, blue);
+        quad->x0 = line->x0 + ((scratch->radius0 * rsin((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+        quad->y0 = line->y0 + ((scratch->radius0 * rcos((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+        quad->x1 = line->x1 + ((scratch->radius1 * rsin((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+        quad->y1 = line->y1 + ((scratch->radius1 * rcos((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+        quad->x2 = line->x0;
+        quad->y2 = line->y0;
+        quad->x3 = line->x1;
+        quad->y3 = line->y1;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
     }
     goto done;
 
@@ -620,53 +604,51 @@ done:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
 }
 
-/* `otz0` is taken before the branch on purpose: the address is the same one
-   already held for `sc`, so CSE turns it into the copy the ROM keeps, which a
-   `&sc->otz0` inside the `if` would fold away. */
-/// Links one Gouraud `LINE_G2` between the world-space points `p0` and `p1`
-/// into `gGpuCurrentOt`, dropped entirely if either endpoint fails its `RTPS`
-/// `FLAG` check. Only the first vertex is lit: `brightness` goes into blue,
-/// half of it into green and a quarter into red, so the tracer fades from a
-/// blue-white head to black.
-static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
-{
-    u8*                      head;
-    _M4a1JavelinLineScratch* sc;
-    LINE_G2*                 line;
-    s32*                     otz0;
+#undef M4A1_JAVELIN_ALLOCATE_BEAM_QUAD
 
-    head                                          = SCRATCH_STACK_CURSOR(u8);
-    sc                                            = (_M4a1JavelinLineScratch*)(head - sizeof(_M4a1JavelinLineScratch));
-    SCRATCH_STACK_CURSOR(_M4a1JavelinLineScratch) = sc;
-    otz0                                          = &sc->otz0;
+/// Draws one additive muzzle-flare spoke from the muzzle to its world-space ring.
+///
+/// Inputs are read-only, word-aligned SVECTORs in game coordinate units.
+/// `brightness` is the blue byte at the muzzle (caller supplies 32..192);
+/// green/red use one half/quarter, and the ring end is black. The spoke is
+/// sorted at the muzzle depth and omitted if either projection fails.
+/// Reserves/releases one scratch block and appends a Gouraud line to the heap.
+static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SVECTOR* ringPoint, u16 brightness)
+{
+    _M4a1JavelinLineScratch* scratch;
+    LINE_G2*                 line;
+    s32*                     muzzleDepth;
+
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(_M4a1JavelinLineScratch);
+    muzzleDepth = &scratch->otz0;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(p0);
+    gte_ldv0(muzzlePoint);
     gte_rtps();
-    gte_stsxy(&sc->sxy0);
-    gte_stflg(&sc->flag);
-    if (sc->flag >= 0) {
-        gte_stszotz(otz0);
-        sc->otz0++;
-        gte_ldv0(p1);
+    gte_stsxy(&scratch->sxy0);
+    gte_stflg(&scratch->flag);
+    if (scratch->flag >= 0) {
+        gte_stszotz(muzzleDepth);
+        scratch->otz0++;
+        gte_ldv0(ringPoint);
         gte_rtps();
-        gte_stsxy(&sc->sxy1);
-        gte_stflg(&sc->flag);
-        if (sc->flag >= 0) {
-            gte_stszotz(&sc->otz1);
-            sc->otz1++;
+        gte_stsxy(&scratch->sxy1);
+        gte_stflg(&scratch->flag);
+        if (scratch->flag >= 0) {
+            gte_stszotz(&scratch->otz1);
+            scratch->otz1++;
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
             setLineG2(line);
             setRGB0(line, brightness >> 2, brightness >> 1, brightness);
             setRGB1(line, 0, 0, 0);
-            line->x0 = sc->sxy0.vx;
-            line->y0 = sc->sxy0.vy;
-            line->x1 = sc->sxy1.vx;
-            line->y1 = sc->sxy1.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
-            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, sc->otz0);
+            line->x0 = scratch->sxy0.vx;
+            line->y0 = scratch->sxy0.vy;
+            line->x1 = scratch->sxy1.vx;
+            line->y1 = scratch->sxy1.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz0);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_M4a1JavelinLineScratch);
@@ -687,45 +669,58 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
-static void func_m4a1_javelin_8011F4A4(const long* arg0)
+/// Sets or clears the guide beam's tracked world-space impact point.
+///
+/// `worldTranslation` is NULL to invalidate the point without clearing its
+/// stale coordinates, or at least three readable signed translation words
+/// (X, Y, Z). Each is narrowed to its low signed halfword. Values are copied;
+/// the pointer is never retained, so a scratch coordinate is a valid source.
+static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation)
 {
-    if (arg0 == NULL) {
+    if (worldTranslation == NULL) {
         D_m4a1_javelin_8012EB70 = 0;
         return;
     }
-    D_m4a1_javelin_8012EB68.vx = arg0[0];
-    D_m4a1_javelin_8012EB68.vy = arg0[1];
+    D_m4a1_javelin_8012EB68.vx = worldTranslation[0];
+    D_m4a1_javelin_8012EB68.vy = worldTranslation[1];
     D_m4a1_javelin_8012EB70    = 1;
-    D_m4a1_javelin_8012EB68.vz = arg0[2];
+    D_m4a1_javelin_8012EB68.vz = worldTranslation[2];
 }
 
-void func_m4a1_javelin_8011F4E8(Task* arg0)
+void m4a1JavelinContactFlashTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        M4A1_JAVELIN_CONTACT_FLASH_INIT        = 0,
+        M4A1_JAVELIN_CONTACT_FLASH_PLAYING     = 1,
+        M4A1_JAVELIN_CONTACT_FLASH_FRAME_COUNT = 8,
+        M4A1_JAVELIN_CONTACT_FLASH_SIZE        = 512
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
+    s16         effectControl;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
 
-    mem->age++;
-    if (arg0->state == 0) {
-        mem->scale      = 0x200;
+    work->age++;
+    if (task->state == M4A1_JAVELIN_CONTACT_FLASH_INIT) {
+        work->scale     = M4A1_JAVELIN_CONTACT_FLASH_SIZE;
         gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-        arg0->state     = 1;
+        work->angle     = (gRandomLcgState >> 16) & (M4A1_JAVELIN_FULL_TURN - 1);
+        task->state     = M4A1_JAVELIN_CONTACT_FLASH_PLAYING;
     }
-    spriteQuadDraw(coord->workm.t, mem->age - 1, mem->scale, mem->angle);
-    if (mem->age == 8) {
-        effectKillTask(mem, arg0);
+    // Age counts active ticks from one; the texture strip is indexed from zero.
+    spriteQuadDraw(coord->workm.t, work->age - 1, work->scale, work->angle);
+    if (work->age == M4A1_JAVELIN_CONTACT_FLASH_FRAME_COUNT) {
+        effectKillTask(work, task);
     }
 }
 
@@ -739,7 +734,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// and spawning the muzzle flash; on the frame `field_934` reaches 2 it drops
 /// the aim lock and spawns the 0x6003B impact marker, which state 4 also does
 /// before parking in state 7. States 5 and 6 run the flight timer and feed the
-/// tracked point to `func_m4a1_javelin_8011F4A4` (or clear it when nothing is
+/// tracked point to `_m4a1JavelinSetTrackedImpactPoint` (or clear it when nothing is
 /// in range) so the guide line is drawn. State 7 runs the recoil timer down and
 /// hands back to `func_80106550` once `playerActorIsSlotAdvancingLinearly` is done or the timer has
 /// run out.
@@ -872,13 +867,13 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                 }
             }
             if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                func_m4a1_javelin_8011F4A4(spot->workm.t);
+                _m4a1JavelinSetTrackedImpactPoint(spot->workm.t);
                 eff = Gp_SpawnEff(EFFECT_M4A1_JAVELIN_CONTACT_FLASH, spot, 0, NULL);
                 if (eff != NULL) {
                     taskReparent(actor->equipmentTasks[1], eff->task);
                 }
             } else {
-                func_m4a1_javelin_8011F4A4(NULL);
+                _m4a1JavelinSetTrackedImpactPoint(NULL);
             }
             break;
         case 7:

@@ -583,7 +583,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x02C
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_square_801823DC, { NULL } },                            // 0x02D
     { { { TASK_BODY_COORD, 0x70 } }, func_mist_parking_8018345C, { NULL } },                                // 0x02E
-    { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_javelin_8011D1E4, { NULL } },                                // 0x02F
+    { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinGuideBeamTask, { NULL } },                                  // 0x02F
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask30, { NULL } },                                           // 0x030
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x031
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask32, { NULL } },                                        // 0x032
@@ -923,7 +923,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_80161F20, { NULL } },                                // 0x180
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_801624F0, { NULL } },                                // 0x181
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_hammer_8011DD08, { NULL } },                                 // 0x182
-    { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_javelin_8011F4E8, { NULL } },                                // 0x183
+    { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinContactFlashTask, { NULL } },                               // 0x183
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_8013482C, { NULL } },                                // 0x184
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801346D4, { NULL } },                                // 0x185
     { { { TASK_BODY_COORD, 0x70 } }, func_gunblade_8011D1E4, { NULL } },                                    // 0x186

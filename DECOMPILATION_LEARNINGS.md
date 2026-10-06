@@ -39225,7 +39225,7 @@ The converse is just as useful: when the target reuses one register for the same
 role in two loops (`recs` in `a2` in both), assign to the *same* variable in both
 places instead of introducing a second one.
 
-The tell is not always a pairwise swap. In `func_m4a1_javelin_8011DAB0` one
+The tell is not always a pairwise swap. In `_m4a1JavelinDrawBeamSegment` one
 angle temp shared by three `POLY_G4` fans scored 98.95% with `regs` as the only
 non-zero penalty and the whole `$s0`/`$s1`/`$s2` assignment *rotated* by one:
 the shared temp is a single allocno live across all three loops, so its
@@ -47811,28 +47811,27 @@ remaining values shift up one register each (`extra` ends in `$fp`).
 
 ## The same scratch-pointer copy, but spanning a GTE `FLAG` test
 
-`func_m4a1_javelin_8011EE78` is the entry above without a `memCalloc`: it
+`_m4a1JavelinDrawMuzzleFlareLine` is the entry above without a `memCalloc`: it
 carves 0x14 bytes off `SCRATCH_STACK_CURSOR_SLOT` for one projected `LINE_G2`, and the
 target keeps both `$a3` (the block, live for every later field access) and a
 `move t0, a3` used *only* as the `gte_stszotz` operand inside the
 `gte_stflg` / `bltz` guard. The rule generalises past `memCalloc`: the extra
 copy has to be created in the block *before* the branch it must outlive.
-Taking the address at its use site — `gte_stszotz(&sc->otz0)` inside the
+Taking the address at its use site — `gte_stszotz(&scratch->otz0)` inside the
 `if` — folds back to `$a3` and loses the `move`; hoisting it to a plain local
 above the first GTE call keeps it:
 
 ```c
-sc   = (_M4a1JavelinLineScratch*)(head - sizeof(_M4a1JavelinLineScratch));
-*(_M4a1JavelinLineScratch**)SCRATCH_STACK_CURSOR_SLOT = sc;
-otz0 = &sc->otz0;                 /* becomes `move t0, a3` */
+scratch     = SCRATCH_STACK_RESERVE_BLOCK(_M4a1JavelinLineScratch);
+muzzleDepth = &scratch->otz0;                 /* becomes `move t0, a3` */
 gte_SetTransMatrix(&GsWSMATRIX);
 ...
-if (sc->flag >= 0) {
-    gte_stszotz(otz0);
+if (scratch->flag >= 0) {
+    gte_stszotz(muzzleDepth);
 ```
 
-The *second* `gte_stszotz(&sc->otz1)` must stay written at its use site:
-`head - 0x10` is not an already-computed expression, so it becomes the
+The *second* `gte_stszotz(&scratch->otz1)` must stay written at its use site:
+`&scratch->otz1` is not an already-computed expression, so it becomes the
 target's own `addiu v0, t1, -0x10` rather than a copy.
 
 ## Write `SCRATCH_STACK_CURSOR_SLOT` out at both ends, never as a local
@@ -56976,7 +56975,7 @@ Two details from the sibling are load-bearing and must be copied verbatim:
 
 ## A redundant `andi 0xFFFF` only survives as a multi-use local
 
-`func_m4a1_javelin_8011E4A8` unpacks a `0x0RGB` nibble triple and the ROM keeps
+`_m4a1JavelinDrawGroundBeamSegment` unpacks a `0x0RGB` nibble triple and the ROM keeps
 a truncation GCC has no semantic need for:
 
 ```
@@ -56992,24 +56991,24 @@ andi  a3, a3, 0xf
 same expression on the unmasked `x`, so GCC 2.8.1 deletes the mask in every
 spelling where each use owns its own `zero_extend` RTL:
 
-- `u16 color` parameter used directly — no mask at all (the arg register is
+- `u16 rgb444` parameter used directly — no mask at all (the arg register is
   already known 16-bit).
-- `s16 color` with `(u16)color` written at each use — folded.
-- `s32 color` with `(color & 0xFFFF)` written at each use — folded.
-- `u16 c = color;` then `c >> 4` / `c & 0xF0` — folded.
+- `s16 rgb444` with `(u16)rgb444` written at each use — folded.
+- `s32 rgb444` with `(rgb444 & 0xFFFF)` written at each use — folded.
+- `u16 expandedRgb444 = rgb444;` then `expandedRgb444 >> 4` / `expandedRgb444 & 0xF0` — folded.
 
 What keeps it is a single **`u32` local** holding the masked value, so CSE
 produces one `and` insn with two uses and combine refuses to substitute it
 (`can_combine_p` needs the source dead in the insn it is folded into):
 
-```c
-c = color & 0xFFFF;
-r = (((c >> 4) & 0xF0) + dither) >> 1;
-g = ((c & 0xF0) + dither) >> 1;
-b = (((color & 0xF) << 4) + dither) >> 1;   /* still off the raw parameter */
+```expandedRgb444
+expandedRgb444 = rgb444 & 0xFFFF;
+red = (((expandedRgb444 >> 4) & 0xF0) + flickerBias) >> 1;
+green = ((expandedRgb444 & 0xF0) + flickerBias) >> 1;
+blue = (((rgb444 & 0xF) << 4) + flickerBias) >> 1;   /* still off the raw parameter */
 ```
 
-The `u16 c` variant fails because GCC re-expands the `HImode` local at each
+The `u16 expandedRgb444` variant fails because GCC re-expands the `HImode` local at each
 use, which puts the two `zero_extend`s in separate insns with one use each.
 Generally: when the ROM keeps a provably redundant mask or extension, the
 source held it in a variable that was read more than once.
@@ -57020,7 +57019,7 @@ stored. `tmd->field_C |= 4;` leaves the `ior:SI` result live, and the following
 read is CSE'd into a truncation of it rather than a fresh `lhu` -- so the
 choice of local type decides whether that truncation survives.
 
-```c
+```expandedRgb444
 u16 flags = tmd->field_C;   /* HImode: and-then-extend, combine folds to `andi v0,v1,4` */
 s32 flags = tmd->field_C;   /* zero_extend first: `andi a0,v0,0xffff` then `andi v0,a0,4` */
 ```
@@ -57089,13 +57088,13 @@ divide without the `bnez`/`break 7` trap pair that a signed `div` needs.
 
 ## Keep an `andi $x, $x, 0xffff`: a `(u16)` inside an expression is folded away
 
-`func_m4a1_javelin_8011DAB0` widens an RGB444 argument, and the ROM has a real
+`_m4a1JavelinDrawBeamSegment` widens an RGB444 argument, and the ROM has a real
 `andi $a2, $a2, 0xffff` feeding both `srl $t0, $a2, 4` / `andi $t0, $t0, 0xf0`
 and `andi $a2, $a2, 0xf0`. Neither spelling of the cast reproduces it:
 
 ```c
-u16 color;  r = ((color >> 4) & 0xF0);      /* movhi copy, no andi   */
-s32 color;  r = (((u16)color >> 4) & 0xF0); /* fold() drops the cast */
+u16 rgb444;  red = ((rgb444 >> 4) & 0xF0);      /* movhi copy, no andi   */
+s32 rgb444;  red = (((u16)rgb444 >> 4) & 0xF0); /* fold() drops the cast */
 ```
 
 `fold` removes a `(u16)` conversion as soon as the surrounding mask or shift
@@ -57104,10 +57103,10 @@ wider local first makes it a statement GCC has to emit, and with two readers
 `combine` cannot delete it again:
 
 ```c
-u32 rgb = color;              /* u16 param -> andi $a2, $a2, 0xffff */
-r = (rgb >> 4) & 0xF0;
-g = rgb & 0xF0;
-b = (color & 0xF) * 0x10;     /* raw param: andi $t1, $a3, 0xf      */
+u32 expandedRgb444 = rgb444;              /* u16 param -> andi $a2, $a2, 0xffff */
+red = (expandedRgb444 >> 4) & 0xF0;
+green = expandedRgb444 & 0xF0;
+blue = (rgb444 & 0xF) * 0x10;     /* raw param: andi $t1, $a3, 0xf      */
 ```
 
 Use `u32`, not `s32`: with `s32` the shift comes out as `sra` and `force_to_mode`
@@ -57136,17 +57135,17 @@ sc                    = (Scratch*)(head - sizeof(Scratch));
 
 The store consumes the first pseudo, CSE turns the second expression into a copy
 of it, and the copy survives because both are live at that point.
-`func_m4a1_javelin_8011EE78` reaches the same shape from the other direction,
-with an `s32* otz0 = &sc->otz0;` alias.
+`_m4a1JavelinDrawMuzzleFlareLine` reaches the same shape from the other direction,
+with an `s32* muzzleDepth = &scratch->otz0;` alias.
 
 ## A default assigned before a call schedules ahead of the call's argument setup
 
-**Problem.** `func_m4a1_javelin_8011D1E4` sets a loop bound from a probe call:
+**Problem.** `m4a1JavelinGuideBeamTask` sets a loop bound from a probe call:
 
 ```c
-lim = 5;
-if (worldCollisionProbeGridSegment(&qb, &pb, &qb, NULL) == 1) {
-    lim = 6;
+previousHitIndex = 5;
+if (worldCollisionProbeGridSegment(&farGroundPoint, &farPoint, &farGroundPoint, NULL) == 1) {
+    previousHitIndex = 6;
 }
 ```
 
@@ -57161,7 +57160,7 @@ Everything matched except one instruction: `li $s4, 5` landed *before* the
  li    $s4, 5             move  $a3, $zero      target on the left
 ```
 
-**Symptom.** Moving the `lim = 5;` statement anywhere in the block — before the
+**Symptom.** Moving the `previousHitIndex = 5;` statement anywhere in the block — before the
 `gte_` sequence, between the vector adds, immediately before the `if` — changes
 nothing. The scheduler anchors the `li` right after the preceding `asm` insn
 (it picks up a `REG_DEP_OUTPUT` on it) and the argument setup, which is emitted
@@ -57171,10 +57170,10 @@ later in RTL, is then free to sink below it.
 emitted after the call sequence rather than before it:
 
 ```c
-if (worldCollisionProbeGridSegment(&qb, &pb, &qb, NULL) == 1) {
-    lim = 6;
+if (worldCollisionProbeGridSegment(&farGroundPoint, &farPoint, &farGroundPoint, NULL) == 1) {
+    previousHitIndex = 6;
 } else {
-    lim = 5;
+    previousHitIndex = 5;
 }
 ```
 

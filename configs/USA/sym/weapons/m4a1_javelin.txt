@@ -3,7 +3,11 @@ D_m4a1_javelin_8012EB62 = 0x8012EB62; // type:u16 size:0x2
 D_m4a1_javelin_8012EB66 = 0x8012EB66; // type:s16 size:0x2
 D_m4a1_javelin_8012071C = 0x8012071C; // model named by a task descriptor
 
-func_m4a1_javelin_8011D1E4 = 0x8011D1E4; // type:func
+m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func
 
-func_m4a1_javelin_8011F4E8 = 0x8011F4E8; // type:func
+m4a1JavelinContactFlashTask = 0x8011F4E8; // type:func
 spriteQuadDraw = 0x8011F0AC; // type:func
+_m4a1JavelinDrawBeamSegment = 0x8011dab0; // type:func
+_m4a1JavelinDrawGroundBeamSegment = 0x8011e4a8; // type:func
+_m4a1JavelinDrawMuzzleFlareLine = 0x8011ee78; // type:func
+_m4a1JavelinSetTrackedImpactPoint = 0x8011f4a4; // type:func
