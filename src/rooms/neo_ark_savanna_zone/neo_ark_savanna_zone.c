@@ -76,17 +76,20 @@ extern WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5];
 extern WorldCoordRoomLights       D_neo_ark_savanna_zone_801804D4[1];
 extern TaskDesc                   Actor00100_D1BA84;
 s32                               func_neo_ark_savanna_zone_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_neo_ark_savanna_zone_8017D8F0(Task*, s32, s32, s32);
-s32                               func_neo_ark_savanna_zone_8017D8F8(Task*, s32, s32, s32);
-s32                               func_neo_ark_savanna_zone_8017D900(Task*, s32, s32, s32);
+static s32                        _neoArkSavannaZoneRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32                        _neoArkSavannaZoneIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32                        _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+/// Requests use of the selected collected key item; zero refuses the request.
+enum { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_savanna_zone_8017D77C },
-    { 5105, func_neo_ark_savanna_zone_8017D8F0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_savanna_zone_8017D900 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_savanna_zone_8017D8F8 },
+    { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM, _neoArkSavannaZoneRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSavannaZoneIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _neoArkSavannaZoneIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -412,7 +415,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_savanna_zone_8017D908(Task* task);
-static void           func_neo_ark_savanna_zone_8017D94C(Task* task);
+static void           _neoArkSavannaZoneSetupIdleState(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
@@ -477,17 +480,20 @@ message15:
     return 1;
 }
 
-s32 func_neo_ark_savanna_zone_8017D8F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every collected key-item use with zero, leaving the item unused.
+static s32 _neoArkSavannaZoneRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_neo_ark_savanna_zone_8017D8F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores CAP room commands and returns zero without retaining either argument.
+static s32 _neoArkSavannaZoneIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_neo_ark_savanna_zone_8017D900(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction actions and returns zero without reading the borrowed request.
+static s32 _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -501,15 +507,15 @@ static void func_neo_ark_savanna_zone_8017D908(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room setup task: does nothing, so the task idles there.
-static void func_neo_ark_savanna_zone_8017D94C(Task* task)
+/// Keeps the room's message task idle in state 1 until an external state change or teardown.
+static void _neoArkSavannaZoneSetupIdleState(Task* task)
 {
 }
 
 /// State table of the room setup task, indexed by `Task::state`.
 static const TaskFuncTable3 D_neo_ark_savanna_zone_8017D5D8 = { {
     func_neo_ark_savanna_zone_8017D908,
-    func_neo_ark_savanna_zone_8017D94C,
+    _neoArkSavannaZoneSetupIdleState,
     taskKill,
 } };
 
@@ -523,17 +529,17 @@ void func_neo_ark_savanna_zone_8017D954(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Room effect task: on its first run stores 0x601DD, 0x601F9 and 0x60215 in
-/// three gameplay globals - values of the form `Gp_SpawnEff` takes as effect
-/// ids - and sets `gRoomEffectState->roomEffectMode` to 2.
-void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
+void neoArkSavannaZoneConfigureEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { CONFIGURE_EFFECTS_INITIALIZE,
+           CONFIGURE_EFFECTS_IDLE };
+
+    if (task->state == CONFIGURE_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId               = EFFECT_NEO_ARK_SAVANNA_ZONE_FLASH;
         gRoomEffectTwinTrailId           = EFFECT_NEO_ARK_SAVANNA_ZONE_TWIN_TRAIL;
         gRoomEffectSparkBurstId          = EFFECT_NEO_ARK_SAVANNA_ZONE_SPARK_BURST;
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                      = 1;
+        task->state                      = CONFIGURE_EFFECTS_IDLE;
     }
 }
 
@@ -541,14 +547,14 @@ void func_neo_ark_savanna_zone_8017D9AC(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_neo_ark_savanna_zone_8017DA0C(Task* arg0)
+void neoArkSavannaZoneRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_neo_ark_savanna_zone_8017E470(Task* task)
+void neoArkSavannaZoneRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
