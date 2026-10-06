@@ -150055,3 +150055,37 @@ attempts; left as it was.
   `goto`, the copy the others merge into keeps its `beqz skip; j` pair
   uninverted (one insn longer); which copy that is changed between two
   attempts and was not explained.
+### Goto removal, batch 24: a body between two volatile stores is an inline, nested switches with a silent case (2026-10-06)
+
+- **`goto end;` to a store into a `volatile` global is a `return` from an inline.**
+  `Spu_InitSystem` clears `D_800680C0`, dispatches on its argument and sets the
+  flag again at `end:`. Writing `default: D_800680C0 = 1; return;` leaves a
+  second store in the image (4 insns longer): cross-jumping did not merge the
+  two stores to the volatile object. The body is a `static inline`
+  between the two stores, and its `default: return;` is the jump to the second
+  one. Inside it, `case 0` jumping into the middle of `case 1` and both falling
+  into `case 2` is a switch that holds only the lead-ins (`case 0: ...; D = 0;
+  reset(); break; case 1: ...; D = 0; reset(); break; case 2: break;`) with the
+  shared code after it; the duplicated `D = 0; reset();` merges into case 1.
+  Two forms that fail: the shared code as an inline called in all three cases
+  (no merge, a constant 1 lands in `$s3`), and an inline returning 0/1 for
+  "continue" (`move v0,zero` survives, not threaded).
+- **`==4; <5 -> def; ==5; def` on a value, inside each arm of an outer
+  dispatch, is `switch { case 3: default: ...; case 4: ...; case 5: ... }`**:
+  a case below the range sharing the default makes 4 the pivot
+  (`Fs_SelectLoadHandlers2`/`3`, 27 gotos, first try). `==4; ==5;` falling into
+  the block of 4 is `case 4: default:` plus `case 5:`. The outer
+  `==0x1B; >0x1B -> def; !=0x11 -> def` is the mirror image, a case *above*
+  the range sharing the default (`Fs_SetupBootLoad` has the case below). Which
+  silent case the source listed is not recoverable; the ones written are
+  placeholders.
+- **A list-clearing walk `loop: ...; if (next) { ...; node = next; goto loop; }`
+  with a hoisted mask local** is `for (;;) { ...; if (next != NULL) { ... }
+  else { break; } }` with the mask written in place (loop.c hoists `li a1,-121`).
+  `if (next == NULL) break;` in the middle is rotated; `node->flags &= K` on the
+  `u8` field narrows to `andi 0x87`, so the `s32 flags` temporary stays
+  (`Gp_ClearObj3AList`, `Gp_ClearObj4AList`).
+- **`goto draw;` from one state into the next state's tail, where the tail's
+  duplicate swapped registers** (`Fs_BootImageMachine`, see the sample entry):
+  the tail goes after the switch, the two states `break`, the others `return`
+  and `default: return;` keeps unknown states out.
