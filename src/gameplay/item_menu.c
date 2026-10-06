@@ -422,7 +422,6 @@ void Gp_ItemMoveTask(Task* arg0)
     InventoryItemRange** scans;
     u16                  item;
     s32                  val;
-    s32                  code;
     Task*                owner;
     Task*                child;
     Task*                next;
@@ -438,11 +437,10 @@ void Gp_ItemMoveTask(Task* arg0)
         work = memCalloc(sizeof(*work), 0);
         i    = 0;
         if (work == NULL) {
-            code                    = USER_INTERFACE_RESULT_CANCEL;
-            obj->result             = code;
-            code                    = 0x34;
+            obj->result             = USER_INTERFACE_RESULT_CANCEL;
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            goto end;
+            obj->resultValue        = 0x34;
+            return;
         }
         scans           = Gp_ScanPtrs;
         arg0->work      = work;
@@ -491,9 +489,7 @@ void Gp_ItemMoveTask(Task* arg0)
             }
         } while (child != head);
     }
-    code = 0x34;
-end:
-    obj->resultValue = code;
+    obj->resultValue = 0x34;
 }
 
 void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
