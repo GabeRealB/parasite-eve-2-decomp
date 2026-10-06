@@ -1969,36 +1969,36 @@ void func_800F91AC(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (arg0->state == 0) {
-            coord->parent       = mem->parent;
-            rot                 = (GfxRotationWords*)&coord->coord;
-            rot->m00M01         = ONE;
-            rot->m02M10         = 0;
-            rot->m11M12         = ONE;
-            rot->m20M21         = 0;
-            rot->m22            = ONE;
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state         = 1;
-            mem->scale          = arg0->spawnArg1.value;
-            mem->angle          = arg0->spawnArg1.value >> 16;
-            mem->period         = mem->angle * 3;
-            mem->step           = mem->scale / 768 + 1;
-        }
-        actorRenderComposeCoord(coord);
-        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-            return;
-        }
-        if (mem->age < mem->period) {
-            goto spawn;
-        }
+    if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        effectKillTask(mem, arg0);
+        return;
     }
-    effectKillTask(mem, arg0);
-    return;
-spawn:
+    if (arg0->state == 0) {
+        coord->parent       = mem->parent;
+        rot                 = (GfxRotationWords*)&coord->coord;
+        rot->m00M01         = ONE;
+        rot->m02M10         = 0;
+        rot->m11M12         = ONE;
+        rot->m20M21         = 0;
+        rot->m22            = ONE;
+        coord->coord.t[0]   = mem->pos.vx;
+        coord->coord.t[1]   = mem->pos.vy;
+        coord->coord.t[2]   = mem->pos.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        arg0->state         = 1;
+        mem->scale          = arg0->spawnArg1.value;
+        mem->angle          = arg0->spawnArg1.value >> 16;
+        mem->period         = mem->angle * 3;
+        mem->step           = mem->scale / 768 + 1;
+    }
+    actorRenderComposeCoord(coord);
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        return;
+    }
+    if (mem->age >= mem->period) {
+        effectKillTask(mem, arg0);
+        return;
+    }
     width = mem->scale;
     half  = width >> 1;
     for (i = 0; i < mem->step; i++) {
@@ -2025,39 +2025,39 @@ void Gp_EffCtlTask9B(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (arg0->state == 0) {
-            coord->parent       = mem->parent;
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state         = 1;
-            mem->scale          = ((u16)arg0->spawnArg1.value * 3u) >> 4;
-            temp                = arg0->spawnArg1.halves.high;
-            mem->angle          = temp;
-            mem->period         = temp << 2;
-            if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vx     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vy     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vz     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
-            }
-            VectorNormalSS(&mem->pos, &mem->move);
-        }
-        actorRenderComposeCoord(coord);
-        if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-            return;
-        }
-        if (mem->age < mem->period) {
-            goto spawn;
-        }
+    if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        effectKillTask(mem, arg0);
+        return;
     }
-    effectKillTask(mem, arg0);
-    return;
-spawn:
+    if (arg0->state == 0) {
+        coord->parent       = mem->parent;
+        coord->coord.t[0]   = mem->pos.vx;
+        coord->coord.t[1]   = mem->pos.vy;
+        coord->coord.t[2]   = mem->pos.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        arg0->state         = 1;
+        mem->scale          = ((u16)arg0->spawnArg1.value * 3u) >> 4;
+        temp                = arg0->spawnArg1.halves.high;
+        mem->angle          = temp;
+        mem->period         = temp << 2;
+        if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->pos.vx     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->pos.vy     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->pos.vz     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+        }
+        VectorNormalSS(&mem->pos, &mem->move);
+    }
+    actorRenderComposeCoord(coord);
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        return;
+    }
+    if (mem->age >= mem->period) {
+        effectKillTask(mem, arg0);
+        return;
+    }
     spawned = Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x12200, 0);
     if (spawned != NULL) {
         gte_lddp(mem->scale - mem->age * (mem->angle + 5));
@@ -5891,20 +5891,16 @@ Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 ar
     GfxCoord*  coord;
 
     task = Task_Spawn(7, gPlayerStatus.resourceVariant + 3, arg2, options);
-    if (task != NULL) {
-        goto have_task;
+    if (task == NULL) {
+        return NULL;
     }
-    return NULL;
 
-have_task:
     actor = memCalloc(sizeof(*actor), 0);
-    if (actor != NULL) {
-        goto have_actor;
+    if (actor == NULL) {
+        taskKill(task);
+        return NULL;
     }
-    taskKill(task);
-    return NULL;
 
-have_actor:
     gameSetTaskSlot(task, GAME_TASK_SLOT_PLAYER);
     task->work = actor;
     memFillBytes(actor, 0, sizeof(*actor));
