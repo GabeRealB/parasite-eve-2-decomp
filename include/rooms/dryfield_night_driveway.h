@@ -32,6 +32,15 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_driveway_801820F0[];
 
 void func_dryfield_night_driveway_8017DD8C(Task* task);
 
-void func_dryfield_night_driveway_8017E5CC(Task* unused);
+/// Draws the night driveway's view-selected light shafts each frame.
+///
+/// Enables the ambient-effect gate even in views that draw no shafts. Views
+/// 2/9 draw the first stored point pair, 4/7 the second, 5 the third, and 3/10
+/// both the first and second. Other views draw none. Ignores `unusedTask`.
+/// Requires live room-effect state, composed view matrices, initialized scratch
+/// storage and the current frame's packet arena and ordering table. Accepted
+/// projected endpoints must have nonzero camera Z / 4; queued packets remain
+/// in the frame arena until GPU completion.
+void dryfieldNightDrivewayDrawLightShaftsTask(Task* unusedTask);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_DRIVEWAY_H

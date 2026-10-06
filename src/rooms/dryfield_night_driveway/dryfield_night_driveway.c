@@ -117,7 +117,12 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
-static void func_dryfield_night_driveway_8017DD7C(Task* task);
+static void _dryfieldNightDrivewayRoomIdle(Task* task);
+
+enum {
+    DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    DRYFIELD_NIGHT_DRIVEWAY_ENCOUNTER_WAVE_BEGIN = 1,
+};
 
 extern WorldCollisionGrid         D_dryfield_night_driveway_80180C0C[1];
 extern WorldCollisionOccluder     D_dryfield_night_driveway_80181FFC[2];
@@ -132,10 +137,10 @@ static AnimationSet             _gDryfieldNightDrivewayAnimation01870;
 static AnimationSet             _gDryfieldNightDrivewayAnimation01A84;
 static AnimationSet             _gDryfieldNightDrivewayAnimation01D64;
 extern AnimationBankCopyRequest D_dryfield_night_driveway_8017F378;
-s32                             func_dryfield_night_driveway_8017DCE4(Task*, s32, s32, s32);
-s32                             func_dryfield_night_driveway_8017DCEC(Task*, s32, s32, s32);
-s32                             func_dryfield_night_driveway_8017DCF4(Task*, s32, s32, s32);
-void                            func_dryfield_night_driveway_8017DC6C(s32);
+static s32                      _dryfieldNightDrivewayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32                      _dryfieldNightDrivewayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode);
+static s32                      _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static void                     _dryfieldNightDrivewaySetEncounterWave(s32 waveStage);
 void                            func_dryfield_night_driveway_8017DC88(u8);
 
 TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
@@ -255,7 +260,7 @@ EvsCommand gDrivewayCutsceneScript[14] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F3A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5219000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_driveway_8017DC6C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightDrivewaySetEncounterWave }, { .value = DRYFIELD_NIGHT_DRIVEWAY_ENCOUNTER_WAVE_BEGIN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F380 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -303,9 +308,9 @@ EvsCommand gDrivewayBlackoutTail[9] = {
 
 TaskMessageEntry D_dryfield_night_driveway_8017F7A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
-    { 5105, func_dryfield_night_driveway_8017DCE4 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_driveway_8017DCF4 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_driveway_8017DCEC },
+    { DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightDrivewayRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightDrivewayIgnoreDirectionAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightDrivewayIgnoreRoomCommand },
     { ROOM_MESSAGE_SOUND, drivewayScriptSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -953,7 +958,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 /// The room task's three states: set up, idle, kill.
 static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
-    { func_dryfield_night_driveway_8017DCFC, func_dryfield_night_driveway_8017DD7C, taskKill },
+    { func_dryfield_night_driveway_8017DCFC, _dryfieldNightDrivewayRoomIdle, taskKill },
 };
 
 #include "../../shared/dryfield_driveway_resolve.inc.c"
@@ -964,10 +969,15 @@ static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
 
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
-/// Script callback: stores its argument into `gSceneCombatState.actor03700Wave`.
-void func_dryfield_night_driveway_8017DC6C(s32 arg0)
+/// Sets the actor 03700 encounter's entrance and wave stage from an event script.
+///
+/// Stores the low signed byte of `waveStage` without clamping. Stage 0 is initial,
+/// 1 begins progression, and stages 2..5 release successive placement-gated waves.
+/// The driveway script supplies `DRYFIELD_NIGHT_DRIVEWAY_ENCOUNTER_WAVE_BEGIN`;
+/// actor tasks advance the later stages.
+static void _dryfieldNightDrivewaySetEncounterWave(s32 waveStage)
 {
-    gSceneCombatState.actor03700Wave = arg0;
+    gSceneCombatState.actor03700Wave = waveStage;
 }
 
 #include "../../shared/dryfield_driveway_set_view_dirty.inc.c"
@@ -980,19 +990,31 @@ void func_dryfield_night_driveway_8017DC88(u8 arg0)
 
 #include "../../shared/dryfield_driveway_script_sound.inc.c"
 
-/// Message handlers that answer 0 (messages 0x13F1, 0x13F0 and 0x13EF of the
-/// room's message table).
-s32 func_dryfield_night_driveway_8017DCE4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in the night driveway.
+///
+/// All arguments are ignored. Returns zero so the inventory shows that the
+/// collected `itemId` cannot be used here; `unusedArg` is the sender's zero word.
+static s32 _dryfieldNightDrivewayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
+{
+    enum { DRYFIELD_NIGHT_DRIVEWAY_KEY_ITEM_REFUSED = 0 };
+
+    return DRYFIELD_NIGHT_DRIVEWAY_KEY_ITEM_REFUSED;
+}
+
+/// Ignores room commands from CAP and direction control, returning zero.
+///
+/// All arguments are ignored; the senders do not inspect the result.
+static s32 _dryfieldNightDrivewayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode)
 {
     return 0;
 }
 
-s32 func_dryfield_night_driveway_8017DCEC(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-s32 func_dryfield_night_driveway_8017DCF4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-trigger action requests, returning zero.
+///
+/// `request` is borrowed until dispatch returns and is neither read nor retained.
+/// All arguments are ignored; the sender supplies zero for `unusedArg` and does
+/// not inspect the result.
+static s32 _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -1012,11 +1034,13 @@ static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// Empty task state: the middle entry of the room task's state table. Its only
-/// trace is a 0x10-byte stack frame.
-static void func_dryfield_night_driveway_8017DD7C(Task* task)
+/// Keeps the room task idle after initialization while its message table remains live.
+///
+/// Ignores `task` and leaves its state unchanged.
+static void _dryfieldNightDrivewayRoomIdle(Task* task)
 {
-    char pad[0x10];
+    // Retain the idle state's unused 16-byte stack frame.
+    byte unusedStackFrame[16];
 }
 
 /// Room task: copies the state table onto the stack and runs the entry for the
@@ -1031,28 +1055,28 @@ void func_dryfield_night_driveway_8017DD8C(Task* task)
 
 #include "../../shared/glow_draw_shaft.inc.c"
 
-/// Room draw hook: sets the effect mode to 2, then draws the beams the current
-/// view (`gGameSession->location.loc.view`) shows - views 2 and 9 the first pair, 4
-/// and 7 the second, 5 the third, and 3 and 10 both the first and second.
-void func_dryfield_night_driveway_8017E5CC(Task* unused)
+void dryfieldNightDrivewayDrawLightShaftsTask(Task* unusedTask)
 {
+    // Pixel radius is this scale times 64 divided by camera Z / 4.
+    enum { DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE = 0x180 };
+
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 2:
         case 9:
-            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE);
             break;
         case 4:
         case 7:
-            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[4], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[4], DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE);
             break;
         case 3:
         case 10:
-            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], 0x180);
-            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], 0x180);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[0], DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(&D_dryfield_night_driveway_801805B0[2], DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE);
             break;
     }
 }

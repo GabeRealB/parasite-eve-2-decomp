@@ -122979,7 +122979,7 @@ Inputs: `base_1.i` (99.796%) SHA256
 
 An anchor-drawing switch where one arm sweeps two elements of the same anchor
 run writes them as indexes, and that spelling is what puts the run's base in a
-callee-saved register. `func_dryfield_night_driveway_8017E5CC` (43 insns, the
+callee-saved register. `dryfieldNightDrivewayDrawLightShaftsTask` (43 insns, the
 `Room_Draw08` sweep family) is the worked example:
 
 ```c
@@ -123032,7 +123032,7 @@ Preprocessed input `base_6.i` SHA256
 `99c58bee9a6c31a741a7fc9e5208e874dfd280357f79481f8ef6dd56778ac3c4` (99.651%),
 `base_4.i` `e700b7247e3b5bda…` (99.419% without the named `D0`), `target.s`
 SHA256 `f8b8889a6793df3e27a3cd46e5ff15a00b5eeb849c7da700cb100814092650bf`.
-Scratch `nonmatchings/func_dryfield_night_driveway_8017E5CC-vacuum`.
+Scratch `nonmatchings/dryfieldNightDrivewayDrawLightShaftsTask-vacuum`.
 
 ## A 100.000% scratch score is blind to a `j` target: the scorer exempts any operand field containing a dot (func_dryfield_night_driveway_8017D7A0, 2026-09-17)
 

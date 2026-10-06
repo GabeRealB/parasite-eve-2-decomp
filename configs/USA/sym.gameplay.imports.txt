@@ -1831,7 +1831,7 @@ dryfieldNightFactoryDrawGlowsTask = 0x801825F0; // type:func absolute:True owner
 
 func_dryfield_night_garage_80181518 = 0x80181518; // type:func absolute:True owner=dryfield_night_garage
 
-func_dryfield_night_driveway_8017E5CC = 0x8017E5CC; // type:func absolute:True owner=dryfield_night_driveway
+dryfieldNightDrivewayDrawLightShaftsTask = 0x8017E5CC; // type:func absolute:True owner=dryfield_night_driveway
 
 dryfieldNightTrailerCoachDrawGlowsTask = 0x80182924; // type:func absolute:True owner=dryfield_night_trailer_coach
 
