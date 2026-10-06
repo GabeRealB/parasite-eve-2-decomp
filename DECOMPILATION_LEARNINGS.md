@@ -149674,7 +149674,7 @@ attempts; left as it was.
   each case; the merged run includes the conditional branch, so the image's
   `j test; slti` appears on its own.
 - **Written-out copies of a reset block that differ in store order can still
-  be one inline.** `actor_403600_2.c` had thirteen 17-store blocks through a
+  be one inline.** `actor_403600_2.c` had twelve 17-store blocks through a
   re-read `arg0->work`, in three different statement orders. Eleven of them,
   and the whole body of `func_actor_403600_8014174C`, are
   `_actor403600ResetState(arg0)` once its definition sits above the callers
