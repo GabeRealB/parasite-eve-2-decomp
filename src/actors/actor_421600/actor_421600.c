@@ -4246,8 +4246,6 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     GfxCoord*                 actorCoord2;
     GfxCoord*                 playerCoord2;
     s32                       action;
-    s32                       x;
-    s32                       z;
     s32                       nextAction;
     s32                       result;
     u8                        kind;
@@ -4261,7 +4259,6 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     Task*                     slot;
     Task*                     slot2;
     DesertChaserFrameScratch* scratch;
-    GfxCoord*                 clampCoord;
     AnimationPlayRequest*     message;
     AnimationPlayRequest*     nextMessage;
 
@@ -4475,28 +4472,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
         switch (view) {
             case 9:
             case 0x12:
-                clampCoord = player->extra.tmd->coords;
-                x          = clampCoord->coord.t[0];
-                if (x > 0) {
-                    if (x >= 0xBEB) {
-                        clampCoord->coord.t[0] = 0xB54;
-                    } else {
-                        goto clampZ;
-                    }
-                } else if (x < -0xB22) {
-                    clampCoord->coord.t[0] = -0xA8C;
-                } else {
-                clampZ:
-                    z = clampCoord->coord.t[2];
-                    if (z > 0) {
-                        if (z >= 0xB23) {
-                            clampCoord->coord.t[2] = 0xA8C;
-                        }
-                    } else if (z < -0xB22) {
-                        clampCoord->coord.t[2] = -0xA8C;
-                    }
-                }
-
+                Actor421600_ClampToArena(player->extra.tmd->coords);
                 break;
             case 0xE:
                 break;
