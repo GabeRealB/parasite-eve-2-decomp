@@ -5,9 +5,6 @@
 /// sets bit 0x80 of the model's `field_C` for spawn kind 2, and enters state 6
 /// with `shadowHidden` set and the collision flags 0x8000 / 0x4000 cleared on
 /// `pairBody` / `gridBody`.
-///
-/// `kind` has to be its own variable - masking `flags` in place reuses `$v1`
-/// for the result.
 void madChaserSpawnHidden(Task* task)
 {
     TmdObject*     model;
@@ -22,7 +19,6 @@ void madChaserSpawnHidden(Task* task)
     MadChaserWork* w3;
     Enemy*         e2;
     s32            flags;
-    s32            kind;
 
     model      = task->extra.tmd;
     enemy      = task->spawnArg2.pointer;
@@ -39,8 +35,7 @@ void madChaserSpawnHidden(Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    kind = flags & 0xF;
-    if (kind == 2) {
+    if ((flags & 0xF) == 2) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     obj                     = task->extra.tmd;
