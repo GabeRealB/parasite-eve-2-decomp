@@ -647,83 +647,96 @@ WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[8] = {
 
 RoomFadeStorage D_mine_secret_passage_80183440;
 
-/// Publishes this passage's four emitter ids on the task's first tick - the
-/// `gRoomEffectOrangeBurstId` / `gRoomEffectHaloId` / `gRoomEffectMoteId` / `gRoomEffectSparkEmitterId` slots take
-/// 0x60240-0x60243 in that order, the same slot order every other room uses -
-/// then draws the emitters the current camera view shows: a run of placements
-/// out of one of the passage's arrays, each drawn as a
-/// `_glowDrawCapsule` glow (half-extent 0x200-0x280, colour
-/// 0x444 except view 6's 0x44) or a `glowDrawDisc` disc
-/// (half-extent 0x200 or 0x400, colour 0x421 or 0x444).
-void func_mine_secret_passage_8017D9D4(Task* arg0)
+/// Installs the loaded passage's callbacks for effects spawned by actors.
+static inline void _mineSecretPassageRegisterRoomEffects(void)
 {
-    if (arg0->state == 0) {
-        gRoomEffectMoteId         = EFFECT_MINE_SECRET_PASSAGE_MOTE;
-        gRoomEffectHaloId         = EFFECT_MINE_SECRET_PASSAGE_HALO;
-        gRoomEffectOrangeBurstId  = EFFECT_MINE_SECRET_PASSAGE_ORANGE_BURST;
-        gRoomEffectSparkEmitterId = EFFECT_MINE_SECRET_PASSAGE_SPARK_EMITTER;
-        arg0->state               = 1;
+    gRoomEffectMoteId         = EFFECT_MINE_SECRET_PASSAGE_MOTE;
+    gRoomEffectHaloId         = EFFECT_MINE_SECRET_PASSAGE_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_MINE_SECRET_PASSAGE_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_MINE_SECRET_PASSAGE_SPARK_EMITTER;
+}
+
+void mineSecretPassageDrawLightGlowsTask(Task* task)
+{
+    enum {
+        GLOWS_INITIALIZE,
+        GLOWS_REGISTERED,
+        GLOWS_VIEW_INDEX_MASK = 0xFF,
+        GLOWS_SMALL_RADIUS    = 0x200,
+        GLOWS_WIDE_RADIUS     = 0x280,
+        GLOWS_LARGE_RADIUS    = 0x400,
+        GLOWS_GREY_RGB        = 0x444,
+        GLOWS_CYAN_RGB        = 0x044,
+        GLOWS_ORANGE_RGB      = 0x421
+    };
+
+    // Select this loaded room's effect callbacks before drawing its fixed lights.
+    if (task->state == GLOWS_INITIALIZE) {
+        _mineSecretPassageRegisterRoomEffects();
+        task->state = GLOWS_REGISTERED;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Radius scales are world units; packed RGB nibbles are expanded by the drawers.
+    // The placement declarations split one contiguous run; indices still cross them.
+    switch (viewGetMappedIndex() & GLOWS_VIEW_INDEX_MASK) {
         case 2: {
-            SVECTOR* p = D_mine_secret_passage_80180EC8;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[16], 0x200, 0x421);
-            glowDrawDisc(&p[17], 0x200, 0x421);
+            const SVECTOR* glowPoints = D_mine_secret_passage_80180EC8;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[16], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[17], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             break;
         }
         case 3: {
-            SVECTOR* p = D_mine_secret_passage_80180ED8;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[14], 0x200, 0x421);
-            glowDrawDisc(&p[15], 0x200, 0x421);
-            glowDrawDisc(&p[16], 0x200, 0x421);
-            glowDrawDisc(&p[17], 0x200, 0x421);
-            glowDrawDisc(&p[20], 0x200, 0x421);
+            const SVECTOR* glowPoints = D_mine_secret_passage_80180ED8;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[14], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[15], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[16], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[17], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[20], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             break;
         }
         case 4: {
-            SVECTOR* p = D_mine_secret_passage_80180ED8;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[16], 0x200, 0x421);
-            glowDrawDisc(&p[18], 0x200, 0x421);
-            glowDrawDisc(&p[19], 0x200, 0x421);
-            glowDrawDisc(&p[20], 0x200, 0x421);
-            glowDrawDisc(&p[21], 0x200, 0x421);
+            const SVECTOR* glowPoints = D_mine_secret_passage_80180ED8;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[16], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[18], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[19], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[20], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[21], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             break;
         }
         case 5: {
-            SVECTOR* p = D_mine_secret_passage_80180EE8;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[6], 0x400, 0x444);
-            glowDrawDisc(&p[7], 0x400, 0x444);
-            glowDrawDisc(&p[8], 0x400, 0x444);
-            glowDrawDisc(&p[9], 0x400, 0x444);
-            glowDrawDisc(&p[10], 0x200, 0x421);
+            const SVECTOR* glowPoints = D_mine_secret_passage_80180EE8;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[6], GLOWS_LARGE_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[7], GLOWS_LARGE_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[8], GLOWS_LARGE_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[9], GLOWS_LARGE_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[10], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             break;
         }
         case 6: {
-            SVECTOR* p = D_mine_secret_passage_80180EE8;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            _glowDrawCapsule(&p[2], 0x200, 0x444);
-            _glowDrawCapsule(&p[4], 0x280, 0x44);
-            glowDrawDisc(&p[9], 0x400, 0x444);
-            glowDrawDisc(&p[10], 0x200, 0x421);
-            glowDrawDisc(&p[11], 0x200, 0x421);
+            const SVECTOR* glowPoints = D_mine_secret_passage_80180EE8;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[2], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
+            _glowDrawCapsule(&glowPoints[4], GLOWS_WIDE_RADIUS, GLOWS_CYAN_RGB);
+            glowDrawDisc(&glowPoints[9], GLOWS_LARGE_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[10], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[11], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             break;
         }
         case 7: {
-            SVECTOR* p = D_mine_secret_passage_80180ED8;
-            _glowDrawCapsule(&p[0], 0x200, 0x444);
-            glowDrawDisc(&p[16], 0x200, 0x421);
-            glowDrawDisc(&p[18], 0x200, 0x421);
-            glowDrawDisc(&p[20], 0x200, 0x421);
+            const SVECTOR* glowPoints = D_mine_secret_passage_80180ED8;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
+            glowDrawDisc(&glowPoints[16], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[18], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
+            glowDrawDisc(&glowPoints[20], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             break;
         }
         case 8: {
-            SVECTOR* p = D_mine_secret_passage_80180F08;
-            _glowDrawCapsule(&p[0], 0x280, 0x44);
+            const SVECTOR* glowPoints = D_mine_secret_passage_80180F08;
+            _glowDrawCapsule(&glowPoints[0], GLOWS_WIDE_RADIUS, GLOWS_CYAN_RGB);
             break;
         }
     }
@@ -735,21 +748,21 @@ void func_mine_secret_passage_8017D9D4(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_mine_secret_passage_8017E868(Task* task)
+void mineSecretPassageRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_mine_secret_passage_8017F5B0(Task* arg0)
+void mineSecretPassageRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_mine_secret_passage_8017F948(Task* arg0)
+void mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"

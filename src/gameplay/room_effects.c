@@ -833,7 +833,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, mineGorgeDrawViewFlaresTask, { NULL } },                                 // 0x124
     { { { TASK_BODY_COORD, 0x70 } }, mineRefugeDrawGlowsTask, { NULL } },                                     // 0x125
     { { { TASK_BODY_COORD, 0x70 } }, mineForkedTunnelDrawViewFlaresTask, { NULL } },                          // 0x126
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017D9D4, { NULL } },                           // 0x127
+    { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageDrawLightGlowsTask, { NULL } },                         // 0x127
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017DC80, { NULL } },                      // 0x128
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017DA8C, { NULL } },          // 0x129
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017D7EC, { NULL } },                          // 0x12A
@@ -1114,9 +1114,9 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80182DFC, { NULL } },                              // 0x23D
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_80180948, { NULL } },                                // 0x23E
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsHaloOrangeBurstTask, { NULL } },              // 0x23F
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017F948, { NULL } },                           // 0x240
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017F5B0, { NULL } },                           // 0x241
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_8017E868, { NULL } },                           // 0x242
+    { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask, { NULL } },       // 0x240
+    { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsHaloTask, { NULL } },                  // 0x241
+    { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsMoteTask, { NULL } },                  // 0x242
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_80180D58, { NULL } },                           // 0x243
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsMoteTask, { NULL } },                         // 0x244
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8017E6F4, { NULL } },                      // 0x245

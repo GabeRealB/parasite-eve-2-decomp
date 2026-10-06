@@ -821,11 +821,11 @@ mineMesaRoomVisualEffectsTwinTrailTask = 0x8017FC94; // type:func absolute:True 
 
 func_mine_mesa_8018057C = 0x8018057C; // type:func absolute:True owner=mine_mesa
 
-func_mine_secret_passage_8017E868 = 0x8017E868; // type:func absolute:True owner=mine_secret_passage
+mineSecretPassageRoomVisualEffectsMoteTask = 0x8017E868; // type:func absolute:True owner=mine_secret_passage
 
-func_mine_secret_passage_8017F5B0 = 0x8017F5B0; // type:func absolute:True owner=mine_secret_passage
+mineSecretPassageRoomVisualEffectsHaloTask = 0x8017F5B0; // type:func absolute:True owner=mine_secret_passage
 
-func_mine_secret_passage_8017F948 = 0x8017F948; // type:func absolute:True owner=mine_secret_passage shared=rooms
+mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask = 0x8017F948; // type:func absolute:True owner=mine_secret_passage shared=rooms
 
 func_mine_secret_passage_80180D58 = 0x80180D58; // type:func absolute:True owner=mine_secret_passage shared=rooms
 
@@ -1853,7 +1853,7 @@ mineRefugeDrawGlowsTask = 0x80181454; // type:func absolute:True owner=mine_refu
 
 mineForkedTunnelDrawViewFlaresTask = 0x8017E78C; // type:func absolute:True owner=mine_forked_tunnel
 
-func_mine_secret_passage_8017D9D4 = 0x8017D9D4; // type:func absolute:True owner=mine_secret_passage
+mineSecretPassageDrawLightGlowsTask = 0x8017D9D4; // type:func absolute:True owner=mine_secret_passage
 
 func_shelter_b1_elevator_hall_8017DC80 = 0x8017DC80; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
