@@ -2033,7 +2033,7 @@ static inline void _actor03800UpdateColorAtRoot(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
@@ -2079,7 +2079,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->attackBody);
-            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             Gp_ReleaseStateF0Add(arg1, 0x26);
             work->actionStep = 1;
             if (work->burstStage != 0) {
@@ -2420,7 +2420,7 @@ static void Actor03800_Fn036EC(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 static void Actor03800_Fn03744(Task* arg0)

@@ -1601,7 +1601,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
                 work->state = ACTOR_403000_STATE_HIDDEN;
                 return 1;
             case 1:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
                 enemy->param          = &D_actor_403000_8013DA00;
                 enemy->hp             = D_actor_403000_8013DA00.hpMax;
@@ -1610,7 +1610,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
                 work->prevState       = -1;
                 return 1;
             case 2:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
                 enemy->param          = &D_actor_403000_8013DA00;
                 enemy->hp             = D_actor_403000_8013DA00.hpMax;
@@ -1620,7 +1620,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
                 return 1;
             case 3:
                 enemy->hp = 0;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
                 work->requestedAnimId = 0x1A;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
@@ -1630,7 +1630,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
                 enemy->param          = &D_actor_403000_8013DA10;
                 return 1;
             case 4:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
                 work->requestedAnimId = 0x1B;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
@@ -1643,7 +1643,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
                 arg0->extra.tmd->clutRowOffset     = 4;
                 return 1;
             case 6:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
                 enemy->hp             = D_actor_403000_8013DA10.hpMax;
                 enemy->param          = &D_actor_403000_8013DA10;
@@ -1658,7 +1658,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
                 work->prevState                    = -1;
                 return 1;
             case 10:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags  = 0;
                 work->requestedAnimId = 0x18;
                 work->state           = ACTOR_403000_STATE_SCRIPTED;
@@ -2627,7 +2627,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
     work->patrolRingDir = -1;
     work->watchRingDir  = -1;
     work->state         = ACTOR_403000_STATE_APPROACH;
@@ -3093,7 +3093,7 @@ static void func_actor_403000_8013603C(Task* arg0)
         work->rootSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         worldTargetDisableNodeLockOn(&enemy->node);
         work->stateFrame = 0;
-        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
     }
     if (work->roomEventPending == 1 && Gp_StateC08.mode != work->roomEventPending && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
@@ -3120,7 +3120,7 @@ static void func_actor_403000_8013603C(Task* arg0)
         switch (work->stateFrame) {
             case 1:
                 arg0->extra.tmd->flags = 0;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 break;
             case 0x76:
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
@@ -3129,7 +3129,7 @@ static void func_actor_403000_8013603C(Task* arg0)
                 break;
             case 0x78:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 arg0->extra.tmd->texturePageOffset = 2;
                 arg0->extra.tmd->clutRowOffset     = 4;
                 break;
@@ -3167,7 +3167,7 @@ static void func_actor_403000_801365D0(Task* arg0)
         work->rootSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         worldTargetDisableNodeLockOn(&enemy->node);
         work->stateFrame = 0;
-        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
     }
     if (work->stateFrame <= 0x1000) {
         work->stateFrame++;
@@ -3190,7 +3190,7 @@ static void func_actor_403000_801365D0(Task* arg0)
         switch (work->stateFrame) {
             case 1:
                 arg0->extra.tmd->flags = 0;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 break;
             case 0x58:
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
@@ -3199,7 +3199,7 @@ static void func_actor_403000_801365D0(Task* arg0)
                 break;
             case 0x5A:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 arg0->extra.tmd->texturePageOffset = 2;
                 arg0->extra.tmd->clutRowOffset     = 4;
                 break;
@@ -3233,7 +3233,7 @@ static void func_actor_403000_80136B14(Task* arg0)
         tmd->flags = 0;
         tmdAllocPrimitiveBuffer(tmd);
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         enemy->reactionFlags          = 0;
         work->animRate                = 0x10;
         work->requestedAnimId         = 0x1C;
@@ -3286,7 +3286,7 @@ static void func_actor_403000_80136D68(Task* arg0)
         tmd->flags = 0;
         tmdAllocPrimitiveBuffer(tmd);
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         enemy->reactionFlags          = 0;
         work->animRate                = 0x10;
         work->requestedAnimId         = 0x1C;
@@ -5027,7 +5027,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(arg0, (VECTOR*)&pos, 0, 0);
+    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

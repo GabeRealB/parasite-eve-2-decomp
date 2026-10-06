@@ -21,7 +21,7 @@ void skullStalkerLightRamp(Task* task)
         if (work->fadeFrames == 0) {
             work->fadeFrames++;
             obj->flags = TMD_OBJECT_SEMI_TRANS;
-            Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         } else {
             work->fadeFrames++;
             if (work->fadeFrames >= SKULL_STALKER_FADE_FRAMES) {
@@ -35,7 +35,7 @@ void skullStalkerLightRamp(Task* task)
             work->fadeFrames--;
             enemy->node.state.parts.flags = 0;
             obj->flags                    = TMD_OBJECT_SEMI_TRANS;
-            Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+            worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         } else {
             work->fadeFrames--;
             if (work->fadeFrames <= 0) {

@@ -2203,7 +2203,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
     scratch->vector.vx = root->workm.t[0];
     scratch->vector.vy = root->workm.t[1] - 0x320;
     scratch->vector.vz = root->workm.t[2];
-    Gp_UpdateActorColor(enemy, &scratch->vector, 0, 0);
+    worldCoordUpdateActorColor(enemy, &scratch->vector, 0, 0);
     if (!(task->extra.tmd->flags & TMD_OBJECT_SEMI_TRANS)) {
         actorRenderDrawGroundShadow(task->extra.tmd->coords, 0x600, NULL);
     }
@@ -3206,10 +3206,10 @@ static void Actor01100_Fn05678(
             obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         }
         if (enemy->spawnState == 0x10) {
-            Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             enemy->spawnState = 0;
         } else {
-            Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         }
         if (enemy->spawnState == 0) {
             enemy->spawnState = work->hitFromBehind + 1;
@@ -3239,7 +3239,7 @@ static void Actor01100_Fn05678(
             Gp_SpawnEff(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 5, 0);
         } else if (time <= 0) {
             extra->flags |= TMD_OBJECT_SEMI_TRANS;
-            Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             work->stateCounter = 0x20;
             work->stateStep++;
         }

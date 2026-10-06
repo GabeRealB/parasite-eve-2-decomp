@@ -1775,7 +1775,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             pos.vx = sub->workm.t[0];
             pos.vy = sub->workm.t[1];
             pos.vz = sub->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1791,7 +1791,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->body);
             worldCollisionUnlinkBody(&work->roomBody);
             worldCollisionUnlinkBody(&work->attackBody);
-            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             Gp_ReleaseStateF0Add(arg1, 0xF);
             work->timer      = 0;
             work->actionStep = ACTOR_01500_DEATH_SHRINK;
@@ -1851,7 +1851,7 @@ static void Actor01500_Fn01DF0(Enemy* arg0, Task* arg1)
     pos.vx = sub->workm.t[0];
     pos.vy = sub->workm.t[1];
     pos.vz = sub->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
 }
 
 static void Actor01500_Fn020D8(Task* arg0)
@@ -2211,8 +2211,8 @@ static void Actor01500_Fn02A1C(Task* arg0)
     }
 }
 
-/// Hands `Gp_UpdateActorColor` the world position of the model's second
-/// coordinate, with no blend parameters.
+/// Hands `worldCoordUpdateActorColor` the world position of the model's second
+/// coordinate, with zero for the unused arguments.
 static void Actor01500_Fn02B14(Task* arg0)
 {
     GfxCoord* coord;
@@ -2222,7 +2222,7 @@ static void Actor01500_Fn02B14(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Ground shadow for the actor: carves a `VECTOR3` off the scratchpad and fills

@@ -4194,7 +4194,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     gluttonTickAnim(task);
 
     D_actor_403200_8015F8F4.context.loc.stage = 0;
@@ -6245,15 +6245,15 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     }
 
     if (work->hostExposed != work->prevHostExposed) {
-        Gp_UpdateActorColor(arg0, &pos, 0, 0);
-        Gp_UpdateActorColor(work->escorts[3], &pos, 0, 0);
+        worldCoordUpdateActorColor(arg0, &pos, 0, 0);
+        worldCoordUpdateActorColor(work->escorts[3], &pos, 0, 0);
         work->prevHostExposed = work->hostExposed;
     }
     colorEnemy = arg0;
     if (work->hostExposed == 0) {
         colorEnemy = work->escorts[3];
     }
-    Gp_UpdateActorColor(colorEnemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(colorEnemy, &pos, 0, 0);
 
     if (work->state == 0xB && gGluttonLimbReach >= 0x7D1) {
         work->escorts[4]->task->extra.tmd->otOffset = -8;

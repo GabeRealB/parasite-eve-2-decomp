@@ -40,7 +40,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
             pos.vx = root->workm.t[0];
             pos.vy = root->workm.t[1];
             pos.vz = root->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             root   = arg1->extra.tmd->coords;
             part   = &root[3];
             pos.vx = part->workm.t[0];
@@ -108,7 +108,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
+    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
     root   = arg1->extra.tmd->coords;
     part   = &root[3];
     pos.vx = part->workm.t[0];

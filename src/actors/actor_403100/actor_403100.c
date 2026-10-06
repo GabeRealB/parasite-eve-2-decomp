@@ -4035,7 +4035,7 @@ static void func_actor_403100_8013335C(Task* arg0)
                 }
                 if (D_actor_403100_80155808->hitReaction != 0) {
                     D_actor_403100_80155808->hitColorFrames = 0x10;
-                    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
                 }
             } else if ((Gp_GetIdParam1(hitId) & 0xFFFF) == 0xD) {
                 func_800FDB18(0xD, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
@@ -4168,7 +4168,7 @@ static inline void _actor403100ScaleRoot(Task* task, s16 factor)
     MulMatrix(&coords->coord, &scaling);
 }
 
-/// Hands the world position of `coord` to `Gp_UpdateActorColor`, staged in a
+/// Hands the world position of `coord` to `worldCoordUpdateActorColor`, staged in a
 /// `VECTOR` taken off the scratch stack.
 static inline void _actor403100UpdateColor(Task* task, GfxCoord* coord)
 {
@@ -4179,7 +4179,7 @@ static inline void _actor403100UpdateColor(Task* task, GfxCoord* coord)
     pos->vy                      = coord->workm.t[1];
     pos->vz                      = coord->workm.t[2];
     SCRATCH_STACK_CURSOR(VECTOR) = pos;
-    Gp_UpdateActorColor(task->spawnArg2.pointer, pos, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, pos, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
@@ -5448,7 +5448,7 @@ static void func_actor_403100_80136830(Task* arg0)
             if (D_actor_403100_80155808->hitColorFrames != 0) {
                 lightTimer = --D_actor_403100_80155808->hitColorFrames;
                 if ((s16)lightTimer == 0) {
-                    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                 }
             }
             if ((D_actor_403100_8015580C->hp <= 0) && (D_actor_403100_80155808->vulnerable == 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
@@ -5461,7 +5461,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     Gp_StateC08.flags                           = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                     gGameSession->suppressViewTriggers          = 0;
                     D_actor_403100_8015580C->reactionFlags      = 0;
-                    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
                     func_800E8614(D_actor_335800_80166098, 0);
                     arg0->state                       = 1;
@@ -7095,7 +7095,7 @@ static void func_actor_403100_8013B128(Task* arg0)
     gGameSession->suppressViewTriggers     = 0;
     model->otOffset                        = 0;
     D_actor_403100_8015580C->reactionFlags = 0;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
     i                                               = 0;
     if (D_actor_403100_80155808->fightFramesLeft < 0) {
@@ -8182,7 +8182,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     Gp_StateC08.flags                           = Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK;
     gGameSession->suppressViewTriggers          = 0;
     D_actor_403100_8015580C->reactionFlags      = 0;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     worldTargetUnlinkNode(&D_actor_403100_8015580C->node);
     func_800E8614(D_actor_335800_80165FC0, 0);

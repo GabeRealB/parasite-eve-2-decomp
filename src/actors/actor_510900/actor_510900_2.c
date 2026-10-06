@@ -2890,7 +2890,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+            worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2929,7 +2929,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     if (coord->coord.t[1] < -0x514) {
         work->phase = ACTOR_510900_GRENADE_FLIGHT_PEAKED;
     }
@@ -3901,7 +3901,7 @@ void func_actor_510900_8013BC38(Task* arg0, GfxCoord* arg1)
     pos.vx = arg1->workm.t[0];
     pos.vy = arg1->workm.t[1];
     pos.vz = arg1->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &pos, 0, 0);
 }
 
 static void func_actor_510900_8013BC80(Task* arg0)

@@ -63,7 +63,7 @@ void skullStalkerSpawnState(Enemy* arg0, Task* arg1)
     seed                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->fadeWaitFrames         = ((seed >> 16) & 0x3F) + 0x64;
     gRandomLcgState              = seed;
-    Gp_SetLightMode(arg1->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    worldCoordSetActorColorMode(arg1->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     work->frontSenseCapsule.ends[0].vz   = 0x1388;
     work->frontSenseCapsule.end0Radius   = 0xFA0;
     work->frontSenseCapsule.end1Radius   = 0x7D0;

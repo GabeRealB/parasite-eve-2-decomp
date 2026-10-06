@@ -308,7 +308,7 @@ static __inline__ void golemKnightBishopUpdateTintInline(Task* task)
     vec.vx = obj->workm.t[0];
     vec.vy = obj->workm.t[1];
     vec.vz = obj->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
     switch (work->tintRequest) {
         case 1:
             r = 0;

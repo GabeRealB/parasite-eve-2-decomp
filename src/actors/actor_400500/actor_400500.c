@@ -3166,7 +3166,7 @@ static void func_actor_400500_80135770(Task* arg0)
             extra2     = extra;
             color_part = extra->coords + 1;
             color      = push_color(color_part);
-            Gp_UpdateActorColor(arg0->spawnArg2.pointer, color, 0, 0);
+            worldCoordUpdateActorColor(arg0->spawnArg2.pointer, color, 0, 0);
             mode = gGameSession->location.loc.room;
             if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
                 trans_obj = extra2;
@@ -5531,7 +5531,7 @@ static inline void _actor400500UpdateColor(Task* arg0, GfxCoord* coord, TmdObjec
     block->vy                    = coord->workm.t[1];
     block->vz                    = coord->workm.t[2];
     SCRATCH_STACK_CURSOR(VECTOR) = block;
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     room = gGameSession->location.loc.room;
     if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
         worldCoordSetModelAmbientColor(obj, 0x200, 0x200, 0x200);
@@ -7378,7 +7378,7 @@ static void func_actor_400500_8013D8CC(Task* arg0)
     coord              = model->coords;
     work->shrinkScaleY = 0x1000;
     work->savedRootMtx = coord->coord;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->stateFrames = 0;
     work->state       = work->state + 1;
 }

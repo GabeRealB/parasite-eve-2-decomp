@@ -41,7 +41,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -63,7 +63,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
             worldTargetUnlinkNode(&arg0->node);
             worldCollisionUnlinkBody(&work->rootBody);
             worldCollisionUnlinkBody(&work->targetBody);
-            Gp_SetLightMode(arg0, 1);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             if (work->kind == 0) {
                 work->stateFrames = 0;
                 work->pulseState  = GENERATOR_PULSE_IDLE;
@@ -144,7 +144,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 5, NULL);
             }
             if (work->stateFrames == 0x6E) {
-                Gp_SetLightMode(arg0, 2);
+                worldCoordSetActorColorMode(arg0, ENEMY_COLOR_BLACK);
             }
             if (work->stateFrames >= 0x78) {
                 work->deathState = GENERATOR_DEATH_DONE;
@@ -153,7 +153,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
             pos.vx = tmp->workm.t[0];
             pos.vy = tmp->workm.t[1];
             pos.vz = tmp->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             break;
         case GENERATOR_DEATH_DONE:
             break;
@@ -202,7 +202,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
     pos.vx = tmp->workm.t[0];
     pos.vy = tmp->workm.t[1];
     pos.vz = tmp->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
     if (work->deathState == GENERATOR_DEATH_DONE && work->battleExitState == GENERATOR_BATTLE_EXIT_DONE) {
         enemyDestroy(arg0, arg1);
     }

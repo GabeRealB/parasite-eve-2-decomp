@@ -2322,7 +2322,7 @@ static void func_actor_401300_80134454(Enemy* enemy, Task* actor)
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     work->effectArg.coord      = &actor->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
@@ -3704,14 +3704,14 @@ static void func_actor_401300_80139134(Task* arg0)
                 work->burnCoord.coord.t[2]   = pos.vz;
                 work->burnCoord.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&work->burnCoord);
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, &work->burnCoord, 3, NULL);
                 break;
             case 48:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 42:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
             case 64:
                 arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -4309,7 +4309,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                 case 3:
                     break;
                 case 30:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     vec.vx = 0;
                     vec.vy = 0;
                     vec.vz = 0;
@@ -4326,7 +4326,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
                 case 42:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 64:
                     arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -5122,7 +5122,7 @@ static void func_actor_401300_8013F628(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         obj = arg0->extra.tmd;
-        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
         tmdAllocPrimitiveBuffer(obj);
@@ -5492,7 +5492,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

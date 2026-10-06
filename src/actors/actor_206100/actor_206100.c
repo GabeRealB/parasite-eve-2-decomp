@@ -363,7 +363,7 @@ static void func_actor_206100_8014EEC0(Task* task);
 /// event.  Every other frame ramps `goalY` toward 0x1D4C by a quarter of the
 /// remaining distance and steps the actor `0x30` along its heading.
 ///
-/// The second argument of `Gp_SetLightMode` is read through a cast rather than
+/// The second argument of `worldCoordSetActorColorMode` is read through a cast rather than
 /// as `task->spawnArg2.pointer` directly: the cast makes the load a *scalar* `MEM`,
 /// which is what keeps its dependence on the fixed-address
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store, so the store is scheduled ahead of it - the same
@@ -1747,7 +1747,7 @@ static const TaskFuncTable9 D_actor_206100_80149E70 = {
 };
 
 /// Push the model's second coordinate's world position onto the scratch stack
-/// and hand it to `Gp_UpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
+/// and hand it to `worldCoordUpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
 /// inlined the way `actorUpdateModelColor` and `actorUpdateModelColor`
 /// inline it -- and it has to stay an inlined copy.  Only while expanding an
 /// inline body does cc1 keep the scratch head's absolute address folded into
@@ -1770,7 +1770,7 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(task->spawnArg2.pointer, block, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
@@ -2130,7 +2130,7 @@ static void func_actor_206100_8014CD08(Task* task)
         coord->coord.t[1]                                          = 0x1B58;
         work->rotation.vy                                          = 0;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
-        Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         Gp_MsgPlayer3F3(0);
         msg.pos.vx = 0x690;
         msg.pos.vy = 0x1388;
@@ -3709,7 +3709,7 @@ static void func_actor_206100_8014FAE4(Task* task)
     coord->coord.t[1]             = work->waypoints[work->waypointIndex].vy;
     coord->coord.t[2]             = work->waypoints[work->waypointIndex].vz;
     work->waypointIndex           = (work->waypointIndex + 1) & 7;
-    Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     work->stateFrames = 0;
     last              = task->work;
     last->state       = 1;

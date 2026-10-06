@@ -1334,7 +1334,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     work->effectArg.coord      = &actor->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
@@ -2607,14 +2607,14 @@ static void Actor01900_Fn06904(Task* arg0)
                 Gp_ReleaseStateF0Add(arg0, 0x13);
                 break;
             case 5:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 17:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
             case 39:
                 arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3134,14 +3134,14 @@ static void Actor01900_Fn0892C(Task* arg0)
                     Gp_ReleaseStateF0Add(arg0, 0x13);
                     break;
                 case 5:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
                     break;
                 case 23:
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
                 case 17:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 39:
                     arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3316,7 +3316,7 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

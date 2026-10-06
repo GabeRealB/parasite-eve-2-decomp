@@ -624,7 +624,7 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 }
 /// The flatten's colour step: takes a 0x10-byte `VECTOR` off the scratch stack,
 /// fills it with the world position of the model's *second* attach coordinate
-/// (the one the flatten is scaling) and hands it to `Gp_UpdateActorColor` as the
+/// (the one the flatten is scaling) and hands it to `worldCoordUpdateActorColor` as the
 /// colour target. The same draw then overwrites the three components with
 /// `st.flattenScaleY` scaled by the top half of three successive `gRandomLcgState` draws,
 /// and `ScaleMatrixL` multiplies the work block's second matrix by it.
@@ -649,7 +649,7 @@ static void func_actor_521100_80136290(Enemy* arg0, Task* task)
     block->vx = coord->workm.t[0];
     block->vy = coord->workm.t[1];
     block->vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0, block, 0, 0);
+    worldCoordUpdateActorColor(arg0, block, 0, 0);
     work            = D_actor_521100_8016A3D8;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     block->vx       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;

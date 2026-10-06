@@ -717,13 +717,13 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
             work->action     = ACTOR_02500_ACTION_AMBUSH;
             work->actionStep = ACTOR_02500_AMBUSH_STEP_WAIT_NEAR;
             ctx->recs        = NULL;
-            Gp_SetLightMode(ctx, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(ctx, ENEMY_COLOR_BLACK);
             break;
         case 2:
             work->action     = ACTOR_02500_ACTION_AMBUSH;
             work->actionStep = ACTOR_02500_AMBUSH_STEP_WAIT_SIGNAL;
             ctx->recs        = NULL;
-            Gp_SetLightMode(ctx, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(ctx, ENEMY_COLOR_BLACK);
             break;
     }
     gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1263,7 +1263,7 @@ static void Actor02500_Fn012F0(Task* actor)
             if (timer3 > 0) {
                 obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
-                Gp_SetLightMode(actor->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(actor->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                 obj->flags                               = (u16)obj->flags | TMD_OBJECT_SEMI_TRANS;
                 work->hitBody.flags                     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 ((Enemy*)actor->spawnArg2.pointer)->recs = work->hitContacts;
@@ -1468,7 +1468,7 @@ static void Actor02500_Fn01AC8(Enemy* arg0, Task* arg1)
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
             vec.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case 2:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1489,13 +1489,13 @@ static void Actor02500_Fn01AC8(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->attackBody);
-            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             Gp_ReleaseStateF0Add(arg1, 0x19);
             c      = arg1->extra.tmd->coords;
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             if (work->burstStage == 0) {
                 work->actionStep = ACTOR_02500_DEATH_STEP_COLLAPSE;
                 return;
@@ -1522,7 +1522,7 @@ static void Actor02500_Fn01AC8(Enemy* arg0, Task* arg1)
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case ACTOR_02500_DEATH_STEP_DESTROY:
             enemyDestroy(arg0, arg1);
@@ -1809,7 +1809,7 @@ static void Actor02500_Fn023D8(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 static void Actor02500_Fn02430(Task* arg0)

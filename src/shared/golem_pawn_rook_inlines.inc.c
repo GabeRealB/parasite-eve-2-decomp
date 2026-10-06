@@ -101,7 +101,7 @@ static inline void golemPawnRookDraw(Task* actor, GfxCoord* coord)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(actor->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
+    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &pos, 0, 0);
     root   = actor->extra.tmd->coords;
     part   = root + 3;
     pos.vx = part->workm.t[0];

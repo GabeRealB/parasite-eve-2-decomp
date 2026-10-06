@@ -1215,13 +1215,13 @@ static void func_actor_503500_80134A24(Task* arg0)
             switch (++work->stateFrames) {
                 case 0x3C:
                     obj->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case 0x46:
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 0x64:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
             }
             break;
@@ -2357,7 +2357,7 @@ static void func_actor_503500_80136A88(Task* arg0)
 }
 
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
-/// and hands it to `Gp_UpdateActorColor` with no blend parameters.
+/// and hands it to `worldCoordUpdateActorColor` with zero for the unused arguments.
 static void func_actor_503500_80136AEC(Task* arg0)
 {
     VECTOR vec;
@@ -2365,7 +2365,7 @@ static void func_actor_503500_80136AEC(Task* arg0)
     vec.vx = arg0->extra.tmd->coords->workm.t[0];
     vec.vy = arg0->extra.tmd->coords->workm.t[1];
     vec.vz = arg0->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Rebuilds the live vector set `D_shelter_r48_80183EEC` from its template in the world
@@ -2859,12 +2859,12 @@ static void func_actor_503500_80137678(Task* arg0)
             switch (work->stateFrames) {
                 case ACTOR_503500_PINK_FLASH_EMITTER_DYING_FADE_FRAME:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     sndEvtRequestScriptStart(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
                                              (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
                 case ACTOR_503500_PINK_FLASH_EMITTER_DYING_BLACKEN_FRAME:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case ACTOR_503500_PINK_FLASH_EMITTER_DYING_END_FRAME:
                     sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -3591,7 +3591,7 @@ static void func_actor_503500_80139014(Task* arg0)
             switch (work->stateFrames) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     sndEvtRequestScriptStart(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
                                              (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
@@ -3599,7 +3599,7 @@ static void func_actor_503500_80139014(Task* arg0)
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 30:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
                     sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -4135,7 +4135,7 @@ static void func_actor_503500_8013AAC0(Task* arg0)
     vec.vx = arg0->extra.tmd->coords->workm.t[0];
     vec.vy = arg0->extra.tmd->coords->workm.t[1];
     vec.vz = arg0->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Blends a large chain's model parts 1..8 toward `bindPose`: while

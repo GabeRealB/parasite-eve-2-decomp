@@ -27,7 +27,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
             vec.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -52,7 +52,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                     sceneSetEnemyAlert(2);
                     work->stateCounter = 0;
                     work->step         = 1;
-                    Gp_SetLightMode(arg0, 1);
+                    worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
                     if (work->burst != 0) {
                         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
@@ -62,7 +62,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                     vec.vx     = colorCoord->workm.t[0];
                     vec.vy     = colorCoord->workm.t[1];
                     vec.vz     = colorCoord->workm.t[2];
-                    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
                     return;
                 case 1:
                     if (work->burst != 0) {
@@ -94,7 +94,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                     vec.vx     = colorCoord->workm.t[0];
                     vec.vy     = colorCoord->workm.t[1];
                     vec.vz     = colorCoord->workm.t[2];
-                    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
                     return;
                 case 2:
                     work->stateCounter++;

@@ -2,7 +2,7 @@
 
 /// The actor's per-frame tick, as in the Horned Stranger's `func_actor_401300_801405DC`:
 /// copy the state table to the frame, advance the root coordinate and hand it
-/// to `Gp_UpdateActorColor`, then run the `gSceneCombatState.actorControl` arm. Arms 1 and 2 only
+/// to `worldCoordUpdateActorColor`, then run the `gSceneCombatState.actorControl` arm. Arms 1 and 2 only
 /// drop the two obstacle records (2 also opening the `patrolPoints` draw to 0x80)
 /// and return; arm 0 falls through into the common tail, which counts
 /// `hitCooldown` down into `oddStrangerTakeHit`, carries a new
@@ -31,7 +31,7 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

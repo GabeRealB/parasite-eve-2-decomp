@@ -1119,7 +1119,7 @@ static void func_actor_356100_8016382C(Enemy* enemy, Task* actor)
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     D_actor_356100_801732A8.coord      = actor->extra.tmd->coords;
     D_actor_356100_801732A8.spawnArgLo = 0x100;
     D_actor_356100_801732A8.spawnArgHi = 2;
@@ -2074,14 +2074,14 @@ static void func_actor_356100_80167358(Task* arg0)
                 Gp_ReleaseStateF0Add(arg0, 0xA);
                 break;
             case 5:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 17:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
             case 39:
                 arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2723,7 +2723,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     pos.vx = arg1->extra.tmd->coords[1].workm.t[0];
     pos.vy = arg1->extra.tmd->coords[1].workm.t[1];
     pos.vz = arg1->extra.tmd->coords[1].workm.t[2];
-    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_356100_STATE_HIDDEN && work->state != ACTOR_356100_STATE_DEATH_BURN && work->state != ACTOR_356100_STATE_SCRIPTED_DEATH) {

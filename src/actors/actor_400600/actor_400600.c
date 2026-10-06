@@ -3837,7 +3837,7 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
                 work->cloakFading     = 1;
                 work->cloakFadeFrames = 0;
                 model->flags         |= TMD_OBJECT_SEMI_TRANS;
-                Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
                 func_actor_400600_801387DC(arg0, 2);
             }
             work2           = (_Actor400600ZebraStalkerWork*)arg0->work;
@@ -3855,7 +3855,7 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
         work->cloakFading     = 1;
         work->cloakFadeFrames = 0;
         model2->flags         = (model2->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
         func_actor_400600_801387DC(arg0, 0);
     }
@@ -4089,14 +4089,14 @@ static void func_actor_400600_801387DC(Task* arg0, s32 arg1)
         child                   = work->armTasks[0];
         child->extra.tmd->flags = model->flags;
         if (arg1 >= 0) {
-            Gp_SetLightMode(child->spawnArg2.pointer, arg1);
+            worldCoordSetActorColorMode(child->spawnArg2.pointer, arg1);
         }
     }
     if (work->armTasks[1] != NULL) {
         child                   = work->armTasks[1];
         child->extra.tmd->flags = model->flags;
         if (arg1 >= 0) {
-            Gp_SetLightMode(child->spawnArg2.pointer, arg1);
+            worldCoordSetActorColorMode(child->spawnArg2.pointer, arg1);
         }
     }
 }
@@ -4161,7 +4161,7 @@ static void func_actor_400600_80138A24(Task* arg0, s16 arg1)
     if (arg1 != 0) {
         enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
         model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
         work->cloaked         = 1;
         work->cloakFadeFrames = 0;
@@ -4203,7 +4203,7 @@ static void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
             work->cloakFading     = 1;
             work->cloakFadeFrames = 0;
             model->flags          = (model->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+            worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
             enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
             func_actor_400600_801387DC(arg0, 0);
         }
@@ -4212,7 +4212,7 @@ static void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
         work->cloakFading     = 1;
         work->cloakFadeFrames = 0;
         model->flags         |= TMD_OBJECT_SEMI_TRANS;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
     }
 }
@@ -4633,7 +4633,7 @@ static void func_actor_400600_8013A3C8(Task* arg0)
         func_actor_400600_8013CC04(arg0, 7);
     } else if (work->onCeiling == 0) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         func_actor_400600_801387DC(arg0, 0);
         work->state++;
     } else {
@@ -4657,7 +4657,7 @@ static void func_actor_400600_8013A570(Task* arg0)
     worldCollisionUnlinkBody(&work->capsuleBody);
     work->corpseScaleY = 0x1000;
     work->savedRootMtx = coord->coord;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->stateFrames = 0;
     work->state++;
 }
@@ -4672,7 +4672,7 @@ static void func_actor_400600_8013A638(Task* arg0)
     work->stateFrames++;
     if (work->stateFrames >= 0x18) {
         model->flags |= TMD_OBJECT_SEMI_TRANS;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
         work->stateFrames = 0;
         work->state++;
@@ -4765,7 +4765,7 @@ static void func_actor_400600_8013A908(Task* arg0)
     model         = arg0->extra.tmd;
     work          = (_Actor400600ZebraStalkerWork*)arg0->work;
     model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     func_actor_400600_80139DB0(arg0, 9, 0x10, 2);
     work->moveAccel    = 0;
     work->moveSpeed    = 0;
@@ -5817,7 +5817,7 @@ static void func_actor_400600_8013C874(Task* arg0)
         work2->cloakFading     = 1;
         work2->cloakFadeFrames = 0;
         model2->flags         |= TMD_OBJECT_SEMI_TRANS;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         func_actor_400600_801387DC(arg0, 2);
     }
     work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

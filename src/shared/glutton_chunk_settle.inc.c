@@ -9,7 +9,7 @@
 /// a `0x600A5` effect out of the model's coordinate, and 4 and 8 also switch
 /// the light mode. After 0x51 steps both nodes are unlinked and the task steps
 /// on; until then the two collision-record tables are wiped each step. The
-/// model's own `workm` translation is handed to `Gp_UpdateActorColor`.
+/// model's own `workm` translation is handed to `worldCoordUpdateActorColor`.
 void gluttonChunkSettle(Enemy* enemy, Task* task)
 {
     GluttonProjectileWork* work = task->work;
@@ -27,8 +27,8 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
         work->stateTicks     = 0;
         work->aim.travel.vx /= 9;
         work->aim.travel.vz /= 9;
-        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
-        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         work->gridBody.flags   &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         work->attackBody.flags &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
         task->extra.tmd->flags  = TMD_OBJECT_SEMI_TRANS;
@@ -54,7 +54,7 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
         case 3:
         case 7:
             Gp_SpawnEff(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 1, NULL);
-            Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             break;
         case 0:
         case 1:
@@ -77,5 +77,5 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
     pos.vx = task->extra.tmd->coords->workm.t[0];
     pos.vy = task->extra.tmd->coords->workm.t[1];
     pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 }

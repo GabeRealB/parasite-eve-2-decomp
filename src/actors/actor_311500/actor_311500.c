@@ -550,11 +550,11 @@ static s32 func_actor_311500_801630A4(Task* arg0)
 
                 case 0xA:
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[2], 3, NULL);
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
 
                 case 0x16:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
 
                 case 0x1C:
@@ -622,7 +622,7 @@ static inline void _actor311500Draw(Task* actor)
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

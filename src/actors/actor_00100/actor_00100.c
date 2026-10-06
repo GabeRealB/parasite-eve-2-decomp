@@ -2062,7 +2062,7 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     color.vx = coord->workm.t[0];
     color.vy = coord->workm.t[1];
     color.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0, &color, 0, 0);
+    worldCoordUpdateActorColor(arg0, &color, 0, 0);
     work->effectArg.coord      = &arg1->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x100;
     work->effectArg.spawnArgHi = 2;
@@ -2424,12 +2424,12 @@ static void Actor00100_Fn04270(Task* arg0)
     }
     switch (++work->stateTimer) {
         case 1:
-            Gp_SetLightMode(ctx, ENEMY_COLOR_DEFAULT);
-            Gp_SetLightMode(ctx, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(ctx, ENEMY_COLOR_DEFAULT);
+            worldCoordSetActorColorMode(ctx, ENEMY_COLOR_WEIGHTED);
             /* fallthrough */
         case 0xA:
             arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-            Gp_SetLightMode(ctx, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(ctx, ENEMY_COLOR_BLACK);
             break;
         case 0xF:
             work->burnPosFront.vx   = 0;
@@ -3116,7 +3116,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

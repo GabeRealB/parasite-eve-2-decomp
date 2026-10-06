@@ -5848,14 +5848,14 @@ void func_acropolis_bridge_80187310(Task* task)
         step = work->deathFrame;
         switch (step) {
             case 10:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 Gp_SpawnEff(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[2], 1, NULL);
                 break;
             case 28:
                 task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 22:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
             case 34:
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -5894,7 +5894,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->effectArg.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &task->extra.tmd->coords[1], NULL,
                       &work->effectArg);
-        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         Gp_SpawnEff(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[1], 1, NULL);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
         work->deathFrame       = 0;
@@ -5909,7 +5909,7 @@ void func_acropolis_bridge_801874DC(Task* task)
                 task->extra.tmd->flags = step;
                 break;
             case 30:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
             case 44:
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -6030,7 +6030,7 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
     pos.vx = task->extra.tmd->coords->workm.t[0];
     pos.vy = task->extra.tmd->coords->workm.t[1];
     pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
         case 0:

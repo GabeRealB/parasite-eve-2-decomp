@@ -81,7 +81,7 @@ void gluttonGlobEngulf(Enemy* enemy, Task* task)
     pos.vx = task->extra.tmd->coords->workm.t[0];
     pos.vy = task->extra.tmd->coords->workm.t[1];
     pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     work->colorMtx.t[1] >>= 1;
     work->colorMtx.t[2] >>= 2;

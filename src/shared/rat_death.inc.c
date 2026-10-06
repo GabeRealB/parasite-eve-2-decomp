@@ -30,7 +30,7 @@ void ratDeath(Enemy* arg0, Task* arg1)
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
             vec.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -52,7 +52,7 @@ void ratDeath(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->attackBody);
-            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             Gp_ReleaseStateF0Add(arg1, 7);
             work->step = 1;
             work2      = arg1->work;
@@ -73,7 +73,7 @@ void ratDeath(Enemy* arg0, Task* arg1)
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070005;
             pan = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
@@ -108,7 +108,7 @@ void ratDeath(Enemy* arg0, Task* arg1)
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case 2:
             enemyDestroy(arg0, arg1);

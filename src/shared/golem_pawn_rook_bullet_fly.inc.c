@@ -32,7 +32,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -55,7 +55,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
 
     if (work->wallContacts[0].key.value != 0) {
         idx = worldCollisionSurfaceClassFromKey(work->wallContacts[0].key.value);

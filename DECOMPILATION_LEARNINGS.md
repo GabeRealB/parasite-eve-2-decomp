@@ -1034,7 +1034,7 @@ What worked, in each case:
   and the merge eats the whole RotMatrixY/actorRenderComposeCoord tail: `delete=27` and
   83%.
 * **case 2** - the same effect needs the whole tail (gfxRotMatrixY, composeStamp,
-  actorRenderComposeCoord, Gp_SetLightMode, field_4C, field_40, the state write) written
+  actorRenderComposeCoord, worldCoordSetActorColorMode, field_4C, field_40, the state write) written
   **in each arm** with the angle as a literal. Sharing the tail and passing a
   computed `angle` variable puts the walk's first difference 17 insns above the
   jump instead of one, and the merge takes the two stores with it (`insert=4
@@ -6891,7 +6891,7 @@ block    = tmp;
 *scratch = tmp;
 ```
 
-`Gp_UpdateActorColor` is the example. Same split-address `lui` in a branch delay
+`worldCoordUpdateActorColor` is the example. Same split-address `lui` in a branch delay
 as `actorRenderCopyCoordBodyTransform`.
 
 The unpinned substitutes do not reach it. `TOUCH_REG(head)` / `TOUCH_REG_USE`
@@ -6957,7 +6957,7 @@ asm volatile("" : "+r"(src));
 block->currentColumn.vz = src->z;
 ```
 
-`Gp_UpdateActorColor` is the example.
+`worldCoordUpdateActorColor` is the example.
 
 Do not keep a scratch pointer live from alloc to free. A local `scratch`
 that is used at both ends is allocated to an extra `$s` register and
@@ -26492,7 +26492,7 @@ if (work->armTasks[0] != NULL) {
 ```
 
 `func_actor_400600_801387DC` needed it for a second reason: with the child in
-`$a0`, `$a1` still held `value` at the first `Gp_SetLightMode`, so
+`$a0`, `$a1` still held `value` at the first `worldCoordSetActorColorMode`, so
 `reload_cse_regs` deleted the `move a1, s0`. With `child = work->armTasks[0];
 if (child != NULL)`, the pointer landed in `$a1`, the move came back, and the
 score stuck at 85.7%. An inline helper that took the child as a parameter did
@@ -35533,7 +35533,7 @@ block-scope temp so it dies at the stores:
 }
 ```
 
-`Gp_RemapActorColor` is the example. Same "temp must die at the store" idea as
+`_worldCoordRemapActorColor` is the example. Same "temp must die at the store" idea as
 the `| packed` block-scope temp.
 
 ## Write `if (x == 1) else if (x < 2)` instead of `switch` for 1/2/3
@@ -35571,7 +35571,7 @@ if (arg2 == 1) {
 }
 ```
 
-`Gp_RemapActorColor` is the example.
+`_worldCoordRemapActorColor` is the example.
 
 ## Pin the walking element pointer so GCC does not form `p+field`
 
@@ -44753,7 +44753,7 @@ static __inline__ void update_actor_color(Actor01600Ctx* ctx, GfxCoord* attach)
     *(VECTOR**)SCRATCH_STACK_CURSOR_SLOT = block;
     block->vx = attach->workm.t[0];
     /* … */
-    Gp_UpdateActorColor(ctx, block, 0, 0);
+    worldCoordUpdateActorColor(ctx, block, 0, 0);
     *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x10;
 }
 ```
@@ -46766,9 +46766,9 @@ Merging `Actor03800_Fn02068`'s L-label span needed the byte at `0x801153F2`,
 which is `gSceneCombatState.signals.bytes.actionFlags` in `include/gameplay/scene_combat.h`. Adding that include
 to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
 own hand-written prototypes for `worldTargetUnlinkNode`, `worldCollisionUnlinkBody`,
-`Gp_SetLightMode`, `Gp_ReleaseStateF0Add`, `Gp_UpdateActorColor`,
+`worldCoordSetActorColorMode`, `Gp_ReleaseStateF0Add`, `worldCoordUpdateActorColor`,
 `worldCoordGetOriginAudioPan` and `worldCoordGetOriginAudioDepth`, and several of them disagree with the
-header in *arity*, not just in pointer type (`Gp_UpdateActorColor` is declared
+header in *arity*, not just in pointer type (`worldCoordUpdateActorColor` is declared
 with four arguments locally and two in the header). cc1 stops with
 `conflicting types for ...`, and rewriting the local block to the header's
 signatures would silently retype the arguments of every already-matched
@@ -58358,8 +58358,8 @@ slot with the branch pointing past it.
 
 ## A gameplay helper's overlay prototype can carry arguments its definition ignores
 
-`Gp_UpdateActorColor` is defined in `src/gameplay/3A34.c` with two parameters,
-but every overlay that calls it passes four (`Gp_UpdateActorColor(enemy, &pos,
+`worldCoordUpdateActorColor` is defined in `src/gameplay/3A34.c` with two parameters,
+but every overlay that calls it passes four (`worldCoordUpdateActorColor(enemy, &pos,
 0, 0)`), and the two `addu $aN, $zero, $zero` that set up the extra arguments
 are part of the caller's match. Files under `src/actors/lib/` sidestep the
 mismatch by declaring their own four-argument prototype and not including
@@ -58370,7 +58370,7 @@ The fix is to give the definition the two trailing parameters it never reads
 and update `include/gameplay/3A34.h` to match. Unused register parameters cost
 no instructions on MIPS o32, so `gameplay` still checksums, and the shared
 declaration then describes what the callers actually do. Prefer this over an
-`__asm__("Gp_UpdateActorColor")` alias on a second name — the alias works, but
+`__asm__("worldCoordUpdateActorColor")` alias on a second name — the alias works, but
 it hides the arity from every other reader of the header.
 
 ## Split the scratch frame: outer function hoists the head address, `static __inline__` body rematerialises it
@@ -67025,7 +67025,7 @@ Check `.lreg` and `.greg` before introducing a pinned comparison temporary.
 
 `func_actor_207000_8014FDA4` is the same body as the already-matched
 `ActorsShared8013a2c0` — a 0x10-byte `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT` filled from
-`((TmdObject*)task->extra)->coords[1]` and handed to `Gp_UpdateActorColor` — and
+`((TmdObject*)task->extra)->coords[1]` and handed to `worldCoordUpdateActorColor` — and
 transcribing the sibling's C verbatim scored 76.8% with `regs=15 reorder=2`. The
 offsets were all correct; what was wrong was the allocation of the *whole* body,
 not of one register.
@@ -68762,7 +68762,7 @@ point, or a struct field, where it is not. Only the latter wants a retype.
 ## m2c's scalar stack locals for an address-taken struct lose their dead stores
 
 **Problem:** `func_actor_503500_801421A8` builds a `VECTOR` on the stack and
-passes it to `Gp_UpdateActorColor`. m2c bootstrapped it as three independent
+passes it to `worldCoordUpdateActorColor`. m2c bootstrapped it as three independent
 `s32` locals with the address of the first one cast to the struct type:
 
 ```c
@@ -68770,7 +68770,7 @@ s32 sp10, sp14, sp18;
 sp10 = coord->workm.t[0];
 sp14 = coord->workm.t[1];
 sp18 = coord->workm.t[2];
-Gp_UpdateActorColor(arg0->field_20, (VECTOR*)&sp10, 0, 0);
+worldCoordUpdateActorColor(arg0->field_20, (VECTOR*)&sp10, 0, 0);
 ```
 
 **Symptom:** `stack=0 branch=0 regs=7 reorder=0 insert=0 delete=14`, 52%. The
@@ -68787,7 +68787,7 @@ VECTOR vec;
 vec.vx = coord->workm.t[0];
 vec.vy = coord->workm.t[1];
 vec.vz = coord->workm.t[2];
-Gp_UpdateActorColor(arg0->field_20, &vec, 0, 0);
+worldCoordUpdateActorColor(arg0->field_20, &vec, 0, 0);
 ```
 
 This also restores the *reloads*: the target re-walks `index->extra->coords`
@@ -74658,7 +74658,7 @@ one wants the duplicate, and they are the same source line written two ways.
 ## Duplicate the call in both arms to keep the `j` an argument-conditional wants
 
 A call whose only conditional part is one argument has two shapes. A ternary
-(`Gp_UpdateActorColor(cond ? enemy : other, ...)`) collapses into an inverted
+(`worldCoordUpdateActorColor(cond ? enemy : other, ...)`) collapses into an inverted
 branch with the then-value in the delay slot:
 
 ```
@@ -75535,7 +75535,7 @@ s32 sp10; s32 sp14; s32 sp18;
 sp10 = M2C_FIELD(arg1, s32 *, 0x38);
 sp14 = M2C_FIELD(arg1, s32 *, 0x3C);
 sp18 = M2C_FIELD(arg1, s32 *, 0x40);
-Gp_UpdateActorColor(M2C_FIELD(arg0, Enemy **, 0x20), (VECTOR *) &sp10, 0, 0);
+worldCoordUpdateActorColor(M2C_FIELD(arg0, Enemy **, 0x20), (VECTOR *) &sp10, 0, 0);
 ```
 
 Only `sp10`'s address escapes, so `sp14`/`sp18` are never address-taken and GCC
@@ -75549,7 +75549,7 @@ VECTOR pos;
 pos.vx = arg1->field_38.vx;
 pos.vy = arg1->field_38.vy;
 pos.vz = arg1->field_38.vz;
-Gp_UpdateActorColor(arg0->field_20, &pos, 0, 0);
+worldCoordUpdateActorColor(arg0->field_20, &pos, 0, 0);
 ```
 
 Frame arithmetic reads straight off the target: 0x10 outgoing args + a 0x10 slot
@@ -85772,7 +85772,7 @@ register. `src/actors/actor_444000/actor_444000_6.c` shows the same 3-of-4
 handler shape written out in full.
 
 This is the mirror of the two entries above on `Room_Util18` and
-`Gp_UpdateActorColor`: those recover arity from a *caller* whose `$aN` set-up
+`worldCoordUpdateActorColor`: those recover arity from a *caller* whose `$aN` set-up
 has to match, and this one from a *body* whose own parameter arrives in the
 wrong register.
 
@@ -105183,7 +105183,7 @@ exactly:
 which register holds it is decided by the object's live range, not by the
 source. `Actor04400_Fn05DE0` and `Actor04400_Fn05FC8` are the same body
 (`field_C |= 0x80` in mode 2, mode 0's count / handler / every-32-frames effect
-/ `coord->composeStamp = 0`, mode 1's inline `Gp_UpdateActorColor` push and part-pair
+/ `coord->composeStamp = 0`, mode 1's inline `worldCoordUpdateActorColor` push and part-pair
 rebuild), differing **only** in that `Fn05DE0` clears `obj->field_C &= ~0x80`
 on the mode-1 exit and `Fn05FC8` does not. That one statement keeps `obj` live
 through mode 1's calls, so `Fn05DE0` holds it in `$s2` and the table base lands
@@ -117739,7 +117739,7 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     block->vx = coord->workm.t[0];
     ...
     *scratch  = block;
-    Gp_UpdateActorColor(task->spawnArg2, block, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2, block, 0, 0);
     *scratch = (u8*)*scratch + 0x10;
 }
 ```
@@ -117750,7 +117750,7 @@ is why they are headers rather than call-site code.
 
 `func_actor_206100_8014E7D4` is the worked example.  The tail written at the
 call site (92.540%, `base_2`, `ef536d3e50b6e405`) gives one `lui`/`ori` and four
-`0($base)` accesses with the address held in `$s0` across `Gp_UpdateActorColor`;
+`0($base)` accesses with the address held in `$s0` across `worldCoordUpdateActorColor`;
 wrapped in the inline helper (100.000%, `base_9`, `9d583cfc4584e3de`) each of the
 four accesses folds and the register pressure drops.  The `__asm__` lo-form
 macros an earlier attempt reached for (`actor_403600_load_scratch_head` and
@@ -124064,7 +124064,7 @@ declares the scratch as one named local per word:
     sp10 = temp_s2->workm.t[0];
     sp14 = temp_s2->workm.t[1];
     sp18 = temp_s2->workm.t[2];
-    Gp_UpdateActorColor(enemy, (VECTOR *)&sp10, 0, 0);
+    worldCoordUpdateActorColor(enemy, (VECTOR *)&sp10, 0, 0);
 ```
 
 Only `sp10`'s address escapes, and it escapes into a *call*, so `sp14` and
@@ -124086,7 +124086,7 @@ matched sibling does:
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2, &pos, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2, &pos, 0, 0);
 ```
 
 **Related trap in the same seed.** m2c also emits a chain of independent
@@ -124640,7 +124640,7 @@ insns; for memory it is a hard ordering constraint.
 Two further notes from the same function, both about m2c's shape rather than the
 scheduler:
 
-* m2c's `s32 sp10; s32 sp14; s32 sp18; ... Gp_UpdateActorColor(index, (VECTOR*)&sp10, 0, 0)`
+* m2c's `s32 sp10; s32 sp14; s32 sp18; ... worldCoordUpdateActorColor(index, (VECTOR*)&sp10, 0, 0)`
   keeps only *one* of the three loads and stores. Each local is its own DECL and
   only `sp10`'s address is taken, so GCC deletes the other two as dead stores.
   One addressable aggregate — `VECTOR block; block.vx = coord->workm.t[0]; ...` —
@@ -149017,7 +149017,7 @@ computes `pos` first).
   case 0 shares the default's code: `case 0: default:`. Four cases still use
   a tree (no `casesi` on MIPS, so the table threshold is 5); the pivot is the
   second node, and the `==0 -> default` test is deleted because it is
-  followed by the jump to the same label (`Gp_RemapActorColor`).
+  followed by the jump to the same label (`_worldCoordRemapActorColor`).
 - `==0 -> end; <0 -> end; >=K+2 -> end; <K -> end` is
   `switch (x) { case 0: break; case K: case K + 1: ... }`: two nodes, the
   second a range (`group_case_nodes` merges consecutive cases with one

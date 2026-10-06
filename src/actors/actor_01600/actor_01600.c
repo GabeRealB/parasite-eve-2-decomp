@@ -1423,7 +1423,7 @@ ActorTransform Actor01600_D12890;
 static __inline__ void update_actor_color(Enemy* ctx, GfxCoord* attach);
 
 /// Takes a 0x10-byte `VECTOR` from the scratch stack, fills it with `attach`'s
-/// world position and hands it to `Gp_UpdateActorColor`. Inlined so the
+/// world position and hands it to `worldCoordUpdateActorColor`. Inlined so the
 /// scratch-head address is rematerialised on every access.
 static __inline__ void update_actor_color(Enemy* ctx, GfxCoord* attach)
 {
@@ -1438,7 +1438,7 @@ static __inline__ void update_actor_color(Enemy* ctx, GfxCoord* attach)
     block->vx = attach->workm.t[0];
     block->vy = attach->workm.t[1];
     block->vz = attach->workm.t[2];
-    Gp_UpdateActorColor(ctx, block, 0, 0);
+    worldCoordUpdateActorColor(ctx, block, 0, 0);
 
     SCRATCH_STACK_CURSOR(u8) = SCRATCH_STACK_CURSOR(u8) + 0x10;
 }
@@ -3457,7 +3457,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
                 work->stateTimer  = 0;
                 work->deathScaleY = ONE;
                 work->deathMatrix = coords[0].coord;
-                Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             }
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             arg0->recs                   = 0;
@@ -4654,8 +4654,8 @@ static void Actor01600_Fn06744(Task* arg0)
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
-/// world position and hands it to `Gp_UpdateActorColor` with no blend
-/// parameters.
+/// world position and hands it to `worldCoordUpdateActorColor` with zero for the unused
+/// arguments.
 static void Actor01600_Fn06810(Enemy* arg0, Task* arg1)
 {
     GfxCoord* coord;
@@ -4671,7 +4671,7 @@ static void Actor01600_Fn06810(Enemy* arg0, Task* arg1)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
+    worldCoordUpdateActorColor(arg0, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
@@ -4963,7 +4963,7 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
         worldCollisionUnlinkBody(&work->bodySphere.body);
         worldCollisionUnlinkBody(&work->bite.body);
     }
-    Gp_SetLightMode(ctx, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(ctx, ENEMY_COLOR_WEIGHTED);
     Gp_ReleaseStateF0Add(arg0, 0x10);
     enemyDestroy(ctx, arg0);
     Actor01600_D12874 -= 1;

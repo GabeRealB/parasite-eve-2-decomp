@@ -2827,7 +2827,7 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
             vec.vx = coord->workm.t[0];
             vec.vy = coord->workm.t[1];
             vec.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case 2:
             obj->flags                             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2847,7 +2847,7 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->drainBody);
-            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             Gp_ReleaseStateF0Add(arg1, 3);
             work->timer      = 0;
             work->actionStep = 1;
@@ -2859,7 +2859,7 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             if (work->chargeEffect != NULL) {
                 work->chargeEffect->task->state = 3;
                 work->chargeEffect              = NULL;
@@ -2886,7 +2886,7 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
             vec.vx = c->workm.t[0];
             vec.vy = c->workm.t[1];
             vec.vz = c->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case 2:
             enemyDestroy(arg0, arg1);
@@ -3413,7 +3413,7 @@ static void Actor00300_Fn04FB0(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 static void Actor00300_Fn05008(Task* arg0)

@@ -1401,7 +1401,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     work->prevState = -1;
                     break;
             }
-            Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
             enemy->reactionFlags = 0;
             enemy->hp            = D_actor_421600_8013EF38.hpMax;
             return 1;
@@ -1417,7 +1417,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x76C, 1);
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(arg0->extra.tmd->coords);
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->reactionFlags = 0;
                     enemy->hp            = D_actor_421600_8013EF38.hpMax;
                     work->state          = 6;
@@ -1431,7 +1431,7 @@ s32 func_actor_421600_80132A00(Task* arg0, s32 arg1, ActorCommand* request, s32 
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7BC, 1);
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(arg0->extra.tmd->coords);
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->reactionFlags = 0;
                     enemy->hp            = D_actor_421600_8013EF38.hpMax;
                     work->state          = 6;
@@ -2144,7 +2144,7 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     kind = actor->spawnArg1.value >> 16;
     switch (kind & 0xF) {
         case 1:
@@ -2765,12 +2765,12 @@ static void func_actor_421600_801366F4(Task* arg0)
         work->stateTimer = tick;
         switch ((s16)tick) {
             case 1:
-                Gp_SetLightMode(ctx, ENEMY_COLOR_DEFAULT);
-                Gp_SetLightMode(ctx, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(ctx, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(ctx, ENEMY_COLOR_WEIGHTED);
                 /* fallthrough */
             case 20:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                Gp_SetLightMode(ctx, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(ctx, ENEMY_COLOR_BLACK);
                 break;
             case 22:
                 break;
@@ -2856,7 +2856,7 @@ static void func_actor_421600_801369A0(Task* arg0)
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(arg0->extra.tmd->coords);
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x76C, 1);
-                    Gp_SetLightMode(ctx, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(ctx, ENEMY_COLOR_DEFAULT);
                     ctx->reactionFlags = 0;
                     ctx->hp            = D_actor_421600_8013EF38.hpMax;
                     work->state        = 6;
@@ -2867,7 +2867,7 @@ static void func_actor_421600_801369A0(Task* arg0)
                     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(arg0->extra.tmd->coords);
                     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7BC, 1);
-                    Gp_SetLightMode(ctx, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(ctx, ENEMY_COLOR_DEFAULT);
                     ctx->reactionFlags = 0;
                     ctx->hp            = D_actor_421600_8013EF38.hpMax;
                     work->state        = 6;
@@ -4195,7 +4195,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     pos.vx = actor->extra.tmd->coords->workm.t[0];
     pos.vy = actor->extra.tmd->coords->workm.t[1];
     pos.vz = actor->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != 0x15 && work->state != 0 && work->state != 0x16 && work->state != 7 && work->state != 8) {

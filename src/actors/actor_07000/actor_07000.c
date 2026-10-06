@@ -1738,7 +1738,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
                     arg1->state  = 3;
                     break;
             }
-            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             update_animation(arg1);
             break;
     }
@@ -2136,7 +2136,7 @@ static __inline__ void update_color(Enemy* enemy, GfxCoord* coord)
     block->vx                    = coord->workm.t[0];
     block->vy                    = coord->workm.t[1];
     block->vz                    = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
+    worldCoordUpdateActorColor(enemy, block, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 static __inline__ void rotate_parts(Task* arg0)
@@ -2450,7 +2450,7 @@ static void Actor07000_Fn05F84(Task* task)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(obj, block, 0, 0);
+    worldCoordUpdateActorColor(obj, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 

@@ -21,7 +21,7 @@ static __inline__ void madChaserUpdateColor(void* enemy, GfxCoord* coord)
     block->vy                    = coord->workm.t[1];
     SCRATCH_STACK_CURSOR(VECTOR) = block;
     block->vz                    = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
+    worldCoordUpdateActorColor(enemy, block, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 

@@ -3453,7 +3453,7 @@ static void func_actor_503500_80140654(Task* arg0)
             switch (work->stateFrames) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     sndEvtRequestScriptStart(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
                                              (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
@@ -3461,7 +3461,7 @@ static void func_actor_503500_80140654(Task* arg0)
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 30:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
                     sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -4031,7 +4031,7 @@ static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* obj, Worl
 }
 
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
-/// and hands it to `Gp_UpdateActorColor` with no blend parameters. Same body as
+/// and hands it to `worldCoordUpdateActorColor` with zero for the unused arguments. Same body as
 /// `func_actor_503500_80136AEC`.
 static void func_actor_503500_801421A8(Task* arg0)
 {
@@ -4040,7 +4040,7 @@ static void func_actor_503500_801421A8(Task* arg0)
     vec.vx = arg0->extra.tmd->coords->workm.t[0];
     vec.vy = arg0->extra.tmd->coords->workm.t[1];
     vec.vz = arg0->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Re-aims coordinate nodes 2..7 of the model: each node's rotation is read
@@ -4457,12 +4457,12 @@ static void func_actor_503500_80142980(Task* arg0)
             switch (work->stateFrames) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     sndEvtRequestScriptStart(SOUND_COMMON(0x0D), (s8)worldCoordGetOriginAudioPan(coord),
                                              (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
                 case 30:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
                     sndEvtRequestScriptStop(SOUND_COMMON(0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);

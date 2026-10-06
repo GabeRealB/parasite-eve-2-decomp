@@ -295,14 +295,7 @@ enum { WORLD_COORDINATE_ATTACHMENT_LIGHT_PULSE_NONE = 0 };
 
 static void _worldCoordUpdatePlayerLighting(Task* unusedTask);
 
-/// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
-/// (`colorMode` bits 0-1, or bits 2-3 when blending). Weighted mode
-/// collapses RGB as (7,6,3)/33 then *4/*2/*1. Black zeros the matrix. Tint
-/// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
-/// `reactionFlags` has damage over time set. `ENEMY_COLOR_HIT_FLASH` with
-/// `spawnState == 0` applies a `rsin(gDisplayState.loopCount << 6)` flicker
-/// and clears the bit.
-static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2);
+static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 colorMode);
 
 static const WorldCoordRoomAmbientEntry* _worldCoordGetRoomAmbientEntry(const GameLocationKey* location);
 
@@ -360,8 +353,7 @@ static void _worldCoordInitPlayerLighting(Task* task);
         }                                                                                                                                                                \
     }
 
-/// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
-static inline u16 _gpIdParam0(s32 id);
+static inline u16 _objectFieldGetAttackHitReaction(s32 attackId);
 
 /// Borrows a room-lighting descriptor through nullable stage and area tables.
 ///
@@ -1430,139 +1422,176 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
     }
 }
 
-/// The `ENEMY_COLOR_HIT_FLASH` flicker of `Gp_RemapActorColor`.
-static inline void Gp_FlickerActorColor(Enemy* arg0, MATRIX* arg1)
+/// Replaces light-colour coefficients with a green hit pulse and consumes its request.
+///
+/// Every column gets red/blue at ONE/8 and green at a Q12 sine plus 1.5*ONE,
+/// halved on even display-loop iterations. The sine phase advances by 64 angle
+/// units per iteration (4096 per turn). Preserves the ambient translation and
+/// all packed colour-mode bits except ENEMY_COLOR_HIT_FLASH. Both arguments
+/// must be writable; the caller establishes that the flash is eligible.
+static inline void _worldCoordApplyActorHitFlash(Enemy* enemy, MATRIX* colorMtx)
 {
-    s32 val;
+    enum {
+        WORLD_COORDINATE_HIT_FLASH_PHASE_SHIFT = 6,
+        WORLD_COORDINATE_HIT_FLASH_GREEN_BASE  = ONE + ONE / 2,
+        WORLD_COORDINATE_HIT_FLASH_RED_BLUE    = ONE / 8
+    };
+    s32 flashGreen;
 
-    val = rsin(gDisplayState.loopCount << 6) + 0x1800;
+    flashGreen = rsin(gDisplayState.loopCount << WORLD_COORDINATE_HIT_FLASH_PHASE_SHIFT) + WORLD_COORDINATE_HIT_FLASH_GREEN_BASE;
     if ((gDisplayState.loopCount & 1) == 0) {
-        val >>= 1;
+        flashGreen >>= 1;
     }
-    arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x200;
-    arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = val;
-    arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x200;
-    arg0->colorMode                              &= ENEMY_COLOR_HIT_FLASH_CLEAR;
+    _worldCoordFillLightColorMatrix(colorMtx, WORLD_COORDINATE_HIT_FLASH_RED_BLUE, flashGreen, WORLD_COORDINATE_HIT_FLASH_RED_BLUE);
+    enemy->colorMode &= ENEMY_COLOR_HIT_FLASH_CLEAR;
 }
 
-/// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
-/// (`colorMode` bits 0-1, or bits 2-3 when blending). Weighted mode
-/// collapses RGB as (7,6,3)/33 then *4/*2/*1. Black zeros the matrix. Tint
-/// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
-/// `reactionFlags` has damage over time set. `ENEMY_COLOR_HIT_FLASH` with
-/// `spawnState == 0` applies a `rsin(gDisplayState.loopCount << 6)` flicker
-/// and clears the bit.
-static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2)
+/// Clears all nine actor light-colour coefficients while preserving ambient translation.
+///
+/// colorMtx must be writable; its ambient translation is left unchanged.
+static inline void _worldCoordClearActorLightColor(MATRIX* colorMtx)
 {
-    s32 i;
+    colorMtx->m[0][0] = 0;
+    colorMtx->m[0][1] = 0;
+    colorMtx->m[0][2] = 0;
+    colorMtx->m[1][0] = 0;
+    colorMtx->m[1][1] = 0;
+    colorMtx->m[1][2] = 0;
+    colorMtx->m[2][0] = 0;
+    colorMtx->m[2][1] = 0;
+    colorMtx->m[2][2] = 0;
+}
 
-    switch (arg2) {
-        case ENEMY_COLOR_WEIGHTED: {
-            s32 t;
-            for (i = 0; i < 3; i++) {
-                t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
-                arg1->m[0][i] = t * 4;
-                arg1->m[1][i] = t * 2;
-                arg1->m[2][i] = t;
-            }
+/// Applies one actor colour mode to a writable light-colour 3x3.
+///
+/// Coefficients are signed Q12; the ambient translation is preserved. Weighted
+/// mode maps each column's (7r+6g+3b)/33 to (4,2,1) times that value. Black
+/// clears the coefficients, and tint fills every column with (0x180,0x100,0x100).
+/// Default, including unrecognized modes, retains lighting unless damage over
+/// time maps the weighted value to (3,1,3). Stores narrow to signed halfwords.
+///
+/// Except in weighted mode, a pending hit flash with spawnState 0 overrides
+/// the mode and clears its request. This side effect precedes a later remap
+/// of the previous mode during blending; enemy and colorMtx must be live.
+static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 colorMode)
+{
+    enum {
+        WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE = 0,
+        WORLD_COORDINATE_ACTOR_TINT_RED        = 0x180,
+        WORLD_COORDINATE_ACTOR_TINT_GREEN_BLUE = 0x100
+    };
+    s32 lightIndex;
+
+    /// Recolours all columns from signed Q12 (7r+6g+3b)/33 and integer RGB scales.
+    ///
+    /// colorMatrix is a writable MATRIX*. Arguments must be side-effect-free;
+    /// captures this function's s32 lightIndex. Ambient translation is preserved;
+    /// division truncates toward zero and stores narrow to signed halfwords.
+#define WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMatrix, redScale, greenScale, blueScale)                                                                      \
+    {                                                                                                                                                                 \
+        s32 weightedIntensity;                                                                                                                                        \
+        for (lightIndex = 0; lightIndex < (s32)ARRAY_SIZE((colorMatrix)->m[0]); lightIndex++) {                                                                       \
+            weightedIntensity               = ((colorMatrix)->m[0][lightIndex] * 7 + (colorMatrix)->m[1][lightIndex] * 6 + (colorMatrix)->m[2][lightIndex] * 3) / 33; \
+            (colorMatrix)->m[0][lightIndex] = weightedIntensity * (redScale);                                                                                         \
+            (colorMatrix)->m[1][lightIndex] = weightedIntensity * (greenScale);                                                                                       \
+            (colorMatrix)->m[2][lightIndex] = weightedIntensity * (blueScale);                                                                                        \
+        }                                                                                                                                                             \
+    }
+
+    switch (colorMode) {
+        case ENEMY_COLOR_WEIGHTED:
+            WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMtx, 4, 2, 1);
             break;
-        }
 
         case ENEMY_COLOR_TINT:
-            if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
-                Gp_FlickerActorColor(arg0, arg1);
+            if ((enemy->colorMode & ENEMY_COLOR_HIT_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
+                _worldCoordApplyActorHitFlash(enemy, colorMtx);
                 break;
             }
-            arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x180;
-            arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = 0x100;
-            arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x100;
+            _worldCoordFillLightColorMatrix(colorMtx, WORLD_COORDINATE_ACTOR_TINT_RED, WORLD_COORDINATE_ACTOR_TINT_GREEN_BLUE, WORLD_COORDINATE_ACTOR_TINT_GREEN_BLUE);
             break;
 
         case ENEMY_COLOR_BLACK:
-            if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
-                Gp_FlickerActorColor(arg0, arg1);
+            if ((enemy->colorMode & ENEMY_COLOR_HIT_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
+                _worldCoordApplyActorHitFlash(enemy, colorMtx);
                 break;
             }
-            arg1->m[0][0] = 0;
-            arg1->m[0][1] = 0;
-            arg1->m[0][2] = 0;
-            arg1->m[1][0] = 0;
-            arg1->m[1][1] = 0;
-            arg1->m[1][2] = 0;
-            arg1->m[2][0] = 0;
-            arg1->m[2][1] = 0;
-            arg1->m[2][2] = 0;
+            _worldCoordClearActorLightColor(colorMtx);
             break;
 
         case ENEMY_COLOR_DEFAULT:
         default:
-            if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
-                Gp_FlickerActorColor(arg0, arg1);
-            } else if (arg0->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-                s32 t;
-                for (i = 0; i < 3; i++) {
-                    t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
-                    arg1->m[0][i] = t * 3;
-                    arg1->m[1][i] = t;
-                    arg1->m[2][i] = t * 3;
-                }
+            if ((enemy->colorMode & ENEMY_COLOR_HIT_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
+                _worldCoordApplyActorHitFlash(enemy, colorMtx);
+            } else if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+                WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMtx, 3, 1, 3);
             }
             break;
     }
+#undef WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT
 }
 
-void Gp_UpdateActorColor(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
+/// Copies the nine light-colour coefficients between disjoint matrices, preserving ambient.
+///
+/// destination must be writable and source readable; translations are not accessed.
+static inline void _worldCoordCopyActorLightColor(MATRIX* destination, const MATRIX* source)
 {
-    TmdObject*                   extra;
-    MATRIX*                      colorMtx;
-    s32                          mode;
-    WorldCoordActorColorScratch* block;
-    s32                          i;
-    s32                          w0;
-    s32                          w1;
+    destination->m[0][0] = source->m[0][0];
+    destination->m[0][1] = source->m[0][1];
+    destination->m[0][2] = source->m[0][2];
+    destination->m[1][0] = source->m[1][0];
+    destination->m[1][1] = source->m[1][1];
+    destination->m[1][2] = source->m[1][2];
+    destination->m[2][0] = source->m[2][0];
+    destination->m[2][1] = source->m[2][1];
+    destination->m[2][2] = source->m[2][2];
+}
 
-    extra    = arg0->task->extra.tmd;
-    colorMtx = extra->colorMtx;
-    mode     = arg0->colorMode & ENEMY_COLOR_MODE_MASK;
-    if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
-        block = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordActorColorScratch);
-        worldCoordSetModelLighting(extra, arg1, 0, 3);
-        if ((s8)arg0->colorBlend <= 0) {
-            Gp_RemapActorColor(arg0, colorMtx, mode);
+void worldCoordUpdateActorColor(Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3)
+{
+    enum {
+        WORLD_COORDINATE_ACTOR_LIGHTING_PAUSED    = 1,
+        WORLD_COORDINATE_ACTOR_BLEND_WEIGHT_SHIFT = 8
+    };
+    TmdObject*                   model;
+    MATRIX*                      colorMtx;
+    s32                          currentMode;
+    WorldCoordActorColorScratch* blendScratch;
+    s32                          lightIndex;
+    s32                          previousWeight;
+    s32                          currentWeight;
+
+    model       = enemy->task->extra.tmd;
+    colorMtx    = model->colorMtx;
+    currentMode = enemy->colorMode & ENEMY_COLOR_MODE_MASK;
+    if ((!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (model->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != WORLD_COORDINATE_ACTOR_LIGHTING_PAUSED)) {
+        blendScratch = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordActorColorScratch);
+        // Sample all three lights before applying either colour mode.
+        worldCoordSetModelLighting(model, worldPosition, 0, ARRAY_SIZE(colorMtx->m[0]));
+        if ((s8)enemy->colorBlend <= 0) {
+            _worldCoordRemapActorColor(enemy, colorMtx, currentMode);
         } else {
-            block->previousColor.m[0][0] = colorMtx->m[0][0];
-            block->previousColor.m[0][1] = colorMtx->m[0][1];
-            block->previousColor.m[0][2] = colorMtx->m[0][2];
-            block->previousColor.m[1][0] = colorMtx->m[1][0];
-            block->previousColor.m[1][1] = colorMtx->m[1][1];
-            block->previousColor.m[1][2] = colorMtx->m[1][2];
-            block->previousColor.m[2][0] = colorMtx->m[2][0];
-            block->previousColor.m[2][1] = colorMtx->m[2][1];
-            block->previousColor.m[2][2] = colorMtx->m[2][2];
-            Gp_RemapActorColor(arg0, colorMtx, mode);
-            Gp_RemapActorColor(arg0, &block->previousColor, (arg0->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
-            w0 = (s8)arg0->colorBlend << 8;
-            w1 = 0x1000 - w0;
-            for (i = 0; i < 3; i++) {
-                block->currentColumn.vx  = colorMtx->m[0][i];
-                block->currentColumn.vy  = colorMtx->m[1][i];
-                block->currentColumn.vz  = colorMtx->m[2][i];
-                block->previousColumn.vx = block->previousColor.m[0][i];
-                block->previousColumn.vy = block->previousColor.m[1][i];
-                block->previousColumn.vz = block->previousColor.m[2][i];
-                gte_lddp(w1);
-                gte_ldsv(&block->currentColumn);
-                gte_gpf12();
-                gte_lddp(w0);
-                gte_ldsv(&block->previousColumn);
-                gte_gpl12();
-                gte_stsv(&block->currentColumn);
-                colorMtx->m[0][i] = block->currentColumn.vx;
-                colorMtx->m[1][i] = block->currentColumn.vy;
-                colorMtx->m[2][i] = block->currentColumn.vz;
+            // Keep the same sampled coefficients; ambient is never copied or blended.
+            _worldCoordCopyActorLightColor(&blendScratch->previousColor, colorMtx);
+            // The current remap may consume a hit flash before the previous remap.
+            _worldCoordRemapActorColor(enemy, colorMtx, currentMode);
+            _worldCoordRemapActorColor(enemy, &blendScratch->previousColor, (enemy->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
+            previousWeight = (s8)enemy->colorBlend << WORLD_COORDINATE_ACTOR_BLEND_WEIGHT_SHIFT;
+            currentWeight  = ONE - previousWeight;
+            for (lightIndex = 0; lightIndex < (s32)ARRAY_SIZE(colorMtx->m[0]); lightIndex++) {
+                blendScratch->currentColumn.vx  = colorMtx->m[0][lightIndex];
+                blendScratch->currentColumn.vy  = colorMtx->m[1][lightIndex];
+                blendScratch->currentColumn.vz  = colorMtx->m[2][lightIndex];
+                blendScratch->previousColumn.vx = blendScratch->previousColor.m[0][lightIndex];
+                blendScratch->previousColumn.vy = blendScratch->previousColor.m[1][lightIndex];
+                blendScratch->previousColumn.vz = blendScratch->previousColor.m[2][lightIndex];
+                gte_LoadAverageShort12(&blendScratch->currentColumn, &blendScratch->previousColumn, currentWeight, previousWeight, &blendScratch->currentColumn);
+                colorMtx->m[0][lightIndex] = blendScratch->currentColumn.vx;
+                colorMtx->m[1][lightIndex] = blendScratch->currentColumn.vy;
+                colorMtx->m[2][lightIndex] = blendScratch->currentColumn.vz;
             }
             if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                arg0->colorBlend--;
+                enemy->colorBlend--;
             }
         }
         SCRATCH_STACK_RELEASE_BLOCK(WorldCoordActorColorScratch);
@@ -1631,15 +1660,15 @@ static void _worldCoordEvaluatePointLightAtParentOrigin(WorldCoordPointLight* li
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCoordPointLightFalloffScratch);
 }
 
-void Gp_SetLightMode(Enemy* arg0, s32 arg1)
+void worldCoordSetActorColorMode(Enemy* enemy, s32 colorMode)
 {
-    u8 val;
+    u8 packedModes;
 
-    val   = arg0->colorMode;
-    arg1 &= ENEMY_COLOR_MODE_MASK;
-    if ((val & ENEMY_COLOR_MODE_MASK) != arg1) {
-        arg0->colorMode  = (val & ENEMY_COLOR_KEPT_BITS) | ((val & ENEMY_COLOR_MODE_MASK) << ENEMY_COLOR_PREVIOUS_SHIFT) | arg1;
-        arg0->colorBlend = ENEMY_COLOR_BLEND_STEPS;
+    packedModes = enemy->colorMode;
+    colorMode  &= ENEMY_COLOR_MODE_MASK;
+    if ((packedModes & ENEMY_COLOR_MODE_MASK) != colorMode) {
+        enemy->colorMode  = (packedModes & ENEMY_COLOR_KEPT_BITS) | ((packedModes & ENEMY_COLOR_MODE_MASK) << ENEMY_COLOR_PREVIOUS_SHIFT) | colorMode;
+        enemy->colorBlend = ENEMY_COLOR_BLEND_STEPS;
     }
 }
 
@@ -2144,11 +2173,21 @@ static __inline__ void _worldCollisionGetBodyComposedPosition(const WorldCollisi
     SCRATCH_STACK_RELEASE_BYTES(WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES);
 }
 
-/// The same lookup as `Gp_GetIdParam0`, returned at the tables' own width.
-static inline u16 _gpIdParam0(s32 id)
+/// Returns an attack's reaction/special attribute at the tables' unsigned halfword width.
+///
+/// Bit 15 selects attachment-ability rows instead of weapon-attack rows; the
+/// low seven bits select a row and all other bits are ignored. The row must be
+/// below 47 for weapon attacks or ATTACHMENT_LEVEL_ROW_COUNT for attachments.
+/// Returns the same reaction field as `Gp_GetIdParam0`, without its s32 widening.
+/// This translation unit has no caller; the helper emits no out-of-line body.
+static inline u16 _objectFieldGetAttackHitReaction(s32 attackId)
 {
-    if ((id & 0x8000) == 0) {
-        return Gp_IdParamLo[id & 0x7F].hitReaction;
+    enum {
+        OBJECT_FIELD_ATTACK_ATTACHMENT_FLAG = 0x8000,
+        OBJECT_FIELD_ATTACK_ROW_MASK        = 0x7F
+    };
+    if ((attackId & OBJECT_FIELD_ATTACK_ATTACHMENT_FLAG) == 0) {
+        return Gp_IdParamLo[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].hitReaction;
     }
-    return Gp_IdParamHi.rows[id & 0x7F].column.outcome.hitReaction;
+    return Gp_IdParamHi.rows[attackId & OBJECT_FIELD_ATTACK_ROW_MASK].column.outcome.hitReaction;
 }

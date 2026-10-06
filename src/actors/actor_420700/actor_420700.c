@@ -1108,7 +1108,7 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
     pos.vx = part->workm.t[0];
     pos.vy = part->workm.t[1];
     pos.vz = part->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     func_actor_420700_80132478(task);
     rate = 0x10;
     if (gScriptedWalkWork->st.turnMode != ACTOR_420700_TURN_AUTO) {

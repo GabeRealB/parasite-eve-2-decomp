@@ -565,7 +565,7 @@ static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
     block.vx = arg1->extra.tmd->coords[1].workm.t[0];
     block.vy = arg1->extra.tmd->coords[1].workm.t[1];
     block.vz = arg1->extra.tmd->coords[1].workm.t[2];
-    Gp_UpdateActorColor(arg0, &block, 0, 0);
+    worldCoordUpdateActorColor(arg0, &block, 0, 0);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -698,7 +698,7 @@ static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1)
     block.vx = coord->workm.t[0];
     block.vy = coord->workm.t[1];
     block.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0, &block, 0, 0);
+    worldCoordUpdateActorColor(arg0, &block, 0, 0);
     work->prevState = -1;
     work->state     = ACTOR_341700_PROP_STATE_SHOWN;
     arg1->state    += 1;

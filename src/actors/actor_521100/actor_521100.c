@@ -3540,7 +3540,7 @@ static void func_actor_521100_80135964(Task* arg0)
 }
 
 /// Colours the actor from the world position of its second model coordinate,
-/// handing it to `Gp_UpdateActorColor` with no blend parameters.
+/// handing it to `worldCoordUpdateActorColor` with zero for the unused arguments.
 static void func_actor_521100_80135A34(Task* arg0)
 {
     GfxCoord* coord;
@@ -3550,7 +3550,7 @@ static void func_actor_521100_80135A34(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 #include "../../shared/no9_golem_draw_shadow.inc.c"

@@ -1914,7 +1914,7 @@ static s32 Actor00400_Fn02208(Task* arg0)
     vec.vz = (u16)work->waypoints[work->waypointIndex].vz - coord->coord.t[2];
     if (work->animClip != 3) {
         Actor00400_Fn088EC(arg0, 3, ANIMATION_RATE_ONE, 0xE);
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
     work->goalY = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
     if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 400) {
@@ -2840,7 +2840,7 @@ static __inline__ void Actor00400_UpdateColor(Task* arg0, GfxCoord* coord,
     block->vy                    = coord->workm.t[1];
     block->vz                    = coord->workm.t[2];
     SCRATCH_STACK_CURSOR(VECTOR) = block;
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     if (work->ambientOff != 0) {
         worldCoordSetModelAmbientColor(ctx, 0, 0, 0);
     }
@@ -3674,7 +3674,7 @@ static void Actor00400_Fn05D00(Task* arg0)
     work                = arg0->work;
     work->neckRetracted = 1;
     work->goalY         = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     if (work->animClip != 3) {
         i      = 0;
         y      = work->waterLevel - coord->coord.t[1] + 0xFA;
@@ -3717,7 +3717,7 @@ static void Actor00400_Fn05EA4(Task* arg0)
     work->goalY = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
     if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 800 && work->emergeCooldown == 0) {
         _Actor00400Work* w;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         work->stateFrames = 0;
         w                 = arg0->work;
         w->state          = ACTOR_00400_SWIM_STATE_EMERGE;
@@ -3961,7 +3961,7 @@ static void Actor00400_Fn06798(Task* arg0)
     }
     Actor00400_TurnToward(arg0, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
     diverStepForward(arg0, 0x60, work->rotation.vy);
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
 }
 
 static void Actor00400_Fn06A44(Task* arg0)
@@ -4564,7 +4564,7 @@ static void Actor00400_Fn07DE0(Task* arg0)
     _Actor00400Work* work;
 
     work = arg0->work;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->stateFrames = 0;
     work->state       = (u16)work->state + 1;
 }
@@ -4589,7 +4589,7 @@ static void Actor00400_Fn07E74(Task* arg0)
 
     work = arg0->work;
     if (++work->stateFrames == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
     if (work->stateFrames > 0x20) {
         work->state++;
@@ -4701,7 +4701,7 @@ void Actor00400_Fn0805C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
             break;
         case ACTOR_00400_COMMAND_STRAND:
             obj->node.state.parts.flags = 0;
-            Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+            worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
             work->inWater     = 0;
             work->command     = ACTOR_00400_COMMAND_STRAND;
             coord->coord.t[1] = 0;
@@ -5103,7 +5103,7 @@ static void Actor00400_Fn08D70(Task* arg0)
     coord              = arg0->extra.tmd->coords;
     work->shrinkScaleY = ONE;
     work->savedRootMtx = coord->coord;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->stateFrames = 0;
     work->state       = work->state + 1;
 }
@@ -5152,7 +5152,7 @@ static void Actor00400_Fn08E50(Task* arg0)
         Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 4, &pos);
     }
     if (work->stateFrames == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
     if (work->stateFrames >= 0x21) {
         ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -5392,7 +5392,7 @@ static void Actor00400_Fn094DC(Task* arg0)
             work2->animRequest = DIVER_ANIM_REQUEST_BLEND;
         }
         work->goalY = work->waterLevel;
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         work->stateFrames = 0;
         work->subState    = work->subState + 1;
         return;
@@ -5480,7 +5480,7 @@ static void Actor00400_Fn098A8(Task* arg0)
     work->animClip    = 0xE;
     work->animRequest = DIVER_ANIM_REQUEST_BLEND;
     work->goalY       = (u16)work->waterLevel + 0x64;
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     work->critChanceScale = 100;
     work->stateFrames     = 0;
     work->targetPart      = 1;

@@ -1207,8 +1207,8 @@ static void func_actor_107600_80132AC0(Task* arg0)
 
 /// Copies the world position of the model's first attach coordinate onto a
 /// 0x10-byte `VECTOR` carved off the scratch stack and hands it to
-/// `Gp_UpdateActorColor` for the enemy in `Task::spawnArg2` with no blend
-/// parameters. Same shape as `func_actor_107600_801349E0`, a different callee.
+/// `worldCoordUpdateActorColor` for the enemy in `Task::spawnArg2` with zero for the unused
+/// arguments. Same shape as `func_actor_107600_801349E0`, a different callee.
 static void func_actor_107600_80132B0C(Task* arg0)
 {
     GfxCoord* coord;
@@ -1226,7 +1226,7 @@ static void func_actor_107600_80132B0C(Task* arg0)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(obj, block, 0, 0);
+    worldCoordUpdateActorColor(obj, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
@@ -1543,7 +1543,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 if (work->timer >= 4) {
                     work->step++;
                     arg0->spawnArg1.value |= 0x20;
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
                     work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
@@ -1561,7 +1561,7 @@ static void func_actor_107600_801332D4(Task* arg0)
             if (work->attackTimer == 120) {
                 GfxCoord* o = arg0->extra.tmd->coords;
                 s32       p;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 p = (s8)worldCoordGetOriginAudioPan(o);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_CHARGE, p, (s8)worldCoordGetOriginAudioDepth(o));
             } else if (work->attackTimer == 210) {
@@ -1571,7 +1571,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 c                 = &player->extra.tmd->coords[4];
                 actor             = player->work;
                 work->attackTimer = 0;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                 Gp_SpawnEff(EFFECT_MIST_GALLERY_TRACER, c, 0, NULL);
                 p = (s8)worldCoordGetOriginAudioPan(c);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, p, (s8)worldCoordGetOriginAudioDepth(c));
@@ -1669,7 +1669,7 @@ static void func_actor_107600_801337FC(Task* arg0)
                 work->step++;
                 work->hitMarkCount = 0;
                 work->field_15C    = 0;
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 pan = (s8)worldCoordGetOriginAudioPan(obj);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(obj));
             }
@@ -1725,7 +1725,7 @@ static void func_actor_107600_801339A4(Task* arg0)
             arg0->spawnArg1.value |= 0x40;
             work->hitMarkCount     = 0;
             work->field_15C        = 0;
-            Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             work->timer = 0;
             id          = arg0->spawnArg1.value & 0xF;
             gal->kills[id]++;
@@ -2022,7 +2022,7 @@ static void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
 
 /// Recolours the model's colour matrix from the `colorMode` pair, blending
 /// the two remaps by `colorBlend` while it counts down; a copy of
-/// `Gp_UpdateActorColor`.
+/// `worldCoordUpdateActorColor`.
 static void func_actor_107600_80134608(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 {
     TmdObject*                   extra;
@@ -2276,7 +2276,7 @@ static void func_actor_107600_80134C54(Task* arg0)
             work->widthPercent  = 10;
             work->heightPercent = 10;
             func_actor_107600_80134A50(arg0);
-            Gp_SetLightMode(obj, ENEMY_COLOR_BLACK);
+            worldCoordSetActorColorMode(obj, ENEMY_COLOR_BLACK);
             obj->colorBlend = 0;
             break;
         case ACTOR_107600_MOUNT_FIXED:

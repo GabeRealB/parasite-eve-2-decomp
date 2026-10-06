@@ -3767,7 +3767,7 @@ static __inline__ void _actor403600UpdateColor(Enemy* enemy, Task* task)
     pos->vy                      = work->worldCoord.workm.t[1];
     SCRATCH_STACK_CURSOR(VECTOR) = pos;
     pos->vz                      = work->worldCoord.workm.t[2];
-    Gp_UpdateActorColor(enemy, pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, pos, 0, 0);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
@@ -4344,7 +4344,7 @@ static void func_actor_403600_801412D0(Enemy* arg0, Task* arg1)
     block->vy                    = work->worldCoord.workm.t[1];
     SCRATCH_STACK_CURSOR(VECTOR) = block;
     block->vz                    = work->worldCoord.workm.t[2];
-    Gp_UpdateActorColor(arg0, block, 0, 0);
+    worldCoordUpdateActorColor(arg0, block, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 

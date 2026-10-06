@@ -8,7 +8,7 @@
 /// steps on. Collision against `gridContacts` -- and, in room 0x0427 past x 0x4B65 --
 /// kills the horizontal velocity, whatever is left of it moves the model by a
 /// ninth per step, and the model's own `workm` translation is handed to
-/// `Gp_UpdateActorColor`.
+/// `worldCoordUpdateActorColor`.
 void gluttonChunkFall(Enemy* enemy, Task* task)
 {
     GluttonProjectileWork* work = task->work;
@@ -23,7 +23,7 @@ void gluttonChunkFall(Enemy* enemy, Task* task)
     }
 
     if (work->stateChanged != 0) {
-        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
     }
 
@@ -61,5 +61,5 @@ void gluttonChunkFall(Enemy* enemy, Task* task)
     pos.vx = task->extra.tmd->coords->workm.t[0];
     pos.vy = task->extra.tmd->coords->workm.t[1];
     pos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 }

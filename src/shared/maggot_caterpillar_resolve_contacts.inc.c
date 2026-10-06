@@ -153,7 +153,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                             work->burnSoundTimer   = 0;
                             work->burnFrame        = 0;
                             work->flameBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                            Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_TINT);
+                            worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_TINT);
                         }
                         break;
                 }

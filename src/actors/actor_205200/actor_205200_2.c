@@ -836,8 +836,8 @@ static void func_actor_205200_8014C7CC(Task* arg0)
 }
 
 /// Feeds the actor's world position - the translation of its attach
-/// coordinate - to `Gp_UpdateActorColor` for its enemy record, with no blend
-/// parameters.
+/// coordinate - to `worldCoordUpdateActorColor` for its enemy record, with zero for the unused
+/// arguments.
 static void func_actor_205200_8014C87C(Task* arg0)
 {
     GfxCoord* coord;
@@ -847,7 +847,7 @@ static void func_actor_205200_8014C87C(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Draws the ground quad under the actor at its attach coordinate's world

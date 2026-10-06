@@ -1262,7 +1262,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     pos.vx = root->workm.t[0];
     pos.vy = root->workm.t[1];
     pos.vz = root->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
 
     work->effectArg.coord      = &actor->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;

@@ -1484,7 +1484,7 @@ void func_actor_361100_80162B0C(s32 unused)
 /// fractions -- runs the `moveFrames` countdown that zeroes `velocity` while it
 /// is at 0, ticks the animation slots once `model.ticking` has latched, and
 /// while the part is visible rebuilds its world matrix and hands the result to
-/// `Gp_UpdateActorColor`. `freeCountdown` counts the model's buffers down to
+/// `worldCoordUpdateActorColor`. `freeCountdown` counts the model's buffers down to
 /// the free.
 ///
 /// The twin of `func_actor_361100_801631C4`, which moves Aya's body the same
@@ -1529,7 +1529,7 @@ static void func_actor_361100_80162B18(Task* task)
         pos.vx = coord->workm.t[0];
         pos.vy = coord->workm.t[1];
         pos.vz = coord->workm.t[2];
-        Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+        worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {

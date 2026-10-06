@@ -1363,7 +1363,7 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
 }
 
 /// `func_actor_207200_8014D70C`'s body, inlined: push the model's second coordinate's
-/// world position onto the scratch stack and hand it to `Gp_UpdateActorColor`.
+/// world position onto the scratch stack and hand it to `worldCoordUpdateActorColor`.
 static __inline__ void Actor207200_UpdateColor(Enemy* enemy, Task* actor)
 {
     GfxCoord* coord;
@@ -1379,7 +1379,7 @@ static __inline__ void Actor207200_UpdateColor(Enemy* enemy, Task* actor)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(enemy, block, 0, 0);
+    worldCoordUpdateActorColor(enemy, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
@@ -1726,8 +1726,8 @@ static void func_actor_207200_8014D65C(Task* arg0)
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
 /// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
-/// world position and hands it to `Gp_UpdateActorColor` with no blend
-/// parameters. `arg0` is the colour target, passed straight through.
+/// world position and hands it to `worldCoordUpdateActorColor` with zero for the unused
+/// arguments. `arg0` is the colour target, passed straight through.
 static void func_actor_207200_8014D70C(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
@@ -1743,7 +1743,7 @@ static void func_actor_207200_8014D70C(Enemy* arg0, Task* task)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
+    worldCoordUpdateActorColor(arg0, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 

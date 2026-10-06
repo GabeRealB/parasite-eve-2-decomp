@@ -3183,7 +3183,7 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
 /// The actor's enemy tick, the middle entry of the `D_actor_110600_80131FA0`
 /// triple `func_actor_110600_80134AB4` / this / `enemyDestroy`: copies
 /// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
-/// coordinate and hands its translation to `Gp_UpdateActorColor`, then switches
+/// coordinate and hands its translation to `worldCoordUpdateActorColor`, then switches
 /// on `gSceneCombatState.actorControl`.
 ///
 /// Modes 1 and 2 skip the state handler entirely — each clears the three
@@ -3215,7 +3215,7 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

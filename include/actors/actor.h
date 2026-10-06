@@ -1569,7 +1569,7 @@ static __inline__ void actorUpdateColor(Enemy* enemy, GfxCoord* coord)
     block->vy                    = coord->workm.t[1];
     block->vz                    = coord->workm.t[2];
     SCRATCH_STACK_CURSOR(VECTOR) = block;
-    Gp_UpdateActorColor(enemy, block, 0, 0);
+    worldCoordUpdateActorColor(enemy, block, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
@@ -1590,7 +1590,7 @@ static __inline__ void actorUpdateModelColor(Task* arg0)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 

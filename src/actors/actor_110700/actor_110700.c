@@ -274,7 +274,7 @@ static void func_actor_110700_80131E78(Enemy* enemy, Task* task)
 
 /// State 1, run every frame: ticks animation slots 1..0x12 once an animation
 /// has been started, then pushes the world translation of the model's second
-/// coordinate on the scratch stack and hands it to `Gp_UpdateActorColor`.
+/// coordinate on the scratch stack and hands it to `worldCoordUpdateActorColor`.
 static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
 {
     _Actor110700No9GolemWork* work;
@@ -294,7 +294,7 @@ static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
     block->vx = coord->workm.t[0];
     block->vy = coord->workm.t[1];
     block->vz = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, block, 0, 0);
+    worldCoordUpdateActorColor(enemy, block, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 

@@ -1234,7 +1234,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
             pos.vx = coord->workm.t[0];
             pos.vy = coord->workm.t[1];
             pos.vz = coord->workm.t[2];
-            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1250,14 +1250,14 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     worldTargetUnlinkNode(&arg0->node);
                     worldCollisionUnlinkBody(&work->body);
                     worldCollisionUnlinkBody(&work->attackBody);
-                    Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
                     Gp_ReleaseStateF0Add(arg1, 0x18);
                     work->phase = ACTOR_02400_DEATH_PHASE_SQUASH;
                     cur         = arg1->extra.tmd->coords;
                     pos.vx      = cur->workm.t[0];
                     pos.vy      = cur->workm.t[1];
                     pos.vz      = cur->workm.t[2];
-                    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
                     if (work->chargeEffect != NULL) {
                         work->chargeEffect->task->state = ACTOR_02400_CHARGE_EFFECT_CANCEL;
                     }
@@ -1282,7 +1282,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                     pos.vx = cur->workm.t[0];
                     pos.vy = cur->workm.t[1];
                     pos.vz = cur->workm.t[2];
-                    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
+                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
                     break;
                 case ACTOR_02400_DEATH_PHASE_DESTROY:
                     enemyDestroy(arg0, arg1);
@@ -1625,7 +1625,7 @@ static void Actor02400_Fn031D0(Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Draws the body's ground mark at its root coordinate's world position.

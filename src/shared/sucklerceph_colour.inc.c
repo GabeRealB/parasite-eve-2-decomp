@@ -17,6 +17,6 @@ void sucklercephColour(Enemy* arg0, Task* task)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(arg0, block, 0, 0);
+    worldCoordUpdateActorColor(arg0, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }

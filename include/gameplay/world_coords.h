@@ -13,8 +13,6 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-struct Enemy;
-
 /// Number of directly indexed transient point-light slots.
 enum { WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT = 8 };
 
@@ -62,15 +60,37 @@ extern WorldCoordTransientPointLight gWorldCoordTransientPointLights[WORLD_COORD
 /// changes GTE state. Output matrices and input must be disjoint from scratch.
 void worldCoordSetModelLighting(const TmdObject* model, const void* worldPosition, s32 firstLightIndex, s32 lightCount);
 
-/// Rebuilds the actor color matrix via `worldCoordSetModelLighting`, then remaps it
-/// from `colorMode` (`Gp_RemapActorColor`). While `colorBlend` is
-/// a positive blend timer, GPF/GPL-interpolates the previous mode
-/// (`colorMode` bits 2-3) toward the current mode (bits 0-1). Skips work
-/// when `gGameSession->sceneUpdatesPaused == 1` unless `TmdObject.flags` bit
-/// 0x80 is clear and `field_18` is set. `gSceneCombatState.actorControl` freezes the timer.
-void Gp_UpdateActorColor(struct Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+/// Rebuilds an actor's model lighting and applies its current colour mode.
+///
+/// `enemy` must own a live task/model with writable light and colour matrices.
+/// `worldPosition` supplies three readable, word-aligned signed 32-bit xyz
+/// values in world units, including VECTOR, VECTOR3 or matrix-translation storage;
+/// only those 12 bytes are read and no pointer is retained. The trailing
+/// arguments are ignored; callers pass zero for both. Coordinate composition
+/// and the sampled frame follow `worldCoordSetModelLighting`.
+///
+/// Only the colour matrix's nine light coefficients are remapped or blended;
+/// its ambient translation comes from the lighting query. A positive signed
+/// `colorBlend` weights the previous mode by countdown/16 and the current mode
+/// by the remainder. It decrements after blending only while actors are running.
+/// Nonpositive signed countdowns select the current mode directly. A hit flash
+/// is consumed by the first eligible remap, before remapping the previous mode.
+///
+/// With sceneUpdatesPaused exactly 1, work runs only for a model whose active
+/// drawing is enabled and whose buffer is non-NULL. Other pause values allow
+/// the update. Requires 48 scratch bytes plus the lighting query's nested
+/// reservations, released before return; changes GTE state. Matrices and the
+/// sample storage must be disjoint from those scratch reservations.
+void worldCoordUpdateActorColor(Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3);
 
-void Gp_SetLightMode(struct Enemy* arg0, s32 arg1);
+/// Selects an actor's target light-colour mode and starts a transition when it changes.
+///
+/// Only colorMode's low two bits are used (0 default, 1 weighted, 2 black,
+/// 3 tint). A change saves the old current mode as the previous mode, preserves
+/// the upper flag nibble and resets colorBlend to 16 updating frames. Repeating
+/// the current mode leaves the packed modes and countdown untouched. The enemy
+/// must be writable; matrices change later in `worldCoordUpdateActorColor`.
+void worldCoordSetActorColorMode(Enemy* enemy, s32 colorMode);
 
 /// Returns the signed attenuation depth for spatial sound at a coordinate's local origin.
 ///

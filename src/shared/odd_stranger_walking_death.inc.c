@@ -85,14 +85,14 @@ void oddStrangerWalkingDeath(Task* arg0)
                     Gp_ReleaseStateF0Add(arg0, 0xA);
                     break;
                 case 5:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
                     break;
                 case 23:
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
                 case 17:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 39:
                     arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

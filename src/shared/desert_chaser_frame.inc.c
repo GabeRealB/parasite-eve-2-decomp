@@ -23,7 +23,7 @@ void desertChaserFrameState(Enemy* enemy, Task* task)
     scratch->rootPos.vx = task->extra.tmd->coords->workm.t[0];
     scratch->rootPos.vy = task->extra.tmd->coords->workm.t[1];
     scratch->rootPos.vz = task->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &scratch->rootPos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &scratch->rootPos, 0, 0);
     if (work->prevState != work->state) {
         work->stateEntered = 1;
     } else {

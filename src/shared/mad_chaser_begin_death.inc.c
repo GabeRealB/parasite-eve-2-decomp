@@ -21,7 +21,7 @@ void madChaserBeginDeath(Task* arg0)
     work->shrinkScaleY = 0x1000;
     work->savedRootMtx = coord->coord;
 
-    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
 
     work->stateFrames = 0;
     work->state++;

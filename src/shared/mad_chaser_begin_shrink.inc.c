@@ -20,7 +20,7 @@ void madChaserBeginShrink(Task* task)
     work->shrinkScaleY = 0x1000;
     work->savedRootMtx = coord->coord;
 
-    Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
 
     work->stateFrames = 0;
     work->state++;

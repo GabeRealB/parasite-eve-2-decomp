@@ -944,7 +944,7 @@ static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     if (work->lightScale != ACTOR_123200_LIGHT_SCALE_FULL) {
         pos.vx = pos.vy = pos.vz = work->lightScale;
         ScaleMatrix(&work->lightMtx, &pos);

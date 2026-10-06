@@ -1707,7 +1707,7 @@ static inline void _actor03700UpdateColor(Task* task)
     color.vx = coord->workm.t[0];
     color.vy = coord->workm.t[1];
     color.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2.pointer, &color, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &color, 0, 0);
 }
 
 /// Spawns effect 0x40007 at the model's fifth coordinate with one of two model
@@ -2226,7 +2226,7 @@ static void Actor03700_Fn033F0(Task* task)
 }
 
 /// Refreshes the actor's colour from the world position of its root
-/// coordinate, with no blend parameters.
+/// coordinate, with zero for the unused arguments.
 static void Actor03700_Fn034A0(Task* task)
 {
     GfxCoord* coord;
@@ -2236,7 +2236,7 @@ static void Actor03700_Fn034A0(Task* task)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// Handler for message 0x7DE. Ignored unless the actor is in one of its

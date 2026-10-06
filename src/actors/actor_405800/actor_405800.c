@@ -3803,7 +3803,7 @@ static void func_actor_405800_80138A70(Task* task)
     worldCollisionUnlinkBody(&work->capsuleBody);
     work->corpseScaleY = ONE;
     work->savedRootMtx = coord->coord;
-    Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->stateFrames = 0;
     work->state++;
 }

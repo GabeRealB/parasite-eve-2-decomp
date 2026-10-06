@@ -2,8 +2,8 @@
 
 /// Colours the actor from its model's second coordinate: takes a 0x10-byte
 /// `VECTOR` off the scratch stack, fills it with that coordinate's world
-/// position and hands it to `Gp_UpdateActorColor` for the task's `spawnArg2`,
-/// with no blend parameters.
+/// position and hands it to `worldCoordUpdateActorColor` for the task's `spawnArg2`,
+/// with zero for the unused arguments.
 void stalkerZebraIvoryUpdateColor(Task* task)
 {
     GfxCoord* coord;
@@ -19,6 +19,6 @@ void stalkerZebraIvoryUpdateColor(Task* task)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(task->spawnArg2.pointer, block, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }

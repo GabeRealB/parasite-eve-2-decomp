@@ -3449,8 +3449,8 @@ static void func_actor_444000_80135448(Task* task)
 
         switch (work->stateTicks) {
             case 0x14:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SetLightMode(work->escorts[3], ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
+                worldCoordSetActorColorMode(work->escorts[3], ENEMY_COLOR_WEIGHTED);
                 break;
 
             case 0x82:
@@ -3656,7 +3656,7 @@ static void func_actor_444000_80135448(Task* task)
             case 0x28:
                 break;
             case 0x78:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
         }
 
@@ -4102,8 +4102,8 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg, s32 arg
                 break;
 
             case 19:
-                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
-                Gp_SetLightMode(work->escorts[3], ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
+                worldCoordSetActorColorMode(work->escorts[3], ENEMY_COLOR_BLACK);
                 work->state      = action;
                 work->prevState  = -1;
                 work->viewLocked = 1;
@@ -4461,14 +4461,14 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
     if (work->hostExposed != work->prevHostExposed) {
-        Gp_UpdateActorColor(enemy, &pos, 0, 0);
-        Gp_UpdateActorColor(work->escorts[3], &pos, 0, 0);
+        worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+        worldCoordUpdateActorColor(work->escorts[3], &pos, 0, 0);
         work->prevHostExposed = work->hostExposed;
     }
     if (work->hostExposed != 0) {
-        Gp_UpdateActorColor(enemy, &pos, 0, 0);
+        worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     } else {
-        Gp_UpdateActorColor(work->escorts[3], &pos, 0, 0);
+        worldCoordUpdateActorColor(work->escorts[3], &pos, 0, 0);
     }
     gluttonTickAnim(task);
 
@@ -6468,11 +6468,11 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     pos.vz = task->extra.tmd->coords[3].workm.t[2];
 
     if (work->hostExposed != work->prevHostExposed) {
-        Gp_UpdateActorColor(enemy, &pos, 0, 0);
-        Gp_UpdateActorColor(work->escorts[3], &pos, 0, 0);
+        worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+        worldCoordUpdateActorColor(work->escorts[3], &pos, 0, 0);
         work->prevHostExposed = work->hostExposed;
     }
-    Gp_UpdateActorColor(work->hostExposed != 0 ? enemy : work->escorts[3], &pos, 0, 0);
+    worldCoordUpdateActorColor(work->hostExposed != 0 ? enemy : work->escorts[3], &pos, 0, 0);
 
     if (work->state == 0xB) {
         work->escorts[4]->task->extra.tmd->otOffset = -1;

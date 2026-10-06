@@ -1790,7 +1790,7 @@ static inline void _actor105100UpdateColor(Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
 }
 
 /// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `gSceneCombatState.actorControl` only
@@ -1839,7 +1839,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->touchBody);
             worldCollisionUnlinkBody(&work->strikeBody);
-            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
             work->timer      = 0;
             work->actionStep = 1;
             _actor105100UpdateColor(actor);
@@ -2777,7 +2777,7 @@ static void func_actor_105100_80136408(Task* arg0)
 
 /// Relights the actor at its model's world position: copies the model
 /// coordinate's translation into a `VECTOR` and hands it with the context to
-/// `Gp_UpdateActorColor`, with no blend parameters.
+/// `worldCoordUpdateActorColor`, with zero for the unused arguments.
 static void func_actor_105100_801364CC(Task* arg0)
 {
     GfxCoord* coord;
@@ -2787,7 +2787,7 @@ static void func_actor_105100_801364CC(Task* arg0)
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
 /// The child collision task's state handlers, indexed by `Task::state`:

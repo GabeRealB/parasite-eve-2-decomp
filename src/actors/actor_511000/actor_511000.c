@@ -3134,7 +3134,7 @@ static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
         pos->vx = coord->workm.t[0];
         pos->vy = coord->workm.t[1];
         pos->vz = coord->workm.t[2];
-        Gp_UpdateActorColor(enemy, pos, 0, 0);
+        worldCoordUpdateActorColor(enemy, pos, 0, 0);
         pos->vx = coord->workm.t[0];
         pos->vy = coord->workm.t[1];
         pos->vz = coord->workm.t[2];

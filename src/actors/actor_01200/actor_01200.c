@@ -785,7 +785,7 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
     work->field_198 = 5;
     work->field_19A = 0x14;
     if ((u16)(arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) % 2 == 1) {
@@ -1536,7 +1536,7 @@ static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
     pos.vx = arg1->extra.tmd->coords->workm.t[0];
     pos.vy = arg1->extra.tmd->coords->workm.t[1];
     pos.vz = arg1->extra.tmd->coords->workm.t[2];
-    Gp_UpdateActorColor(arg0, &pos, 0, 0);
+    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != ACTOR_01200_STATE_HIDDEN && work->state != ACTOR_01200_STATE_DEATH_BURST && work->state != ACTOR_01200_STATE_SELF_BURST) {

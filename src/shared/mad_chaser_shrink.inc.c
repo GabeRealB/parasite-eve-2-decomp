@@ -30,7 +30,7 @@ void madChaserShrink(Task* arg0)
     ScaleMatrix(&m.mat, &scale);
     MulMatrix(&coord->coord, &m.mat);
     if ((s16)++work->stateFrames == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
     if ((s16)work->stateFrames > 0x20) {
         obj->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

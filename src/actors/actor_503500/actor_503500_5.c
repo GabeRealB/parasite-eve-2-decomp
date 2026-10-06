@@ -1841,7 +1841,7 @@ static void func_actor_503500_80145FDC(Task* task)
         pos.vx = coord->workm.t[0];
         pos.vy = coord->workm.t[1];
         pos.vz = coord->workm.t[2];
-        Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+        worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
@@ -1914,13 +1914,13 @@ static void func_actor_503500_8014618C(Task* arg0)
             switch (work->motionStepFrames) {
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_FADE_FRAME:
                     ext->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BURN_FRAME:
                     Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BLACK_FRAME:
-                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_EXIT_FRAME:
                     arg0->state++;

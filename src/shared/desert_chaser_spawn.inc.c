@@ -61,7 +61,7 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(enemy, &pos, 0, 0);
+    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
     gRigEffectRec.effectArg.coord      = task->extra.tmd->coords;
     gRigEffectRec.effectArg.spawnArgLo = 0x100;
     gRigEffectRec.effectArg.spawnArgHi = 2;
