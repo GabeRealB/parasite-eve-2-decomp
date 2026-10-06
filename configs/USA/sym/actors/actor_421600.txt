@@ -200,7 +200,7 @@ D_dryfield_water_tower_801876AA = 0x801876AA; // absolute:True owner=dryfield_wa
 limbShadowDrawSegment = 0x80132EC0; // type:func
 actorMsgSetVisibility = 0x8013E42C; // type:func
 actorMsgPlaceYawFirst = 0x8013E52C; // type:func
-ActorContact_TurnJoint = 0x80132004; // type:func
+_actorRenderYawJointInWorld = 0x80132004; // type:func
 ActorContact_Steer = 0x80132310; // type:func
 ActorContact_PushContact = 0x8013285C; // type:func
 desertChaserPartEffect = 0x8013E700; // type:func

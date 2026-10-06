@@ -137,11 +137,11 @@ void desertChaserAnimTick(Task* task)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        ActorContact_TurnJoint(&task->extra.tmd->coords[2], thirdAngle);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[2], thirdAngle);
         task->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        ActorContact_TurnJoint(&task->extra.tmd->coords[3], thirdAngle);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], thirdAngle);
         task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        ActorContact_TurnJoint(&task->extra.tmd->coords[4], (s16)clampedAngle / 2);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[4], (s16)clampedAngle / 2);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
 #if DESERT_CHASER_STATE26_TILT
@@ -182,7 +182,7 @@ void desertChaserAnimTick(Task* task)
             turnWork->waistYaw = (s16)targetTurn;
         }
     }
-    ActorContact_TurnJoint(&task->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->waistYaw * -1));
+    _actorRenderYawJointInWorld(&task->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->waistYaw * -1));
     task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     sound                                    = desertChaserAnimCues(task, work);
     if (sound != 0) {

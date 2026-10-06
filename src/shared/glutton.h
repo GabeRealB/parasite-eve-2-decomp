@@ -11,7 +11,7 @@
  * off-screen that rain onto points on a ring around the host and splat flat;
  * and spinners that wait hidden, then spiral toward a target point. A shared
  * end flag makes every sub-enemy tear itself down when the fight ends. It uses
- * ActorContact_TurnJoint and ActorContact_PushContact from the existing
+ * _actorRenderYawJointInWorld and ActorContact_PushContact from the existing
  * actor_contacts library.
  *
  * GLUTTON_ROOM configures the shared code for one encounter at compile time.

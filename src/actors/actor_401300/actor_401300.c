@@ -2054,8 +2054,8 @@ static void func_actor_401300_80133A3C(Task* arg0)
         if (work->lookYaw < -0x400) {
             yaw = -0x400;
         }
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[5], (yaw * 2) / 3);
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[2], yaw / 2);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[5], (yaw * 2) / 3);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[2], yaw / 2);
         arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;

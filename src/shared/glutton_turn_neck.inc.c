@@ -1,7 +1,7 @@
 /* Part of the Glutton library; see glutton.h. */
 
 /// Walk the yaw `neckYaw` toward `arg1` (clamped to +/-0x200) by at most 0x71
-/// per call, turn model part 3 by it through `ActorContact_TurnJoint`, and
+/// per call, turn model part 3 by it through `_actorRenderYawJointInWorld`, and
 /// refresh part 3, the root of the fifth escort's model and part 4.
 void gluttonTurnNeck(Task* task, s16 arg1)
 {
@@ -32,7 +32,7 @@ void gluttonTurnNeck(Task* task, s16 arg1)
 
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&task->extra.tmd->coords[3]);
-    ActorContact_TurnJoint(&task->extra.tmd->coords[3], work->neckYaw);
+    _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], work->neckYaw);
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&task->extra.tmd->coords[3]);
     work->escorts[4]->task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;

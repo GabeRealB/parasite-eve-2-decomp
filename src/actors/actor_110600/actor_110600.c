@@ -1595,8 +1595,8 @@ static void func_actor_110600_80134728(Task* arg0)
         if (turnNow < -0x400) {
             turn = -0x400;
         }
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[5], (s16)turn);
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[3], (s16)((s32)(turn << 0x10) >> 0x12));
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[5], (s16)turn);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[3], (s16)((s32)(turn << 0x10) >> 0x12));
     }
     sound = func_actor_110600_80134564(work);
     if (sound != 0) {

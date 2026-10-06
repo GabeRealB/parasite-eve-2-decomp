@@ -1192,9 +1192,9 @@ static void Actor01900_Fn01C94(Task* arg0)
         if (raw < -0x400) {
             clamped = -0x400;
         }
-        ActorContact_TurnJoint(arg0->extra.tmd->coords + 5, (s16)(((s16)clamped * 2) / 3));
-        ActorContact_TurnJoint(arg0->extra.tmd->coords + 2,
-                               (s16)((s32)((s16)clamped + ((u32)(clamped << 0x10) >> 0x1F)) >> 1));
+        _actorRenderYawJointInWorld(arg0->extra.tmd->coords + 5, (s16)(((s16)clamped * 2) / 3));
+        _actorRenderYawJointInWorld(arg0->extra.tmd->coords + 2,
+                                    (s16)((s32)((s16)clamped + ((u32)(clamped << 0x10) >> 0x1F)) >> 1));
         arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;

@@ -2244,7 +2244,7 @@ static inline void _actor403000TurnForeleg(Task* arg0)
             work->forelegYaw = (s16)targetTurn;
         }
     }
-    ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)work->forelegYaw * -1));
+    _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)work->forelegYaw * -1));
     arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -2315,11 +2315,11 @@ static void func_actor_403000_80133AF8(Task* arg0)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[2], thirdAngle);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[2], thirdAngle);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[3], thirdAngle);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[3], thirdAngle);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->headSwayEnabled == 1) {

@@ -129,8 +129,8 @@ void oddStrangerDrive(Task* arg0)
             clampedAngle = -0x400;
         }
         signedTurn = (s16)clampedAngle * 2 / 3;
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[5], signedTurn);
-        ActorContact_TurnJoint(&arg0->extra.tmd->coords[2], (s16)clampedAngle / 2);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[5], signedTurn);
+        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[2], (s16)clampedAngle / 2);
         arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;

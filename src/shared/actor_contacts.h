@@ -90,7 +90,7 @@ STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 #define ACTOR_CONTACT_STEER_RESULT s32
 #endif
 
-static void                       ActorContact_TurnJoint(GfxCoord* coord, s16 yaw);
+static void                       _actorRenderYawJointInWorld(GfxCoord* joint, s16 yawDelta);
 static s32                        ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
 static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static s32                        ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);

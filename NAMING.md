@@ -384,6 +384,10 @@ whose entry points retain package identities.
 `include/actors/actor.h`. Each actor translation unit keeps its own static
 instance, with the `_` marker; composing up to an excluded view node produces
 a world-space rotation without changing the coordinate hierarchy.
+The included world-yaw joint update in
+`src/shared/actor_contacts_turn_joint.inc.c` belongs to the same subsystem;
+`src/shared/actor_contacts.h` declares its static per-carrier interface beside
+the contact routines it is carried with.
 
 `actorMovement` owns the shared coordinate steps used by actor packages:
 translation along a normalized local axis, subject to the live actor-freeze

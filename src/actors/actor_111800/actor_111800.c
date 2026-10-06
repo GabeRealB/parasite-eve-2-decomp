@@ -449,7 +449,7 @@ static __inline__ s32 Actor111800_Accumulate(GfxCoord* arg0, MATRIX* arg1, MATRI
 /// `slot1RecordIndex`, and advances after `func_acropolis_square_80182360` when the player is in
 /// range. State 2 runs the sequence handler and kills the task once the
 /// session is idle. Every path but the state-0 wait then pitches part 5 by
-/// `part5Pitch`, writes it back, yaws it by `part5Yaw` through `ActorContact_TurnJoint`, and
+/// `part5Pitch`, writes it back, yaws it by `part5Yaw` through `_actorRenderYawJointInWorld`, and
 /// rebuilds the colour matrix around part 1's translation.
 void func_actor_111800_8013251C(Task* task)
 {
@@ -510,7 +510,7 @@ void func_actor_111800_8013251C(Task* task)
     memCopyBytes(mtx.m, part->coord.m, sizeof(mtx.m));
     part->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(part);
-    ActorContact_TurnJoint(task->extra.tmd->coords + 5, work->part5Yaw);
+    _actorRenderYawJointInWorld(task->extra.tmd->coords + 5, work->part5Yaw);
     obj                 = task->extra.tmd;
     work2               = task->work;
     ((VECTOR*)&mtx)->vx = obj->coords[1].workm.t[0];
