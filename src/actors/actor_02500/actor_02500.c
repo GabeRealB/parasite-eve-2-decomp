@@ -1469,122 +1469,94 @@ static void Actor02500_Fn01AC8(Enemy* arg0, Task* arg1)
     GfxCoord*        c;
     VECTOR           vec;
     s32              mode;
-    s16              step;
     s16              phase;
 
     obj   = arg1->extra.tmd;
     work  = arg1->work;
     mode  = gSceneCombatState.actorControl;
     coord = obj->coords;
-    if (mode == 1) {
-        goto case1;
+    switch (mode) {
+        case 1:
+            vec.vx = coord->workm.t[0];
+            vec.vy = coord->workm.t[1];
+            vec.vz = coord->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            return;
+        case 2:
+            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        case 0:
+        default:
+            break;
     }
-    if (mode < 2) {
-        goto common;
+    switch (work->actionStep) {
+        case ACTOR_02500_DEATH_STEP_BEGIN:
+            work->anim         = ACTOR_02500_ANIM_DIE;
+            work->timer        = 0;
+            work->deathScaleY  = ONE;
+            work->savedRootMtx = coord->coord;
+            arg0->recs         = NULL;
+            worldTargetUnlinkNode(&arg0->node);
+            worldCollisionUnlinkBody(&work->noticeBody);
+            worldCollisionUnlinkBody(&work->hitBody);
+            worldCollisionUnlinkBody(&work->gridBody);
+            worldCollisionUnlinkBody(&work->attackBody);
+            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
+            Gp_ReleaseStateF0Add(arg1, 0x19);
+            c      = arg1->extra.tmd->coords;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            if (work->burstStage == 0) {
+                work->actionStep = ACTOR_02500_DEATH_STEP_COLLAPSE;
+                return;
+            }
+            obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->actionStep = ACTOR_02500_DEATH_STEP_BURST;
+            return;
+        case ACTOR_02500_DEATH_STEP_COLLAPSE:
+            Actor02500_Fn02480(arg1);
+            phase       = work->timer + 1;
+            work->timer = phase;
+            if (phase == 10) {
+                obj->flags = TMD_OBJECT_SEMI_TRANS;
+            }
+            if (work->timer == 15) {
+                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
+                Gp_SpawnEnemyFromTable(Actor02500_D05B88, 1, 0, arg0);
+            }
+            if (work->timer >= 0x3C) {
+                obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->actionStep = ACTOR_02500_DEATH_STEP_DESTROY;
+            }
+            c      = arg1->extra.tmd->coords;
+            vec.vx = c->workm.t[0];
+            vec.vy = c->workm.t[1];
+            vec.vz = c->workm.t[2];
+            Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            return;
+        case ACTOR_02500_DEATH_STEP_DESTROY:
+            enemyDestroy(arg0, arg1);
+            return;
+        case ACTOR_02500_DEATH_STEP_BURST:
+            if (work->burstStage != 0) {
+                if (work->burstStage >= 2) {
+                    work->burstStage = 0;
+                    tmdFreePrimitiveBuffer(obj);
+                    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                    Actor02500_Fn0184C(arg1);
+                } else {
+                    work->burstStage++;
+                }
+            }
+            phase       = work->timer + 1;
+            work->timer = phase;
+            if (phase >= 0x3C) {
+                work->actionStep = ACTOR_02500_DEATH_STEP_DESTROY;
+            }
+            return;
     }
-    if (mode == 2) {
-        goto case2;
-    }
-    goto common;
-case1:
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    return;
-case2:
-    obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    return;
-common:
-    step = work->actionStep;
-    if (step == ACTOR_02500_DEATH_STEP_COLLAPSE) {
-        goto dying;
-    }
-    if (step >= ACTOR_02500_DEATH_STEP_DESTROY) {
-        goto ge2;
-    }
-    if (step == ACTOR_02500_DEATH_STEP_BEGIN) {
-        goto death;
-    }
-    return;
-ge2:
-    if (step == ACTOR_02500_DEATH_STEP_DESTROY) {
-        goto destroy;
-    }
-    if (step == ACTOR_02500_DEATH_STEP_BURST) {
-        goto case3;
-    }
-    return;
-death:
-    work->anim         = ACTOR_02500_ANIM_DIE;
-    work->timer        = 0;
-    work->deathScaleY  = ONE;
-    work->savedRootMtx = coord->coord;
-    arg0->recs         = NULL;
-    worldTargetUnlinkNode(&arg0->node);
-    worldCollisionUnlinkBody(&work->noticeBody);
-    worldCollisionUnlinkBody(&work->hitBody);
-    worldCollisionUnlinkBody(&work->gridBody);
-    worldCollisionUnlinkBody(&work->attackBody);
-    Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
-    Gp_ReleaseStateF0Add(arg1, 0x19);
-    c      = arg1->extra.tmd->coords;
-    vec.vx = c->workm.t[0];
-    vec.vy = c->workm.t[1];
-    vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    if (work->burstStage == 0) {
-        work->actionStep = ACTOR_02500_DEATH_STEP_COLLAPSE;
-        return;
-    }
-    obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->actionStep = ACTOR_02500_DEATH_STEP_BURST;
-    return;
-dying:
-    Actor02500_Fn02480(arg1);
-    phase       = work->timer + 1;
-    work->timer = phase;
-    if (phase == 10) {
-        obj->flags = TMD_OBJECT_SEMI_TRANS;
-    }
-    if (work->timer == 15) {
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
-        Gp_SpawnEnemyFromTable(Actor02500_D05B88, 1, 0, arg0);
-    }
-    if (work->timer >= 0x3C) {
-        obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->actionStep = ACTOR_02500_DEATH_STEP_DESTROY;
-    }
-    c      = arg1->extra.tmd->coords;
-    vec.vx = c->workm.t[0];
-    vec.vy = c->workm.t[1];
-    vec.vz = c->workm.t[2];
-    Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    return;
-destroy:
-    enemyDestroy(arg0, arg1);
-    return;
-case3:
-    if (work->burstStage == 0) {
-        goto timer;
-    }
-    if (work->burstStage < 2) {
-        goto inc;
-    }
-    work->burstStage = 0;
-    tmdFreePrimitiveBuffer(obj);
-    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    Actor02500_Fn0184C(arg1);
-    goto timer;
-inc:
-    work->burstStage++;
-timer:
-    phase       = work->timer + 1;
-    work->timer = phase;
-    if (phase < 0x3C) {
-        return;
-    }
-    work->actionStep = ACTOR_02500_DEATH_STEP_DESTROY;
 }
 
 void Actor02500_Fn01E04(Task* arg0)
