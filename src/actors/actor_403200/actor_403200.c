@@ -5894,19 +5894,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
     facing       = arg0->extra.tmd->coords;
     angle        = ratan2(toPlayer->vx, toPlayer->vz) -
             ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
+    angle               = actorWrapAngle(angle);
     work->neckYawTarget = angle;
     if (gGluttonEnded == 1) {
         work->stateTicks = 0;
