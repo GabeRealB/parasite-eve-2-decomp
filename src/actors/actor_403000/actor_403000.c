@@ -3437,12 +3437,9 @@ static void func_actor_403000_80137084(Task* arg0)
     _Actor403000ChaseScratch* head;
     GfxCoord*                 coord;
     GfxCoord*                 pos;
-    GfxCoord*                 rot;
     GfxCoord*                 pos2;
-    GfxCoord*                 rot2;
     SVECTOR*                  dir;
     SVECTOR*                  t;
-    s16                       angle;
     s32                       mag;
     s16                       diff;
     s32                       dist;
@@ -3480,10 +3477,7 @@ static void func_actor_403000_80137084(Task* arg0)
         t->vx         = wip->coordMtx->t[0] - pos->coord.t[0];
         t->vy         = wip->coordMtx->t[1] - pos->coord.t[1];
         t->vz         = wip->coordMtx->t[2] - pos->coord.t[2];
-        rot           = arg0->extra.tmd->coords;
-        angle         = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
-        angle         = actorWrapAngle(angle);
-        scratch->turn = mag = angle;
+        scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
         work->neckYawTarget = mag;
         if (scratch->turn > 0x40) {
             scratch->turn = 0x40;
@@ -3505,10 +3499,7 @@ static void func_actor_403000_80137084(Task* arg0)
         t->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
         t->vy         = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
         t->vz         = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
-        rot2          = arg0->extra.tmd->coords;
-        angle         = ratan2(t->vx, t->vz) - ratan2(-rot2->coord.m[2][0], rot2->coord.m[2][2]);
-        angle         = actorWrapAngle(angle);
-        scratch->turn = mag = angle;
+        scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
         work->neckYawTarget = mag;
         coord               = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
