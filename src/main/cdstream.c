@@ -2546,7 +2546,8 @@ static void CdStream_AbortPhase(_CdReadyEntry* entry)
         case CD_STREAM_STEP_READ:
         case CD_STREAM_STEP_READ_SYNC:
             CdReady_ClearCallback();
-            goto shared_flush;
+            CdFlush();
+            break;
         case CD_STREAM_STEP_SECTORS:
             CdReady_ClearCallback();
             CdFlush();
@@ -2572,7 +2573,6 @@ static void CdStream_AbortPhase(_CdReadyEntry* entry)
         case CD_STREAM_STEP_SETLOC:
         case CD_STREAM_STEP_SETLOC_SYNC:
         case CD_STREAM_STEP_IDLE_SYNC:
-        shared_flush:
             CdFlush();
             break;
     }
