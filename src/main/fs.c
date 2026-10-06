@@ -503,35 +503,31 @@ static void Fs_CdReadyCb(u8 status, u8* result)
     s32    currPos;
     u8     ret;
 
-    if (status == CdlDiskError) {
-        goto on_error;
-    }
+    if (status != CdlDiskError) {
+        Fs_VBlank = VSync(-1);
+        CdGetSector(currLoc, 3);
+        Fs_CurrSector = currPos = CdPosToInt(currLoc);
 
-    Fs_VBlank = VSync(-1);
-    CdGetSector(currLoc, 3);
-    Fs_CurrSector = currPos = CdPosToInt(currLoc);
-
-    if (currPos != Fs_ReqSector) {
-        if ((Fs_Streaming != 0) && (Fs_LoadPhase != 6)) {
-            Fs_OnCdError(FS_ERROR_HARD);
-            goto end;
+        if (currPos != Fs_ReqSector) {
+            if ((Fs_Streaming != 0) && (Fs_LoadPhase != 6)) {
+                Fs_OnCdError(FS_ERROR_HARD);
+                return;
+            }
+            Fs_OnCdError(FS_ERROR_SOFT);
+            return;
         }
-        goto on_error;
-    }
 
-    Fs_ReqSector = currPos + 1;
-    if (Fs_Streaming == 0) {
-        ret = Fs_ProcessChunkHeader();
+        Fs_ReqSector = currPos + 1;
+        if (Fs_Streaming == 0) {
+            ret = Fs_ProcessChunkHeader();
+        } else {
+            ret = Fs_ProcessChunkData();
+        }
     } else {
-        ret = Fs_ProcessChunkData();
+        Fs_OnCdError(FS_ERROR_SOFT);
+        return;
     }
-    goto check_ret;
 
-on_error:
-    Fs_OnCdError(FS_ERROR_SOFT);
-    goto end;
-
-check_ret:
     if (ret != 0) {
         CdControlF(CdlPause, NULL);
         CdReadyCallback(NULL);
@@ -541,8 +537,6 @@ check_ret:
         Fs_ChunkMode    = 0;
         Fs_CdOpStatus   = FS_CD_STATUS_IDLE;
     }
-end:
-    return;
 }
 
 static u8 Fs_ProcessChunkHeader(void)
