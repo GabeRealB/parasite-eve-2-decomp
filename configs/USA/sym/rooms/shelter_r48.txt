@@ -74,7 +74,7 @@ D_shelter_r48_8018BE30 = 0x8018BE30; // size:0x24 defined:True
 
 shelterR48SetBackgroundSpritesVisible = 0x8017E27C; // type:func
 
-func_shelter_r48_8017E3B8 = 0x8017E3B8; // type:func
+shelterR48InitRingsAndDrawGlowTask = 0x8017E3B8; // type:func
 
 func_shelter_r48_8017E4C4 = 0x8017E4C4; // type:func
 
@@ -105,3 +105,5 @@ _shelterR48DrawRoomGlow = 0x8018258c; // type:func
 _shelterR48WaterRefractionTask = 0x8017d660; // type:func
 _shelterR48IgnoreRoomCommand = 0x8017e088; // type:func
 _shelterR48RoomIdleState = 0x8017e214; // type:func
+_shelterR48UseStaffCard = 0x8017df50; // type:func
+shelterR48RoomTask = 0x8017e224; // type:func

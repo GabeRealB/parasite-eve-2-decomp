@@ -870,7 +870,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_8017FB84, { NULL } },                                     // 0x149
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_8017EE54, { NULL } },                                  // 0x14A
     { { { TASK_BODY_COORD, 0x70 } }, shelterR47DrawViewGlowsTask, { NULL } },                                            // 0x14B
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E3B8, { NULL } },                                              // 0x14C
+    { { { TASK_BODY_COORD, 0x70 } }, shelterR48InitRingsAndDrawGlowTask, { NULL } },                                     // 0x14C
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fAirlockDrawViewGlowsTask, { NULL } },                                      // 0x14D
     { { { TASK_BODY_COORD, 0x70 } }, neoArkObservatoryGlowTask, { NULL } },                                              // 0x14E
     { { { TASK_BODY_COORD, 0x70 } }, neoArkEveAccessTunnelDrawViewGlowsTask, { NULL } },                                 // 0x14F

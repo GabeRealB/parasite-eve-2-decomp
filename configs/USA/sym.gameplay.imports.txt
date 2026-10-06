@@ -1353,7 +1353,7 @@ func_shelter_b6_training_room_801826E0 = 0x801826E0; // type:func absolute:True 
 
 func_shelter_b6_training_room_80182804 = 0x80182804; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_r48_8017E3B8 = 0x8017E3B8; // type:func absolute:True owner=shelter_r48
+shelterR48InitRingsAndDrawGlowTask = 0x8017E3B8; // type:func absolute:True owner=shelter_r48
 
 func_shelter_r48_8017E4C4 = 0x8017E4C4; // type:func absolute:True owner=shelter_r48
 

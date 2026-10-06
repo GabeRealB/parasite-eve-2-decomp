@@ -111,11 +111,17 @@ extern WorldCoordPointLight D_shelter_r48_8018A08C[57];
 extern WorldCollisionTrigger D_shelter_r48_8018B670[16];
 extern WorldCollisionTrigger D_shelter_r48_8018BC78[5];
 extern WorldCoordRoomLights  D_shelter_r48_8018B658[1];
-s32                          func_shelter_r48_8017DF50(Task*, s32, s32, s32);
-s32                          func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32                   _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-s32                          func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, s32);
-s32                          func_shelter_r48_8017E0EC(Task*, s32, s32, s32);
+enum {
+    SHELTER_R48_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    SHELTER_R48_CARD_USE_READY       = 1,
+    SHELTER_R48_CARD_USE_STARTED     = 2
+};
+
+static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterR48IgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
+s32        func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, s32);
+s32        func_shelter_r48_8017E0EC(Task*, s32, s32, s32);
 
 extern TmdBone D_shelter_r48_8018BE30[1];
 static void    _shelterR48WaterRefractionTask(Task* task);
@@ -134,7 +140,7 @@ TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MOD
 
 TaskMessageEntry D_shelter_r48_80182FB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r48_8017E044 },
-    { 5105, func_shelter_r48_8017DF50 },
+    { SHELTER_R48_MESSAGE_USE_KEY_ITEM, _shelterR48UseStaffCard },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r48_8017E090 },
     { ROOM_MESSAGE_COMMAND, _shelterR48IgnoreRoomCommand },
     { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_r48_8017E0EC },
@@ -2149,39 +2155,70 @@ static void _shelterR48WaterRefractionTask(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(WaterRefractionScratch);
 }
 
-s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Tests whether an active room-event trigger can accept a staff card.
+///
+/// Borrows the room's live pending-trigger list and retains no pointer.
+static inline s32 _shelterR48StaffCardTriggerHit(void)
 {
-    WorldCollisionTrigger* node;
-    s32                    found;
-    s32                    ret;
+    WorldCollisionTrigger* trigger;
+    s32                    triggerHit;
 
-    ret = 0;
-    if (arg2 == 0x121 || arg2 == 0x122) {
-        if (gameFlagGetNibble(GAME_FLAG_100) == 1) {
-            node  = Gp_PendingObj4C;
-            found = 1;
-            while (node != NULL) {
-                if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-                    goto check;
-                }
-                node = node->next;
-            }
-            found = 0;
-        check:
-            if (found != 0) {
-                gGameSession->eventState = 1;
-                D_80115768               = 1;
+    trigger    = Gp_PendingObj4C;
+    triggerHit = 1;
+    while (trigger != NULL) {
+        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
+            goto triggerChecked;
+        }
+        trigger = trigger->next;
+    }
+    triggerHit = 0;
+triggerChecked:
+    return triggerHit;
+}
+
+/// Starts the room's card-use scene with Bowman's Card or Yoshida's Card.
+///
+/// Handles the integer item ID in message 0x13F1; the receiver, message ID
+/// and second payload word are unused. Requires progress nibble 0x100 to be
+/// 1 and a hit room-action trigger with the room-event parameter to accept
+/// the card. On acceptance,
+/// holds scene handling and player updates, spawns the actor overlay's scene
+/// launcher, sets progress to 2 and room scene state to 4, and returns 1.
+/// Otherwise returns 0. Requires the trigger list live through dispatch and
+/// the room and actor overlays loaded for the resulting scene. Retains no
+/// payload storage.
+static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
+{
+    enum {
+        SHELTER_R48_ITEM_BOWMANS_CARD      = 0x121,
+        SHELTER_R48_ITEM_YOSHIDAS_CARD     = 0x122,
+        SHELTER_R48_SCENE_CARD_USE_STARTED = 4,
+        SHELTER_R48_EVENT_HOLD             = 1,
+        SHELTER_R48_PLAYER_UPDATE_HOLD     = 1,
+        SHELTER_R48_ITEM_USE_REJECTED      = 0,
+        SHELTER_R48_ITEM_USE_ACCEPTED      = 1
+    };
+    s32 accepted;
+
+    accepted = SHELTER_R48_ITEM_USE_REJECTED;
+    if (itemId == SHELTER_R48_ITEM_BOWMANS_CARD || itemId == SHELTER_R48_ITEM_YOSHIDAS_CARD) {
+        if (gameFlagGetNibble(GAME_FLAG_100) == SHELTER_R48_CARD_USE_READY) {
+            // Card use is accepted only at an active room-event trigger.
+            if (_shelterR48StaffCardTriggerHit() != 0) {
+                // Hold gameplay before queuing the card-use scene.
+                gGameSession->eventState = SHELTER_R48_EVENT_HOLD;
+                D_80115768               = SHELTER_R48_PLAYER_UPDATE_HOLD;
                 taskSpawnFromTableOnDefaultList(&D_actor_503500_8014B958, 0, 0, 0);
-                gameFlagSetNibble(GAME_FLAG_100, 2);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, 4);
-                ret = 1;
+                gameFlagSetNibble(GAME_FLAG_100, SHELTER_R48_CARD_USE_STARTED);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_CARD_USE_STARTED);
+                accepted = SHELTER_R48_ITEM_USE_ACCEPTED;
             }
         }
     }
-    return ret;
+    return accepted;
 }
 
-/// State handlers of the room task `func_shelter_r48_8017E224` runs: its
+/// State handlers of the room task `shelterR48RoomTask` runs: its
 /// setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_r48_8017D608 = {
     { func_shelter_r48_8017E1A4, _shelterR48RoomIdleState, taskKill }
@@ -2251,15 +2288,12 @@ static void _shelterR48RoomIdleState(Task* task)
     char stackReservation[0x10]; // Unused storage retained for the callback's stack adjustment.
 }
 
-/// Runs one tick of the room task through the three-state table
-/// `D_shelter_r48_8017D608`, copying the table onto the stack and calling the
-/// entry for the task's current state.
-void func_shelter_r48_8017E224(Task* task)
+void shelterR48RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_r48_8017D608;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_r48_8017D608;
+    handlers.funcs[task->state](task);
 }
 
 void shelterR48SetBackgroundSpritesVisible(u8 visible)
@@ -2319,27 +2353,37 @@ void shelterR48SetBackgroundSpritesVisible(u8 visible)
     }
 }
 
-void func_shelter_r48_8017E3B8(Task* task)
+void shelterR48InitRingsAndDrawGlowTask(Task* task)
 {
+    enum {
+        SHELTER_R48_GLOW_STATE_NEW     = 0,
+        SHELTER_R48_GLOW_STATE_RUNNING = 1,
+        SHELTER_R48_GLOW_VIEW_MASK     = (1 << 3) | (1 << 4) | (1 << 6) | (1 << 7) | (1 << 8) | (1 << 18),
+        SHELTER_R48_GLOW_RADIUS_SCALE  = 256,
+        SHELTER_R48_GLOW_ORANGE        = 0x5C40,
+        SHELTER_R48_GLOW_BLUE          = 0x504C
+    };
     s32 viewMask;
-    s32 i;
-    s32 j;
+    s32 bandIndex;
+    s32 segmentIndex;
 
     viewMask = 1 << viewGetMappedIndex();
-    if (task->state == 0) {
+    if (task->state == SHELTER_R48_GLOW_STATE_NEW) {
+        // Seed every band segment's animation phase once for this room visit.
         gRoomEffectState->groundTraceEnabled = false;
-        for (i = 0; i < 6; i++) {
-            for (j = 0; j < 16; j++) {
-                D_shelter_r48_8018BE54[i][j] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+        for (bandIndex = 0; bandIndex < ARRAY_SIZE(D_shelter_r48_8018BE54); bandIndex++) {
+            for (segmentIndex = 0; segmentIndex < ARRAY_SIZE(D_shelter_r48_8018BE54[bandIndex]); segmentIndex++) {
+                D_shelter_r48_8018BE54[bandIndex][segmentIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             }
         }
-        task->state = 1;
+        task->state = SHELTER_R48_GLOW_STATE_RUNNING;
     }
-    if (viewMask & 0x401D8) {
-        if (gameFlagGetNibble(GAME_FLAG_100) == 1) {
-            _shelterR48DrawRoomGlow(&D_shelter_r48_8018300C, 0x100, 0x5C40);
-        } else if (gameFlagGetNibble(GAME_FLAG_100) == 2) {
-            _shelterR48DrawRoomGlow(&D_shelter_r48_8018300C, 0x100, 0x504C);
+    // Keep drawing tied to the mapped camera and the room's card-use progress.
+    if (viewMask & SHELTER_R48_GLOW_VIEW_MASK) {
+        if (gameFlagGetNibble(GAME_FLAG_100) == SHELTER_R48_CARD_USE_READY) {
+            _shelterR48DrawRoomGlow(&D_shelter_r48_8018300C, SHELTER_R48_GLOW_RADIUS_SCALE, SHELTER_R48_GLOW_ORANGE);
+        } else if (gameFlagGetNibble(GAME_FLAG_100) == SHELTER_R48_CARD_USE_STARTED) {
+            _shelterR48DrawRoomGlow(&D_shelter_r48_8018300C, SHELTER_R48_GLOW_RADIUS_SCALE, SHELTER_R48_GLOW_BLUE);
         }
     }
 }

@@ -140760,7 +140760,7 @@ do {
 } while (0);
 state->field_E = quadW; ... state->field_1E = spriteX;
 ```
-### Folding the RHS update into the array store puts the array base first in the loop preheader (func_shelter_r48_8017E3B8, 2026-09-23)
+### Folding the RHS update into the array store puts the array base first in the loop preheader (shelterR48InitRingsAndDrawGlowTask, 2026-09-23)
 
 A fill loop `D[i][j] = lcg >> 16` whose target preheader materialises the
 array base (`lui`/`addiu`) *before* the LCG global's `lui` and constant
@@ -149309,12 +149309,13 @@ attempts; left as it was.
   users, so cse does not fold the test). `found = 0; for (...) { if (c) {
   found = 1; break; } }` is not the same code: the zero is loaded before the
   loop and the hit path gets its own `j; li 1`.
-- Not converted: the same scan in `func_shelter_r48_8017DF50`, whose image has
-  the 1 loaded *before* the loop (`beqz node,exhausted; li a0,1`). The inline
+- Not converted to a loop without a goto: the scan in
+  `_shelterR48StaffCardTriggerHit`, inlined by `_shelterR48UseStaffCard`, has the 1
+  loaded *before* the loop (`beqz node,exhausted; li a0,1`). A direct-return inline
   gives the armory shape, the flag-and-`break` form gives the zero before the
   loop, and `found = 1; for (;;) { if (!node) { found = 0; break; } ... }` is
-  not rotated. Only the goto source (`found = 1;` ahead of the `while`, `goto
-  check` on a hit) reproduces it.
+  not rotated. Only the goto source (`triggerHit = 1;` ahead of the `while`,
+  `goto triggerChecked` on a hit) reproduces it.
 - **Duplicating a tail that uses the function's locals needs locals of its
   own.** `func_shelter_r47_8017FE84` had `goto spawn_six` into another
   switch's case and `goto toggle_only` into another arm. Written out twice

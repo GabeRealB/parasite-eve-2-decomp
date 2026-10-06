@@ -35,7 +35,14 @@ extern SpriteView D_shelter_r48_80189FB4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_r48_8018BE10[];
 
-void func_shelter_r48_8017E224(Task* task);
+/// Dispatches Shelter R48's room setup, idle and teardown states.
+///
+/// Requires a live room task with state 0 (setup), 1 (idle) or 2 (kill).
+/// Setup installs the room's message table, registers the room task slot and
+/// starts the entry scene before advancing to idle. State 2 tears down the
+/// task and its children. The room and its scene actor overlay must be loaded; no state bounds
+/// check is performed.
+void shelterR48RoomTask(Task* task);
 
 /// Shows or hides the room's selected background-sprite batches across seven views.
 ///
@@ -45,7 +52,18 @@ void func_shelter_r48_8017E224(Task* task);
 /// in the zero-based view array; no resource or index validation is performed.
 void shelterR48SetBackgroundSpritesVisible(u8 visible);
 
-void func_shelter_r48_8017E3B8(Task* task);
+/// Initializes the ring texture phases and draws the room's progress-dependent glow.
+///
+/// Bank-6 effect 0x14C requires a live task, room-effect state and loaded room
+/// resources. State 0 disables ground traces, consumes 96 LCG updates to seed
+/// six bands of sixteen phase bytes, sets state 1 and also draws that tick.
+/// Later ticks preserve the phases. Mapped views 3, 4, 6, 7, 8 and 18 draw an
+/// orange glow at progress nibble 0x100 value 1, a blue glow at 2 and none at
+/// other values. Radius scale is 256; both packed tints use flicker shift 5.
+/// Requires composed view coordinates, scratch and primitive capacity. The
+/// task does not inspect suspension/cancellation or retire itself; room
+/// teardown owns its lifetime.
+void shelterR48InitRingsAndDrawGlowTask(Task* task);
 
 void func_shelter_r48_8017E4C4(Task* arg0);
 
