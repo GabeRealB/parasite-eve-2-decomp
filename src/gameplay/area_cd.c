@@ -110,26 +110,41 @@ u16 Gp_PollAreaCdLoads(void)
     return 0;
 }
 
+/// Queues the file of `resource` for loading with the given texture relocation.
+static inline void _areaCdQueueResource(AreaResource* resource, s16 texturePageOffset, s16 clutRowOffset)
+{
+    u8  fileKey[8];
+    u8  fileParams[8];
+    s32 fileNumber;
+
+    fileKey[3] = 0;
+    fileKey[0] = 0;
+    fileNumber = resource->fileNumber;
+    if (fileNumber >= LOADING_FILE_ID_RADIX) {
+        fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
+        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+    } else {
+        fileParams[0] = resource->fileNumber;
+        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
+    }
+    fileParams[1] = 0;
+    fileParams[2] = texturePageOffset;
+    fileParams[3] = clutRowOffset;
+    cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
+}
+
 u16 func_800AA120(void)
 {
-    u8            fileKey[8];
-    u8            fileParams[8];
     AreaVariant*  layout;
     AreaResource* resource;
     u16           entryId;
-    s32           fileNumber;
-    s16           texturePageOffset;
-    s16           clutRowOffset;
 
     switch (D_80114C70) {
         case LOADING_AREA_INIT:
             layout     = Gp_GetNestedAreaRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_80114C64 = layout;
             D_80114C68 = layout->resources;
-            if (layout == NULL) {
-                goto finished;
-            }
-            if (layout->resources == NULL) {
+            if (layout == NULL || layout->resources == NULL) {
                 return 1;
             }
             D_80114C70++;
@@ -153,60 +168,14 @@ u16 func_800AA120(void)
                 resource = D_80114C68;
                 if (resource->fileGroupIndex != AREA_RESOURCE_FILE_GROUP_BASE_60) {
                     if (D_80114C72 != 0) {
-                        texturePageOffset = Gp_CdRecCur->texturePageOffset;
-                        clutRowOffset     = Gp_CdRecCur->clutRowOffset;
-                        fileKey[3]        = 0;
-                        fileKey[0]        = 0;
-                        fileNumber        = resource->fileNumber;
-                        if (fileNumber >= LOADING_FILE_ID_RADIX) {
-                            fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
-                        } else {
-                            fileParams[0] = resource->fileNumber;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
-                        }
-                        fileParams[1] = 0;
-                        fileParams[2] = texturePageOffset;
-                        fileParams[3] = clutRowOffset;
-                        cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
-                        goto queued;
+                        _areaCdQueueResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
                     } else {
-                        texturePageOffset = 0;
-                        clutRowOffset     = 0;
-                        fileKey[3]        = 0;
-                        fileKey[0]        = 0;
-                        fileNumber        = resource->fileNumber;
-                        if (fileNumber >= LOADING_FILE_ID_RADIX) {
-                            fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
-                        } else {
-                            fileParams[0] = resource->fileNumber;
-                            fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
-                        }
-                        fileParams[1] = 0;
-                        fileParams[2] = texturePageOffset;
-                        fileParams[3] = clutRowOffset;
-                        cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
-                        goto queued;
+                        _areaCdQueueResource(resource, 0, 0);
                     }
+                    D_80114C70++;
+                    break;
                 } else if (D_80114C72 != 0) {
-                    texturePageOffset = Gp_CdRecCur->texturePageOffset;
-                    clutRowOffset     = Gp_CdRecCur->clutRowOffset;
-                    fileKey[3]        = 0;
-                    fileKey[0]        = 0;
-                    fileNumber        = resource->fileNumber;
-                    if (fileNumber >= LOADING_FILE_ID_RADIX) {
-                        fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
-                    } else {
-                        fileParams[0] = resource->fileNumber;
-                        fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
-                    }
-                    fileParams[1] = 0;
-                    fileParams[2] = texturePageOffset;
-                    fileParams[3] = clutRowOffset;
-                    cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
-                queued:
+                    _areaCdQueueResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
                     D_80114C70++;
                     break;
                 } else {
@@ -214,7 +183,6 @@ u16 func_800AA120(void)
                 }
             } while (resource[1].entryId != AREA_PLACEMENT_END);
             if (D_80114C68->entryId == AREA_PLACEMENT_END) {
-            finished:
                 return 1;
             }
             break;
