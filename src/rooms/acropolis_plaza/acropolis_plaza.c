@@ -3397,11 +3397,11 @@ void func_acropolis_plaza_8017D6D4(void)
                         case 1:
                             if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                                 if (Stream_PollPlayback(0, sectorOffset) != 0) {
-                                    CdCmd_AdvanceRead();
+                                    cdCmdCompleteHeadRequest();
                                 }
                             } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
                                 if (Stream_PollPlayback(1, q->activeRequest.resumeSector) != 0) {
-                                    CdCmd_AdvanceRead();
+                                    cdCmdCompleteHeadRequest();
                                 }
                             }
                             break;
@@ -3513,16 +3513,16 @@ void func_acropolis_plaza_8017DBFC(Task* task)
             }
             break;
         case 3:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state++;
             } else if (Pad_CheckFlag800() != 0) {
-                CdCmd_ActivatePhase1();
+                cdCmdRequestCancel();
                 task->state++;
             }
             break;
         case 4:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state++;
             }
@@ -3768,7 +3768,7 @@ void func_acropolis_plaza_8017DFE0(Task* task)
             task->state                                        = task->state + 1;
             break;
         case 1:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             playerTask       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -3872,7 +3872,7 @@ void func_acropolis_plaza_8017DFE0(Task* task)
             break;
         case 5:
             plaza_updateEdgeFlags((_AcropolisPlazaSceneWork*)task->work);
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             task->state = 2;
@@ -3952,7 +3952,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            if (CdCmd_IsIdle() == 0) {
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
@@ -4138,7 +4138,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            if (CdCmd_IsIdle() == 0) {
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
@@ -4165,7 +4165,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             }
             break;
         case 6:
-            if (CdCmd_IsIdle() != 0) {
+            if (cdCmdIsIdle() != 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 Task_RequestKill(task, 0);
             }
@@ -4244,7 +4244,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            if (CdCmd_IsIdle() == 0) {
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
@@ -4259,7 +4259,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             task->state      = task->state + 1;
             return;
         case 4:
-            if (CdCmd_IsIdle() != 0) {
+            if (cdCmdIsIdle() != 0) {
                 func_800E8634(D_acropolis_plaza_80182C90, 1, D_acropolis_plaza_80182F18);
                 task->state = task->state + 1;
                 return;
@@ -4316,7 +4316,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             func_acropolis_plaza_8017DE24(7);
             return;
         case 8:
-            if (CdCmd_IsIdle() != 0) {
+            if (cdCmdIsIdle() != 0) {
                 taskMessageDispatch(_acropolisPlazaFindPlacedEnemy(0x6C)->task, 0x7D7, 1, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
                 gpuResetAndInvalidateModelBuffers();
@@ -4341,7 +4341,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             task->state      = task->state + 1;
             /* fallthrough */
         case 10:
-            if (CdCmd_IsIdle() == 0) {
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             func_800E8614(D_acropolis_plaza_801830DC, 1);
@@ -4367,7 +4367,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
         case 13:
             if (Pad_CheckFlag800() != 0) {
                 Stage_RequestMidiFromMap(0xA);
-                CdCmd_ActivatePhase1();
+                cdCmdRequestCancel();
                 task->state = 0xF;
             } else if (gGameSession->eventState == 0) {
                 Stage_RequestMidiFromMap(0x1E0);
@@ -4388,7 +4388,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             func_acropolis_plaza_8017DE24(5);
             return;
         case 15:
-            if (CdCmd_IsIdle() != 0) {
+            if (cdCmdIsIdle() != 0) {
                 sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), 0xB4);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 Task_RequestKill(task, 0);
@@ -4427,7 +4427,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (CdCmd_IsIdle() != 0) {
+            if (cdCmdIsIdle() != 0) {
                 ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
                 taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
                 switch (task->spawnArg1.value) {
@@ -4478,7 +4478,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (CdCmd_IsIdle() != 0) {
+            if (cdCmdIsIdle() != 0) {
                 ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
                 taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
                 Gp_RunCapCmd1((s8)((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->eventKind);

@@ -2131,12 +2131,12 @@ void func_actor_160900_801347F0(void)
 
 void func_actor_160900_80134830(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_actor_160900_80134850(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_actor_160900_80134870(void)

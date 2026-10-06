@@ -81,8 +81,8 @@ void Gp_ViewBeginLoad(Task* task)
                     q->viewMovieSelected = 0;
                 }
             }
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-                CdCmd_ActivatePhase1();
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+                cdCmdRequestCancel();
                 task->state += 1;
                 Gp_EnqueueViewCd(task);
             } else {

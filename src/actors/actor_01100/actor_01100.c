@@ -1193,7 +1193,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
     s32                 i;
     s32                 idx;
 
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         worldTargetLinkNode(&enemy->node);
         obj                   = &work->bodies[ACTOR_01100_BODY_ROOT];
         obj->coord            = task->extra.tmd->coords;

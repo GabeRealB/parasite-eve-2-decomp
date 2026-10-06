@@ -3159,7 +3159,7 @@ void Ui_WaitCdThenOverlay(Task* task)
     UiPanel* temp_s0;
 
     temp_s0 = task->spawnArg2.pointer;
-    if (CdCmd_IsIdle() != 0) {
+    if (cdCmdIsIdle() != 0) {
         func_801D4B64(task);
         return;
     }

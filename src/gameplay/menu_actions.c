@@ -307,7 +307,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
             Ui_SetHolderParam(Gp_StrCustomizeHelp, 0, 0);
             two = 2;
             if (arg1->owner->spawnArg1.value != two) {
-                CdCmd_DropPending();
+                cdCmdDropQueuedTail();
                 CdCmd_EnqueueLoadFile(1, 0, 0);
                 Gp_ClearPreviewItems();
                 arg1->owner->spawnArg1.value = two;
@@ -1724,7 +1724,7 @@ void Gp_HelpPanelTask(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 1:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 uiSpawnObject(&D_8010F178, 0, 0, 1, obj);
                 arg0->state = arg0->state + 1;
             }
@@ -1829,7 +1829,7 @@ void Gp_MapFirstDrawTask(Task* arg0)
     UiObject* obj;
 
     obj = arg0->spawnArg2.pointer;
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         obj->panel.animationTicks = 1;
         Gp_DrawMapCursor(arg0);
         func_800D0C34(arg0);
@@ -2796,7 +2796,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req, text);
 
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         func_800C7AE8(arg0, x, y, 0x200);
     } else {
         func_800C7AE8(arg0, x, y, 0x300);
@@ -3484,7 +3484,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
         spawnArg += 1;
     }
     func_800D3D98(obj, spawnArg, 0);
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         text = textSkipLines(Fs_GetChunkPayload(), 4);
         textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
@@ -3568,7 +3568,7 @@ void func_800D5A48(Task* arg0)
     if (arg0->spawnArg1.value != 0) {
         flags |= 0x400;
     }
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+    if ((cdCmdIsIdle() & 0xFFFF) == 0) {
         flags |= 0x100;
     }
     func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);

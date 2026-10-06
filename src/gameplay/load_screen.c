@@ -213,7 +213,7 @@ void Gp_BeginSessionTask(Task* arg0)
     gpuClearFrameOrderingTable(1);
     one = 1;
     Mem_Init();
-    CdCmd_ActivatePhase1();
+    cdCmdRequestCancel();
     gGameSession->location           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     gGameSession->spriteVariant      = ds->spriteVariant;
     queue->suppressMoviePresentation = one;
@@ -247,7 +247,7 @@ void Gp_LoadWaitBoot(Task* task)
 
     Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_ACTIVE;
     queue                         = &gCdCmdQueue;
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         if ((u8)LoadUi_PollDiskSwap()) {
             return;
         }
@@ -326,7 +326,7 @@ void Gp_LoadWaitStage(Task* task)
         dr->code[0] = 0xE1000000 | 0x240;
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         if (gGameSession->location.loc.stage != gGameSession->loadedStage) {
             Gp_EnqueueStageCd();
             gGameSession->loadedStage = gGameSession->location.loc.stage;
@@ -369,7 +369,7 @@ void Gp_LoadState2(Task* task)
         dr->code[0] = 0xE1000000 | 0x240;
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         sess = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
         Gp_InitStageVisit(sess);
         save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
@@ -430,7 +430,7 @@ void Gp_LoadWaitCompanion(Task* task)
         dr->code[0] = 0xE1000000 | 0x240;
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         param1[3] = gGameSession->location.loc.stage;
         param1[2] = gGameSession->location.loc.area;
         param1[1] = gGameSession->location.loc.room;
@@ -486,7 +486,7 @@ void Gp_LoadWaitSave(Task* task)
         dr->code[0] = 0xE1000000 | 0x240;
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         GameSession* session;
 
         session = gGameSession;

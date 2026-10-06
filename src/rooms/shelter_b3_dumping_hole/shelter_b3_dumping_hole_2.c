@@ -3160,12 +3160,12 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
 
 void func_shelter_b3_dumping_hole_8017FFF4(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_shelter_b3_dumping_hole_80180014(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_shelter_b3_dumping_hole_80180034(void)
@@ -3715,12 +3715,12 @@ void func_shelter_b3_dumping_hole_80181990(s16 arg0)
 
 void func_shelter_b3_dumping_hole_801819B0(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_shelter_b3_dumping_hole_801819D0(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_shelter_b3_dumping_hole_801819F0(void)

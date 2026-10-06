@@ -4174,17 +4174,17 @@ void func_actor_560800_801321A0(Task* task)
             }
             break;
         case 3:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state++;
             } else if (Pad_CheckFlag800()) {
                 SetDispMask(0);
-                CdCmd_ActivatePhase1();
+                cdCmdRequestCancel();
                 task->state++;
             }
             break;
         case 4:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 Stream_ResetRestoreState();
                 task->state++;
             }
@@ -6109,7 +6109,7 @@ void func_actor_560800_80136878(void)
 /// overlay 0x82.
 void func_actor_560800_80136910(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_actor_560800_80136930(s32 arg0)
@@ -6121,7 +6121,7 @@ void func_actor_560800_80136930(s32 arg0)
     } else if (arg0 == 3) {
         D_actor_560800_801757A4 = gDisplayState.frameCount;
     }
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_actor_560800_801369A0(void)
@@ -6133,7 +6133,7 @@ void func_actor_560800_801369A0(void)
 
 void func_actor_560800_801369E0(Task* arg0)
 {
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         taskKill(arg0);
         displayResumeGameLoop();
     }

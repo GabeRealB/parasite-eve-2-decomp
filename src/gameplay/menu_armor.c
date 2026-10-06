@@ -439,10 +439,10 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     flags[2] = -1;
     flags[1] = -1;
     flags[0] = -1;
-    CdCmd_ResetEntryIter();
+    cdCmdResetEntryIterator();
 
     // Preserve requests for the other preview destinations before dropping work.
-    while ((entry = CdCmd_NextEntry()) != NULL) {
+    while ((entry = cdCmdNextQueuedEntry()) != NULL) {
         if (entry->args.file.loadMode == CD_COMMAND_LOAD_RELOCATE_IMAGES && entry->args.file.imageXPageOffset == -8 && entry->args.file.imageYOffset == -3) {
             saved[0] = *entry;
             flags[0] = 0;
@@ -455,7 +455,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
         }
     }
     flags[arg1 & 0xFF] = -1;
-    CdCmd_DropPending();
+    cdCmdDropQueuedTail();
     for (i = 0; i < ARRAY_SIZE(saved); i++) {
         if (flags[i] != -1) {
             cdCmdEnqueueEntry(&saved[i]);
@@ -469,7 +469,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
 /// item preview, while the CD queue is still busy loading it.
 #define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
     do {                                     \
-        if (CdCmd_IsIdle() == 0) {           \
+        if (cdCmdIsIdle() == 0) {            \
             (flags) |= 0x100;                \
         }                                    \
     } while (0)

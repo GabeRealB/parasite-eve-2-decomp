@@ -441,7 +441,7 @@ void Gp_MenuRootTask(Task* arg0)
 
             disp                         = &gDisplayState;
             disp->control.flags.flipMode = DISPLAY_FLIP_HOLD;
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             if (disp->frameBuffer != disp->drawBuffer) {
@@ -517,7 +517,7 @@ void Gp_MenuRootTask(Task* arg0)
             if (arg0->killCountdown > 0) {
                 return;
             }
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             {
@@ -568,7 +568,7 @@ void Gp_MenuRootTask(Task* arg0)
             s32           secondaryItemId;
             TaskNode*     previousList;
 
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             cfg             = &gPlayerStatus;
@@ -700,7 +700,7 @@ const u16 D_80096F88[12] = {
 /// item preview, while the CD queue is still busy loading it.
 #define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
     do {                                     \
-        if (CdCmd_IsIdle() == 0) {           \
+        if (cdCmdIsIdle() == 0) {            \
             (flags) |= 0x100;                \
         }                                    \
     } while (0)

@@ -3234,7 +3234,7 @@ void func_acropolis_security_room_80180368(Task* task)
                 sndEvtRequestScriptStop(SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP, 0x14);
                 work->fadeStarted = 1;
             }
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 task->state = task->state + 1;
             }
             if (Pad_CheckFlag800() == 0) {
@@ -3268,7 +3268,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
             arg0->state = arg0->state + 1;
             return;
         case 1:
-            if ((CdCmd_IsIdle() & 0xFFFF) || Pad_CheckFlag800() != 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) || Pad_CheckFlag800() != 0) {
                 arg0->state = arg0->state + 1;
             }
             return;

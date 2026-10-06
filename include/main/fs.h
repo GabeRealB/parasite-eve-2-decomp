@@ -68,17 +68,38 @@ void cdCmdStageReplacement(s32 command, const void* fileKey, const void* command
 
 s32 CdCmd_CommitReplace(void);
 
-s32 CdCmd_DropPending(void);
+/// Discards requests after the ring head, preserving that head and its progress.
+///
+/// Returns 1 if the ring was empty, otherwise 0 even when only the head remains.
+/// Only discarded opcodes are cleared; the slots' other bytes remain intact.
+s32 cdCmdDropQueuedTail(void);
 
-u16 CdCmd_IsIdle(void);
+/// Returns 1 when normal dispatch is selected and the request ring is empty.
+///
+/// Cancellation or suspension returns 0 even with an empty ring. This does not
+/// test the display-busy latch, drive status or saved scene-audio request.
+u16 cdCmdIsIdle(void);
 
 u16 CdCmd_IsSlotEmpty(s16 slot);
 
-void CdCmd_SetBusy(void);
+/// Marks a blocking CD operation busy and latches the display's CD-busy state.
+///
+/// The display latch is written only when the queue changes from idle to busy.
+/// This flag is independent of the ring/dispatch test in `cdCmdIsIdle`.
+void cdCmdSetBusy(void);
 
-void CdCmd_ResetEntryIter(void);
+/// Starts the shared request iterator at the current ring head.
+///
+/// Includes the head and every queued tail entry up to the current write index.
+/// There is one iterator for all callers; finish a walk before starting another.
+void cdCmdResetEntryIterator(void);
 
-CdCmdEntry* CdCmd_NextEntry(void);
+/// Borrows the next ring entry, or returns `NULL` at the current write index.
+///
+/// Call `cdCmdResetEntryIterator` before walking. Entries are returned in queue
+/// order, including the head. Queue writes/retirement can change the walk and
+/// invalidate a borrowed entry's contents; copy it before modifying the queue.
+CdCmdEntry* cdCmdNextQueuedEntry(void);
 
 /// Saves all eight bytes of the ring head in the active-request snapshot.
 ///
@@ -86,17 +107,41 @@ CdCmdEntry* CdCmd_NextEntry(void);
 /// phase. The saved bytes survive retirement or reuse of the ring slot.
 void cdCmdSaveHeadRequest(void);
 
-void CdCmd_AdvanceRead(void);
+/// Clears the current handler's progress and retires the head of a nonempty ring.
+///
+/// Releases the queue/display busy latch and resets the handler/cancel steps,
+/// play-clock pause and pending drive operation. An empty ring still receives
+/// those resets. The saved active request and replacement request are retained.
+void cdCmdCompleteHeadRequest(void);
 
-s32 CdCmd_ActivatePhase1(void);
+/// Requests cancellation of the ring head or the retained scene/audio session.
+///
+/// Saves all eight head bytes when its opcode is nonzero, then selects the
+/// cancellation phase. With an empty head, active scene/audio mode selects that
+/// phase using the existing snapshot. Returns 1 when cancellation is requested,
+/// or 0 when neither is present; completion requires subsequent CD dispatches.
+s32 cdCmdRequestCancel(void);
 
 s32 CdCmd_PollStatus(s32 arg0, s32 arg1);
 
-void CdCmd_EnqueueOverlay81(void);
+/// Enqueues playback of the selected scene/audio session.
+///
+/// A valid scene slot queues `CD_COMMAND_PLAY_SCENE_AUDIO` and marks audio as
+/// starting. Without a selected slot, it enters scene-playing mode immediately.
+/// The selected descriptor and prepared playback buffers must survive the
+/// request. Uses `cdCmdEnqueue`'s ring-capacity contract.
+void cdCmdEnqueueScenePlayback(void);
 
 void CdCmd_EnqueueOverlay82(void);
 
-void CdCmd_EnqueueReplaceOverlay82(void);
+/// Stages a deferred audio-start request for the selected scene slot.
+///
+/// A valid slot replaces the deferred request with `CD_COMMAND_START_SCENE_AUDIO`;
+/// no slot leaves the previous replacement intact. `CdCmd_CommitReplace` later
+/// enqueues it. Its handler retires the request once audio has started, retaining
+/// the scene session for a later playback request. Selection/buffers must remain
+/// valid through consumption; this routine does not change scene/audio mode.
+void cdCmdStageSceneAudioStart(void);
 
 /// Empty entry point in the caption/scene-control handshake; its intended role is unproven.
 void cdCmdSceneControlNoOp(void);
@@ -127,7 +172,13 @@ void* cdCmdReservePlaybackBuffers(void);
 /// The actor buffer must be available for overwrite; no storage is allocated.
 void cdCmdPrepareViewMovie(void);
 
-void CdCmd_SelectMdecBuffer(void);
+/// Publishes the reserved movie workspace for the current location's movie.
+///
+/// A sub-ID-zero movie match selects the workspace previously returned by
+/// `cdCmdReservePlaybackBuffers`; no match keeps the existing stream workspace.
+/// Always clears the decoded-frame availability flag. It neither allocates nor
+/// initializes a decoder; the selected workspace must survive movie playback.
+void cdCmdSelectMovieWorkspace(void);
 
 void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2);
 

@@ -376,7 +376,7 @@ void Gp_LoadFinishTask(Task* task)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             taskSpawnFromTable(D_acropolis_plaza_80183824, 0, 0, 0);
             cdCmdReservePlaybackBuffers();
-            CdCmd_SelectMdecBuffer();
+            cdCmdSelectMovieWorkspace();
         }
     }
 }
@@ -391,7 +391,7 @@ void Gp_LoadStateTask(Task* task)
     ds = &gDisplayState;
     if (ds->demoScene != DISPLAY_DEMO_NONE) {
         if (Pad_ReadButtonsInv(0) & 0x800) {
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 Wip_SysFlags.skipTitleIntro = 1;
                 ds->gameMode                = DISPLAY_GAME_RESTART;
                 return;

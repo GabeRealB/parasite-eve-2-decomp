@@ -101,7 +101,7 @@ u16 Gp_PollAreaCdLoads(void)
             }
             break;
         case LOADING_AREA_WAIT:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 Gp_CdRecCur++;
                 Gp_AreaCdPhase--;
             }
@@ -187,7 +187,7 @@ u16 func_800AA120(void)
             }
             break;
         case LOADING_AREA_WAIT:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 D_80114C68++;
                 D_80114C70--;
             }

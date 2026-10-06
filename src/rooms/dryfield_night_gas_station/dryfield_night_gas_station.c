@@ -3006,12 +3006,12 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
 
 void func_dryfield_night_gas_station_80180720(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_dryfield_night_gas_station_80180740(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_dryfield_night_gas_station_80180760(void)

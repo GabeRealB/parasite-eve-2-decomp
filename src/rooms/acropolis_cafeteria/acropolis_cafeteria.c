@@ -1103,7 +1103,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 7:
             blackout = 1;
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
                 areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
                 Gp_SpawnArea(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);

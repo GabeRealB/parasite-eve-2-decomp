@@ -364,7 +364,7 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
             }
             break;
         case 2:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 Task_RequestKill(arg0, 0);
             }
             break;

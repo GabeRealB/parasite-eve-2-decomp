@@ -1273,7 +1273,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->spawnArg1.value -= 1;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
                 task->state = 9;
-            } else if (CdCmd_IsIdle()) {
+            } else if (cdCmdIsIdle()) {
                 func_800A99B4();
                 task->state += 1;
             }

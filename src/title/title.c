@@ -517,17 +517,17 @@ void Title_DemoStreamTask(Task* task)
             }
             break;
         case 3:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 task->state++;
             } else if (Pad_CheckFlag800()) {
                 Title_SkipFadeFlag = 0;
                 SetDispMask(0);
-                CdCmd_ActivatePhase1();
+                cdCmdRequestCancel();
                 task->state++;
             }
             break;
         case 4:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 gCdCmdQueue.preserveDisplayAfterDecode = 1;
                 param1[3]                              = 0;
                 param1[2]                              = 0;
@@ -541,7 +541,7 @@ void Title_DemoStreamTask(Task* task)
             }
             break;
         case 5:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 task->state++;
             }
@@ -615,7 +615,7 @@ void Title_BootTask(Task* arg0)
             task->state = task->state + 1;
             /* fallthrough */
         case 7:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 task->state = 3;
             }
             return;

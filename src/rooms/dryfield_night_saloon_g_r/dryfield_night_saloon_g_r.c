@@ -2128,7 +2128,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 task->state += 1;
             }
         } else {
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SndEvt_EnqueueType1(flags, 0);
                 sndEvtRequestMidiVolume(flags, (u8)D_8007A396);
                 ready          = 1;

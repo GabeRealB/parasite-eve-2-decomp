@@ -237,7 +237,7 @@ void func_mist_parking_801837B8(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 return;
@@ -246,11 +246,11 @@ void func_mist_parking_801837B8(Task* task)
                 return;
             }
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
         case 4:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             Stream_ResetRestoreState();

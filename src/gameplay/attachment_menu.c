@@ -362,7 +362,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
             if (((obj->panel.control.word >> 16) == state) || (obj->panel.control.word == state)) {
                 GP_SET_PREVIEW_ITEM(val, 2);
             }
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 flags |= 0x100;
             }
         }
@@ -473,7 +473,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
         if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
             GP_SET_PREVIEW_ITEM(item, 2);
         }
-        if (CdCmd_IsIdle() == 0) {
+        if (cdCmdIsIdle() == 0) {
             flags |= 0x100;
         }
     }

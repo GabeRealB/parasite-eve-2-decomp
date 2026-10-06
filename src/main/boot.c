@@ -249,7 +249,7 @@ void Boot_LoadInitialFile(Task* task)
             if (task->killCountdown < 0x5A) {
                 task->killCountdown++;
             }
-            if (CdCmd_IsIdle() == 0) {
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             if (task->killCountdown < 0x5A) {
@@ -383,7 +383,7 @@ void Boot_LoadTask(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (CdCmd_IsIdle() != 0) {
+            if (cdCmdIsIdle() != 0) {
                 SetDispMask(1);
                 memConfigureImageMemory(GAME_STAGE_NONE, 0);
                 taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);

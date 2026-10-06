@@ -1173,7 +1173,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                     }
                     break;
                 case 2:
-                    if (CdCmd_IsIdle() & 0xFFFF) {
+                    if (cdCmdIsIdle() & 0xFFFF) {
                         if (D_actor_403600_801606B4 != 0) {
                             taskCallExit(D_actor_403600_801606B4);
                         }

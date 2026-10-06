@@ -3008,12 +3008,12 @@ static void _mineMesaFadeFromBlackTask(Task* task)
 
 void func_mine_mesa_8017E5A0(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_mine_mesa_8017E5C0(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_mine_mesa_8017E5E0(void)

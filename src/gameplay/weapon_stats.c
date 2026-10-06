@@ -455,7 +455,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x16, flags);
 
     if (arg0->state == 2) {
-        if (CdCmd_IsIdle()) {
+        if (cdCmdIsIdle()) {
             arg0->state = 1;
         }
     }
@@ -660,7 +660,7 @@ void Gp_AmmoListTask(Task* arg0)
 /// item preview, while the CD queue is still busy loading it.
 #define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
     do {                                     \
-        if (CdCmd_IsIdle() == 0) {           \
+        if (cdCmdIsIdle() == 0) {            \
             (flags) |= 0x100;                \
         }                                    \
     } while (0)

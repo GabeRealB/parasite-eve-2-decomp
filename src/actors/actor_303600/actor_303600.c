@@ -1953,18 +1953,18 @@ void func_actor_303600_80162620(void)
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-/// Opcode-0x0D callback in the actor's cutscene script: queues CD command 0x82
-/// through `CdCmd_EnqueueReplaceOverlay82`.
+/// Opcode-0x0D callback in the actor's cutscene script: stages the selected
+/// scene's deferred audio start through `cdCmdStageSceneAudioStart`.
 void func_actor_303600_80162658(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
-/// Opcode-0x0D callback in the actor's cutscene script: queues CD command 0x81
-/// through `CdCmd_EnqueueOverlay81`.
+/// Opcode-0x0D callback in the actor's cutscene script: requests the selected
+/// scene's playback through `cdCmdEnqueueScenePlayback`.
 void func_actor_303600_80162678(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 /// Opcode-0x0D callback in the actor's cutscene script: restores the stream

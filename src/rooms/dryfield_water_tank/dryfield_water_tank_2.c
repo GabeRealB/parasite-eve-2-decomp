@@ -1009,7 +1009,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 return;
@@ -1020,11 +1020,11 @@ void func_dryfield_water_tank_8017E568(Task* task)
             sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_A, 0x1E);
             sndEvtRequestScriptStop(SOUND_WATER_TANK_MOVIE_SFX_B, 0x1E);
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
         case 4:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             Stream_ResetRestoreState();

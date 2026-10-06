@@ -265,12 +265,12 @@ void func_dryfield_toilet_8017DA3C(s32 arg0)
 
 void func_dryfield_toilet_8017DC50(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_dryfield_toilet_8017DC70(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_dryfield_toilet_8017DC90(void)

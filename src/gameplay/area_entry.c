@@ -130,7 +130,7 @@ void Gp_AreaEnterTask(Task* arg0)
 
         obj = arg0->spawnArg2.pointer;
         if (gStageMusicLoadState == 0xFF) {
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
                     uiStartTreeClosing(obj, obj->owner);
                     if (arg0->status != 0) {
@@ -162,7 +162,7 @@ void Gp_AreaEnterTask(Task* arg0)
 
     if (arg0->state >= 0x11) {
         if (gStageMusicLoadState == 0xFF) {
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
                 SndEvt_EnqueueType9(SOUND_COMMON(0x0D));
                 taskKill(arg0);

@@ -12164,11 +12164,11 @@ stores — GCC still lowers `% 8` to `& 7`, but only after materializing the
 truncated u16 value of the first assignment:
 
 ```c
-CdCmd_EntryIter = index + 1;
-CdCmd_EntryIter = CdCmd_EntryIter % 8;  /* not &= 7, not (index+1)&7 */
+CdCmd_EntryIter = slot + 1;
+CdCmd_EntryIter = CdCmd_EntryIter % 8;  /* not &= 7, not (slot+1)&7 */
 ```
 
-`CdCmd_NextEntry` (8-entry queue walk of `gCdCmdQueue.entries`) is a pure example.
+`cdCmdNextQueuedEntry` (8-entry queue walk of `gCdCmdQueue.entries`) is a pure example.
 The same double-store shape appears on `field_1c8` / `field_1ca` updates in the
 nearby ring producers (e.g. `CdCmd_CommitReplace`).
 
@@ -12546,29 +12546,29 @@ state->field_1ca = state->field_1ca % 8;
 
 `% 8` on a u16 forces the zero-extend `andi 0xffff` before `andi 7`. Writing
 `x & 7` (or `(x + 1) & 7`) combines into a single `andi 7` and drops one store.
-`CdCmd_NextEntry` (`CdCmd_EntryIter = index + 1; CdCmd_EntryIter = CdCmd_EntryIter % 8;`) is the
+`cdCmdNextQueuedEntry` (`CdCmd_EntryIter = slot + 1; CdCmd_EntryIter = CdCmd_EntryIter % 8;`) is the
 matched precedent; `CdCmd_HandleMount` needs the same form for `field_1ca`.
 
-Same rule applies to **loop indices** that index `entries[i]` each iteration. A
+Same rule applies to **loop indices** that index `entries[slot]` each iteration. A
 u16 walk of the ring:
 
 ```c
-i = p->readIdx + 1;
-i = i % 8;
-if (i != writeIdx) {
+slot = queue->readIdx + 1;
+slot = slot % 8;
+if (slot != tailSlot) {
     do {
-        p->entries[i].cmd = 0;
-        i = i + 1;
-        i = i % 8;
-    } while (i != p->writeIdx);
+        queue->entries[slot].cmd = 0;
+        slot = slot + 1;
+        slot = slot % 8;
+    } while (slot != queue->writeIdx);
 }
 ```
 
-needs `% 8` on both the initial wrap and the loop step. Using `i = (i + 1) & 7`
+needs `% 8` on both the initial wrap and the loop step. Using `slot = (slot + 1) & 7`
 lets GCC fold the zero-extend into the address calc (`sll` in the branch delay
 slot, pointer in `$a1` instead of `$a0`) and breaks the
 `andi v0, v1, 0xffff` / `addiu v1, v1, 1` / `sll v0, v0, 3` shape.
-`CdCmd_DropPending` is the pure example.
+`cdCmdDropQueuedTail` is the pure example.
 
 ## Route a `volatile u8` load through an existing `s32` temp for s-reg order
 
@@ -15792,14 +15792,14 @@ Fix without matching the middle function yet:
 ```c
 static const s32 s_jtbl_pad = 0;
 const s32 jtbl_80012FCC[9] = {
-    0x8001D29C, /* absolute targets of still-asm CdCmd_EnqueueFollowUp */
+    0x8001D29C, /* absolute targets of still-asm cdCmdResumeSuspendedMovie */
     /* ... */
 };
 ```
 
 Remove the pad and absolute table when the middle function is matched (its
 compiler-generated jtbl will occupy the slot naturally). `CdCmd_ProcessPhase2` is the
-example (pad for `jtbl_80012FCC` / `CdCmd_EnqueueFollowUp`).
+example (pad for `jtbl_80012FCC` / `cdCmdResumeSuspendedMovie`).
 
 ## Hex digit loop: `asm("")` after the raw-digit store
 
@@ -17277,7 +17277,7 @@ return 0;
 A bare `if (p->sceneAudioMode != 0)` emits `lh` and often inverts branch polarity
 (`beqz` with the non-zero body as fall-through). Prefer the positive `!= 0`
 test first so GCC emits `bnez` with the zero-return as the fall-through
-epilogue. `CdCmd_ActivatePhase1` (`gCdCmdQueue.sceneAudioMode`).
+epilogue. `cdCmdRequestCancel` (`gCdCmdQueue.sceneAudioMode`).
 
 ## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
 
@@ -18931,7 +18931,7 @@ do_work:
 ```
 
 Pairs with the early busy-path `if (flag != 0) return 1;` (which still puts
-`li v0, 1` in the `bnez` delay slot). `CdCmd_ActivatePhase2` is the pure example.
+`li v0, 1` in the `bnez` delay slot). `cdCmdRequestSuspend` is the pure example.
 
 ## Keep signed-div dividend live for early `sra` before `mfhi`
 
@@ -20245,7 +20245,7 @@ ret = new_var;
 return new_var; /* default return-1 paths */
 ```
 
-`CdCmd_EnqueueFollowUp` is the pure example. Plain `ret = 1` stuck at xor/sltiu.
+`cdCmdResumeSuspendedMovie` is the pure example. Plain `ret = 1` stuck at xor/sltiu.
 
 ## `do{}while(0)` + `register … asm` for shared enqueue register map
 
@@ -20276,7 +20276,7 @@ Also: use `(&Global)->field` (not a local `q = &Global`) on a later path when
 the target reloads the global into `$a0` while `$a0` already holds another
 address in a delay slot.
 
-`CdCmd_EnqueueFollowUp` needs all of the above together.
+`cdCmdResumeSuspendedMovie` needs all of the above together.
 
 ## Triple address-of for same-page BSS `lui` order
 
@@ -35146,7 +35146,7 @@ byte offset first so the already-live `$v0` is shifted immediately:
 idx = (arg1 & 0xFF) << 2;
 p   = blk.flags;
 *(s32*)((s32)p + idx) = -1;
-CdCmd_DropPending();
+cdCmdDropQueuedTail();
 ```
 
 `Gp_EnqueueItemPreviewCd` is the example.
@@ -43729,7 +43729,7 @@ targets it, not just the ones before the label itself.
 A `SOFT_BARRIER()` between the call and the `goto` in either copy is enough:
 
 ```c
-if (CdCmd_IsIdle() & 0xFFFF) {
+if (cdCmdIsIdle() & 0xFFFF) {
     SetDispMask(0);
     SOFT_BARRIER();
     goto advance;
@@ -92463,7 +92463,7 @@ needs. Transplant the sibling, change the constants, done.
 The gate itself varies too, so read the family as the `*out = *in` plus
 `RoomEventMsg` skeleton rather than the nibble specifically:
 `func_neo_ark_eve_elevator_8017D5D8` keeps the `msgId` and `queryOnly` tests but
-gates on `CdCmd_IsIdle()` and answers with `Gp_SpawnIfCapIdle(1, 1)`, where the
+gates on `cdCmdIsIdle()` and answers with `Gp_SpawnIfCapIdle(1, 1)`, where the
 siblings latch a nibble and run a cap command. `func_80179B14` is the shared
 forwarder the shrine, garden, observatory and elevator forms all call with
 `(in, out)` right after the copy - `func_80179A04` plays that role in mine_gorge -
@@ -96499,7 +96499,7 @@ two-case form (`beq 1` … `beq 2`) never produces.
 
 A scratch match can port cleanly and still come out one instruction short if the
 host `.c` is missing a header the scratch had. With `-w`, an undeclared callee
-is implicitly `int`, so `CdCmd_IsIdle() == 1` compares all 32 bits instead of
+is implicitly `int`, so `cdCmdIsIdle() == 1` compares all 32 bits instead of
 masking to the declared `u16` return. Nothing warns, the overlay just ends up 4
 bytes shorter and the checksum fails away from the edited function. Compare the
 scratch's include list against the host file's before hunting for a codegen
@@ -149592,7 +149592,7 @@ attempts; left as it was.
   (u16)work->t - 1; }`.
 - **A tail that ORs a bit into a variable cannot be duplicated behind a
   constant assignment.** `Gp_SelectWeaponMenuTask` ends both of its arms in
-  `if (CdCmd_IsIdle() == 0) flags |= 0x100;`, entered with `flags` 0x12 or
+  `if (cdCmdIsIdle() == 0) flags |= 0x100;`, entered with `flags` 0x12 or
   0x10 and skipped by `flags = 0x112` / `0x110` when there is no item. Written
   in each arm, the copy that directly follows `flags = 0x10` is folded to
   `li s0,0x110` and no longer merges. The shared label with two users is what

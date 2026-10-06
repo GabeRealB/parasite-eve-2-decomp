@@ -639,20 +639,20 @@ void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
             }
             break;
         case 3:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 arg0->state++;
                 break;
             }
             if (Pad_CheckFlag800() != 0) {
                 SetDispMask(0);
-                CdCmd_ActivatePhase1();
+                cdCmdRequestCancel();
                 arg0->state++;
                 break;
             }
             break;
         case 4:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 Stream_ResetRestoreState();
                 arg0->state++;
                 break;

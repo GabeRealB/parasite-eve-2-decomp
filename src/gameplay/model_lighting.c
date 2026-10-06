@@ -3116,7 +3116,7 @@ void Gp_RestartSessionTask(Task* arg0)
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
     Mem_Init();
-    CdCmd_ActivatePhase1();
+    cdCmdRequestCancel();
     session                          = gGameSession;
     queue->suppressMoviePresentation = 1;
     if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {

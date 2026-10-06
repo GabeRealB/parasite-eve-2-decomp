@@ -89,7 +89,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             task->state = task->state + 1;
             return;
         case 3:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 return;
@@ -98,11 +98,11 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
                 return;
             }
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state = 7;
             return;
         case 4:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 loopKey = gGameSession->location;
                 if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
                     loopKey.loc.view = 0x66;
@@ -123,7 +123,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             task->state = task->state + 1;
             return;
         case 6:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 return;
@@ -132,11 +132,11 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
                 return;
             }
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
         case 7:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             Stream_ResetRestoreState();

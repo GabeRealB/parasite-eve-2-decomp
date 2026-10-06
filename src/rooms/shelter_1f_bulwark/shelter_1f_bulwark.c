@@ -498,7 +498,7 @@ void func_shelter_1f_bulwark_8017DC78(Task* arg0)
             task->state = task->state + 1;
             break;
         case 3:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 break;
@@ -507,11 +507,11 @@ void func_shelter_1f_bulwark_8017DC78(Task* arg0)
                 break;
             }
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state = task->state + 1;
             break;
         case 4:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             Stream_ResetRestoreState();

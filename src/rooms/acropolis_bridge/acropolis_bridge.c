@@ -3060,7 +3060,7 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
             task->state = task->state + 1;
             break;
         case 2:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             task->state = task->state + 1;

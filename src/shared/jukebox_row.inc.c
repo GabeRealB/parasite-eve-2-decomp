@@ -42,7 +42,7 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
                     SndEvt_EnqueueType2(0, 0x3C);
                     obj->owner->state  = mode;
                     obj->owner->status = track->sequenceId;
-                    CdCmd_DropPending();
+                    cdCmdDropQueuedTail();
                 }
                 obj->owner->spawnArg1.value = prompt->currentItemIndex;
             }

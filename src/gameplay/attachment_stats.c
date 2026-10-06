@@ -1133,7 +1133,7 @@ static __inline__ s32 cdIdleIfF0Active_(void)
         cond = 0;
     }
     if (cond) {
-        ret = CdCmd_IsIdle();
+        ret = cdCmdIsIdle();
     } else {
         ret = 1;
     }

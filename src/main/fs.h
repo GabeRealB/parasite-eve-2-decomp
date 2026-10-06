@@ -42,7 +42,11 @@ extern s8 D5B498_8006C233;
 /// ended first; this neither stops the drive nor frees playback allocations.
 void cdCmdResetState(void);
 
-void CdCmd_ClearBusy(void);
+/// Releases the queue's blocking-operation flag and display CD-busy latch.
+///
+/// The display latch is written only when the queue was busy. Ring indices and
+/// dispatch phase are unchanged, so this does not imply `cdCmdIsIdle`.
+void cdCmdClearBusy(void);
 
 /// Appends a request only when the ring head is outside the scene-audio family.
 ///
@@ -53,9 +57,23 @@ void cdCmdEnqueueUnlessSceneAudioPending(s32 command, const void* fileKey, const
 
 void CdCmd_Dispatch(void);
 
-u16 CdCmd_ActivatePhase2(void);
+/// Requests suspension of a non-scene-audio ring head for a display transition.
+///
+/// Returns 1 if cancellation/suspension is already selected. Otherwise an empty
+/// head or scene-audio-family head returns 0; any other opcode is snapshotted
+/// and selects suspension, returning 1. Dispatch performs the actual stop and
+/// captures a movie's absolute resume sector; this call does not wait for it.
+u16 cdCmdRequestSuspend(void);
 
-u16 CdCmd_EnqueueFollowUp(void);
+/// Requeues a saved movie and polls until it starts or the queue becomes idle.
+///
+/// Call repeatedly after suspension and intervening loads. Movie-family requests
+/// resume through `CD_COMMAND_CONTINUE_STREAM`; offset-movie requests use
+/// `CD_COMMAND_RESUME_STREAM_AT_POSITION` and the saved absolute sector. Returns
+/// 0 while waiting, then clears the complete active snapshot and returns 1.
+/// Other saved opcode families return 1 without changing the snapshot. Enqueue
+/// requires free ring capacity as in `cdCmdEnqueue`.
+u16 cdCmdResumeSuspendedMovie(void);
 
 /// Polls a seek; callers supply a second argument that the routine ignores.
 s32 CdCmd_SeekL(u8* loc, s32 unused);
@@ -139,7 +157,11 @@ void CdVol_ApplyFromTable(u16 index);
 
 s32 CdVol_StepDown(void);
 
-/// Reports an idle queue or an overlay command at its head.
-extern u16 CdCmd_IsIdleOrOverlayPending(void);
+/// Returns 1 for an idle queue or a scene-audio-family opcode at its head.
+///
+/// The scene-audio test accepts that head even during cancellation/suspension,
+/// allowing display-transition loads to proceed alongside the scene session.
+/// Every other nonidle queue returns 0.
+u16 cdCmdIsIdleOrSceneAudioPending(void);
 
 #endif // MAIN_PRIVATE_FS_H

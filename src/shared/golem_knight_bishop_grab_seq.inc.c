@@ -274,7 +274,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     work->timer = 1;
                     break;
                 case 1:
-                    if ((CdCmd_IsIdle() & 0xFFFF) == 1) {
+                    if ((cdCmdIsIdle() & 0xFFFF) == 1) {
                         coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                         sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                         work->timer = 2;

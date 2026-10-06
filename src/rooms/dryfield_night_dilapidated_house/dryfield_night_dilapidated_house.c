@@ -260,13 +260,13 @@ void func_dryfield_night_dilapidated_house_8017DA18(Task* task)
 /// Cutscene script callback: queues the replacement of overlay 0x82.
 void func_dryfield_night_dilapidated_house_8017DA70(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 /// Cutscene script callback: queues overlay 0x81.
 void func_dryfield_night_dilapidated_house_8017DA90(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 /// Cutscene script callback: restores the stream random state.

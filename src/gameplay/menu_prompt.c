@@ -2573,7 +2573,7 @@ InventoryItemRow* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 ar
 /// item preview, while the CD queue is still busy loading it.
 #define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
     do {                                     \
-        if (CdCmd_IsIdle() == 0) {           \
+        if (cdCmdIsIdle() == 0) {            \
             (flags) |= 0x100;                \
         }                                    \
     } while (0)

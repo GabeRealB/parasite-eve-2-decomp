@@ -73,7 +73,7 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
                 task->spawnArg1.value = 1;
                 Stage_RequestFromAreaTable(0xA);
             }
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 break;
@@ -85,11 +85,11 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
                 Stage_RequestFromAreaTable(0xA);
             }
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state = task->state + 1;
             break;
         case 4:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             Stream_ResetRestoreState();

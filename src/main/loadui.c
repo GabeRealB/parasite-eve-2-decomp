@@ -147,7 +147,7 @@ s32 LoadUi_PollDiskSwap(void)
             D_8007A394++;
             return 0xFF;
         case 1:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 Fs_StopCd();
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 D_8007A394++;

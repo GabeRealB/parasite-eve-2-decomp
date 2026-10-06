@@ -532,17 +532,17 @@ void func_neo_ark_altar_8017DA40(Task* task)
             }
             break;
         case 3:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state++;
             } else if (Pad_CheckFlag800()) {
                 SetDispMask(0);
-                CdCmd_ActivatePhase1();
+                cdCmdRequestCancel();
                 task->state++;
             }
             break;
         case 4:
-            if (CdCmd_IsIdle()) {
+            if (cdCmdIsIdle()) {
                 Stream_ResetRestoreState();
                 task->state++;
             }

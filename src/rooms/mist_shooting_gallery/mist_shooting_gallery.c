@@ -2191,7 +2191,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
                 task->state += 1;
             }
         } else {
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SndEvt_EnqueueType1(flags, 0);
                 sndEvtRequestMidiVolume(flags, (u8)D_8007A396);
                 ready          = 1;
@@ -2266,7 +2266,7 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
             return;
 
         case 1:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 arg0->killCountdown                     = 0;
                 arg0->state++;
@@ -2398,7 +2398,7 @@ void func_mist_shooting_gallery_80180F2C(Task* arg0)
             task->state = task->state + 1;
             break;
         case 3:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 break;
@@ -2407,11 +2407,11 @@ void func_mist_shooting_gallery_80180F2C(Task* arg0)
                 break;
             }
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state = task->state + 1;
             break;
         case 4:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             Stream_ResetRestoreState();

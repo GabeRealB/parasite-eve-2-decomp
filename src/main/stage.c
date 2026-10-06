@@ -310,13 +310,13 @@ static s32 Display_TransitionLoad(Task* unused)
             Stage_Ctx->transitionStep            = Stage_Ctx->transitionStep + 1;
             break;
         case 1:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 cdCmdEnqueue(CD_COMMAND_LOAD_FILE, Stage_Ctx->loadFileKey, Stage_Ctx->loadFileArgs);
                 Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
             }
             break;
         case 2:
-            if ((CdCmd_IsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->heldFrameBuffer)) {
+            if ((cdCmdIsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->heldFrameBuffer)) {
                 gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
                                     MEMORY_PRIMITIVE_HEAP_BYTES);
                 memInitAuxHeap();
@@ -465,7 +465,7 @@ static void Display_TransitionTask(Task* task)
                             Stage_Ctx->transitionStep = Stage_Ctx->transitionStep + 1;
                         }
                     }
-                    CdCmd_ActivatePhase2();
+                    cdCmdRequestSuspend();
                 }
                 break;
             case 2:
@@ -857,7 +857,7 @@ void Stage_ResetFade(void)
 static void Stage_WaitCdActivate(Task* task)
 {
     Pad_SetCooldown(0);
-    if (CdCmd_ActivatePhase2() != 0) {
+    if (cdCmdRequestSuspend() != 0) {
         task->state += 1;
     } else {
         gPadStates[0].inputBlockPolls = 1;
@@ -869,7 +869,7 @@ static void Stage_WaitCdActivate(Task* task)
 static void Stage_WaitCdAndSpawn(Task* task)
 {
     Pad_SetCooldown(0);
-    if (CdCmd_IsIdleOrOverlayPending() != 0) {
+    if (cdCmdIsIdleOrSceneAudioPending() != 0) {
         gPadStates[0].inputBlockPolls = 1;
         Display_SpawnFromMode();
         task->state += 1;
@@ -895,14 +895,14 @@ static void Display_TaskLoadStep(Task* task)
 
 static void Stage_WaitCdEntry(Task* task)
 {
-    if (CdCmd_IsIdleOrOverlayPending() != 0) {
+    if (cdCmdIsIdleOrSceneAudioPending() != 0) {
         task->state += 1;
     }
 }
 
 static void Stage_FinishCdFollowUp(Task* task)
 {
-    if (CdCmd_EnqueueFollowUp() != 0) {
+    if (cdCmdResumeSuspendedMovie() != 0) {
         gDisplayState.displayOwner              = DISPLAY_OWNER_GAME_LOOP;
         gDisplayState.pendingMode               = DISPLAY_MODE_NONE;
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;

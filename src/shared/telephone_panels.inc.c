@@ -161,7 +161,7 @@ static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
 
     textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_801819F8, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     sel = prompt->rowInputEnabled;
-    if (sel == 1 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0 && CdCmd_IsIdle() != 0) {
+    if (sel == 1 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0 && cdCmdIsIdle() != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
         uiSpawnObject(&D_800611E4, 1, 0, 0, obj);

@@ -2190,13 +2190,13 @@ void func_actor_120300_80133D04(s32 arg0)
 
 void func_actor_120300_80133DA4(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
     gGameSession->viewDirty = 1;
 }
 
 void func_actor_120300_80133DD4(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_actor_120300_80133DF4(void)

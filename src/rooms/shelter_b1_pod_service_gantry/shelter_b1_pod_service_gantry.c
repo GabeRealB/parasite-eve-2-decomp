@@ -1554,7 +1554,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_SECOND_SCENE:
-            if (CdCmd_IsIdle() == 0) {
+            if (cdCmdIsIdle() == 0) {
                 break;
             }
             work->sceneTask = taskSpawnFromTable(D_actor_160900_8013FB50, 0, 0, 0);

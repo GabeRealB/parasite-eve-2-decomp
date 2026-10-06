@@ -1345,7 +1345,7 @@ void func_800CCDC8(Task* arg0)
         arg0->state = 2;
     }
     if (arg0->state == 2) {
-        if ((queue->scenePayloadAvailable != 0) || (CdCmd_IsIdle() & 0xFFFF)) {
+        if ((queue->scenePayloadAvailable != 0) || (cdCmdIsIdle() & 0xFFFF)) {
             arg0->state = 1;
         }
     }
@@ -1738,7 +1738,7 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
         if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
             _gpSetPreviewItem(arg2, arg3);
         }
-        if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        if ((cdCmdIsIdle() & 0xFFFF) == 0) {
             flags |= 0x100;
         }
     } else {

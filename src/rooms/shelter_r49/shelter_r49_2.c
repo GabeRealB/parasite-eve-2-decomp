@@ -230,7 +230,7 @@ void func_shelter_r49_8017D71C(Task* arg0)
             task->state++;
             break;
         case 4:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state++;
                 break;
@@ -239,11 +239,11 @@ void func_shelter_r49_8017D71C(Task* arg0)
                 break;
             }
             SetDispMask(0);
-            CdCmd_ActivatePhase1();
+            cdCmdRequestCancel();
             task->state++;
             break;
         case 5:
-            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             Stream_ResetRestoreState();

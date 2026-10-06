@@ -2816,7 +2816,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                         work->stateCounter = 1;
                     }
                 }
-            } else if ((CdCmd_IsIdle() & 0xFFFF) == state) {
+            } else if ((cdCmdIsIdle() & 0xFFFF) == state) {
                 coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
                 sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
                                          (s8)worldCoordGetOriginAudioDepth(coord));

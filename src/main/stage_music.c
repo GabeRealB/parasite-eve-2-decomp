@@ -278,7 +278,7 @@ static void Stage_ApplyTableEntryWhenIdle(Task* task)
     _StageMusicSelection* selection;
 
     selection = task->work;
-    if (CdCmd_IsIdle() != 0) {
+    if (cdCmdIsIdle() != 0) {
         Stage_ApplyEntry(task, selection, &selection->table[selection->index]);
     }
 }
@@ -335,7 +335,7 @@ static void Stage_DispatchTaskTable(Task* task)
 
 static void Stage_KillWhenIdle(Task* task)
 {
-    if (CdCmd_IsIdle() != 0) {
+    if (cdCmdIsIdle() != 0) {
         gStageMusicLoadState = 0xFF;
         taskKill(task);
     }

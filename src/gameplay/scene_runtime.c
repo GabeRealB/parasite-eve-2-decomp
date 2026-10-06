@@ -807,7 +807,7 @@ void Gp_StepCdAudioCmd(void)
         case CD_COMMAND_START_SCENE_AUDIO:
             switch (p->step) {
                 case 0:
-                    CdCmd_SetBusy();
+                    cdCmdSetBusy();
                     p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
                     ret               = CdCmd_PollStatus(0, 0);
                     if (ret != 1) {
@@ -913,7 +913,7 @@ void Gp_StepCdAudioCmd(void)
                     cmd                  = p->entries[p->readIdx].cmd;
                     if (cmd == CD_COMMAND_START_SCENE_AUDIO) {
                         cdCmdSaveHeadRequest();
-                        CdCmd_AdvanceRead();
+                        cdCmdCompleteHeadRequest();
                         break;
                     }
                     if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
@@ -985,7 +985,7 @@ void Gp_StepCdAudioCmd(void)
                         gRandomLcgState          = q->savedLcgState;
                         srand(seed);
                     }
-                    CdCmd_AdvanceRead();
+                    cdCmdCompleteHeadRequest();
                     break;
                 }
                 case 8: {
@@ -1027,7 +1027,7 @@ void Gp_StepCdAudioCmd(void)
                         gRandomLcgState          = q->savedLcgState;
                         srand(seed);
                     }
-                    CdCmd_AdvanceRead();
+                    cdCmdCompleteHeadRequest();
                     break;
                 }
             }
@@ -1262,7 +1262,7 @@ static s32 Gp_TryEnqueueSndCd(s32 arg0)
     u8 param1[8];
     u8 param2[8];
 
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         param1[0] = arg0;
         param1[3] = 0;
         param1[2] = 5;
@@ -1344,7 +1344,7 @@ static void Gp_StartStageLoad(Task* task)
 
 static void Gp_FinishStageLoad(Task* task)
 {
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
             taskSpawnFromTable(D_replay_bonus_8011922C, 0, 0, 0);

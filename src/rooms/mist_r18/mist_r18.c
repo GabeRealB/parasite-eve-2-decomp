@@ -1622,7 +1622,7 @@ void func_mist_r18_8017EBB8(void)
 {
     gGameSession->viewDirty = 1;
     CdCmd_StartOverlay(1U, 0x1EU, 0xBU);
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 void func_mist_r18_8017EBF8(void)
@@ -1634,7 +1634,7 @@ void func_mist_r18_8017EBF8(void)
 
 void func_mist_r18_8017EC38(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 void func_mist_r18_8017EC58(void)

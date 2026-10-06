@@ -51,7 +51,6 @@ static void CdCmd_ProcessPhase2(void);
 
 static inline s32 _cdCmdEnqueue(s32 command, const void* fileKey, const void* commandArgs);
 
-/* True when no transfer is in progress and the ring is empty. */
 static inline u16 _cdCmdIsIdle(void);
 
 static s32 CdCmd_GetOverlayStatus(void);
@@ -601,27 +600,36 @@ static void CdCmd_HandleMount(void)
     }
 }
 
-s32 CdCmd_ActivatePhase1(void)
+/// Saves the captured head opcode and the remaining seven request bytes.
+///
+/// Keeps the saved resume sector and phase intact for the caller's transition.
+/// The ring head must remain valid throughout the bytewise snapshot.
+static inline void _cdCmdSnapshotHeadRequest(CdCmdQueue* queue, u8 headCommand)
 {
-    CdCmdQueue* p;
-    u8          cmd;
+    queue->activeRequest.entry.cmd           = headCommand;
+    queue->activeRequest.entry.stage         = queue->entries[queue->readIdx].stage;
+    queue->activeRequest.entry.fileGroup     = queue->entries[queue->readIdx].fileGroup;
+    queue->activeRequest.entry.fileIndex     = queue->entries[queue->readIdx].fileIndex;
+    queue->activeRequest.entry.args.bytes[0] = queue->entries[queue->readIdx].args.bytes[0];
+    queue->activeRequest.entry.args.bytes[1] = queue->entries[queue->readIdx].args.bytes[1];
+    queue->activeRequest.entry.args.bytes[2] = queue->entries[queue->readIdx].args.bytes[2];
+    queue->activeRequest.entry.args.bytes[3] = queue->entries[queue->readIdx].args.bytes[3];
+}
 
-    p   = &gCdCmdQueue;
-    cmd = p->entries[p->readIdx].cmd;
-    if (cmd != CD_COMMAND_EMPTY) {
-        p->activeRequest.entry.cmd           = cmd;
-        p->activeRequest.entry.stage         = p->entries[p->readIdx].stage;
-        p->activeRequest.entry.fileGroup     = p->entries[p->readIdx].fileGroup;
-        p->activeRequest.entry.fileIndex     = p->entries[p->readIdx].fileIndex;
-        p->activeRequest.entry.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
-        p->activeRequest.entry.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
-        p->activeRequest.entry.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
-        p->activeRequest.entry.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
-        p->activeRequest.phase               = CD_COMMAND_PHASE_CANCEL;
+s32 cdCmdRequestCancel(void)
+{
+    CdCmdQueue* queue;
+    u8          command;
+
+    queue   = &gCdCmdQueue;
+    command = queue->entries[queue->readIdx].cmd;
+    if (command != CD_COMMAND_EMPTY) {
+        _cdCmdSnapshotHeadRequest(queue, command);
+        queue->activeRequest.phase = CD_COMMAND_PHASE_CANCEL;
         return 1;
     }
-    if ((u16)p->sceneAudioMode != CD_COMMAND_SCENE_INACTIVE) {
-        p->activeRequest.phase = CD_COMMAND_PHASE_CANCEL;
+    if ((u16)queue->sceneAudioMode != CD_COMMAND_SCENE_INACTIVE) {
+        queue->activeRequest.phase = CD_COMMAND_PHASE_CANCEL;
         return 1;
     }
     return 0;
@@ -777,28 +785,22 @@ static void CdCmd_ProcessPhase1(void)
     }
 }
 
-u16 CdCmd_ActivatePhase2(void)
+u16 cdCmdRequestSuspend(void)
 {
-    CdCmdQueue* p;
-    u8          cmd;
+    enum { CD_COMMAND_SCENE_AUDIO_FAMILY = CD_COMMAND_PLAY_SCENE_AUDIO >> 4 };
+    CdCmdQueue* queue;
+    u8          command;
 
-    p = &gCdCmdQueue;
-    if (p->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
+    queue = &gCdCmdQueue;
+    if (queue->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
         return 1;
     }
-    cmd = p->entries[p->readIdx].cmd;
-    if ((cmd >> 4) == 8 || cmd == CD_COMMAND_EMPTY) {
+    command = queue->entries[queue->readIdx].cmd;
+    if ((command >> 4) == CD_COMMAND_SCENE_AUDIO_FAMILY || command == CD_COMMAND_EMPTY) {
         return 0;
     }
-    p->activeRequest.entry.cmd           = cmd;
-    p->activeRequest.entry.stage         = p->entries[p->readIdx].stage;
-    p->activeRequest.entry.fileGroup     = p->entries[p->readIdx].fileGroup;
-    p->activeRequest.entry.fileIndex     = p->entries[p->readIdx].fileIndex;
-    p->activeRequest.entry.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
-    p->activeRequest.entry.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
-    p->activeRequest.entry.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
-    p->activeRequest.entry.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
-    p->activeRequest.phase               = CD_COMMAND_PHASE_SUSPEND;
+    _cdCmdSnapshotHeadRequest(queue, command);
+    queue->activeRequest.phase = CD_COMMAND_PHASE_SUSPEND;
     return 1;
 }
 
@@ -894,10 +896,12 @@ static void CdCmd_ProcessPhase2(void)
 
 /* Alignment pad after the 9-entry CdCmd_ProcessPhase2 jump table. */
 
-/// Copies the split file key and all argument bytes into one request.
+/// Stores the low command byte, key bytes 3/2/0 and all four argument bytes.
 ///
-/// Reads unsigned bytes in opcode/key/argument order, including opcode-unused
-/// bytes and address-zero sources. The byte views require no alignment.
+/// Uses unsigned byte views in that order, with no alignment requirement or
+/// retained source pointers. Both source addresses must remain readable through
+/// their highest accessed byte, including opcode-unused bytes. A zero address
+/// is read from low RAM, as required by the resident raw-byte API.
 static inline void _cdCmdStoreRequest(CdCmdEntry* entry, s32 command, const void* fileKey, const void* commandArgs)
 {
     const u8* fileKeyBytes;
@@ -934,28 +938,35 @@ static inline s32 _cdCmdEnqueue(s32 command, const void* fileKey, const void* co
     return writtenSlot;
 }
 
-/* True when no transfer is in progress and the ring is empty. */
+/// Returns 1 when normal dispatch is selected and the request ring is empty.
 static inline u16 _cdCmdIsIdle(void)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p = &gCdCmdQueue;
-    if (p->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
+    queue = &gCdCmdQueue;
+    if (queue->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
         return 0;
     }
-    if (p->writeIdx != p->readIdx) {
+    if (queue->writeIdx != queue->readIdx) {
         return 0;
     }
     return 1;
 }
 
-u16 CdCmd_EnqueueFollowUp(void)
+u16 cdCmdResumeSuspendedMovie(void)
 {
-    CdCmdQueue* p;
-    u8          params[4];
+    enum {
+        CD_COMMAND_SCENE_AUDIO_FAMILY  = CD_COMMAND_PLAY_SCENE_AUDIO >> 4,
+        CD_COMMAND_MOVIE_FAMILY        = CD_COMMAND_CONTINUE_STREAM >> 4,
+        CD_COMMAND_OFFSET_MOVIE_FAMILY = CD_COMMAND_RESUME_STREAM_AT_POSITION >> 4,
+        CD_COMMAND_RESUME_ENQUEUE      = 0,
+        CD_COMMAND_RESUME_WAIT         = 1,
+    };
+    CdCmdQueue* queue;
+    u8          fileKeyBytes[4];
 
-    p = &gCdCmdQueue;
-    switch (p->activeRequest.entry.cmd >> 4) {
+    queue = &gCdCmdQueue;
+    switch (queue->activeRequest.entry.cmd >> 4) {
         case 0:
         case 1:
         case 2:
@@ -963,30 +974,32 @@ u16 CdCmd_EnqueueFollowUp(void)
         case 4:
         case 5:
             break;
-        case 6:
-        case 7:
-            switch (p->suspendResumeStep) {
-                case 0:
-                    params[3] = p->activeRequest.entry.stage;
-                    params[2] = p->activeRequest.entry.fileGroup;
-                    params[0] = p->activeRequest.entry.fileIndex;
-                    if ((p->activeRequest.entry.cmd >> 4) == 6) {
-                        _cdCmdEnqueue(CD_COMMAND_CONTINUE_STREAM, params, p->activeRequest.entry.args.bytes);
-                    } else if ((p->activeRequest.entry.cmd >> 4) == 7) {
-                        _cdCmdEnqueue(CD_COMMAND_RESUME_STREAM_AT_POSITION, params, p->activeRequest.entry.args.bytes);
+        case CD_COMMAND_MOVIE_FAMILY:
+        case CD_COMMAND_OFFSET_MOVIE_FAMILY:
+            switch (queue->suspendResumeStep) {
+                case CD_COMMAND_RESUME_ENQUEUE:
+                    // Requeue the saved movie before waiting for its first frame.
+                    fileKeyBytes[3] = queue->activeRequest.entry.stage;
+                    fileKeyBytes[2] = queue->activeRequest.entry.fileGroup;
+                    fileKeyBytes[0] = queue->activeRequest.entry.fileIndex;
+                    if ((queue->activeRequest.entry.cmd >> 4) == CD_COMMAND_MOVIE_FAMILY) {
+                        _cdCmdEnqueue(CD_COMMAND_CONTINUE_STREAM, fileKeyBytes, queue->activeRequest.entry.args.bytes);
+                    } else if ((queue->activeRequest.entry.cmd >> 4) == CD_COMMAND_OFFSET_MOVIE_FAMILY) {
+                        _cdCmdEnqueue(CD_COMMAND_RESUME_STREAM_AT_POSITION, fileKeyBytes, queue->activeRequest.entry.args.bytes);
                     }
-                    p->suspendResumeStep++;
+                    queue->suspendResumeStep++;
                     return 0;
-                case 1:
-                    if (p->movieReady != 0 || _cdCmdIsIdle()) {
-                        memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
-                        p->suspendResumeStep = 0;
+                case CD_COMMAND_RESUME_WAIT:
+                    // A skipped movie can retire without ever publishing a frame.
+                    if (queue->movieReady != 0 || _cdCmdIsIdle()) {
+                        memFillBytes(&queue->activeRequest, 0, sizeof(queue->activeRequest));
+                        queue->suspendResumeStep = CD_COMMAND_RESUME_ENQUEUE;
                         break;
                     }
                     return 0;
             }
             break;
-        case 8:
+        case CD_COMMAND_SCENE_AUDIO_FAMILY:
             break;
     }
     return 1;
@@ -997,15 +1010,15 @@ s32 cdCmdEnqueue(s32 command, const void* fileKey, const void* commandArgs)
     return _cdCmdEnqueue(command, fileKey, commandArgs);
 }
 
-u16 CdCmd_IsIdle(void)
+u16 cdCmdIsIdle(void)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p = &gCdCmdQueue;
-    if (p->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
+    queue = &gCdCmdQueue;
+    if (queue->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
         return 0;
     }
-    return p->writeIdx == p->readIdx;
+    return queue->writeIdx == queue->readIdx;
 }
 
 u16 CdCmd_IsSlotEmpty(s16 arg0)
@@ -1027,42 +1040,43 @@ void cdCmdResetState(void)
     memFillBytes(&gCdCmdQueue, 0, sizeof(gCdCmdQueue));
 }
 
-s32 CdCmd_DropPending(void)
+s32 cdCmdDropQueuedTail(void)
 {
-    CdCmdQueue* p;
-    u16         i;
-    u16         writeIdx;
+    CdCmdQueue* queue;
+    u16         slot;
+    u16         tailSlot;
 
-    p        = &gCdCmdQueue;
-    writeIdx = p->writeIdx;
-    if (writeIdx == p->readIdx) {
+    queue    = &gCdCmdQueue;
+    tailSlot = queue->writeIdx;
+    if (tailSlot == queue->readIdx) {
         return 1;
     }
 
-    i = p->readIdx + 1;
-    i = i % ARRAY_SIZE(p->entries);
-    if (i != writeIdx) {
+    // Preserve the head; discard only requests queued behind it.
+    slot = queue->readIdx + 1;
+    slot = slot % ARRAY_SIZE(queue->entries);
+    if (slot != tailSlot) {
         do {
-            p->entries[i].cmd = CD_COMMAND_EMPTY;
-            i                 = i + 1;
-            i                 = i % ARRAY_SIZE(p->entries);
-        } while (i != p->writeIdx);
+            queue->entries[slot].cmd = CD_COMMAND_EMPTY;
+            slot                     = slot + 1;
+            slot                     = slot % ARRAY_SIZE(queue->entries);
+        } while (slot != queue->writeIdx);
     }
 
-    p->writeIdx = p->readIdx + 1;
-    p->writeIdx = p->writeIdx % ARRAY_SIZE(p->entries);
+    queue->writeIdx = queue->readIdx + 1;
+    queue->writeIdx = queue->writeIdx % ARRAY_SIZE(queue->entries);
     return 0;
 }
 
-void CdCmd_SelectMdecBuffer(void)
+void cdCmdSelectMovieWorkspace(void)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p = &gCdCmdQueue;
+    queue = &gCdCmdQueue;
     if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) >= 0) {
         D_8006AC40 = D_8006AC00;
     }
-    p->movieFrameAvailable = 0;
+    queue->movieFrameAvailable = 0;
 }
 
 static s32 CdCmd_GetOverlayStatus(void)
@@ -1104,7 +1118,7 @@ void cdCmdSceneControlNoOp(void)
 void CdCmd_CancelReplaceAndActivate(void)
 {
     gCdCmdQueue.replacementEntry.cmd = CD_COMMAND_EMPTY;
-    CdCmd_ActivatePhase1();
+    cdCmdRequestCancel();
     Gp_RestoreStreamRng();
 }
 
@@ -1122,18 +1136,19 @@ void cdCmdSceneViewChangeNoOp(void)
 {
 }
 
-void CdCmd_EnqueueOverlay81(void)
+void cdCmdEnqueueScenePlayback(void)
 {
-    CdCmdQueue* p;
-    u8          sp10;
+    CdCmdQueue* queue;
+    u8          commandArgs[sizeof(queue->entries[0].args.bytes)];
 
-    p = &gCdCmdQueue;
-    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
-        sp10              = p->sceneSlotIndex;
-        p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
-        cdCmdEnqueue(CD_COMMAND_PLAY_SCENE_AUDIO, 0, &sp10);
+    queue = &gCdCmdQueue;
+    if (queue->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        // The opcode ignores the three unwritten argument bytes and low-RAM key bytes.
+        commandArgs[0]        = queue->sceneSlotIndex;
+        queue->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
+        cdCmdEnqueue(CD_COMMAND_PLAY_SCENE_AUDIO, 0, commandArgs);
     } else {
-        p->sceneAudioMode = CD_COMMAND_SCENE_PLAYING;
+        queue->sceneAudioMode = CD_COMMAND_SCENE_PLAYING;
     }
 }
 
@@ -1162,15 +1177,16 @@ void CdCmd_EnqueueOverlay82(void)
     }
 }
 
-void CdCmd_EnqueueReplaceOverlay82(void)
+void cdCmdStageSceneAudioStart(void)
 {
-    CdCmdQueue* p;
-    u8          sp10;
+    CdCmdQueue* queue;
+    u8          commandArgs[sizeof(queue->entries[0].args.bytes)];
 
-    p = &gCdCmdQueue;
-    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
-        sp10 = p->sceneSlotIndex;
-        cdCmdStageReplacement(CD_COMMAND_START_SCENE_AUDIO, 0, &sp10);
+    queue = &gCdCmdQueue;
+    if (queue->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        // The opcode ignores the three unwritten argument bytes and low-RAM key bytes.
+        commandArgs[0] = queue->sceneSlotIndex;
+        cdCmdStageReplacement(CD_COMMAND_START_SCENE_AUDIO, 0, commandArgs);
     }
 }
 
@@ -1225,42 +1241,38 @@ s32 CdCmd_CommitReplace(void)
     return (s16)writeIdx;
 }
 
-/**
- * Non-zero while the queue must not accept new work: either the ring is
- * completely idle (no error latched and nothing pending) or the entry the
- * consumer is about to run is a 0x8_ command.
- */
-u16 CdCmd_IsIdleOrOverlayPending(void)
+u16 cdCmdIsIdleOrSceneAudioPending(void)
 {
-    CdCmdQueue* p;
+    enum { CD_COMMAND_SCENE_AUDIO_FAMILY = CD_COMMAND_PLAY_SCENE_AUDIO >> 4 };
+    CdCmdQueue* queue;
 
-    p = &gCdCmdQueue;
+    queue = &gCdCmdQueue;
     if (_cdCmdIsIdle() == 0) {
-        if ((p->entries[p->readIdx].cmd >> 4) != 8) {
+        if ((queue->entries[queue->readIdx].cmd >> 4) != CD_COMMAND_SCENE_AUDIO_FAMILY) {
             return 0;
         }
     }
     return 1;
 }
 
-CdCmdEntry* CdCmd_NextEntry(void)
+CdCmdEntry* cdCmdNextQueuedEntry(void)
 {
-    CdCmdQueue* p;
-    s32         index;
+    CdCmdQueue* queue;
+    s32         slot;
     CdCmdEntry* entry;
 
-    p     = &gCdCmdQueue;
-    index = CdCmd_EntryIter;
-    entry = &p->entries[index];
-    if (index == p->writeIdx) {
+    queue = &gCdCmdQueue;
+    slot  = CdCmd_EntryIter;
+    entry = &queue->entries[slot];
+    if (slot == queue->writeIdx) {
         return NULL;
     }
-    CdCmd_EntryIter = index + 1;
-    CdCmd_EntryIter = CdCmd_EntryIter % ARRAY_SIZE(p->entries);
+    CdCmd_EntryIter = slot + 1;
+    CdCmd_EntryIter = CdCmd_EntryIter % ARRAY_SIZE(queue->entries);
     return entry;
 }
 
-void CdCmd_SetBusy(void)
+void cdCmdSetBusy(void)
 {
     if (gCdCmdQueue.busy == 0) {
         gCdCmdQueue.busy     = 1;
@@ -1268,7 +1280,7 @@ void CdCmd_SetBusy(void)
     }
 }
 
-void CdCmd_ClearBusy(void)
+void cdCmdClearBusy(void)
 {
     if (gCdCmdQueue.busy != 0) {
         gCdCmdQueue.busy     = 0;
@@ -1289,7 +1301,7 @@ static void CdCmd_ResetRing(void)
     state->suspendResumeStep = 0;
 }
 
-void CdCmd_ResetEntryIter(void)
+void cdCmdResetEntryIterator(void)
 {
     CdCmd_EntryIter = gCdCmdQueue.readIdx;
 }
@@ -1305,23 +1317,25 @@ void cdCmdEnqueueUnlessSceneAudioPending(s32 command, const void* fileKey, const
     }
 }
 
-void CdCmd_AdvanceRead(void)
+void cdCmdCompleteHeadRequest(void)
 {
-    CdCmdQueue* state;
+    enum { CD_COMMAND_HANDLER_BEGIN = 0 };
+    CdCmdQueue* queue;
 
-    state = &gCdCmdQueue;
-    if (state->busy != 0) {
-        state->busy          = 0;
+    queue = &gCdCmdQueue;
+    if (queue->busy != 0) {
+        queue->busy          = 0;
         gDisplayState.cdBusy = DISPLAY_CD_IDLE;
     }
-    state->step               = 0;
-    state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-    state->pausePlayClock     = 0;
-    state->cdOperationPending = 0;
-    if (state->readIdx != state->writeIdx) {
-        state->entries[state->readIdx].cmd = CD_COMMAND_EMPTY;
-        state->readIdx                     = state->readIdx + 1;
-        state->readIdx                     = state->readIdx % ARRAY_SIZE(state->entries);
+    // Retire handler progress before releasing the head slot.
+    queue->step               = CD_COMMAND_HANDLER_BEGIN;
+    queue->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+    queue->pausePlayClock     = 0;
+    queue->cdOperationPending = 0;
+    if (queue->readIdx != queue->writeIdx) {
+        queue->entries[queue->readIdx].cmd = CD_COMMAND_EMPTY;
+        queue->readIdx                     = queue->readIdx + 1;
+        queue->readIdx                     = queue->readIdx % ARRAY_SIZE(queue->entries);
     }
 }
 

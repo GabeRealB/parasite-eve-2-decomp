@@ -1122,13 +1122,13 @@ void func_actor_341900_801635A4(void)
 /// Script callback: queues the replacement overlay load.
 void func_actor_341900_80163638(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 /// Script callback: queues the overlay load.
 void func_actor_341900_80163658(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 /// Script callback: restores the stream random state, then cancels the

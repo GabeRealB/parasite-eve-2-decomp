@@ -742,7 +742,7 @@ void Gp_EnqueueViewCd(Task* task)
     u8               param2[8];
 
     sess = &gGameSession->location.loc;
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         param1[3] = sess->stage;
         param1[2] = sess->area;
         param1[0] = viewGetMappedIndex();
@@ -768,7 +768,7 @@ static void Gp_LoadWaitCdBusy(Task* task)
 
 static void Gp_LoadWaitIdle(Task* task)
 {
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         task->state = -2;
         Gp_FinishLoadWait(task);
     }

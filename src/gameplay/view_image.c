@@ -67,7 +67,7 @@ void Gp_ViewLoadImage(Task* task)
     u8          param;
 
     q = &gCdCmdQueue;
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         memFillBytes(&q->activeRequest, 0, sizeof(q->activeRequest));
         view = viewGetMappedIndex();
         for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
@@ -79,7 +79,7 @@ void Gp_ViewLoadImage(Task* task)
                 }
             }
         }
-        CdCmd_SelectMdecBuffer();
+        cdCmdSelectMovieWorkspace();
         if (D_80114C40 >= 0) {
             task->state++;
             param = (u8)D_80114C40;

@@ -222,7 +222,7 @@ void func_800C5F70(Task* arg0)
         }
         switch (arg0->state) {
             case 2:
-                if (CdCmd_IsIdle() & 0xFFFF) {
+                if (cdCmdIsIdle() & 0xFFFF) {
                     lines = 0;
                     p     = textSkipLines(Fs_GetChunkPayload(), 5);
                     while (*p != 0) {
@@ -259,7 +259,7 @@ void func_800C5F70(Task* arg0)
                 arg0->state = 4;
                 /* fallthrough */
             case 4:
-                if (CdCmd_IsIdle() & 0xFFFF) {
+                if (cdCmdIsIdle() & 0xFFFF) {
                     ready = 1;
                 }
                 break;
@@ -608,7 +608,7 @@ void func_800C5F70(Task* arg0)
             func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags | 0x100);
         }
         _gpDrawItemNameUnmarkedInto(obj, &req30, 2, obj->panel.contentTop.signedValue + 0xF, 0x606060, item);
-        if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (CdCmd_IsIdle() & 0xFFFF)) {
+        if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (cdCmdIsIdle() & 0xFFFF)) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskConfirm | PAD_BUTTON_TRIANGLE) != 0) {
                 if (!(arg0->spawnArg1.value & 0x20000)) {
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -1012,7 +1012,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 /// item preview, while the CD queue is still busy loading it.
 #define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
     do {                                     \
-        if (CdCmd_IsIdle() == 0) {           \
+        if (cdCmdIsIdle() == 0) {            \
             (flags) |= 0x100;                \
         }                                    \
     } while (0)

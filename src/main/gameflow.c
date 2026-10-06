@@ -185,7 +185,7 @@ void GameFlow_StateByField34(Task* task)
             }
             task->state = task->state + 1;
         }
-        if (CdCmd_IsIdle() != 0) {
+        if (cdCmdIsIdle() != 0) {
             if (gDisplayState.spriteVariant == 0) {
                 gDisplayState.spriteVariant = 1;
             }
@@ -426,7 +426,7 @@ void playClockResetMinuteTicks(void)
 
 static void GameFlow_SpawnWhenIdle(Task* task)
 {
-    if (CdCmd_IsIdle() != 0) {
+    if (cdCmdIsIdle() != 0) {
         Task_Spawn(0, 0x11, 1, 0);
         taskKill(task);
     }

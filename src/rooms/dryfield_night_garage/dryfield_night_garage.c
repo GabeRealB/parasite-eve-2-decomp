@@ -617,13 +617,13 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
 /// Queues the replacement of overlay 0x82.
 void func_dryfield_night_garage_80180924(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 /// Queues the load of overlay 0x81.
 void func_dryfield_night_garage_80180944(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 /// Restores the stream random-number state.

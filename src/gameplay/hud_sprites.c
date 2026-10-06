@@ -728,7 +728,7 @@ void Gp_StartAreaBgm(s16* arg0)
 
     cfg  = &gPlayerStatus;
     mode = gGameSession->restartMode;
-    if (mode == 3 || mode == 0xFF || !CdCmd_IsIdle() || *arg0 != 0) {
+    if (mode == 3 || mode == 0xFF || !cdCmdIsIdle() || *arg0 != 0) {
         return;
     }
     if (gGameSession->deathSoundCountdown == GAME_SESSION_DEATH_SOUND_HOLD) {
@@ -1123,7 +1123,7 @@ static s32 Gp_CdIdleIfF0Active(void)
         cond = 0;
     }
     if (cond) {
-        return CdCmd_IsIdle() & 0xFFFF;
+        return cdCmdIsIdle() & 0xFFFF;
     }
     return 1;
 }

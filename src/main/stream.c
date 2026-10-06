@@ -336,7 +336,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             tmdResetAuxHeapAndRestoreBuffers();
             if (gDisplayState.videoMode == DISPLAY_VIDEO_STREAMING) {
                 cdCmdPrepareViewMovie();
-                CdCmd_SelectMdecBuffer();
+                cdCmdSelectMovieWorkspace();
             }
             D_8006AC28 = D_8006AC28 + 1;
             if (arg1 & 0xFFFF) {
@@ -356,7 +356,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             }
             return 1;
         case 1:
-            if (CdCmd_IsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() & 0xFFFF) {
                 p->blockGamePause = 0;
                 D_8006AC28        = D_8006AC28 + 1;
                 return 1;
@@ -787,7 +787,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                 state->movieReadPending   = 0;
                 state->movieStep++;
                 if (D_8006AC5C != 0) {
-                    CdCmd_ClearBusy();
+                    cdCmdClearBusy();
                 }
             }
             break;
@@ -795,7 +795,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             Mdec_DecodeFrame();
             if (CdSync_IsShellOpenBitSet() != 0) {
                 state->movieDiskRecoveryActive = 1;
-                CdCmd_SetBusy();
+                cdCmdSetBusy();
                 state->movieStep = CD_COMMAND_MOVIE_RECOVER;
             }
             break;
@@ -808,7 +808,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             break;
         case CD_COMMAND_MOVIE_FINISH:
             if (D_8006AC16 == STREAM_MOVIE_REPEAT) {
-                CdCmd_SetBusy();
+                cdCmdSetBusy();
                 state->movieFrame = 1;
                 state->movieStep  = CD_COMMAND_MOVIE_INIT;
                 return 0;

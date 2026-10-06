@@ -1351,13 +1351,13 @@ static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
 /// Queues the replacement of overlay 0x82.
 void func_shelter_b1_pod_access_tunnel_8017E39C(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 /// Queues the load of overlay 0x81.
 void func_shelter_b1_pod_access_tunnel_8017E3BC(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 /// Restores the stream random-number state.

@@ -3150,14 +3150,14 @@ void func_dryfield_water_tower_8017FD64(Task* task)
 /// CD command 0x82.
 void func_dryfield_water_tower_80180114(void)
 {
-    CdCmd_EnqueueReplaceOverlay82();
+    cdCmdStageSceneAudioStart();
 }
 
 /// Record handler (opcode 0x0D) of one of the room's script tables: queues
 /// CD command 0x81.
 void func_dryfield_water_tower_80180134(void)
 {
-    CdCmd_EnqueueOverlay81();
+    cdCmdEnqueueScenePlayback();
 }
 
 /// Record handler (opcode 0x0D) of one of the room's script tables: calls

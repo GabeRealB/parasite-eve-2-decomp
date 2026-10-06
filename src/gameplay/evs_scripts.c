@@ -507,11 +507,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO:
-                CdCmd_EnqueueOverlay81();
+                cdCmdEnqueueScenePlayback();
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO:
-                CdCmd_EnqueueReplaceOverlay82();
+                cdCmdStageSceneAudioStart();
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB:

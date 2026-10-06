@@ -1957,7 +1957,7 @@ static void func_actor_510900_80137868(Task* arg0)
                     work->deathSoundLoadStep = 2;
                     break;
                 case 2:
-                    if (CdCmd_IsIdle() == 1) {
+                    if (cdCmdIsIdle() == 1) {
                         coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                         sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
                                                  (s8)worldCoordGetOriginAudioDepth(coord));

@@ -336,7 +336,7 @@ static void func_replay_bonus_80117848(Task* arg0)
 
 static void func_replay_bonus_801178C0(Task* arg0)
 {
-    if (CdCmd_IsIdle() & 0xFFFF) {
+    if (cdCmdIsIdle() & 0xFFFF) {
         Text_LoadClutImages();
         arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119154, 0, 1, 1, NULL);
         arg0->state             = (s32)(arg0->state + 1);
@@ -422,8 +422,8 @@ void func_replay_bonus_80117A08(Task* arg0)
             arg0->state += 1;
             return;
         case 1:
-            if (CdCmd_IsIdle() & 0xFFFF) {
-                CdCmd_EnqueueOverlay81();
+            if (cdCmdIsIdle() & 0xFFFF) {
+                cdCmdEnqueueScenePlayback();
                 arg0->state += 1;
                 return;
             }
