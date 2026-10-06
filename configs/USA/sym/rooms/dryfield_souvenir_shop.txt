@@ -37,5 +37,10 @@ Actor04000_D0C6E0 = 0x8013E500; // absolute:True owner=actor_104000
 Actor01500_D0A008 = 0x80153E28; // absolute:True owner=actor_201500
 D_map_dryfield_8017AF04 = 0x8017AF04; // absolute:True owner=map_dryfield
 
-func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func
+dryfieldSouvenirShopLightPrismsTask = 0x8017DFD4; // type:func
 _glowDrawGreyPrism = 0x8017D6B4; // type:func
+_dryfieldSouvenirShopRejectKeyItemUse = 0x8017d5d0; // type:func
+_dryfieldSouvenirShopResolveRoomEvent = 0x8017d5d8; // type:func
+_dryfieldSouvenirShopIgnoreRoomCommand = 0x8017d600; // type:func
+_dryfieldSouvenirShopIgnoreRoomAction = 0x8017d608; // type:func
+_dryfieldSouvenirShopIdleRoomTask = 0x8017d654; // type:func

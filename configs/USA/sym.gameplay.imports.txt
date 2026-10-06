@@ -1773,7 +1773,7 @@ dryfieldGeneralStoreNoOpEffectTask = 0x8017E150; // type:func absolute:True owne
 
 dryfieldBackStreetConfigureEffectsTask = 0x8017D970; // type:func absolute:True owner=dryfield_back_street shared=rooms
 
-func_dryfield_souvenir_shop_8017DFD4 = 0x8017DFD4; // type:func absolute:True owner=dryfield_souvenir_shop
+dryfieldSouvenirShopLightPrismsTask = 0x8017DFD4; // type:func absolute:True owner=dryfield_souvenir_shop
 
 dryfieldMotelRoom1NoOpEffectTask = 0x8017E0A0; // type:func absolute:True owner=dryfield_motel_room_1
 

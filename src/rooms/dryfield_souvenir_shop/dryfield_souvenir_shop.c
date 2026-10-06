@@ -44,10 +44,14 @@ extern TaskMessageEntry D_dryfield_souvenir_shop_8017E014[];
 /// `[8..15]`.
 extern SVECTOR gGlowPrismCorners[];
 
-s32 func_dryfield_souvenir_shop_8017D5D0(Task*, s32, s32, s32);
-s32 func_dryfield_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_souvenir_shop_8017D600(Task*, s32, s32, s32);
-s32 func_dryfield_souvenir_shop_8017D608(Task*, s32, s32, s32);
+static s32  _dryfieldSouvenirShopRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32  _dryfieldSouvenirShopResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _dryfieldSouvenirShopIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _dryfieldSouvenirShopIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _dryfieldSouvenirShopIdleRoomTask(Task* task);
+
+/// Inventory's request to use a key item in this room.
+enum { DRYFIELD_SOUVENIR_SHOP_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid    D_dryfield_souvenir_shop_8017E5DC[1];
 extern WorldCollisionTrigger D_dryfield_souvenir_shop_8017EEF4[2];
@@ -55,10 +59,10 @@ extern WorldCollisionTrigger D_dryfield_souvenir_shop_8017EF8C[12];
 extern WorldCoordRoomLights  D_dryfield_souvenir_shop_8017F55C[1];
 
 TaskMessageEntry D_dryfield_souvenir_shop_8017E014[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_souvenir_shop_8017D5D8 },
-    { 5105, func_dryfield_souvenir_shop_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_souvenir_shop_8017D608 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_souvenir_shop_8017D600 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldSouvenirShopResolveRoomEvent },
+    { DRYFIELD_SOUVENIR_SHOP_MESSAGE_USE_KEY_ITEM, _dryfieldSouvenirShopRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldSouvenirShopIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldSouvenirShopIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -369,30 +373,45 @@ WorldCollisionSurfaceProperties* D_dryfield_souvenir_shop_8017F640[8] = {
 };
 
 static void func_dryfield_souvenir_shop_8017D610(Task* task);
-static void func_dryfield_souvenir_shop_8017D654(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_souvenir_shop_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room without consuming the item.
+///
+/// Returns 0 so inventory displays its "No use now" notice. `itemId` is the
+/// inventory item's integer ID; all callback arguments are ignored.
+static s32 _dryfieldSouvenirShopRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
+{
+    enum { DRYFIELD_SOUVENIR_SHOP_KEY_ITEM_USE_REJECTED = 0 };
+
+    return DRYFIELD_SOUVENIR_SHOP_KEY_ITEM_USE_REJECTED;
+}
+
+/// Permits a room transition with the requested destination unchanged.
+///
+/// Copies the complete eight-byte request into the reply and returns 1 in both
+/// query and execute modes. Borrows non-null, readable request and writable
+/// reply records through synchronous dispatch; they may be the same object.
+/// Retains neither pointer and performs no transition effects itself.
+static s32 _dryfieldSouvenirShopResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { DRYFIELD_SOUVENIR_SHOP_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_SOUVENIR_SHOP_TRANSITION_ALLOWED;
+}
+
+/// Ignores room commands without starting an action.
+///
+/// Both integer command payload words are unused; the result is always 0.
+static s32 _dryfieldSouvenirShopIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply unchanged and returns 1.
-s32 func_dryfield_souvenir_shop_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    return 1;
-}
-
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_souvenir_shop_8017D600(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_souvenir_shop_8017D608(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-trigger room actions and returns 0.
+///
+/// The borrowed action request is neither read nor retained. The sender passes
+/// zero as the second payload word and ignores the result.
+static s32 _dryfieldSouvenirShopIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -406,14 +425,16 @@ static void func_dryfield_souvenir_shop_8017D610(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Second state of the room task: the room has nothing to do each frame.
-static void func_dryfield_souvenir_shop_8017D654(Task* task)
+/// Keeps the initialized room task idle until its state changes externally.
+///
+/// State 1 preserves the task and its message table; state 2 releases the task.
+static void _dryfieldSouvenirShopIdleRoomTask(Task* task)
 {
 }
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_souvenir_shop_8017D5C4 = {
-    { func_dryfield_souvenir_shop_8017D610, func_dryfield_souvenir_shop_8017D654, taskKill },
+    { func_dryfield_souvenir_shop_8017D610, _dryfieldSouvenirShopIdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
@@ -428,12 +449,12 @@ void func_dryfield_souvenir_shop_8017D65C(Task* task)
 
 #include "../../shared/glow_draw_grey_prism.inc.c"
 
-/// Per-frame effect on the room's coordinate task: both prisms are drawn under
-/// the single coordinate in `Task::extra.coordBody->coord`.
-void func_dryfield_souvenir_shop_8017DFD4(Task* task)
+void dryfieldSouvenirShopLightPrismsTask(Task* task)
 {
-    GfxCoord* coord = task->extra.coordBody->coord;
+    enum { DRYFIELD_SOUVENIR_SHOP_PRISM_CORNER_COUNT = 8 };
+
+    const GfxCoord* coord = task->extra.coordBody->coord;
 
     _glowDrawGreyPrism(coord, 0);
-    _glowDrawGreyPrism(coord, 8);
+    _glowDrawGreyPrism(coord, DRYFIELD_SOUVENIR_SHOP_PRISM_CORNER_COUNT);
 }
