@@ -1061,17 +1061,19 @@ static const TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D5D8 = {
 
 void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
 {
-    s32 var_v0;
     s32 room;
 
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_0FC) != 0 ? 5 : 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            goto L_advance;
+            task->state++;
+            break;
         case 1:
-            var_v0 = Gp_CapBusy();
-            goto L_idle;
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 if (Gp_GetCapEventKey() == 1) {
@@ -1084,16 +1086,13 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
             }
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2, 0, 0);
-            goto L_advance;
-        case 3:
-            var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2);
-        L_idle:
-            if (var_v0 != 0) {
-                return;
-            }
-        L_advance:
             task->state++;
-            return;
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2) == 0) {
+                task->state++;
+            }
+            break;
         case 4:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL;
@@ -1112,16 +1111,17 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
 
 void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
 {
-    s32 var_v0;
-
     switch (task->state) {
         case 0:
             Gp_RunCapCmd1(9);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            goto L_advance;
+            task->state++;
+            break;
         case 1:
-            var_v0 = Gp_CapBusy();
-            goto L_idle;
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -1130,16 +1130,13 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
                 return;
             }
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT, 0, 0);
-            goto L_advance;
-        case 3:
-            var_v0 = SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT);
-        L_idle:
-            if (var_v0 != 0) {
-                return;
-            }
-        L_advance:
             task->state++;
-            return;
+            break;
+        case 3:
+            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT) == 0) {
+                task->state++;
+            }
+            break;
         case 4:
             gameFlagSetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY, 0);
