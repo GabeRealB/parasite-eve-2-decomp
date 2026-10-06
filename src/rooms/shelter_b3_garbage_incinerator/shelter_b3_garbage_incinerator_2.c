@@ -834,14 +834,14 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 work->carriedActor                        = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
             if (gGameSession->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_NONE) {
-                func_shelter_b3_garbage_incinerator_8018507C();
+                shelterB3GarbageIncineratorSetExitCollisionWalls();
                 taskKill(task);
                 return;
             }
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
                     TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &D_shelter_b3_garbage_incinerator_80185B88, 0);
-                    func_shelter_b3_garbage_incinerator_80185220();
+                    shelterB3GarbageIncineratorSetLiftCollisionWalls();
                     task->state = 1;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
@@ -907,7 +907,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             if (landed) {
                 done_work                             = task->work;
                 gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_LANDED;
-                func_shelter_b3_garbage_incinerator_801853C4();
+                shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls();
                 done_work->arrivalView = gGameSession->location.loc.view;
                 task->state++;
             }
@@ -957,7 +957,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
 
 s32 func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 {
-    func_shelter_b3_garbage_incinerator_80185220();
+    shelterB3GarbageIncineratorSetLiftCollisionWalls();
     arg0->state = 5;
 }
 

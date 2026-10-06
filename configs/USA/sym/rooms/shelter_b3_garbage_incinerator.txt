@@ -199,13 +199,13 @@ D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // size:0x80 defined:Tru
 
 func_shelter_b3_garbage_incinerator_80180FE4 = 0x80180FE4; // type:func
 
-func_shelter_b3_garbage_incinerator_8018507C = 0x8018507C; // type:func
+shelterB3GarbageIncineratorSetExitCollisionWalls = 0x8018507C; // type:func
 
-func_shelter_b3_garbage_incinerator_80185220 = 0x80185220; // type:func
+shelterB3GarbageIncineratorSetLiftCollisionWalls = 0x80185220; // type:func
 
 D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // size:0x4 defined:True
 
-func_shelter_b3_garbage_incinerator_8018110C = 0x8018110C; // type:func
+shelterB3GarbageIncineratorDrawLightsTask = 0x8018110C; // type:func
 
 shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed = 0x80182368; // type:func
 
@@ -240,3 +240,5 @@ _shelterB3GarbageIncineratorDrawLayeredGlow = 0x801842a4; // type:func
 _shelterB3GarbageIncineratorNoop = 0x80184d7c; // type:func
 _shelterB3GarbageIncineratorKillTask = 0x80184ecc; // type:func
 _shelterB3GarbageIncineratorSetVariant2Walls = 0x80184eec; // type:func
+shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls = 0x801853c4; // type:func
+_shelterB3GarbageIncineratorResetLiftCollisionWalls = 0x80185574; // type:func

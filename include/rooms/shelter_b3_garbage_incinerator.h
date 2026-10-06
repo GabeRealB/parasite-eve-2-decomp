@@ -48,11 +48,37 @@ void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task);
 
 void func_shelter_b3_garbage_incinerator_80180FE4(s16 arg0, s16 arg1, s16 arg2);
 
-void func_shelter_b3_garbage_incinerator_8018507C(void);
+/// Installs the six low collision walls used during the incinerator exit sequence.
+///
+/// Requires this room's active writable `WorldCollisionGrid`: vertices 0..23,
+/// faces/normals 0..5, plus vertices 24..31 and faces/normals 6..7 for variant 2.
+/// The exit layout forms two separated wall groups spanning grid-local Y=-400..0
+/// in game units. Surface class 1 passes probes, ignores weapon impacts and
+/// applies pushback. Unit normals use 4096; existing cell lists are retained.
+/// Storage is borrowed for the call and remains owned by the loaded room.
+void shelterB3GarbageIncineratorSetExitCollisionWalls(void);
 
-void func_shelter_b3_garbage_incinerator_80185220(void);
+/// Installs the six low collision walls used before the lift's first move.
+///
+/// Requires this room's active writable `WorldCollisionGrid`: vertices 0..23,
+/// faces/normals 0..5, plus vertices 24..31 and faces/normals 6..7 for variant 2.
+/// Walls span grid-local Y=-400..0 in game units and use surface class 1
+/// (passes probes, ignores weapon impacts, applies pushback). Unit normals use
+/// 4096; existing cell lists are retained. Also restores this layout for the
+/// boss reset and the lift's second move. Storage remains owned by the room.
+void shelterB3GarbageIncineratorSetLiftCollisionWalls(void);
 
-void func_shelter_b3_garbage_incinerator_8018110C(Task* task);
+/// Draws the current view's incinerator lamps and pulsing red glows each frame.
+///
+/// Gameplay effect slot 0x144 supplies a live `EffectWork` in `spawnArg2.pointer`.
+/// Its signed halfword `scale` stores a packed RGB-nibble warning colour:
+/// orange before the lift's first move, alternating orange/blue every two
+/// animation frames during that move, then blue. Enables room-effect view mode;
+/// the current mapped camera index selects the lamps, with an extra rotating
+/// glow during the exit warp. The task neither advances state nor frees work;
+/// the counted effect's exit callback owns cleanup. View matrices, scratch
+/// stack and the current frame's packet arena must be ready for glow drawing.
+void shelterB3GarbageIncineratorDrawLightsTask(Task* task);
 
 void shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed(Task* task);
 

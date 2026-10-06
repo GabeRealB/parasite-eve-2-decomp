@@ -78,6 +78,13 @@ extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
 void func_shelter_b3_garbage_incinerator_8018108C(s16 arg0, s16 arg1, s16 arg2);
 
-void func_shelter_b3_garbage_incinerator_801853C4(void);
+/// Installs the six collision walls for the lift's first rest pose.
+///
+/// Requires this room's active writable grid: vertices 0..23 and faces/normals
+/// 0..5, plus vertices 24..31 and faces/normals 6..7 for variant 2. Uses the
+/// low lift walls' XZ layout at grid-local Y=1000..2000, in game units. Surface
+/// class 1 passes probes, ignores weapon impacts and applies pushback; unit
+/// normals use 4096. Retains cell lists and the room's ownership of storage.
+void shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls(void);
 
 #endif // SRC_ROOMS_SHELTER_B3_GARBAGE_INCINERATOR_SHELTER_B3_GARBAGE_INCINERATOR_PRIVATE_H

@@ -438,7 +438,7 @@ D_actor_444000_80161B50 = 0x80161B50; // size:0x24 defined:True
 
 D_shelter_b3_garbage_incinerator_801855DE = 0x801855DE; // absolute:True owner=shelter_b3_garbage_incinerator
 
-func_shelter_b3_garbage_incinerator_80185220 = 0x80185220; // type:func absolute:True owner=shelter_b3_garbage_incinerator
+shelterB3GarbageIncineratorSetLiftCollisionWalls = 0x80185220; // type:func absolute:True owner=shelter_b3_garbage_incinerator
 
 D_shelter_b3_garbage_incinerator_80187150 = 0x80187150; // absolute:True owner=shelter_b3_garbage_incinerator
 

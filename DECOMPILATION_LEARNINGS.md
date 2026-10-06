@@ -42928,7 +42928,7 @@ address.
 
 ## `a && b` recovers `$v0` for a two-constant phi that neither if/else form does
 
-`func_shelter_b3_garbage_incinerator_8018110C` opens by picking one of two
+`shelterB3GarbageIncineratorDrawLightsTask` opens by picking one of two
 constants and storing it once:
 
 ```
@@ -42964,14 +42964,14 @@ Two obvious shapes each get half of it right:
 Collapsing the inner test into the outer one with `&&` gives both:
 
 ```c
-if (mode != 0) {
-    if (mode < 2 && (gDisplayState.animFrame & 2) == 0) {
-        ctx->field_24 = 0x3C40;
+if (liftPhase != 0) {
+    if (liftPhase < 2 && (gDisplayState.animFrame & 2) == 0) {
+        work->scale = 0x3C40;
     } else {
-        ctx->field_24 = 0x304C;
+        work->scale = 0x304C;
     }
 } else {
-    ctx->field_24 = 0x3C40;
+    work->scale = 0x3C40;
 }
 ```
 

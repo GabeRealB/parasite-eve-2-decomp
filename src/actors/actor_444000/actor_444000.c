@@ -6922,7 +6922,7 @@ static void func_actor_444000_801434C4(Task* arg0)
         work->pendingHeals                          = 0;
         work->escorts[0]->task->extra.tmd->otOffset = 2;
         work->escorts[1]->task->extra.tmd->otOffset = 2;
-        func_shelter_b3_garbage_incinerator_80185220();
+        shelterB3GarbageIncineratorSetLiftCollisionWalls();
     }
     gluttonTickAnim(arg0);
     tick = work->stateTicks;
