@@ -217,47 +217,34 @@ s32 Gp_PickCompanion(void)
     return 0;
 }
 
-void Gp_ApplyNpcRoomSnd(void)
+static inline s32 _companionInRoom(void)
 {
     McSaveData* save;
     u8*         areaPresence;
     s32         stage;
-    s32         flag;
 
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
         areaPresence = D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
-        if (areaPresence != NULL) {
-            if (D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage) {
-                if (areaPresence[save->state.location.loc.area - 1] != 0) {
-                    flag = 1;
-                    goto done;
-                }
-            }
+        if (areaPresence != NULL && D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage && areaPresence[save->state.location.loc.area - 1] != 0) {
+            return 1;
         }
         areaPresence = D_801141F0[gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].areaPresence;
-        if (areaPresence != NULL) {
-            if (D_801141F0[gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].stage == stage) {
-                if (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF) {
-                    flag = 1;
-                    goto done;
-                }
-            }
+        if (areaPresence != NULL && D_801141F0[gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].stage == stage && (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
+            return 1;
         }
         areaPresence = D_80114248[gameFlagGetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].areaPresence;
-        if (areaPresence != NULL) {
-            if (D_80114248[gameFlagGetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].stage == stage) {
-                if (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
-                    flag = 1;
-                    goto done;
-                }
-            }
+        if (areaPresence != NULL && D_80114248[gameFlagGetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].stage == stage && areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
+            return 1;
         }
     }
-    flag = 0;
-done:
-    Snd_SetModeFlag(flag);
+    return 0;
+}
+
+void Gp_ApplyNpcRoomSnd(void)
+{
+    Snd_SetModeFlag(_companionInRoom());
 }
 
 void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options)
