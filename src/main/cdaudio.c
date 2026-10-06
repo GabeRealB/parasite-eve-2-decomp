@@ -731,9 +731,7 @@ static s32 CdAudio_DriveRead(void)
     volatile _CdAudioDriverStatus* modeWaitStatus;
     volatile _CdAudioDriverStatus* driverStatus;
     volatile _CdAudioReadState*    readState;
-    s32                            status;
     u8                             mode;
-    s32                            ret;
 
     switch (CdAudio_Phase.waveLoadStep) {
         case CD_AUDIO_WAVE_LOAD_STEP_RELEASE_STREAM:
@@ -751,28 +749,23 @@ static s32 CdAudio_DriveRead(void)
             break;
         case CD_AUDIO_WAVE_LOAD_STEP_WAIT_SET_MODE:
             modeWaitStatus = &CdAudio_Ctl;
-            if (modeWaitStatus->waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
-                goto case2_sync;
+            if (modeWaitStatus->waitTicks >= CD_AUDIO_WAIT_TIMEOUT_TICKS) {
+                modeWaitStatus->failedStep  = CdAudio_Phase.waveLoadStep;
+                modeWaitStatus->failureKind = CD_AUDIO_FAILURE_TIMEOUT;
+                goto error;
             }
-            modeWaitStatus->failedStep  = CdAudio_Phase.waveLoadStep;
-            modeWaitStatus->failureKind = CD_AUDIO_FAILURE_TIMEOUT;
-            goto error;
-        case2_sync:
-            status = CdSync(1, NULL);
-            if (status == CdlComplete) {
-                goto case2_ok;
+            switch (CdSync(1, NULL)) {
+                case CdlDiskError:
+                    CdFlush();
+                    goto do_setmode;
+                case CdlComplete:
+                    modeWaitStatus->settleTicks = CD_AUDIO_WAVE_LOAD_SETTLE_TICKS;
+                    CdAudio_Phase.waveLoadStep  = CD_AUDIO_WAVE_LOAD_STEP_SETTLE;
+                    break;
+                case CdlNoIntr:
+                default:
+                    break;
             }
-            if (status < 3) {
-                break;
-            }
-            if (status != CdlDiskError) {
-                break;
-            }
-            CdFlush();
-            goto do_setmode;
-        case2_ok:
-            modeWaitStatus->settleTicks = CD_AUDIO_WAVE_LOAD_SETTLE_TICKS;
-            CdAudio_Phase.waveLoadStep  = CD_AUDIO_WAVE_LOAD_STEP_SETTLE;
             break;
         case CD_AUDIO_WAVE_LOAD_STEP_SETTLE:
             CdAudio_Ctl.settleTicks = CdAudio_Ctl.settleTicks - 1;
@@ -792,20 +785,17 @@ static s32 CdAudio_DriveRead(void)
         case CD_AUDIO_WAVE_LOAD_STEP_WAIT_SET_LOCATION:
             driverStatus = &CdAudio_Ctl;
             if (driverStatus->waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
-                status = CdSync(1, NULL);
-                if (status == CdlComplete) {
-                    goto case5_ok;
+                switch (CdSync(1, NULL)) {
+                    case CdlDiskError:
+                        CdFlush();
+                        goto do_setloc;
+                    case CdlComplete:
+                        CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_START_READ;
+                        break;
+                    case CdlNoIntr:
+                    default:
+                        break;
                 }
-                if (status < 3) {
-                    break;
-                }
-                if (status != CdlDiskError) {
-                    break;
-                }
-                CdFlush();
-                goto do_setloc;
-            case5_ok:
-                CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_START_READ;
                 break;
             }
             goto timeout;
@@ -838,14 +828,12 @@ static s32 CdAudio_DriveRead(void)
             if (CdAudio_Ctl.waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
                 if (driverStatus->readTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
                     readState = &CdAudio_Tbl;
-                    if (readState->waveLoadResult == CD_AUDIO_WAVE_LOAD_RESULT_RUNNING) {
-                        goto case8_inc;
+                    if (readState->waveLoadResult != CD_AUDIO_WAVE_LOAD_RESULT_RUNNING) {
+                        if (readState->waveLoadResult == CD_AUDIO_WAVE_LOAD_RESULT_DONE) {
+                            goto do_pause;
+                        }
+                        goto error;
                     }
-                    if (readState->waveLoadResult == CD_AUDIO_WAVE_LOAD_RESULT_DONE) {
-                        goto do_pause;
-                    }
-                    goto error;
-                case8_inc:
                     driverStatus->readTicks = driverStatus->readTicks + 1;
                     break;
                 }
@@ -860,26 +848,18 @@ static s32 CdAudio_DriveRead(void)
             CdControlF(CdlPause, NULL);
             break;
         case CD_AUDIO_WAVE_LOAD_STEP_WAIT_PAUSE:
-            status = CdSync(1, NULL);
-            if (status == CdlComplete) {
-                goto case9_ok;
+            switch (CdSync(1, NULL)) {
+                case CdlDiskError:
+                    CdFlush();
+                    goto do_pause;
+                case CdlComplete:
+                    CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_DONE;
+                    CdAudio_Phase.stopStep     = CD_AUDIO_STOP_STEP_DONE;
+                    return CD_AUDIO_DRIVER_IDLE;
+                case CdlNoIntr:
+                default:
+                    break;
             }
-            if (status < 3) {
-                goto case9_check;
-            }
-            if (status != CdlDiskError) {
-                goto case9_check2;
-            }
-            CdFlush();
-            goto do_pause;
-        case9_ok:
-            ret                        = CD_AUDIO_DRIVER_IDLE;
-            CdAudio_Phase.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_DONE;
-            CdAudio_Phase.stopStep     = CD_AUDIO_STOP_STEP_DONE;
-            return ret;
-        case9_check:
-            driverStatus = &CdAudio_Ctl;
-        case9_check2:
             driverStatus = &CdAudio_Ctl;
             if (driverStatus->waitTicks < CD_AUDIO_WAIT_TIMEOUT_TICKS) {
                 break;
