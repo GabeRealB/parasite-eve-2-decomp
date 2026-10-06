@@ -57,18 +57,21 @@ STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadLiftWork, 0x54);
 extern TaskMessageEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT        D_acropolis_helicopter_landing_pad_80182340[3];
 /// Per-camera-view visibility table indexed by `(u8)gGameSession->location.loc.view`:
-/// a non-zero byte keeps the enemy model visible in that view.
+/// a non-zero byte keeps the lift model visible in that view.
 extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
 extern ActorTransform D_acropolis_helicopter_landing_pad_80182394;
 extern ActorTransform D_acropolis_helicopter_landing_pad_801823AC;
 
-static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
+static void _acropolisHelicopterLandingPadLiftInitLighting(Task* task);
+static void _acropolisHelicopterLandingPadLiftInit(Task* task);
+static void _acropolisHelicopterLandingPadLiftUpdate(Task* task);
 
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, s32);
+static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 messageId,
+                                                              const AnimationPlayRequest* request, s32 unusedArg);
 
 TaskMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_acropolis_helicopter_landing_pad_8017D824 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _acropolisHelicopterLandingPadLiftHandleRunRequest },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -154,104 +157,127 @@ TmdSource gAcropolisHelicopterLandingPadModel0547C = {
     _gAcropolisHelicopterLandingPadModel0547CStream,
 };
 
-static void func_acropolis_helicopter_landing_pad_8017D658(Task* task);
-static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task);
-
-/// State-0 entry of the room's enemy task: allocates the
-/// `_AcropolisHelicopterLandingPadLiftWork` block into `Task::work`, marks the
-/// model (`field_E = 8`, clears bit 0x80 of `field_C`), runs the placement
-/// setup and installs the message table.
-static void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
+/// Initializes the lift's model, lighting and message handling.
+///
+/// Requires state 0 and an attached TMD body with scene-owned enemy bookkeeping.
+/// The task owns the zeroed primary-heap work block; allocation failure tears
+/// down the task. Success makes the model drawable and advances to state 1.
+static void _acropolisHelicopterLandingPadLiftInit(Task* task)
 {
-    TmdObject*                              obj = task->extra.tmd;
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_OT_OFFSET = 8 };
+
+    TmdObject*                              liftModel = task->extra.tmd;
     _AcropolisHelicopterLandingPadLiftWork* work;
 
-    work = memCalloc(sizeof(_AcropolisHelicopterLandingPadLiftWork), false);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
     }
-    task->work    = work;
-    obj->otOffset = 8;
-    obj->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    func_acropolis_helicopter_landing_pad_8017D7B0(task);
+    task->work          = work;
+    liftModel->otOffset = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_OT_OFFSET;
+    liftModel->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    _acropolisHelicopterLandingPadLiftInitLighting(task);
     task->msgTable      = D_acropolis_helicopter_landing_pad_80182328;
     task->killCountdown = 0;
     task->state         = task->state + 1;
 }
 
-/// Per-frame update of the enemy task's model. While the `stepFrames` countdown
-/// armed by the 0x7D3 handler is running, the model's coordinate translation
-/// is stepped by the work block's `stepX` / `stepY` / `stepZ` and marked dirty;
-/// the countdown is clamped at zero once it expires. When
-/// `gGameSession->viewReady` is set, the model is hidden (bit 0x80 of
-/// `field_C`) in every camera view whose entry in the per-view table is zero
-/// and shown again otherwise.
-static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
+/// Advances an active lift run and refreshes visibility for a ready camera view.
+///
+/// Requires the initialized lift task and a live root coordinate. A run moves
+/// once per tick for exactly its armed frame count, in whole parent-coordinate
+/// units. At rest the countdown remains zero. Ready views index the room's
+/// visibility table directly; the room's mapped views are 1..27.
+static void _acropolisHelicopterLandingPadLiftUpdate(Task* task)
 {
-    _AcropolisHelicopterLandingPadLiftWork* work  = task->work;
-    GfxCoord*                               coord = task->extra.tmd->coords;
-    TmdObject*                              obj   = task->extra.tmd;
-    s16                                     n;
+    _AcropolisHelicopterLandingPadLiftWork* work      = task->work;
+    GfxCoord*                               rootCoord = task->extra.tmd->coords;
+    TmdObject*                              liftModel = task->extra.tmd;
+    s16                                     remainingFrames;
 
-    n = --work->stepFrames;
-    if (n >= 0) {
-        coord->coord.t[0]  += work->stepX;
-        coord->coord.t[1]  += work->stepY;
-        coord->coord.t[2]  += work->stepZ;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Decrement before stepping so the tick reaching zero still moves the lift.
+    remainingFrames = --work->stepFrames;
+    if (remainingFrames >= 0) {
+        rootCoord->coord.t[0]  += work->stepX;
+        rootCoord->coord.t[1]  += work->stepY;
+        rootCoord->coord.t[2]  += work->stepZ;
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
         work->stepFrames = 0;
     }
     if (gGameSession->viewReady != 0) {
         if (D_acropolis_helicopter_landing_pad_80182370[gGameSession->location.loc.view] != 0) {
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            liftModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            liftModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
 }
 
-/// Points the model's light / colour matrices at the work block's own copies
-/// and loads the room's three flat lights into them.
-static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
+/// Binds the lift model to its task-owned flat-light matrices.
+///
+/// Requires the allocated, zeroed work block and a live TMD body. The model
+/// borrows these matrices until task teardown; the three light records supply
+/// direction rows and Q12 colour columns, leaving zero ambient translation.
+static void _acropolisHelicopterLandingPadLiftInitLighting(Task* task)
 {
-    _AcropolisHelicopterLandingPadLiftWork* work = task->work;
-    TmdObject*                              obj  = task->extra.tmd;
-    GsF_LIGHT*                              light;
-    s32                                     i;
+    _AcropolisHelicopterLandingPadLiftWork* work      = task->work;
+    TmdObject*                              liftModel = task->extra.tmd;
+    const GsF_LIGHT*                        flatLight;
+    s32                                     lightIndex;
 
-    obj->lightMtx = &work->lightMtx;
-    obj->colorMtx = &work->colorMtx;
-    for (i = 0, light = D_acropolis_helicopter_landing_pad_80182340; i < 3; i++, light++) {
-        gfxSetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
+    liftModel->lightMtx = &work->lightMtx;
+    liftModel->colorMtx = &work->colorMtx;
+    for (lightIndex = 0, flatLight = D_acropolis_helicopter_landing_pad_80182340;
+         lightIndex < (s32)ARRAY_SIZE(D_acropolis_helicopter_landing_pad_80182340); lightIndex++, flatLight++) {
+        gfxSetFlatLight(lightIndex, flatLight, &work->lightMtx, &work->colorMtx);
     }
 }
 
-/// Selects one of three scripted model-placement phases from the animation id.
+/// Places the lift at a run's starting stop and arms its fixed-duration travel.
 ///
-/// The two opening phases arm a countdown and movement step; the last
-/// returns to the first placement and clears the countdown.
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AnimationPlayRequest* msg, s32 arg3)
+/// Requires the lift's live TMD task and work block. The placement is borrowed
+/// through this call; `stepY` is signed world units per frame, negative upward.
+static inline void _acropolisHelicopterLandingPadLiftStartRun(Task* task, _AcropolisHelicopterLandingPadLiftWork* work,
+                                                              const ActorTransform* startPlacement, s32 stepY)
 {
+    actorMsgPlaceEuler(task, 0, startPlacement, 0);
+    work->stepFrames = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES;
+    work->stepX      = 0;
+    work->stepY      = stepY;
+    work->stepZ      = 0;
+}
+
+/// Handles the lift's scripted run selector carried by a play-animation request.
+///
+/// Requires the initialized lift task and a request readable through dispatch.
+/// Only `animationId` is read: 0 raises from the lower stop, 1 lowers from the
+/// pad, and 2 parks at the lower stop. Travel restarts at the selected stop and
+/// lasts 120 ticks at 25 world units per tick; negative Y is upward. Other ids
+/// leave the lift unchanged. Retains no request pointer and always returns 0;
+/// the message ID and second payload word are ignored.
+static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 messageId,
+                                                              const AnimationPlayRequest* request, s32 unusedArg)
+{
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_RAISE      = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_LOWER      = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_PARK_LOWER = 2,
+    };
+
     _AcropolisHelicopterLandingPadLiftWork* work = task->work;
 
-    switch (msg->animationId) {
-        case 0:
-            actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
-            work->stepFrames = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES;
-            work->stepX      = 0;
-            work->stepY      = -ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP;
-            work->stepZ      = 0;
+    switch (request->animationId) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_RAISE:
+            _acropolisHelicopterLandingPadLiftStartRun(task, work, &D_acropolis_helicopter_landing_pad_80182394,
+                                                       -ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
             break;
-        case 1:
-            actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_801823AC, 0);
-            work->stepFrames = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES;
-            work->stepX      = 0;
-            work->stepY      = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP;
-            work->stepZ      = 0;
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_LOWER:
+            _acropolisHelicopterLandingPadLiftStartRun(task, work, &D_acropolis_helicopter_landing_pad_801823AC,
+                                                       ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
             break;
-        case 2:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_PARK_LOWER:
             actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
             work->stepFrames = 0;
             break;
@@ -261,22 +287,19 @@ s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, Animat
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// State handlers of the enemy task `func_acropolis_helicopter_landing_pad_8017D964`,
+/// State handlers of the lift task `acropolisHelicopterLandingPadLiftTask`,
 /// indexed by `Task::state`: set-up, the per-frame model update and
 /// `enemyTaskExit`.
 static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5C4 = {
-    { func_acropolis_helicopter_landing_pad_8017D658, func_acropolis_helicopter_landing_pad_8017D6E0, enemyTaskExit },
+    { _acropolisHelicopterLandingPadLiftInit, _acropolisHelicopterLandingPadLiftUpdate, enemyTaskExit },
 };
 
-/// The enemy task: runs the state handler
-/// `D_acropolis_helicopter_landing_pad_8017D5C4` names for `Task::state`,
-/// through a copy of the table taken onto the stack.
-void func_acropolis_helicopter_landing_pad_8017D964(Task* task)
+void acropolisHelicopterLandingPadLiftTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_acropolis_helicopter_landing_pad_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_acropolis_helicopter_landing_pad_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Per-frame phase tick of the room's script task. In phase 1 it posts msg

@@ -77,7 +77,15 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0);
 
 void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0);
 
-void func_acropolis_helicopter_landing_pad_8017D964(Task* task);
+/// Runs the landing pad lift's initialization, travel and teardown states.
+///
+/// Area object kind 0x204 uses this task for scene child 0x28. Requires an
+/// attached TMD body, live scene-owned enemy bookkeeping and `Task::state`
+/// in 0..2 (0 initialize, 1 update, 2 release). Initialization allocates owned
+/// work and installs play-animation run requests and Euler placement. Travel
+/// takes 120 ticks between Y=120 and Y=-2880; ready camera views gate drawing.
+/// The room overlay must remain loaded while the task runs.
+void acropolisHelicopterLandingPadLiftTask(Task* task);
 
 void func_acropolis_helicopter_landing_pad_8017EB00(Task* task);
 
