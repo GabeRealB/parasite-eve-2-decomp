@@ -54,7 +54,7 @@ extern TaskDesc gRoomEventTaskDesc;
 /// (ids 0x13EE-0x13F2).
 extern TaskMessageEntry D_dryfield_parking_lot_8017DC04[];
 
-/// Per-view values `func_dryfield_parking_lot_8017DBAC` publishes, indexed by
+/// Per-view values `dryfieldParkingLotUpdateViewEffectGateTask` publishes, indexed by
 /// camera view index minus one.
 extern u16 D_dryfield_parking_lot_8017DC34[];
 
@@ -71,17 +71,22 @@ extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F0A8[10];
 extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
 extern WorldCoordRoomLights   D_dryfield_parking_lot_8017F9FC[1];
 extern TaskDesc               Actor00100_D1BA84;
-s32                           func_dryfield_parking_lot_8017DAF0(Task*, s32, s32, s32);
-s32                           func_dryfield_parking_lot_8017DAF8(Task*, s32, s32, s32);
-s32                           func_dryfield_parking_lot_8017DB00(Task*, s32, s32, s32);
+
+/// Requests use of the selected key-item ID in the first payload word.
+enum { ROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+static s32  _dryfieldParkingLotRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32  _dryfieldParkingLotIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _dryfieldParkingLotIdle(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_parking_lot_8017DC04[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotEventMsg },
-    { 5105, func_dryfield_parking_lot_8017DAF0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_parking_lot_8017DB00 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_parking_lot_8017DAF8 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldParkingLotRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldParkingLotIgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, _dryfieldParkingLotIgnoreCommandMessage },
     { ROOM_MESSAGE_SOUND, parkingLotSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -442,7 +447,6 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 156, 190, 128 } };
 RoomEventReq gRoomEventReq = { 0 };
 
 static void func_dryfield_parking_lot_8017DB08(Task* task);
-static void func_dryfield_parking_lot_8017DB4C(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -452,23 +456,30 @@ static void func_dryfield_parking_lot_8017DB4C(Task* task);
 
 #include "../../shared/parking_lot_sound_msg.inc.c"
 
-/// Handler for message 0x13F1 in the room's message table: does nothing and
-/// returns 0.
-s32 func_dryfield_parking_lot_8017DAF0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in the daytime parking lot.
+///
+/// Ignores all arguments and returns zero, making the item menu report that
+/// the selected item cannot be used here.
+static s32 _dryfieldParkingLotRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
+{
+    enum { ROOM_KEY_ITEM_USE_UNAVAILABLE = 0 };
+
+    return ROOM_KEY_ITEM_USE_UNAVAILABLE;
+}
+
+/// Ignores room commands in the daytime parking lot and returns zero.
+///
+/// Receives `ROOM_MESSAGE_COMMAND`; neither payload word nor the receiver is read.
+static s32 _dryfieldParkingLotIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// Handler for message 0x13F0 in the room's message table: does nothing and
-/// returns 0.
-s32 func_dryfield_parking_lot_8017DAF8(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// Handler for message 0x13EF in the room's message table: does nothing and
-/// returns 0.
-s32 func_dryfield_parking_lot_8017DB00(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room action requests in the daytime parking lot and returns zero.
+///
+/// Receives `DIRECTION_MESSAGE_ROOM_ACTION`; the borrowed request is not read,
+/// changed or retained, and the remaining arguments are ignored.
+static s32 _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -482,14 +493,16 @@ static void func_dryfield_parking_lot_8017DB08(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Room entry task state 1: does nothing, and nothing here advances the state.
-static void func_dryfield_parking_lot_8017DB4C(Task* task)
+/// Keeps the initialized room task idle while its message table remains available.
+///
+/// State 1 does no per-frame work and does not advance or read the task.
+static void _dryfieldParkingLotIdle(Task* task)
 {
 }
 
 /// The room entry task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_parking_lot_8017D5DC = {
-    { func_dryfield_parking_lot_8017DB08, func_dryfield_parking_lot_8017DB4C, taskKill },
+    { func_dryfield_parking_lot_8017DB08, _dryfieldParkingLotIdle, taskKill },
 };
 
 /// The room entry task: copies the three-state table to the stack and runs the
@@ -502,11 +515,10 @@ void func_dryfield_parking_lot_8017DB54(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Publishes the value the current camera view maps to: stores
-/// `D_dryfield_parking_lot_8017DC34[view - 1]` into `gRoomEffectState`'s
-/// `roomEffectMode`. Nothing in the room calls it; gameplay's data holds its
-/// address.
-void func_dryfield_parking_lot_8017DBAC(Task* unused)
+void dryfieldParkingLotUpdateViewEffectGateTask(Task* task)
 {
-    gRoomEffectState->roomEffectMode = D_dryfield_parking_lot_8017DC34[(viewGetMappedIndex() & 0xFF) - 1];
+    u8 mappedViewIndex;
+
+    mappedViewIndex                  = viewGetMappedIndex();
+    gRoomEffectState->roomEffectMode = D_dryfield_parking_lot_8017DC34[mappedViewIndex - 1];
 }

@@ -30,7 +30,13 @@ extern SpriteView D_dryfield_parking_lot_8017F054[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_parking_lot_8017FB30[];
 
-void func_dryfield_parking_lot_8017DBAC(Task* unused);
+/// Updates the daytime parking lot's view gate for dust and related effects.
+///
+/// Enables the gate in mapped camera views 2 through 5 and disables it in
+/// views 1, 6 and 7. The callback ignores `task` and runs without advancing or
+/// killing it. Requires a live `gRoomEffectState`, the daytime parking lot
+/// overlay and view tables loaded, and a mapped view index in 1 through 7.
+void dryfieldParkingLotUpdateViewEffectGateTask(Task* task);
 
 void func_dryfield_parking_lot_8017DB54(Task* task);
 

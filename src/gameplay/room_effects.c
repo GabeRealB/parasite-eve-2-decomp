@@ -743,7 +743,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelRoom2EffectNoopTaskCA, { NULL } },                          // 0x0CA
     { { { TASK_BODY_COORD, 0x70 } }, func_antibody_8012EF34, { NULL } },                                      // 0x0CB
     { { { TASK_BODY_COORD, 0x70 } }, func_energyshot_8012EF34, { NULL } },                                    // 0x0CC
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_parking_lot_8017DBAC, { NULL } },                          // 0x0CD
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldParkingLotUpdateViewEffectGateTask, { NULL } },                  // 0x0CD
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017E64C, { NULL } },                               // 0x0CE
     { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012EF48, { NULL } },                                    // 0x0CF
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_saloon_g_r_8017DA70, { NULL } },                           // 0x0D0
