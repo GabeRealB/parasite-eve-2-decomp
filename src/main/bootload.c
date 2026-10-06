@@ -1864,7 +1864,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             if ((Fade_StepOut(0x10) & 0xFFFF) != 0) {
                 D5B498_8006AC9C++;
             }
-            break;
+            return;
         case 2:
             if (D_8006ACA6 < 0) {
                 D_8006ACA2 = 1;
@@ -1892,7 +1892,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
                 D_8006ACA0 = 0;
                 D5B498_8006AC9C++;
             }
-            break;
+            return;
         case 3:
             if (D_8006ACA0 >= 0x3C) {
                 if (queue->holdBootImage == 0) {
@@ -1902,19 +1902,20 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             } else {
                 D_8006ACA0++;
             }
-            goto draw;
+            break;
         case 4:
             if ((Fade_StepIn(0x10) & 0xFFFF) != 0) {
                 Fs_BootLoadPhase           = 0;
                 gCdCmdQueue.bootLoadActive = 0;
             }
-        draw:
-            D_8006ACA4 = 1;
-            D_8006ACA2 = 1;
-            TextStream_Draw(arg0, &D_8006AC9E, &D_8006ACA2, 0);
-            if (secondary != NULL) {
-                TextStream_Draw(secondary, &D_8006AC9F, &D_8006ACA4, 0);
-            }
             break;
+        default:
+            return;
+    }
+    D_8006ACA4 = 1;
+    D_8006ACA2 = 1;
+    TextStream_Draw(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+    if (secondary != NULL) {
+        TextStream_Draw(secondary, &D_8006AC9F, &D_8006ACA4, 0);
     }
 }
