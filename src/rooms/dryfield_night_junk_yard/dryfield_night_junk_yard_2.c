@@ -43,6 +43,15 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
+/// Perspective radius scales for the room's capsule and its two flare sizes.
+///
+/// The capsule scales by 64 / depth and flares by 39 / depth, with depth = camera Z / 4.
+enum {
+    DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_RADIUS_SCALE     = 0x180,
+    DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE = 0x300,
+    DRYFIELD_NIGHT_JUNK_YARD_SMALL_FLARE_RADIUS_SCALE = 0x200
+};
+
 extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
 extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 
@@ -961,54 +970,54 @@ WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[8] = {
     D_dryfield_night_junk_yard_801844AC,
 };
 
-/// Junk yard room draw: on the task's first pass the room's three effect-id
-/// slots are pointed at the junk yard's own ids, `gRoomEffectState->roomEffectMode` is set
-/// to 2, and the props of the phase `gGameSession->location.loc.view` selects are queued -
-/// phases 2/8 five points off the room's first prop table, 4/9 three off the
-/// second, 5/10 and 7 four off the first. Every phase ends with the same
-/// semi-transparent sprite call, which `jump.c` cross-jumps into one tail
-/// block after the last case.
-void func_dryfield_night_junk_yard_8017DA14(Task* task)
+/// Draws the capsule and two flares shared by junk yard views 5, 7 and 10.
+static inline void _dryfieldNightJunkYardDrawCapsuleAndFlares(const SVECTOR* lightPoints)
 {
-    if (task->state == 0) {
+    _glowDrawGreyCapsule(&lightPoints[0], DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_RADIUS_SCALE, 0);
+    glowDrawFlareClipped(&lightPoints[2], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&lightPoints[3], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+}
+
+void dryfieldNightJunkYardDrawGlowsTask(Task* task)
+{
+    enum { DRYFIELD_NIGHT_JUNK_YARD_EFFECTS_INITIALIZE = 0 };
+
+    if (task->state == DRYFIELD_NIGHT_JUNK_YARD_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_DRYFIELD_NIGHT_JUNK_YARD_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_NIGHT_JUNK_YARD_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_DRYFIELD_NIGHT_JUNK_YARD_SPARK_BURST;
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
+    // The grey capsule uses the first two points; flares depend on the active view.
     switch (gGameSession->location.loc.view) {
         case 2:
         case 8: {
-            SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            _glowDrawGreyCapsule(&p[0], 0x180, 0x400);
-            glowDrawFlareClipped(&p[3], 0, 0x300);
-            glowDrawFlareClipped(&p[4], 0, 0x300);
-            glowDrawFlareClipped(&p[5], 2, 0x300);
-            glowDrawFlareClipped(&p[6], 1, 0x200);
+            const SVECTOR* lightPoints = D_dryfield_night_junk_yard_8018073C;
+            _glowDrawGreyCapsule(&lightPoints[0], DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawFlareClipped(&lightPoints[3], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[4], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[5], 2, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[6], 1, DRYFIELD_NIGHT_JUNK_YARD_SMALL_FLARE_RADIUS_SCALE);
             break;
         }
         case 4:
         case 9: {
-            SVECTOR* p = D_dryfield_night_junk_yard_80180754;
-            glowDrawFlareClipped(&p[0], 0, 0x300);
-            glowDrawFlareClipped(&p[1], 0, 0x300);
-            glowDrawFlareClipped(&p[3], 1, 0x200);
+            const SVECTOR* flarePoints = D_dryfield_night_junk_yard_80180754;
+            glowDrawFlareClipped(&flarePoints[0], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&flarePoints[1], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&flarePoints[3], 1, DRYFIELD_NIGHT_JUNK_YARD_SMALL_FLARE_RADIUS_SCALE);
             break;
         }
         case 5:
         case 10: {
-            SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            _glowDrawGreyCapsule(&p[0], 0x180, 0);
-            glowDrawFlareClipped(&p[2], 0, 0x300);
-            glowDrawFlareClipped(&p[3], 0, 0x300);
-            glowDrawFlareClipped(&p[6], 1, 0x200);
+            const SVECTOR* lightPoints = D_dryfield_night_junk_yard_8018073C;
+            _dryfieldNightJunkYardDrawCapsuleAndFlares(lightPoints);
+            glowDrawFlareClipped(&lightPoints[6], 1, DRYFIELD_NIGHT_JUNK_YARD_SMALL_FLARE_RADIUS_SCALE);
             break;
         }
         case 7: {
-            SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
-            _glowDrawGreyCapsule(&p[0], 0x180, 0);
-            glowDrawFlareClipped(&p[2], 0, 0x300);
-            glowDrawFlareClipped(&p[3], 0, 0x300);
+            const SVECTOR* lightPoints = D_dryfield_night_junk_yard_8018073C;
+            _dryfieldNightJunkYardDrawCapsuleAndFlares(lightPoints);
             break;
         }
     }
@@ -1022,14 +1031,14 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_dryfield_night_junk_yard_8017E5C8(Task* arg0)
+void dryfieldNightJunkYardRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_dryfield_night_junk_yard_8017F02C(Task* task)
+void dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

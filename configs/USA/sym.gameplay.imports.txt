@@ -723,11 +723,11 @@ dryfieldNightGasStationRoomVisualEffectsTwinTrailTask = 0x801827E4; // type:func
 
 func_dryfield_night_gas_station_801830CC = 0x801830CC; // type:func absolute:True owner=dryfield_night_gas_station
 
-func_dryfield_night_junk_yard_8017DA14 = 0x8017DA14; // type:func absolute:True owner=dryfield_night_junk_yard shared=rooms
+dryfieldNightJunkYardDrawGlowsTask = 0x8017DA14; // type:func absolute:True owner=dryfield_night_junk_yard shared=rooms
 
-func_dryfield_night_junk_yard_8017E5C8 = 0x8017E5C8; // type:func absolute:True owner=dryfield_night_junk_yard
+dryfieldNightJunkYardRoomVisualEffectsFlashTask = 0x8017E5C8; // type:func absolute:True owner=dryfield_night_junk_yard
 
-func_dryfield_night_junk_yard_8017F02C = 0x8017F02C; // type:func absolute:True owner=dryfield_night_junk_yard
+dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask = 0x8017F02C; // type:func absolute:True owner=dryfield_night_junk_yard
 
 func_dryfield_night_junk_yard_8017F914 = 0x8017F914; // type:func absolute:True owner=dryfield_night_junk_yard
 

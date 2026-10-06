@@ -97039,7 +97039,7 @@ Input `base_1.c`
 
 ```
   unit dryfield_night_junk_yard_3: table owned by dryfield_night_junk_yard_2
-    func_dryfield_night_junk_yard_8017DA14  (jtbl_dryfield_night_junk_yard_8017D5D0)
+    dryfieldNightJunkYardDrawGlowsTask  (jtbl_dryfield_night_junk_yard_8017D5D0)
 ```
 
 Read the block before adding a cut -- the cut can already be there, at the right

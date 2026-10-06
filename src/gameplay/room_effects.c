@@ -767,8 +767,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE2, { NULL } },                                        // 0x0E2
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskE3, { NULL } },                                           // 0x0E3
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_back_street_8017F6DC, { NULL } },                  // 0x0E4
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017E5C8, { NULL } },                    // 0x0E5
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017F02C, { NULL } },                    // 0x0E6
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsFlashTask, { NULL } },           // 0x0E5
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask, { NULL } },       // 0x0E6
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017F914, { NULL } },                    // 0x0E7
     { { { TASK_BODY_COORD, 0x70 } }, _effectDarknessScreenDimTaskE8, { NULL } },                            // 0x0E8
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_mesa_8017F230, { NULL } },                                   // 0x0E9
@@ -816,7 +816,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightFactoryDrawGlowsTask, { NULL } },                         // 0x113
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGarageDrawGlowsTask, { NULL } },                          // 0x114
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightDrivewayDrawLightShaftsTask, { NULL } },                  // 0x115
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017DA14, { NULL } },                    // 0x116
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardDrawGlowsTask, { NULL } },                        // 0x116
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightTrailerCoachDrawGlowsTask, { NULL } },                    // 0x117
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_room_5_8017D9A4, { NULL } },                 // 0x118
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_balcony_8017E554, { NULL } },                // 0x119

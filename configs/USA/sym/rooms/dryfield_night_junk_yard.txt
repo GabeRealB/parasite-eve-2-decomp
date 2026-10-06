@@ -69,13 +69,13 @@ RoomFx_TrailOffsets = 0x80180774; // size:0x10 defined:True
 
 func_dryfield_night_junk_yard_8017D9B8 = 0x8017D9B8; // type:func
 
-func_dryfield_night_junk_yard_8017E5C8 = 0x8017E5C8; // type:func
+dryfieldNightJunkYardRoomVisualEffectsFlashTask = 0x8017E5C8; // type:func
 
-func_dryfield_night_junk_yard_8017F02C = 0x8017F02C; // type:func
+dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask = 0x8017F02C; // type:func
 
 func_dryfield_night_junk_yard_8017F914 = 0x8017F914; // type:func
 
-func_dryfield_night_junk_yard_8017DA14 = 0x8017DA14; // type:func
+dryfieldNightJunkYardDrawGlowsTask = 0x8017DA14; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E86C; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017EC98; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017F51C; // type:func
