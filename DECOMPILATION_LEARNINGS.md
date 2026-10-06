@@ -149728,3 +149728,74 @@ attempts; left as it was.
   `status = grabbed`: with the constants written in place more tails merge
   (1 insn shorter). `Actor00100_Fn0A288` keeps `excludedState = 21` (`$a1`
   becomes `$v0`).
+### Goto forms from the caption task, the HUD task and the pod tunnel (batch 14, 2026-10-06)
+
+- **A hand-inlined copy of a function with one argument constant.**
+  `Gp_HudTask` carried `hit = ...; if (hit) { if (cooldown > 0) { ok = 0; goto
+  have; } if (endDelay == 0) { ok = 1; goto have; } } ok = 0; have:`, the body
+  of `func_800A7E5C` without its `arg0 == 0` swap-lock test. It is the file's
+  `hudSwapReady` inline given that parameter and called as `hudSwapReady(1)`;
+  the test folds away. The inline's ending has to be `if (cooldown > 0) return
+  0; if (endDelay == 0) return 1; ... return 0;`. Nested as `if (cooldown <= 0)
+  { if (endDelay == 0) return 1; } return 0;` both callers come out 2 insns
+  shorter: the image has `bgtz ..., have; move v1,zero`, a `return 0` of its
+  own in the branch's delay slot, where the nested form shares the final one
+  and fills the slot with the next `lui`.
+- **A `goto tail` out of the middle of one arm of an if-chain** (the
+  `WAIT_END_ACTION` step of `Gp_HudTask`) is that arm as a `static inline void`
+  with a `return`; with it the chain is `if / else if`, the code at `tail:`
+  follows the chain inside the `if (inBattle == 1)`, the `other:` block is its
+  `else`, and `end:` is the code after both. 31 gotos, three builds. A pointer
+  alias assigned between two tests (`d4 = &gDisplayState;` after the debug-room
+  test) has to stay there: in an `else { d4 = ...; if (d4->...) }`, not hoisted
+  above an `else if`, or the address is loaded before the first test.
+- **Seven `if (x) goto after;` guards in front of a block** are one `&&`
+  condition around it; `if (a != 0) { if (b == 0) goto after; }` in the middle
+  of them is the term `(a == 0 || b != 0)`.
+- **`if (c) { f(); goto dump; }` falling through to code after `dump:`'s own
+  test of `c`** (`Gp_CapExit`: `if (debugMode) { show(); goto block; } ...
+  block: if (debugMode && key) {...}`) is plain sequential code, `if (c) f();`
+  inside the arm and the dump after it. Jump threading sends the `c == 0` path
+  past the second test, which is the image's shape.
+- **Which copy of `state += 1` survives between two `if (end) state += 1; else
+  {...}; <tail>` blocks depends on the orientation of the earlier one**
+  (`func_800E44A0`). Both tails merge into the later block first. With the
+  earlier block written `if (!end) {...} else { state += 1; }` its increment
+  then sits directly in front of the jump to the merged tail, the later
+  block's `state += 1; j tail` finds it and the *later* copy is deleted.
+  Written `if (end) { state += 1; } else {...}` the earlier increment ends in
+  its own jump, is processed first and is the one deleted, as in the image.
+- **A scan whose pointer was stepped by hand next to its index** (`p++;
+  arg0++;` with `flag = -1; id = key; base = table;` in locals,
+  `Gp_FindCapEvt`) is the loop over the index alone, the record looked up
+  inside it: `for (;;) { p = at(table, i); if (p->a != END && p->key != key)
+  i++; else break; }`. loop.c hoists the three values and reduces the lookup
+  to the stepped pointer. Keeping `p++` in a real loop fails: `p` becomes an
+  eliminable biv and `&p->key` is reduced instead (`addiu v1,v0,5`, `lw
+  3(v1)`).
+- **`goto L_idle` / `goto L_advance` chains in a five-state room task**
+  (`func_shelter_b1_pod_access_tunnel_8017DA74`, `_8017DC18`) are
+  `if (busy() == 0) task->state++; break;` per case; first try.
+- **`ok` / `flag` goto pairs in a text advance** (`checkChoice` / `checkCaret`
+  / `drawCaret` in `func_800E44A0`) were one `(a && b && (c || d) && e && !f)
+  || g` condition, the same one the function already had written out thirty
+  lines below.
+- Not converted: `func_shelter_b1_north_maintenance_walkway_8017D7A4` and
+  `func_neo_ark_savanna_zone_8017D77C`. Arm A sets `cmd`/`flag`, the shared
+  stores and the inlined start follow it, and arm B jumps *backward* into
+  them. The constants are held in two registers across the join, so the join
+  is real (duplicated arms cannot merge the `capCmd` store, 1 insn longer);
+  `if (A) {...} else if (B) {...} else return 1;` with the stores after it
+  puts the tail behind arm B (1 insn shorter).
+- Not converted: `func_actor_107600_80131F10`'s `goto fail` from the failed
+  allocation back into the too-close arm. The duplicate is not merged (cse
+  reuses the scratch-head register in the second copy only, 20 insns longer),
+  an inline for the block merges into the *later* copy, and the allocation in
+  the `||` condition moves the block behind it.
+- Not converted: the `goto stop` of `HOLD` in the two mount walkers of
+  `actor_107600.c` (an inline at all four sites swaps `$t0/$t1` exactly as the
+  written-out copy does), and `Gp_CountAmmoRows`'s `goto increment` from the
+  `arg1 == 0` test into the second scan (`count++` there keeps the earlier
+  copy; the other three went as `if (slot > NONE || weapon == item) count++;
+  break;`).
+
