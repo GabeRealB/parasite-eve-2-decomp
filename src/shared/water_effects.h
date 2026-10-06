@@ -42,8 +42,6 @@ static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radius
 void waterDistortBandTask(Task* task);
 void waterRefractionTask(Task* task);
 
-void waterDriftTaskNoUpdate(Task* task);
-
 void waterRippleTaskFixedCoord(Task* task);
 
 #endif /* SRC_SHARED_WATER_EFFECTS_H */

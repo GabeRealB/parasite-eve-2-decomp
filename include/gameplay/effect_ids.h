@@ -718,9 +718,9 @@ enum {
     /// (_waterRippleTask / _waterDrawSplash); the room stores it in gRoomEffectWaterRippleId (water-
     /// ripple slot, spawned at the water surface by wading actors).
     EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x16A),
-    /// shelter_b2_main_corridor's water splash droplet: an eight-frame sprite thrown
-    /// with gravity (waterDriftTaskNoUpdate); stored in gRoomEffectWaterSprayId, which actors
-    /// entering/leaving water spawn at the surface (ring of 16-32 on emergence).
+    /// Corridor water spray (`shelterB2MainCorridorWaterDriftTask`): eight cells
+    /// drawn from the cached coordinate matrix while local motion and gravity
+    /// advance. Published in `gRoomEffectWaterSprayId` for water-contact spawns.
     EFFECT_SHELTER_B2_MAIN_CORRIDOR_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x16B),
     /// The shelter_b2_septic_tank instance of the room-effect library's _waterRippleTask
     /// / waterRippleTaskFixedCoord: an expanding, fading flat splash quad

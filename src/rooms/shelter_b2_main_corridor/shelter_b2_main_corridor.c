@@ -2071,7 +2071,13 @@ void shelterB2MainCorridorWaterRippleTask(Task* task)
 
 #include "../../shared/water_splash.inc.c"
 
+/// Binds the uncomposed water-drift body's public void (Task*) callback to this room.
+///
+/// The public room header supplies its prototype. This binding names a function,
+/// has no arguments or side effects, and is used only by the following include.
+#define WATER_DRIFT_UNCOMPOSED_TASK shelterB2MainCorridorWaterDriftTask
 #include "../../shared/water_drift_task_no_update.inc.c"
+#undef WATER_DRIFT_UNCOMPOSED_TASK
 
 #include "../../shared/water_spin_u16.inc.c"
 

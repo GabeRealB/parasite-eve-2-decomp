@@ -901,7 +901,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkR26EffectNoopTask, { NULL } },                                                // 0x168
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fTentDrawViewGlowsTask, { NULL } },                                         // 0x169
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorWaterRippleTask, { NULL } },                                   // 0x16A
-    { { { TASK_BODY_COORD, 0x70 } }, waterDriftTaskNoUpdate, { NULL } },                                                 // 0x16B
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB2MainCorridorWaterDriftTask, { NULL } },                                    // 0x16B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankWaterRippleTask, { NULL } },                                     // 0x16C
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SepticTankWaterDriftTask, { NULL } },                                      // 0x16D
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerWaterRippleTask, { NULL } },                                     // 0x16E

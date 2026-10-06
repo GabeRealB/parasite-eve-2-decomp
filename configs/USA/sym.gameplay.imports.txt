@@ -1137,7 +1137,7 @@ shelterB2LaboratoryGlowTask = 0x80180548; // type:func absolute:True owner=shelt
 
 shelterB2MainCorridorWaterRippleTask = 0x8017EF24; // type:func absolute:True owner=shelter_b2_main_corridor shared=rooms
 
-waterDriftTaskNoUpdate = 0x8017F3AC; // type:func absolute:True owner=shelter_b2_main_corridor
+shelterB2MainCorridorWaterDriftTask = 0x8017F3AC; // type:func absolute:True owner=shelter_b2_main_corridor
 
 shelterB2MainCorridorRoomVisualEffectsFlashTask = 0x8018094C; // type:func absolute:True owner=shelter_b2_main_corridor
 

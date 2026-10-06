@@ -66,7 +66,34 @@ void shelterB2MainCorridorRoomTask(Task* task);
 /// the task and body. Keep this overlay and the effect controller live.
 void shelterB2MainCorridorWaterRippleTask(Task* task);
 
-void waterDriftTaskNoUpdate(Task* task);
+/// Advances and draws one eight-cell water-spray particle in the corridor.
+///
+/// Requires a live counted effect with owned `EffectWork` in `spawnArg2.pointer`,
+/// one coordinate body, initial state 0 and cell index 0. Draws the coordinate's
+/// existing `workm`; local motion dirties its cache without composing it.
+/// The effect spawner initially composes the coordinate beneath the view.
+///
+/// `spawnArg1` bits 0..11 give size scale (0..4095), bits 12..15 the running
+/// ticks per cell (0 selects 1), bits 16..23 speed in parent-coordinate units
+/// per tick (0 selects 64), and bits 24..27 the velocity kind: 0 stationary,
+/// 1 upward burst, 2 all-axis spray, 3 narrow upward jet, 5 direction from
+/// the copied spawn offset. Other kinds retain the zero direction before
+/// normalization. Nonzero bits 28..31 select an upright tile; otherwise the
+/// quad retains a random angle in 4096 units per turn. A preloaded nonzero
+/// `move` bypasses generation and scaling; `step` becomes 64 to enable motion.
+///
+/// The first running tick initializes without drawing or moving. Later ticks
+/// draw the current cell, advance local translation by signed halfword velocity
+/// and add 6 to its Y component, retaining the low 16 bits. Stationary particles
+/// skip motion and gravity. Cells 0..7 last `period` ticks each; retirement
+/// follows 8 * `period` running ticks after initialization (8..120 ticks).
+///
+/// Non-running control below cancellation redraws without initialization or
+/// aging; cancellation retires without drawing. Retirement frees the work,
+/// decrements the effect count and destroys the task and coordinate body.
+/// Keep this overlay, controller, cached matrix and drawing resources live;
+/// queued primitives must remain available until GPU consumption.
+void shelterB2MainCorridorWaterDriftTask(Task* task);
 
 /// Runs a pink charge flash, a screen tint at its peak, and a fading star.
 ///

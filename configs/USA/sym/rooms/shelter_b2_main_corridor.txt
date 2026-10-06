@@ -103,7 +103,7 @@ D_shelter_b2_main_corridor_801828E0 = 0x801828E0; // size:0x10 defined:True
 
 shelterB2MainCorridorWaterRippleTask = 0x8017EF24; // type:func
 
-waterDriftTaskNoUpdate = 0x8017F3AC; // type:func
+shelterB2MainCorridorWaterDriftTask = 0x8017F3AC; // type:func
 
 shelterB2MainCorridorRoomVisualEffectsFlashTask = 0x8018094C; // type:func
 
