@@ -2362,7 +2362,9 @@ static s32 SndVoice_Tick(_SndVoice* voice)
             if (voice->envelope.releaseRequest == SOUND_VOICE_ENVELOPE_HELD) {
                 voice->envelope.releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_PENDING;
             }
-            goto block_8;
+            if (voice->envelope.active != 0) {
+                SndVoice_TickEnvelope(voice);
+            }
         }
     } else {
         if (temp <= 0x7FFFFFFE) {
@@ -2372,7 +2374,6 @@ static s32 SndVoice_Tick(_SndVoice* voice)
                 voice->gateClock = temp + 0xFFFF0000;
             }
         }
-    block_8:
         if (voice->envelope.active != 0) {
             SndVoice_TickEnvelope(voice);
         }
