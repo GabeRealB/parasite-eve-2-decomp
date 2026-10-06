@@ -3412,22 +3412,18 @@ static void func_actor_400500_801361EC(Task* arg0)
             } while (i < ARRAY_SIZE(work2->rig.slots));
             switch ((s16)((u16)work->zone - 1)) {
                 case 3:
-                    if (heading != 0x400) {
-                        goto case3_ne;
+                    if (heading == 0x400) {
+                        work->subState = 1;
+                    } else {
+                        work->subState = 4;
                     }
-                    work->subState = 1;
-                    break;
-                case3_ne:
-                    work->subState = 4;
                     break;
                 case 0:
-                    if (work->toTarget.vx >= 0) {
-                        goto case0_ge;
+                    if (work->toTarget.vx < 0) {
+                        work->subState = 3;
+                    } else {
+                        work->subState = 1;
                     }
-                    work->subState = 3;
-                    break;
-                case0_ge:
-                    work->subState = 1;
                     break;
                 case 1:
                     playerZone = (s16)work->playerZone;
@@ -3436,35 +3432,28 @@ static void func_actor_400500_801361EC(Task* arg0)
                     } else if ((playerZone == 3) && (heading == 0) && (coord->coord.t[0] >= 0x4074)) {
                         work->subState = 6;
                     } else if ((s16)work->playerZone == 2) {
-                        if (coord->coord.t[2] < -0x209D) {
-                            goto a1c2_lt;
+                        if (coord->coord.t[2] >= -0x209D) {
+                            work->subState = 6;
+                        } else {
+                            work->subState = 1;
                         }
-                        work->subState = 6;
-                        break;
-                    a1c2_lt:
-                        work->subState = 1;
-                        break;
                     } else {
                         work->subState = 1;
                     }
                     break;
                 case 2:
-                    if (work->toTarget.vz >= 0) {
-                        goto case2_ge;
+                    if (work->toTarget.vz < 0) {
+                        work->subState = 8;
+                    } else {
+                        work->subState = 6;
                     }
-                    work->subState = 8;
-                    break;
-                case2_ge:
-                    work->subState = 6;
                     break;
                 case 5:
-                    if (heading != 0x800) {
-                        goto case5_ne;
+                    if (heading == 0x800) {
+                        work->subState = 8;
+                    } else {
+                        work->subState = 7;
                     }
-                    work->subState = 8;
-                    break;
-                case5_ne:
-                    work->subState = 7;
                     break;
                 default:
                     tx                        = -0x3E8;
