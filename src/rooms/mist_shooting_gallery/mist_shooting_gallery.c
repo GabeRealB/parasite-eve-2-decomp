@@ -1913,12 +1913,12 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
             }
             func_800E6D4C(texturePageX, 0);
             Gp_RunCapCmd(task->spawnArg1.value, 0);
-            goto block_inc;
+            task->state += 1;
+            return;
         case 1:
             if (Gp_CapBusy() != 0) {
                 return;
             }
-        block_inc:
             task->state += 1;
             return;
         case 2:
