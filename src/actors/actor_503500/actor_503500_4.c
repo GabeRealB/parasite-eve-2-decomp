@@ -3121,7 +3121,6 @@ static void func_actor_503500_8013FF0C(Task* arg0)
     Enemy*                        enemy;
     TmdObject*                    tmd;
     s8                            countdown;
-    s32                           slot;
 
     work      = arg0->work;
     enemy     = arg0->spawnArg2.pointer;
@@ -3133,18 +3132,10 @@ static void func_actor_503500_8013FF0C(Task* arg0)
         }
         work->bufferFreeCountdown--;
     }
-    if (gGameSession->eventState != 0) {
-        slot = 0xB;
-        if (arg0->spawnArg1.value < 0xF) {
-            slot = 0xA;
-        }
-        if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
-            tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        } else {
-            goto tick;
-        }
+    if (gGameSession->eventState != 0 &&
+        func_actor_503500_80135E04(arg0->parent, arg0->spawnArg1.value < 0xF ? 0xA : 0xB) == 0) {
+        tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-    tick:
         func_actor_503500_80135828(arg0, &work->bufferFreeCountdown);
     }
 
