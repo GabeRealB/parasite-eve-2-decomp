@@ -6029,26 +6029,14 @@ static void func_actor_444000_801411C8(Task* arg0)
         work->hostExposed = 0;
     }
 
-    d      = &vec;
-    coord  = arg0->extra.tmd->coords;
-    d->vx  = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    d->vy  = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    d->vz  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    facing = arg0->extra.tmd->coords;
-    angle  = ratan2(d->vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    if (angle < 0) {
-    wrapUp:
-        if (angle < -0x800) {
-            angle += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (angle > 0x800) {
-            angle -= 0x1000;
-            goto wrapDown;
-        }
-    }
+    d                   = &vec;
+    coord               = arg0->extra.tmd->coords;
+    d->vx               = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    d->vy               = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    d->vz               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    facing              = arg0->extra.tmd->coords;
+    angle               = ratan2(d->vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
+    angle               = actorWrapAngle(angle);
     work->neckYawTarget = angle;
 
     if (gGluttonLimbReach >= 0x191) {
