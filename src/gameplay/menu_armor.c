@@ -138,7 +138,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -157,14 +157,14 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                               \
-    do {                                                           \
-        if ((item) == 0) {                                         \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                  \
-        } else {                                                   \
-            Ui_SetHolderParam(Gp_GetItemText((item), 1, 0), 0, 0); \
-        }                                                          \
-        Gp_SetPreviewItem((item), 0);                              \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
+    do {                                                                                  \
+        if ((item) == 0) {                                                                \
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                          \
+            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                                 \
+        Gp_SetPreviewItem((item), 0);                                                     \
     } while (0)
 
 /// Whether item `id` is the equipped weapon, the equipped armour, or a
@@ -231,7 +231,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
 
@@ -249,7 +249,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 table = &table[scan->firstRow];
                 for (i = 0; i < count; i++) {
                     if (table[i].attachSlot == menu->selectedItemIndex + 1) {
-                        Gp_RefreshItemRow(&table[i]);
+                        inventoryDetachItem(&table[i]);
                         break;
                     }
                 }
@@ -292,7 +292,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
                 rec   = &rec[scan->firstRow];
                 for (i = 0; i < count; i++, rec++) {
                     if (rec->attachSlot == slot) {
-                        Gp_RefreshItemRow(rec);
+                        inventoryDetachItem(rec);
                         break;
                     }
                 }

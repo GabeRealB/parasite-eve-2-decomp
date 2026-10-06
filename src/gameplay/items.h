@@ -128,7 +128,7 @@ extern u16 Gp_PubItemId;
 s32 Gp_LookupBit2Item(s32 arg0);
 
 /// Byte remap of an item id used as a sort/order key (`Gp_ItemSortKey` /
-/// `Gp_SortItems`). Split by item class: 0x01–0x5F → `Gp_ItemSortKey0[id]`,
+/// `inventorySortItems`). Split by item class: 0x01–0x5F → `Gp_ItemSortKey0[id]`,
 /// 0x60–0x7F → `Gp_ItemSortKey60[id-0x60]`, 0x80–0x9F → `Gp_ItemSortKey80[id-0x80]`,
 /// 0xA0–0xBF → `Gp_ItemSortKeyA0[id-0xA0]`. A 0 entry (or an id outside those
 /// ranges) falls back to `id + 0x100`; id 0 returns 0x1000.
@@ -140,30 +140,50 @@ extern u8 Gp_ItemSortKey80[];
 
 extern u8 Gp_ItemSortKeyA0[];
 
-/// Selection-sorts the item table selected by `arg0` using the same
-/// sort-key remap as `Gp_ItemSortKey` (`Gp_ItemSortKey0` / `Gp_ItemSortKey60` /
-/// `Gp_ItemSortKey80` / `Gp_ItemSortKeyA0`). `arg1` is unused.
-void Gp_SortItems(InventoryItemRange* arg0, s32 arg1);
+/// Sorts the selected range by catalogue order, placing free rows last.
+///
+/// Exchanges complete rows as each lower key is encountered. Equal keys are
+/// not exchanged directly, but the sort is not stable. Attachment positions
+/// travel with their rows; saved weapon loads are indexed by item id instead.
+/// The whole range must fit its table. Existing row pointers remain valid
+/// addresses but may refer to different items afterwards. `unused` is ignored.
+void inventorySortItems(const InventoryItemRange* range, s32 unused);
 
 /// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with
 /// `Gp_GiveItem` first, then an existing stack is moved onto the slot when
 /// it is empty. Other ids overwrite the slot (re-adding the previous item).
 InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-/// Returns the `arg1`-th matching item id from the table selected by `arg0`.
-/// `0x80..0x9F` ids match when `arg2 == 0`, or when `arg2` is a related id
-/// in `Gp_RelatedQty0` / `Gp_RelatedQty1` and the row is stocked or selected.
-s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+/// Returns the zero-based matching weapon id from the selected table.
+///
+/// A zero `consumableItemId` selects every weapon row. Otherwise a weapon must
+/// accept that consumable in either load and be attached to armour or currently
+/// equipped. Each matching load counts separately, even on the same row.
+/// Walking starts at `range->firstRow` and does not stop at `rowCount`: the
+/// caller must supply a nonnegative index and enough readable rows to reach
+/// `matchIndex + 1` matches.
+s32 inventoryGetNthWeaponForConsumable(const InventoryItemRange* range, s32 matchIndex, s32 consumableItemId);
 
-void Gp_RefreshItemRow(InventoryItemRow* arg0);
+/// Removes an item's positive armour attachment position.
+///
+/// An unattached item or the equipped armour marker is unchanged. Detaching a
+/// weapon also clears its removable loads unless it is the equipped weapon;
+/// built-in supplies remain loaded. The row and live save must be writable.
+void inventoryDetachItem(InventoryItemRow* row);
 
-/// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
-/// Ids `0xA0..0xBF` stack onto an existing row, clamped to
-/// `Gp_StackLimits[id-0xA0].maxHeld`. `arg2 < 0` uses that row's `packQty`
-/// as the count, or `maxHeld` when `arg2 == -2`; out-of-range ids use 1.
-/// Other ids take the first free slot with quantity 1. Returns the
-/// written row, or NULL if none was free.
-InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+/// Quantity request that adds a consumable's maximum stack rather than one pack.
+enum { INVENTORY_ADD_FULL_STACK = -2 };
+
+/// Adds item units to the selected range and returns the affected row, or NULL.
+///
+/// Consumable ids 0xA0..0xBF share the first matching stack, clamped to its
+/// catalogue capacity; otherwise the first free row is initialized. Any
+/// negative quantity requests one pack, except `INVENTORY_ADD_FULL_STACK`,
+/// which requests a full stack. Other one-byte item ids always occupy a new
+/// row with quantity one. `itemId` must be 1..0xFF and the range must fit its
+/// writable table. The returned
+/// row borrows that table and may change item identity after sorting/transfers.
+InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, s32 quantity);
 
 void func_800B92CC(Task* task);
 

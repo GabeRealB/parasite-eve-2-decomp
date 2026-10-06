@@ -30,7 +30,7 @@ void Gp_RecalcMaxMp(void);
 /// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
 /// previous selection, then recomputes max HP/MP (same bodies as
 /// `Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
-/// `Gp_RefreshItemRow`, and sets the collected bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits`.
+/// `inventoryDetachItem`, and sets the collected bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits`.
 /// `arg0 == 0` only recomputes HP/MP. Both of those paths copy current
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
 void Gp_EquipMod(s32 arg0);
@@ -127,10 +127,31 @@ static inline InventoryConsumableStack* gpItemStock(s32 itemId)
 /// True if `arg1` can be added to the item table selected by `arg0`.
 s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1);
 
-/// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
-/// delimiters). `arg2 == 0` reads `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits` and adds 3 to
-/// `arg1` when the bit is clear. Ids `>= 0x500` index `Gp_ItemTextHi`;
-/// `0x300..0x4FF` unpack and recurse.
-char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2);
+/// Catalogue field indices and raw id dispatch boundaries for `itemGetText`.
+enum {
+    ITEM_TEXT_NAME               = 0,
+    ITEM_TEXT_DESCRIPTION_FIRST  = 1,
+    ITEM_TEXT_DESCRIPTION_SECOND = 2,
+    ITEM_TEXT_FIELDS_PER_FORM    = 3,
+    ITEM_TEXT_KEY_ID_FIRST       = 0x100,
+    ITEM_TEXT_PACKED_ID_FIRST    = 0x300,
+    ITEM_TEXT_ENEMY_ID_FIRST     = 0x500
+};
+
+/// Borrows the encoded name or description suffix for an item or packed PE id.
+///
+/// Nonnegative `fieldIndex` selects name (0) or description line (1/2); values >= 3 select
+/// the name. Zero `forceIdentified` consults the live save's identification bit;
+/// nonzero always selects identified text. Fields are separated by NUL, newline
+/// or a backslash followed by n/N. The suffix is not copied or terminated anew.
+///
+/// Declared catalogue ids are 0..0xBF and 0x100..0x17F; raw id dispatch performs
+/// no bounds check. Packed ids 0x300..0x4FF use element/energy/level bits to select
+/// an identified ordinary entry. Enemy ids 0x500..0x53E use `Gp_ItemTextHi` and
+/// ignore the field/form arguments; the enemy-name overlay must be loaded.
+/// Results remain readable while their defining image stays loaded. Skipping
+/// fields requires all delimiters to be readable; a first byte n/N also causes
+/// the retained parser to read the preceding byte.
+const u8* itemGetText(s32 itemId, s32 fieldIndex, s32 forceIdentified);
 
 #endif // GAMEPLAY_ITEMS_H

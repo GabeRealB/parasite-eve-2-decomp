@@ -110,7 +110,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -122,14 +122,14 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                               \
-    do {                                                           \
-        if ((item) == 0) {                                         \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                  \
-        } else {                                                   \
-            Ui_SetHolderParam(Gp_GetItemText((item), 1, 0), 0, 0); \
-        }                                                          \
-        Gp_SetPreviewItem((item), 0);                              \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
+    do {                                                                                  \
+        if ((item) == 0) {                                                                \
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                          \
+            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                                 \
+        Gp_SetPreviewItem((item), 0);                                                     \
     } while (0)
 
 void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -480,7 +480,7 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -501,14 +501,14 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
     USE_REG(spawnArg);
     prompt = arg0;
     USE_REG(arg0);
-    item   = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->currentItemIndex, spawnArg);
+    item   = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->currentItemIndex, spawnArg);
     status = obj->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->selectedItemIndex == prompt->currentItemIndex) {
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
             if (spawnArg != 0) {
                 _gpSetPreviewItem(item, 0);
@@ -685,7 +685,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
         uiStartPanelHiding(parent->spawnArg2.pointer, parent);
         uiSpawnObject(&D_8010EC3C, 0, 0, 0x10, obj);
     }
-    val = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
+    val = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
     if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) || (val != cfg->weapon + 0x7F)) {
         flags = 0x12;
         if (val == 0) {
@@ -737,7 +737,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrRemoveAmmoHelp, 0, 0);
             } else {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 if (Gp_ReloadMode == 0) {
                     _gpSetPreviewItem(item, 2);
                 }
@@ -792,7 +792,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
                 draw.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 draw.req.alignment  = TEXT_ALIGNMENT_LEFT;
                 draw.req.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&draw.req, Gp_GetItemText(item, 0, 0));
+                textDrawString(&draw.req, itemGetText(item, ITEM_TEXT_NAME, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
                     func_800C2538(obj, x, y, temp % 3 + 1, color);

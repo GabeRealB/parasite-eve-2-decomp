@@ -424,7 +424,7 @@ void Gp_SetHolderItemText(s32 arg0)
     if (arg0 == 0) {
         Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
     } else {
-        Ui_SetHolderParam(Gp_GetItemText(arg0, 1, 0), 0, 0);
+        Ui_SetHolderParam(itemGetText(arg0, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
     }
 }
 
@@ -562,7 +562,7 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Gp_SortItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 1);
+            inventorySortItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 1);
         }
     }
 }
@@ -643,14 +643,14 @@ s32 Gp_GetPreviewItem(void)
 
 void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
 {
-    const u8* text;
-    s8        idx;
-    s32       id;
+    const const u8* text;
+    s8              idx;
+    s32             id;
 
     idx = arg0->currentItemIndex;
     id  = (u16)arg1->owner->spawnArg1.value;
     if ((idx < 2) && (id < 0x100)) {
-        text = Gp_GetItemText(id, idx + 1, 1);
+        text = itemGetText(id, idx + 1, 1);
         textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
         text = textSkipLines(Fs_GetChunkPayload(), arg0->currentItemIndex + 5);
@@ -712,7 +712,7 @@ void Gp_EquipHeld(s32 arg0)
             }
         }
         p->weapon = arg0 - 0x7F;
-        Gp_RefreshItemRow(rec);
+        inventoryDetachItem(rec);
         Gp_SetItemSeenBit(arg0, 1);
     }
 }
@@ -780,7 +780,7 @@ void Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1)
     s32 width;
     s32 temp;
 
-    width = textMeasureLineWidth((const u8*)Gp_GetItemText(arg1, 0, 0)) + 0xB;
+    width = textMeasureLineWidth(itemGetText(arg1, ITEM_TEXT_NAME, 0)) + 0xB;
     temp  = textMeasureLineWidth((const u8*)Gp_StrEquipped);
     if (width < temp) {
         width = temp;
@@ -791,12 +791,12 @@ void Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1)
 
 void func_800CF6E8(UiObject* arg0, s32 arg1)
 {
-    u8* text;
-    s32 color;
-    s32 one;
-    s32 x;
+    const u8* text;
+    s32       color;
+    s32       one;
+    s32       x;
 
-    text  = Gp_GetItemText(arg1, 0, 0);
+    text  = itemGetText(arg1, ITEM_TEXT_NAME, 0);
     color = 0x606060;
     one   = 1;
     textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);
@@ -2363,16 +2363,16 @@ void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
     s32         lineY;
     s32         color;
     s32         one;
-    u8*         text;
+    const u8*   text;
 
     y     = arg0->panel.contentTop.unsignedValue;
     mask  = arg1 & 3;
     lineY = y + 0xF;
-    text  = Gp_GetItemText(arg1, 1, 1);
+    text  = itemGetText(arg1, ITEM_TEXT_DESCRIPTION_FIRST, 1);
     color = 0x606060;
     one   = 1;
     textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, lineY, text, color, one, TEXT_ALIGNMENT_LEFT);
-    text = Gp_GetItemText(arg1, 2, one);
+    text = itemGetText(arg1, ITEM_TEXT_DESCRIPTION_SECOND, one);
     textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, y + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
     y     = arg0->panel.contentTop.unsignedValue;
     lineY = y + 0xF;
@@ -3444,7 +3444,7 @@ void Gp_DrawNextLevelCmd(Task* arg0)
     s32       spawnArg;
     s32       saved;
     s32       y;
-    u8*       text;
+    const u8* text;
 
     obj                     = arg0->spawnArg2.pointer;
     spawnArg                = arg0->spawnArg1.value;
@@ -3455,9 +3455,9 @@ void Gp_DrawNextLevelCmd(Task* arg0)
     obj->panel.control.word = saved;
     func_800D3D98(obj, spawnArg, 1);
     y    = obj->panel.contentBottom.signedValue;
-    text = Gp_GetItemText(spawnArg + 1, 1, 1);
+    text = itemGetText(spawnArg + 1, ITEM_TEXT_DESCRIPTION_FIRST, 1);
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, y - 0xF, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    text = Gp_GetItemText(spawnArg + 1, 2, 1);
+    text = itemGetText(spawnArg + 1, ITEM_TEXT_DESCRIPTION_SECOND, 1);
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, y, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 

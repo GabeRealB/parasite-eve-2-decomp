@@ -161,7 +161,7 @@ void uiUpdatePanelContentLayout(UiPanel* panel, const RECT* outerRect, RECT* inn
 void uiPositionRowDialog(UiPanel* dialogPanel, const UiList* list, const UiPanel* listPanel);
 
 /// Set the prompt text; the owner task stores it in its mixed spawn payload.
-void Ui_SetHolderParam(u8* arg0, s32 unused2, s32 unused3);
+void Ui_SetHolderParam(const u8* arg0, s32 unused2, s32 unused3);
 
 /// Set a numeric item id (0x300..0x3FF) for the PE cost prompt.
 void Ui_SetHolderParamAlt(s32 arg0, s32 unused2, s32 unused3);

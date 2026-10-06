@@ -521,7 +521,7 @@ void Gp_EquipMod(s32 arg0)
                 rec = &tmp[scan->firstRow];
                 if (scan->rowCount != 0) {
                     do {
-                        Gp_RefreshItemRow(rec);
+                        inventoryDetachItem(rec);
                         i++;
                         rec++;
                     } while (i < scan->rowCount);

@@ -881,7 +881,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
         scratch.text.nameRequest.glyphTable    = TEXT_GLYPH_TABLE_MEDIUM;
         scratch.text.nameRequest.alignment     = TEXT_ALIGNMENT_LEFT;
         scratch.text.nameRequest.drawMode      = TEXT_DRAW_OUTLINED;
-        textDrawString(&scratch.text.nameRequest, Gp_GetItemText(item, 0, 0));
+        textDrawString(&scratch.text.nameRequest, itemGetText(item, ITEM_TEXT_NAME, 0));
 
         ret   = getAttachWheelLevel(Gp_StateC08.wheelIndex);
         color = 0x606060;

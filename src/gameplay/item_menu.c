@@ -457,7 +457,7 @@ void Gp_ItemMoveTask(Task* arg0)
             (&Gp_MoveScanSrc)[i] = *src;
             i++;
         } while (i < 2);
-        Gp_SortItems(&Gp_MoveScanSrc, 0);
+        inventorySortItems(&Gp_MoveScanSrc, 0);
         if (arg0->spawnArg1.value == 1) {
             val               = Gp_CanMoveItems();
             work->focusedPane = 0;

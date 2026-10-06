@@ -54,6 +54,12 @@ typedef struct {
 } EquipmentWeaponLoadOptionsTable;
 STATIC_ASSERT_SIZEOF(EquipmentWeaponLoadOptionsTable, 0x80);
 
+/// Inventory ids whose quantities share a consumable stack within a range.
+enum {
+    INVENTORY_CONSUMABLE_ITEM_FIRST = 0xA0,
+    INVENTORY_CONSUMABLE_ITEM_COUNT = 0x20
+};
+
 /// Pack size and stack capacity for one consumable item (ids 0xA0..0xBF).
 ///
 /// `Gp_StackLimits` holds one row per consumable, indexed by item id minus

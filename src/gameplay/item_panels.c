@@ -850,7 +850,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
         sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -869,7 +869,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
         sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -890,7 +890,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
         sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -909,7 +909,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
             sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
-            textDrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+            textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
             temp = item - 0xF;
             if ((u32)temp < 0x24U) {
                 func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -928,7 +928,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 sp20.u.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 sp20.u.req.alignment  = TEXT_ALIGNMENT_LEFT;
                 sp20.u.req.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&sp20.u.req, Gp_GetItemText(item, 0, 0));
+                textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
                     func_800C2538(arg0, x, y, temp % 3 + 1, color);
@@ -955,7 +955,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
 
 void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
 {
-    u8*           text;
+    const u8*     text;
     s32           width;
     s32           temp;
     PlayerStatus* cfg;
@@ -965,7 +965,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     s32           row;
     s32           col;
 
-    text = Gp_GetItemText(arg2, 0, 0);
+    text = itemGetText(arg2, ITEM_TEXT_NAME, 0);
     if (arg1->state == 0) {
         width = textMeasureLineWidth(text) + 0xB;
         temp  = textMeasureLineWidth((const u8*)Gp_StrInvoked);
@@ -1416,7 +1416,7 @@ void Gp_PickupTitleTask(Task* arg0)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -1535,7 +1535,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     s32       temp;
     s32       color;
     s32       one;
-    u8*       text;
+    const u8* text;
 
     obj         = arg0->spawnArg2.pointer;
     item        = (u16)arg0->spawnArg1.value;
@@ -1543,7 +1543,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
-        width               = textMeasureLineWidth((const u8*)Gp_GetItemText(item, 0, 0)) + 0xB;
+        width               = textMeasureLineWidth(itemGetText(item, ITEM_TEXT_NAME, 0)) + 0xB;
         temp                = textMeasureLineWidth((const u8*)Gp_StrObtained);
         if (width < temp) {
             width = temp;
@@ -1555,7 +1555,7 @@ void Gp_ObtainedNoticeTask(Task* arg0)
     color = 0x606060;
     one   = 1;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrObtained, color, one, TEXT_ALIGNMENT_LEFT);
-    text = Gp_GetItemText(item, 0, 0);
+    text = itemGetText(item, ITEM_TEXT_NAME, 0);
     temp = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
     textDrawUiLine(obj, temp, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
     arg0->killCountdown--;
@@ -1640,7 +1640,7 @@ void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s3
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(arg3, 0, 0));
+        textDrawString(&req, itemGetText(arg3, ITEM_TEXT_NAME, 0));
         if (arg5 != 0) {
             func_800C22D8(arg0, arg1, arg2, arg3, arg5);
         }
@@ -1671,7 +1671,7 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(arg3, 0, 0));
+        textDrawString(&req, itemGetText(arg3, ITEM_TEXT_NAME, 0));
         if (arg5 != 0) {
             func_800C22D8(arg0, arg1, arg2, arg3, arg5);
         }

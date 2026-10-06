@@ -52,20 +52,11 @@
 
 #include "rooms/shelter_r47.h"
 
-/// The element an accessor was handed. An inlined function's argument is
-/// expanded as an address, scaled index first, which is the order the
-/// callers' element addresses have (see `gpAreaPlaceRef`).
-static inline InventoryConsumableStack* gpStackLimitRef(InventoryConsumableStack* row)
-{
-    return row;
-}
-
 /// Row `index` elements after `rows`.
 /// The result borrows `rows`; `index` must name a row in that table.
-#define gpStackLimitAt(rows, index) gpStackLimitRef(&(rows)[index])
+#define gpStackLimitAt(rows, index) (&(rows)[index])
 
-/* Item table a scan window lies in. */
-static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
+static inline InventoryItemRow* _inventoryGetRangeTable(const InventoryItemRange* range);
 
 /// True if `arg2` of item `arg1` can be added to the item table selected
 /// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
@@ -76,7 +67,7 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 static inline bool _itemIsIdentified(s32 itemId);
 
-static inline void _gpClearEquipSlot(s32 item);
+static inline void _equipmentClearRemovableLoads(s32 weaponItemId);
 
 u8 Gp_ItemSortKey0[72] = {
     0,
@@ -266,12 +257,15 @@ u8 Gp_ItemSortKeyA0[33] = {
         Gp_GiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
     } while (0)
 
-/* Item table a scan window lies in. */
-static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
+/// Borrows the complete row table selected by a range, before its first-row offset.
+///
+/// The range owns no rows. Unrecognized selectors use the live save table;
+/// the indirect table must already be available when that selector is used.
+static inline InventoryItemRow* _inventoryGetRangeTable(const InventoryItemRange* range)
 {
     InventoryItemRow* table;
 
-    switch (scan->tableId) {
+    switch (range->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             table = Gp_ItemTable2;
             break;
@@ -285,125 +279,99 @@ static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
     return table;
 }
 
-void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
+void inventorySortItems(const InventoryItemRange* range, s32 unused)
 {
-    InventoryItemRow*          tmp;
-    register InventoryItemRow* table;
-    InventoryItemRow*          rec;
-    InventoryItemRow*          other;
-    InventoryItemRow           saved;
-    s32                        i;
-    s32                        j;
-    s32                        key;
-    s32                        minKey;
-    s32                        id;
-    s32                        idx;
-    s32                        count;
-    s32                        dummy5;
-    s32                        dummy6;
-    s32                        dummy7;
+    enum {
+        INVENTORY_SORT_ARMOR_ITEM_FIRST = 0x60,
+        INVENTORY_SORT_CLASS_ID_COUNT   = 0x20,
+        INVENTORY_SORT_EMPTY_KEY        = 0x1000,
+        INVENTORY_SORT_FALLBACK_OFFSET  = 0x100
+    };
 
-    i = 0;
-    if ((arg0->rowCount - 1) > 0) {
+    InventoryItemRow* table;
+    InventoryItemRow* placedRow;
+    InventoryItemRow* candidateRow;
+    InventoryItemRow  swappedRow;
+    s32               placedIndex;
+    s32               candidateIndex;
+    s32               sortKey;
+    s32               lowestKey;
+    s32               itemId;
+    s32               rowCount;
+
+    /// Computes catalogue order, with unmapped ids ordered numerically and empty rows last.
+    ///
+    /// `id` must be a side-effect-free scalar and `key` a distinct scalar lvalue.
+    /// Reads `id` repeatedly and writes only `key`; its class index is local.
+    /// This binding is available only within this function.
+#define INVENTORY_GET_SORT_KEY(id, key)                                     \
+    do {                                                                    \
+        s32 classIndex;                                                     \
+        (key) = 0;                                                          \
+        if ((id) == INVENTORY_ITEM_NONE) {                                  \
+            (key) = INVENTORY_SORT_EMPTY_KEY;                               \
+        } else if ((u32)((id) - 1) < INVENTORY_SORT_ARMOR_ITEM_FIRST - 1) { \
+            (key) = Gp_ItemSortKey0[(id)];                                  \
+        } else {                                                            \
+            classIndex = (id) - INVENTORY_SORT_ARMOR_ITEM_FIRST;            \
+            if ((u32)classIndex < INVENTORY_SORT_CLASS_ID_COUNT) {          \
+                (key) = Gp_ItemSortKey60[classIndex];                       \
+            } else {                                                        \
+                classIndex = (id) - EQUIPMENT_WEAPON_ITEM_FIRST;            \
+                if ((u32)classIndex < INVENTORY_SORT_CLASS_ID_COUNT) {      \
+                    (key) = Gp_ItemSortKey80[classIndex];                   \
+                } else {                                                    \
+                    classIndex = (id) - INVENTORY_CONSUMABLE_ITEM_FIRST;    \
+                    if ((u32)classIndex < INVENTORY_SORT_CLASS_ID_COUNT) {  \
+                        (key) = Gp_ItemSortKeyA0[classIndex];               \
+                    }                                                       \
+                }                                                           \
+            }                                                               \
+        }                                                                   \
+        if ((key) == 0) {                                                   \
+            (key) = (id) + INVENTORY_SORT_FALLBACK_OFFSET;                  \
+        }                                                                   \
+    } while (0)
+
+    placedIndex = 0;
+    if ((range->rowCount - 1) > 0) {
         do {
-            switch (arg0->tableId) {
-                case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-                    tmp = Gp_ItemTable2;
-                    break;
-                case INVENTORY_ITEM_TABLE_INDIRECT:
-                    tmp = Gp_ItemTable1;
-                    break;
-                default:
-                    tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-                    break;
-            }
-            table = tmp;
-            rec   = table + arg0->firstRow;
-            rec  += i;
-            id    = rec->itemId;
+            table = _inventoryGetRangeTable(range);
 
-            key = 0;
-            if (id == 0) {
-                key = 0x1000;
-            } else if ((u32)(id - 1) < 0x5F) {
-                key = Gp_ItemSortKey0[id];
-            } else {
-                idx = id - 0x60;
-                if ((u32)idx < 0x20) {
-                    key = Gp_ItemSortKey60[idx];
-                } else {
-                    idx = id - 0x80;
-                    if ((u32)idx < 0x20) {
-                        key = Gp_ItemSortKey80[idx];
-                    } else {
-                        idx = id - 0xA0;
-                        if ((u32)idx < 0x20) {
-                            key = Gp_ItemSortKeyA0[idx];
-                        }
-                    }
-                }
-            }
-            if (key == 0) {
-                key = id + 0x100;
-            }
-            minKey = key;
+            placedRow  = table + range->firstRow;
+            placedRow += placedIndex;
+            itemId     = placedRow->itemId;
 
-            if (arg0->tableId != INVENTORY_ITEM_TABLE_INDIRECT) {
-                tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-                if (arg0->tableId == INVENTORY_ITEM_TABLE_AREA_GRANTS) {
-                    tmp = Gp_ItemTable2;
-                }
-            } else {
-                tmp = Gp_ItemTable1;
-            }
-            table = tmp;
-            j     = i + 1;
-            // Start just after the row being placed.
-            other  = table + arg0->firstRow;
-            other += i + 1;
-            if (j < arg0->rowCount) {
+            INVENTORY_GET_SORT_KEY(itemId, sortKey);
+            lowestKey = sortKey;
+
+            table = _inventoryGetRangeTable(range);
+
+            candidateIndex = placedIndex + 1;
+            // Exchange complete rows whenever a lower catalogue key is found.
+            candidateRow  = table + range->firstRow;
+            candidateRow += placedIndex + 1;
+            if (candidateIndex < range->rowCount) {
                 do {
-                    id = other->itemId;
+                    itemId = candidateRow->itemId;
 
-                    key = 0;
-                    if (id == 0) {
-                        key = 0x1000;
-                    } else if ((u32)(id - 1) < 0x5F) {
-                        key = Gp_ItemSortKey0[id];
-                    } else {
-                        idx = id - 0x60;
-                        if ((u32)idx < 0x20) {
-                            key = Gp_ItemSortKey60[idx];
-                        } else {
-                            idx = id - 0x80;
-                            if ((u32)idx < 0x20) {
-                                key = Gp_ItemSortKey80[idx];
-                            } else {
-                                idx = id - 0xA0;
-                                if ((u32)idx < 0x20) {
-                                    key = Gp_ItemSortKeyA0[idx];
-                                }
-                            }
-                        }
+                    INVENTORY_GET_SORT_KEY(itemId, sortKey);
+                    if (sortKey < lowestKey) {
+                        lowestKey     = sortKey;
+                        swappedRow    = *placedRow;
+                        *placedRow    = *candidateRow;
+                        *candidateRow = swappedRow;
                     }
-                    if (key == 0) {
-                        key = id + 0x100;
-                    }
-                    if (key < minKey) {
-                        minKey = key;
-                        saved  = *rec;
-                        *rec   = *other;
-                        *other = saved;
-                    }
-                    count = arg0->rowCount;
-                    j++;
-                    other++;
-                } while (j < count);
+                    rowCount = range->rowCount;
+                    candidateIndex++;
+                    candidateRow++;
+                } while (candidateIndex < rowCount);
             }
-            count = arg0->rowCount;
-            i++;
-        } while (i < (count - 1));
+            rowCount = range->rowCount;
+            placedIndex++;
+        } while (placedIndex < (rowCount - 1));
     }
+#undef INVENTORY_GET_SORT_KEY
 }
 
 /// True if `arg2` of item `arg1` can be added to the item table selected
@@ -626,7 +594,7 @@ InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s
     s32               item;
     s32               qty;
 
-    table = _gpScanTable(arg0);
+    table = _inventoryGetRangeTable(arg0);
     if ((u32)(arg2 - 0xA0) < 0x20U) {
         dest = Gp_GiveItem(arg0, arg2, arg3);
         i    = arg0->firstRow;
@@ -664,77 +632,72 @@ InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s
     return dest;
 }
 
-/// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
-/// Ids `0xA0..0xBF` stack onto an existing row, clamped to
-/// `Gp_StackLimits[id-0xA0].maxHeld`. `arg2 < 0` uses that row's `packQty`
-/// as the count, or `maxHeld` when `arg2 == -2`; out-of-range ids use 1.
-/// Other ids take the first free slot with quantity 1. Returns the
-/// written row, or NULL if none was free.
-InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
+InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, s32 quantity)
 {
     InventoryItemRow* table;
-    InventoryItemRow* dest;
-    s32               found;
-    s32               row;
-    s32               i;
+    InventoryItemRow* addedRow;
+    s32               foundStack;
+    s32               rowIndex;
+    s32               rangeIndex;
 
-    table = _gpScanTable(arg0);
-    dest  = NULL;
-    if (arg2 < 0) {
-        if ((u32)(arg1 - 0xA0) < 0x20) {
-            if (arg2 == -2) {
-                arg2 = Gp_StackLimits[arg1 - 0xA0].maxHeld;
+    table    = _inventoryGetRangeTable(range);
+    addedRow = NULL;
+    if (quantity < 0) {
+        if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+            if (quantity == INVENTORY_ADD_FULL_STACK) {
+                quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
             } else {
-                arg2 = Gp_StackLimits[arg1 - 0xA0].packQty;
+                quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
             }
         } else {
-            arg2 = 1;
+            quantity = 1;
         }
     }
 
-    row   = arg0->firstRow;
-    found = 0;
-    if ((u32)(arg1 - 0xA0) < 0x20) {
-        for (i = 0; i < arg0->rowCount; i++, row++) {
-            if (table[row].itemId == arg1) {
-                arg2 += table[row].qty;
-                if (Gp_StackLimits[arg1 - 0xA0].maxHeld < arg2) {
-                    arg2 = Gp_StackLimits[arg1 - 0xA0].maxHeld;
+    // Consumables share one stack within the requested range.
+    rowIndex   = range->firstRow;
+    foundStack = 0;
+    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        for (rangeIndex = 0; rangeIndex < range->rowCount; rangeIndex++, rowIndex++) {
+            if (table[rowIndex].itemId == itemId) {
+                quantity += table[rowIndex].qty;
+                if (Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld < quantity) {
+                    quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
                 }
-                table[row].qty = arg2;
-                dest           = &table[row];
-                found          = 1;
+                table[rowIndex].qty = quantity;
+                addedRow            = &table[rowIndex];
+                foundStack          = 1;
                 break;
             }
         }
-        if (found) {
-            return dest;
+        if (foundStack) {
+            return addedRow;
         }
-        row = arg0->firstRow;
-        for (i = 0; i < arg0->rowCount; i++, row++) {
-            if (table[row].itemId == INVENTORY_ITEM_NONE) {
-                table[row].itemId = arg1;
-                if (Gp_StackLimits[arg1 - 0xA0].maxHeld < arg2) {
-                    arg2 = Gp_StackLimits[arg1 - 0xA0].maxHeld;
+        rowIndex = range->firstRow;
+        for (rangeIndex = 0; rangeIndex < range->rowCount; rangeIndex++, rowIndex++) {
+            if (table[rowIndex].itemId == INVENTORY_ITEM_NONE) {
+                table[rowIndex].itemId = itemId;
+                if (Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld < quantity) {
+                    quantity = Gp_StackLimits[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
                 }
-                dest             = &table[row];
-                dest->qty        = arg2;
-                dest->attachSlot = INVENTORY_ATTACHMENT_NONE;
+                addedRow             = &table[rowIndex];
+                addedRow->qty        = quantity;
+                addedRow->attachSlot = INVENTORY_ATTACHMENT_NONE;
                 break;
             }
         }
     } else {
-        for (i = 0; i < arg0->rowCount; i++, row++) {
-            if (table[row].itemId == INVENTORY_ITEM_NONE) {
-                dest             = &table[row];
-                dest->itemId     = arg1;
-                dest->qty        = 1;
-                dest->attachSlot = INVENTORY_ATTACHMENT_NONE;
+        for (rangeIndex = 0; rangeIndex < range->rowCount; rangeIndex++, rowIndex++) {
+            if (table[rowIndex].itemId == INVENTORY_ITEM_NONE) {
+                addedRow             = &table[rowIndex];
+                addedRow->itemId     = itemId;
+                addedRow->qty        = 1;
+                addedRow->attachSlot = INVENTORY_ATTACHMENT_NONE;
                 break;
             }
         }
     }
-    return dest;
+    return addedRow;
 }
 
 /// Returns whether an item uses its identified name and description.
@@ -761,154 +724,166 @@ static inline bool _itemIsIdentified(s32 itemId)
     return (save->state.itemSeenBits[wordIndex] & bitMask) != 0;
 }
 
-char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
+const u8* itemGetText(s32 itemId, s32 fieldIndex, s32 forceIdentified)
 {
-    const s8*       str;
-    const ItemDesc* desc;
-    s32             c;
-    s32             n;
-    s32             row;
-    s32             col;
-    s32             id;
-    s32             ofs;
+    enum {
+        ITEM_TEXT_PACKED_ELEMENT_MASK     = 0xF0,
+        ITEM_TEXT_PACKED_ENERGY_MASK      = 0x0C,
+        ITEM_TEXT_PACKED_LEVEL_MASK       = 0x03,
+        ITEM_TEXT_PE_ENERGIES_PER_ELEMENT = 3,
+        ITEM_TEXT_PE_LEVELS_PER_ENERGY    = 3,
+        ITEM_TEXT_PE_ID_FIRST             = 0x0F
+    };
 
-    if (arg0 >= 0x500) {
-        str = (const s8*)Gp_ItemTextHi[arg0 - 0x500];
-    } else if (arg0 >= 0x300) {
-        // A packed id: bits 4-7 and 2-3 pick a run of three entries starting
-        // at id 0xF, bits 0-1 the entry within it (1-3, with 0 read as 1).
-        n   = arg0 & 3;
-        row = (arg0 & 0xF0) >> 4;
-        col = (arg0 & 0xC) >> 2;
-        if (n == 0) {
-            n = 1;
+    const s8*       text;
+    const ItemDesc* descriptor;
+    s32             byte;
+    s32             level;
+    s32             element;
+    s32             energyIndex;
+    s32             groupBase;
+    s32             levelOffset;
+
+    if (itemId >= ITEM_TEXT_ENEMY_ID_FIRST) {
+        text = (const s8*)Gp_ItemTextHi[itemId - ITEM_TEXT_ENEMY_ID_FIRST];
+    } else if (itemId >= ITEM_TEXT_PACKED_ID_FIRST) {
+        // Packed PE ids choose an element, an energy within it and a one-based level.
+        // Level zero aliases level one; the recursive lookup uses identified text.
+        level       = itemId & ITEM_TEXT_PACKED_LEVEL_MASK;
+        element     = (itemId & ITEM_TEXT_PACKED_ELEMENT_MASK) >> 4;
+        energyIndex = (itemId & ITEM_TEXT_PACKED_ENERGY_MASK) >> 2;
+        if (level == 0) {
+            level = 1;
         }
-        id  = (row * 3 + col) * 3;
-        ofs = n + 0xE;
-        str = (const s8*)Gp_GetItemText(id + ofs, arg1, 1);
+        groupBase   = (element * ITEM_TEXT_PE_ENERGIES_PER_ELEMENT + energyIndex) * ITEM_TEXT_PE_LEVELS_PER_ENERGY;
+        levelOffset = level + (ITEM_TEXT_PE_ID_FIRST - 1);
+        text        = (const s8*)itemGetText(groupBase + levelOffset, fieldIndex, 1);
     } else {
-        if (arg0 < 0x100) {
-            desc = &Gp_ItemDescs[arg0];
+        if (itemId < ITEM_TEXT_KEY_ID_FIRST) {
+            descriptor = &Gp_ItemDescs[itemId];
         } else {
-            desc = &Gp_KeyItemDescs[(arg0)-0x100];
+            descriptor = &Gp_KeyItemDescs[(itemId)-ITEM_TEXT_KEY_ID_FIRST];
         }
-        if (arg2 == 0) {
-            arg2 = _itemIsIdentified(arg0);
+        if (forceIdentified == 0) {
+            forceIdentified = _itemIsIdentified(itemId);
         }
         // The parser reads signed bytes, even though catalogue text uses u8 storage.
-        str = (const s8*)desc->textFields;
-        if (arg1 >= 3) {
-            arg1 = 0;
+        text = (const s8*)descriptor->textFields;
+        if (fieldIndex >= ITEM_TEXT_FIELDS_PER_FORM) {
+            fieldIndex = ITEM_TEXT_NAME;
         }
-        if (arg2 == 0) {
-            arg1 += 3;
+        if (forceIdentified == 0) {
+            fieldIndex += ITEM_TEXT_FIELDS_PER_FORM;
         }
-        // Skip `arg1` fields, each ended by a NUL, a newline or a `\n` / `\N`
+        // Skip fields, each ended by a NUL, a newline or a `\n` / `\N`
         // escape.
-        for (; arg1 > 0; str++) {
-            c = *str;
-            if (c == '\0' || c == '\n' || (c == 'n' && str[-1] == '\\') || (c == 'N' && str[-1] == '\\')) {
-                arg1--;
+        for (; fieldIndex > 0; text++) {
+            byte = *text;
+            if (byte == '\0' || byte == '\n' || (byte == 'n' && text[-1] == '\\') || (byte == 'N' && text[-1] == '\\')) {
+                fieldIndex--;
             }
         }
     }
-    return (char*)str;
+    return (const u8*)text;
 }
 
-s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
+s32 inventoryGetNthWeaponForConsumable(const InventoryItemRange* range, s32 matchIndex, s32 consumableItemId)
 {
-    InventoryItemRow* table;
-    s32               idx;
-    s32               i;
-    PlayerStatus*     cfg;
+    const InventoryItemRow* table;
+    s32                     rowIndex;
+    s32                     choiceIndex;
+    const PlayerStatus*     playerStatus;
 
-    table = _gpScanTable(arg0);
-    idx   = arg0->firstRow;
-    cfg   = &gPlayerStatus;
-    while (arg1 >= 0) {
-        if ((u8)(table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
-            if (arg2 == 0) {
-                arg1--;
+    table        = _inventoryGetRangeTable(range);
+    rowIndex     = range->firstRow;
+    playerStatus = &gPlayerStatus;
+    // Count each load separately, just as the weapon-list counter does.
+    while (matchIndex >= 0) {
+        if ((u8)(table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+            if (consumableItemId == INVENTORY_ITEM_NONE) {
+                matchIndex--;
             } else {
-                for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
-                    if (Gp_RelatedQty0.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i] == arg2) {
-                        if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
-                            arg1--;
+                for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); choiceIndex++) {
+                    if (Gp_RelatedQty0.rows[table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex] == consumableItemId) {
+                        if (table[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || playerStatus->weapon == table[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
+                            matchIndex--;
                         }
                         break;
                     }
                 }
-                for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
-                    if (Gp_RelatedQty1.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i] == arg2) {
-                        if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
-                            arg1--;
+                for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(Gp_RelatedQty1.rows[0].acceptedItemIds); choiceIndex++) {
+                    if (Gp_RelatedQty1.rows[table[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex] == consumableItemId) {
+                        if (table[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || playerStatus->weapon == table[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
+                            matchIndex--;
                         }
                         break;
                     }
                 }
             }
         }
-        idx++;
+        rowIndex++;
     }
-    idx--;
-    return table[idx].itemId;
+    rowIndex--;
+    return table[rowIndex].itemId;
 }
 
-/// Empties the removable consumable loads of weapon item `item`, the same clear
-/// `Gp_ClearEquipSlot` performs. A built-in supply, when this weapon has one,
-/// stays in its load.
-static inline void _gpClearEquipSlot(s32 item)
+/// Clears a weapon's removable consumable selections and quantities.
+///
+/// Non-weapon ids do nothing. A built-in supply stays loaded, and a missing
+/// secondary load keeps its unavailable marker while its quantity is cleared.
+static inline void _equipmentClearRemovableLoads(s32 weaponItemId)
 {
-    EquipmentWeaponLoad* slot;
-    s32                  found = 0;
-    s32                  i;
+    EquipmentWeaponLoad* loads;
+    s32                  hasSupply = 0;
+    s32                  supplyIndex;
 
-    if ((u32)(item - 0x80) >= 0x20) {
+    if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) {
         return;
     }
 
-    slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
-    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
-        if (item == Gp_ItemMaps[i].weaponItemId) {
-            found = 1;
+    loads = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    for (supplyIndex = 0; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
+        if (weaponItemId == Gp_ItemMaps[supplyIndex].weaponItemId) {
+            hasSupply = 1;
             break;
         }
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
-        slot->primaryItemId = INVENTORY_ITEM_NONE;
-        slot->primaryQty    = 0;
+    if ((hasSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_PRIMARY)) {
+        loads->primaryItemId = INVENTORY_ITEM_NONE;
+        loads->primaryQty    = 0;
     }
 
-    if ((found == 0) || (Gp_ItemMaps[i].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
-        if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-            slot->secondaryItemId = INVENTORY_ITEM_NONE;
+    if ((hasSupply == 0) || (Gp_ItemMaps[supplyIndex].supplyLoad != EQUIPMENT_WEAPON_SUPPLY_SECONDARY)) {
+        if (loads->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            loads->secondaryItemId = INVENTORY_ITEM_NONE;
         }
-        slot->secondaryQty = 0;
+        loads->secondaryQty = 0;
     }
 }
 
-void Gp_RefreshItemRow(InventoryItemRow* arg0)
+void inventoryDetachItem(InventoryItemRow* row)
 {
-    u8  item;
-    s32 inRange;
+    u8  weaponItemId;
+    s32 isWeapon;
 
-    if (arg0->attachSlot <= INVENTORY_ATTACHMENT_NONE) {
+    if (row->attachSlot <= INVENTORY_ATTACHMENT_NONE) {
         return;
     }
 
-    inRange          = (u8)(arg0->itemId + 0x80) < 0x20;
-    arg0->attachSlot = INVENTORY_ATTACHMENT_NONE;
-    if (!inRange) {
+    // Clear the attachment before reloading the item id for weapon-load cleanup.
+    isWeapon        = (u8)(row->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems);
+    row->attachSlot = INVENTORY_ATTACHMENT_NONE;
+    if (!isWeapon) {
         return;
     }
 
-    item = arg0->itemId;
-    if (item == gPlayerStatus.weapon + 0x7F) {
+    weaponItemId = row->itemId;
+    if (weaponItemId == gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
         return;
     }
 
-    _gpClearEquipSlot(item);
+    _equipmentClearRemovableLoads(weaponItemId);
 }
 
 void func_800B92CC(Task* task)

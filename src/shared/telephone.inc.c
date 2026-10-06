@@ -376,7 +376,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         req.glyphTable    = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment     = TEXT_ALIGNMENT_LEFT;
         request->drawMode = TEXT_DRAW_OUTLINED;
-        textDrawString(request, (const u8*)Gp_GetItemText(item, 0, 0));
+        textDrawString(request, itemGetText(item, ITEM_TEXT_NAME, 0));
         func_800CE5D0(arg1, x, y, item);
     }
     limit = 1;
@@ -495,7 +495,7 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
 
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
-        c  = *Gp_GetItemText(id, 0, 1);
+        c  = *itemGetText(id, ITEM_TEXT_NAME, 1);
         if ((c != 0) && (c != 0xA) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;

@@ -152,7 +152,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                 }
                 if (rec != NULL) {
                     rec->attachSlot = arg0->attachSlot;
-                    Gp_RefreshItemRow(arg0);
+                    inventoryDetachItem(arg0);
                 }
                 Gp_SetItemSeenBit(id, 1);
             }
@@ -519,7 +519,7 @@ void func_800D6334(Task* task)
             name.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
             name.alignment  = TEXT_ALIGNMENT_LEFT;
             name.drawMode   = TEXT_DRAW_OUTLINED;
-            textDrawString(&name, (const u8*)Gp_GetItemText(item, 0, 0));
+            textDrawString(&name, itemGetText(item, ITEM_TEXT_NAME, 0));
             Gp_DrawStackLeft(panel, x - 15, y + 16, selected, 0x606060, 0);
         } else {
             item = 0;

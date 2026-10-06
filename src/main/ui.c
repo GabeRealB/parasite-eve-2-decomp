@@ -3245,10 +3245,11 @@ static void Ui_ListTaskCallback(Task* task)
     }
 }
 
-void Ui_SetHolderParam(u8* arg0, s32 unused2, s32 unused3)
+void Ui_SetHolderParam(const u8* arg0, s32 unused2, s32 unused3)
 {
     if (Wip_UiHolder != NULL) {
-        Wip_UiHolder->owner->spawnArg1.pointer = arg0;
+        // The task payload carries an address; the prompt only reads its text.
+        Wip_UiHolder->owner->spawnArg1.pointer = (void*)arg0;
     }
 }
 

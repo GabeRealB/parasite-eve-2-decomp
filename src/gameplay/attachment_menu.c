@@ -389,7 +389,7 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
     }
@@ -407,7 +407,7 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         func_800C22D8(arg1, x, y, item, one);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -498,7 +498,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
 void Gp_ReloadPromptTask(Task* arg0)
 {
     UiObject*            obj;
-    u8*                  text;
+    const u8*            text;
     s32                  lo;
     s32                  hi;
     s32                  width;
@@ -520,7 +520,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             if (Gp_ReloadMode == 1) {
                 if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
                     arg0->spawnArg1.value |= slot->primaryItemId;
-                    text                   = Gp_GetItemText(slot->primaryItemId, 0, 0);
+                    text                   = itemGetText(slot->primaryItemId, ITEM_TEXT_NAME, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;
@@ -528,7 +528,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             } else if (Gp_ReloadMode == 2) {
                 if (slot->secondaryItemId != INVENTORY_ITEM_NONE) {
                     arg0->spawnArg1.value |= slot->secondaryItemId;
-                    text                   = Gp_GetItemText(slot->secondaryItemId, 0, 0);
+                    text                   = itemGetText(slot->secondaryItemId, ITEM_TEXT_NAME, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;
@@ -541,7 +541,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             other = textMeasureLineWidth((const u8*)Gp_StrRemoved);
         } else {
             Gp_SetItemSeenBit(lo, 1);
-            text = Gp_GetItemText(lo, 0, 0);
+            text = itemGetText(lo, ITEM_TEXT_NAME, 0);
             Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, hi, lo, -1);
             other       = textMeasureLineWidth((const u8*)Gp_StrLoaded);
             arg0->state = 1;
@@ -569,7 +569,7 @@ void Gp_ReloadPromptTask(Task* arg0)
         }
         arg0->killCountdown = 0xBC;
     } else if (arg0->state < 0x20) {
-        text = Gp_GetItemText(lo, 0, 0);
+        text = itemGetText(lo, ITEM_TEXT_NAME, 0);
         if (arg0->state < 0x10) {
             textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrLoaded, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         } else {
@@ -596,14 +596,14 @@ void Gp_ReloadPromptTask(Task* arg0)
 void Gp_AttachPromptTask(Task* arg0)
 {
     UiObject* obj;
-    u8*       text;
+    const u8* text;
     s32       color;
     s32       one;
     s32       width;
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    text        = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
+    text        = itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0);
     if (arg0->state == 0) {
         width = textMeasureLineWidth(text) + 0x40;
         uiSetPanelContentSize(&(obj)->panel, width, uiGetTextRowsHeight(2) + 8);
@@ -636,7 +636,7 @@ void Gp_AttachPromptTask(Task* arg0)
 void Gp_EquipPromptTask(Task* arg0)
 {
     UiObject*         obj;
-    u8*               text;
+    const u8*         text;
     s32               color;
     s32               one;
     s32               width;
@@ -665,13 +665,13 @@ void Gp_EquipPromptTask(Task* arg0)
                     }
                 }
                 p->weapon = val - 0x7F;
-                Gp_RefreshItemRow(rec);
+                inventoryDetachItem(rec);
                 Gp_SetItemSeenBit(val, 1);
             }
         } else if ((u32)(val - 0x60) < 0x20U) {
             Gp_EquipMod(val);
         }
-        width = textMeasureLineWidth((const u8*)Gp_GetItemText(arg0->spawnArg1.value, 0, 0)) + 0xB;
+        width = textMeasureLineWidth(itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0)) + 0xB;
         other = textMeasureLineWidth((const u8*)Gp_StrEquipped);
         if (width < other) {
             width = other;
@@ -691,7 +691,7 @@ void Gp_EquipPromptTask(Task* arg0)
         }
     }
     uiDrawPanelLabel(&(obj)->panel, Gp_StrEquip);
-    text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
+    text  = itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0);
     color = 0x606060;
     one   = 1;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, color, one, TEXT_ALIGNMENT_LEFT);

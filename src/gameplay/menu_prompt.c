@@ -1108,7 +1108,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         func_800C22D8(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
@@ -1173,14 +1173,14 @@ static inline InventoryItemRow* _gpNthLooseRec(InventoryItemRange* scan, s32 ind
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                               \
-    do {                                                           \
-        if ((item) == 0) {                                         \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                  \
-        } else {                                                   \
-            Ui_SetHolderParam(Gp_GetItemText((item), 1, 0), 0, 0); \
-        }                                                          \
-        Gp_SetPreviewItem((item), 0);                              \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
+    do {                                                                                  \
+        if ((item) == 0) {                                                                \
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                          \
+            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                                 \
+        Gp_SetPreviewItem((item), 0);                                                     \
     } while (0)
 
 void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
@@ -1546,7 +1546,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
             Gp_SetPreviewItem(item, 0);
         } else {
@@ -1632,7 +1632,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -1691,7 +1691,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
     if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 Gp_SetPreviewItem(item, 0);
             } else {
                 Ui_SetHolderParam(Gp_StrAmmoNone, 0, 0);
@@ -1740,7 +1740,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 draw.name.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 draw.name.alignment  = TEXT_ALIGNMENT_LEFT;
                 draw.name.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&draw.name, Gp_GetItemText(item, 0, 0));
+                textDrawString(&draw.name, itemGetText(item, ITEM_TEXT_NAME, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
                     func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -2009,7 +2009,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
     if (((status >> 16) == 1 || status == 1) && prompt->selectedItemIndex == prompt->currentItemIndex) {
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 Gp_SetPreviewItem(item, 0);
             } else {
                 Ui_SetHolderParam(Gp_StrAttachNone, 0, 0);
@@ -2066,7 +2066,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                 draw.name.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 draw.name.alignment  = TEXT_ALIGNMENT_LEFT;
                 draw.name.drawMode   = one;
-                textDrawString(&draw.name, Gp_GetItemText(item, 0, 0));
+                textDrawString(&draw.name, itemGetText(item, ITEM_TEXT_NAME, 0));
                 func_800C22D8(obj, x, y, item, one);
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
@@ -2090,7 +2090,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                         Gp_SelItemRec->attachSlot = prompt->currentItemIndex + 1;
                     }
                     if (item != 0) {
-                        Gp_RefreshItemRow(rec);
+                        inventoryDetachItem(rec);
                     }
                     Gp_ItemOrderMode = 0;
                 } else {
@@ -2252,7 +2252,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     if (item == 0) {
                         Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
                     } else {
-                        Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                        Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                     }
                     Gp_SetPreviewItem(item, 0);
                 } else {
@@ -2360,7 +2360,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         locals.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         locals.req.alignment  = TEXT_ALIGNMENT_LEFT;
         locals.req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&locals.req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&locals.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, textColorRgb);

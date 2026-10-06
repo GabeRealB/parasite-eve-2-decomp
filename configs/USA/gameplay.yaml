@@ -137,7 +137,7 @@ segments:
       - [0x234F0, c, equipment] # related item quantities and equipment changes
       - [0x24518, c, starter_inventory] # Gp_InitStarterInv
       - [0x24814, c, item_inventory] # item-description readers and inventory operations
-      - [0x24D88, c, item_sort] # Gp_SortItems
+      - [0x24D88, c, item_sort] # inventorySortItems
       - [0x25D4C, c, item_boost] # Gp_UiBoostAttach
       - [0x27E68, c, item_collect] # Gp_NthCollectedId
       - [0x28D0C, c, item_move_check] # Gp_CanMoveItems

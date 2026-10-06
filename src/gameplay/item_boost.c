@@ -202,7 +202,7 @@ static inline void _gpDrawPromptItem(UiObject* obj, s32 x, s32 y, u8* str, s32 i
 
     textDrawUiLine(obj, x, y, str, color, one, TEXT_ALIGNMENT_LEFT);
     width = textMeasureLineWidth(str) + 4;
-    textDrawUiLine(obj, x + width, y, (const u8*)Gp_GetItemText(item, 0, 0), 0x37A78, one, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(obj, x + width, y, itemGetText(item, ITEM_TEXT_NAME, 0), 0x37A78, one, TEXT_ALIGNMENT_LEFT);
 }
 static __inline__ s32 Gp_HasStockedItemInline(s32 arg0)
 {
@@ -343,7 +343,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             arg1->status = 0x1A;
         }
         if (arg1->status == 0xFF) {
-            width = textMeasureLineWidth((const u8*)Gp_GetItemText(item, 0, 0)) + textMeasureLineWidth(Gp_StrMore) + 4;
+            width = textMeasureLineWidth(itemGetText(item, ITEM_TEXT_NAME, 0)) + textMeasureLineWidth(Gp_StrMore) + 4;
             other = textMeasureLineWidth(Gp_StrAttachAvail);
             if (width < other) {
                 width = other;
@@ -581,7 +581,7 @@ void Gp_ResetInventory(void)
 
     _gpClearScanItems(&Gp_DefaultScan);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems = Gp_DefaultScan;
-    Gp_AddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x6C, 1);
+    inventoryAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x6C, 1);
     Gp_EquipMod(0x6C);
 
     gPlayerStatus.hp = gPlayerStatus.hpMax;
@@ -730,7 +730,7 @@ void Gp_ClearScanItems(InventoryItemRange* scan)
 
 InventoryItemRow* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
-    return Gp_AddItem(arg0, arg1, arg2);
+    return inventoryAddItem(arg0, arg1, arg2);
 }
 
 s32 Gp_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2)

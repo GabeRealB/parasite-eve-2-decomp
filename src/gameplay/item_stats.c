@@ -95,14 +95,14 @@ WeaponAttackRow Gp_IdParamLo[47] = {
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
 /// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                               \
-    do {                                                           \
-        if ((item) == 0) {                                         \
-            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                  \
-        } else {                                                   \
-            Ui_SetHolderParam(Gp_GetItemText((item), 1, 0), 0, 0); \
-        }                                                          \
-        Gp_SetPreviewItem((item), 0);                              \
+#define GP_SHOW_ITEM_IN_HOLDER(item)                                                      \
+    do {                                                                                  \
+        if ((item) == 0) {                                                                \
+            Ui_SetHolderParam(Gp_StrEmpty, 0, 0);                                         \
+        } else {                                                                          \
+            Ui_SetHolderParam(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                                 \
+        Gp_SetPreviewItem((item), 0);                                                     \
     } while (0)
 
 /// Draws `item` as `_gpDrawItemNameUnmarkedAt` does, but fills the caller's
@@ -120,7 +120,7 @@ static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, 
         req->glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req->alignment  = TEXT_ALIGNMENT_LEFT;
         req->drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(req, Gp_GetItemText(item, 0, 0));
+        textDrawString(req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(obj, x, y, temp % 3 + 1, color);
@@ -634,7 +634,7 @@ void Gp_UseKeyItemRow(Task* arg0)
     s32       other;
     u32       textColorRgb;
     s32       one;
-    u8*       text;
+    const u8* text;
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
@@ -645,7 +645,7 @@ void Gp_UseKeyItemRow(Task* arg0)
         ret      = taskMessageDispatch(roomTask, 0x13F1, item, 0);
         if (ret == 1) {
             arg0->spawnArg1.value = item;
-            width                 = textMeasureLineWidth((const u8*)Gp_GetItemText(item, 0, 0)) + 0xB;
+            width                 = textMeasureLineWidth(itemGetText(item, ITEM_TEXT_NAME, 0)) + 0xB;
             other                 = textMeasureLineWidth((const u8*)Gp_StrUsed);
             if (width < other) {
                 width = other;
@@ -675,7 +675,7 @@ void Gp_UseKeyItemRow(Task* arg0)
             textColorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL);
             one          = 1;
             textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrUsed, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-            text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
+            text  = itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0);
             width = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
             textDrawUiLine(obj, width, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, 0x606060, one, TEXT_ALIGNMENT_LEFT);
         }
@@ -773,7 +773,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
         req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_GetItemText(item, 0, 0));
+        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
             func_800C2538(arg1, x, y, temp % 3 + 1, color);
@@ -800,7 +800,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
             if (item == 0) {
                 Ui_SetHolderParam(Gp_StrEmpty, 0, 0);
             } else {
-                Ui_SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0);
+                Ui_SetHolderParam(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
     }

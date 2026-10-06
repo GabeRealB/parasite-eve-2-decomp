@@ -32,7 +32,7 @@ D_800820E4 = 0x800820E4; // absolute:True
 D_800820E6 = 0x800820E6; // absolute:True
 
 // --- from gameplay (30 symbols)
-Gp_GetItemText = 0x800B8EB0; // type:func absolute:True
+itemGetText = 0x800B8EB0; // type:func absolute:True
 Gp_SetCollectedBit = 0x800BAE5C; // type:func absolute:True
 Gp_WaitItemFlag2 = 0x800BBC10; // type:func absolute:True
 Gp_ItemPickupTilt = 0x800BEBE4; // type:func absolute:True

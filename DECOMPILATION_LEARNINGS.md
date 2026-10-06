@@ -23803,7 +23803,7 @@ if (id == 0) {
 
 GCC CSE's the two calls into one `jal` and materializes `K` directly in `$a0`,
 jumping past `move a0, v0`. `Gp_SetHolderItemText` is the pure example (`Gp_StrEmpty`
-empty string + `Gp_GetItemText` + `func_80049D34`).
+empty string + `itemGetText` + `func_80049D34`).
 
 ## If/else stores of two constants keep `bnez; nop; j join`
 
@@ -30020,7 +30020,7 @@ s32 lineY;
 y     = arg0->field_18;
 mask  = arg1 & 3;
 lineY = y + 0xF;
-text  = Gp_GetItemText(arg1, 1, 1);
+text  = itemGetText(arg1, 1, 1);
 ```
 
 `req.y = (s16)(index->baseY - 6) + lineY` is `addiu v0, v0, -6` /
@@ -31263,7 +31263,7 @@ if ((u8)wrap < 0x20) {
 ```
 
 `Gp_NthEquippableRec` is the example. The same wrap vs range pair is in
-`Gp_RefreshItemRow`, which avoids the CSE by reloading `itemId` after a
+`inventoryDetachItem`, which avoids the CSE by reloading `itemId` after a
 store instead.
 
 ## Split the first-walk count so it can live in `$a2` then move to `$t1`
@@ -31380,7 +31380,7 @@ val  = tmp + 0xE;
 str  = recurse(arg0 + val, ...);
 ```
 
-`addiu v0, v1, 0xe` / `addu a0, a0, v0`. `Gp_GetItemText` is the example.
+`addiu v0, v1, 0xe` / `addu a0, a0, v0`. `itemGetText` is the example.
 
 ## `gpf 1` is `0x4B98003D`; IR0 wants `$v0` then `$a2`
 
@@ -31583,7 +31583,7 @@ item = rec->itemId;
 
 Same barrier already used in `Gp_ClearScanItems`. A later copy of the same
 setup can skip it when another independent move (`rec2 = rec`) is
-available to fill that delay. `Gp_NthRelatedId` is the example.
+available to fill that delay. `inventoryGetNthWeaponForConsumable` is the example.
 
 ## Do not pin the switch result to `$a0` if the `la` must split through `$v0`
 
@@ -32097,21 +32097,21 @@ Reusing the `spawnArg1` local (`val`, already in `$s0`/`$s1` across the
 equip block) for that second width pins the copy to a callee-saved
 register (`move s1, v0`). Give the compare its own short-lived temp.
 
-The same function also calls `Gp_GetItemText` once to measure and again
+The same function also calls `itemGetText` once to measure and again
 to draw. Assigning both results to one `text` local makes that variable
 interfere with `rec` (`$s1`) and `&gPlayerStatus` (`$s2`), so the later
-`color = 0x606060` / `text = Gp_GetItemText(...)` pair swaps (`color` in
+`color = 0x606060` / `text = itemGetText(...)` pair swaps (`color` in
 `$s1`, `text` in `$s2`). Nest the first call so `text` is only assigned
 on the draw path:
 
 ```c
-width = textMeasureLineWidth(Gp_GetItemText(arg0->spawnArg1, 0, 0)) + 0xB;
+width = textMeasureLineWidth(itemGetText(arg0->spawnArg1, 0, 0)) + 0xB;
 other = textMeasureLineWidth(Gp_StrEquipped);
 if (width < other) {
     width = other;
 }
 ...
-text  = Gp_GetItemText(arg0->spawnArg1, 0, 0);
+text  = itemGetText(arg0->spawnArg1, 0, 0);
 color = 0x606060;
 ```
 
@@ -33402,7 +33402,7 @@ asm("" : "+r"(found));
 i = 0;
 ```
 
-`volatile` parks a `nop` in the `beqz count` delay instead of `move t0, zero`. Put a `goto fill` target *above* the non-stacking loop so the empty-slot body is a backward `beqz` between an early `jr ra` and the loop setup. `Gp_AddItem` is the example.
+`volatile` parks a `nop` in the `beqz count` delay instead of `move t0, zero`. Put a `goto fill` target *above* the non-stacking loop so the empty-slot body is a backward `beqz` between an early `jr ra` and the loop setup. `inventoryAddItem` is the example.
 
 
 
@@ -34440,7 +34440,7 @@ pointers into callee-saved regs. `Gp_UiBoostHp` is the example.
 
 ## Split an unaligned 4-byte copy so `lui` / `li a1` / `addiu $t4` match the jal args
 
-`save->field_5BC = Gp_DefaultScan; Gp_AddItem(&save->field_5BC, 0x6C, 1)`
+`save->field_5BC = Gp_DefaultScan; inventoryAddItem(&save->field_5BC, 0x6C, 1)`
 schedules `li a1, 0x6C` *before* `lui %hi(Gp_DefaultScan)`. The target wants:
 
 ```
@@ -34449,7 +34449,7 @@ lui    v1, %hi(Gp_DefaultScan)
 li     a1, 0x6C
 addiu  t4, v1, %lo(Gp_DefaultScan)
 lwl/lwr/swl/swr
-jal    Gp_AddItem
+jal    inventoryAddItem
  li    a2, 1
 ```
 
@@ -34471,7 +34471,7 @@ asm volatile("" ::"r"(item));
 asm volatile("addiu %0, %1, %%lo(Gp_DefaultScan)" : "=r"(src) : "r"(table));
 asm volatile("" ::"r"(table));
 *dest = *src;
-Gp_AddItem(dest, item, 1);
+inventoryAddItem(dest, item, 1);
 ```
 
 A 4x3 byte-clear of `Gp_DebugAttachLevels` then wants `addu v0, v0, a2` (index first).
@@ -35085,7 +35085,7 @@ if (scan->tableId != 1) {
 
 The first `switch` still owns the s-register assignment; the `if != 1`
 form keeps `addiu default` in the `bne` delay with `minKey` in the
-`beq == 1` delay. `Gp_SortItems` is the example.
+`beq == 1` delay. `inventorySortItems` is the example.
 
 ## Unconditional `p += next` so the add fills the following `beqz` delay
 
@@ -35104,7 +35104,7 @@ if (j < n) {
 ```
 
 `addiu v1, t3, 4` stays after `addu a3, v1, v0`; `addu a3, a3, v1`
-fills the `beqz`. `Gp_SortItems` is the example.
+fills the `beqz`. `inventorySortItems` is the example.
 
 ## Shared `index = index` tail so type 6/3/2 emit `j` / `li` into `move s2, a0`
 
@@ -35175,7 +35175,7 @@ with `item` in `$s0` copy-props both 0s: `move a1, zero` / `jal` /
 `move a2, zero`. The target reuses the first 0 as `move a2, a1` in the delay
 and still has `li a1, 1` in the `bnez item` delay of the empty-slot path.
 
-Inlining `SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0)` keeps that `li a1, 1`
+Inlining `SetHolderParam(itemGetText(item, 1, 0), 0, 0)` keeps that `li a1, 1`
 but still copy-props `$a2`. Split the join so the text lives in `$a0` and `$a1`
 is 1 then 0, and kill REG_EQUAL on the 0:
 
@@ -35186,7 +35186,7 @@ a1v = 1;
 if (item == 0) {
     t = (s32)emptyStr;
 } else {
-    t = (s32)Gp_GetItemText(item, a1v, 0);
+    t = (s32)itemGetText(item, a1v, 0);
 }
 a1v = 0;
 asm("" : "+r"(a1v));
@@ -36340,7 +36340,7 @@ za     = 0;
 zb     = za;
 asm volatile("" ::"r"(str), "r"(za), "r"(zb), "r"(w), "r"(a0item));
 width = w + 4;
-text  = Gp_GetItemText(a0item, za, zb);
+text  = itemGetText(a0item, za, zb);
 ```
 
 `volatile` on the call args themselves blocks delay-slot filling
@@ -36835,7 +36835,7 @@ Clobber the register on the empty path before those uses:
 The empty body still matches `move a1, zero` / `lbu v1, 0(scan)` /
 `addu s0, v0, v1`. Reuse the same `rec` variable as the walker so `$s0`
 is the dest of that `addu` (a new local lands in `$a0` and the following
-`jal Gp_RefreshItemRow` loses `move a0, s0`). `Gp_DrawRemoveArmorRow` is the example.
+`jal inventoryDetachItem` loses `move a0, s0`). `Gp_DrawRemoveArmorRow` is the example.
 
 ## Reassign `coord` onto `&coord->coord` so the MATRIX* reuses `$s0`
 
@@ -144594,7 +144594,7 @@ first field store.
 inline helper for the second field. A bare `&T[id - 0x80]` loses the copy, and
 the schedule of the `bnez` block changes with it.
 
-## A `move t2,t1` copy of the row pointer before an inner loop is `table[idx]` indexed in place (Gp_NthRelatedId, 2026-09-26)
+## A `move t2,t1` copy of the row pointer before an inner loop is `table[idx]` indexed in place (inventoryGetNthWeaponForConsumable, 2026-09-26)
 
 An outer loop walks item rows (`t1 += 4`, with the index `a0` also kept live
 for use after the loop), and before each inner search loop the target copies
@@ -146262,14 +146262,14 @@ Writing the flag as `s32 found = 0;` at its declaration, above the
 the target has them. The `move $a3,$zero` still ends up in the guard branch's
 delay slot, so the extra liveness costs no instruction. This replaced a
 `register ... asm("a3")` pin.
-### A trailing pointer `prev = str - 1` walked beside `str` is `str[-1]` in the source (Gp_GetItemText, 2026-09-27)
+### A trailing pointer `prev = text - 1` walked beside `text` is `text[-1]` in the source (itemGetText, 2026-09-27)
 
 The target seeds `addiu a2,v1,-1` in the loop preheader, *after* the four
 hoisted compare constants, and the guard's `blez` keeps a `nop` in its delay
-slot. A hand-written `prev = str - 1` before the loop is an ordinary
+slot. A hand-written `prev = text - 1` before the loop is an ordinary
 statement: delay-slot filling pulls it into the `blez` slot, and a pin plus a
 `goto` loop had been holding it in place. Reading the previous character as
-`str[-1]` leaves loop.c to create the `str - 1` giv itself, and loop.c puts
+`text[-1]` leaves loop.c to create the `text - 1` giv itself, and loop.c puts
 its initialiser in the preheader where the target has it. In the same body a
 `x + (n + 0xE)` sum only kept `n + 0xE` as its own `addiu` when that was a
 separate statement *after* `x` was computed; assigned before, it changed the
@@ -148145,7 +148145,7 @@ is needed" with what each pin stands for. Nothing below is a fix; each is the
 condition a natural source has to meet.
 
 **`slt v0,count,limit` before the loop, where `count` is 0.** `Gp_CountAmmoRows`
-written exactly like its hack-free sibling `Gp_NthRelatedId` (`table[idx].field`
+written exactly like its hack-free sibling `inventoryGetNthWeaponForConsumable` (`table[idx].field`
 everywhere, `for (i = 0; i < scan->rowCount; i++)`, two `for (j…)` loops with
 `break`) reproduces all 94 instructions except the prologue and three register
 names. The pre-test comes out `beqz limit`:
