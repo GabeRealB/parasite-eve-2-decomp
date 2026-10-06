@@ -42,6 +42,17 @@
 
 #include "mapui/map_dryfield.h"
 
+/// Commands in the motel room 1 actors' stage/area namespace.
+///
+/// The staged sucklers handle 1..3; the enemy sucklers handle 3 and 4
+/// only while alive. Other placed actors decide whether to handle the command.
+enum {
+    DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_FIRST_STAGING  = 1, // Walk the staged sucklers; placement 1 is fully lit, placement 0 dimmed
+    DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_SECOND_STAGING = 2, // Walk both staged sucklers with full lighting
+    DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_START_COMBAT   = 3, // Hide the staged sucklers and let the enemy sucklers chase the player
+    DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_WALK_IN_PLACE  = 4, // Enemy sucklers loop their walk without moving
+};
+
 /// Requests the event script makes of the event task, held in
 /// `_DryfieldMotelRoom1EventWork::action`.
 ///
@@ -1007,19 +1018,21 @@ Task* D_dryfield_motel_room_1_8018159C = NULL;
 static void func_dryfield_motel_room_1_8017D7AC(Task* arg0);
 static void func_dryfield_motel_room_1_8017DC2C(Task* arg0);
 
-/// Sends `command` to every placed actor of the room.
+/// Broadcasts an actor command in the active stage/area namespace.
 ///
-/// The command is addressed to the session's stage and area and broadcast
-/// through the scene task; what each value does is up to the actor that
-/// receives it.
+/// Requires the active session and a live scene-manager task. `command` is a
+/// 16-bit receiver-specific selector; this room uses
+/// `DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_*`. The scene forwards the request to
+/// every placed actor with a zero second payload, and discards their results.
+/// Dispatch is synchronous: receivers borrow the stack record for the call.
 static inline void _dryfieldMotelRoom1BroadcastActorCommand(u16 command)
 {
-    ActorCommand msg;
+    ActorCommand request;
 
-    msg.context.loc.stage = gGameSession->location.loc.stage;
-    msg.context.loc.area  = gGameSession->location.loc.area;
-    msg.command           = command;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    request.context.loc.stage = gGameSession->location.loc.stage;
+    request.context.loc.area  = gGameSession->location.loc.area;
+    request.command           = command;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
 /// Plays `animationId` from the player's bank for the equipped weapon, off the
@@ -1060,12 +1073,12 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
 
     switch (work->action) {
         case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_FIRST_STAGING:
-            _dryfieldMotelRoom1BroadcastActorCommand(1);
+            _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_FIRST_STAGING);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E0D0[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E0D0[1], 0);
             break;
         case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING:
-            _dryfieldMotelRoom1BroadcastActorCommand(2);
+            _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_SECOND_STAGING);
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E100[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_motel_room_1_8017E100[1], 0);
@@ -1184,14 +1197,14 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
             return;
         case 1:
             if (gGameSession->eventState == 0) {
-                _dryfieldMotelRoom1BroadcastActorCommand(4);
+                _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_WALK_IN_PLACE);
                 arg0->state = arg0->state + 1;
                 break;
             }
             break;
         case 2:
             if (gGameSession->location.loc.view == arg0->state) {
-                _dryfieldMotelRoom1BroadcastActorCommand(3);
+                _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_START_COMBAT);
                 taskKill(arg0);
                 return;
             }
@@ -1248,6 +1261,6 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     work->playerPlacement.rot.vz = 0;
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
 }
-void func_dryfield_motel_room_1_8017E0A0(Task* unused)
+void dryfieldMotelRoom1NoOpEffectTask(Task* unusedTask)
 {
 }

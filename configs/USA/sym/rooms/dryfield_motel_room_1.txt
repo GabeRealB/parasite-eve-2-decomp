@@ -65,4 +65,4 @@ D_map_dryfield_8017AFA4 = 0x8017AFA4; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B004 = 0x8017B004; // absolute:True owner=map_dryfield
 D_map_dryfield_8017B054 = 0x8017B054; // absolute:True owner=map_dryfield
 
-func_dryfield_motel_room_1_8017E0A0 = 0x8017E0A0; // type:func
+dryfieldMotelRoom1NoOpEffectTask = 0x8017E0A0; // type:func

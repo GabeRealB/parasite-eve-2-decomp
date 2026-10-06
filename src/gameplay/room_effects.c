@@ -739,7 +739,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_souvenir_shop_8017DFD4, { NULL } },                      // 0x0C6
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWarehouseDrawGlowsTask, { NULL } },                            // 0x0C7
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseLightPrismTask, { NULL } },                    // 0x0C8
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_room_1_8017E0A0, { NULL } },                       // 0x0C9
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelRoom1NoOpEffectTask, { NULL } },                          // 0x0C9
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_room_2_8017D6B4, { NULL } },                       // 0x0CA
     { { { TASK_BODY_COORD, 0x70 } }, func_antibody_8012EF34, { NULL } },                                    // 0x0CB
     { { { TASK_BODY_COORD, 0x70 } }, func_energyshot_8012EF34, { NULL } },                                  // 0x0CC

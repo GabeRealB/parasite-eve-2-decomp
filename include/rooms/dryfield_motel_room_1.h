@@ -30,7 +30,11 @@ extern SpriteView D_dryfield_motel_room_1_80180C90[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_1_8018157C[];
 
-void func_dryfield_motel_room_1_8017E0A0(Task* unused);
+/// Inert callback for motel room 1's room-effect slot 0xC9 in task bank 6.
+///
+/// Ignores `unusedTask`, draws nothing and leaves the task live without
+/// advancing its state. The task's resources remain owned until external teardown.
+void dryfieldMotelRoom1NoOpEffectTask(Task* unusedTask);
 
 void func_dryfield_motel_room_1_8017D754(Task* task);
 
