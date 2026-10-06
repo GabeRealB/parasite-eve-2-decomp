@@ -802,18 +802,16 @@ s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, s32 arg3
             } else {
                 cmd = 5;
             }
+            Gp_RunCapCmd1(cmd);
             break;
         case 3:
             cmd = 7;
             if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED) {
                 cmd = gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0 ? 6 : 3;
             }
+            Gp_RunCapCmd1(cmd);
             break;
-        default:
-            goto done;
     }
-    Gp_RunCapCmd1(cmd);
-done:
     return 0;
 }
 
