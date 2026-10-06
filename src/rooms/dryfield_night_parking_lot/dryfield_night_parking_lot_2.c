@@ -57,7 +57,7 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDE4[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDEC[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 
-static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
+static void _dryfieldNightParkingLotDrawGreyCapsule(const SVECTOR* startWorldPoint, const SVECTOR* endWorldPoint, s32 radiusScale);
 
 extern WorldCollisionGrid     D_dryfield_night_parking_lot_8017FAD0[1];
 extern WorldCollisionOccluder D_dryfield_night_parking_lot_80181330[2];
@@ -614,50 +614,46 @@ WorldCollisionSurfaceProperties* D_dryfield_night_parking_lot_8018153C[8] = {
     D_dryfield_night_parking_lot_8018150C,
 };
 
-/// Parking-lot room draw: latches the view's entry of the room's per-view table
-/// into `gRoomEffectState->roomEffectMode`, then queues the props of the room phase
-/// `gGameSession->location.loc.view` selects - 2, 4 and 5 several points each, 3 and 6 a
-/// single one. Every phase ends with the same semi-transparent sprite call,
-/// which `jump.c` cross-jumps into one tail block after the last case.
-void func_dryfield_night_parking_lot_8017DC88(Task* unused)
+void dryfieldNightParkingLotDrawGlowsTask(Task* task)
 {
-    u8 view;
+    u8 mappedViewIndex;
 
-    view                             = viewGetMappedIndex();
-    gRoomEffectState->roomEffectMode = D_dryfield_night_parking_lot_8017EDBC[view - 1];
+    // The effect gate follows the mapped camera; light selection follows the logical view.
+    mappedViewIndex                  = viewGetMappedIndex();
+    gRoomEffectState->roomEffectMode = D_dryfield_night_parking_lot_8017EDBC[mappedViewIndex - 1];
     switch (gGameSession->location.loc.view) {
         case 2: {
-            SVECTOR* p = D_dryfield_night_parking_lot_8017EDCC;
-            glowDrawFlareClipped(&p[0], 0, 0x300);
-            glowDrawFlareClipped(&p[1], 0, 0x300);
-            glowDrawFlareClipped(&p[2], 0, 0x330);
-            glowDrawFlareClipped(&p[6], 1, 0x380);
-            glowDrawFlareClipped(&p[7], 1, 0x380);
+            const SVECTOR* viewPoints = D_dryfield_night_parking_lot_8017EDCC;
+            glowDrawFlareClipped(&viewPoints[0], 0, 0x300);
+            glowDrawFlareClipped(&viewPoints[1], 0, 0x300);
+            glowDrawFlareClipped(&viewPoints[2], 0, 0x330);
+            glowDrawFlareClipped(&viewPoints[6], 1, 0x380);
+            glowDrawFlareClipped(&viewPoints[7], 1, 0x380);
             break;
         }
         case 3: {
-            SVECTOR* p = D_dryfield_night_parking_lot_8017EDFC;
-            glowDrawFlareClipped(&p[0], 1, 0x380);
+            const SVECTOR* viewPoints = D_dryfield_night_parking_lot_8017EDFC;
+            glowDrawFlareClipped(&viewPoints[0], 1, 0x380);
             break;
         }
         case 4: {
-            SVECTOR* p = D_dryfield_night_parking_lot_8017EDEC;
-            func_dryfield_night_parking_lot_8017E08C(&p[0], &p[1], 0x180);
-            glowDrawFlareClipped(&p[2], 1, 0x380);
-            glowDrawFlareClipped(&p[3], 1, 0x380);
+            const SVECTOR* viewPoints = D_dryfield_night_parking_lot_8017EDEC;
+            _dryfieldNightParkingLotDrawGreyCapsule(&viewPoints[0], &viewPoints[1], 0x180);
+            glowDrawFlareClipped(&viewPoints[2], 1, 0x380);
+            glowDrawFlareClipped(&viewPoints[3], 1, 0x380);
             break;
         }
         case 5: {
-            SVECTOR* p = D_dryfield_night_parking_lot_8017EDDC;
-            glowDrawFlareClipped(&p[0], 0, 0x300);
-            glowDrawFlareClipped(&p[1], 0, 0x300);
-            glowDrawFlareClipped(&p[5], 1, 0x380);
-            glowDrawFlareClipped(&p[6], 1, 0x380);
+            const SVECTOR* viewPoints = D_dryfield_night_parking_lot_8017EDDC;
+            glowDrawFlareClipped(&viewPoints[0], 0, 0x300);
+            glowDrawFlareClipped(&viewPoints[1], 0, 0x300);
+            glowDrawFlareClipped(&viewPoints[5], 1, 0x380);
+            glowDrawFlareClipped(&viewPoints[6], 1, 0x380);
             break;
         }
         case 6: {
-            SVECTOR* p = D_dryfield_night_parking_lot_8017EDE4;
-            glowDrawFlareClipped(&p[0], 0, 0x300);
+            const SVECTOR* viewPoints = D_dryfield_night_parking_lot_8017EDE4;
+            glowDrawFlareClipped(&viewPoints[0], 0, 0x300);
             break;
         }
     }
@@ -665,120 +661,130 @@ void func_dryfield_night_parking_lot_8017DC88(Task* unused)
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"
 
-/// Projects `arg0` and `arg1` through the view matrix and, when the far point is
-/// past the near clip, queues gouraud wedges: a fan around the first point, a
-/// band joining the two, and a fan around the second. Each point's radius is
-/// `(s16)arg2 * 64` over its depth; the inner colour pulses with the display
-/// frame parity.
-static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2)
+/// Initializes a grey capsule wedge with a lit centre and black rim.
+///
+/// Borrows one writable quad; vertex 2 receives the 0..255 intensity in all
+/// RGB channels. The caller supplies coordinates, sorting and additive blending.
+static inline void _dryfieldNightParkingLotInitCapsuleWedge(POLY_G4* wedge, u8 centreIntensity)
 {
-    GlowPointPairScratch* block;
-    POLY_G4*              prim;
-    POLY_G4*              p;
-    s32                   ang;
-    s32                   t;
-    s32                   t2;
-    s32                   t3;
-    s32                   rgb;
-    s32                   extent;
-    s32                   r0;
-    s32                   r1;
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, centreIntensity, centreIntensity, centreIntensity);
+    setRGB3(wedge, 0, 0, 0);
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(GlowPointPairScratch);
+/// Draws an additive grey capsule between separate world endpoints.
+///
+/// Borrows the endpoints for view projection. The second camera Z / 4 depth
+/// must be at least 17; the first is clamped to 16. Projection flags are not
+/// tested. Each pixel radius is the signed low halfword of `radiusScale`
+/// times 64 divided by that endpoint's depth. Trigonometry uses Q12 values
+/// and 4096 angle units per turn, with zero down the screen; caps have a fixed
+/// screen orientation rather than following the projected endpoint direction.
+///
+/// Lit vertices alternate grey 32/48 with frame parity and rims are black.
+/// Queues six Gouraud quads and their additive blend commands in the current
+/// frame arena; joining bands sort at the first endpoint's depth. Requires
+/// the composed view matrix, 24 scratch bytes and sufficient packet space.
+static void _dryfieldNightParkingLotDrawGreyCapsule(const SVECTOR* startWorldPoint, const SVECTOR* endWorldPoint, s32 radiusScale)
+{
+    GlowPointPairScratch* projection;
+    POLY_G4*              quad;
+    s32                   angle;
+    s32                   rimAngle;
+    s32                   endRimAngle;
+    s32                   nextAngle;
+    s32                   endRimAngleForSin;
+    s32                   brightness;
+    s32                   scaledRadius;
+    s32                   startRadius;
+    s32                   endRadius;
 
+    projection = SCRATCH_STACK_RESERVE_BLOCK(GlowPointPairScratch);
+
+    // Project both endpoints; only the second depth rejects the capsule.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(startWorldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(arg1);
+    gte_stsxy(&projection->sx0);
+    gte_stszotz(&projection->otz0);
+    gte_ldv0(endWorldPoint);
     gte_rtps();
-    gte_stsxy(&block->sx1);
-    gte_stszotz(&block->otz1);
-    if (block->otz1 >= 0x11) {
-        if (block->otz0 < 0x10) {
-            block->otz0 = 0x10;
+    gte_stsxy(&projection->sx1);
+    gte_stszotz(&projection->otz1);
+    if (projection->otz1 >= GLOW_MIN_DEPTH) {
+        if (projection->otz0 < GLOW_NEAR_DEPTH_CLAMP) {
+            projection->otz0 = GLOW_NEAR_DEPTH_CLAMP;
         }
-        extent         = (s16)arg2 * 64;
-        r0             = extent / block->otz0;
-        r1             = extent / block->otz1;
-        ang            = 0;
-        rgb            = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
-        block->radius0 = r0;
-        block->radius1 = r1;
+        scaledRadius        = (s16)radiusScale * GLOW_RADIUS_SCALE;
+        startRadius         = scaledRadius / projection->otz0;
+        endRadius           = scaledRadius / projection->otz1;
+        angle               = 0;
+        brightness          = (((u8)gDisplayState.animFrame & 1) * (1 << GLOW_BRIGHT_FLICKER_SHIFT)) | GLOW_FLICKER_BASE_INTENSITY;
+        projection->radius0 = startRadius;
+        projection->radius1 = endRadius;
+        // Join opposing half-disc caps with two bands at the first endpoint depth.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            p        = prim;
-            p->r2    = rgb;
-            p->g2    = rgb;
-            prim->b2 = rgb;
-            p->r3    = 0;
-            p->g3    = 0;
-            p->b3    = 0;
-            p->x0    = block->sx0 + ((block->radius0 * rsin(ang)) >> 12);
-            p->y0    = block->sy0 + ((block->radius0 * rcos(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->x1 = block->sx0 + ((block->radius0 * rsin(t)) >> 12);
-            prim->y1 = block->sy0 + ((block->radius0 * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            p->x2    = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->radius0 * rsin(t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->radius0 * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            _dryfieldNightParkingLotInitCapsuleWedge(quad, brightness);
+            quad->x0  = projection->sx0 + ((projection->radius0 * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            quad->y0  = projection->sy0 + ((projection->radius0 * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            rimAngle  = angle + GLOW_EIGHTH_TURN;
+            quad->x1  = projection->sx0 + ((projection->radius0 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y1  = projection->sy0 + ((projection->radius0 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle = angle + GLOW_QUARTER_TURN;
+            quad->x2  = projection->sx0;
+            quad->y2  = projection->sy0;
+            quad->x3  = projection->sx0 + ((projection->radius0 * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y3  = projection->sy0 + ((projection->radius0 * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz0);
 
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->radius0 * rsin((ang * 2))) >> 12);
-            prim->y0 = block->sy0 + ((block->radius0 * rcos((ang * 2))) >> 12);
-            prim->x1 = block->sx1 + ((block->radius1 * rsin((ang * 2))) >> 12);
-            prim->y1 = block->sy1 + ((block->radius1 * rcos((ang * 2))) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz0);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyG4(quad);
+            setRGB0(quad, 0, 0, 0);
+            setRGB1(quad, 0, 0, 0);
+            setRGB2(quad, brightness, brightness, brightness);
+            setRGB3(quad, brightness, brightness, brightness);
+            quad->x0 = projection->sx0 + ((projection->radius0 * rsin((angle * 2))) >> GLOW_TRIG_SHIFT);
+            quad->y0 = projection->sy0 + ((projection->radius0 * rcos((angle * 2))) >> GLOW_TRIG_SHIFT);
+            quad->x1 = projection->sx1 + ((projection->radius1 * rsin((angle * 2))) >> GLOW_TRIG_SHIFT);
+            quad->y1 = projection->sy1 + ((projection->radius1 * rcos((angle * 2))) >> GLOW_TRIG_SHIFT);
+            quad->x2 = projection->sx0;
+            quad->y2 = projection->sy0;
+            quad->x3 = projection->sx1;
+            quad->y3 = projection->sy1;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz0);
 
-            t3             = 0x1000 - ang;
-            prim           = gGpuPrimCursor;
-            t              = 0x1000 - ang;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->radius1 * rsin(t3)) >> 12);
-            prim->y0 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
-            t        = 0xE00;
-            t       -= ang;
-            prim->x1 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
-            prim->y1 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
-            t        = 0xC00;
-            t       -= ang;
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            prim->x3 = block->sx1 + ((block->radius1 * rsin(t)) >> 12);
-            prim->y3 = block->sy1 + ((block->radius1 * rcos(t)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz1);
-        } while (ang < 0x800);
+            endRimAngleForSin = GLOW_FULL_TURN - angle;
+            quad              = gGpuPrimCursor;
+            endRimAngle       = GLOW_FULL_TURN - angle;
+            gGpuPrimCursor    = quad + 1;
+            _dryfieldNightParkingLotInitCapsuleWedge(quad, brightness);
+            quad->x0     = projection->sx1 + ((projection->radius1 * rsin(endRimAngleForSin)) >> GLOW_TRIG_SHIFT);
+            quad->y0     = projection->sy1 + ((projection->radius1 * rcos(endRimAngle)) >> GLOW_TRIG_SHIFT);
+            endRimAngle  = GLOW_FULL_TURN - GLOW_EIGHTH_TURN;
+            endRimAngle -= angle;
+            quad->x1     = projection->sx1 + ((projection->radius1 * rsin(endRimAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y1     = projection->sy1 + ((projection->radius1 * rcos(endRimAngle)) >> GLOW_TRIG_SHIFT);
+            endRimAngle  = GLOW_FULL_TURN - GLOW_QUARTER_TURN;
+            endRimAngle -= angle;
+            quad->x2     = projection->sx1;
+            quad->y2     = projection->sy1;
+            quad->x3     = projection->sx1 + ((projection->radius1 * rsin(endRimAngle)) >> GLOW_TRIG_SHIFT);
+            quad->y3     = projection->sy1 + ((projection->radius1 * rcos(endRimAngle)) >> GLOW_TRIG_SHIFT);
+            angle        = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
+            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz1);
+        } while (angle < GLOW_HALF_TURN);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowPointPairScratch);
 }

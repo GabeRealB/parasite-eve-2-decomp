@@ -92021,10 +92021,10 @@ Inputs: `base.c` (86.932%, sha256
 950469a79eb7a9e58d1cb59a70b3816c6a70a17e4e4e87b501def3b748c9901a), `base_1.c`
 (100%, sha256 c086454ed1c3a3f7d4621f555e0324e93d3d6e1174e1540d4d2b13eedef5c6cf).
 Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
-## A shared call tail after the *last* switch arm comes from duplicated calls, not from m2c's shared variable (func_dryfield_night_parking_lot_8017DC88, 2026-09-16)
+## A shared call tail after the *last* switch arm comes from duplicated calls, not from m2c's shared variable (dryfieldNightParkingLotDrawGlowsTask, 2026-09-16)
 
 Five arms of a `switch (gGameSession->location.loc.view)` each end in the same
-`Room_Draw20(p, 1, 0x380)`. The ROM keeps **one** call site, and it sits after
+`glowDrawFlareClipped(viewPoints, 1, 0x380)`. The ROM keeps **one** call site, and it sits after
 the *last* arm: arms 2..5 `j` into it and arm 6 falls through into it.
 
 m2c renders that CFG as a shared variable plus `goto`, and a `goto`-shaped seed
@@ -92047,14 +92047,14 @@ The same seed also carried m2c's `M2C_UNK` element-size bug (see the
 `func_dryfield_water_tank_8017F084` entry above - same `gRoomEffectState->roomEffectMode`
 view-table shape). Retyping the view table `u16` and the drawn arrays `SVECTOR`
 together with duplicating the calls took 71.8% to 100.000%, all penalties zero,
-on the first build. The per-arm pointer reset (`SVECTOR* p = D_x;` inside each
-arm, then `&p[k]`) is the idiom the neighbouring matched room draws use
+on the first build. The per-arm pointer reset (`const SVECTOR* viewPoints = D_x;` inside each
+arm, then `&viewPoints[k]`) is the idiom the neighbouring matched room draws use
 (`shelter_1f_tent_4.c`) and compiles identically to `&D_x[k]`.
 
 Inputs: `base_1.i` (100.000%), `base_2.i` (same object, house style). Compiler
 SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
-## A jump table's rodata cut changes owner when the function stops being `INCLUDE_ASM` (func_dryfield_night_parking_lot_8017DC88, 2026-09-16)
+## A jump table's rodata cut changes owner when the function stops being `INCLUDE_ASM` (dryfieldNightParkingLotDrawGlowsTask, 2026-09-16)
 
 `configs/USA/overlays.toml` had `rodata = [..., { start = "0x28", unit =
 "dryfield_night_parking_lot_3" }]` - the function's 5-word jump table was
@@ -140112,21 +140112,21 @@ whose source register is overwritten by the next instruction that reads it.
 ### `C - x` into a temp vs `li s0,C; subu s0,s0,x`: write `t = C; t -= x`
 
 **Symptom.** Target builds a reversed subtraction in the destination register
-itself (`li s0,0xe00; subu s0,s0,s5`); `t = 0xE00 - ang;` loads the constant
+itself (`li s0,0xe00; subu s0,s0,s5`); `endRimAngle = 0xE00 - angle;` loads the constant
 into a scratch register instead (`li v0,0xe00; subu s0,v0,s5`).
 
-**Fix.** Split it: `t = 0xE00; t -= ang;`. The constant is then a set of `t`'s
-own pseudo, so it is allocated to `t`'s register (99.37% -> 99.87% on
-`func_dryfield_night_parking_lot_8017E08C`).
+**Fix.** Split it: `endRimAngle = 0xE00; endRimAngle -= angle;`. The constant is then a set of `endRimAngle`'s
+own pseudo, so it is allocated to `endRimAngle`'s register (99.37% -> 99.87% on
+`_dryfieldNightParkingLotDrawGreyCapsule`).
 
 **Placing it after the reloaded `%hi`.** In the same function the first such
 value had to sit between a reload-generated `lui t0,%hi(gGpuPrimCursor)` and
 its `lw` (`lui; li s0; subu; lw`). Splitting alone left it ahead of the `lui`.
 What matched was the duplicated-temporary shape already used by the shared
-`Room_Draw*` bodies: after the scheduling barrier, `t3 = 0x1000 - ang;` before
-the cursor load and `t = 0x1000 - ang;` after it, using `t3` for the first
-`rsin` and `t` for the `rcos`. cse folds the two, and the value lands where the
-target has it. Moving one `t = 0x1000; ... t -= ang` pair around the load, or
+`Room_Draw*` bodies: after the scheduling barrier, `endRimAngleForSin = 0x1000 - angle;` before
+the cursor load and `endRimAngle = 0x1000 - angle;` after it, using `endRimAngleForSin` for the first
+`rsin` and `endRimAngle` for the `rcos`. cse folds the two, and the value lands where the
+target has it. Moving one `endRimAngle = 0x1000; ... endRimAngle -= angle` pair around the load, or
 splitting both halves of the duplicate, did not.
 
 ### Two identical `if (x == 1) +1 else +K` blocks: jump2's pass order decides how much of the first one merges into the second

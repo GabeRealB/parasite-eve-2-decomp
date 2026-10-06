@@ -88,9 +88,10 @@ D_dryfield_night_parking_lot_8017EC98 = 0x8017EC98; // size:0x8 defined:True
 D_dryfield_night_parking_lot_8017ECA0 = 0x8017ECA0; // size:0x14 defined:True
 D_dryfield_night_parking_lot_8017ECB4 = 0x8017ECB4; // size:0x108 defined:True
 
-func_dryfield_night_parking_lot_8017DC88 = 0x8017DC88; // type:func
+dryfieldNightParkingLotDrawGlowsTask = 0x8017DC88; // type:func
 roomEventGate = 0x8017D5FC; // type:func
 roomEventTask = 0x8017D760; // type:func
 glowDrawFlareClipped = 0x8017DE10; // type:func
 parkingLotEventMsg = 0x8017D8D0; // type:func
 parkingLotSoundMsg = 0x8017DAB4; // type:func
+_dryfieldNightParkingLotDrawGreyCapsule = 0x8017e08c; // type:func

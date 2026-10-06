@@ -32,7 +32,13 @@ extern SpriteView D_dryfield_night_parking_lot_801805AC[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_parking_lot_8018153C[];
 
-void func_dryfield_night_parking_lot_8017DC88(Task* unused);
+/// Updates the ambient-effect gate and draws the night parking lot's light glows.
+///
+/// Uses the mapped camera index for the gate and logical views 2..6 for the
+/// flare and capsule selection. The room must be loaded, the mapped index
+/// must address its gate table, and the view matrix, scratch stack and current
+/// frame packet arena must be ready for glow drawing. `task` is unused.
+void dryfieldNightParkingLotDrawGlowsTask(Task* task);
 
 void func_dryfield_night_parking_lot_8017DC30(Task* task);
 

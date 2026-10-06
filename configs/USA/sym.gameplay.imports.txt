@@ -1813,7 +1813,7 @@ func_dryfield_night_motel_room_3_8017D9B4 = 0x8017D9B4; // type:func absolute:Tr
 
 func_dryfield_night_motel_room_4_8017D990 = 0x8017D990; // type:func absolute:True owner=dryfield_night_motel_room_4 shared=rooms
 
-func_dryfield_night_parking_lot_8017DC88 = 0x8017DC88; // type:func absolute:True owner=dryfield_night_parking_lot shared=rooms
+dryfieldNightParkingLotDrawGlowsTask = 0x8017DC88; // type:func absolute:True owner=dryfield_night_parking_lot shared=rooms
 
 func_dryfield_night_toilet_8017D9F8 = 0x8017D9F8; // type:func absolute:True owner=dryfield_night_toilet shared=rooms
 
