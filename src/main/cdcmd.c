@@ -466,7 +466,6 @@ static void CdCmd_HandleMount(void)
     CdCmdQueue* state;
     s32         cmd;
     s32         status;
-    s16         ret;
 
     state = &gCdCmdQueue;
     cmd   = state->entries[state->readIdx].cmd;
@@ -491,111 +490,118 @@ static void CdCmd_HandleMount(void)
                         gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                     }
                     Fs_SelectStage(stageIndex & 0xFF);
-                    goto increment_step;
+                    state->step = state->step + 1;
+                    return;
                 case 1:
                     if (CdSync(1, NULL) == CdlDiskError) {
                         CdSyncCallback(NULL);
                         CdReadyCallback(NULL);
-                        goto wait_reset_clear_step;
+                        Fs_WaitDiskReset(1);
+                        state->step = 0;
+                        return;
                     }
                     Fs_CheckReadTimeout();
                     status = Fs_CdOpStatus;
                     switch (status) {
                         case 0x80:
-                            ret = CdCmd_PollStatus(0, 0);
-                            if (ret != step) {
-                                if (ret < 2) {
+                            switch ((s16)CdCmd_PollStatus(0, 0)) {
+                                case 2:
+                                    CdFlush();
+                                    /* fallthrough */
+                                case 1:
+                                    if (CdSync(1, NULL) == CdlDiskError) {
+                                        Fs_WaitDiskReset(1);
+                                    }
+                                    state->step = 0;
                                     return;
-                                }
-                                if (ret != 2) {
+                                case 0:
+                                default:
                                     return;
-                                }
-                                CdFlush();
                             }
-                            if (CdSync(1, NULL) == CdlDiskError) {
-                            wait_reset_clear_step:
-                                Fs_WaitDiskReset(1);
-                            }
-                            state->step = 0;
-                            return;
                         case 0xFF:
                             CdSyncCallback(NULL);
                             CdReadyCallback(NULL);
-                        increment_step:
                             state->step = state->step + 1;
                             return;
                         case 0x10:
                         case 0x20:
                         case 0x40:
-                            ret = CdCmd_PollStatus(0, 0);
-                            if (ret != 1) {
-                                if (ret < 2) {
+                            switch ((s16)CdCmd_PollStatus(0, 0)) {
+                                case 2:
+                                    CdFlush();
+                                    /* fallthrough */
+                                case 1:
+                                    Fs_RetryReadN();
                                     return;
-                                }
-                                if (ret != 2) {
+                                case 0:
+                                default:
                                     return;
-                                }
-                                CdFlush();
                             }
-                            Fs_RetryReadN();
-                            return;
                     }
                     return;
                 case 2:
-                    ret = CdCmd_PollStatus(0, 0);
-                    if (ret != 1) {
-                        if (ret < 2) {
+                    switch ((s16)CdCmd_PollStatus(0, 0)) {
+                        case 2:
+                            CdFlush();
+                            /* fallthrough */
+                        case 1:
+                            Fs_InitFolderTable(stageIndex & 0xFF);
+                            if (state->busy != 0) {
+                                state->busy          = 0;
+                                gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+                            }
+                            state->step               = 0;
+                            state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                            state->pausePlayClock     = 0;
+                            state->cdOperationPending = 0;
+                            if (state->readIdx != state->writeIdx) {
+                                (state->entries + state->readIdx)->cmd = CD_COMMAND_EMPTY;
+                                state->readIdx                         = state->readIdx + 1;
+                                state->readIdx                         = state->readIdx % ARRAY_SIZE(state->entries);
+                            }
                             return;
-                        }
-                        if (ret != step) {
+                        case 0:
+                        default:
                             return;
-                        }
-                        CdFlush();
                     }
-                    Fs_InitFolderTable(stageIndex & 0xFF);
-                    goto cleanup;
             }
             return;
         }
         case CD_COMMAND_READ_STAGE_HEADER:
             status = Fs_CdOpStatus;
-            if (status != 0xFF) {
-                goto case55_cont;
+            if (status == 0xFF) {
+                if (state->busy != 0) {
+                    state->busy          = 0;
+                    gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+                }
+                state->step               = 0;
+                state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                state->pausePlayClock     = 0;
+                state->cdOperationPending = 0;
+                if (state->readIdx != state->writeIdx) {
+                    (state->entries + state->readIdx)->cmd = CD_COMMAND_EMPTY;
+                    state->readIdx                         = state->readIdx + 1;
+                    state->readIdx                         = state->readIdx % ARRAY_SIZE(state->entries);
+                }
+                return;
             }
-        cleanup:
-            if (state->busy != 0) {
-                state->busy          = 0;
-                gDisplayState.cdBusy = DISPLAY_CD_IDLE;
-            }
-            state->step               = 0;
-            state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-            state->pausePlayClock     = 0;
-            state->cdOperationPending = 0;
-            if (state->readIdx != state->writeIdx) {
-                (state->entries + state->readIdx)->cmd = CD_COMMAND_EMPTY;
-                state->readIdx                         = state->readIdx + 1;
-                state->readIdx                         = state->readIdx % ARRAY_SIZE(state->entries);
-            }
-            return;
-        case55_cont:
             if (status != 0x80) {
                 return;
             }
-            ret = CdCmd_PollStatus(0, 0);
-            if (ret != 1) {
-                if (ret < 2) {
+            switch ((s16)CdCmd_PollStatus(0, 0)) {
+                case 2:
+                    CdFlush();
+                    /* fallthrough */
+                case 1:
+                    if (CdSync(1, NULL) == CdlDiskError) {
+                        Fs_WaitDiskReset(1);
+                    }
+                    Fs_InitStage0Tables();
                     return;
-                }
-                if (ret != 2) {
+                case 0:
+                default:
                     return;
-                }
-                CdFlush();
             }
-            if (CdSync(1, NULL) == CdlDiskError) {
-                Fs_WaitDiskReset(1);
-            }
-            Fs_InitStage0Tables();
-            return;
     }
 }
 
