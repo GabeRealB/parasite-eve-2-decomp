@@ -3805,7 +3805,8 @@ void Gp_EffCtlTask7F(Task* arg0)
         if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(mem, arg0);
+        return;
     }
     if (arg0->state == 0) {
         parent               = mem->parent;
@@ -3840,7 +3841,6 @@ void Gp_EffCtlTask7F(Task* arg0)
         return;
     }
     if (mem->age >= mem->period) {
-    release:
         effectKillTask(mem, arg0);
         return;
     }
