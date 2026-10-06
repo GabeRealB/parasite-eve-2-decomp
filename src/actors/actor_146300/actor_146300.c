@@ -1623,7 +1623,7 @@ static void func_actor_146300_801327CC(Task* task)
         return;
     }
     if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
-        scriptedWalkResetAnim();
+        _scriptedWalkResetAnim();
         _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }

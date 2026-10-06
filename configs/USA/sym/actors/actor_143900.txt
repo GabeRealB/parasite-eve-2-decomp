@@ -198,7 +198,7 @@ _gScriptedWalkSecondMode = 0x801496CC; // size:0x2 defined:True
 D_shelter_r49_8017DA00 = 0x8017DA00; // absolute:True owner=shelter_r49
 scriptedWalkUpdate = 0x80131FD4; // type:func
 _scriptedWalkTickAnim = 0x801324C8; // type:func
-scriptedWalkResetAnim = 0x80132514; // type:func
+_scriptedWalkResetAnim = 0x80132514; // type:func
 scriptedWalkBlendAnim = 0x801325A4; // type:func
 scriptedWalkTo = 0x8013279C; // type:func
 walkerDrawShadowShaded = 0x8013242C; // type:func

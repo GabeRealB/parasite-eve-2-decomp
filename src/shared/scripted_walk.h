@@ -41,16 +41,24 @@
 #include "main/task_types.h"
 
 #ifndef SCRIPTED_WALK_WORK
-/// Selects the initialized work block used by the animation and placement fragments.
+/// Selects the task-owned work block published for this walker instance.
 ///
-/// Bind to a side-effect-free pointer expression with an `ActorAnimRig20 rig`
-/// and the `st` members used by each included fragment. The pointer borrows
-/// the allocation owned by the current task; the task dispatcher must publish
-/// it before calling a fragment. The default selects the first walker.
-/// A carrier with another walker rebinds this together with its function bindings,
-/// then restores the first pointer after each inclusion. No argument is evaluated;
-/// fragment accesses may read the pointer repeatedly across animation calls.
-#define SCRIPTED_WALK_WORK _gScriptedWalkWork
+/// Bind before this header to a side-effect-free pointer expression whose
+/// pointee has `ActorAnimRig20 rig` and the state members its fragments use:
+/// `st.state`, `st.animId`, `st.appliedAnimId` and, for placement, `st.yaw`.
+/// The state type may differ by carrier. Parenthesize expressions more complex
+/// than an identifier. The spawn routine publishes the allocation held in
+/// `Task::work`; the task dispatcher republishes it before each state call.
+/// Animation fragments use it without a task argument; placement uses it to
+/// retain the heading. It must be non-NULL and live during use;
+/// teardown releases the allocation without clearing the published pointer.
+///
+/// The default selects the sole or first walker in the five carriers.
+/// actor_143900 rebinds it to `_gScriptedWalkSecondWork` around its second
+/// update, tick, reset, blend and placement copies, then restores the default.
+/// There are no arguments or captured locals. Each dereference evaluates the
+/// binding again, including after animation calls; it does not cache the pointer.
+#define SCRIPTED_WALK_WORK (_gScriptedWalkWork)
 #endif
 
 /// Approach modes stored in the walker's signed halfword.
@@ -132,17 +140,19 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #endif
 
 #ifndef SCRIPTED_WALK_RESET_ANIM
-/// Selects the no-argument function that restarts the published walker's part tracks.
+/// Selects the private function that restarts this walker's requested part tracks.
 ///
-/// Bind to a `void name(void)` function before this header, or undefine and
-/// rebind around both the update and reset fragments for an additional walker.
-/// The reset fragment defines the function; the update fragment calls it.
-/// `SCRIPTED_WALK_WORK` must select the same live work block at both sites,
-/// with its context bound to the rig and a loaded set selected by `st.animId`.
+/// Bind to a TU-private `void name(void)` function identifier before this header.
+/// The reset fragment defines it; the update fragment calls it for
+/// `ACTOR_ENEMY_ANIM_RESET`, then changes the state to `ACTOR_ENEMY_ANIM_TICK`.
+/// For another walker, declare its static prototype in the carrier prologue
+/// and rebind around both fragment copies with `SCRIPTED_WALK_WORK` selecting
+/// that walker's live, initialized rig. Restore both bindings afterwards.
+///
 /// The default serves the sole or first walker in all five carriers;
-/// actor_143900 binds its private second copy to `_scriptedWalkResetSecondAnim`.
-/// This object-like binding has no arguments, captured locals or side effects.
-#define SCRIPTED_WALK_RESET_ANIM scriptedWalkResetAnim
+/// actor_143900 selects `_scriptedWalkResetSecondAnim` for its second walker.
+/// This identifier binding has no arguments, captured locals or side effects.
+#define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
 #endif
 
 void scriptedWalkUpdate(Task* task);
@@ -157,9 +167,9 @@ void scriptedWalkUpdate(Task* task);
 /// Scratch-stack capacity and GTE requirements are those of `animationTickSlot`.
 static void SCRIPTED_WALK_TICK_ANIM(void);
 
-void SCRIPTED_WALK_RESET_ANIM(void);
-void scriptedWalkBlendAnim(void);
-s32  scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
+static void SCRIPTED_WALK_RESET_ANIM(void);
+void        scriptedWalkBlendAnim(void);
+s32         scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
 s32 scriptedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
 

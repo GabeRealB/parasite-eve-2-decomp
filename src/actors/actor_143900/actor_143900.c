@@ -1432,7 +1432,7 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #undef scriptedWalkUpdate
 #undef SCRIPTED_WALK_TICK_ANIM
 #undef SCRIPTED_WALK_RESET_ANIM
-#define SCRIPTED_WALK_RESET_ANIM scriptedWalkResetAnim
+#define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
 #undef scriptedWalkBlendAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
@@ -1527,7 +1527,7 @@ void func_actor_143900_80132FB0(Task* task)
 #define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
 #include "../../shared/scripted_walk_reset_anim.inc.c"
 #undef SCRIPTED_WALK_RESET_ANIM
-#define SCRIPTED_WALK_RESET_ANIM scriptedWalkResetAnim
+#define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 

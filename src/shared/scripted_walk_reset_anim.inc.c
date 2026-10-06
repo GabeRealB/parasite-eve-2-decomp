@@ -1,13 +1,18 @@
 /* Part of the scripted walk library; see scripted_walk.h. */
 
-/// Restarts the selected walker's non-root tracks on its requested animation.
+/// Restarts slots 1 through 19 on the published walker's requested clip.
 ///
-/// `SCRIPTED_WALK_WORK` must select a live work block with its context bound
-/// to the twenty-slot rig, model coordinates and a loaded set containing tracks
-/// 1 through 19 for `st.animId`. Each slot restarts at `ANIMATION_RATE_ONE`
-/// without blending or writing a pose; root slot 0 is untouched. The applied
-/// clip is recorded in `st.appliedAnimId`. Poses are applied on a later tick.
-void SCRIPTED_WALK_RESET_ANIM(void)
+/// `SCRIPTED_WALK_WORK` must select a non-NULL, live block whose context is
+/// bound to its rig's slots and the model's part coordinates. `st.animId`
+/// must be a nonnegative, in-range index selecting a non-NULL loaded set,
+/// with tracks and coordinates for every driven slot. Keep the block, model,
+/// table and clip data live through playback; capacities are not checked here.
+///
+/// Each slot restarts without a blend at `ANIMATION_RATE_ONE` (16 sixteenth-frame
+/// units per tick), replacing its previous rate. Slot 0 and the current model
+/// pose are untouched; a later tick applies the restarted tracks. Records the requested
+/// clip in `st.appliedAnimId` and leaves `st.state` for the caller to advance.
+static void SCRIPTED_WALK_RESET_ANIM(void)
 {
     enum {
         SCRIPTED_WALK_FIRST_RESET_SLOT = 1,
