@@ -3332,71 +3332,67 @@ void Gp_EffCtlTaskA6(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
     coord = arg0->extra.coordBody->coord;
-    if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        switch (arg0->state) {
-            case 0:
-                mem->age++;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->scale      = gRandomLcgState >> 16;
-                mem->angle      = (mem->scale & 0xF) + 8;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                temp            = arg0->spawnArg1.value;
-                mem->period     = -(temp << 4) - ((gRandomLcgState >> 16) & 0x7F);
-                mem->step       = arg0->spawnArg1.value * 24 + 0xC0;
-                gfxRotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                arg0->state = 1;
-                mem->move.vz =
-                    (mem->scale & 0x1F) % (arg0->spawnArg1.value * 3) + 7;
-                func_800FCD00(arg0);
-                Gp_SpawnEff(EFFECT_RISING_WISP, coord, mem->step * 3 + 0x3000, 0);
-                return;
-            case 1:
-                if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
-                    actorRenderComposeCoord(coord);
-                    mem->age++;
-                    if (mem->move.vz != 0) {
-                        in            = &mem->move;
-                        out           = &mem->pos;
-                        mem->move.vz -= (mem->age & 3) / 3;
-                        gte_SetRotMatrix(&coord->coord);
-                        gte_ldv0(in);
-                        gte_rtv0();
-                        gte_stsv(out);
-                        coord->coord.t[0]  += mem->pos.vx;
-                        coord->coord.t[1]  += mem->pos.vy;
-                        coord->coord.t[2]  += mem->pos.vz;
-                        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    }
-                    if (mem->age >= 0x81) {
-                        arg0->state = 2;
-                    }
-                }
-                goto do_fcd00;
-            case 2:
-                if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
-                    actorRenderComposeCoord(coord);
-                    mem->age++;
-                    mem->angle  -= mem->age & 1;
-                    mem->period += 2;
-                    mem->step   += 2;
-                    if (mem->angle <= 0) {
-                        goto kill;
-                    }
-                    if (mem->period < 0) {
-                        goto do_fcd00;
-                    }
-                    goto kill;
-                }
-                goto do_fcd00;
-        }
+    if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        effectKillTask(mem, arg0);
         return;
     }
-kill:
-    effectKillTask(mem, arg0);
-    return;
-do_fcd00:
+    switch (arg0->state) {
+        case 0:
+            mem->age++;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = gRandomLcgState >> 16;
+            mem->angle      = (mem->scale & 0xF) + 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            temp            = arg0->spawnArg1.value;
+            mem->period     = -(temp << 4) - ((gRandomLcgState >> 16) & 0x7F);
+            mem->step       = arg0->spawnArg1.value * 24 + 0xC0;
+            gfxRotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(coord);
+            arg0->state = 1;
+            mem->move.vz =
+                (mem->scale & 0x1F) % (arg0->spawnArg1.value * 3) + 7;
+            func_800FCD00(arg0);
+            Gp_SpawnEff(EFFECT_RISING_WISP, coord, mem->step * 3 + 0x3000, 0);
+            return;
+        case 1:
+            if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
+                actorRenderComposeCoord(coord);
+                mem->age++;
+                if (mem->move.vz != 0) {
+                    in            = &mem->move;
+                    out           = &mem->pos;
+                    mem->move.vz -= (mem->age & 3) / 3;
+                    gte_SetRotMatrix(&coord->coord);
+                    gte_ldv0(in);
+                    gte_rtv0();
+                    gte_stsv(out);
+                    coord->coord.t[0]  += mem->pos.vx;
+                    coord->coord.t[1]  += mem->pos.vy;
+                    coord->coord.t[2]  += mem->pos.vz;
+                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                }
+                if (mem->age >= 0x81) {
+                    arg0->state = 2;
+                }
+            }
+            break;
+        case 2:
+            if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
+                actorRenderComposeCoord(coord);
+                mem->age++;
+                mem->angle  -= mem->age & 1;
+                mem->period += 2;
+                mem->step   += 2;
+                if (mem->angle <= 0 || mem->period >= 0) {
+                    effectKillTask(mem, arg0);
+                    return;
+                }
+            }
+            break;
+        default:
+            return;
+    }
     func_800FCD00(arg0);
 }
 
