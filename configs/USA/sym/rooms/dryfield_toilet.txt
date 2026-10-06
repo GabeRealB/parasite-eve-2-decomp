@@ -90,15 +90,15 @@ D_dryfield_toilet_80180C50 = 0x80180C50; // size:0x6 defined:True
 D_dryfield_toilet_80180C58 = 0x80180C58; // size:0x2E8 defined:True
 D_dryfield_toilet_80180F40 = 0x80180F40; // size:0x1E0 defined:True
 
-func_dryfield_toilet_8017DEF4 = 0x8017DEF4; // type:func
+dryfieldToiletJetPuffTask = 0x8017DEF4; // type:func
 
-func_dryfield_toilet_8017E64C = 0x8017E64C; // type:func
+dryfieldToiletConfigureEffectsTask = 0x8017E64C; // type:func
 
 func_dryfield_toilet_8017E69C = 0x8017E69C; // type:func
 
-func_dryfield_toilet_8017EBF4 = 0x8017EBF4; // type:func
+dryfieldToiletFlyingSparkTask = 0x8017EBF4; // type:func
 
-func_dryfield_toilet_8017F854 = 0x8017F854; // type:func
+dryfieldToiletFlyingOrangeBurstTask = 0x8017F854; // type:func
 
 func_dryfield_toilet_8017DCF0 = 0x8017DCF0; // type:func
 _roomVisualEffectsDrawFlyingSpark = 0x8017EE18; // type:func

@@ -697,7 +697,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectPolyTask9C, { NULL } },                                            // 0x09C
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_8017E89C, { NULL } },                           // 0x09D
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask9E, { NULL } },                                          // 0x09E
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017DEF4, { NULL } },                               // 0x09F
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletJetPuffTask, { NULL } },                                   // 0x09F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorGlowTask, { NULL } },                        // 0x0A0
     { { { TASK_BODY_COORD, 0x70 } }, func_800ED42C, { NULL } },                                               // 0x0A1
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017DCF0, { NULL } },                               // 0x0A2
@@ -744,7 +744,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_antibody_8012EF34, { NULL } },                                      // 0x0CB
     { { { TASK_BODY_COORD, 0x70 } }, func_energyshot_8012EF34, { NULL } },                                    // 0x0CC
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldParkingLotUpdateViewEffectGateTask, { NULL } },                  // 0x0CD
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017E64C, { NULL } },                               // 0x0CE
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletConfigureEffectsTask, { NULL } },                          // 0x0CE
     { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012EF48, { NULL } },                                    // 0x0CF
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldSaloonGRDrawLightEffectsTask, { NULL } },                        // 0x0D0
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGRKitchenDrawLightBeamsTask, { NULL } },                         // 0x0D1
@@ -1189,8 +1189,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask, { NULL } }, // 0x288
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_80181F58, { NULL } },                    // 0x289
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017E69C, { NULL } },                               // 0x28A
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017EBF4, { NULL } },                               // 0x28B
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017F854, { NULL } },                               // 0x28C
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletFlyingSparkTask, { NULL } },                               // 0x28B
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletFlyingOrangeBurstTask, { NULL } },                         // 0x28C
     { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaRoomVisualEffectsFlashTask, { NULL } },                // 0x28D
     { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaRoomVisualEffectsTwinTrailTask, { NULL } },            // 0x28E
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_cafeteria_80180C94, { NULL } },                           // 0x28F

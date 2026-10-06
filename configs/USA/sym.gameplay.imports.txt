@@ -781,15 +781,15 @@ dryfieldNightWaterHoleWaterDriftTaskU16 = 0x8017F6DC; // type:func absolute:True
 
 dryfieldSaloonGRDrawLightEffectsTask = 0x8017DA70; // type:func absolute:True owner=dryfield_saloon_g_r shared=rooms
 
-func_dryfield_toilet_8017DEF4 = 0x8017DEF4; // type:func absolute:True owner=dryfield_toilet
+dryfieldToiletJetPuffTask = 0x8017DEF4; // type:func absolute:True owner=dryfield_toilet
 
-func_dryfield_toilet_8017E64C = 0x8017E64C; // type:func absolute:True owner=dryfield_toilet shared=rooms
+dryfieldToiletConfigureEffectsTask = 0x8017E64C; // type:func absolute:True owner=dryfield_toilet shared=rooms
 
 func_dryfield_toilet_8017E69C = 0x8017E69C; // type:func absolute:True owner=dryfield_toilet
 
-func_dryfield_toilet_8017EBF4 = 0x8017EBF4; // type:func absolute:True owner=dryfield_toilet shared=rooms
+dryfieldToiletFlyingSparkTask = 0x8017EBF4; // type:func absolute:True owner=dryfield_toilet shared=rooms
 
-func_dryfield_toilet_8017F854 = 0x8017F854; // type:func absolute:True owner=dryfield_toilet
+dryfieldToiletFlyingOrangeBurstTask = 0x8017F854; // type:func absolute:True owner=dryfield_toilet
 
 func_dryfield_trailer_coach_801838DC = 0x801838DC; // type:func absolute:True owner=dryfield_trailer_coach
 

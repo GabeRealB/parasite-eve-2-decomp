@@ -88398,13 +88398,13 @@ verifies every shared-helper caller.
 
 The asm is also a scheduling barrier, so anything the target issues *before* the
 `addiu` carve must be written before the `SOFT_USE_REG` too. In
-`func_dryfield_toilet_8017DEF4` the target loads the first `workm.t` half
+`dryfieldToiletJetPuffTask` the target loads the first `workm.t` half
 (`lhu v1,0x38(s3)`) ahead of `addiu v0,a0,-0x18` / `move s0,v0`; with the load
-written as `block->vec.vx = *(u16*)&coord->workm.t[0]` after the asm, the copy
+written as `projection->worldPos.vx = *(u16*)&coord->workm.t[0]` after the asm, the copy
 appeared but the `lhu` stayed below it (`reorder=2`, 99.46%). Reading it into a
-local first - `vx = ...; tmp = head - 0x18; SOFT_USE_REG(tmp); block = tmp;
-block->vec.vx = vx;` - and holding the last half in a local until after
-`*scratch = block` matched. Only hold it when the target loads it *before* the
+local first - `worldX = ...; tmp = head - 0x18; SOFT_USE_REG(tmp); projection = tmp;
+projection->worldPos.vx = worldX;` - and holding the last half in a local until after
+`*scratch = projection` matched. Only hold it when the target loads it *before* the
 head store: `acropolisFireEscapeFlickerLightTask` loads `workm.t[2]` into `$v0`
 after `sw s7,0(a1)`, and there the `vz` local pulled the loads into `$a1` and
 swapped the head/scratch registers (99.86%, `regs=17`); writing
@@ -147008,12 +147008,12 @@ UID 76 after label 72. Input SHA256 for `base_6.i`:
 
 The sequence `lhu; andi 0xF000; sll 16; branch-if-zero; sra 28` need not be
 written as a cast to `u16` followed by explicit 32-bit sign-extension shifts.
-Use `s16 temp; temp = index->spawnArg1 & 0xF000;` and, when nonzero,
-`temp >>= 12`. Narrowing gives the high nibble its sign, and combine folds the
+Use `s16 framePeriod; framePeriod = task->spawnArg1.value & 0xF000;` and, when nonzero,
+`framePeriod >>= 12`. Narrowing gives the high nibble its sign, and combine folds the
 halfword extension and right shift into the observed pair. With an `s32`
 local and no cast, the same masked load becomes `lw` instead of `lhu`.
 
-In `nonmatchings/func_dryfield_toilet_8017DEF4-dehack/base_4.i.combine`, UIDs
+In `nonmatchings/dryfieldToiletJetPuffTask-dehack/base_4.i.combine`, UIDs
 151/161 are the resulting shifts. `base_4.c` preserves the seed's 99.979%
 score and passes the unscoped build; the two scratch symbol differences are
 unchanged. Preprocessed input SHA256: `1ea8571e1b2701b14adb43a849a666411bf65a76683bc672a0aa9d5227aee61b`.

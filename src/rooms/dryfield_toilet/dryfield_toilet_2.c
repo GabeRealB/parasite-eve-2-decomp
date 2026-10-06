@@ -2555,126 +2555,157 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
     effectKillTask(mem, arg0);
 }
 
-void func_dryfield_toilet_8017DEF4(Task* arg0)
+/// Places both opposite corner pairs of a puff at its fixed screen-space rotation.
+///
+/// `projection` supplies the projected centre and a positive depth. `work->scale`
+/// is a world size and `work->angle` uses 4096 units per turn. Corner offsets
+/// retain Q12 trig rounding and the signed 32-bit sizing arithmetic.
+static inline void _dryfieldToiletSetJetPuffCorners(POLY_FT4* quad, OverlaySpriteScratch* projection, const EffectWork* work)
 {
-    EffectWork*           mem;
-    GfxCoord*             coord;
-    OverlaySpriteScratch* head;
-    OverlaySpriteScratch* block;
-    POLY_FT4*             prim;
-    s32                   rng;
-    s16                   temp;
-    SVECTOR*              vec;
-    s32                   t2;
-    u16                   vx;
+    enum { PUFF_SIZE_PROJECTION_SCALE = 31 };
 
-    coord = arg0->extra.coordBody->coord;
-    mem   = arg0->spawnArg2.pointer;
+    projection->cornerDx = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rsin(work->angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    projection->cornerDy = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rcos(work->angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    quad->x0             = projection->screenPos.vx + projection->cornerDx;
+    quad->x3             = projection->screenPos.vx - projection->cornerDx;
+    quad->y0             = projection->screenPos.vy - projection->cornerDy;
+    quad->y3             = projection->screenPos.vy + projection->cornerDy;
+    projection->cornerDx = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rsin(work->angle + ROOM_VISUAL_EFFECTS_FULL_TURN / 4)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    projection->cornerDy = (((work->scale * PUFF_SIZE_PROJECTION_SCALE) / projection->otz) * rcos(work->angle + ROOM_VISUAL_EFFECTS_FULL_TURN / 4)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS;
+    quad->x1             = projection->screenPos.vx + projection->cornerDx;
+    quad->x2             = projection->screenPos.vx - projection->cornerDx;
+    quad->y1             = projection->screenPos.vy - projection->cornerDy;
+    quad->y2             = projection->screenPos.vy + projection->cornerDy;
+}
+
+void dryfieldToiletJetPuffTask(Task* task)
+{
+    enum {
+        PUFF_INITIALIZE,
+        PUFF_STATIONARY,
+        PUFF_DRIFTING,
+        PUFF_SIZE_MASK               = 0xFFF,
+        PUFF_PERIOD_MASK             = 0xF000,
+        PUFF_PERIOD_SHIFT            = 12,
+        PUFF_RANDOM_MOVE_FLAG        = 0x100000,
+        PUFF_SCALE_MOVE_FLAG         = 0x01000000,
+        PUFF_RANDOM_MOVE_MASK        = 0x1F,
+        PUFF_RANDOM_MOVE_BIAS        = 16,
+        PUFF_FALL_ACCELERATION       = 3,
+        PUFF_MIN_DEPTH               = 17,
+        PUFF_TEXTURE_FRAME_COUNT     = 6,
+        PUFF_TEXTURE_CELL_SHIFT      = 5,
+        PUFF_TEXTURE_ROW             = 0x40,
+        PUFF_TEXTURE_CELL_LAST       = 31,
+        PUFF_TEXTURE_PAGE            = 0x2B,
+        PUFF_TEXTURE_PALETTE         = 0x43C0,
+        PUFF_RAW_TEXTURE_BLEND_FLAGS = 3
+    };
+
+    EffectWork*           work;
+    GfxCoord*             coord;
+    OverlaySpriteScratch* scratchEnd;
+    OverlaySpriteScratch* projection;
+    POLY_FT4*             quad;
+    s32                   randomBits;
+    s16                   framePeriod;
+    SVECTOR*              velocity;
+    u16                   worldX;
+
+    coord = task->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    // Project the centre and reserve its packet before advancing the effect.
     actorRenderComposeCoord(coord);
-    head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
-    vx   = coord->workm.t[0];
+    scratchEnd = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+    worldX     = coord->workm.t[0];
     SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
-    block              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
-    block->worldPos.vx = vx;
-    block->worldPos.vy = coord->workm.t[1];
-    block->worldPos.vz = coord->workm.t[2];
+    projection              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+    projection->worldPos.vx = worldX;
+    projection->worldPos.vy = coord->workm.t[1];
+    projection->worldPos.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&(head - 1)->worldPos);
+    gte_ldv0(&(scratchEnd - 1)->worldPos);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&(head - 1)->screenPos);
-    gte_stszotz(&block->otz);
-    if ((head - 1)->otz >= 0x11) {
-        if (arg0->state == 0) {
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = arg0->spawnArg1.value & 0xFFF;
-            mem->angle      = ((u32)rng >> 16) & 0xFFF;
-            temp            = arg0->spawnArg1.value & 0xF000;
-            gRandomLcgState = rng;
-            if (temp != 0) {
-                temp = temp >> 12;
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    gte_stsxy(&(scratchEnd - 1)->screenPos);
+    gte_stszotz(&projection->otz);
+    if ((scratchEnd - 1)->otz >= PUFF_MIN_DEPTH) {
+        if (task->state == PUFF_INITIALIZE) {
+            randomBits  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale = task->spawnArg1.value & PUFF_SIZE_MASK;
+            work->angle = ((u32)randomBits >> 16) & (ROOM_VISUAL_EFFECTS_FULL_TURN - 1);
+            // Keep the signed halfword: nibble values 8..15 decode as negative.
+            framePeriod     = task->spawnArg1.value & PUFF_PERIOD_MASK;
+            gRandomLcgState = randomBits;
+            if (framePeriod != 0) {
+                framePeriod = framePeriod >> PUFF_PERIOD_SHIFT;
             } else {
-                temp = 1;
+                framePeriod = 1;
             }
-            mem->period = temp;
-            if (arg0->spawnArg1.value & 0x100000) {
+            work->period = framePeriod;
+            if (task->spawnArg1.value & PUFF_RANDOM_MOVE_FLAG) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                work->move.vx   = ((gRandomLcgState >> 16) & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                work->move.vy   = ((gRandomLcgState >> 16) & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                work->move.vz   = ((gRandomLcgState >> 16) & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
             }
-            if (arg0->spawnArg1.value & 0x01000000) {
-                gte_lddp(mem->scale << 2);
-                vec = &mem->move;
-                gte_ldsv(vec);
+            if (task->spawnArg1.value & PUFF_SCALE_MOVE_FLAG) {
+                gte_lddp(work->scale << 2);
+                velocity = &work->move;
+                gte_ldsv(velocity);
                 gte_gpf12();
-                gte_stsv(vec);
+                gte_stsv(velocity);
             }
-            arg0->state = 1;
-            if (mem->move.vx | mem->move.vy | mem->move.vz) {
-                arg0->state = 2;
+            task->state = PUFF_STATIONARY;
+            if (work->move.vx | work->move.vy | work->move.vz) {
+                task->state = PUFF_DRIFTING;
             }
         }
-        prim->tpage     = 0x2B;
-        prim->clut      = 0x43C0;
-        prim->code     |= 3;
-        prim->u0        = (mem->age / mem->period) << 5;
-        prim->v0        = 0x40;
-        prim->u1        = ((mem->age / mem->period) << 5) + 0x1F;
-        prim->v1        = 0x40;
-        prim->u2        = (mem->age / mem->period) << 5;
-        prim->v2        = 0x5F;
-        prim->u3        = ((mem->age / mem->period) << 5) + 0x1F;
-        prim->v3        = 0x5F;
-        block->cornerDx = (((mem->scale * 31) / block->otz) * rsin(mem->angle)) >> 12;
-        block->cornerDy = (((mem->scale * 31) / block->otz) * rcos(mem->angle)) >> 12;
-        prim->x0        = block->screenPos.vx + block->cornerDx;
-        prim->x3        = block->screenPos.vx - block->cornerDx;
-        prim->y0        = block->screenPos.vy - block->cornerDy;
-        prim->y3        = block->screenPos.vy + block->cornerDy;
-        block->cornerDx = (((mem->scale * 31) / block->otz) * rsin(mem->angle + 0x400)) >> 12;
-        block->cornerDy = (((mem->scale * 31) / block->otz) * rcos(mem->angle + 0x400)) >> 12;
-        prim->x1        = block->screenPos.vx + block->cornerDx;
-        prim->x2        = block->screenPos.vx - block->cornerDx;
-        prim->y1        = block->screenPos.vy - block->cornerDy;
-        prim->y2        = block->screenPos.vy + block->cornerDy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        quad->tpage = PUFF_TEXTURE_PAGE;
+        quad->clut  = PUFF_TEXTURE_PALETTE;
+        quad->code |= PUFF_RAW_TEXTURE_BLEND_FLAGS;
+        setUVWH(quad, (work->age / work->period) << PUFF_TEXTURE_CELL_SHIFT, PUFF_TEXTURE_ROW,
+                PUFF_TEXTURE_CELL_LAST, PUFF_TEXTURE_CELL_LAST);
+        _dryfieldToiletSetJetPuffCorners(quad, projection, work);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
+    // Pausing freezes age and drift after drawing; cancellation also draws once.
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
             return;
         }
-        if (arg0->state == 2) {
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            t2                  = coord->coord.t[2] + mem->move.vz;
+        if (task->state == PUFF_DRIFTING) {
+            coord->coord.t[0]  += work->move.vx;
+            coord->coord.t[1]  += work->move.vy;
+            coord->coord.t[2]  += work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[2]   = t2;
-            mem->move.vy       += 3;
+            work->move.vy      += PUFF_FALL_ACCELERATION;
         }
-        mem->age++;
-        if (mem->age <= mem->period * 6 - 1) {
+        work->age++;
+        if (work->age <= work->period * PUFF_TEXTURE_FRAME_COUNT - 1) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
-void func_dryfield_toilet_8017E64C(Task* arg0)
+void dryfieldToiletConfigureEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { EFFECTS_UNREGISTERED,
+           EFFECTS_REGISTERED };
+
+    if (task->state == EFFECTS_UNREGISTERED) {
         gRoomEffectGlowDiscId     = EFFECT_DRYFIELD_TOILET_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_DRYFIELD_TOILET_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_DRYFIELD_TOILET_ORANGE_BURST_2;
-        arg0->state               = 1;
+        task->state               = EFFECTS_REGISTERED;
     }
 }
 
@@ -2687,16 +2718,16 @@ void func_dryfield_toilet_8017E69C(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_dryfield_toilet_8017EBF4(Task* task)
+void dryfieldToiletFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_dryfield_toilet_8017F854(Task* arg0)
+void dryfieldToiletFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"
