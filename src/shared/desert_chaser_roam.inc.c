@@ -99,22 +99,9 @@ void desertChaserRoam(Task* arg0)
         facing                    = arg0->extra.tmd->coords;
         angle                     = ratan2((s32)head[-1].toPatrolPoint.vx, (s32)z);
         delta1                    = angle - ratan2((s32)-facing->coord.m[2][0], (s32)facing->coord.m[2][2]);
-        wrapped                   = delta1;
-        if (delta1 < 0) {
-        wrapNegative:
-            if (wrapped < -0x800) {
-                wrapped += 0x1000;
-                goto wrapNegative;
-            }
-        } else {
-        wrapPositive:
-            if (wrapped >= 0x801) {
-                wrapped -= 0x1000;
-                goto wrapPositive;
-            }
-        }
-        work->lookYawTarget = wrapped;
-        matrix              = &scratch->rotation;
+        wrapped                   = actorWrapAngle(delta1);
+        work->lookYawTarget       = wrapped;
+        matrix                    = &scratch->rotation;
         gfxRotMatrixY(matrix, (s16)ratan2((s32)scratch->toPatrolPoint.vx, (s32)scratch->toPatrolPoint.vz) + 0x3E8, 1);
         gfxReadMatrixZAxis(matrix, &scratch->toPatrolPoint);
         VectorNormalSS(&scratch->toPatrolPoint, &scratch->toPatrolPoint);
@@ -141,23 +128,10 @@ void desertChaserRoam(Task* arg0)
     target->vy                 = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     target->vz                 = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
     if (!actorOutsideRadius(&scratch->toPatrolPoint, 0xA0) || work->stateTimer >= 0x15) {
-        facing2  = arg0->extra.tmd->coords;
-        angle2   = ratan2((s32)head2[-1].toPlayer.vx, (s32)target->vz);
-        delta2   = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
-        wrapped2 = delta2;
-        if (delta2 < 0) {
-        wrapNegative2:
-            if (wrapped2 < -0x800) {
-                wrapped2 += 0x1000;
-                goto wrapNegative2;
-            }
-        } else {
-        wrapPositive2:
-            if (wrapped2 >= 0x801) {
-                wrapped2 -= 0x1000;
-                goto wrapPositive2;
-            }
-        }
+        facing2             = arg0->extra.tmd->coords;
+        angle2              = ratan2((s32)head2[-1].toPlayer.vx, (s32)target->vz);
+        delta2              = angle2 - ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
+        wrapped2            = actorWrapAngle(delta2);
         work->lookYawTarget = wrapped2;
         if (work->patrolTarget == 0) {
             gfxRotMatrixY(&scratch->rotation, (s16)ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz) - 0x2EE, 1);
@@ -178,46 +152,20 @@ void desertChaserRoam(Task* arg0)
         work->stateTimer                         = 0;
     }
     desertChaserAnimTick(arg0);
-    facing3  = arg0->extra.tmd->coords;
-    angle3   = ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz);
-    delta3   = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);
-    wrapped3 = delta3;
-    if (delta3 < 0) {
-    wrapNegative3:
-        if (wrapped3 < -0x800) {
-            wrapped3 += 0x1000;
-            goto wrapNegative3;
-        }
-    } else {
-    wrapPositive3:
-        if (wrapped3 >= 0x801) {
-            wrapped3 -= 0x1000;
-            goto wrapPositive3;
-        }
-    }
+    facing3             = arg0->extra.tmd->coords;
+    angle3              = ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz);
+    delta3              = angle3 - ratan2((s32)-facing3->coord.m[2][0], (s32)facing3->coord.m[2][2]);
+    wrapped3            = actorWrapAngle(delta3);
     work->lookYawTarget = wrapped3;
     facing4             = arg0->extra.tmd->coords;
     angle4              = ratan2((s32)scratch->toPatrolPoint.vx, (s32)scratch->toPatrolPoint.vz);
     delta4              = angle4 - ratan2((s32)-facing4->coord.m[2][0], (s32)facing4->coord.m[2][2]);
-    wrapped4            = delta4;
-    if (delta4 < 0) {
-    wrapNegative4:
-        if (wrapped4 < -0x800) {
-            wrapped4 += 0x1000;
-            goto wrapNegative4;
-        }
-    } else {
-    wrapPositive4:
-        if (wrapped4 >= 0x801) {
-            wrapped4 -= 0x1000;
-            goto wrapPositive4;
-        }
-    }
-    turnDelta         = wrapped4;
-    scratch->fullTurn = (scratch->turn = (s16)turnDelta);
-    delta             = scratch->turn;
-    unsignedDelta     = (u16)scratch->turn;
-    magnitude         = abs(scratch->turn);
+    wrapped4            = actorWrapAngle(delta4);
+    turnDelta           = wrapped4;
+    scratch->fullTurn   = (scratch->turn = (s16)turnDelta);
+    delta               = scratch->turn;
+    unsignedDelta       = (u16)scratch->turn;
+    magnitude           = abs(scratch->turn);
     if (magnitude >= 0x601) {
         targetDelta     = work->lookYawTarget;
         targetMagnitude = abs(targetDelta);
@@ -275,52 +223,25 @@ void desertChaserRoam(Task* arg0)
                 {
                     if (actorOutsideRadius(&scratch->toPlayer, radius)) {
                         if (!actorOutsideRadius(&scratch->toPlayer, 0x1F40) && work->stateCounter >= 0x1C3) {
-                            facing5  = arg0->extra.tmd->coords;
-                            angle5   = ratan2((s32)scratch->toPatrolPoint.vx, (s32)scratch->toPatrolPoint.vz);
-                            delta5   = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
-                            wrapped5 = delta5;
-                            if (delta5 < 0) {
-                            wrapNegative5:
-                                if (wrapped5 < -0x800) {
-                                    wrapped5 += 0x1000;
-                                    goto wrapNegative5;
-                                }
-                            } else {
-                            wrapPositive5:
-                                if (wrapped5 >= 0x801) {
-                                    wrapped5 -= 0x1000;
-                                    goto wrapPositive5;
-                                }
-                            }
+                            facing5       = arg0->extra.tmd->coords;
+                            angle5        = ratan2((s32)scratch->toPatrolPoint.vx, (s32)scratch->toPatrolPoint.vz);
+                            delta5        = angle5 - ratan2((s32)-facing5->coord.m[2][0], (s32)facing5->coord.m[2][2]);
+                            wrapped5      = actorWrapAngle(delta5);
                             finalDelta    = wrapped5;
                             scratch->turn = (s16)finalDelta;
                             finalDelta    = abs(finalDelta);
                             if (finalDelta < 0x300) {
-                                goto changeState;
+                                work->state = 0x1C;
                             }
                         }
                     } else {
-                    changeState:
                         work->state = 0x1C;
                     }
                     playerX                = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
                     scratch->playerYaw     = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
                     targetYaw              = ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz) + 0x800;
-                    wrappedYaw             = targetYaw;
                     scratch->yawFromPlayer = targetYaw;
-                    if (targetYaw < 0) {
-                    wrapYawNegative:
-                        if (wrappedYaw < -0x800) {
-                            wrappedYaw += 0x1000;
-                            goto wrapYawNegative;
-                        }
-                    } else {
-                    wrapYawPositive:
-                        if (wrappedYaw >= 0x801) {
-                            wrappedYaw -= 0x1000;
-                            goto wrapYawPositive;
-                        }
-                    }
+                    wrappedYaw             = actorWrapAngle(targetYaw);
                     finalYaw               = wrappedYaw;
                     scratch->yawFromPlayer = (s16)finalYaw;
                     yawDifference          = finalYaw - scratch->playerYaw;
