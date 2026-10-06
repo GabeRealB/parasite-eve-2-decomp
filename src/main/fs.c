@@ -441,9 +441,9 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
             default:
                 D5B498_8006ADF4 = req[2] / 10;
                 fileId          = (req[2] * 10000) + (req[1] * 100) + req[0];
-                if ((D5B498_8006ADF4 != 0) && ((len = Fs_FileTableLen) != 0)) {
-                    i = 0;
-                    do {
+                if (D5B498_8006ADF4 != 0) {
+                    len = Fs_FileTableLen;
+                    for (i = 0; i < (u32)len; i++) {
                         if (Fs_FileTable[i].fileId == fileId) {
                             sector = Fs_FileTable[i].sectorOffset + Fs_StageCdfSectors[0];
                             if (req[2] == 8) {
@@ -451,10 +451,9 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                                     gGameSession->field_4E = 1;
                                 }
                             }
-                            goto setup_and_load;
+                            break;
                         }
-                        i++;
-                    } while (i < (u32)len);
+                    }
                 }
                 break;
         }
@@ -462,7 +461,6 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
         sector = D_8006C158[req[0]] + Fs_StageCdfSectors[req[3]];
     }
 
-setup_and_load:
     D5B498_8006C234 = a3;
     D5B498_8006C233 = a2;
     D5B498_8006ACC8 = 0;
