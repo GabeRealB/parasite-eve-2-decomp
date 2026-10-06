@@ -148887,6 +148887,26 @@ none needed a hack. The forms, by what the `goto` was standing for:
 - **A jump into the middle of a nested `if`** from a two-way state test
   (`func_actor_800100_80164710`) was `switch (phase) { case 0: ...; phase++;
   /* fallthrough */ case 1: ... }` with `break` for the early exits.
+- **`if (r > 0) goto draw; <asm statements>; if (r < 0) { draw: ... }`** (the
+  two-triangle facing test of the TMD quad streams) is `if (r > 0 ||
+  secondHalf(...))` with a `static inline` that runs the statements and returns
+  `workspace->gteResult < 0`. A one-expression inline returning a comparison
+  folds into the branch; 11 of 11 sites matched first try
+  (`_tmdSecondHalfFacesViewer` in `model_lighting.c`, two in `actor_403600.c`).
+  An inline with *several* returns of 0/1 does not fold in a large caller
+  (`tmdDrawStreamPrimGt4EnvLayer`: `li v0,1; beqz v0` survives).
+- **`goto skip` to the increment at the bottom of `if (n-- > 0) { p = &ws->x;
+  do { ...; skip: step; } while (n-- > 0); }`** is `for (; n-- > 0; step) {
+  p = &ws->x; ...; continue; }`. The pointer setups go *inside* the body: loop.c
+  hoists them to after the duplicated entry test, where the image has them.
+  Written before the `for` they are emitted ahead of the test and fail.
+- **`cond = a < K; goto tail; ... tail: if (cond == 0) f();`** with several
+  sources of `cond` is cross-jumping's output, not a flag: write
+  `if (a >= K) f();` at each site. jump2 merges the identical `beqz; jal`
+  tails and leaves each site its own `slti` and a jump (`func_800F4308`, 9
+  gotos and two flag locals, first try). The same limit as above applies:
+  `effectSpriteTask7C` swaps `$s1/$s2` when its `goto release` is written as a
+  second `effectKillTask(work, task)`.
 ## Removing `goto`: four compiler facts from a 15-function sample (2026-10-05)
 
 ### A loop that is not rotated: `for (;;) { if (c) body; else break; }`
