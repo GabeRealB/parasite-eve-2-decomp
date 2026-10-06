@@ -725,43 +725,38 @@ static void func_actor_143000_801336E8(Task* arg0)
 {
     _Actor143000KeypadWork* work   = arg0->work;
     ActionPrompt*           prompt = D_80114D28;
-    s32                     cmd;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         switch ((s16)(work->selectedHotspot - 1)) {
             case 0:
-                cmd = 8;
-                goto run;
+                Gp_RunCapCmd(8, 0);
+                break;
             case 1:
-                cmd = 7;
-                goto run;
+                Gp_RunCapCmd(7, 0);
+                break;
             case 3:
-                cmd = 9;
-            run:
-                Gp_RunCapCmd(cmd, 0);
-                arg0->state = 2;
+                Gp_RunCapCmd(9, 0);
                 break;
             case 2:
                 sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_ENTER, 0, 0);
                 arg0->state         = 7;
                 arg0->killCountdown = 0;
-                break;
+                return;
             case 4:
                 work->keypadExamined = 1;
                 Gp_RunCapCmd(0xA, 0);
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 1) {
                     arg0->killCountdown = 0xA;
                     arg0->state         = 9;
-                } else {
-                    arg0->state = 2;
+                    return;
                 }
                 break;
             default:
-                arg0->state = 2;
                 break;
         }
+        arg0->state = 2;
     } else if (work->field_4 != 0) {
         arg0->state = 6;
     } else {
