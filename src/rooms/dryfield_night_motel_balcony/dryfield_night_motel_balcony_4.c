@@ -3917,7 +3917,8 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto release;
+        effectKillTask(work, task);
+        return;
     }
     if (gGameSession->location.loc.view == 0x27) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -3988,7 +3989,6 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
                 }
             }
         } else {
-        release:
             effectKillTask(work, task);
         }
     }
