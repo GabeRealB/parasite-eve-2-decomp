@@ -350,7 +350,6 @@ static s32 Display_TransitionLoad(Task* unused)
 static Task* Display_SpawnFromMode(void)
 {
     Task*            ret;
-    u32              mode;
     Task*            slot;
     GameActor*       obj;
     GfxCoord*        ptr;
@@ -359,67 +358,54 @@ static Task* Display_SpawnFromMode(void)
 
     ret = taskSpawnFromTable(Stage_Ctx->taskDesc, 0, Stage_Ctx->spawnArg1, Stage_Ctx->spawnArg2);
     if (ret != NULL) {
-        mode = Stage_Ctx->entryMode;
-        if (mode == STAGE_ENTRY_DRAW_ACTORS) {
-            goto block_case4;
+        switch (Stage_Ctx->entryMode) {
+            case STAGE_ENTRY_DRAW_ACTORS:
+                Stage_Ctx->transitionKind = STAGE_TRANSITION_ACTORS;
+                slot                      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                obj                       = (GameActor*)slot->work;
+                flag                      = obj->collisionEnableMask & 1;
+                ptr                       = slot->extra.tmd->coords;
+                if (flag) {
+                    func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
+                }
+                worldCollisionClearContacts(obj->collisionContacts);
+                ptr->composeStamp = GRAPHICS_COORD_DIRTY;
+                // fallthrough
+            case STAGE_ENTRY_KEEP:
+            case STAGE_ENTRY_HOLD:
+                Stage_Ctx->otFlipArmed = 1;
+                if (Stage_Ctx->entryMode == STAGE_ENTRY_HOLD) {
+                    gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_HOLD;
+                    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
+                } else {
+                    gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_FULL;
+                    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+                }
+                break;
+            case STAGE_ENTRY_GRAY_CAPTURE:
+            case STAGE_ENTRY_GRAY_CAPTURE + 1: // placeholder: the tree pivots on DRAW_ACTORS, so two values (or a range) above it were listed
+            default:
+                ed = &gGameSession->location.loc;
+                gpuResetAndInvalidateModelBuffers();
+                gfxCaptureAreaFrame(ed->stage, ed->area, gDisplayState.drawBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
+                if (Stage_Ctx->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
+                    _gfxInvertCapturedFrameGray();
+                }
+                memInitAuxHeap();
+                gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
+                gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
+                slot                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                obj                                     = (GameActor*)slot->work;
+                flag                                    = obj->collisionEnableMask & 1;
+                ptr                                     = slot->extra.tmd->coords;
+                if (flag) {
+                    func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
+                }
+                worldCollisionClearContacts(obj->collisionContacts);
+                ptr->composeStamp = GRAPHICS_COORD_DIRTY;
+                break;
         }
-        if (mode >= 5U) {
-            goto block_default;
-        }
-        if (mode == STAGE_ENTRY_KEEP) {
-            goto block_case13;
-        }
-        if (mode == STAGE_ENTRY_HOLD) {
-            goto block_case13;
-        }
-        goto block_default;
-
-    block_case4:
-        Stage_Ctx->transitionKind = STAGE_TRANSITION_ACTORS;
-        slot                      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        obj                       = (GameActor*)slot->work;
-        flag                      = obj->collisionEnableMask & 1;
-        ptr                       = slot->extra.tmd->coords;
-        if (flag) {
-            func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
-        }
-        worldCollisionClearContacts(obj->collisionContacts);
-        ptr->composeStamp = GRAPHICS_COORD_DIRTY;
-    block_case13:
-        Stage_Ctx->otFlipArmed = 1;
-        if (Stage_Ctx->entryMode == STAGE_ENTRY_HOLD) {
-            gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_HOLD;
-            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
-        } else {
-            gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_FULL;
-            gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-        }
-    } else {
-        goto block_end;
     }
-    goto block_end;
-
-block_default:
-    ed = &gGameSession->location.loc;
-    gpuResetAndInvalidateModelBuffers();
-    gfxCaptureAreaFrame(ed->stage, ed->area, gDisplayState.drawBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
-    if (Stage_Ctx->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
-        _gfxInvertCapturedFrameGray();
-    }
-    memInitAuxHeap();
-    gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_TASK_ONLY;
-    gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_ROOM_SLOT;
-    slot                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    obj                                     = (GameActor*)slot->work;
-    flag                                    = obj->collisionEnableMask & 1;
-    ptr                                     = slot->extra.tmd->coords;
-    if (flag) {
-        func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
-    }
-    worldCollisionClearContacts(obj->collisionContacts);
-    ptr->composeStamp = GRAPHICS_COORD_DIRTY;
-
-block_end:
     return ret;
 }
 
