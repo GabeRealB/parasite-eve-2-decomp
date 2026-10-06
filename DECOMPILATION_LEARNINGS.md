@@ -101294,15 +101294,15 @@ value the one that is needed, so the conversion is emitted and the target's
 `sll v0,a0,16; sra v0,v0,16` reappears ahead of the `±0x40` (`regs=8` -> `regs=1`
 in one edit). Evidence: scratch `nonmatchings/func_actor_317000_801620BC-vacuum/`,
 `base_1.c`/`base_2.c` before the local was added.
-## A local's address earns a callee-saved register only from the stores written *through* a pointer, and that shifts every other allocation (func_actor_135600_80132B14, 2026-09-16)
+## A local's address earns a callee-saved register only from the stores written *through* a pointer, and that shifts every other allocation (_actor135600AttachKyleMadiganHeldItem, 2026-09-16)
 
 The actor overlays splat an identity rotation into a local `MATRIX` with the
 five-word idiom (`*(s32*)&m->m[0][0] = 0x1000;` and friends). There are two ways
 to write it and they are not equivalent to the allocator:
 
 ```c
-m.rotationWords.m00M01      = 0x1000;   /* direct on the object   -> fp-relative store */
-*(s32*)&mtx->m[0][2] = 0;        /* through MATRIX* mtx = &m.mat -> register store */
+MATRIX_PAIR(&attachmentRotation, 0, 0)      = 0x1000;   /* direct on the object   -> fp-relative store */
+*(s32*)&rotationMatrix->m[0][2] = 0;        /* through MATRIX* rotationMatrix = &attachmentRotation -> register store */
 ```
 
 `.cse` is where the split is visible. Written directly on the object the
@@ -101325,11 +101325,11 @@ the stores use it:
 For this function the two builds differ by more than five stores. The seed with
 all five written the direct way (`base_1.i`, 72.538%) has no address pseudo, so
 the frame is `0x50`, eight callee-saved slots and no `$s7`. Writing the first
-store direct and the other four through `mtx` (`base_2.i`, 98.769%) gives the
+store direct and the other four through `rotationMatrix` (`base_2.i`, 98.769%) gives the
 address a pseudo that `.lreg` reports as "used 7 times ... crosses 1 call" - it
 is live across the `RotMatrixY` call, so `global-alloc` owes it a callee-saved
-register, and **every other value slides up one register**: `parent`
-`$s6`-`$s7`, `parentExtra` `$s4`-`$s6`, `extra` `$s3`-`$s5`, `dest`
+register, and **every other value slides up one register**: `parentTask`
+`$s6`-`$s7`, `parentModel` `$s4`-`$s6`, `itemModel` `$s3`-`$s5`, `parentPart`
 `$s2`-`$s4`, the `0x1000` constant `$s5`-`$s3`, frame `0x50`-`0x58`.
 
 The mix in the source is legible in the target object. Here the target's first
@@ -101343,8 +101343,8 @@ all five through a pointer that is a runtime value already. Read a sibling's
 target asm before choosing - the store bases say which form each line used.
 
 Two orderings were the rest of the delta (`base_2.i` 98.769% -> `base_3.i`
-100%): the load of `extra` comes before `part`, so assign `extra` before
-`part`; and `extra->otOffset = 0;` is written *after* `extra->colorMtx = ...`,
+100%): the load of `itemModel` comes before `parentPartIndex`, so assign `itemModel` before
+`parentPartIndex`; and `itemModel->otOffset = 0;` is written *after* `itemModel->colorMtx = ...`,
 which puts the `sb` after the `field_20` load rather than before the
 `field_1C` store. Both are the statement-order lever the entry above describes,
 one level down: a `regs` penalty on the loads of two independent locals is their
@@ -101355,9 +101355,9 @@ Inputs: `base_1.i` SHA256 `f1b9961c610821315fec0e4a700e1ce5cdda54eccc4f51d6eb537
 `base_3.i` SHA256 `0f4e109ce2ee900491ce6251e4af1a8af034ae9d1f5724840fe8b7ab0581b1be`;
 target SHA256 `3a8a89f9a38b67485801fbe14f8f0e6e6b034ee8748827b3a4e1d8a00842b9b8`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_135600_80132B14-vacuum` (session `b3216cb9d136418db1910740c700c717`).
+Scratch `nonmatchings/_actor135600AttachKyleMadiganHeldItem-vacuum` (session `b3216cb9d136418db1910740c700c717`).
 
-## m2c's sibling locals for a vector whose address escapes become callee-saved registers (func_actor_135600_80132C80, 2026-09-16)
+## m2c's sibling locals for a vector whose address escapes become callee-saved registers (_actor135600ComposeWorldTransform, 2026-09-16)
 
 The function builds an `SVECTOR` from three halfwords of
 `GfxCoord.coord.t[]` and passes it to `ApplyMatrixSV` in place. m2c
@@ -101373,27 +101373,27 @@ The target re-reads *all three* halfwords from one contiguous slot after the
 call, each with its own `lhu`:
 
 ```
-lhu    v0,0x0(s0)      /* vec->vx */
-lhu    v1,0x10(sp)     /* tmp.vx  */
+lhu    v0,0x0(s0)      /* worldTranslation->vx */
+lhu    v1,0x10(sp)     /* localTranslation.vx  */
 addu   v0,v0,v1
 sh     v0,0x0(s0)
 lhu    v0,0x2(s0)
-lhu    v1,0x12(sp)     /* tmp.vy, then 0x14(sp) for tmp.vz */
+lhu    v1,0x12(sp)     /* localTranslation.vy, then 0x14(sp) for localTranslation.vz */
 ```
 
 Three consecutive halfwords re-read through a single frame base is one object
 on the stack, so the source local is an aggregate:
 
 ```c
-SVECTOR tmp;
+SVECTOR localTranslation;
 
-tmp.vx = *(u16*)&coord->coord.t[0];
-tmp.vy = *(u16*)&coord->coord.t[1];
-tmp.vz = *(u16*)&coord->coord.t[2];
-ApplyMatrixSV(mtx, &tmp, &tmp);
-vec->vx += tmp.vx;
-vec->vy += tmp.vy;
-vec->vz += tmp.vz;
+localTranslation.vx = *(u16*)&node->coord.t[0];
+localTranslation.vy = *(u16*)&node->coord.t[1];
+localTranslation.vz = *(u16*)&node->coord.t[2];
+ApplyMatrixSV(worldRotation, &localTranslation, &localTranslation);
+worldTranslation->vx += localTranslation.vx;
+worldTranslation->vy += localTranslation.vy;
+worldTranslation->vz += localTranslation.vz;
 ```
 
 All three members then share the escaped address, and CSE cannot forward a
@@ -101413,7 +101413,7 @@ Inputs: `base.i` (m2c seed, 63.603%) SHA256 `7d2b2a3c2b0ccc424233fe98090e917e4f8
 `base_1.i` (100.000%) SHA256 `d21499f681f0743cd830c06fafdab9ca9d18621b91945f578609d3a5c0b0c01f`;
 target SHA256 `a4d80ef5810e91ce123de56640f474d60b649ba6756bef63efbcbc9d596ba43f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_135600_80132C80-vacuum` (session `282d171ed39045cd99475934f00bb371`).
+Scratch `nonmatchings/_actor135600ComposeWorldTransform-vacuum` (session `282d171ed39045cd99475934f00bb371`).
 
 ## A dead identity splat is still written, and the tail it is overwritten by keeps off the pointer register (_actor311900InitRupertLighting, 2026-09-16)
 
@@ -128573,6 +128573,9 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 `func_actor_135600_80133240` is `_actor350700KyleMadiganWalkerSetDrawModeMsg`'s body over one
 more child: `work->field_4FC` / `field_500` / `field_504` are read into three
 `TmdObject*` locals, and the tail republishes `obj->flags` onto all three. The
+`_actor135600SetKyleMadiganDrawMode` is `func_actor_350700_80163840`'s body over one
+more child: `work->handTasks[0]` / `work->handTasks[1]` / `work->heldItemTask` are read into three
+`TmdObject*` locals, and the tail republishes `bodyModel->flags` onto all three. The
 first attempt matched everything except which of `$s2` / `$s3` / `$s4` holds
 which pointer (`regs=7`, 99.533%); the tail's store order was already right, so
 the only freedom left was the order of the three loads at the top.
@@ -128593,9 +128596,9 @@ mapping (`4FC`→`$s2`, `500`→`$s3`, `504`→`$s4`), and the build went 99.733
 statement gave 99.53% and 100%.
 
 ```c
-objB = work->field_500->extra;   /* born 1st -> longest  -> $s3 */
-objA = work->field_4FC->extra;   /* born 2nd -> shortest -> $s2 */
-objC = work->field_504->extra;   /* born 3rd -> longest  -> $s4 */
+leftHandModel = work->handTasks[1]->extra.tmd;   /* born 1st -> longest  -> $s3 */
+rightHandModel = work->handTasks[0]->extra.tmd;   /* born 2nd -> shortest -> $s2 */
+heldItemModel = work->heldItemTask->extra.tmd;   /* born 3rd -> longest  -> $s4 */
 ```
 
 Two cautions. The birth order that matters is the one in the **scheduled** RTL
@@ -128610,7 +128613,7 @@ otherwise-identical live-across-call pointers; the same body shape in
 statement order, which is why two "identical" twins can disagree on register
 names.
 
-Inputs: scratch `nonmatchings/func_actor_135600_80133240-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor135600SetKyleMadiganDrawMode-vacuum`, `base.c`
 80.120%, `base_1.c` 99.533% (`regs=7`), `base_2.c` 99.733% (`regs=4`),
 `base_3.c` 100.000%
 (`8215259b0a728cfc3d45f37f742aa68504f2a1e093bb9a8712d46ac75c7cb500`,
@@ -128619,14 +128622,14 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## A store's address is a register or `$sp` depending on how the C names it — mixed in one block means mixed in the source
 
-The identity-matrix splat in `func_actor_135600_80131E68` writes five words into one
+The identity-matrix splat in `_actor135600DrawHeldItemQuad` writes five words into one
 `MATRIX` local, and the target mixes two addressing forms *inside a single straight-line
 block*:
 
 ```
-sw    v0, 0x48($sp)     # m.rotationWords.m00M01
+sw    v0, 0x48($sp)     # matrix.rotationWords.m00M01
 sw    zero, 0x4C($sp)   # m02M10
-sw    v0, 8(a1)         # m11M12   <- a1 = &m.mat, the RotMatrixZ argument
+sw    v0, 8(a1)         # m11M12   <- a1 = &matrix.mat, the RotMatrixZ argument
 sw    zero, 0x54($sp)   # m20M21
 jal   RotMatrixZ
  sh   v0, 0x10(a1)      # m22
@@ -128635,55 +128638,55 @@ jal   RotMatrixZ
 `8(a1)` / `0x10(a1)` are the same two addresses as `0x50($sp)` / `0x58($sp)`; only the
 base register differs, so no amount of register shuffling fixes it. Which form a store
 takes is decided by how the C spells the address: a store written *through a live local
-pointer* (`*(s32*)&mtx->m[1][1] = 0x1000;`, `mtx->m[2][2] = 0x1000;`) keeps the pointer's
+pointer* (`*(s32*)&rotationMatrix->m[1][1] = 0x1000;`, `rotationMatrix->m[2][2] = 0x1000;`) keeps the pointer's
 register and renders `disp($sN)`, while the same store written against the object
-(`m.rotationWords.m00M01 = 0x1000;`, `*(s32*)&m.mat.m[0][2] = 0;`) folds to the frame pointer.
+(`matrix.rotationWords.m00M01 = 0x1000;`, `*(s32*)&matrix.mat.m[0][2] = 0;`) folds to the frame pointer.
 A target that mixes the two forms mixed the two spellings — reproduce the mix store by
 store. Writing the two pointer stores by object name as well (`base_4.c`) leaves both as
 `disp($sp)` and stalls at 99.918% (`regs=4`); the mixed spelling is 100.000%.
 
 The unmixed direction has its own worked example two functions away:
-`func_actor_135600_80132B14`'s splat is `m.rotationWords.m00M01` plus four `mtx->` stores, and
+`_actor135600AttachKyleMadiganHeldItem`'s splat is `MATRIX_PAIR(&attachmentRotation, 0, 0)` plus four `rotationMatrix->` stores, and
 comes out as one `0x10($sp)` followed by four `disp($s2)`.
 
 Do not therefore reach for a pointer everywhere. In the same function the *loop* block
-names the object (`ApplyMatrixSV(&m.mat, ...)`) where the target rematerializes
-`addiu a0,sp,0x48`; keeping an `mtx` pointer live into the loop costs a callee-saved
+names the object (`ApplyMatrixSV(&matrix.mat, ...)`) where the target rematerializes
+`addiu a0,sp,0x48`; keeping a `rotationMatrix` pointer live into the loop costs a callee-saved
 register and spills the `RotTransPers` depth to the frame (`base_2.c`, 96.574%, and the
 spill shows up as `lw t5,0x8c(sp)` before each `sllv`).
 
 ## A callee that uses its parameter raw takes `s32`; an `s16` parameter is re-extended at every use
 
-`func_actor_135600_80131E68` scales its argument with the target's bare
+`_actor135600DrawHeldItemQuad` scales its argument with the target's bare
 `sll v0,s1,3 / addu / sll v0,v0,2 / subu / sll v0,v0,1` chain and no extension prologue.
 MIPS defines no `PROMOTE_MODE`, so a `short` parameter is sign-extended at each int use
-— `s16 value` emits `sll s0,s0,16; sra s0,s0,16` first, `u16 arg1` emits `andi 0xffff`,
+— `s16 value` emits `sll s0,s0,16; sra s0,s0,16` first, `u16 lengthScale12` emits `andi 0xffff`,
 and only `s32` reproduces the target. Relaxing the prototype is free for the caller:
-`func_actor_135600_80132C18` loads the countdown with `lh`, which *is* the s16→s32
+`_actor135600UpdateKyleMadiganHeldItem` loads the length scale with `lh`, which *is* the s16→s32
 conversion, so its matched body does not move.
 
 The mirror question — which mode do the *uses* force — is readable straight off the frame
 layout. The target stores its two screen-space Y values into HImode slots at `0x78` and
-`0x80`, eight bytes apart, with the `s32` `rot` at `0x88`:
+`0x80`, eight bytes apart, with the `s32` `screenAngle` at `0x88`:
 
 ```c
-s16 y0 = sxy0 >> 16;   /* lh 0x6A -> sh 0x78 */
-s16 y1 = sxy1 >> 16;   /* lh 0x76 -> sh 0x80 */
-rot = ratan2(*(s16*)&sxy1 - *(s16*)&sxy0, y0 - y1);
+s16 nearScreenY = nearScreenXY >> 16;   /* lh 0x6A -> sh 0x78 */
+s16 farScreenY = farScreenXY >> 16;   /* lh 0x76 -> sh 0x80 */
+screenAngle = ratan2((s16)farScreenXY - (s16)nearScreenXY, nearScreenY - farScreenY);
 ```
 
-`sxy0 >> 16` is an SImode expression truncated into a HImode variable, so GCC narrows it
+`nearScreenXY >> 16` is an SImode expression truncated into a HImode variable, so GCC narrows it
 to a sign-extending halfword load (`lh`, where an HImode load would be `lhu` plus a
 separate extend), and the SImode reference sets the pseudo's `reg_max_ref_width` to 4.
 `alter_reg` then allocates that spill slot with `align = -1`, which `assign_stack_local`
 rounds to 8-byte alignment and 8-byte size (`reload1.c`, `function.c`). So two HImode
 locals eight bytes apart, each stored with one `sh`, are a *signature* of variables also
 referenced in SImode — not of 8-byte objects. Spelling the read as
-`*(s16*)((u8*)&sxy0 + 2)` drops that SImode reference, packs the slots four bytes apart
+`*(s16*)((u8*)&nearScreenXY + 2)` drops that SImode reference, packs the slots four bytes apart
 and shifts every later offset and the frame size (`stack` penalties); the `>>` spelling
 is what yields the `lh` load and the 8-byte stride together.
 
-Inputs: scratch `nonmatchings/func_actor_135600_80131E68-vacuum`; `base_6.c` 100.000%
+Inputs: scratch `nonmatchings/_actor135600DrawHeldItemQuad-vacuum`; `base_6.c` 100.000%
 (`c97b559658fb8615355255fac13dc61ad862c439f8b29db02328484d97356de3`,
 preprocessed `7924354fb01fcbfb8b57d6837b8f6b760993e258c9fb0bbf4cb16417a503b6ce`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

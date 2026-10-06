@@ -59,42 +59,54 @@ extern TaskMessageEntry D_actor_135600_8013B0F4[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_135600_80132234(Task* task);
-static void func_actor_135600_801324D0(Task* task);
-static void func_actor_135600_80132AB4(Task* task);
-static void func_actor_135600_80132B14(Task* task);
-static void func_actor_135600_80132C18(Task* task);
-static void func_actor_135600_80132C80(GfxCoord* coord, MATRIX* mtx, SVECTOR* vec);
-static void func_actor_135600_80132DBC(Task* task);
-static void func_actor_135600_80132DDC(Task* task);
-static void func_actor_135600_80132DF8(Task* task);
-static void func_actor_135600_80132E00(Task* task);
-static void func_actor_135600_80132F28(Task* task);
-s32         func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3);
+static s32  _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12);
+static void _actor135600UpdateKyleMadiganWalker(Task* task);
+static void _actor135600IdleKyleMadiganHand(Task* handTask);
+static void _actor135600AttachKyleMadiganHeldItem(Task* itemTask);
+static void _actor135600UpdateKyleMadiganHeldItem(Task* itemTask);
+static void _actor135600ComposeWorldTransform(const GfxCoord* node, MATRIX* worldRotation, SVECTOR* worldTranslation);
+static void _actor135600ExitKyleMadiganWalker(Task* task);
+static void _actor135600BindKyleMadiganWalkerLighting(Task* task);
+static void _actor135600IdleKyleMadiganWalk(Task* task);
+static void _actor135600RunKyleMadiganWalkStep(Task* task);
+static void _actor135600BeginKyleMadiganWalk(Task* task);
+static s32  _actor135600SetKyleMadiganDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg);
+static s32  _actor135600IgnoreKyleMadiganCommand(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg);
+static void _actor135600KyleMadiganHandTask(Task* handTask);
+static void _actor135600KyleMadiganHeldItemTask(Task* itemTask);
+static void _actor135600KyleMadiganWalkerTask(Task* task);
+
+/// The held-item quad's Q12 length scale and signed screen-angle transition.
+enum {
+    ACTOR_135600_HELD_QUAD_FULL_LENGTH   = ONE,
+    ACTOR_135600_HELD_QUAD_HALF_LENGTH   = ONE / 2,
+    ACTOR_135600_HELD_QUAD_SHORTEN_ANGLE = 0x1F5, // 4096 units per turn
+};
 
 /// States of the two part tasks (`D_actor_135600_8013B0C4` entries 1 and 2),
-/// dispatched by `func_actor_135600_801329E0`: attach to the parent, idle,
+/// dispatched by `_actor135600KyleMadiganHandTask`: attach to the parent, idle,
 /// kill.
 static const TaskFuncTable3 D_actor_135600_80131E24 = { {
     _modelPlacementAttachPartTask,
-    func_actor_135600_80132AB4,
+    _actor135600IdleKyleMadiganHand,
     taskKill,
 } };
 
 /// States of the marker task (entry 3), dispatched by
-/// `func_actor_135600_80132ABC`: attach to the parent with an offset, draw the
+/// `_actor135600KyleMadiganHeldItemTask`: attach to the parent with an offset, draw the
 /// marker, kill.
 static const TaskFuncTable3 D_actor_135600_80131E30 = { {
-    func_actor_135600_80132B14,
-    func_actor_135600_80132C18,
+    _actor135600AttachKyleMadiganHeldItem,
+    _actor135600UpdateKyleMadiganHeldItem,
     taskKill,
 } };
 
 /// States of the actor itself (entry 0), dispatched by
-/// `func_actor_135600_80132D64`: setup, per-frame tick, exit.
+/// `_actor135600KyleMadiganWalkerTask`: setup, per-frame tick, exit.
 static const TaskFuncTable3 D_actor_135600_80131E3C = { {
     func_actor_135600_80132234,
-    func_actor_135600_801324D0,
-    func_actor_135600_80132DBC,
+    _actor135600UpdateKyleMadiganWalker,
+    _actor135600ExitKyleMadiganWalker,
 } };
 
 /// Step handlers of the motion sequence, indexed by
@@ -102,12 +114,12 @@ static const TaskFuncTable3 D_actor_135600_80131E3C = { {
 /// walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_135600_80131E48 = { {
     actorMotionFaceTarget,
-    func_actor_135600_80132F28,
+    _actor135600BeginKyleMadiganWalk,
     actorMotionArrive,
     actorMotionTurnToYaw,
 } };
 
-/// The constant local-space offset `func_actor_135600_80132F28` rotates:
+/// The constant local-space offset `_actor135600BeginKyleMadiganWalk` rotates:
 /// straight ahead along the part's own +Z.
 static const VECTOR D_actor_135600_80131E58 = { 0, 0, 0x200000, 0 };
 
@@ -130,11 +142,6 @@ static TmdSource    _gActor135600KyleMadiganBody;
 static TmdSource    _gActor135600KyleMadiganHandRight;
 static TmdSource    _gActor135600KyleMadiganHandLeft;
 static TmdSource    _gActor135600Model06AC4;
-s32                 func_actor_135600_80133240(Task*, s32, s32, s32);
-s32                 func_actor_135600_8013336C(Task*, s32, s32, s32);
-void                func_actor_135600_801329E0(Task*);
-void                func_actor_135600_80132ABC(Task*);
-void                func_actor_135600_80132D64(Task*);
 
 static TmdBone _gActor135600KyleMadiganBodySkeleton[20] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
@@ -621,132 +628,144 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_135600_8013B0C4[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_135600_80132D64, { .model = &_gActor135600KyleMadiganBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_135600_801329E0, { .model = &_gActor135600KyleMadiganHandLeft } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_135600_801329E0, { .model = &_gActor135600KyleMadiganHandRight } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_135600_80132ABC, { .model = &_gActor135600Model06AC4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135600KyleMadiganWalkerTask, { .model = &_gActor135600KyleMadiganBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor135600KyleMadiganHandTask, { .model = &_gActor135600KyleMadiganHandLeft } },
+    { { { TASK_BODY_TMD, 192 } }, _actor135600KyleMadiganHandTask, { .model = &_gActor135600KyleMadiganHandRight } },
+    { { { TASK_BODY_TMD, 192 } }, _actor135600KyleMadiganHeldItemTask, { .model = &_gActor135600Model06AC4 } },
 };
 
 TaskMessageEntry D_actor_135600_8013B0F4[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_135600_80133240 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor135600SetKyleMadiganDrawMode },
     { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_135600_8013336C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor135600IgnoreKyleMadiganCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1);
-
-/// Recomputes `coord`'s world matrix (`actorRenderComposeCoord`), composes its parent
-/// chain, then projects two offsets along the part's local Z - the near one 10 units
-/// out and the far one `arg1 * 0x46 / 0x1000 + 10`, so the pair opens by 70
-/// 4096ths of a unit per tick - and returns the signed `ratan2` of the
-/// difference between the two projections, the actor's screen-space angle.
-/// The pair is drawn as the quad `D_actor_135600_8013B060` describes: the wide
-/// vertex pair rotated about the screen origin by that angle and anchored on
-/// the near projection, the narrow pair unrotated on the far one, as a
-/// semi-transparent `POLY_F4` followed by its texture page, both linked into
-/// the ordering table at the far point's depth. Nothing is drawn when that
-/// depth is behind the camera. The marker's draw state passes the countdown it
-/// runs on as `arg1`.
-static s32 func_actor_135600_80131E68(GfxCoord* coord, s32 arg1)
+/// Draws the orange quad ahead of the held model and returns its signed screen angle.
+///
+/// `itemRoot` must have an acyclic parent chain ending at `gGfxViewCoord`.
+/// `lengthScale12` is a Q12 length multiplier (4096 full length, 2048 half),
+/// placing the endpoints at local Z = 10 and 10 + 70 * lengthScale12 / 4096.
+/// World positions narrow to signed halfwords. The returned angle has 4096
+/// units per turn, measured from screen up toward screen right.
+/// Requires room for a `POLY_F4` and `DR_TPAGE` in the current frame arena and
+/// an ordering-table tag two entries before the far point's masked depth tag.
+/// Emits packets only when the far projection's depth-cue output is nonnegative;
+/// its GTE flags are ignored. Packets remain borrowed until the frame is drawn.
+static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
 {
-    SVECTOR   v0;
-    SVECTOR   v1;
-    SVECTOR   pos;
-    SVECTOR   quad[4];
-    GfxMatrix m;
-    MATRIX*   mtx;
-    long      sxy0;
-    long      p;
-    long      flag;
-    long      sxy1;
-    s16       y0;
-    s16       y1;
-    s32       rot;
-    u16       x0;
-    u16       x1;
-    s32       depth;
-    POLY_F4*  poly;
-    DR_TPAGE* tpage;
-    s32       i;
+    enum {
+        ACTOR_135600_HELD_QUAD_ORIGIN_Z    = 10,
+        ACTOR_135600_HELD_QUAD_FULL_SPAN   = 70,
+        ACTOR_135600_HELD_QUAD_PACKET_CODE = 0x2A, // Semi-transparent flat quad
+    };
+    SVECTOR   nearWorldPoint;
+    SVECTOR   farWorldPoint;
+    SVECTOR   itemWorldPosition;
+    SVECTOR   screenCorners[4];
+    GfxMatrix matrix;
+    MATRIX*   rotationMatrix;
+    long      nearScreenXY;
+    long      depthCue;
+    long      projectionFlags;
+    long      farScreenXY;
+    s16       nearScreenY;
+    s16       farScreenY;
+    s32       screenAngle;
+    u16       nearScreenX;
+    u16       farScreenX;
+    s32       orderingDepth;
+    POLY_F4*  quadPacket;
+    DR_TPAGE* drawModePacket;
+    s32       pairIndex;
 
-    actorRenderComposeCoord(coord);
-    mtx = &m.mat;
-    func_actor_135600_80132C80(coord, &m.mat, &pos);
+    // Project two points on the held model's forward axis into the current view.
+    actorRenderComposeCoord(itemRoot);
+    rotationMatrix = &matrix.mat;
+    _actor135600ComposeWorldTransform(itemRoot, &matrix.mat, &itemWorldPosition);
 
-    v0.vx = 0;
-    v0.vy = 0;
-    v0.vz = 0xA;
-    ApplyMatrixSV(&m.mat, &v0, &v0);
+    nearWorldPoint.vx = 0;
+    nearWorldPoint.vy = 0;
+    nearWorldPoint.vz = ACTOR_135600_HELD_QUAD_ORIGIN_Z;
+    ApplyMatrixSV(&matrix.mat, &nearWorldPoint, &nearWorldPoint);
 
-    v1.vx = 0;
-    v1.vy = 0;
-    v1.vz = arg1 * 0x46 / 0x1000 + 0xA;
-    ApplyMatrixSV(&m.mat, &v1, &v1);
+    farWorldPoint.vx = 0;
+    farWorldPoint.vy = 0;
+    farWorldPoint.vz = lengthScale12 * ACTOR_135600_HELD_QUAD_FULL_SPAN / ONE + ACTOR_135600_HELD_QUAD_ORIGIN_Z;
+    ApplyMatrixSV(&matrix.mat, &farWorldPoint, &farWorldPoint);
 
-    v0.vx += pos.vx;
-    v0.vy += pos.vy;
-    v0.vz += pos.vz;
-    v1.vx += pos.vx;
-    v1.vy += pos.vy;
-    v1.vz += pos.vz;
+    nearWorldPoint.vx += itemWorldPosition.vx;
+    nearWorldPoint.vy += itemWorldPosition.vy;
+    nearWorldPoint.vz += itemWorldPosition.vz;
+    farWorldPoint.vx  += itemWorldPosition.vx;
+    farWorldPoint.vy  += itemWorldPosition.vy;
+    farWorldPoint.vz  += itemWorldPosition.vz;
 
     SetRotMatrix(&gGfxViewCoord.workm);
     SetTransMatrix(&gGfxViewCoord.workm);
 
-    RotTransPers(&v0, &sxy0, &p, &flag);
-    depth = RotTransPers(&v1, &sxy1, &p, &flag);
+    RotTransPers(&nearWorldPoint, &nearScreenXY, &depthCue, &projectionFlags);
+    orderingDepth = RotTransPers(&farWorldPoint, &farScreenXY, &depthCue, &projectionFlags);
 
-    x0  = (u16)sxy0;
-    x1  = (u16)sxy1;
-    y0  = sxy0 >> 16;
-    y1  = sxy1 >> 16;
-    rot = ratan2((s16)sxy1 - (s16)sxy0, y0 - y1);
+    nearScreenX = (u16)nearScreenXY;
+    farScreenX  = (u16)farScreenXY;
+    nearScreenY = nearScreenXY >> 16;
+    farScreenY  = farScreenXY >> 16;
+    screenAngle = ratan2((s16)farScreenXY - (s16)nearScreenXY, nearScreenY - farScreenY);
 
-    /* Only the middle diagonal and the last entry go through `mtx`: a store
-     * written that way keeps its address in the register `RotMatrixZ` is
-     * handed, where the ones naming `m` directly fold to a frame-relative
-     * address, and the target has both. */
-    m.rotationWords.m00M01    = ONE;
-    MATRIX_PAIR(&m.mat, 0, 2) = 0;
-    MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
-    MATRIX_PAIR(&m.mat, 2, 0) = 0;
-    mtx->m[2][2]              = 0x1000;
-    RotMatrixZ(rot, &m.mat);
+    // Rotate the near vertex pair in screen space; the far pair stays horizontal.
+    /// Builds a pure Z rotation in `matrix` (angle in 4096 units per turn).
+    ///
+    /// Captures the local `matrix` and its `rotationMatrix` alias; writes only
+    /// the nine rotation coefficients. Evaluates the angle once. Use as a
+    /// standalone statement; this binding is undefined immediately after use.
+#define ACTOR_135600_BUILD_HELD_QUAD_ROTATION(angle) \
+    {                                                \
+        matrix.rotationWords.m00M01       = ONE;     \
+        MATRIX_PAIR(&matrix.mat, 0, 2)    = 0;       \
+        MATRIX_PAIR(rotationMatrix, 1, 1) = ONE;     \
+        MATRIX_PAIR(&matrix.mat, 2, 0)    = 0;       \
+        rotationMatrix->m[2][2]           = ONE;     \
+        RotMatrixZ((angle), &matrix.mat);            \
+    }
+    ACTOR_135600_BUILD_HELD_QUAD_ROTATION(screenAngle);
+#undef ACTOR_135600_BUILD_HELD_QUAD_ROTATION
 
-    for (i = 0; i < 2; i++) {
-        ApplyMatrixSV(&m.mat, &D_actor_135600_8013B060[i], &quad[i]);
-        quad[i].vx    += x0;
-        quad[i].vy    += y0;
-        quad[i + 2].vx = D_actor_135600_8013B060[i + 2].vx + x1;
-        quad[i + 2].vy = D_actor_135600_8013B060[i + 2].vy + y1;
+    for (pairIndex = 0; pairIndex < (s32)ARRAY_SIZE(screenCorners) / 2; pairIndex++) {
+        ApplyMatrixSV(&matrix.mat, &D_actor_135600_8013B060[pairIndex], &screenCorners[pairIndex]);
+        screenCorners[pairIndex].vx    += nearScreenX;
+        screenCorners[pairIndex].vy    += nearScreenY;
+        screenCorners[pairIndex + 2].vx = D_actor_135600_8013B060[pairIndex + 2].vx + farScreenX;
+        screenCorners[pairIndex + 2].vy = D_actor_135600_8013B060[pairIndex + 2].vy + farScreenY;
     }
 
-    if (p >= 0) {
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 5);
-        setcode(poly, 0x2A);
-        setRGB0(poly, 0xFF, 0x40, 0);
-        poly->x0 = quad[0].vx;
-        poly->y0 = quad[0].vy;
-        poly->x1 = quad[1].vx;
-        poly->y1 = quad[1].vy;
-        poly->x2 = quad[2].vx;
-        poly->y2 = quad[2].vy;
-        poly->x3 = quad[3].vx;
-        poly->y3 = quad[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, poly);
+    if (depthCue >= 0) {
+        quadPacket     = gGpuPrimCursor;
+        gGpuPrimCursor = quadPacket + 1;
+        setlen(quadPacket, sizeof(*quadPacket) / sizeof(u32) - 1);
+        setcode(quadPacket, ACTOR_135600_HELD_QUAD_PACKET_CODE);
+        setRGB0(quadPacket, 0xFF, 0x40, 0);
+        quadPacket->x0 = screenCorners[0].vx;
+        quadPacket->y0 = screenCorners[0].vy;
+        quadPacket->x1 = screenCorners[1].vx;
+        quadPacket->y1 = screenCorners[1].vy;
+        quadPacket->x2 = screenCorners[2].vx;
+        quadPacket->y2 = screenCorners[2].vy;
+        quadPacket->x3 = screenCorners[3].vx;
+        quadPacket->y3 = screenCorners[3].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)orderingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, quadPacket);
 
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = 0xE1000465;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, tpage);
+        // addPrim prepends: the draw mode must reach the GPU before the quad.
+        drawModePacket = gGpuPrimCursor;
+        gGpuPrimCursor = drawModePacket + 1;
+        setlen(drawModePacket, sizeof(*drawModePacket) / sizeof(u32) - 1);
+        // Quarter-source additive blending, drawing in the display area, no dithering.
+        drawModePacket->code[0] = _get_mode(1, 0, getTPage(0, 3, 320, 0));
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)orderingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, drawModePacket);
     }
-    return rot;
+    return screenAngle;
 }
 
 /// Setup state of the actor (entry 0 of `D_actor_135600_80131E3C`). It
@@ -795,7 +814,7 @@ static void func_actor_135600_80132234(Task* task)
         work->heldItemTask = spawned;
     }
 
-    func_actor_135600_80132DDC(task);
+    _actor135600BindKyleMadiganWalkerLighting(task);
 
     args.pos.vx = 0xA6E;
     args.pos.vz = 0x5F0;
@@ -810,61 +829,72 @@ static void func_actor_135600_80132234(Task* task)
     preset.blend        = ANIMATION_BLEND_RESET;
     actorMotionPlayAnim(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
 
-    func_actor_135600_80133240(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    _actor135600SetKyleMadiganDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
 
     task->msgTable     = D_actor_135600_8013B0F4;
-    task->exitCallback = func_actor_135600_80132DBC;
+    task->exitCallback = _actor135600ExitKyleMadiganWalker;
     task->state       += 1;
 }
 
-/// Per-frame tick of the actor (entry 1 of `D_actor_135600_80131E3C`).
-/// Draws the ground shadow under the second part unless the model is hidden,
-/// then -- only while `gSceneCombatState.actorControl` is clear -- runs the handler `walk.motion`
-/// selects, advances the root coordinate by the high halves of the 16.16
-/// accumulators fed from `velocity` (re-zeroing each high half), ticks slots 1 to
-/// 19 while `model.ticking` is set, rebuilds the second part's coordinate and the
-/// actor colour while `gGameSession->viewReady` is set, and counts `freeCountdown`
-/// down while non-negative, freeing the model's buffers when it reaches zero.
-static void func_actor_135600_801324D0(Task* arg0)
+/// Applies one frame's signed 16.16 walk velocity, retaining the fractional carry.
+///
+/// `work` and `rootCoord` must be live and writable. Invalidates the root's
+/// cached composition even for zero velocity; integer additions retain the
+/// target's 32-bit arithmetic and the remaining fractions are zero-extended.
+static inline void _actor135600IntegrateWalkVelocity(KyleMadiganWalkerWork* work, GfxCoord* rootCoord)
 {
-    TmdObject*             ext      = arg0->extra.tmd;
-    KyleMadiganWalkerWork* work     = arg0->work;
-    TaskFunc               funcs[2] = { func_actor_135600_80132DF8, func_actor_135600_80132E00 };
-    VECTOR3                pos;
-    GfxCoord*              coord;
-    s32                    i;
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
+    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+}
 
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
+/// Updates Kyle's scripted walk, twenty-slot animation rig, lighting and buffer release.
+///
+/// Requires a live TMD body and `KyleMadiganWalkerWork`; `walk.motion` is 0
+/// (idle) or 1 (walking). A visible body's ground shadow is drawn even while
+/// actor updates are frozen. Motion, slots 1..19, view-ready lighting and the
+/// buffer-release counter advance only while scene actors are running.
+/// The update finding `freeCountdown == 0` frees the body primitive buffer,
+/// then decrements the counter to its disabled value of -1.
+static void _actor135600UpdateKyleMadiganWalker(Task* task)
+{
+    enum { ACTOR_135600_KYLE_SHADOW_HALF_SIZE = 0x300 }; // World-coordinate units
+    TmdObject*             bodyModel         = task->extra.tmd;
+    KyleMadiganWalkerWork* work              = task->work;
+    TaskFunc               motionHandlers[2] = { _actor135600IdleKyleMadiganWalk, _actor135600RunKyleMadiganWalkStep };
+    VECTOR3                groundPosition;
+    GfxCoord*              rootCoord;
+    s32                    slotIndex;
+
+    if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
+            effectDrawGroundShadow(&groundPosition, ACTOR_135600_KYLE_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        funcs[work->walk.motion](arg0);
-        coord                     = arg0->extra.tmd->coords;
-        work->walk.carry[0].word += work->walk.velocity.vx;
-        work->walk.carry[1].word += work->walk.velocity.vy;
-        work->walk.carry[2].word += work->walk.velocity.vz;
-        coord->coord.t[0]        += work->walk.carry[0].halves.integer;
-        coord->coord.t[1]        += work->walk.carry[1].halves.integer;
-        coord->coord.t[2]        += work->walk.carry[2].halves.integer;
-        coord->composeStamp       = GRAPHICS_COORD_DIRTY;
-        work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
-        work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
-        work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+        motionHandlers[work->walk.motion](task);
+        rootCoord = task->extra.tmd->coords;
+        _actor135600IntegrateWalkVelocity(work, rootCoord);
         if (work->model.ticking != 0) {
-            for (i = 1; i < 0x14; i++) {
-                animationTickSlot(&work->rig.anim, i);
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationTickSlot(&work->rig.anim, slotIndex);
             }
         }
         if (gGameSession->viewReady != 0) {
-            arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-            worldCoordSetModelLighting(ext, arg0->extra.tmd->coords[1].workm.t, 0, 3);
+            task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+            worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, 3);
         }
         if (work->freeCountdown >= 0) {
             if (work->freeCountdown == 0) {
-                tmdFreePrimitiveBuffer(ext);
+                tmdFreePrimitiveBuffer(bodyModel);
             }
             work->freeCountdown--;
         }
@@ -875,168 +905,186 @@ static void func_actor_135600_801324D0(Task* arg0)
 
 #include "../../shared/actor_motion_start.inc.c"
 
-/// Dispatcher of the two part tasks: runs their state from
-/// `D_actor_135600_80131E24`.
-void func_actor_135600_801329E0(Task* task)
+/// Runs a Kyle hand model's attachment, idle or teardown state.
+///
+/// Requires a live TMD task with state 0..2. Setup borrows the parent task
+/// from `spawnArg2.pointer` and its part index from `spawnArg1.value` (8 for
+/// the left hand, 12 for the right); both parent model and lighting must outlive
+/// the attached hand. The body rig drives the hand's inherited transform.
+static void _actor135600KyleMadiganHandTask(Task* handTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_135600_80131E24;
-    sp.funcs[task->state](task);
+    states = D_actor_135600_80131E24;
+    states.funcs[handTask->state](handTask);
 }
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// Tick state of a part task: nothing to do, the parent drives it.
-static void func_actor_135600_80132AB4(Task* task)
+/// Leaves an attached Kyle hand idle while its parent rig drives the transform.
+static void _actor135600IdleKyleMadiganHand(Task* handTask)
 {
 }
 
-/// Dispatcher of the marker task: runs its state from
-/// `D_actor_135600_80131E30`.
-void func_actor_135600_80132ABC(Task* task)
+/// Runs Kyle's held model through attachment, quad drawing and teardown.
+///
+/// Requires a live TMD task with state 0..2; setup's parent task and part-index
+/// spawn arguments must remain valid. The attached model and its quad share
+/// the parent's transform and lighting lifetime.
+static void _actor135600KyleMadiganHeldItemTask(Task* itemTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_135600_80131E30;
-    sp.funcs[task->state](task);
+    states = D_actor_135600_80131E30;
+    states.funcs[itemTask->state](itemTask);
 }
 
-/// Setup state of the marker task (entry 0 of `D_actor_135600_80131E30`):
-/// chains its model root under the parent task's part `spawnArg1`,
-/// places the part's coordinate at (-150, 80, 0), turns its rotation by 90
-/// degrees about Y, inherits the parent's light and colour matrices, and
-/// reparents the task so it is updated with the parent. The kill countdown is
-/// set to 0x1000, the value the marker's draw state runs on.
-static void func_actor_135600_80132B14(Task* task)
+/// Attaches Kyle's held model to a body part and initializes its quad length.
+///
+/// Requires live child and parent TMD tasks: `spawnArg2.pointer` borrows the
+/// parent, and `spawnArg1.value` is a valid coordinate index (setup supplies 8).
+/// Sets the root's local translation to (-150, 80, 0), appends a quarter turn
+/// about Y, and borrows the parent's part and lighting matrices until teardown.
+/// Joins the parent's child-task ring and advances to state 1. While this
+/// callback is active, `killCountdown` stores a Q12 length scale, not a timer.
+static void _actor135600AttachKyleMadiganHeldItem(Task* itemTask)
 {
-    GfxMatrix  m;
-    MATRIX*    mtx;
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
+    enum { ACTOR_135600_HELD_ITEM_ATTACH_YAW = 0x400 }; // Quarter turn in 4096-angle units
+    MATRIX     attachmentRotation;
+    MATRIX*    rotationMatrix;
+    Task*      parentTask;
+    s32        parentPartIndex;
+    TmdObject* itemModel;
+    TmdObject* parentModel;
+    GfxCoord*  itemRoot;
+    GfxCoord*  parentPart;
 
-    parent      = (Task*)task->spawnArg2.pointer;
-    extra       = task->extra.tmd;
-    part        = task->spawnArg1.value;
-    parentExtra = parent->extra.tmd;
-    coord       = extra->coords;
-    dest        = &parentExtra->coords[part];
+    parentTask      = itemTask->spawnArg2.pointer;
+    itemModel       = itemTask->extra.tmd;
+    parentPartIndex = itemTask->spawnArg1.value;
+    parentModel     = parentTask->extra.tmd;
+    itemRoot        = itemModel->coords;
+    parentPart      = &parentModel->coords[parentPartIndex];
 
-    coord->coord.t[0] = -0x96;
-    coord->coord.t[1] = 0x50;
-    coord->coord.t[2] = 0;
+    itemRoot->coord.t[0] = -0x96;
+    itemRoot->coord.t[1] = 0x50;
+    itemRoot->coord.t[2] = 0;
 
-    mtx                    = &m.mat;
-    m.rotationWords.m00M01 = ONE;
-    MATRIX_PAIR(mtx, 0, 2) = 0;
-    MATRIX_PAIR(mtx, 1, 1) = 0x1000;
-    MATRIX_PAIR(mtx, 2, 0) = 0;
-    mtx->m[2][2]           = 0x1000;
+    rotationMatrix = &attachmentRotation;
+    gfxSetRotIdentity(rotationMatrix);
+    RotMatrixY(ACTOR_135600_HELD_ITEM_ATTACH_YAW, rotationMatrix);
+    MulMatrix0(&itemRoot->coord, rotationMatrix, &itemRoot->coord);
 
-    RotMatrixY((s16)(0x400), mtx);
-    MulMatrix0(&coord->coord, mtx, &coord->coord);
-
-    coord->parent       = dest;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    extra->otOffset     = 0;
-    taskReparent(parent, task);
-    task->killCountdown = 0x1000;
-    task->state        += 1;
+    // Borrow the body's resources and join its teardown tree.
+    itemRoot->parent       = parentPart;
+    itemRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    itemModel->lightMtx    = parentModel->lightMtx;
+    itemModel->colorMtx    = parentModel->colorMtx;
+    itemModel->otOffset    = 0;
+    taskReparent(parentTask, itemTask);
+    itemTask->killCountdown = ACTOR_135600_HELD_QUAD_FULL_LENGTH;
+    itemTask->state        += 1;
 }
 
-/// Draw state of the marker task: while `gGameSession->eventState` is set and
-/// the kill countdown is still running, draws the marker at the countdown's
-/// length, cutting the countdown to 0x800 once the marker's angle reaches
-/// 0x1F5.
-static void func_actor_135600_80132C18(Task* task)
+/// Draws the held-item quad during script events, shortening it at a screen-angle threshold.
+///
+/// Requires an attached live TMD task. `killCountdown` holds the positive Q12
+/// length multiplier: setup supplies 4096, and a signed screen angle at least
+/// 501 replaces it with 2048. Neither this callback nor the task scheduler
+/// decrements that storage while the held-item callbacks are installed.
+/// Outside a script event, or for a nonpositive scale, no quad is drawn.
+static void _actor135600UpdateKyleMadiganHeldItem(Task* itemTask)
 {
-    s16 countdown;
+    s16 lengthScale12;
 
     if (gGameSession->eventState != 0) {
-        countdown = task->killCountdown;
-        if (countdown > 0 && func_actor_135600_80131E68(task->extra.tmd->coords, countdown) >= 0x1F5) {
-            task->killCountdown = 0x800;
+        lengthScale12 = itemTask->killCountdown;
+        if (lengthScale12 > 0 && _actor135600DrawHeldItemQuad(itemTask->extra.tmd->coords, lengthScale12) >= ACTOR_135600_HELD_QUAD_SHORTEN_ANGLE) {
+            itemTask->killCountdown = ACTOR_135600_HELD_QUAD_HALF_LENGTH;
         }
     }
 }
 
-/// Walks `coord->parent` up to world (`gGfxViewCoord`), composing each node's
-/// `coord` rotation into `mtx` and accumulating the rotated translation into
-/// `vec`. The world parent initializes `mtx` to identity and `vec` to zero.
-/// The same algorithm as gameplay's `gfxComposeNodeWorldTransform`, but through the
-/// library `ApplyMatrixSV` / `MulMatrix0` rather than the GTE macros.
-static void func_actor_135600_80132C80(GfxCoord* coord, MATRIX* mtx, SVECTOR* vec)
+/// Composes a model node's world rotation and halfword translation, excluding the view.
+///
+/// `node` must be a non-world node in an acyclic chain ending at `gGfxViewCoord`.
+/// Outputs must be writable and separate from the input nodes, with the matrix
+/// word-aligned. Writes only the
+/// Q12 rotation coefficients and the translation vector's xyz halfwords; other
+/// output bytes are untouched. Each local translation narrows to a signed
+/// halfword before rotation, and each addition narrows again. No cache changes.
+static void _actor135600ComposeWorldTransform(const GfxCoord* node, MATRIX* worldRotation, SVECTOR* worldTranslation)
 {
-    SVECTOR tmp;
-    MATRIX* m;
+    SVECTOR localTranslation;
 
-    if (coord->parent != &gGfxViewCoord) {
-        func_actor_135600_80132C80(coord->parent, mtx, vec);
+    if (node->parent != &gGfxViewCoord) {
+        _actor135600ComposeWorldTransform(node->parent, worldRotation, worldTranslation);
     } else {
-        m                    = mtx;
-        *(s32*)m             = 0x1000;
-        MATRIX_PAIR(m, 0, 2) = 0;
-        MATRIX_PAIR(m, 1, 1) = 0x1000;
-        MATRIX_PAIR(m, 2, 0) = 0;
-        m->m[2][2]           = 0x1000;
-        vec->vx              = 0;
-        vec->vy              = 0;
-        vec->vz              = 0;
+        gfxSetRotIdentity(worldRotation);
+        worldTranslation->vx = 0;
+        worldTranslation->vy = 0;
+        worldTranslation->vz = 0;
     }
 
-    tmp.vx = (u16)coord->coord.t[0];
-    tmp.vy = (u16)coord->coord.t[1];
-    tmp.vz = (u16)coord->coord.t[2];
-    ApplyMatrixSV(mtx, &tmp, &tmp);
-    vec->vx += tmp.vx;
-    vec->vy += tmp.vy;
-    vec->vz += tmp.vz;
-    MulMatrix0(mtx, &coord->coord, mtx);
+    // Retain the signed-halfword translation at every level of the hierarchy.
+    localTranslation.vx = (u16)node->coord.t[0];
+    localTranslation.vy = (u16)node->coord.t[1];
+    localTranslation.vz = (u16)node->coord.t[2];
+    ApplyMatrixSV(worldRotation, &localTranslation, &localTranslation);
+    worldTranslation->vx += localTranslation.vx;
+    worldTranslation->vy += localTranslation.vy;
+    worldTranslation->vz += localTranslation.vz;
+    MulMatrix0(worldRotation, (MATRIX*)&node->coord, worldRotation);
 }
 
-/// Dispatcher of the actor itself: runs its state from
-/// `D_actor_135600_80131E3C`.
-void func_actor_135600_80132D64(Task* task)
+/// Runs Kyle's walker through allocation, per-frame update and teardown.
+///
+/// Requires a live TMD task with state 0..2. Dispatch itself remains active
+/// while scene actors are frozen; the update state applies the freeze gate.
+static void _actor135600KyleMadiganWalkerTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_135600_80131E3C;
-    sp.funcs[task->state](task);
+    states = D_actor_135600_80131E3C;
+    states.funcs[task->state](task);
 }
 
-/// Exit state and exit callback of the actor: the `enemyTaskExit` teardown.
-static void func_actor_135600_80132DBC(Task* task)
+/// Releases Kyle's enemy record, child tasks and work, then requests body teardown.
+///
+/// Requires a live primary-heap `Enemy` in `spawnArg2.pointer`. Both the exit
+/// state and exit callback use `enemyTaskExit`'s ownership contract: normal TMD
+/// teardown is deferred, or immediate when the display requests it. Neither
+/// the task nor the enemy may be accessed again after this call.
+static void _actor135600ExitKyleMadiganWalker(Task* task)
 {
     enemyTaskExit(task);
 }
 
-/// Points the model's light and colour matrices at the work block's own pair.
-static void func_actor_135600_80132DDC(Task* task)
+/// Lends Kyle's work-owned light and colour matrices to his body model.
+///
+/// Requires a live TMD body and `KyleMadiganWalkerWork`. The work block must
+/// outlive all model and attached-child uses of these borrowed pointers.
+static void _actor135600BindKyleMadiganWalkerLighting(Task* task)
 {
-    TmdObject*             ext;
+    TmdObject*             bodyModel;
     KyleMadiganWalkerWork* work;
 
-    ext           = task->extra.tmd;
-    work          = task->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    bodyModel           = task->extra.tmd;
+    work                = task->work;
+    bodyModel->lightMtx = &work->model.light;
+    bodyModel->colorMtx = &work->model.color;
 }
 
-/// Entry 0 of the tick's handler pair, selected by `walk.motion` while no motion
-/// sequence runs: does nothing.
-static void func_actor_135600_80132DF8(Task* arg0)
+/// Leaves Kyle's motion idle between scripted walks.
+static void _actor135600IdleKyleMadiganWalk(Task* task)
 {
 }
 
-/// Entry 1 of the tick's handler pair: runs the step of
-/// `D_actor_135600_80131E48` that `walk.motionStep` selects.
-static void func_actor_135600_80132E00(Task* task)
+/// Runs the current face, begin-walk, arrival or closing-turn step of Kyle's walk.
+///
+/// Requires live `KyleMadiganWalkerWork` with `walk.motionStep` in 0..3.
+/// The arrival step stops velocity; the closing turn returns motion to idle.
+static void _actor135600RunKyleMadiganWalkStep(Task* task)
 {
     KyleMadiganWalkerWork* work;
     TaskFuncTable4         handlers;
@@ -1048,20 +1096,23 @@ static void func_actor_135600_80132E00(Task* task)
 
 #include "../../shared/actor_motion_face.inc.c"
 
-/// Step 1: rotates the forward offset `D_actor_135600_80131E58` through the
-/// root part's matrix into `work->walk.velocity`, seeds `walk.lastDistance` with
-/// `ACTOR_WALK_DISTANCE_NONE` and advances the step.
-static void func_actor_135600_80132F28(Task* task)
+/// Starts Kyle moving along his local +Z axis and advances to the arrival step.
+///
+/// Requires a live TMD root and `KyleMadiganWalkerWork` in motion step 1.
+/// The Q12 root rotation transforms a 32-unit-per-frame 16.16 velocity into
+/// the parent's frame. Seeds the previous-distance sentinels so the first
+/// arrival check records its X/Z distances, then advances to step 2.
+static void _actor135600BeginKyleMadiganWalk(Task* task)
 {
     KyleMadiganWalkerWork* work;
-    GfxCoord*              coord;
-    VECTOR                 vec;
+    GfxCoord*              rootCoord;
+    VECTOR                 localVelocity;
 
-    coord = task->extra.tmd->coords;
-    work  = task->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    vec = D_actor_135600_80131E58;
-    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    localVelocity = D_actor_135600_80131E58;
+    ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
@@ -1074,62 +1125,69 @@ static void func_actor_135600_80132F28(Task* task)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// The 0x7D5 entry of `D_actor_135600_8013B0F4`, the actor's visibility,
-/// switched on the word `mode`. Flag 0x80 hides the model (the tick skips the
-/// shadow while it is set). Mode 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows
-/// it, allocates its buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it, sets
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts the
-/// `freeCountdown` countdown at 2, and 3 shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
-/// returns 1 and leaves the flags alone; the handled modes return 0. Either
-/// way the resulting flags are copied onto the objects of the three tasks the
-/// setup state parked at `handTasks` and `heldItemTask`.
-s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3)
+/// Sets Kyle's body draw mode and propagates the complete flags to both hands and held model.
+///
+/// Requires live body and all three child TMD tasks in `KyleMadiganWalkerWork`.
+/// Modes 0/1 hide/show and enable automatic buffers; showing allocates a body
+/// primitive buffer if needed. Mode 2 hides, disables automatic buffers and
+/// arms body-buffer release with counter 2. Mode 3 shows with automatic buffers
+/// disabled. Modes 0, 1 and 3 leave any pending release unchanged. Other modes retain the
+/// body flags; all modes copy those flags to the children. Returns 0 for modes
+/// 0..3, otherwise 1. The message ID and second payload are ignored.
+/// These flags govern the TMD models; the held-item quad has its own event gate.
+static s32 _actor135600SetKyleMadiganDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
+    enum {
+        ACTOR_135600_KYLE_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+        ACTOR_135600_KYLE_BUFFER_RELEASE_DELAY       = 2,
+    };
     KyleMadiganWalkerWork* work;
-    TmdObject*             obj;
-    TmdObject*             objA;
-    TmdObject*             objB;
-    TmdObject*             objC;
-    s32                    ret;
+    TmdObject*             bodyModel;
+    TmdObject*             rightHandModel;
+    TmdObject*             leftHandModel;
+    TmdObject*             heldItemModel;
+    s32                    result;
 
-    work = task->work;
-    obj  = task->extra.tmd;
-    objB = work->handTasks[1]->extra.tmd;
-    objA = work->handTasks[0]->extra.tmd;
-    objC = work->heldItemTask->extra.tmd;
-    ret  = 0;
+    work           = task->work;
+    bodyModel      = task->extra.tmd;
+    leftHandModel  = work->handTasks[1]->extra.tmd;
+    rightHandModel = work->handTasks[0]->extra.tmd;
+    heldItemModel  = work->heldItemTask->extra.tmd;
+    result         = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            bodyModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(bodyModel);
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            bodyModel->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = ACTOR_135600_KYLE_BUFFER_RELEASE_DELAY;
+            bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_135600_KYLE_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    objB->flags = obj->flags;
-    objA->flags = obj->flags;
-    objC->flags = obj->flags;
-    return ret;
+    leftHandModel->flags  = bodyModel->flags;
+    rightHandModel->flags = bodyModel->flags;
+    heldItemModel->flags  = bodyModel->flags;
+    return result;
 }
 
-/// The 0x7DB entry of `D_actor_135600_8013B0F4`: accepts the message and does
-/// nothing with it.
-s32 func_actor_135600_8013336C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Accepts an actor command without changing Kyle's state and returns zero.
+///
+/// Installed for `ACTOR_COMMAND_MESSAGE_APPLY`; ignores the receiver, message
+/// ID and both payload words, retaining no borrowed command data.
+static s32 _actor135600IgnoreKyleMadiganCommand(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg)
 {
     return 0;
 }
