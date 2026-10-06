@@ -4152,7 +4152,6 @@ static void func_actor_403000_80139AE0(Task* arg0)
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
     TmdObject*                   obj;
-    GfxCoord*                    coord;
     SVECTOR*                     table;
     SVECTOR*                     v;
     s16                          angle;
@@ -4210,9 +4209,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
     scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    coord               = arg0->extra.tmd->coords;
-    angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
+    angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
@@ -4240,7 +4237,6 @@ static void func_actor_403000_8013A08C(Task* arg0)
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
     TmdObject*                   obj;
-    GfxCoord*                    coord;
     SVECTOR*                     table;
     SVECTOR*                     v;
     s16                          angle;
@@ -4306,9 +4302,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
     scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    coord               = arg0->extra.tmd->coords;
-    angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
+    angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
@@ -4336,7 +4330,6 @@ static void func_actor_403000_8013A678(Task* arg0)
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
     TmdObject*                   obj;
-    GfxCoord*                    coord;
     SVECTOR*                     table;
     SVECTOR*                     v;
     s16                          angle;
@@ -4441,9 +4434,7 @@ static void func_actor_403000_8013A678(Task* arg0)
     scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    coord               = arg0->extra.tmd->coords;
-    angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
+    angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
@@ -4471,7 +4462,6 @@ static void func_actor_403000_8013ACBC(Task* arg0)
     Task*                        player;
     _Actor403000WaypointScratch* scratch;
     TmdObject*                   obj;
-    GfxCoord*                    coord;
     SVECTOR*                     table;
     SVECTOR*                     v;
     s16                          angle;
@@ -4533,9 +4523,7 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
         scratch->offset.vy  = 0;
         scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-        coord               = arg0->extra.tmd->coords;
-        angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        angle               = actorWrapAngle(angle);
+        angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
         scratch->turn       = angle;
         work->neckYawTarget = 0;
         scratch->turn      += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
@@ -4572,7 +4560,6 @@ static void func_actor_403000_8013B238(Task* arg0)
 {
     Actor403000Work*             work;
     _Actor403000WaypointScratch* scratch;
-    GfxCoord*                    coord;
     s32                          x;
     s32                          z;
     s8                           col;
@@ -4629,9 +4616,7 @@ static void func_actor_403000_8013B238(Task* arg0)
         scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
         scratch->offset.vy -= arg0->extra.tmd->coords->coord.t[1];
         scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-        coord               = arg0->extra.tmd->coords;
-        angle               = ratan2(scratch->offset.vx, scratch->offset.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        angle               = actorWrapAngle(angle);
+        angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
         mag                 = angle;
         scratch->turn       = mag;
         if (ABS(mag) < 0x400) {
