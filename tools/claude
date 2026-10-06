@@ -385,17 +385,45 @@ elif [[ "$BOOTSTRAP" == true ]]; then
     M2C_EXIT_CODE=$?
     set -e
 
-    # A context m2c cannot parse aborts the whole run, so the function comes
-    # back blank even though its own asm is fine. The GTE inline-asm macros in
-    # some units do exactly this. Untyped output beats no output: retry bare.
-    if [[ $M2C_EXIT_CODE -ne 0 && ${#CONTEXT_ARG[@]} -gt 0 ]] &&
-        grep -q "parsing C context" <<<"$M2C_OUTPUT"; then
+    # m2c evaluates enumerator values itself and cannot fold `sizeof`: one enum
+    # such as `(sizeof(McSaveData) * MEMORY_CARD_SAVE_COUNT + 0x7F) >> 7` in a
+    # header the unit includes stops the run with "Failed to evaluate
+    # expression", and the seed came back blank. The value of such a constant
+    # does not matter to the decompilation, so give those enumerators 0 in the
+    # context and try again with every type still in place.
+    if [[ $M2C_EXIT_CODE -ne 0 && ${#CONTEXT_ARG[@]} -gt 0 && -f ctx.c ]] &&
+        grep -q "Failed to evaluate expression" <<<"$M2C_OUTPUT"; then
+        echo "Warning: m2c could not evaluate a sizeof-based enumerator in the context; retrying with those set to 0."
+        python3 - <<'PY'
+import re
+text = open("ctx.c").read()
+def fix(m):
+    body = re.sub(r"=\s*[^,{}]*\bsizeof\b[^,{}]*", "= 0 ", m.group(2))
+    return m.group(1) + body + m.group(3)
+text = re.sub(r"(\benum\b[^{;]*\{)([^{}]*)(\})", fix, text)
+open("ctx.c", "w").write(text)
+PY
+        set +e
+        M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c "${M2C_FUNC_ARG[@]}" "${CONTEXT_ARG[@]}" "$M2C_ASM" "${JTBL_ASM[@]}" 2>&1)
+        M2C_EXIT_CODE=$?
+        set -e
+    fi
+
+    # A context m2c cannot use aborts the whole run, so the function comes back
+    # blank even though its own asm is fine. The GTE inline-asm macros in some
+    # units do exactly this. Untyped output beats no output: retry bare, for
+    # any failure that goes away without the context.
+    if [[ $M2C_EXIT_CODE -ne 0 && ${#CONTEXT_ARG[@]} -gt 0 ]]; then
+        M2C_WITH_CONTEXT="$M2C_OUTPUT"
         echo "Warning: m2c could not parse the context from $C_FILE; retrying without it."
         echo "         Types will be '?' - the context, not the function, is the problem."
         set +e
         M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c -f "$FUNC_STEM" "$M2C_ASM" "${JTBL_ASM[@]}" 2>&1)
         M2C_EXIT_CODE=$?
         set -e
+        # Still failing without the context: the context was not the cause, and
+        # its message is the one worth showing.
+        [[ $M2C_EXIT_CODE -eq 0 ]] || M2C_OUTPUT="$M2C_WITH_CONTEXT"
     fi
 
     # The rewritten copies exist only for the two m2c calls above.
