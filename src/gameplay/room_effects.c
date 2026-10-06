@@ -968,7 +968,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomSinkingSpriteTask, { NULL } },                    // 0x1AD
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_801826E0, { NULL } },                    // 0x1AE
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_80182804, { NULL } },                    // 0x1AF
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_motel_loft_8017E090, { NULL } },                   // 0x1B0
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelLoftFallingShardTask, { NULL } },                    // 0x1B0
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetPuffTask, { NULL } },                                // 0x1B1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetPuffTask, { NULL } },                           // 0x1B2
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomEffectSpriteDriftTask, { NULL } },                   // 0x1B3

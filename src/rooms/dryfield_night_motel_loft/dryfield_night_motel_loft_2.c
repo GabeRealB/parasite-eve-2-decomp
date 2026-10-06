@@ -63,7 +63,7 @@ STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftTriScratch, 0x20);
 extern WorldCollisionGrid D_dryfield_night_motel_loft_8017ED54;
 extern WorldCollisionGrid D_dryfield_night_motel_loft_8017F120;
 
-static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, s16 shade);
+static void _dryfieldNightMotelLoftDrawShard(const GfxCoord* coord, s16 radius, s16 shade);
 
 extern WorldCollisionGrid D_dryfield_night_motel_loft_8017F120;
 
@@ -540,35 +540,49 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"
 
-/// Task driving one tumbling triangle, drawn each frame by
-/// `func_dryfield_night_motel_loft_8017E540` at the task's coordinate coordinate.
-/// State 0 rolls a random velocity (downward in Y), speed, shade and spin, with
-/// the size taken from `Task::spawnArg1`. Each later frame turns the
-/// coordinate by the spin, moves it by the velocity scaled by the speed and
-/// draws it; gravity then adds to the Y velocity, unless the move
-/// took the triangle below the floor (`t[1] > 0`), in which case the move is
-/// undone and the velocity halved with Y reflected. The first bounce enters
-/// state 2, where the shade also fades by 4 a frame and the task frees itself
-/// once it drops below 5. The task idles while `gRoomEffectState->effectControl` is 2
-/// or 3 and frees itself at 4 or more.
-void func_dryfield_night_motel_loft_8017E090(Task* task)
+void dryfieldNightMotelLoftFallingShardTask(Task* task)
 {
-    EffectWork* work  = task->spawnArg2.pointer;
-    s16         ev    = gRoomEffectState->effectControl;
-    GfxCoord*   coord = task->extra.coordBody->coord;
-    SVECTOR     step;
+    enum {
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_INITIALIZE  = 0,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FALLING     = 1,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FADING      = 2,
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_RADIUS_MASK = 0xFFF, // Low twelve spawn-argument bits, in coordinate units
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_GRAVITY_Q12 = 0x180, // Added to Y velocity each airborne frame; ONE = 1.0 times speed
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FADE_STEP   = 4,     // Grey levels lost per active frame after the first bounce
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_SHADE   = 5      // Release before drawing a dimmer shard
+    };
+    EffectWork* work          = task->spawnArg2.pointer;
+    s16         effectControl = gRoomEffectState->effectControl;
+    GfxCoord*   coord         = task->extra.coordBody->coord;
+    SVECTOR     displacement;
 
-    if (ev < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if (ev < ROOM_EFFECT_CONTROL_HIDDEN) {
+    /// Composes spin, advances the shard, and draws its existing cached transform.
+    ///
+    /// Captures `work` (EffectWork*), `coord` (GfxCoord*) and `displacement`
+    /// (SVECTOR lvalue), retaining the displacement for floor rollback.
+    /// Expands to multiple statements: use only in this function's switch
+    /// cases, never as an unbraced control-flow body. Takes no arguments.
+#define DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD()                    \
+    gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE); \
+    MatrixNormal(&coord->coord, &coord->coord);                            \
+    gte_lddp((u16)work->scale);                                            \
+    gte_ldsv(&work->move);                                                 \
+    gte_gpf12();                                                           \
+    gte_stsv(&displacement);                                               \
+    coord->coord.t[0]  += displacement.vx;                                 \
+    coord->coord.t[1]  += displacement.vy;                                 \
+    coord->coord.t[2]  += displacement.vz;                                 \
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;                            \
+    _dryfieldNightMotelLoftDrawShard(coord, work->angle, work->period);
+
+    if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
             switch (task->state) {
-                case 0:
-                    // The shard's reading of its `EffectWork`: `move` is the
-                    // velocity as a 4.12 multiple of the speed in `scale`,
-                    // a unit direction until gravity and bounces change it;
-                    // `pos` is the rotation triple composed onto the
-                    // coordinate each frame, replacing the spawn offset the
-                    // coordinate was already placed from; `angle` is the
-                    // triangle's radius and `period` its grey level.
+                case DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_INITIALIZE:
+                    // Reuse the spawn offset as per-frame Euler spin (4096 units/turn).
+                    // move is a ONE-normalized velocity, scaled by scale's speed;
+                    // gravity and bounces change its length. angle holds the
+                    // radius in coordinate units, and period holds the grey level.
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -577,7 +591,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
-                    work->angle     = task->spawnArg1.value & 0xFFF;
+                    work->angle     = task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_RADIUS_MASK;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->period    = ((gRandomLcgState >> 16) & 0x7F) + 0x40;
                     VectorNormalSS(&work->move, &work->move);
@@ -588,57 +602,39 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
                     gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->pos.vz        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    task->state         = 1;
+                    task->state         = DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FALLING;
                     break;
-                case 1:
-                    gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
-                    MatrixNormal(&coord->coord, &coord->coord);
-                    gte_lddp((u16)work->scale);
-                    gte_ldsv(&work->move);
-                    gte_gpf12();
-                    gte_stsv(&step);
-                    coord->coord.t[0]  += step.vx;
-                    coord->coord.t[1]  += step.vy;
-                    coord->coord.t[2]  += step.vz;
-                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    func_dryfield_night_motel_loft_8017E540(coord, work->angle, work->period);
+                case DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FALLING:
+                    DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD();
+                    // Drawing precedes rollback; the first floor crossing starts fading.
                     if (coord->coord.t[1] > 0) {
-                        coord->coord.t[0] -= step.vx;
-                        coord->coord.t[1] -= step.vy;
-                        coord->coord.t[2] -= step.vz;
+                        coord->coord.t[0] -= displacement.vx;
+                        coord->coord.t[1] -= displacement.vy;
+                        coord->coord.t[2] -= displacement.vz;
                         work->move.vx      = work->move.vx >> 1;
                         work->move.vy      = -(work->move.vy >> 1);
                         work->move.vz      = work->move.vz >> 1;
-                        task->state        = 2;
+                        task->state        = DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FADING;
                     } else {
-                        work->move.vy += 0x180;
+                        work->move.vy += DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_GRAVITY_Q12;
                     }
                     break;
-                case 2:
-                    work->period -= 4;
-                    if (work->period < 5) {
+                case DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FADING:
+                    work->period -= DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FADE_STEP;
+                    if (work->period < DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_SHADE) {
                         goto release;
                     }
-                    gfxRotMatrixXYZ(&coord->coord, &work->pos, GRAPHICS_ROTATION_COMPOSE);
-                    MatrixNormal(&coord->coord, &coord->coord);
-                    gte_lddp((u16)work->scale);
-                    gte_ldsv(&work->move);
-                    gte_gpf12();
-                    gte_stsv(&step);
-                    coord->coord.t[0]  += step.vx;
-                    coord->coord.t[1]  += step.vy;
-                    coord->coord.t[2]  += step.vz;
-                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    func_dryfield_night_motel_loft_8017E540(coord, work->angle, work->period);
+                    DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD();
+                    // The fading shard can still bounce and lose half its velocity.
                     if (coord->coord.t[1] > 0) {
-                        coord->coord.t[0] -= step.vx;
-                        coord->coord.t[1] -= step.vy;
-                        coord->coord.t[2] -= step.vz;
+                        coord->coord.t[0] -= displacement.vx;
+                        coord->coord.t[1] -= displacement.vy;
+                        coord->coord.t[2] -= displacement.vz;
                         work->move.vx      = work->move.vx >> 1;
                         work->move.vy      = -(work->move.vy >> 1);
                         work->move.vz      = work->move.vz >> 1;
                     } else {
-                        work->move.vy += 0x180;
+                        work->move.vy += DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_GRAVITY_Q12;
                     }
                     break;
             }
@@ -649,59 +645,73 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
     }
 }
 
-/// Draws one flat grey `POLY_F3` of shade `shade`: an equilateral triangle of
-/// radius `scale` in `coord`'s local YZ plane, its corners 0x555 apart,
-/// rotated by `coord`'s `workm` and moved by its translation before projection
-/// through `GsWSMATRIX`. A triangle the GTE flags as failed is dropped. The
-/// triangle is made semi-transparent with a blend mode drawn from the LCG.
-static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, s16 shade)
+#undef DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD
+
+/// Adds the coordinate's cached translation to a corner, wrapping to 16 bits.
+static __inline__ void _dryfieldNightMotelLoftTranslateShardCorner(SVECTOR* corner, const GfxCoord* coord)
 {
-    _DryfieldNightMotelLoftTriScratch* blk;
-    SVECTOR*                           corner;
-    POLY_F3*                           prim;
-    s32                                i;
+    corner->vx = (u16)corner->vx + (u16)coord->workm.t[0];
+    corner->vy = (u16)corner->vy + (u16)coord->workm.t[1];
+    corner->vz = (u16)corner->vz + (u16)coord->workm.t[2];
+}
+
+/// Draws a semi-transparent grey triangular shard in the coordinate's local YZ plane.
+///
+/// `radius` is in coordinate units (0..4095 for this task), and `shade` is an
+/// RGB byte level (5..191 while the task draws). `coord->workm` must contain
+/// the cached transform to apply; this drawer does not refresh it. Three
+/// corners spaced by truncated thirds of a turn are scaled, transformed,
+/// narrowed to signed 16-bit coordinates, and projected through `GsWSMATRIX`.
+/// A projection with GTE FLAG bit 31 set consumes a packet but queues none.
+/// Each queued triangle chooses blend mode 0 or 1 from the LCG and consumes
+/// a `DR_TPAGE` command too. The frame arena must have room for both packets;
+/// it retains them until drawing completes. The scratch reservation is
+/// released on return.
+static void _dryfieldNightMotelLoftDrawShard(const GfxCoord* coord, s16 radius, s16 shade)
+{
+    enum {
+        // Truncated third of a turn, in 4096 angle units per turn.
+        DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_CORNER_ANGLE_STEP = 0x555
+    };
+    _DryfieldNightMotelLoftTriScratch* scratch;
+    POLY_F3*                           primitive;
+    s32                                cornerIndex;
 
     SCRATCH_STACK_RESERVE_BLOCK(_DryfieldNightMotelLoftTriScratch);
-    blk = SCRATCH_STACK_CURSOR(_DryfieldNightMotelLoftTriScratch);
+    scratch = SCRATCH_STACK_CURSOR(_DryfieldNightMotelLoftTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 3; i++) {
+    for (cornerIndex = 0; cornerIndex < (s32)ARRAY_SIZE(scratch->corners); cornerIndex++) {
         // Stage the corner on the unit circle of the local YZ plane, scale
-        // it, then rotate it by the coordinate's world matrix.
-        blk->corners[i].vx = 0;
-        blk->corners[i].vy = rsin(i * 0x555);
-        blk->corners[i].vz = rcos(i * 0x555);
-        gte_lddp(scale);
-        gte_ldsv(&blk->corners[i]);
+        // it, then rotate it by the coordinate's cached matrix.
+        scratch->corners[cornerIndex].vx = 0;
+        scratch->corners[cornerIndex].vy = rsin(cornerIndex * DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_CORNER_ANGLE_STEP);
+        scratch->corners[cornerIndex].vz = rcos(cornerIndex * DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_CORNER_ANGLE_STEP);
+        gte_lddp(radius);
+        gte_ldsv(&scratch->corners[cornerIndex]);
         gte_gpf12();
-        gte_stsv(&blk->corners[i]);
+        gte_stsv(&scratch->corners[cornerIndex]);
         gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&blk->corners[i]);
+        gte_ldv0(&scratch->corners[cornerIndex]);
         gte_rtv0();
-        gte_stsv(&blk->corners[i]);
-        // Move it by the world translation. The last two components go
-        // through the corner's address with the member offset added last:
-        // `&blk->corners[i]` is the same address, but the compiler then
-        // shares the pointer the GTE operands above already hold.
-        blk->corners[i].vx = (u16)blk->corners[i].vx + (u16)coord->workm.t[0];
-        corner             = (SVECTOR*)((u8*)blk + i * sizeof(SVECTOR) + OFFSET_OF(_DryfieldNightMotelLoftTriScratch, corners));
-        corner->vy         = (u16)corner->vy + (u16)coord->workm.t[1];
-        corner->vz         = (u16)corner->vz + (u16)coord->workm.t[2];
+        gte_stsv(&scratch->corners[cornerIndex]);
+        // Translate in cached-transform space, preserving the low 16 bits.
+        _dryfieldNightMotelLoftTranslateShardCorner(&scratch->corners[cornerIndex], coord);
     }
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv3(&blk->corners[0], &blk->corners[1], &blk->corners[2]);
+    gte_ldv3(&scratch->corners[0], &scratch->corners[1], &scratch->corners[2]);
     gte_rtpt();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyF3(prim);
-    gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
-    gte_stflg(&blk->projectionFlags);
-    if (blk->projectionFlags >= 0) {
-        gte_stszotz(&blk->otz);
-        setRGB0(prim, shade, shade, shade);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+    primitive      = gGpuPrimCursor;
+    gGpuPrimCursor = primitive + 1;
+    setPolyF3(primitive);
+    gte_stsxy3(&primitive->x0, &primitive->x1, &primitive->x2);
+    gte_stflg(&scratch->projectionFlags);
+    if (scratch->projectionFlags >= 0) {
+        gte_stszotz(&scratch->otz);
+        setRGB0(primitive, shade, shade, shade);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                primitive);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gpuSetPrimitiveBlendMode(prim, (gRandomLcgState >> 16) & 1, blk->otz);
+        gpuSetPrimitiveBlendMode(primitive, (gRandomLcgState >> 16) & 1, scratch->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_DryfieldNightMotelLoftTriScratch);
 }

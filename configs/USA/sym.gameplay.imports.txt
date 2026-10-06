@@ -490,7 +490,7 @@ GameFlag_ShelterBanks = 0x80073670; // absolute:True size:0x1C8
 GameFlag_NeoArkBanks = 0x80073838; // absolute:True size:0x148
 Gp_FlagBanks = 0x80060A30; // absolute:True size:0x18
 
-func_dryfield_night_motel_loft_8017E090 = 0x8017E090; // type:func absolute:True owner=dryfield_night_motel_loft shared=rooms
+dryfieldNightMotelLoftFallingShardTask = 0x8017E090; // type:func absolute:True owner=dryfield_night_motel_loft shared=rooms
 
 shelterB6NurserySparkShowerShardTask = 0x80182730; // type:func absolute:True owner=shelter_b6_nursery shared=rooms
 

@@ -72,8 +72,9 @@ D_dryfield_night_motel_loft_8017EB6C = 0x8017EB6C; // size:0x4 defined:True
 D_dryfield_night_motel_loft_8017EB70 = 0x8017EB70; // size:0x8 defined:True
 D_dryfield_night_motel_loft_8017EB78 = 0x8017EB78; // size:0x198 defined:True
 
-func_dryfield_night_motel_loft_8017E090 = 0x8017E090; // type:func
+dryfieldNightMotelLoftFallingShardTask = 0x8017E090; // type:func
 
 func_dryfield_night_motel_loft_8017DB64 = 0x8017DB64; // type:func
 glowDrawFlareClipped = 0x8017DE14; // type:func
 roomVariantMotelBalconyMsg = 0x8017D600; // type:func
+_dryfieldNightMotelLoftDrawShard = 0x8017e540; // type:func

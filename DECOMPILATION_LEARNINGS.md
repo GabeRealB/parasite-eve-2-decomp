@@ -139724,7 +139724,7 @@ Indexing `D_x[j].vx` three times instead of through a pointer scored 93.5%.
 
 When each leftover is "one insn of live length" or "one priority tie", read the sched1 ready lists (`.sched` shows `ready list at T-n` with priorities). Look for the release or birthing decision that would move the load, not for a no-code insn.
 
-## A walk that advances mid-body through a temporary (`q = p + 1; ...; p = q`) keeps an unbiased biv and a `move s0,a0` copy (func_dryfield_night_motel_loft_8017E540, 2026-09-23)
+## A walk that advances mid-body through a temporary (`q = p + 1; ...; p = q`) keeps an unbiased biv and a `move s0,a0` copy (_dryfieldNightMotelLoftDrawShard, 2026-09-23)
 
 **Symptom:** A three-iteration loop writes `8(s0)`, `0xa(s0)`, `0xc(s0)` early,
 then at the end reads `lhu 8(s0)`, computes `addiu a0,s0,8`, updates the next
@@ -139748,14 +139748,14 @@ until the copy. This went from 94.6% to 98% on its own; the remaining
 prologue-order difference was an `s16` parameter (see "A narrower parameter
 type can change scheduling"). A second IV in the same loop, the byte offset
 `off` fed to the GTE loads, had to stay a source local initialised with the
-counter: indexing `&blk->corners[j]` moved its `li s2,8` to the end of the
+counter: indexing `&scratch->corners[cornerIndex]` moved its `li s2,8` to the end of the
 preheader (99.7%).
 
 The function no longer uses either device: see "A walking pointer, a byte
 offset and an angle accumulator that all step with the counter are one index
 loop".
 
-## A reload register mismatch in one `switch` case can be caused by allocation in another case (func_dryfield_night_motel_loft_8017E090, 2026-09-23)
+## A reload register mismatch in one `switch` case can be caused by allocation in another case (dryfieldNightMotelLoftFallingShardTask, 2026-09-23)
 
 **Symptom:** Cases 1 and 2 matched except `gte_lddp((u16)work->scale)`: the
 target reloads the zero-extended halfword into `$t0` for the asm's `"r"` input,
@@ -139770,7 +139770,7 @@ In case 0 five LCG results were live at once, because all five
 `$t0`/`$t1`, and those registers were no longer "unused" for reload.
 
 **Fix:** match case 0 first. There the source position of an unrelated
-statement, `work->angle = task->spawnArg1.value & 0xFFF;`, decided how far sched1 sank
+statement, `work->angle = task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_RADIUS_MASK;`, decided how far sched1 sank
 the seed stores: written after the fifth LCG step, all the stores sank (95.5%);
 written between the fourth and fifth, the first two stores stayed next to
 their field stores, the rand values stopped overlapping, and `lddp` fell into
@@ -147184,13 +147184,13 @@ or `&((T*)((SVECTOR*)quadScratch + cornerIndex))->corners[0]`. When a match need
 form, read which association each use has in the target before trying more
 typed aliases; they all land on the address-of one.
 
-## A walking pointer, a byte offset and an angle accumulator that all step with the counter are one index loop (func_dryfield_night_motel_loft_8017E540, 2026-10-03)
+## A walking pointer, a byte offset and an angle accumulator that all step with the counter are one index loop (_dryfieldNightMotelLoftDrawShard, 2026-10-03)
 
 **Problem.** The matched body carried four source-level induction variables -
 `i`, a byte offset `off` fed to the GTE operands as
-`(SVECTOR*)((u8*)blk + off)`, an angle `ang += 0x555`, and a pointer walked
+`(SVECTOR*)((u8*)scratch + off)`, an angle `ang += 0x555`, and a pointer walked
 from the block head as `p[1]` / `q = p + 1; ...; p = q`. Replacing only `off`
-with `&blk->corners[j]` left the preheader wrong (99.7%).
+with `&scratch->corners[cornerIndex]` left the preheader wrong (99.7%).
 
 **Symptom.** The preheader reads `move s4,zero` / `li s2,8` / `move s1,s4` /
 `move s0,s3`: the counter, then the offset, the angle and the pointer. Source
@@ -147203,11 +147203,11 @@ the loop in *reverse* of the order the body first uses them, and the body uses
 the store address first, the angle second and the GTE operand last:
 
 ```c
-for (i = 0; i < 3; i++) {
-    blk->corners[i].vx = 0;                 /* giv 1: blk + i*8, `8(s0)`  */
-    blk->corners[i].vy = rsin(i * 0x555);   /* giv 2: i*0x555             */
+for (cornerIndex = 0; cornerIndex < (s32)ARRAY_SIZE(scratch->corners); cornerIndex++) {
+    scratch->corners[cornerIndex].vx = 0; // giv 1: scratch + cornerIndex*8, `8(s0)`
+    scratch->corners[cornerIndex].vy = rsin(cornerIndex * DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_CORNER_ANGLE_STEP); // giv 2: cornerIndex*0x555
     ...
-    gte_ldsv(&blk->corners[i]);             /* giv 3: i*8 + 8, `s3 + s2`  */
+    gte_ldsv(&scratch->corners[cornerIndex]); // giv 3: cornerIndex*8 + 8, `s3 + s2`
 ```
 
 Mixing the two kinds cannot reproduce it: one source-level initialiser sits
@@ -147220,7 +147220,31 @@ imitated is the reduced pointer's own increment: the tail forms the element
 address in the member-store association (see "`&blk->arr[i]` and a store to
 `blk->arr[i].f` associate the same address differently"), which is
 `s0 + 8`, and cse2 then rewrites the increment `s0 = s0 + 8` at the loop end as
-a copy of it. That one address is the only cast left in the loop.
+a copy of it. The translation helper now supplies that address through a
+typed corner pointer, as described below.
+
+## An inline translation through a corner pointer preserves the member offset outside the reduced index (_dryfieldNightMotelLoftDrawShard, 2026-10-06)
+
+**Problem.** The GTE operands use `scratch + (cornerIndex*8 + 8)`, while the
+translation tail needs `(scratch + cornerIndex*8) + 8`: `addiu a0,s0,8`, then
+`move s0,a0`. A direct `corner = &scratch->corners[cornerIndex]` shares the GTE
+pointer and changes 23 bytes of the 840-byte drawer despite keeping its length.
+
+**Fix.** Put all three wrapping component additions in a `static __inline__`
+helper taking `SVECTOR* corner` and `const GfxCoord* coord`, and call it with
+`&scratch->corners[cornerIndex], coord`. Each addition is
+`corner->v? = (u16)corner->v? + (u16)coord->workm.t[axis]`. Inlining this helper
+retains the two address associations and makes the entire unit's text and
+rodata byte-identical; no corner byte view or fabricated union remains.
+
+The second parameter matters. Taking `MATRIX* transform` and passing
+`&coord->workm` also restores the tail address, but hoists that matrix pointer,
+changes register allocation and shortens the drawer from 840 to 836 bytes.
+Keeping the containing coordinate as the argument retains the original base
+and matrix offsets. An inline helper taking the scratch block and index also
+shortened the drawer to 836 bytes; a macro with direct indexed component stores
+did the same. Forming the one-past corner pointer and decrementing it introduced
+an extra induction variable and grew the drawer to 864 bytes.
 
 ## A `((T*)(head - N))->first` cast beside `blk->rest` can be plain `SCRATCH_STACK_RESERVE_BLOCK`
 
