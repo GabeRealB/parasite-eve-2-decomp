@@ -149799,3 +149799,42 @@ attempts; left as it was.
   copy; the other three went as `if (slot > NONE || weapon == item) count++;
   break;`).
 
+
+### Goto removal, batch 17: a ladder inline with one `return 1`, two scans sharing a call (2026-10-06)
+
+- **`if (d < -5) goto neg; if (d < 0) goto pos; if (d < 5) { neg: s = -1; } else
+  { pos: s = 1; }`**, twelve times in `actor_403000.c`, is one `static inline s8`
+  (`_actor403000RingSide(s16 diff)`). How its returns are written matters at
+  one site only. `if (d < -5) return -1; if (d < 0) return 1; if (d < 5)
+  return -1; return 1;` matched every site where the result runs straight
+  into the code after it; in `func_actor_403000_8013A08C`, where the call is
+  the `then` arm of an `if`/`else` (`else dir = work->seekRingDir;`), the two
+  `return 1` are not merged (`bgez; j; li v0,1; beqz`, 2 insns longer). With
+  a single `return 1` the same inline matches all twelve:
+  `if (d < -5) return -1; if (d >= 0) { if (d < 5) return -1; } return 1;`.
+  The two `return -1` stay apart in the image too (`li v0,-1` in two delay
+  slots). Nested `if`s, not `d >= 0 && d < 5`, which folds to `sltiu`.
+- **The `for (;;) { if (a >= -0x800) goto wrapped; a += 0x1000; }` wraps of
+  `func_actor_403000_801377C8`** (written that way so that no depth-0
+  `BARRIER` precedes the scan's found stub, see "A loop's early-exit stub
+  lands after the nearest outer BARRIER") are `actorWrapAngle`: its
+  `if (c) step; else break;` loops are real loops as well. The sibling
+  `func_actor_403000_801386E8`, recorded as *needing* the goto wrap's barrier
+  for its stub, also matches with `actorWrapAngle` and the found-flag scan as
+  a `for` + `break` + `return 1` / `return 0` inline: the barrier its stub
+  sits behind is the `if`/`else if` clamp after the wrap, not the wrap.
+- Not converted: **the three-group contact scan of
+  `func_actor_444000_8013CA60`** (`goto hit` from group 3 into group 4's
+  effect call, `goto body`, two `goto out`; the 403200 twin went as an `||`
+  of three `&&` pairs). Here the image has `lw a0,coord3; j call` after the
+  first scan and all three found stubs directly behind that jump, so the
+  jump existed before loop.c ran: the `||` form, whose two calls are only
+  merged by cross-jumping after loop.c, puts the stubs elsewhere (3 insns
+  longer). An inline for groups 3 and 4 with `return 0` on a double miss
+  leaves `move v0,zero; j` and moves the second scan out of line; a `coord`
+  local set in both arms and tested with `id != 0` after the join has the
+  image's layout plus one duplicated `beqz a1`. With the `goto hit` /
+  `goto body` kept and the scans as `_gluttonFindHit` inlines the length is
+  right but the second and third scans take different registers (element
+  pointer in `$v1` instead of sharing `$a1` with the id). Only the angle
+  wrap and the `dmg` clamp went (13 gotos -> 10).
