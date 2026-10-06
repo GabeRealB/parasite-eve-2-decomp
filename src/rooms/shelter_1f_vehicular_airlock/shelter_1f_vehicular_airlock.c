@@ -85,12 +85,14 @@ extern RoomFadeStorage gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+static void _shelter1fVehicularAirlockDrawPulsingLight(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale, s32 packedColor);
 
-s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, s32, s32);
-s32 func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, s32);
-s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, s32, s32);
+enum { SHELTER_1F_VEHICULAR_AIRLOCK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+s32        func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelter1fVehicularAirlockRejectKeyItem(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
+s32        func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, s32);
+static s32 _shelter1fVehicularAirlockIgnoreDirectionAction(Task* receiver, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 static u32     _gShelter1fVehicularAirlockModel03A58PartVerts[1];
 static SVECTOR _gShelter1fVehicularAirlockModel03A58Verts[116];
@@ -135,8 +137,8 @@ TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { { { TASK_BODY_NONE, 32 } },
 
 TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_vehicular_airlock_8017D7DC },
-    { 5105, func_shelter_1f_vehicular_airlock_8017D988 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_vehicular_airlock_8017D9F4 },
+    { SHELTER_1F_VEHICULAR_AIRLOCK_MESSAGE_USE_KEY_ITEM, _shelter1fVehicularAirlockRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fVehicularAirlockIgnoreDirectionAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_1f_vehicular_airlock_8017D990 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -335,7 +337,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_1f_vehicular_airlock_8017D9FC(Task* task);
-static void           func_shelter_1f_vehicular_airlock_8017DA40(Task* task);
+static void           _shelter1fVehicularAirlockIdleMessageTask(Task* unusedTask);
 
 static void _glowDrawAngledCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
@@ -402,7 +404,11 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D988(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this room, returning 0 without consuming the item.
+///
+/// The message supplies an inventory item ID and a zero second payload word;
+/// neither payload nor the receiver is accessed.
+static s32 _shelter1fVehicularAirlockRejectKeyItem(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -418,7 +424,11 @@ s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, s
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-trigger room actions and returns 0.
+///
+/// Dispatch borrows the request for the call and supplies a zero second
+/// payload word; this handler reads neither and retains no pointer.
+static s32 _shelter1fVehicularAirlockIgnoreDirectionAction(Task* receiver, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -433,20 +443,20 @@ static void func_shelter_1f_vehicular_airlock_8017D9FC(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room's message task: does nothing.
-static void func_shelter_1f_vehicular_airlock_8017DA40(Task* task)
+/// Leaves the initialized room-message task idle in state 1.
+static void _shelter1fVehicularAirlockIdleMessageTask(Task* unusedTask)
 {
 }
 
 /// The message task's three state handlers: publishing the room's message
 /// table, idling and `taskKill`.
 static const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
-    { func_shelter_1f_vehicular_airlock_8017D9FC, func_shelter_1f_vehicular_airlock_8017DA40, taskKill },
+    { func_shelter_1f_vehicular_airlock_8017D9FC, _shelter1fVehicularAirlockIdleMessageTask, taskKill },
 };
 
 /// Runs the room's message task through its three states: publishing the
 /// room's message table (`func_shelter_1f_vehicular_airlock_8017D9FC`), idling
-/// (`func_shelter_1f_vehicular_airlock_8017DA40`) and `taskKill`. The table is
+/// (`_shelter1fVehicularAirlockIdleMessageTask`) and `taskKill`. The table is
 /// copied onto the stack first, so the call goes through a local copy rather
 /// than the rodata.
 void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
@@ -457,45 +467,55 @@ void func_shelter_1f_vehicular_airlock_8017DA48(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
+void shelter1fVehicularAirlockDrawLightsTask(Task* task)
 {
+    enum {
+        LIGHTS_INITIALIZE,
+        LIGHTS_DRAW,
+        LIGHT_COLOR_RED   = 2 << 8,
+        LIGHT_COLOR_AMBER = (2 << 8) | (1 << 4),
+        LIGHT_COLOR_GREEN = (2 << 4) | 1,
+        LIGHT_COLOR_WHITE = (1 << 8) | (1 << 4) | 1,
+    };
     u8 view;
 
-    if (task->state == 0) {
+    if (task->state == LIGHTS_INITIALIZE) {
+        // Supply the room's effects for actor-triggered flashes, trails and sparks.
         gRoomEffectFlashId      = EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_SHELTER_1F_VEHICULAR_AIRLOCK_SPARK_BURST;
-        task->state             = 1;
+        task->state             = LIGHTS_DRAW;
     }
 
+    // Only the two mapped room views with visible light fixtures emit glows.
     view = viewGetMappedIndex();
     switch (view) {
         case 2: {
-            SVECTOR* p = D_shelter_1f_vehicular_airlock_8018206C;
+            const SVECTOR* lightPoints = D_shelter_1f_vehicular_airlock_8018206C;
 
-            _glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
-            _glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
-            _glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
-            _glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
-            _glowDrawFactorDisc(&p[12], 0x200, 0x200);
+            _glowDrawAngledCapsule(&lightPoints[0], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);
+            _glowDrawAngledCapsule(&lightPoints[2], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);
+            _glowDrawAngledCapsule(&lightPoints[6], 0x200, 0, LIGHT_COLOR_AMBER);
+            _glowDrawAngledCapsule(&lightPoints[8], 0x200, 0, LIGHT_COLOR_AMBER);
+            _glowDrawFactorDisc(&lightPoints[12], 0x200, LIGHT_COLOR_RED);
             break;
         }
         case 3: {
-            SVECTOR* p = D_shelter_1f_vehicular_airlock_8018205C;
+            const SVECTOR* lightPoints = D_shelter_1f_vehicular_airlock_8018205C;
 
-            _glowDrawAngledCapsule(&p[0], 0x200, 0x800, 0x210);
-            _glowDrawAngledCapsule(&p[2], 0x200, 0x800, 0x210);
-            _glowDrawAngledCapsule(&p[6], 0x200, 0, 0x210);
-            _glowDrawAngledCapsule(&p[8], 0x200, 0, 0x210);
-            _glowDrawAngledCapsule(&p[12], 0x200, 0, 0x111);
+            _glowDrawAngledCapsule(&lightPoints[0], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);
+            _glowDrawAngledCapsule(&lightPoints[2], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);
+            _glowDrawAngledCapsule(&lightPoints[6], 0x200, 0, LIGHT_COLOR_AMBER);
+            _glowDrawAngledCapsule(&lightPoints[8], 0x200, 0, LIGHT_COLOR_AMBER);
+            _glowDrawAngledCapsule(&lightPoints[12], 0x200, 0, LIGHT_COLOR_WHITE);
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 1) {
-                func_shelter_1f_vehicular_airlock_8017E80C(&p[15], 0x804, 0x140, 0x21);
-                func_shelter_1f_vehicular_airlock_8017E80C(&p[16], 0xC0, 0x120, 0x210);
-                func_shelter_1f_vehicular_airlock_8017E80C(&p[17], -0xC0, 0x120, 0x210);
+                _shelter1fVehicularAirlockDrawPulsingLight(&lightPoints[15], 0x804, 0x140, LIGHT_COLOR_GREEN);
+                _shelter1fVehicularAirlockDrawPulsingLight(&lightPoints[16], 0xC0, 0x120, LIGHT_COLOR_AMBER);
+                _shelter1fVehicularAirlockDrawPulsingLight(&lightPoints[17], -0xC0, 0x120, LIGHT_COLOR_AMBER);
             } else {
-                _glowDrawFactorDisc(&p[15], 0x180, 0x21);
-                _glowDrawFactorDisc(&p[16], 0x140, 0x210);
-                _glowDrawFactorDisc(&p[17], 0x140, 0x210);
+                _glowDrawFactorDisc(&lightPoints[15], 0x180, LIGHT_COLOR_GREEN);
+                _glowDrawFactorDisc(&lightPoints[16], 0x140, LIGHT_COLOR_AMBER);
+                _glowDrawFactorDisc(&lightPoints[17], 0x140, LIGHT_COLOR_AMBER);
             }
             break;
         }
@@ -506,95 +526,110 @@ void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task)
 
 #include "../../shared/glow_draw_factor_disc.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, if
-/// the resulting OTZ is at least 0x11, queues two gouraud `POLY_G4` diamonds
-/// and two gouraud `LINE_G3` diagonals around the projected centre. `arg2` is a
-/// signed half-extent; the on-screen radius is `(s16)arg2 * 32 / otz`. `arg1`
-/// scales the display frame counter into `rsin`, giving a pulse of
-/// `rsin(...) / 68 + 0x3C`; `arg3` packs the lit vertex's colour as per-channel
-/// multipliers of that pulse, red in bits 8 and up, green in bits 4-5 and blue
-/// in bits 0-1.
-static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Initializes a three-vertex glow diagonal with a tinted centre and black ends.
+///
+/// The caller supplies coordinates, DMA linkage and semitransparency. Colour
+/// stores narrow the supplied channels to bytes in the caller-owned packet.
+static inline void _shelter1fVehicularAirlockInitLightDiagonal(LINE_G3* diagonal, s32 red, s32 green, s32 blue)
 {
-    RoomGlowSpriteScratch* block;
-    POLY_G4*               prim;
-    LINE_G3*               line;
-    s32                    sine;
-    u8                     pulse;
-    s32                    r;
-    s32                    g;
-    s32                    b;
-    s32                    radius;
-    s32                    i;
-    s32                    t1;
-    s32                    t2;
-    s32                    twice;
-    u16                    sx;
-    u16                    sy;
+    setLineG3(diagonal);
+    setRGB0(diagonal, 0, 0, 0);
+    setRGB1(diagonal, red, green, blue);
+    setRGB2(diagonal, 0, 0, 0);
+}
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
+/// Draws an additive pulsing diamond and two diagonals around a world point.
+///
+/// Borrows `worldPoint` through view projection. Camera Z / 4 must be at
+/// least `GLOW_MIN_DEPTH`; GTE flags are not tested. The signed low halfwords
+/// of `radiusScale` and `pulseRate` supply pixel radius = radiusScale * 32 / depth
+/// and phase advance in 4096 units per turn per animation frame. Intensity is
+/// rsin(phase) / 68 + 60, narrowed to a byte. `packedColor` supplies a signed
+/// red factor in bits 8..15 and unsigned green/blue factors in bits 4..5 and
+/// 0..1; channel stores wrap to bytes. Requires 20 free scratch-stack bytes,
+/// current view matrices and room for four packets plus additive blend commands
+/// in the frame arena; packets must stay live until GPU completion.
+static void _shelter1fVehicularAirlockDrawPulsingLight(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale, s32 packedColor)
+{
+    enum { LIGHT_PULSE_DIVISOR      = 68,
+           LIGHT_PULSE_BASE         = 60,
+           LIGHT_DEPTH_TO_TAG_SHIFT = 4,
+           LIGHT_DEPTH_TAG_MASK     = GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt) };
+    RoomGlowSpriteScratch* projection;
+    POLY_G4*               diamond;
+    LINE_G3*               diagonal;
+    s32                    pulseSine;
+    u8                     intensity;
+    s32                    red;
+    s32                    green;
+    s32                    blue;
+    s32                    screenRadius;
+    s32                    segmentIndex;
+    s32                    diagonalXFactor;
+    s32                    diagonalScale;
+    s32                    diamondYFactor;
+    u16                    centerXBits;
+    u16                    centerYBits;
+
+    projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
+    gte_ldv0(worldPoint);
     gte_rtps();
-    gte_stsxy(&block->screenPos);
-    gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        sine              = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius            = ((s16)arg2 * 32) / block->otz;
-        pulse             = sine / 68 + 0x3C;
-        r                 = pulse * ((s16)arg3 >> 8);
-        g                 = pulse * (((s16)arg3 >> 4) & 3);
-        b                 = pulse * (arg3 & 3);
-        i                 = 0;
-        block->halfExtent = radius;
+    gte_stsxy(&projection->screenPos);
+    gte_stszotz(&projection->otz);
+    // Project first so lights too near the view consume no packets.
+    if (projection->otz >= GLOW_MIN_DEPTH) {
+        pulseSine              = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        screenRadius           = ((s16)radiusScale * GLOW_DIAMOND_RADIUS_SCALE) / projection->otz;
+        intensity              = pulseSine / LIGHT_PULSE_DIVISOR + LIGHT_PULSE_BASE;
+        red                    = intensity * ((s16)packedColor >> 8);
+        green                  = intensity * (((s16)packedColor >> 4) & 3);
+        blue                   = intensity * (packedColor & 3);
+        segmentIndex           = 0;
+        projection->halfExtent = screenRadius;
+        // Two centre-lit triangles form the diamond, with a black outer rim.
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenPos.vx - block->halfExtent;
-            sx       = block->screenPos.vx;
-            prim->x2 = sx;
-            prim->x1 = sx;
-            prim->x3 = block->screenPos.vx + block->halfExtent;
-            sy       = block->screenPos.vy;
-            prim->y3 = sy;
-            prim->y2 = sy;
-            prim->y0 = sy;
-            twice    = i * 2;
-            prim->y1 = (block->screenPos.vy - block->halfExtent) + (block->halfExtent * twice);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
-            i++;
-        } while (i < 2);
+            diamond        = gGpuPrimCursor;
+            gGpuPrimCursor = diamond + 1;
+            _glowInitAngledCapsuleWedge(diamond, red, green, blue);
+            diamond->x0    = projection->screenPos.vx - projection->halfExtent;
+            centerXBits    = projection->screenPos.vx;
+            diamond->x2    = centerXBits;
+            diamond->x1    = centerXBits;
+            diamond->x3    = projection->screenPos.vx + projection->halfExtent;
+            centerYBits    = projection->screenPos.vy;
+            diamond->y3    = centerYBits;
+            diamond->y2    = centerYBits;
+            diamond->y0    = centerYBits;
+            diamondYFactor = segmentIndex * 2;
+            diamond->y1    = (projection->screenPos.vy - projection->halfExtent) + (projection->halfExtent * diamondYFactor);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    diamond);
+            gpuSetPrimitiveBlendMode(diamond, GPU_BLEND_ADD, projection->otz);
+            segmentIndex++;
+        } while (segmentIndex < 2);
 
-        i = 0;
+        // Add two crossed diagonals; the second reaches twice the radius.
+        segmentIndex = 0;
         do {
-            line           = gGpuPrimCursor;
-            gGpuPrimCursor = line + 1;
-            setLineG3(line);
-            setRGB0(line, 0, 0, 0);
-            setRGB1(line, r, g, b);
-            setRGB2(line, 0, 0, 0);
-            t1       = i * 3 - 1;
-            t2       = i + 1;
-            line->x0 = block->screenPos.vx + (block->halfExtent * t1);
-            line->y0 = block->screenPos.vy - (block->halfExtent * t2);
-            line->x1 = block->screenPos.vx;
-            line->y1 = block->screenPos.vy;
-            line->x2 = block->screenPos.vx - (block->halfExtent * t1);
-            line->y2 = block->screenPos.vy + (block->halfExtent * t2);
-            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF]),
-                    line);
-            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
-            i = t2;
-        } while (i < 2);
+            diagonal       = gGpuPrimCursor;
+            gGpuPrimCursor = diagonal + 1;
+            _shelter1fVehicularAirlockInitLightDiagonal(diagonal, red, green, blue);
+            diagonalXFactor = segmentIndex * 3 - 1;
+            diagonalScale   = segmentIndex + 1;
+            diagonal->x0    = projection->screenPos.vx + (projection->halfExtent * diagonalXFactor);
+            diagonal->y0    = projection->screenPos.vy - (projection->halfExtent * diagonalScale);
+            diagonal->x1    = projection->screenPos.vx;
+            diagonal->y1    = projection->screenPos.vy;
+            diagonal->x2    = projection->screenPos.vx - (projection->halfExtent * diagonalXFactor);
+            diagonal->y2    = projection->screenPos.vy + (projection->halfExtent * diagonalScale);
+            addPrim(&gGpuCurrentOt[((u32)projection->otz << gDisplayState.otDepthShift) >> LIGHT_DEPTH_TO_TAG_SHIFT & LIGHT_DEPTH_TAG_MASK],
+                    diagonal);
+            gpuSetPrimitiveBlendMode(diagonal, GPU_BLEND_ADD, projection->otz);
+            segmentIndex = diagonalScale;
+        } while (segmentIndex < 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
@@ -603,14 +638,14 @@ static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, 
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_1f_vehicular_airlock_8017ECBC(Task* arg0)
+void shelter1fVehicularAirlockRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_1f_vehicular_airlock_8017F720(Task* task)
+void shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

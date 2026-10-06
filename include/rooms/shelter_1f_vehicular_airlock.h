@@ -38,12 +38,36 @@ void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task);
 
 void func_shelter_1f_vehicular_airlock_8017DA48(Task* task);
 
-void func_shelter_1f_vehicular_airlock_8017ECBC(Task* task);
+/// Runs the vehicular airlock's charging pink flash, peak screen tint and fading star.
+///
+/// Requires a coordinate body and counted, owned `EffectWork` in
+/// `spawnArg2.pointer`, as installed by `Gp_SpawnEff`. `spawnArg1.value` must
+/// start as a positive charge duration in active ticks; charging consumes it.
+/// Nonzero room effect control pauses the flash; control 4 or above, state 3,
+/// or completion releases the effect work and task.
+void shelter1fVehicularAirlockRoomVisualEffectsFlashTask(Task* task);
 
-void func_shelter_1f_vehicular_airlock_8017F720(Task* task);
+/// Draws fading twin trails from two fixed offsets on the effect's parent.
+///
+/// Requires a coordinate body and counted, owned `EffectWork` in
+/// `spawnArg2.pointer`; its parent coordinate must stay live until teardown.
+/// `Task::work` starts null and owns two allocated eight-coordinate histories.
+/// `spawnArg1.value` is the nonzero signed-16-bit age at which to finish;
+/// zero leaves lifetime to external teardown. Age includes initialization and
+/// advances only with room effect control below 2. Allocation failure resets
+/// age for retry. Teardown releases both the histories and the effect work.
+void shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_shelter_1f_vehicular_airlock_80180008(Task* task);
 
-void func_shelter_1f_vehicular_airlock_8017DAA0(Task* task);
+/// Draws the vehicular airlock's fixed light glows in mapped views 2 and 3.
+///
+/// Bank-6 task 0x164 installs this room's flash, twin-trail and spark-burst IDs
+/// on its first tick. View 3 uses pulsing stars for three lamps while the
+/// bulwark-unlocked flag is 1, and flickering discs otherwise. Other views emit
+/// no geometry. Requires this overlay loaded, current view matrices, an
+/// initialized scratch stack, and frame packet/ordering-table space. Queued
+/// packets borrow the frame arena until GPU completion; the task owns no work.
+void shelter1fVehicularAirlockDrawLightsTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_1F_VEHICULAR_AIRLOCK_H

@@ -968,9 +968,9 @@ func_shelter_1f_parking_garage_8017F670 = 0x8017F670; // type:func absolute:True
 
 func_shelter_1f_parking_garage_8017FF58 = 0x8017FF58; // type:func absolute:True owner=shelter_1f_parking_garage
 
-func_shelter_1f_vehicular_airlock_8017ECBC = 0x8017ECBC; // type:func absolute:True owner=shelter_1f_vehicular_airlock
+shelter1fVehicularAirlockRoomVisualEffectsFlashTask = 0x8017ECBC; // type:func absolute:True owner=shelter_1f_vehicular_airlock
 
-func_shelter_1f_vehicular_airlock_8017F720 = 0x8017F720; // type:func absolute:True owner=shelter_1f_vehicular_airlock
+shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask = 0x8017F720; // type:func absolute:True owner=shelter_1f_vehicular_airlock
 
 func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func absolute:True owner=shelter_1f_vehicular_airlock
 
@@ -1915,7 +1915,7 @@ shelterB6TrainingRoomGlowTask = 0x8017DDE8; // type:func absolute:True owner=she
 
 func_shelter_r49_8017D9D0 = 0x8017D9D0; // type:func absolute:True owner=shelter_r49 shared=rooms
 
-func_shelter_1f_vehicular_airlock_8017DAA0 = 0x8017DAA0; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+shelter1fVehicularAirlockDrawLightsTask = 0x8017DAA0; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 
 func_shelter_1f_bulwark_8017E2A4 = 0x8017E2A4; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
 

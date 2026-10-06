@@ -892,7 +892,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017EA08, { NULL } },                       // 0x161
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r49_8017D9D0, { NULL } },                                 // 0x162
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017DF6C, { NULL } },                   // 0x163
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_8017DAA0, { NULL } },                // 0x164
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockDrawLightsTask, { NULL } },                   // 0x164
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017E2A4, { NULL } },                          // 0x165
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_heliport_80180B4C, { NULL } },                         // 0x166
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_guardroom_8017DA28, { NULL } },                        // 0x167
@@ -1007,7 +1007,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80180BE0, { NULL } },                      // 0x1D4
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80181C2C, { NULL } },                // 0x1D5
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017EC0C, { NULL } },                   // 0x1D6
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_8017ECBC, { NULL } },                // 0x1D7
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsFlashTask, { NULL } },       // 0x1D7
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017FDD4, { NULL } },                     // 0x1D8
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017E420, { NULL } },                         // 0x1D9
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_8017FCB0, { NULL } },                            // 0x1DA
@@ -1035,7 +1035,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_septic_tank_80181644, { NULL } },                      // 0x1F0
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80182690, { NULL } },                // 0x1F1
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017F670, { NULL } },                   // 0x1F2
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_8017F720, { NULL } },                // 0x1F3
+    { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask, { NULL } },   // 0x1F3
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_80180838, { NULL } },                     // 0x1F4
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017EE84, { NULL } },                         // 0x1F5
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80180714, { NULL } },                            // 0x1F6

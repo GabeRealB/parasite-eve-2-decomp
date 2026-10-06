@@ -44,13 +44,13 @@ gRoomEventStagedMsg = 0x80182AA8; // size:0x8 defined:True
 D_shelter_1f_vehicular_airlock_80182AB0 = 0x80182AB0; // size:0x4 defined:True
 gRoomEventLatched = 0x80182AB4; // size:0xC defined:True
 
-func_shelter_1f_vehicular_airlock_8017ECBC = 0x8017ECBC; // type:func
+shelter1fVehicularAirlockRoomVisualEffectsFlashTask = 0x8017ECBC; // type:func
 
-func_shelter_1f_vehicular_airlock_8017F720 = 0x8017F720; // type:func
+shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask = 0x8017F720; // type:func
 
 func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func
 
-func_shelter_1f_vehicular_airlock_8017DAA0 = 0x8017DAA0; // type:func
+shelter1fVehicularAirlockDrawLightsTask = 0x8017DAA0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017EF60; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017F38C; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017FC10; // type:func
@@ -58,3 +58,7 @@ _roomVisualEffectsDrawBurstStar = 0x80180290; // type:func
 roomEventStagedTask = 0x8017D644; // type:func
 _glowDrawFactorDisc = 0x8017E468; // type:func
 _glowDrawAngledCapsule = 0x8017DC80; // type:func
+_shelter1fVehicularAirlockDrawPulsingLight = 0x8017e80c; // type:func
+_shelter1fVehicularAirlockRejectKeyItem = 0x8017d988; // type:func
+_shelter1fVehicularAirlockIgnoreDirectionAction = 0x8017d9f4; // type:func
+_shelter1fVehicularAirlockIdleMessageTask = 0x8017da40; // type:func
