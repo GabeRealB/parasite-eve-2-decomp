@@ -2259,12 +2259,11 @@ static void func_actor_403000_80133AF8(Task* arg0)
         if ((targetAngle - currentAngle) >= 0x72) {
             work->neckYaw = currentAngleBits + 0x71;
         } else {
-            goto block_26;
+            work->neckYaw = targetAngleBits;
         }
     } else if ((currentAngle - targetAngle) >= 0x72) {
         work->neckYaw = currentAngleBits - 0x71;
     } else {
-    block_26:
         work->neckYaw = targetAngleBits;
     }
     if (work->neckYawEnabled == 1) {
