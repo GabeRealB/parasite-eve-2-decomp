@@ -71,7 +71,7 @@
 /// gated event fires.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// Message table `func_shelter_b2_elevator_hall_8017DCBC` installs on its task.
+/// Message table `_shelterB2ElevatorHallInitRoomTask` installs on its task.
 extern TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[];
 
 /// Copy of the message that fired a gated event, kept for the task
@@ -96,14 +96,17 @@ extern SVECTOR  D_shelter_b2_elevator_hall_80183868[];
 extern SVECTOR  D_shelter_b2_elevator_hall_801838A8[];
 extern SVECTOR  D_shelter_b2_elevator_hall_801838B0[];
 
-static void func_shelter_b2_elevator_hall_8017DCBC(Task* task);
-static void func_shelter_b2_elevator_hall_8017DD00(Task* task);
+static void _shelterB2ElevatorHallInitRoomTask(Task* task);
+static void _shelterB2ElevatorHallIdleRoomTask(Task* task);
 
-s32 func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_elevator_hall_8017DC70(Task*, s32, s32, s32);
-s32 func_shelter_b2_elevator_hall_8017DC78(Task*, s32, s32, s32);
-s32 func_shelter_b2_elevator_hall_8017DC80(Task*, s32, s32, s32);
-s32 func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, s32);
+s32        func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB2ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _shelterB2ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterB2ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32 _shelterB2ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
+
+/// Room message whose first payload word is the key-item ID to use.
+enum { SHELTER_B2_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -111,10 +114,10 @@ TaskDesc D_shelter_b2_elevator_hall_8018379C = { { { TASK_BODY_NONE, 32 } }, she
 
 TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_hall_8017DAD4 },
-    { 5105, func_shelter_b2_elevator_hall_8017DC70 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_elevator_hall_8017DC80 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_elevator_hall_8017DC78 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b2_elevator_hall_8017DC88 },
+    { SHELTER_B2_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _shelterB2ElevatorHallRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2ElevatorHallIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB2ElevatorHallIgnoreRoomCommand },
+    { ROOM_MESSAGE_SOUND, _shelterB2ElevatorHallHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -548,64 +551,95 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
     return 1;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC70(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request (message 0x13F1), returning zero.
+static s32 _shelterB2ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC78(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and their argument words, returning zero.
+static s32 _shelterB2ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC80(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the borrowed room-action request, returning zero without reading it.
+static s32 _shelterB2ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b2_elevator_hall_8017DC88(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts the elevator sound script for cue 1; other cues do nothing, and all return zero.
+static s32 _shelterB2ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg)
 {
-    if (arg2 == 1) {
-        sndEvtRequestScriptStart(0x541B0000 | 1, 0, 0);
+    enum { ELEVATOR_SOUND_CUE    = 1,
+           ELEVATOR_SOUND_SCRIPT = 0x541B0001 };
+
+    if (cueId == ELEVATOR_SOUND_CUE) {
+        sndEvtRequestScriptStart(ELEVATOR_SOUND_SCRIPT, 0, 0);
     }
     return 0;
 }
 
 /// The room's three-entry task state table, dispatched by
-/// `func_shelter_b2_elevator_hall_8017DD08` from a stack copy.
+/// `shelterB2ElevatorHallRoomTask` from a stack copy.
 static const TaskFuncTable3 D_shelter_b2_elevator_hall_8017D5F0 = {
     {
-        func_shelter_b2_elevator_hall_8017DCBC,
-        func_shelter_b2_elevator_hall_8017DD00,
+        _shelterB2ElevatorHallInitRoomTask,
+        _shelterB2ElevatorHallIdleRoomTask,
         taskKill,
     },
 };
 
-/// Installs the room's message table on `task` and advances it.
-static void func_shelter_b2_elevator_hall_8017DCBC(Task* task)
+/// Installs the room message handlers and registers the task as the current room receiver.
+///
+/// Called in state 0; advances to the idle state without allocating work or a body.
+static void _shelterB2ElevatorHallInitRoomTask(Task* task)
 {
     task->msgTable = D_shelter_b2_elevator_hall_801837A8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
-/// Empty middle state of the room's state table.
-static void func_shelter_b2_elevator_hall_8017DD00(Task* task)
+/// Keeps the room receiver alive in state 1 while messages perform its work.
+static void _shelterB2ElevatorHallIdleRoomTask(Task* task)
 {
 }
 
-/// Runs the handler for the task's state from the room's state table.
-void func_shelter_b2_elevator_hall_8017DD08(Task* task)
+void shelterB2ElevatorHallRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b2_elevator_hall_8017D5F0;
-    sp.funcs[task->state](task);
+    states = D_shelter_b2_elevator_hall_8017D5F0;
+    states.funcs[task->state](task);
 }
 
-void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
+/// Draws the south walkway door's unlocked or locked indicator in the current view.
+static inline void _shelterB2ElevatorHallDrawDoorIndicator(void)
 {
-    if (arg0->state == 0) {
+    enum { DOOR_INDICATOR_RADIUS = 0x100,
+           DOOR_UNLOCKED_COLOR   = 0x504C, // RGB nibbles; odd frames add 32 per channel
+           DOOR_LOCKED_COLOR     = 0x5C40 };
+
+    if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
+        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, DOOR_INDICATOR_RADIUS, DOOR_UNLOCKED_COLOR);
+    } else {
+        _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, DOOR_INDICATOR_RADIUS, DOOR_LOCKED_COLOR);
+    }
+}
+
+void shelterB2ElevatorHallDrawGlowsTask(Task* task)
+{
+    enum { GLOWS_INITIALIZE,
+           GLOWS_DRAW,
+           MAPPED_VIEW_MASK = 0xFF,
+           LAMP_RADIUS      = 0x180,
+           ACCENT_RADIUS    = 0x200,
+           LAMP_COLOR       = 0x111, // RGB nibbles, each scaled by 16
+           ACCENT_COLOR     = 0x412 };
+
+    // Select this loaded room's effect implementations before any dependent spawn.
+    if (task->state == GLOWS_INITIALIZE) {
         gRoomEffectMoteId         = EFFECT_SHELTER_B2_ELEVATOR_HALL_MOTE;
         gRoomEffectHaloId         = EFFECT_SHELTER_B2_ELEVATOR_HALL_HALO;
         gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B2_ELEVATOR_HALL_ORANGE_BURST;
@@ -613,60 +647,54 @@ void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
         gRoomEffectFlashId        = EFFECT_SHELTER_B2_ELEVATOR_HALL_FLASH;
         gRoomEffectTwinTrailId    = EFFECT_SHELTER_B2_ELEVATOR_HALL_TWIN_TRAIL;
         gRoomEffectSparkBurstId   = EFFECT_SHELTER_B2_ELEVATOR_HALL_SPARK_BURST;
-        arg0->state               = 1;
+        task->state               = GLOWS_DRAW;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Draw only the world-space lamps visible from the mapped camera.
+    // Views 2..4 span adjacent lamp-point arrays; their containing object is unproven.
+    switch (viewGetMappedIndex() & MAPPED_VIEW_MASK) {
         case 2: {
-            SVECTOR* p;
-            p = D_shelter_b2_elevator_hall_801837D8;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[2], 0x180, 0x111);
-            _glowDrawCapsule(&p[16], 0x180, 0x111);
-            _glowDrawCapsule(&p[24], 0x200, 0x412);
+            const SVECTOR* lampEndpoints;
+            lampEndpoints = D_shelter_b2_elevator_hall_801837D8;
+            _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[2], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[16], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[24], ACCENT_RADIUS, ACCENT_COLOR);
             break;
         }
         case 3: {
-            SVECTOR* p;
-            p = D_shelter_b2_elevator_hall_801837F8;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[8], 0x180, 0x111);
-            _glowDrawCapsule(&p[12], 0x180, 0x111);
-            _glowDrawCapsule(&p[20], 0x200, 0x412);
+            const SVECTOR* lampEndpoints;
+            lampEndpoints = D_shelter_b2_elevator_hall_801837F8;
+            _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[8], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[12], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[20], ACCENT_RADIUS, ACCENT_COLOR);
             break;
         }
         case 4: {
-            SVECTOR* p;
-            p = D_shelter_b2_elevator_hall_80183808;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[8], 0x180, 0x111);
-            _glowDrawCapsule(&p[12], 0x180, 0x111);
-            _glowDrawCapsule(&p[16], 0x200, 0x412);
+            const SVECTOR* lampEndpoints;
+            lampEndpoints = D_shelter_b2_elevator_hall_80183808;
+            _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[8], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[12], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[16], ACCENT_RADIUS, ACCENT_COLOR);
             break;
         }
         case 5: {
-            SVECTOR* p;
-            if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
-            } else {
-                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);
-            }
-            p = D_shelter_b2_elevator_hall_80183868;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[2], 0x200, 0x412);
-            _glowDrawCapsule(&p[4], 0x200, 0x412);
+            const SVECTOR* lampEndpoints;
+            _shelterB2ElevatorHallDrawDoorIndicator();
+            lampEndpoints = D_shelter_b2_elevator_hall_80183868;
+            _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[2], ACCENT_RADIUS, ACCENT_COLOR);
+            _glowDrawCapsule(&lampEndpoints[4], ACCENT_RADIUS, ACCENT_COLOR);
             break;
         }
         case 6: {
-            SVECTOR* p;
-            if (gameFlagGetNibble(GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838A8, 0x100, 0x504C);
-            } else {
-                _glowDrawTintedDisc(D_shelter_b2_elevator_hall_801838B0, 0x100, 0x5C40);
-            }
-            p = D_shelter_b2_elevator_hall_80183868;
-            _glowDrawCapsule(&p[0], 0x180, 0x111);
-            _glowDrawCapsule(&p[2], 0x200, 0x412);
+            const SVECTOR* lampEndpoints;
+            _shelterB2ElevatorHallDrawDoorIndicator();
+            lampEndpoints = D_shelter_b2_elevator_hall_80183868;
+            _glowDrawCapsule(&lampEndpoints[0], LAMP_RADIUS, LAMP_COLOR);
+            _glowDrawCapsule(&lampEndpoints[2], ACCENT_RADIUS, ACCENT_COLOR);
             break;
         }
     }
@@ -678,21 +706,21 @@ void func_shelter_b2_elevator_hall_8017DD60(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b2_elevator_hall_8017F1D8(Task* task)
+void shelterB2ElevatorHallRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b2_elevator_hall_8017FF20(Task* arg0)
+void shelterB2ElevatorHallRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b2_elevator_hall_801802B8(Task* arg0)
+void shelterB2ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -705,14 +733,14 @@ void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b2_elevator_hall_801817FC(Task* arg0)
+void shelterB2ElevatorHallRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b2_elevator_hall_80182260(Task* task)
+void shelterB2ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
