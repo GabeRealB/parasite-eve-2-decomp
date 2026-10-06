@@ -4,15 +4,21 @@
 
 /* Part of the water effects library; see water_effects.h. */
 
-/// Converts a water particle's launch direction and speed into its velocity.
+/// Initializes a water-spray particle's parent-space velocity from its launch direction.
 ///
-/// Borrows writable `particleWork`; `move` is a signed direction and `step`
-/// is speed in parent-coordinate units per running tick (0 stationary,
-/// otherwise 1..255). In-place Q12 normalization precedes GTE speed scaling.
-/// Only the three signed halfword components change; no pointer is retained.
-/// The speed is read after normalization, and a zero direction still reaches
-/// the SDK normalizer. GTE state is overwritten.
-static inline void _waterDriftUncomposedInitializeVelocity(EffectWork* particleWork)
+/// Borrows a live, writable `particleWork`. Its signed `move` components
+/// supply a direction in the particle coordinate's parent space; `step`
+/// supplies speed in parent-coordinate units per running update (0..255,
+/// with 0 stationary). The direction is normalized in place to Q12, then
+/// multiplied by the signed speed read after normalization with a 12-bit
+/// arithmetic right shift. The stored velocity is an integer displacement,
+/// not Q12; SDK approximation and rounding can change its magnitude.
+///
+/// Only `move.vx`, `move.vy` and `move.vz` are written. `move.pad`, `step`
+/// and the rest of the work are preserved. Zero speed or direction still
+/// reaches the SDK normalizer. No pointer is retained or storage released.
+/// GTE state is clobbered, including its colour FIFO.
+static inline void _waterInitializeLaunchVelocity(EffectWork* particleWork)
 {
     SVECTOR* launchVelocity = &particleWork->move;
 
@@ -135,7 +141,7 @@ void WATER_DRIFT_UNCOMPOSED_TASK(Task* task)
                         particleWork->move.vz = particleWork->pos.vz;
                         break;
                 }
-                _waterDriftUncomposedInitializeVelocity(particleWork);
+                _waterInitializeLaunchVelocity(particleWork);
             } else {
                 // A supplied velocity bypasses scaling; step only enables motion.
                 particleWork->step = WATER_DRIFT_DEFAULT_SPEED;
