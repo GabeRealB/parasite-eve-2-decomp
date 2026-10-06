@@ -1473,141 +1473,136 @@ u32* tmdDrawStreamPrimGt4EnvLayer(TmdStreamWorkspace* workspace, s32 objectFlags
 
     packetPair     = (POLY_GT4*)workspace->primWrite;
     referenceColor = gGpColorGrey;
-    if (workspace->elemCount-- > 0) {
+    for (; workspace->elemCount-- > 0; packetPair += 2, elements += workspace->elemStride) {
         gteFlagDestination   = &workspace->gteFlag;
         gteResultDestination = &workspace->gteResult;
-        do {
-            elementHalfwords = (const u16*)elements;
-            vertexBytes      = (const u8*)workspace->verts;
-            // Project packed byte references; packet slots are consumed even on rejection.
-            gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-            gte_rtpt();
+        elementHalfwords     = (const u16*)elements;
+        vertexBytes          = (const u8*)workspace->verts;
+        // Project packed byte references; packet slots are consumed even on rejection.
+        gte_ldv3(vertexBytes + (elementHalfwords[0] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[1] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), vertexBytes + (elementHalfwords[2] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+        gte_rtpt();
+        gte_stflg(gteFlagDestination);
+        if ((workspace->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
+            gte_nclip();
+            gte_stopz(gteResultDestination);
+            gte_stsxy3_gt4(&packetPair[0]);
+            gte_stsxy3_gt4(&packetPair[1]);
+            gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+            gte_rtps();
             gte_stflg(gteFlagDestination);
             if ((workspace->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
                 gte_nclip();
-                gte_stopz(gteResultDestination);
-                gte_stsxy3_gt4(&packetPair[0]);
-                gte_stsxy3_gt4(&packetPair[1]);
-                gte_ldv0((const u8*)workspace->verts + (elementHalfwords[3] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-                gte_rtps();
-                gte_stflg(gteFlagDestination);
-                if ((workspace->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
-                    gte_nclip();
-                    gte_stsxy2(&packetPair[0].x3);
-                    gte_stsxy2(&packetPair[1].x3);
-                    // Collapse the rejected half into a repeated endpoint; retain AVSZ4 depths.
-                    if (workspace->gteResult <= 0) {
-                        *(u_long*)&packetPair[0].x0 = *(u_long*)&packetPair[0].x1;
-                        *(u_long*)&packetPair[1].x0 = *(u_long*)&packetPair[1].x1;
-                        gte_stopz(gteResultDestination);
-                        if (workspace->gteResult >= 0) {
-                            goto skip;
-                        }
-                    } else {
-                        gte_stopz(gteResultDestination);
-                        if (workspace->gteResult >= 0) {
-                            *(u_long*)&packetPair[0].x3 = *(u_long*)&packetPair[0].x2;
-                            *(u_long*)&packetPair[1].x3 = *(u_long*)&packetPair[1].x2;
-                        }
+                gte_stsxy2(&packetPair[0].x3);
+                gte_stsxy2(&packetPair[1].x3);
+                // Collapse the rejected half into a repeated endpoint; retain AVSZ4 depths.
+                if (workspace->gteResult <= 0) {
+                    *(u_long*)&packetPair[0].x0 = *(u_long*)&packetPair[0].x1;
+                    *(u_long*)&packetPair[1].x0 = *(u_long*)&packetPair[1].x1;
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult >= 0) {
+                        continue;
                     }
-                    gte_avsz4();
-                    normalBytes = (const u8*)workspace->normals;
-                    gte_ldv3(normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-                    gte_ldrgb(&D_80114BA4);
-                    gte_ncct();
-                    gte_strgb3_gt4(&packetPair[0]);
-                    gte_ldrgb(&D_80114BA8);
-                    gte_ncct();
-                    gte_strgb3_gt4(&packetPair[1]);
-                    // Map screen pixels minus scaled view-space normals into the environment texture.
-                    gte_rtv0();
-                    gte_stsv(&workspace->elemNormal);
-                    anySecondPage     = 0;
-                    screenComponent   = &packetPair[0].x0;
-                    textureCoordinate = &packetPair[0].u0;
-                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
-                    rotatedNormal     = &workspace->elemNormal;
-                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
-                    *textureCoordinate = textureComponent;
-                    textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
-                    *textureCoordinate = secondPage;
-                    anySecondPage     |= secondPage;
-                    gte_rtv1();
-                    gte_stsv(&workspace->elemNormal);
-                    screenComponent   = &packetPair[0].x1;
-                    textureCoordinate = &packetPair[0].u1;
-                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
-                    rotatedNormal     = &workspace->elemNormal;
-                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
-                    *textureCoordinate = textureComponent;
-                    textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
-                    *textureCoordinate = secondPage;
-                    anySecondPage     |= secondPage;
-                    gte_rtv2();
-                    gte_stsv(&workspace->elemNormal);
-                    screenComponent   = &packetPair[0].x2;
-                    textureCoordinate = &packetPair[0].u2;
-                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
-                    rotatedNormal     = &workspace->elemNormal;
-                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
-                    *textureCoordinate    = textureComponent;
-                    textureCoordinate    -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
-                    *textureCoordinate    = secondPage;
-                    anySecondPage        |= secondPage;
-                    corner3ScreenPosition = &packetPair[0].x3;
-                    gte_ldv0((const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
-                    gte_ldrgb(&D_80114BA4);
-                    gte_nccs();
-                    gte_strgb(&packetPair[0].r3);
-                    gte_ldrgb(&D_80114BA8);
-                    gte_nccs();
-                    gte_strgb(&packetPair[1].r3);
-                    gte_rtv0();
-                    gte_stsv(&workspace->elemNormal);
-                    screenComponent   = corner3ScreenPosition;
-                    textureCoordinate = &packetPair[0].u3;
-                    secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
-                    rotatedNormal     = &workspace->elemNormal;
-                    TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
-                    *textureCoordinate = textureComponent;
-                    textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
-                    *textureCoordinate = secondPage;
-
-                    anySecondPage |= secondPage;
-                    if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
-                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
-
-                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
-
-                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
-
-                        TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, corner3LayerColor, &packetPair[0].r3, &referenceColor);
+                } else {
+                    gte_stopz(gteResultDestination);
+                    if (workspace->gteResult >= 0) {
+                        *(u_long*)&packetPair[0].x3 = *(u_long*)&packetPair[0].x2;
+                        *(u_long*)&packetPair[1].x3 = *(u_long*)&packetPair[1].x2;
                     }
-
-                    pageMarker = &packetPair[0].code;
-                    if (anySecondPage == 0) {
-                        packetPair[0].tpage = TMD_ENV_FIRST_TEXTURE_PAGE;
-                    } else {
-                        cornerIndex = 0;
-                        textureU    = &packetPair[0].u0;
-                        TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT4_CORNER_COUNT);
-                        packetPair[0].tpage = TMD_ENV_SECOND_TEXTURE_PAGE;
-                    }
-
-                    payloadWordCount = sizeof(*packetPair) / sizeof(u32) - 1;
-                    setlen(&packetPair[0], payloadWordCount);
-                    setcode(&packetPair[0], TMD_GT4_SEMI_TRANS_COMMAND);
-                    setlen(&packetPair[1], payloadWordCount);
-                    setcode(&packetPair[1], TMD_GT4_OPAQUE_COMMAND);
-                    gte_stotz(gteResultDestination);
-                    addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[0]);
-                    addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[1]);
                 }
+                gte_avsz4();
+                normalBytes = (const u8*)workspace->normals;
+                gte_ldv3(normalBytes + (elementHalfwords[4] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[5] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK), normalBytes + (elementHalfwords[6] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                gte_ldrgb(&D_80114BA4);
+                gte_ncct();
+                gte_strgb3_gt4(&packetPair[0]);
+                gte_ldrgb(&D_80114BA8);
+                gte_ncct();
+                gte_strgb3_gt4(&packetPair[1]);
+                // Map screen pixels minus scaled view-space normals into the environment texture.
+                gte_rtv0();
+                gte_stsv(&workspace->elemNormal);
+                anySecondPage     = 0;
+                screenComponent   = &packetPair[0].x0;
+                textureCoordinate = &packetPair[0].u0;
+                secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                rotatedNormal     = &workspace->elemNormal;
+                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                *textureCoordinate = textureComponent;
+                textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                *textureCoordinate = secondPage;
+                anySecondPage     |= secondPage;
+                gte_rtv1();
+                gte_stsv(&workspace->elemNormal);
+                screenComponent   = &packetPair[0].x1;
+                textureCoordinate = &packetPair[0].u1;
+                secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                rotatedNormal     = &workspace->elemNormal;
+                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                *textureCoordinate = textureComponent;
+                textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                *textureCoordinate = secondPage;
+                anySecondPage     |= secondPage;
+                gte_rtv2();
+                gte_stsv(&workspace->elemNormal);
+                screenComponent   = &packetPair[0].x2;
+                textureCoordinate = &packetPair[0].u2;
+                secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                rotatedNormal     = &workspace->elemNormal;
+                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                *textureCoordinate    = textureComponent;
+                textureCoordinate    -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                *textureCoordinate    = secondPage;
+                anySecondPage        |= secondPage;
+                corner3ScreenPosition = &packetPair[0].x3;
+                gte_ldv0((const u8*)workspace->normals + (elementHalfwords[7] & TMD_STREAM_GEOMETRY_BYTE_OFFSET_MASK));
+                gte_ldrgb(&D_80114BA4);
+                gte_nccs();
+                gte_strgb(&packetPair[0].r3);
+                gte_ldrgb(&D_80114BA8);
+                gte_nccs();
+                gte_strgb(&packetPair[1].r3);
+                gte_rtv0();
+                gte_stsv(&workspace->elemNormal);
+                screenComponent   = corner3ScreenPosition;
+                textureCoordinate = &packetPair[0].u3;
+                secondPage        = TMD_ENV_FIRST_PAGE_MARKER;
+                rotatedNormal     = &workspace->elemNormal;
+                TMD_CALCULATE_ENVIRONMENT_CORNER_UV(workspace, rotatedNormal, screenComponent, textureCoordinate, textureComponent, secondPage);
+                *textureCoordinate = textureComponent;
+                textureCoordinate -= TMD_ENV_V_TO_PAGE_MARKER_BYTES;
+                *textureCoordinate = secondPage;
+
+                anySecondPage |= secondPage;
+                if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r0, &referenceColor);
+
+                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r1, &referenceColor);
+
+                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, layerColor, &packetPair[0].r2, &referenceColor);
+
+                    TMD_BLEND_ENVIRONMENT_LAYER_COLOR(workspace, corner3LayerColor, &packetPair[0].r3, &referenceColor);
+                }
+
+                pageMarker = &packetPair[0].code;
+                if (anySecondPage == 0) {
+                    packetPair[0].tpage = TMD_ENV_FIRST_TEXTURE_PAGE;
+                } else {
+                    cornerIndex = 0;
+                    textureU    = &packetPair[0].u0;
+                    TMD_FOLD_ENVIRONMENT_PAGE_U(pageMarker, textureU, cornerIndex, TMD_GT4_CORNER_COUNT);
+                    packetPair[0].tpage = TMD_ENV_SECOND_TEXTURE_PAGE;
+                }
+
+                payloadWordCount = sizeof(*packetPair) / sizeof(u32) - 1;
+                setlen(&packetPair[0], payloadWordCount);
+                setcode(&packetPair[0], TMD_GT4_SEMI_TRANS_COMMAND);
+                setlen(&packetPair[1], payloadWordCount);
+                setcode(&packetPair[1], TMD_GT4_OPAQUE_COMMAND);
+                gte_stotz(gteResultDestination);
+                addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[0]);
+                addPrim((&workspace->ot[(((((u32)workspace->gteResult << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*workspace->ot)]), &packetPair[1]);
             }
-        skip:
-            packetPair += 2;
-            elements   += workspace->elemStride;
-        } while (workspace->elemCount-- > 0);
+        }
     }
     workspace->primWrite = (u8*)packetPair;
     return elements;
