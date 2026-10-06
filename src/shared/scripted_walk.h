@@ -89,8 +89,20 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #endif
 
+#ifndef SCRIPTED_WALK_TICK_ANIM
+/// Selects the no-argument function that ticks the published walker's part animation.
+///
+/// Bind to a `void name(void)` function before this header, or undefine and
+/// rebind around both the update and tick fragments for an additional walker.
+/// The tick fragment defines the function; the update fragment calls it.
+/// `gScriptedWalkWork` must select the same walker's live, initialized rig.
+/// The default serves the sole or first walker in all five carriers;
+/// actor_143900 binds its second copy to `_scriptedWalkTickSecondAnim`.
+#define SCRIPTED_WALK_TICK_ANIM scriptedWalkTickAnim
+#endif
+
 void scriptedWalkUpdate(Task* task);
-void scriptedWalkTickAnim(void);
+void SCRIPTED_WALK_TICK_ANIM(void);
 void scriptedWalkResetAnim(void);
 void scriptedWalkBlendAnim(void);
 s32  scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);

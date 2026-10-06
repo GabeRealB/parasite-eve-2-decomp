@@ -44,6 +44,6 @@ void scriptedWalkUpdate(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }
-        scriptedWalkTickAnim();
+        SCRIPTED_WALK_TICK_ANIM();
     }
 }

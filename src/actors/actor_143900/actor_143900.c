@@ -129,7 +129,7 @@ static void func_actor_143900_80132A9C(Task* task);
 static void func_actor_143900_80132E48(Enemy* enemy, Task* task);
 static void func_actor_143900_80132ECC(Task* task);
 static void func_actor_143900_80132F14(Task* task);
-static void func_actor_143900_80133068(void);
+static void _scriptedWalkTickSecondAnim(void);
 static void func_actor_143900_801330B4(void);
 static void func_actor_143900_80133144(void);
 
@@ -1402,8 +1402,12 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 }
 
 /// The second walker's copy.
-#define scriptedWalkUpdate       func_actor_143900_80132A9C
-#define scriptedWalkTickAnim     func_actor_143900_80133068
+#define scriptedWalkUpdate func_actor_143900_80132A9C
+#undef SCRIPTED_WALK_TICK_ANIM
+/// Routes the second walker's update to its private `void(void)` animation tick.
+///
+/// The tick fragment is included later with this same function and work binding.
+#define SCRIPTED_WALK_TICK_ANIM  _scriptedWalkTickSecondAnim
 #define scriptedWalkResetAnim    func_actor_143900_801330B4
 #define scriptedWalkBlendAnim    func_actor_143900_80133144
 #define gScriptedWalkWork        D_actor_143900_801496C4
@@ -1414,7 +1418,7 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #include "../../shared/scripted_walk_update.inc.c"
 #undef scriptedWalkUpdate
-#undef scriptedWalkTickAnim
+#undef SCRIPTED_WALK_TICK_ANIM
 #undef scriptedWalkResetAnim
 #undef scriptedWalkBlendAnim
 #undef gScriptedWalkWork
@@ -1493,11 +1497,11 @@ void func_actor_143900_80132FB0(Task* task)
     }
 }
 
-/// The second walker's copy.
-#define scriptedWalkTickAnim func_actor_143900_80133068
-#define gScriptedWalkWork    D_actor_143900_801496C4
+/// Defines the private `void(void)` animation tick for the second walker's body rig.
+#define SCRIPTED_WALK_TICK_ANIM _scriptedWalkTickSecondAnim
+#define gScriptedWalkWork       D_actor_143900_801496C4
 #include "../../shared/scripted_walk_tick_anim.inc.c"
-#undef scriptedWalkTickAnim
+#undef SCRIPTED_WALK_TICK_ANIM
 #undef gScriptedWalkWork
 
 /// The second walker's copy.
