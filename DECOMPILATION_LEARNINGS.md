@@ -150337,3 +150337,61 @@ attempts; left as it was.
   follow cases back into case 0's else arm. Written as a loop around the
   follow cases with the start block as an inline, loop.c hoists and the frame
   grows by two saved registers (137 -> 155 insns).
+### Goto removal, batch 26: the CD callbacks and drivers of main (fs.c, cdstream.c, cdaudio.c, 2026-10-06)
+
+- **`==2 -> ok; <3 -> out; !=5 -> out; CdFlush(); ok:`** on a `CdSync` result
+  is a three-node switch, `case CdlDiskError: CdFlush(); /* fallthrough */
+  case CdlComplete: ...; break; case CdlNoIntr: default: break;`. With only
+  cases 2 and 5 the `slti 3` is not emitted (a right child with no children
+  of its own skips the bound test, 2 insns short). The third node below 2
+  that shares the default's code gives `bgt 2 -> right; j default`, which
+  jump.c inverts into the `slti 3; bnez default`. Six ladders in
+  `CdAudio_DriveSeek` and `CdAudio_DriveRead`; the `status` and `ret` locals
+  and the doubled `driverStatus = &CdAudio_Ctl` labels went with them. Case
+  order in the source is the block order in the image (`CdlDiskError` first).
+- **An error call at the end of the function, reached from two guards, with
+  an in-loop exit block sitting between the second guard and the loop**
+  (`Fs_InitStage0TablesCb`: `beq ok; j on_error; <table_end block>; ok:`) is
+  `if (status != ERR) { ...; if (pos != want) { fail(); return; } ...loop
+  with the exit written in place... } fail();`. loop.c moves the exit block
+  out of the loop to the barrier behind the inner `fail(); return;`, and
+  cross-jumping then reduces that copy to the `j` (the last copy, which falls
+  into the epilogue, is kept). Both guards as early returns put the call
+  first (same length, wrong place); both as enclosing `if`s leave no barrier
+  and the exit block stays in the loop (2 insns short).
+- **The same error call in the middle of the function, between the value
+  computed for a final test and the test** (`Fs_CdReadyCb`) is
+  `if (ok) { ...; if (mismatch) { if (c) { hard(); return; } soft(); return; }
+  ret = ...; } else { soft(); return; } if (ret) ...`: the `else` copy is
+  where the image has the block and the inner copy becomes a branch to it.
+- **An inline returning 0/1 into the caller's `if` is not threaded.**
+  `ret = 0; j L; L: bnez ret` survives (`li v0,1; j; bne v0,zero` in a
+  scratch test with four returns), so "the body as an inline returning a
+  status, the tails in the caller" cannot stand in for gotos to distinct
+  tails. In `Fs_CdReadyCb` it also made the two error calls identical up to
+  the join, and cross-jumping merged them (2 insns short).
+- Not converted, each for a reason that holds for any structured form:
+  - `Fs_ScanIsoDirectory` (`goto restart` from three wait loops and the
+    tail): as `for (;;)` with `continue`, loop.c hoists `li 5` and two `lui`
+    out of the retry loop into `$s8/$s4/$s6` (5 insns longer, larger frame).
+    The image reloads them, so the retry was not a loop to loop.c.
+  - `CdStream_TickPlayback`, `CdStream_CompleteChunkRead` (`goto stopVoices`
+    back into the first arm): the label has a fresh `lui s1,%hi(CdStream_Runtime)`
+    that the backward jump repeats in its delay slot. An inline called in both
+    arms reuses the function's `$s2` base in the fall-through copy, the copies
+    differ, and the surviving copy is the later one (1 insn longer, blocks in
+    the other order).
+  - `CdStream_PollMtsRead`'s retry jumps into the end of an earlier case
+    (`retry_mode`, `start_read`, `pause_read`): an inline called at both
+    sites is merged into the *later* site (the earlier `break` is processed
+    first and its copy deleted), 23 insns longer. Its `wait_for_progress` and
+    `stream_error` tails follow the switch behind the `break` target; a
+    duplicate of either after `CdStream_LastErrorCode = CdStream_ErrorCode`
+    would reuse the loaded error code where the label reloads it.
+  - `CdAudio_DriveSeek`: the tick-and-return after the switch is the `break`
+    target (a `j` to it carries a fresh `lui v1,%hi(CdAudio_Ctl)` right after
+    a store through `&CdAudio_Ctl`), and the error block sits behind that
+    `return`, so it is reachable only by a jump.
+- Dropping `Fs_LoadImageStrip`'s `do { ... break; ... } while (0)` around the
+  GPU-idle wait for `if (GetRCnt() >= K && retry == 0) { ...; return; }` is 1
+  insn longer; it stays.
