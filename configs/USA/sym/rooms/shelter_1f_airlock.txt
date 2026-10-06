@@ -42,6 +42,10 @@ D_actor_402200_80154188 = 0x80154188; // absolute:True owner=actor_402200
 D_map_neo_ark_8017AFD0 = 0x8017AFD0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017AFF0 = 0x8017AFF0; // absolute:True owner=map_neo_ark
 
-func_shelter_1f_airlock_8017D6D0 = 0x8017D6D0; // type:func
+shelter1fAirlockDrawViewGlowsTask = 0x8017D6D0; // type:func
 _glowDrawFactorDisc = 0x8017E0F0; // type:func
 _glowDrawCapsule = 0x8017D8A8; // type:func
+_shelter1fAirlockRejectKeyItemUse = 0x8017d5d0; // type:func
+_shelter1fAirlockIgnoreCommandMessage = 0x8017d61c; // type:func
+_shelter1fAirlockIgnoreActionMessage = 0x8017d624; // type:func
+_shelter1fAirlockIdle = 0x8017d670; // type:func

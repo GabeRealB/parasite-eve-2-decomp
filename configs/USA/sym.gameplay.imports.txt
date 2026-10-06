@@ -1893,7 +1893,7 @@ func_shelter_b4_lower_sewer_8017E400 = 0x8017E400; // type:func absolute:True ow
 
 func_shelter_r47_801858BC = 0x801858BC; // type:func absolute:True owner=shelter_r47
 
-func_shelter_1f_airlock_8017D6D0 = 0x8017D6D0; // type:func absolute:True owner=shelter_1f_airlock shared=rooms
+shelter1fAirlockDrawViewGlowsTask = 0x8017D6D0; // type:func absolute:True owner=shelter_1f_airlock shared=rooms
 
 neoArkEveAccessTunnelDrawViewGlowsTask = 0x8017E15C; // type:func absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 

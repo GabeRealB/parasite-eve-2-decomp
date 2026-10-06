@@ -42664,7 +42664,7 @@ only content is the shared block moving between the two arms:
 
 Fix: delete the `goto` and the `var_a0` temp, write the final call out in full
 in every case, and end each case with `break`. GCC re-merges them itself, in
-its own direction. `func_shelter_1f_airlock_8017D6D0` is the minimal example
+its own direction. `shelter1fAirlockDrawViewGlowsTask` is the minimal example
 (two arms of 8 and 14 `SVECTOR` emitter calls sharing one last call).
 
 A post-switch shared `taskKill(index)` after `break` is **not** the same rewrite.

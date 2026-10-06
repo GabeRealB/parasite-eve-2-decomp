@@ -32,6 +32,15 @@ extern WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[];
 
 void func_shelter_1f_airlock_8017D678(Task* task);
 
-void func_shelter_1f_airlock_8017D6D0(Task* unused);
+/// Draws the airlock's flickering disc and capsule glows for the current mapped view.
+///
+/// Gameplay's room-effect task slot 0x14D calls this once per update. Views 3
+/// and 4 draw grey discs and cyan capsules; view 5 draws a red disc. Other
+/// views emit nothing. The task argument is unused, and the task remains live.
+/// Requires this room overlay, composed view matrices, an initialized scratch
+/// stack and space in the current frame's packet arena and depth ordering table.
+/// Emits at most 80 Gouraud quads plus their additive blend-mode packets.
+/// Packets remain borrowed from that arena until GPU completion.
+void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask);
 
 #endif // INCLUDE_ROOMS_SHELTER_1F_AIRLOCK_H

@@ -43,15 +43,21 @@
 /// The room's message table, handed to its event task in state 0.
 extern TaskMessageEntry D_shelter_1f_airlock_8017E494[];
 
+enum {
+    SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    SHELTER_1F_AIRLOCK_KEY_ITEM_REJECTED    = 0,
+};
+
 /// Ambient effect emitter positions for the airlock, selected by view index.
 /// `D_shelter_1f_airlock_8017E4BC` / `_8017E4C4` / `_8017E4D4` are successive
 /// labels into one contiguous run of `SVECTOR`s, so the per-view lists overlap.
 
 // Indexed views below share one contiguous table.
-s32 func_shelter_1f_airlock_8017D5D0(Task*, s32, s32, s32);
-s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_airlock_8017D61C(Task*, s32, s32, s32);
-s32 func_shelter_1f_airlock_8017D624(Task*, s32, s32, s32);
+static s32  _shelter1fAirlockRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+s32         func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _shelter1fAirlockIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
+static s32  _shelter1fAirlockIgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
+static void _shelter1fAirlockIdle(Task* unusedTask);
 
 extern WorldCollisionGrid     D_shelter_1f_airlock_8017E838[1];
 extern WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2];
@@ -61,9 +67,9 @@ extern WorldCoordRoomLights   D_shelter_1f_airlock_8017F418[1];
 
 TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
-    { 5105, func_shelter_1f_airlock_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_airlock_8017D624 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_airlock_8017D61C },
+    { SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM, _shelter1fAirlockRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fAirlockIgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, _shelter1fAirlockIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -387,13 +393,16 @@ WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[8] = {
 };
 
 static void func_shelter_1f_airlock_8017D62C(Task* task);
-static void func_shelter_1f_airlock_8017D670(Task* task);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in this room, returning the menu's rejection result.
+///
+/// The first payload word is the selected item ID; neither payload is read.
+/// The room task and the selected item remain untouched.
+static s32 _shelter1fAirlockRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return SHELTER_1F_AIRLOCK_KEY_ITEM_REJECTED;
 }
 
 /// The room's handler for message 0x13EE: copies the incoming save location
@@ -405,12 +414,20 @@ s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-s32 func_shelter_1f_airlock_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `ROOM_MESSAGE_COMMAND` and returns zero without changing room state.
+///
+/// Both payload words are unread. CAP and direction senders give them their
+/// own meanings, so no command ID, mode or pointer is interpreted here.
+static s32 _shelter1fAirlockIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     return 0;
 }
 
-s32 func_shelter_1f_airlock_8017D624(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `DIRECTION_MESSAGE_ROOM_ACTION` and returns zero.
+///
+/// The borrowed action request and the zero second payload word are unread;
+/// no request storage is retained or modified.
+static s32 _shelter1fAirlockIgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -424,8 +441,8 @@ static void func_shelter_1f_airlock_8017D62C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room's event task: does nothing, so the task idles here.
-static void func_shelter_1f_airlock_8017D670(Task* task)
+/// Keeps the room task in its idle state while its message table remains installed.
+static void _shelter1fAirlockIdle(Task* unusedTask)
 {
 }
 
@@ -433,7 +450,7 @@ static void func_shelter_1f_airlock_8017D670(Task* task)
 static const TaskFuncTable3 D_shelter_1f_airlock_8017D5C4 = {
     {
         func_shelter_1f_airlock_8017D62C,
-        func_shelter_1f_airlock_8017D670,
+        _shelter1fAirlockIdle,
         taskKill,
     },
 };
@@ -448,37 +465,58 @@ void func_shelter_1f_airlock_8017D678(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_shelter_1f_airlock_8017D6D0(Task* unused)
+/// Draws two adjacent disc glows with the same scale and packed colour factors.
+///
+/// Borrows both world points during drawing and queues their packets in order.
+static inline void _shelter1fAirlockDrawDiscPair(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor)
 {
-    switch (viewGetMappedIndex() & 0xFF) {
-        case 3:
-            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[0], 0x200, 0x111);
-            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4C4[1], 0x200, 0x111);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[3], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[5], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[7], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[9], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[11], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[17], 0x180, 0x1011);
+    _glowDrawFactorDisc(&worldPoints[0], radiusScale, packedColor);
+    _glowDrawFactorDisc(&worldPoints[1], radiusScale, packedColor);
+}
+
+void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
+{
+    enum {
+        SHELTER_1F_AIRLOCK_GLOW_VIEW_3          = 3,
+        SHELTER_1F_AIRLOCK_GLOW_VIEW_4          = 4,
+        SHELTER_1F_AIRLOCK_GLOW_VIEW_5          = 5,
+        SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE    = 0x200,  // Pixel radius = scale * 64 / (camera Z / 4)
+        SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE = 0x180,  // The same scale applies separately at each endpoint
+        SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS    = 0x111,  // RGB factors (1, 1, 1), multiplied by 32 or 40
+        SHELTER_1F_AIRLOCK_DISC_RED_FACTORS     = 0x200,  // RGB factors (2, 0, 0), multiplied by 32 or 40
+        SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER = 0x1011, // RGB nibbles (0, 1, 1) * 16; odd frames add 2
+    };
+    u8 mappedViewIndex;
+
+    mappedViewIndex = viewGetMappedIndex();
+    // Each view selects its visible discs and pairs of capsule endpoints.
+    switch (mappedViewIndex) {
+        case SHELTER_1F_AIRLOCK_GLOW_VIEW_3:
+            _shelter1fAirlockDrawDiscPair(D_shelter_1f_airlock_8017E4C4, SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[3], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[5], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[7], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[9], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[11], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[17], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
             break;
-        case 4:
-            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[0], 0x200, 0x111);
-            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[1], 0x200, 0x111);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[10], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[12], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[14], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[16], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[18], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[20], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[22], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[24], 0x180, 0x1011);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[26], 0x180, 0x1011);
+        case SHELTER_1F_AIRLOCK_GLOW_VIEW_4:
+            _shelter1fAirlockDrawDiscPair(D_shelter_1f_airlock_8017E4BC, SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[10], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[12], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[14], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[16], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[18], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[20], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[22], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[24], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[26], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
             break;
-        case 5:
-            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4D4[0], 0x200, 0x200);
+        case SHELTER_1F_AIRLOCK_GLOW_VIEW_5:
+            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4D4[0], SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_RED_FACTORS);
             break;
     }
 }
