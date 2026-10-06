@@ -40,65 +40,63 @@ void generatorBodyHit(Task* arg0)
         if ((work->hitCooldown << 0x10) <= 0) {
             work->hitCooldown = 0;
         }
-        if (work->hitCooldown != 0) {
-            goto end;
-        }
     }
-    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
-        if ((work->contacts[i].key.value & 0xFFFF0000) != 0x20000) {
-            continue;
-        }
-        scr->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-        scr->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-        scr->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-        damage           = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0(scr->toPlayer.vx * scr->toPlayer.vx + scr->toPlayer.vy * scr->toPlayer.vy + scr->toPlayer.vz * scr->toPlayer.vz), 0, 0);
-        if (work->lifeSupportDestroyed == 0) {
-            damage /= 10;
-        } else if (Gp_RollEnemyChance(enemy, work->contacts[i].key.value, 0) != 0) {
-            damage              *= 4;
-            scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-            scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-            scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
-        }
-        func_800DA6E8(&enemy->node, damage, 0);
-        func_800E2C78(enemy, work->contacts[i].key.value, damage, 0);
-        enemy->hp -= damage;
-        if (enemy->hp <= 0) {
+    if (work->hitCooldown == 0) {
+        for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
+            if ((work->contacts[i].key.value & 0xFFFF0000) != 0x20000) {
+                continue;
+            }
+            scr->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            scr->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            scr->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            damage           = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0(scr->toPlayer.vx * scr->toPlayer.vx + scr->toPlayer.vy * scr->toPlayer.vy + scr->toPlayer.vz * scr->toPlayer.vz), 0, 0);
             if (work->lifeSupportDestroyed == 0) {
-                enemy->hp = 1;
-            } else {
-                arg0->state           = 2;
-                work->deathState      = GENERATOR_DEATH_WAIT;
-                work->battleExitState = GENERATOR_BATTLE_EXIT_HELD;
-                work->alive           = 0;
-                work->animSet         = GENERATOR_ANIM_DEATH;
+                damage /= 10;
+            } else if (Gp_RollEnemyChance(enemy, work->contacts[i].key.value, 0) != 0) {
+                damage              *= 4;
+                scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+                scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+                scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+                Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
             }
-        } else {
-            work->pulseState  = GENERATOR_PULSE_HIT;
-            work->stateFrames = 0;
-            work->animSet     = GENERATOR_ANIM_HIT;
-        }
-        if (lastId != work->contacts[i].key.value) {
-            lastId               = work->contacts[i].key.value;
-            val                  = Gp_GetIdParam1(lastId) & 0xFFFF;
-            scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-            scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-            scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
-            if (val == 3) {
-                Gp_SpawnEff(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->effectOffset);
+            func_800DA6E8(&enemy->node, damage, 0);
+            func_800E2C78(enemy, work->contacts[i].key.value, damage, 0);
+            enemy->hp -= damage;
+            if (enemy->hp <= 0) {
+                if (work->lifeSupportDestroyed == 0) {
+                    enemy->hp = 1;
+                } else {
+                    arg0->state           = 2;
+                    work->deathState      = GENERATOR_DEATH_WAIT;
+                    work->battleExitState = GENERATOR_BATTLE_EXIT_HELD;
+                    work->alive           = 0;
+                    work->animSet         = GENERATOR_ANIM_DEATH;
+                }
             } else {
-                func_800FDB18((u16)val, coord, &scr->effectOffset, &work->effectArg);
+                work->pulseState  = GENERATOR_PULSE_HIT;
+                work->stateFrames = 0;
+                work->animSet     = GENERATOR_ANIM_HIT;
             }
+            if (lastId != work->contacts[i].key.value) {
+                lastId               = work->contacts[i].key.value;
+                val                  = Gp_GetIdParam1(lastId) & 0xFFFF;
+                scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+                scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+                scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+                if (val == 3) {
+                    Gp_SpawnEff(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->effectOffset);
+                } else {
+                    func_800FDB18((u16)val, coord, &scr->effectOffset, &work->effectArg);
+                }
+            }
+            val = Gp_GetIdParam2(work->contacts[i].key.value);
+            if (val > 0) {
+                work->hitCooldown = val;
+            }
+            snd = gGeneratorSoundIds[2] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
         }
-        val = Gp_GetIdParam2(work->contacts[i].key.value);
-        if (val > 0) {
-            work->hitCooldown = val;
-        }
-        snd = gGeneratorSoundIds[2] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
     }
-end:
     worldCollisionClearContacts(work->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(_GeneratorBodyHitScratch);
 }
