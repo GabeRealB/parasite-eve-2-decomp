@@ -30,7 +30,11 @@ extern SpriteView D_dryfield_general_store_8018402C[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_general_store_801856D8[];
 
-void func_dryfield_general_store_8017E150(Task* unused);
+/// Inert callback for the General Store's room-effect slot 0xC4 in task bank 6.
+///
+/// Ignores `unusedTask`, draws nothing and neither advances nor kills the task.
+/// Its coordinate body remains owned by the task until external teardown.
+void dryfieldGeneralStoreNoOpEffectTask(Task* unusedTask);
 
 void func_dryfield_general_store_8017DF5C(Task* task);
 

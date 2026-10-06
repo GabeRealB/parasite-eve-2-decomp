@@ -91,7 +91,7 @@ gStoreRoom = 0x8018570A; // size:0x1 defined:True
 D_dryfield_general_store_8018570B = 0x8018570B; // size:0x1 defined:True
 gRoomEventReq = 0x8018570C; // size:0x14 defined:True
 
-func_dryfield_general_store_8017E150 = 0x8017E150; // type:func
+dryfieldGeneralStoreNoOpEffectTask = 0x8017E150; // type:func
 roomEventGate = 0x8017D600; // type:func
 roomEventTask = 0x8017D764; // type:func
 storeDoorMsg = 0x8017D8D4; // type:func
@@ -99,3 +99,5 @@ storeCutsceneTask = 0x8017DAC0; // type:func
 storeToggleTask = 0x8017DC78; // type:func
 storeActionMsg = 0x8017DD58; // type:func
 storeSoundMsg = 0x8017DDC0; // type:func
+_dryfieldGeneralStoreRejectKeyItemUse = 0x8017ddf4; // type:func
+_dryfieldGeneralStoreIdleRoomTask = 0x8017df4c; // type:func

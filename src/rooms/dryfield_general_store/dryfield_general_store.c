@@ -79,7 +79,7 @@ extern s32              D_dryfield_general_store_8017E564;
 extern EvsCommand       D_dryfield_general_store_8017E568[];
 
 static void func_dryfield_general_store_8017DEAC(Task* arg0);
-static void func_dryfield_general_store_8017DF4C(Task* task);
+static void _dryfieldGeneralStoreIdleRoomTask(Task* task);
 
 extern AnimationPlayRequest     D_dryfield_general_store_8017E4FC;
 extern AnimationBankCopyRequest D_dryfield_general_store_8017E4E0;
@@ -96,10 +96,16 @@ extern WorldCollisionTrigger      D_dryfield_general_store_8018493C[21];
 extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
 extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
 
-s32  func_dryfield_general_store_8017DDF4(Task*, s32, s32, s32);
-s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, s32);
-void func_dryfield_general_store_8017DFB4(Task*);
-void func_dryfield_general_store_8017E064(Task*);
+static s32 _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+s32        func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, s32);
+void       func_dryfield_general_store_8017DFB4(Task*);
+void       func_dryfield_general_store_8017E064(Task*);
+
+/// Inventory's room request and the reply refusing key-item use.
+enum {
+    DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM  = 0x13F1,
+    DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED = 0,
+};
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -111,7 +117,7 @@ TaskDesc gStoreTaskDescs[3] = {
 
 TaskMessageEntry D_dryfield_general_store_8017E188[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
-    { 5105, func_dryfield_general_store_8017DDF4 },
+    { DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM, _dryfieldGeneralStoreRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, storeActionMsg },
     { ROOM_MESSAGE_SOUND, storeSoundMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_general_store_8017DDFC },
@@ -1566,9 +1572,9 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_general_store_8017DF5C`: the entry state
 /// `func_dryfield_general_store_8017DEAC`, the idle state
-/// `func_dryfield_general_store_8017DF4C`, then `taskKill`.
+/// `_dryfieldGeneralStoreIdleRoomTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
-    { func_dryfield_general_store_8017DEAC, func_dryfield_general_store_8017DF4C, taskKill },
+    { func_dryfield_general_store_8017DEAC, _dryfieldGeneralStoreIdleRoomTask, taskKill },
 };
 
 #include "../../shared/general_store_toggle_task.inc.c"
@@ -1577,11 +1583,13 @@ static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
 
 #include "../../shared/general_store_sound_msg.inc.c"
 
-/// Message handler that takes no action and reports the message as not
-/// handled.
-s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Rejects inventory requests to use a key item in the General Store.
+///
+/// Always returns `DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED` (0).
+/// All four callback arguments are ignored; no item is consumed.
+static s32 _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED;
 }
 
 /// Message handler on the slot-4 table that owns the store's story flag 0x5E:
@@ -1619,11 +1627,11 @@ static void func_dryfield_general_store_8017DEAC(Task* arg0)
     D_80115598  = 1;
 }
 
-/// Idle state of the room task: does nothing, though it reserves a stack
-/// frame.
-static void func_dryfield_general_store_8017DF4C(Task* task)
+/// Keeps the room task idle after initialization, leaving its state unchanged.
+static void _dryfieldGeneralStoreIdleRoomTask(Task* task)
 {
-    char pad[0x10];
+    // Preserve the idle callback's otherwise unused 16-byte stack frame.
+    char unusedStack[0x10];
 }
 
 /// The room task: runs the state `D_dryfield_general_store_8017D5F4` names for
@@ -1686,6 +1694,6 @@ void func_dryfield_general_store_8017E130(s32 arg0)
     Gp_ArmStateF0(arg0);
 }
 
-void func_dryfield_general_store_8017E150(Task* unused)
+void dryfieldGeneralStoreNoOpEffectTask(Task* unusedTask)
 {
 }
