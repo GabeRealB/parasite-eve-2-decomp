@@ -505,7 +505,11 @@ WorldCollisionSurfaceProperties* D_shelter_b1_elevator_hall_801849D0[8] = {
 
 RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
 
-/// Selects this room's loaded copies of the counted effects actors can spawn.
+/// Installs the hall's seven effect IDs for actors and nested effects.
+///
+/// Each ID packs task bank 6 and the type of a handler in this room overlay.
+/// Call after the room effect controller resets its spawn slots. The IDs are
+/// valid while this hall's overlay remains loaded.
 static inline void _shelterB1ElevatorHallInstallEffectIds(void)
 {
     gRoomEffectMoteId         = EFFECT_SHELTER_B1_ELEVATOR_HALL_MOTE;
