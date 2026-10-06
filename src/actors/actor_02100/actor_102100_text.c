@@ -1891,40 +1891,24 @@ static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
     _Actor02100Work* work;
     GfxCoord*        coord;
     s32              mode;
-    s32              one;
 
     obj   = arg1->extra.tmd;
     mode  = gSceneCombatState.actorControl;
     work  = arg1->work;
     coord = obj->coords;
-    one   = 1;
-    if (mode == one) {
-        goto case1;
+    switch (mode) {
+        case 0:
+            obj->flags                   = 0;
+            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+            break;
+        case 1:
+            Actor02100_Fn03488(arg1);
+            return;
+        case 2:
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = 1;
+            return;
     }
-    if (mode >= 2) {
-        goto ge2;
-    }
-    if (mode == 0) {
-        goto case0;
-    }
-    goto body;
-ge2:
-    if (mode == 2) {
-        goto case2;
-    }
-    goto body;
-case0:
-    obj->flags                   = 0;
-    arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-    goto body;
-case1:
-    Actor02100_Fn03488(arg1);
-    return;
-case2:
-    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.parts.flags = one;
-    return;
-body:
     Actor02100_Fn004C4(arg1);
     coord->coord.t[0]  += work->velocity.vx;
     coord->coord.t[1]  += work->velocity.vy;
@@ -2034,40 +2018,27 @@ static void Actor02100_Fn034E0(Task* arg0)
 static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1)
 {
     _Actor02100Work* work;
-    s16              state;
-    u16              timer;
 
-    work  = arg1->work;
-    state = work->step;
-    if (state == ACTOR_02100_DEATH_STEP_RELEASE) {
-        goto case0;
+    work = arg1->work;
+    switch (work->step) {
+        case ACTOR_02100_DEATH_STEP_RELEASE:
+            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            worldTargetUnlinkNode(&arg0->node);
+            worldCollisionUnlinkBody(&work->hitBody);
+            worldCollisionUnlinkBody(&work->playerStrikeBody);
+            worldCollisionUnlinkBody(&work->enemyStrikeBody);
+            arg0->recs = 0;
+            Gp_ReleaseStateF0Add(arg1, 0x15);
+            work->step       = ACTOR_02100_DEATH_STEP_WAIT;
+            work->stepFrames = 0x3C;
+            if (work->loopSoundKind != ACTOR_02100_LOOP_SOUND_NONE) {
+                sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+            }
+            break;
+        case ACTOR_02100_DEATH_STEP_WAIT:
+            if (--work->stepFrames <= 0) {
+                enemyDestroy(arg0, arg1);
+            }
+            break;
     }
-    if (state == ACTOR_02100_DEATH_STEP_WAIT) {
-        goto case1;
-    }
-    goto epilogue;
-case0:
-    arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    worldTargetUnlinkNode(&arg0->node);
-    worldCollisionUnlinkBody(&work->hitBody);
-    worldCollisionUnlinkBody(&work->playerStrikeBody);
-    worldCollisionUnlinkBody(&work->enemyStrikeBody);
-    arg0->recs = 0;
-    Gp_ReleaseStateF0Add(arg1, 0x15);
-    work->step       = ACTOR_02100_DEATH_STEP_WAIT;
-    work->stepFrames = 0x3C;
-    if (work->loopSoundKind != ACTOR_02100_LOOP_SOUND_NONE) {
-        sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    }
-    goto epilogue;
-case1:
-    timer = work->stepFrames;
-    timer--;
-    work->stepFrames = timer;
-    if ((s16)timer > 0) {
-        goto epilogue;
-    }
-    enemyDestroy(arg0, arg1);
-epilogue:
-    return;
 }
