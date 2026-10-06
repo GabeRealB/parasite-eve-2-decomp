@@ -625,7 +625,12 @@ WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[8] = {
     D_shelter_b1_storeroom_80186DDC,
 };
 
-/// Selects this loaded room's copies of the effects spawned by actors.
+/// Binds actor-spawned visual effects to the storeroom's task implementations.
+///
+/// Installs packed bank-6 task IDs for `Gp_SpawnEff`. Call after room-effect
+/// initialization clears the bindings and before actors or effect tasks use them.
+/// The storeroom overlay must remain loaded while these IDs are used and while
+/// their spawned tasks are live.
 static inline void _shelterB1StoreroomBindEffectIds(void)
 {
     gRoomEffectMoteId         = EFFECT_SHELTER_B1_STOREROOM_MOTE;
