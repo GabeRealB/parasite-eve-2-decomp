@@ -893,15 +893,25 @@ static void func_actor_143000_80133C2C(void)
 
 #include "../../shared/action_prompt_reset.inc.c"
 
+/// Reads one strip of the frame buffer back into the image workspace: the
+/// rows of `strip`, taken 0x140 wide from x 0x1C0 and 0x100 rows further down,
+/// stored `offset` bytes into `Fs_ImgBuffers`.
+static inline void _actor143000StoreStrip(RECT* strip, s32 offset)
+{
+    RECT dest = *strip;
+
+    dest.x  = 0x1C0;
+    dest.w  = 0x140;
+    dest.y += 0x100;
+    StoreImage(&dest, (u_long*)((u8*)Fs_ImgBuffers + offset));
+}
+
 void func_actor_143000_80133CF0(Task* arg0)
 {
     Actor143000CaptureArgs* args = arg0->spawnArg2.pointer;
     RECT                    r;
-    RECT                    r2;
-    s32                     n;
-    s32                     offset;
-    RECT*                   rp;
     s32                     bottom;
+    s32                     offset;
 
     if (gGameSession->location.loc.view != 0xE) {
         taskKill(arg0);
@@ -921,19 +931,21 @@ void func_actor_143000_80133CF0(Task* arg0)
             r.x                 = args->band.x;
             r.w                 = args->band.w;
             r.y                 = args->band.y + args->band.h * args->stripsCaptured / args->stripCount;
-            n                   = args->stripsCaptured + 1;
-            rp                  = &r2;
-            SOFT_TOUCH_REG_USE(rp, n);
-            args->stripsCaptured = n;
-            bottom               = args->band.y + args->band.h * n / args->stripCount;
-            offset               = r.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
-            r.h                  = bottom - r.y;
-            SOFT_USE_REG(offset);
-            r2    = r;
-            r2.x  = 0x1C0;
-            rp->w = 0x140;
-            r2.y += 0x100;
-            StoreImage(rp, (u_long*)((u8*)Fs_ImgBuffers + offset));
+            args->stripsCaptured++;
+            bottom = args->band.y + args->band.h * args->stripsCaptured / args->stripCount;
+            offset = r.y * FILE_SYSTEM_IMAGE_ROW_BYTES;
+            r.h    = bottom - r.y;
+            /* Matching hack, the one left of two. The target has the three
+             * `* 640` shifts above the struct copy that opens the helper. They
+             * are single-set values, so sched1 places them next to their first
+             * user, which is the StoreImage argument at the bottom of the
+             * block. This asm reads `offset` and writes `r`, so the copy
+             * depends on it and it depends on the `r.h` store: the shifts stay
+             * above the copy. It has an output, so unlike the input-only form
+             * it is not a full barrier, and the `&dest` argument still floats
+             * to the top of the block. */
+            __asm__("" : "+m"(r) : "r"(offset));
+            _actor143000StoreStrip(&r, offset);
             if (args->stripsCaptured >= args->stripCount) {
                 taskKill(arg0);
             }
