@@ -576,12 +576,14 @@ void func_neo_ark_island_8017E844(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_SpawnIfCapIdle(1, 0);
-            goto L_advance;
+            arg0->state++;
+            return;
         case 1:
             if (Gp_CapBusy() != 0) {
                 return;
             }
-            goto L_advance;
+            arg0->state++;
+            return;
         case 2:
             if (Gp_GetCapEventKey() != 0xA) {
                 taskKill(arg0);
@@ -589,9 +591,9 @@ void func_neo_ark_island_8017E844(Task* arg0)
                 return;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            goto L_advance;
+            arg0->state++;
+            return;
         case 3:
-        L_advance:
             arg0->state++;
             return;
         case 4:
