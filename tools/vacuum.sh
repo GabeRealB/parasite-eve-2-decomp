@@ -944,7 +944,7 @@ commit_match_if_needed() {
     # both a failure cost a redundant port agent and a bogus give-up.
     #
     # Already landed: a shared body commits under one overlay's name, so the
-    # subject scan above cannot see it - a7162bb0 "matched func_mp5a5_8011D1E0"
+    # subject scan above cannot see it - a7162bb0, the mp5a5MuzzleFlashTask match,
     # is what gave func_p229_8011D1DC its body. The port then "failed" twice on
     # a function that was already matched.
     #

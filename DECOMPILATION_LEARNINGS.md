@@ -25168,7 +25168,7 @@ Chaining also collapses the *loads*, which matters when the destination is a
 local array rather than a global. `rgb[0] = work->field_28; rgb[1] = …;
 rgb[2] = …;` reloads the field three times, because GCC cannot prove the `u8
 rgb[3]` stores do not alias it; `rgb[0] = rgb[1] = rgb[2] = work->field_28;` is
-one `lbu` and three `sb` in reverse index order. `func_mp5a5_8011D1E0` is the
+one `lbu` and three `sb` in reverse index order. `mp5a5MuzzleFlashTask` is the
 example.
 
 Write the `<= 0` clamp arm first so the compiler emits `bgtz` to the
@@ -37770,7 +37770,7 @@ work->field_24 >>= 1;
 So a `sll 16; sra 17` pair off an `lhu` does not require the non-volatile `+r`
 pin from the `(s16)x >> 1` entry above; that pin is only needed when combine
 already knows the value's range (e.g. it came from an `andi`) and would emit a
-bare `srl 1`. `func_mp5a5_8011D1E0` is the example.
+bare `srl 1`. `mp5a5MuzzleFlashTask` is the example.
 
 ## Recovering a switch's `slti … → default` with one dummy case below the tree root
 

@@ -57,8 +57,7 @@ void func_mp5a5_8011DDA4(Task* arg0);
 
 #include "../../shared/muzzle_flash_task.inc.c"
 
-/// The MP5A5 and its upgrades\'s muzzle-flash task, named by gameplay\'s effect table.
-void func_mp5a5_8011D1E0(Task* task)
+void mp5a5MuzzleFlashTask(Task* task)
 {
     _muzzleFlashTask(task);
 }

@@ -603,7 +603,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, m4a1BayonetTrailTask, { NULL } },                                        // 0x03E
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask3F, { NULL } },                                          // 0x03F
     { { { TASK_BODY_COORD, 0x70 } }, func_p229_8011D1DC, { NULL } },                                          // 0x040
-    { { { TASK_BODY_COORD, 0x70 } }, func_mp5a5_8011D1E0, { NULL } },                                         // 0x041
+    { { { TASK_BODY_COORD, 0x70 } }, mp5a5MuzzleFlashTask, { NULL } },                                        // 0x041
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask42, { NULL } },                                          // 0x042
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_80131F24, { NULL } },                                  // 0x043
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801340E8, { NULL } },                                  // 0x044

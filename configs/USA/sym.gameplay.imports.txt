@@ -2001,7 +2001,7 @@ m4a1BayonetTrailTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_bayonet
 
 func_p229_8011D1DC = 0x8011D1DC; // type:func absolute:True owner=p229 shared=weapons
 
-func_mp5a5_8011D1E0 = 0x8011D1E0; // type:func absolute:True owner=mp5a5 shared=weapons
+mp5a5MuzzleFlashTask = 0x8011D1E0; // type:func absolute:True owner=mp5a5 shared=weapons
 
 func_actor_510900_80131F24 = 0x80131F24; // type:func absolute:True owner=actor_510900
 
