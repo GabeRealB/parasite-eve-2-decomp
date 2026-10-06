@@ -2717,14 +2717,9 @@ void effectControlTaskAE(Task* task)
             work->scale = 0;
             work->angle = EFFECT_CHARGE_GLOW_INITIAL_RADIUS;
             work->step  = EFFECT_CHARGE_GLOW_BRIGHTNESS_SCALE / task->spawnArg1.value;
-            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto kill;
-            }
-            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-                goto kill;
-            }
-            if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                goto kill;
+            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+                gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
+                break;
             }
             task->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
                                                ((u16)((u16)(Gp_StateC08.attachId / 10U) % 10U) - 1) * 3 +
@@ -2758,14 +2753,11 @@ void effectControlTaskAE(Task* task)
                 rgb[2] = work->period >> 2;
                 effectDrawOuterGlowBand(coord, ((u8)Gp_StateC08.duration << 24) >> 17, EFFECT_CHARGE_GLOW_BAND_WIDTH, rgb);
             }
-            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto stopSound;
-            }
-            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-                goto stopSound;
-            }
-            if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                goto stopSound;
+            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+                gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
+                sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                task->state = EFFECT_CHARGE_GLOW_STATE_FADE;
+                return;
             }
             if (Gp_StateC08.duration != 0) {
                 return;
@@ -2777,41 +2769,33 @@ void effectControlTaskAE(Task* task)
             actorRenderComposeCoord(coord);
             work->age++;
             if (work->angle <= 0) {
-                goto kill;
+                break;
             }
             EFFECT_CHARGE_GLOW_SET_COLOR();
             effectDrawGouraudDisc(coord, work->angle, rgb);
             effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
-            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                goto stopSound;
+            if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
+                gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
+                sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                task->state = EFFECT_CHARGE_GLOW_STATE_FADE;
+                return;
             }
-            if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-                goto stopSound;
-            }
-            if (gRoomEffectState->battleState == ROOM_EFFECT_BATTLE_ENGAGED) {
-                goto decay;
-            }
-        stopSound:
-            sndEvtRequestScriptStop(task->spawnArg1.value, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            task->state = EFFECT_CHARGE_GLOW_STATE_FADE;
-            return;
-        decay:
             work->scale = work->scale - EFFECT_CHARGE_GLOW_FADE_STEP;
             work->angle = work->angle - EFFECT_CHARGE_GLOW_SHRINK_STEP;
             return;
         case EFFECT_CHARGE_GLOW_STATE_FADE:
             actorRenderComposeCoord(coord);
             if (work->scale < EFFECT_CHARGE_GLOW_FADE_STEP + 1) {
-                goto kill;
+                break;
             }
             EFFECT_CHARGE_GLOW_SET_COLOR();
             effectDrawGouraudDisc(coord, work->angle, rgb);
             effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
             work->scale = work->scale - EFFECT_CHARGE_GLOW_FADE_STEP;
             return;
+        default:
+            return;
     }
-    return;
-kill:
     effectKillTask(work, task);
 #undef EFFECT_CHARGE_GLOW_SET_COLOR
 }
