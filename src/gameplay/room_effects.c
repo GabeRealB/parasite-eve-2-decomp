@@ -736,7 +736,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017D970, { NULL } },                        // 0x0C5
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_souvenir_shop_8017DFD4, { NULL } },                      // 0x0C6
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_warehouse_8017F494, { NULL } },                          // 0x0C7
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_dilapidated_house_80183BF8, { NULL } },                  // 0x0C8
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseLightPrismTask, { NULL } },                    // 0x0C8
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_room_1_8017E0A0, { NULL } },                       // 0x0C9
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_room_2_8017D6B4, { NULL } },                       // 0x0CA
     { { { TASK_BODY_COORD, 0x70 } }, func_antibody_8012EF34, { NULL } },                                    // 0x0CB
@@ -928,7 +928,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_510900_801346D4, { NULL } },                                // 0x185
     { { { TASK_BODY_COORD, 0x70 } }, func_gunblade_8011D1E4, { NULL } },                                    // 0x186
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017F928, { NULL } },                       // 0x187
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_dilapidated_house_80181F08, { NULL } },                  // 0x188
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseTwinTrailTask, { NULL } },                     // 0x188
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017E4C4, { NULL } },                                 // 0x189
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_r48_8017EC18, { NULL } },                                 // 0x18A
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48WaterDriftTaskU16, { NULL } },                               // 0x18B
@@ -1164,8 +1164,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80182600, { NULL } },                      // 0x271
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017FCA0, { NULL } },                     // 0x272
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_dilapidated_house_80182744, { NULL } },                  // 0x273
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_dilapidated_house_80183C8C, { NULL } },                  // 0x274
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_dilapidated_house_80183D5C, { NULL } },                  // 0x275
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameConeTask, { NULL } },                     // 0x274
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameRingTask, { NULL } },                     // 0x275
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_8017FF80, { NULL } },                     // 0x276
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_801804D8, { NULL } },                     // 0x277
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_80181138, { NULL } },                     // 0x278

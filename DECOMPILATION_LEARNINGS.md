@@ -593,8 +593,8 @@ the target keeps in `$v0` is the one whose statement comes first.
 
 ## Named `r`/`g`/`b` temps on a `POLY_G4` beam steal `$t1` from `addPrim`'s `0xFFFFFF`
 
-`func_dryfield_dilapidated_house_801823B8` is the gunblade/m4a1/tonfa trail
-drawer with `otz` at scratch +0, vertices at +8, and `gte_stszotz` / `otz >=
+`_dryfieldDilapidatedHouseDrawTwinTrail` is No. 9's twin coordinate-trail
+drawer, a sibling of the gunblade/m4a1/tonfa trail drawers, with `otz` at scratch +0, vertices at +8, and `gte_stszotz` / `otz >=
 0x11` instead of `gte_stflg`. Copying that sibling with named channel locals
 
 ```c
@@ -12136,10 +12136,10 @@ if (flag != 0) {
 }
 ```
 
-`func_dryfield_dilapidated_house_80183C8C`, measured as a one-edit variation of
+`dryfieldDilapidatedHouseFlameConeTask`, measured as a one-edit variation of
 the m2c seed: 95.19% → 99.04%, `structure: match`, `branch`/`insert`/`delete` all
 zeroed; the only leftover was an unrelated load-order pair. Its sibling
-`func_dryfield_dilapidated_house_80183D5C` — same guard, same shared tail — was
+`dryfieldDilapidatedHouseFlameRingTask` — same guard, same shared tail — was
 already written this way, so check the sibling before reaching for a barrier.
 
 ## Ring-buffer wrap: `x = x + 1; x = x % N` keeps both stores
@@ -95346,7 +95346,7 @@ explicit `\0` padding. That works when the code references only the run's start
 and a `.data` table reaches the later names; when the matched function itself
 references two addresses inside the run, each needs its own named object.
 
-## An increment the branch delay slot holds is a post-increment loop condition (func_dryfield_dilapidated_house_80181028, 2026-09-16)
+## An increment the branch delay slot holds is a post-increment loop condition (_dryfieldDilapidatedHouseUpdateAttachmentTransform, 2026-09-16)
 
 **Problem.** The target's loop latch keeps the branch and the pointer bump
 together, with the bump in the delay slot and a copy of the pointer feeding the
@@ -95375,7 +95375,7 @@ through to `fill_eager_delay_slots`, which duplicates the branch target's first
 instruction instead. Structural diagnostics still say `match`; the score is
 90.4% with `insert=2 delete=3` (all of it address shift).
 
-**Cause.** `while (node++ != end)` is what emits the copy. Post-increment needs
+**Cause.** `while (parentCoord++ != modelCoord->parent)` is what emits the copy. Post-increment needs
 the old value across the add, so expand emits the copy first and compares with
 it:
 
@@ -95400,15 +95400,15 @@ the increment belongs.
 - The bump is the *type* of the walking variable, not the loop shape. With
   `s32 var_s1` the condition compiles to `addiu $s1,$s1,1` — 99.90%, every
   structural and scheduling penalty already zero, one operand off. Declaring
-  `GfxCoord* node` (0x50 bytes) gives `addiu $s1,$s1,0x50`. Check the
+  `GfxCoord* parentCoord` (0x50 bytes) gives `addiu $s1,$s1,0x50`. Check the
   stride the increment implies before rewriting the loop.
 - Assignment order among the leading pointer loads is load-bearing. The same
-  four statements in `work, coord, node` order schedule the prologue's loads
-  differently (98.5%, regs=16) than `coord, work, node` (100%) — with the
+  four statements in `work, modelCoord, parentCoord` order schedule the prologue's loads
+  differently (98.5%, regs=16) than `modelCoord, work, parentCoord` (100%) — with the
   schedule this tight, keep the statement order the target's load order implies
   rather than sorting them for readability.
 
-## A store written on the line before a call is the insn that fills its `jal` delay slot (func_dryfield_dilapidated_house_80183D5C, 2026-09-16)
+## A store written on the line before a call is the insn that fills its `jal` delay slot (dryfieldDilapidatedHouseFlameRingTask, 2026-09-16)
 
 A state handler whose first frame ends with `actorRenderComposeCoord(coord)` and a
 `coord->composeStamp = 0` store sat at 95.68% with the store two instructions late and
@@ -95427,7 +95427,7 @@ The C was
 ```c
     actorRenderComposeCoord(coord);
     coord->composeStamp    = 0;
-    mem->field_24 = 0x80;
+    work->scale = 0x80;
 ```
 
 Moving `coord->composeStamp = 0;` to the line *before* the call matched exactly. Nothing
@@ -139433,15 +139433,15 @@ exactly as the target has it. So when one loop of a pair hoists a constant the
 other does not, count the `moved to` lines in `.i.loop` for each: a missing
 move earlier in the loop is a lever the source controls.
 
-### `tbl[base + i + 4]` folds to `(base + 4) + i` and hoists; bind `i + 4` to its own local (func_dryfield_dilapidated_house_801815E8)
+### `tbl[base + i + 4]` folds to `(base + 4) + i` and hoists; bind `i + 4` to its own local (_dryfieldDilapidatedHouseDrawLightPrism)
 
 Symptom: the target recomputes `addiu v0,i,4; addu v0,base,v0` inside the loop,
 but the attempt hoists `addiu t,base,4` to the preheader and adds `i` to it.
 Writing the index as `base + (i + 4)` did not help: `fold` reassociates the
 constant outward either way, and the result is a loop invariant.
 
-Fix: assign `far = i + 4;` as its own statement and index `tbl[base + far]`.
-The constant then stays attached to `i` and nothing invariant is left to hoist
+Fix: assign `farCorner = cornerIndex + 4;` as its own statement and index `tbl[firstVertex + farCorner]`.
+The constant then stays attached to `cornerIndex` and nothing invariant is left to hoist
 (94.8% to 99.2%). Put the assignment where the target computes it, after the
 preceding `gte_SetRotMatrix` asm, rather than at the top of the loop. Volatile
 asm is a scheduling barrier, so where the statement sits decides which side of
@@ -139939,7 +139939,7 @@ gte_ldv0(&tbl[arg1 + far]);
 ```
 
 Seen in `func_neo_ark_submarine_gallery_80180E80` (98.66% to 100% with that
-change alone); `func_dryfield_dilapidated_house_801815E8` has the same shape.
+change alone); `_dryfieldDilapidatedHouseDrawLightPrism` has the same shape.
 
 ## An empty `case 0: break;` is what puts `slti v,2` between `== 1` and `== 2` in a two-case switch
 
@@ -140558,9 +140558,9 @@ strength reduction over `a[i]`. Write the index form before tuning walkers.
 
 **Follow-on, local-alloc tie.** The last registers were a `$s5`/`$s6` swap between a short local (`x1`, 2 refs over 13 insns: `QTY_CMP_PRI` 1538) and `%hi(gGpuPrimCursor)` (11 refs over 215: 1534). Reading the third projection's `x` into its own local right after `RotTransPers` (the target loads it before the prim-cursor bump) lengthened `x1`'s range enough to flip the order without moving any store. Compute `QTY_CMP_PRI` by hand from `lregwalk.py` numbering when two callee-saved locals trade places. The last reorder was the known union-vs-cast identity-matrix case ("`*(s32*)&local.m[0][0]` loses a scheduler dependency that a union field keeps").
 
-### One quotient stored to two bytes: repeat the expression rather than naming it, when the bias copy survives in the delay slot (func_dryfield_dilapidated_house_801803A4, 2026-09-23)
+### One quotient stored to two bytes: repeat the expression rather than naming it, when the bias copy survives in the delay slot (_dryfieldDilapidatedHouseDrawMorphCone, 2026-09-23)
 
-**Symptom.** 96.8%, all in the `x * 0xFF / 0x400` block: target `bgez $v1; move $v0,$v1 (slot); addiu $v0,$v1,0x3FF; sra $a0,$v0,10; sb $a0,0xD0($sp)` with the second byte store much later, and the clamp above it (`if (level > 0x400) level = 0x400;`) left with a `nop` slot. Ours tied the bias copy to the product (`addiu $v1,$v1,0x3FF`), filled the `bgez` slot from the loop setup, and emitted both `sb` together after it.
+**Symptom.** 96.8%, all in the `x * 0xFF / 0x400` block: target `bgez $v1; move $v0,$v1 (slot); addiu $v0,$v1,0x3FF; sra $a0,$v0,10; sb $a0,0xD0($sp)` with the second byte store much later, and the clamp above it (`if (brightness > 0x400) brightness = 0x400;`) left with a `nop` slot. Ours tied the bias copy to the product (`addiu $v1,$v1,0x3FF`), filled the `bgez` slot from the loop setup, and emitted both `sb` together after it.
 
 **Cause.** `t = x * 0xFF / 0x400; c.r = t; c.g = t;` makes the shift result a user variable (`reg/v`); `c.r = x * 0xFF / 0x400; c.g = x * 0xFF / 0x400;` gives the same `.cse` RTL except that the result is an anonymous temp, which cse shares between the two stores. The different pseudo kind moved allocation and sched1 enough to reproduce every difference at once, including the unrelated-looking clamp slot.
 

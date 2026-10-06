@@ -666,15 +666,15 @@ func_dryfield_breezeway_80181264 = 0x80181264; // type:func absolute:True owner=
 
 func_dryfield_cellar_8017DAEC = 0x8017DAEC; // type:func absolute:True owner=dryfield_cellar
 
-func_dryfield_dilapidated_house_80181F08 = 0x80181F08; // type:func absolute:True owner=dryfield_dilapidated_house
+dryfieldDilapidatedHouseTwinTrailTask = 0x80181F08; // type:func absolute:True owner=dryfield_dilapidated_house
 
 func_dryfield_dilapidated_house_80182744 = 0x80182744; // type:func absolute:True owner=dryfield_dilapidated_house
 
-func_dryfield_dilapidated_house_80183BF8 = 0x80183BF8; // type:func absolute:True owner=dryfield_dilapidated_house
+dryfieldDilapidatedHouseLightPrismTask = 0x80183BF8; // type:func absolute:True owner=dryfield_dilapidated_house
 
-func_dryfield_dilapidated_house_80183C8C = 0x80183C8C; // type:func absolute:True owner=dryfield_dilapidated_house
+dryfieldDilapidatedHouseFlameConeTask = 0x80183C8C; // type:func absolute:True owner=dryfield_dilapidated_house
 
-func_dryfield_dilapidated_house_80183D5C = 0x80183D5C; // type:func absolute:True owner=dryfield_dilapidated_house
+dryfieldDilapidatedHouseFlameRingTask = 0x80183D5C; // type:func absolute:True owner=dryfield_dilapidated_house
 
 func_dryfield_g_r_kitchen_8017EB04 = 0x8017EB04; // type:func absolute:True owner=dryfield_g_r_kitchen
 

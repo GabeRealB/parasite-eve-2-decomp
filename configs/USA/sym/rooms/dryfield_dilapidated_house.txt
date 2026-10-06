@@ -192,15 +192,15 @@ D_actor_521100_8016A388 = 0x8016A388; // absolute:True owner=actor_521100
 D_map_dryfield_8017AF64 = 0x8017AF64; // absolute:True owner=map_dryfield
 D_dryfield_dilapidated_house_80186944 = 0x80186944; // size:0x10 defined:True
 
-func_dryfield_dilapidated_house_80183BF8 = 0x80183BF8; // type:func
+dryfieldDilapidatedHouseLightPrismTask = 0x80183BF8; // type:func
 
-func_dryfield_dilapidated_house_80181F08 = 0x80181F08; // type:func
+dryfieldDilapidatedHouseTwinTrailTask = 0x80181F08; // type:func
 
 func_dryfield_dilapidated_house_80182744 = 0x80182744; // type:func
 
-func_dryfield_dilapidated_house_80183C8C = 0x80183C8C; // type:func
+dryfieldDilapidatedHouseFlameConeTask = 0x80183C8C; // type:func
 
-func_dryfield_dilapidated_house_80183D5C = 0x80183D5C; // type:func
+dryfieldDilapidatedHouseFlameRingTask = 0x80183D5C; // type:func
 screenWaveTask = 0x8017D64C; // type:func
 screenNegativeFilter = 0x8017E48C; // type:func
 bezierCurveEvaluate = 0x8017F418; // type:func
@@ -211,3 +211,15 @@ glowDrawFlameRing = 0x80183728; // type:func
 spriteQuadDrawFlicker = 0x801832A8; // type:func
 modelMorphBlend = 0x80180A0C; // type:func
 glowDrawRingBeam = 0x8017F568; // type:func
+_dryfieldDilapidatedHouseRejectKeyItem = 0x8017e56c; // type:func
+_dryfieldDilapidatedHouseIgnoreRoomCommand = 0x8017e684; // type:func
+_dryfieldDilapidatedHouseDrawMorphCone = 0x801803a4; // type:func
+_dryfieldDilapidatedHouseMorphExit = 0x80180fb8; // type:func
+_dryfieldDilapidatedHouseUpdateAttachmentTransform = 0x80181028; // type:func
+_dryfieldDilapidatedHouseCopyModelVisibility = 0x801810f8; // type:func
+_dryfieldDilapidatedHouseCurveDebugInit = 0x8018118c; // type:func
+_dryfieldDilapidatedHouseRingBeamInit = 0x80181340; // type:func
+_dryfieldDilapidatedHouseRingBeamExit = 0x8018142c; // type:func
+_dryfieldDilapidatedHouseMorphConeExit = 0x801815b8; // type:func
+_dryfieldDilapidatedHouseDrawLightPrism = 0x801815e8; // type:func
+_dryfieldDilapidatedHouseDrawTwinTrail = 0x801823b8; // type:func
