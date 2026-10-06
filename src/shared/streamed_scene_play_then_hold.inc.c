@@ -7,14 +7,12 @@
 /// `spawnArg1`. After the stream state is restored an aborted scene kills the
 /// task at once, and a finished one after 0x3D more ticks; either way the
 /// session image memory is restored and presentation returns to the game loop.
-void streamedScenePlayThenHold(Task* arg0)
+void streamedScenePlayThenHold(Task* task)
 {
     u8          slotParam[4];
     GameLoc     key;
     CdCmdQueue* queue;
-    Task*       task;
 
-    task  = arg0;
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:

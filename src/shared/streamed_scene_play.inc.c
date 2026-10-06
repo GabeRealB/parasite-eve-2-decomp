@@ -2,14 +2,12 @@
 
 /// Plays the location's streamed scene (see streamed_scene.h) and kills the
 /// task as soon as the stream state is restored.
-void streamedScenePlay(Task* arg0)
+void streamedScenePlay(Task* task)
 {
     u8          slotParam[4];
     GameLoc     key;
     CdCmdQueue* queue;
-    Task*       task;
 
-    task  = arg0;
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
