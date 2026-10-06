@@ -511,96 +511,93 @@ static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SV
     gte_rtps();
     gte_stsxy(&scratch->sx0);
     gte_stflg(&scratch->flag);
-    if (scratch->flag < 0) {
-        goto fail;
-    }
-    gte_stszotz(&scratch->otz0);
-    scratch->otz0++;
-    gte_ldv0(farPoint);
-    gte_rtps();
-    gte_stsxy(&scratch->sx1);
-    gte_stflg(&scratch->flag);
-    if (scratch->flag < 0) {
-        goto fail;
-    }
-    gte_stszotz(&scratch->otz1);
+    if (scratch->flag >= 0) {
+        gte_stszotz(&scratch->otz0);
+        scratch->otz0++;
+        gte_ldv0(farPoint);
+        gte_rtps();
+        gte_stsxy(&scratch->sx1);
+        gte_stflg(&scratch->flag);
+        if (scratch->flag >= 0) {
+            gte_stszotz(&scratch->otz1);
 
-    scratch->otz1++;
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    flickerBias    = (gDisplayState.animFrame & 1) * 8;
-    expandedRgb444 = rgb444 & 0xFFFF;
-    red            = (((expandedRgb444 >> 4) & 0xF0) + flickerBias) >> 1;
-    green          = ((expandedRgb444 & 0xF0) + flickerBias) >> 1;
-    blue           = (((rgb444 & 0xF) << 4) + flickerBias) >> 1;
-    setRGB0(line, red, green, blue);
-    line->x0 = scratch->sx0;
-    line->y0 = scratch->sy0;
-    line->x1 = scratch->sx1;
-    line->y1 = scratch->sy1;
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            line);
-    gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz0);
-    scratch->radius0 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz0;
-    scratch->radius1 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz1;
+            scratch->otz1++;
+            line           = gGpuPrimCursor;
+            gGpuPrimCursor = line + 1;
+            setLineF2(line);
+            flickerBias    = (gDisplayState.animFrame & 1) * 8;
+            expandedRgb444 = rgb444 & 0xFFFF;
+            red            = (((expandedRgb444 >> 4) & 0xF0) + flickerBias) >> 1;
+            green          = ((expandedRgb444 & 0xF0) + flickerBias) >> 1;
+            blue           = (((rgb444 & 0xF) << 4) + flickerBias) >> 1;
+            setRGB0(line, red, green, blue);
+            line->x0 = scratch->sx0;
+            line->y0 = scratch->sy0;
+            line->x1 = scratch->sx1;
+            line->y1 = scratch->sy1;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    line);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, scratch->otz0);
+            scratch->radius0 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz0;
+            scratch->radius1 = M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT / scratch->otz1;
 
-    // Share the strip direction and cap its terminal segments.
-    if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || D_m4a1_javelin_8012EB66 != 0) {
-        beamAngle               = ratan2(line->y1 - line->y0, line->x0 - line->x1);
-        D_m4a1_javelin_8012EB62 = beamAngle;
-        D_m4a1_javelin_8012EB66 = 0;
-        for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
-            M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
-            quad->x0 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + M4A1_JAVELIN_HALF_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->y0 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + M4A1_JAVELIN_HALF_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->x1 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_EIGHTH_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->y1 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_EIGHTH_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->x2 = line->x1;
-            quad->y2 = line->y1;
-            quad->x3 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_QUARTER_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->y3 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_QUARTER_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
-            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
+            // Share the strip direction and cap its terminal segments.
+            if ((segmentFlags & M4A1_JAVELIN_SEGMENT_REFRESH_ANGLE) || D_m4a1_javelin_8012EB66 != 0) {
+                beamAngle               = ratan2(line->y1 - line->y0, line->x0 - line->x1);
+                D_m4a1_javelin_8012EB62 = beamAngle;
+                D_m4a1_javelin_8012EB66 = 0;
+                for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+                    M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
+                    quad->x0 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + M4A1_JAVELIN_HALF_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y0 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + M4A1_JAVELIN_HALF_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->x1 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_EIGHTH_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y1 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_EIGHTH_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->x2 = line->x1;
+                    quad->y2 = line->y1;
+                    quad->x3 = line->x1 + ((scratch->radius1 * rsin(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_QUARTER_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y3 = line->y1 + ((scratch->radius1 * rcos(wedgeAngle + (M4A1_JAVELIN_HALF_TURN + M4A1_JAVELIN_QUARTER_TURN))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+                    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
+                }
+            } else {
+                beamAngle = D_m4a1_javelin_8012EB62;
+            }
+
+            if (segmentFlags & M4A1_JAVELIN_SEGMENT_CAP_NEAR_END) {
+                for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+                    M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
+                    quad->x0 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y0 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->x1 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle + M4A1_JAVELIN_EIGHTH_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y1 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle + M4A1_JAVELIN_EIGHTH_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->x2 = line->x0;
+                    quad->y2 = line->y0;
+                    quad->x3 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle + M4A1_JAVELIN_QUARTER_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    quad->y3 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle + M4A1_JAVELIN_QUARTER_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+                    gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
+                }
+            }
+
+            for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
+                M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, red, green, blue);
+                quad->x0 = line->x0 + ((scratch->radius0 * rsin((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->y0 = line->y0 + ((scratch->radius0 * rcos((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->x1 = line->x1 + ((scratch->radius1 * rsin((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->y1 = line->y1 + ((scratch->radius1 * rcos((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
+                quad->x2 = line->x0;
+                quad->y2 = line->y0;
+                quad->x3 = line->x1;
+                quad->y3 = line->y1;
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
+            }
+        } else {
+            D_m4a1_javelin_8012EB66 = 1;
         }
     } else {
-        beamAngle = D_m4a1_javelin_8012EB62;
+        D_m4a1_javelin_8012EB66 = 1;
     }
-
-    if (segmentFlags & M4A1_JAVELIN_SEGMENT_CAP_NEAR_END) {
-        for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
-            M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, 0, 0, 0);
-            quad->x0 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->y0 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->x1 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle + M4A1_JAVELIN_EIGHTH_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->y1 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle + M4A1_JAVELIN_EIGHTH_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->x2 = line->x0;
-            quad->y2 = line->y0;
-            quad->x3 = line->x0 + ((scratch->radius0 * rsin(wedgeAngle + M4A1_JAVELIN_QUARTER_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            quad->y3 = line->y0 + ((scratch->radius0 * rcos(wedgeAngle + M4A1_JAVELIN_QUARTER_TURN)) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
-            gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
-        }
-    }
-
-    for (wedgeAngle = (s16)beamAngle; wedgeAngle < (s16)beamAngle + M4A1_JAVELIN_HALF_TURN; wedgeAngle += M4A1_JAVELIN_QUARTER_TURN) {
-        M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, red, green, blue);
-        quad->x0 = line->x0 + ((scratch->radius0 * rsin((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-        quad->y0 = line->y0 + ((scratch->radius0 * rcos((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-        quad->x1 = line->x1 + ((scratch->radius1 * rsin((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-        quad->y1 = line->y1 + ((scratch->radius1 * rcos((s16)beamAngle + ((wedgeAngle - (s16)beamAngle) * 2))) >> M4A1_JAVELIN_TRIG_FRACTION_BITS);
-        quad->x2 = line->x0;
-        quad->y2 = line->y0;
-        quad->x3 = line->x1;
-        quad->y3 = line->y1;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
-        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
-    }
-    goto done;
-
-fail:
-    D_m4a1_javelin_8012EB66 = 1;
-done:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
 }
 
