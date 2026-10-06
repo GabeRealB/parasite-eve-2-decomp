@@ -7,11 +7,15 @@
 #error "Bind EFFECT_SPRITE_DRIFT_AIMED_TASK to the carrier's void (Task*) callback before inclusion"
 #endif
 
-/// Scales a Q12 sprite direction to signed integer displacement components.
+/// Converts a Q12 sprite direction in place to per-update integer velocity.
 ///
-/// `speed` is 0..255 coordinate-parent units per running update. Borrows the
-/// writable vector, leaves its fourth halfword intact and retains no pointer.
-/// Clobbers GTE data/results.
+/// `velocity` borrows a live, writable `SVECTOR`; XYZ are parent-space direction
+/// components with 4096 representing one. `speed` is signed integer
+/// parent-coordinate units per running update (this task supplies 0..255).
+/// Each component becomes its product with `speed`, arithmetically shifted
+/// right by 12 and saturated to a signed halfword. Zero speed writes zero XYZ.
+/// Leaves `pad` intact and retains no pointer. Clobbers GTE IR0..3, MAC1..3,
+/// the colour FIFO and FLAG.
 static __inline__ void _effectSpriteAimedDriftScaleVelocity(SVECTOR* velocity, s16 speed)
 {
     gte_lddp(speed);
