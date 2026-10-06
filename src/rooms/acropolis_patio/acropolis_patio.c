@@ -83,13 +83,31 @@ extern SVECTOR D_acropolis_patio_80182DDC[14];
 extern u16 D_acropolis_patio_80182E4C[14];
 
 static void func_acropolis_patio_8017D5EC(Task* arg0);
-static void func_acropolis_patio_8017DF7C(Task* task);
+static void _acropolisPatioRoomIdleState(Task* task);
+
+/// Key-item use message handled by the patio's room task.
+enum { ACROPOLIS_PATIO_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Packed fountain-jet argument fields and the fixed sprite-sheet geometry.
+enum {
+    ACROPOLIS_PATIO_JET_ANCHOR_MASK   = 0xF,
+    ACROPOLIS_PATIO_JET_CELL_SHIFT    = 8,
+    ACROPOLIS_PATIO_JET_CELL_MASK     = 3,
+    ACROPOLIS_PATIO_JET_SIZE_SHIFT    = 16,
+    ACROPOLIS_PATIO_JET_SIZE_MASK     = 0xFFF,
+    ACROPOLIS_PATIO_JET_DEFAULT_SIZE  = 640,
+    ACROPOLIS_PATIO_JET_MIN_DEPTH     = 0x11,
+    ACROPOLIS_PATIO_JET_TEXTURE_PAGE  = 0x2B,
+    ACROPOLIS_PATIO_JET_CLUT_Y        = 0x10E,
+    ACROPOLIS_PATIO_JET_CELL_SIZE     = 40,
+    ACROPOLIS_PATIO_JET_FLICKER_SHIFT = 4
+};
 
 /// State table of the room's three-state task dispatcher
 /// (`func_acropolis_patio_8017DF8C`): the entry tick, an idle state, then
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
-    { func_acropolis_patio_8017D5EC, func_acropolis_patio_8017DF7C, taskKill },
+    { func_acropolis_patio_8017D5EC, _acropolisPatioRoomIdleState, taskKill },
 };
 
 extern WorldCollisionGrid     D_acropolis_patio_80183DF8[1];
@@ -112,7 +130,7 @@ extern ActorTransform           D_acropolis_patio_80182630;
 extern ActorTransform           D_acropolis_patio_80182678;
 void                            func_acropolis_patio_8017DFE4(s32);
 void                            func_acropolis_patio_8017E024(void);
-void                            func_acropolis_patio_8017E054(Task*);
+static void                     _acropolisPatioPlayerTurnLeftTask(Task* task);
 
 extern SpriteBatch  D_acropolis_patio_80184AF0[2];
 extern SpriteBatch  D_acropolis_patio_80184D1C[7];
@@ -145,17 +163,17 @@ extern ActorTransform       D_acropolis_patio_8018031C;
 extern ActorTransform       D_acropolis_patio_80180334;
 extern ActorTransform       D_acropolis_patio_8018034C;
 void                        func_acropolis_patio_8017DF38(s32);
-void                        func_acropolis_patio_8017DF48(void);
-void                        func_acropolis_patio_8017DF70(u8);
+static void                 _acropolisPatioActivateRoom2(void);
+static void                 _acropolisPatioSetActorControl(u8 actorControl);
 
-s32  func_acropolis_patio_8017D7D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_patio_8017DCE4(Task*, s32, s32, s32);
-s32  func_acropolis_patio_8017DD44(Task*, s32, s32, s32);
-s32  func_acropolis_patio_8017DD4C(Task*, s32, s32, s32);
-void func_acropolis_patio_8017DA5C(Task*);
-s32  func_acropolis_patio_8017DBAC(Task*, s32, const void*, s32);
-void func_acropolis_patio_8017DD80(Task*);
-void func_acropolis_patio_8017DE2C(Task*);
+s32         func_acropolis_patio_8017D7D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32         func_acropolis_patio_8017DCE4(Task*, s32, s32, s32);
+static s32  _acropolisPatioRefuseKeyItemUse(Task* roomTask, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _acropolisPatioHandleSoundMessage(Task* roomTask, s32 messageId, s32 soundCue, s32 unusedArg);
+void        func_acropolis_patio_8017DA5C(Task*);
+s32         func_acropolis_patio_8017DBAC(Task*, s32, const void*, s32);
+void        func_acropolis_patio_8017DD80(Task*);
+static void _acropolisPatioPlayerHeadAimTask(Task* task);
 
 static AnimationPackedPose _gAcropolisPatioAnimation018A0Bank1[2] = {
 #include "assets/acropolis_patio_animation_018A0_bank1.inc"
@@ -292,8 +310,8 @@ static AnimationSet _gAcropolisPatioAnimation02CA4 = {
 TaskMessageEntry D_acropolis_patio_8018028C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_patio_8017D7D0 },
     { ROOM_MESSAGE_COMMAND, func_acropolis_patio_8017DCE4 },
-    { 5105, func_acropolis_patio_8017DD44 },
-    { ROOM_MESSAGE_SOUND, func_acropolis_patio_8017DD4C },
+    { ACROPOLIS_PATIO_MESSAGE_USE_KEY_ITEM, _acropolisPatioRefuseKeyItemUse },
+    { ROOM_MESSAGE_SOUND, _acropolisPatioHandleSoundMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_patio_8017DBAC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -301,7 +319,7 @@ TaskMessageEntry D_acropolis_patio_8018028C[6] = {
 TaskDesc D_acropolis_patio_801802BC[4] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017DD80, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017DA5C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_acropolis_patio_8017DE2C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _acropolisPatioPlayerHeadAimTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -436,7 +454,7 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5103000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_patio_8017DF38 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_patio_8017DF48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisPatioActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_patio_80180334 } }, { .value = 0 } },
@@ -456,7 +474,7 @@ EvsCommand D_acropolis_patio_80180C64[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_patio_80180334 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_patio_8017DF48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisPatioActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_patio_8017DF38 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -477,10 +495,10 @@ EvsCommand D_acropolis_patio_80180DEC[10] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_patio_80180DE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_acropolis_patio_8017DF70 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _acropolisPatioSetActorControl }, { .value = SCENE_COMBAT_ACTORS_PAUSED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_acropolis_patio_8017DF70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _acropolisPatioSetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -493,7 +511,7 @@ EvsCommand D_acropolis_patio_80180EDC[9] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_acropolis_patio_8017DF70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _acropolisPatioSetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -652,7 +670,7 @@ ActorCommand D_acropolis_patio_801827F8 = { { .loc = { 0, 0 } }, 1 };
 
 ActorCommand D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
 
-TaskDesc D_acropolis_patio_80182800 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017E054, { .value = 0 } };
+TaskDesc D_acropolis_patio_80182800 = { { { TASK_BODY_NONE, 192 } }, _acropolisPatioPlayerTurnLeftTask, { .value = 0 } };
 
 EvsCommand D_acropolis_patio_8018280C[41] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_patio_801825C4 } }, { .value = 0 } },
@@ -1900,15 +1918,25 @@ s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return var_v0;
 }
 
-s32 func_acropolis_patio_8017DD44(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request (message 0x13F1), returning zero to the inventory.
+///
+/// The receiver, selected item ID and second payload word are unused.
+static s32 _acropolisPatioRefuseKeyItemUse(Task* roomTask, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    enum { ACROPOLIS_PATIO_KEY_ITEM_REFUSED = 0 };
+
+    return ACROPOLIS_PATIO_KEY_ITEM_REFUSED;
 }
 
-s32 func_acropolis_patio_8017DD4C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles the room sound message: cue 3 queues area-bank entry 3; all cues return zero.
+///
+/// Queue admission failures are ignored. The receiver and second payload word are unused.
+static s32 _acropolisPatioHandleSoundMessage(Task* roomTask, s32 messageId, s32 soundCue, s32 unusedArg)
 {
-    if (arg2 == 3) {
-        sndEvtRequestScriptStart(0x51030000 | 3, 0, 0);
+    enum { ACROPOLIS_PATIO_SOUND_CUE = 3 };
+
+    if (soundCue == ACROPOLIS_PATIO_SOUND_CUE) {
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_PATIO_SOUND_CUE), 0, 0);
     }
     return 0;
 }
@@ -1934,14 +1962,32 @@ void func_acropolis_patio_8017DD80(Task* task)
     }
 }
 
-void func_acropolis_patio_8017DE2C(Task* task)
+/// Aims the player's head at a scripted world point, optionally sliding it along Z.
+///
+/// States 0/1 initialize and idle, 2 holds the point (-8000, 0, 900), 3 starts
+/// the slide, and 4 moves it 50 units per tick to Z -3196. `spawnArg1.value`
+/// stores the slide distance (0..4096). Requires the live player's five-part
+/// head chain; the task neither owns nor releases the player.
+static void _acropolisPatioPlayerHeadAimTask(Task* task)
 {
-    GfxCoord focus;        // Frame whose origin the player's head turns toward; only its translation is ever set
-    byte     unused[0x28]; // Frame space no instruction touches; what the original declared here is unproven
-    Task*    target;
-    s32      offset;
+    enum {
+        ACROPOLIS_PATIO_HEAD_AIM_INIT           = 0,
+        ACROPOLIS_PATIO_HEAD_AIM_IDLE           = 1,
+        ACROPOLIS_PATIO_HEAD_AIM_HOLD           = 2,
+        ACROPOLIS_PATIO_HEAD_AIM_START_SLIDE    = 3,
+        ACROPOLIS_PATIO_HEAD_AIM_SLIDE          = 4,
+        ACROPOLIS_PATIO_HEAD_AIM_MAX_YAW        = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+        ACROPOLIS_PATIO_HEAD_AIM_MAX_PITCH      = ACTOR_TRANSFORM_ANGLE_TURN / 16,
+        ACROPOLIS_PATIO_HEAD_AIM_SLIDE_STEP     = 50,
+        ACROPOLIS_PATIO_HEAD_AIM_SLIDE_DISTANCE = 4096
+    };
 
-    target = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    GfxCoord focus;        // World point carried in the translation; the other fields are unused
+    byte     unused[0x28]; // Frame space no instruction touches; what the original declared here is unproven
+    Task*    playerTask;
+    s32      slideDistance;
+
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
     // The head turn reads nothing of its target frame but the translation, a
     // world point, so the rest of `focus` stays uninitialised.
@@ -1950,28 +1996,28 @@ void func_acropolis_patio_8017DE2C(Task* task)
     focus.coord.t[2] = 0x384;
 
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_PATIO_HEAD_AIM_INIT:
             task->spawnArg1.value = 0;
             task->state           = task->state + 1;
             return;
-        case 1:
+        case ACROPOLIS_PATIO_HEAD_AIM_IDLE:
             return;
-        case 2:
-            animationAimHeadAtPoint(target, &focus, 0x200, 0x100, 0x1000);
+        case ACROPOLIS_PATIO_HEAD_AIM_HOLD:
+            animationAimHeadAtPoint(playerTask, &focus, ACROPOLIS_PATIO_HEAD_AIM_MAX_YAW, ACROPOLIS_PATIO_HEAD_AIM_MAX_PITCH, ONE);
             return;
-        case 3:
+        case ACROPOLIS_PATIO_HEAD_AIM_START_SLIDE:
             task->spawnArg1.value = 0;
-            animationAimHeadAtPoint(target, &focus, 0x200, 0x100, 0x1000);
+            animationAimHeadAtPoint(playerTask, &focus, ACROPOLIS_PATIO_HEAD_AIM_MAX_YAW, ACROPOLIS_PATIO_HEAD_AIM_MAX_PITCH, ONE);
             task->state = task->state + 1;
             return;
-        case 4:
-            offset                = task->spawnArg1.value + 0x32;
-            task->spawnArg1.value = offset;
-            if (offset >= 0x1001) {
-                task->spawnArg1.value = 0x1000;
+        case ACROPOLIS_PATIO_HEAD_AIM_SLIDE:
+            slideDistance         = task->spawnArg1.value + ACROPOLIS_PATIO_HEAD_AIM_SLIDE_STEP;
+            task->spawnArg1.value = slideDistance;
+            if (slideDistance >= ACROPOLIS_PATIO_HEAD_AIM_SLIDE_DISTANCE + 1) {
+                task->spawnArg1.value = ACROPOLIS_PATIO_HEAD_AIM_SLIDE_DISTANCE;
             }
             focus.coord.t[2] -= task->spawnArg1.value;
-            animationAimHeadAtPoint(target, &focus, 0x200, 0x100, 0x1000);
+            animationAimHeadAtPoint(playerTask, &focus, ACROPOLIS_PATIO_HEAD_AIM_MAX_YAW, ACROPOLIS_PATIO_HEAD_AIM_MAX_PITCH, ONE);
             return;
     }
 }
@@ -1981,19 +2027,27 @@ void func_acropolis_patio_8017DF38(s32 arg0)
     D_acropolis_patio_80187060->state = arg0;
 }
 
-void func_acropolis_patio_8017DF48(void)
+/// Selects room 2 in the live and saved location and requests room-object relinking.
+static void _acropolisPatioActivateRoom2(void)
 {
-    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-    gGameSession->roomObjsDirty                                                                  = 1;
-}
-void func_acropolis_patio_8017DF70(u8 arg0)
-{
-    gSceneCombatState.actorControl = arg0;
+    enum { ACROPOLIS_PATIO_ROOM_AFTER_SCENE = 2 };
+
+    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_PATIO_ROOM_AFTER_SCENE;
+    gGameSession->roomObjsDirty                                                                  = true;
 }
 
-static void func_acropolis_patio_8017DF7C(Task* task)
+/// Sets the scene's actor update/visibility control from an event-script byte.
+///
+/// Accepts `SCENE_COMBAT_ACTORS_*`; the patio scripts use paused and running.
+static void _acropolisPatioSetActorControl(u8 actorControl)
 {
-    char pad[0x10];
+    gSceneCombatState.actorControl = actorControl;
+}
+
+/// Keeps the room task alive without per-frame work; `task` is unused.
+static void _acropolisPatioRoomIdleState(Task* task)
+{
+    byte unused[0x10]; // Untouched local storage retained for the original stack frame; its role is unproven
 }
 
 void func_acropolis_patio_8017DF8C(Task* task)
@@ -2018,27 +2072,36 @@ void func_acropolis_patio_8017E024(void)
     taskSpawnFromTable(&D_acropolis_patio_80182800, 0, 0, 0);
 }
 
-/// Slow left turn-in-place: nudges the player's facing angle by -0x80 each
-/// frame for 0x10 frames, wrapping it back into [-0x800, 0x800), then kills
-/// itself. Any state other than 0 or 1 kills the task immediately.
-void func_acropolis_patio_8017E054(Task* task)
+/// Turns the live player left by half a turn over 16 task ticks, then kills itself.
+///
+/// Yaw uses 4096 units per turn. States 0/1 start and turn; any other state
+/// kills this bodyless controller. `killCountdown` holds the remaining ticks.
+/// Start in state 0 with player yaw in [-2048, 2048).
+static void _acropolisPatioPlayerTurnLeftTask(Task* task)
 {
-    GameActor* actor;
-    s16        angle;
+    enum {
+        ACROPOLIS_PATIO_PLAYER_TURN_INIT     = 0,
+        ACROPOLIS_PATIO_PLAYER_TURN_STEP     = 1,
+        ACROPOLIS_PATIO_PLAYER_TURN_TICKS    = 16,
+        ACROPOLIS_PATIO_PLAYER_TURN_YAW_STEP = ACTOR_TRANSFORM_ANGLE_HALF_TURN / ACROPOLIS_PATIO_PLAYER_TURN_TICKS
+    };
 
-    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    GameActor* playerActor;
+    s16        yaw;
+
+    playerActor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 
     switch (task->state) {
-        case 0:
-            task->killCountdown = 0x10;
+        case ACROPOLIS_PATIO_PLAYER_TURN_INIT:
+            task->killCountdown = ACROPOLIS_PATIO_PLAYER_TURN_TICKS;
             task->state++;
             /* fallthrough */
-        case 1:
-            angle = actor->rotation.vy - 0x80;
-            if (angle < -0x800) {
-                angle = actor->rotation.vy + 0xF80;
+        case ACROPOLIS_PATIO_PLAYER_TURN_STEP:
+            yaw = playerActor->rotation.vy - ACROPOLIS_PATIO_PLAYER_TURN_YAW_STEP;
+            if (yaw < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                yaw = playerActor->rotation.vy + (ACTOR_TRANSFORM_ANGLE_TURN - ACROPOLIS_PATIO_PLAYER_TURN_YAW_STEP);
             }
-            actor->rotation.vy = angle;
+            playerActor->rotation.vy = yaw;
             task->killCountdown--;
             if (task->killCountdown > 0) {
                 break;
@@ -2057,7 +2120,8 @@ void func_acropolis_patio_8017E054(Task* task)
 /// as three runs of effect 0x60087, each run differing only in the high bits of
 /// the spawn argument - `0x03000200` for the three main jets, `0x02000000` for
 /// the next four and a plain `0x100` for the remaining seven - so the anchor
-/// index rides in the low byte and the flags pick the jet's size and blend.
+/// index rides in the low nibble; bits 8..9 select the sprite cell and bits
+/// 16..27 select its size. All three runs use the same additive texture page.
 ///
 /// The three main jets then get three puffs of mist each (effect 0x6008F).
 /// Every puff re-uses the task's own `EffectWork.move` triple as a scratch
@@ -2103,94 +2167,91 @@ void func_acropolis_patio_8017E100(Task* task)
     }
 }
 
-/// Draws one frame of a flickering sprite at the task's own coordinate frame.
-/// Nothing is drawn once `gRoomEffectState->effectControl` reaches 4, nor for a camera
-/// view whose bit is clear in the anchor mask `D_acropolis_patio_80182E4C`,
-/// indexed by the low nibble of `Task::spawnArg1`.
+/// Projects and queues one fountain jet sprite.
 ///
-/// On the first frame the task unpacks the rest of `spawnArg1` into its effect
-/// work block - the sprite's half extent from bits 16-27 (0x280 when those bits
-/// are clear), its animation column from bits 8-9, and that column's resting
-/// grey level (0x50, 0x30 or 0x40) - and keeps only the anchor index. Every
-/// frame it projects the coordinate's translation through `GsWSMATRIX` into a
-/// `RoomGlowSpriteScratch` block and, at `otz` 0x11 or further, queues one
-/// semi-transparent `POLY_FT4` on tpage 0x2B whose half extent is
-/// `width * 39 / otz`, so the sprite shrinks with distance. The grey steps by
-/// 0x10 on the parity of `DisplayState::animFrame`, which is the flicker.
-void func_acropolis_patio_8017E324(Task* task)
+/// Borrows the caller's reserved scratch block and consumes frame-arena packets.
+static inline void _acropolisPatioDrawFountainJetSprite(const GfxCoord* coord, const EffectWork* work, RoomGlowSpriteScratch* block)
 {
+    POLY_FT4* prim;
+    u8        greyLevel;
+    s16       screenEdge;
+
+    // Project the narrowed cached view translation into the sprite's centre.
+    block->worldPos.vx = coord->workm.t[0];
+    block->worldPos.vy = coord->workm.t[1];
+    block->worldPos.vz = coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->worldPos);
+    gte_rtps();
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setPolyFT4(prim);
+    gte_stsxy(&block->screenPos);
+    gte_stszotz(&block->otz);
+    if (block->otz >= ACROPOLIS_PATIO_JET_MIN_DEPTH) {
+        greyLevel   = work->period + (((u8)gDisplayState.animFrame & 1) << ACROPOLIS_PATIO_JET_FLICKER_SHIFT);
+        prim->tpage = ACROPOLIS_PATIO_JET_TEXTURE_PAGE;
+        prim->r0    = greyLevel;
+        prim->g0    = greyLevel;
+        prim->b0    = greyLevel;
+        setSemiTrans(prim, 1);
+        setClut(prim, work->angle * 16, ACROPOLIS_PATIO_JET_CLUT_Y);
+        prim->u0 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE;
+        prim->v0 = 0;
+        prim->u1 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE + (ACROPOLIS_PATIO_JET_CELL_SIZE - 1);
+        prim->v1 = 0;
+        prim->u2 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE;
+        prim->v2 = ACROPOLIS_PATIO_JET_CELL_SIZE - 1;
+        prim->u3 = work->angle * ACROPOLIS_PATIO_JET_CELL_SIZE + (ACROPOLIS_PATIO_JET_CELL_SIZE - 1);
+        prim->v3 = ACROPOLIS_PATIO_JET_CELL_SIZE - 1;
+
+        block->halfExtent = (work->scale * (ACROPOLIS_PATIO_JET_CELL_SIZE - 1)) / block->otz;
+        screenEdge        = block->screenPos.vx - block->halfExtent;
+        prim->x2          = screenEdge;
+        prim->x0          = screenEdge;
+        screenEdge        = block->screenPos.vx + block->halfExtent;
+        prim->x3          = screenEdge;
+        prim->x1          = screenEdge;
+        screenEdge        = block->screenPos.vy - block->halfExtent;
+        prim->y1          = screenEdge;
+        prim->y0          = screenEdge;
+        screenEdge        = block->screenPos.vy + block->halfExtent;
+        prim->y3          = screenEdge;
+        prim->y2          = screenEdge;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+    }
+}
+
+void acropolisPatioFountainJetTask(Task* task)
+{
+    enum { ACROPOLIS_PATIO_JET_INIT = 0 };
+
     RoomGlowSpriteScratch* block;
     EffectWork*            work;
     GfxCoord*              coord;
-    POLY_FT4*              prim;
-    u8                     rgb;
-    s16                    xy;
 
-    work  = (EffectWork*)task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & ACROPOLIS_PATIO_JET_ANCHOR_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
         actorRenderComposeCoord(coord);
         block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-        if (task->state == 0) {
-            // Resting grey of each animation column.
+        if (task->state == ACROPOLIS_PATIO_JET_INIT) {
+            // Decode the fixed sheet cell and size only on the first visible tick.
             u8 levels[3] = { 0x50, 0x30, 0x40 };
 
-            if (task->spawnArg1.value & 0xFFF0000) {
-                work->scale = (task->spawnArg1.value >> 16) & 0xFFF;
+            if (task->spawnArg1.value & (ACROPOLIS_PATIO_JET_SIZE_MASK << ACROPOLIS_PATIO_JET_SIZE_SHIFT)) {
+                work->scale = (task->spawnArg1.value >> ACROPOLIS_PATIO_JET_SIZE_SHIFT) & ACROPOLIS_PATIO_JET_SIZE_MASK;
             } else {
-                work->scale = 0x280;
+                work->scale = ACROPOLIS_PATIO_JET_DEFAULT_SIZE;
             }
-            work->angle           = (task->spawnArg1.value >> 8) & 3;
-            task->spawnArg1.value = task->spawnArg1.value & 0xF;
+            work->angle           = (task->spawnArg1.value >> ACROPOLIS_PATIO_JET_CELL_SHIFT) & ACROPOLIS_PATIO_JET_CELL_MASK;
+            task->spawnArg1.value = task->spawnArg1.value & ACROPOLIS_PATIO_JET_ANCHOR_MASK;
             work->period          = levels[work->angle];
             task->state           = task->state + 1;
         }
-        block->worldPos.vx = coord->workm.t[0];
-        block->worldPos.vy = coord->workm.t[1];
-        block->worldPos.vz = coord->workm.t[2];
-        gte_SetTransMatrix(&GsWSMATRIX);
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPos);
-        gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        gte_stsxy(&block->screenPos);
-        gte_stszotz(&block->otz);
-        if (block->otz >= 0x11) {
-            rgb         = work->period + (((u8)gDisplayState.animFrame & 1) << 4);
-            prim->tpage = 0x2B;
-            prim->r0    = rgb;
-            prim->g0    = rgb;
-            prim->b0    = rgb;
-            setSemiTrans(prim, 1);
-            setClut(prim, work->angle * 16, 0x10E);
-            prim->u0 = work->angle * 0x28;
-            prim->v0 = 0;
-            prim->u1 = work->angle * 0x28 + 0x27;
-            prim->v1 = 0;
-            prim->u2 = work->angle * 0x28;
-            prim->v2 = 0x27;
-            prim->u3 = work->angle * 0x28 + 0x27;
-            prim->v3 = 0x27;
-
-            block->halfExtent = (work->scale * 0x27) / block->otz;
-            xy                = block->screenPos.vx - block->halfExtent;
-            prim->x2          = xy;
-            prim->x0          = xy;
-            xy                = block->screenPos.vx + block->halfExtent;
-            prim->x3          = xy;
-            prim->x1          = xy;
-            xy                = block->screenPos.vy - block->halfExtent;
-            prim->y1          = xy;
-            prim->y0          = xy;
-            xy                = block->screenPos.vy + block->halfExtent;
-            prim->y3          = xy;
-            prim->y2          = xy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-        }
+        _acropolisPatioDrawFountainJetSprite(coord, work, block);
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
 }
@@ -2202,34 +2263,63 @@ void func_acropolis_patio_8017E324(Task* task)
 /// function.
 static const u8 D_acropolis_patio_8017D5EB = 0xF2;
 
-/// Draws and drifts one puff of the fountain's mist for the current frame.
+/// Projects and queues one fountain mist tile.
 ///
-/// The puff only exists for the camera views its anchor's mask in
-/// `D_acropolis_patio_80182E4C` names, and the whole draw stops once
-/// `gRoomEffectState->effectControl` reaches 4 (effects are cancelled).
-///
-/// `EffectWork::index` is the puff's mode and the per-frame step in
-/// `EffectWork.move` is its velocity. In drift mode (0) the velocity is
-/// re-rolled every frame as `0x10 - rand[0,0x1F]` per axis, a random walk
-/// centred just above zero, and a 1-in-60 draw flips the puff into gather
-/// mode. In gather mode (non-zero) the velocity is instead re-aimed at the
-/// jet's own anchor once every fourth frame - the normalised direction from
-/// the puff to the anchor, scaled by `GPF` at `dp = 0x20` - and jittered by
-/// `+/-8` per axis every frame, with a 1-in-120 draw returning it to drift.
-/// The velocity is then added to the effect coordinate's translation.
-///
-/// The result is projected through `GsWSMATRIX` using `EffectPointTileScratch`
-/// and drawn as a single grey `TILE_1` whose level is a fresh `rand[0,0xC0)`,
-/// so the mist shimmers; depths below `EFFECT_POINT_TILE_MIN_DEPTH` draw nothing.
-void func_acropolis_patio_8017E730(Task* task)
+/// Borrows the caller's reserved scratch block and consumes frame-arena packets.
+static inline void _acropolisPatioDrawFountainMistPoint(const GfxCoord* coord, EffectPointTileScratch* tileScratch)
 {
+    enum { ACROPOLIS_PATIO_MIST_GREY_LEVELS = 192 };
+
+    TILE_1* prim;
+    u32     greyLevel;
+
+    // Draw the pre-movement view cache; the dirty stamp defers recomposition.
+    tileScratch->viewPoint.vx = coord->workm.t[0];
+    tileScratch->viewPoint.vy = coord->workm.t[1];
+    tileScratch->viewPoint.vz = coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&tileScratch->viewPoint);
+    gte_rtps();
+    prim           = gGpuPrimCursor;
+    gGpuPrimCursor = prim + 1;
+    setTile1(prim);
+    gte_stsxy(&prim->x0);
+    gte_stszotz(&tileScratch->depth);
+    if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        greyLevel       = gRandomLcgState >> 16;
+        greyLevel      %= ACROPOLIS_PATIO_MIST_GREY_LEVELS;
+        prim->r0        = greyLevel;
+        prim->g0        = greyLevel;
+        prim->b0        = greyLevel;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                prim);
+        gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, tileScratch->depth);
+    }
+}
+
+void acropolisPatioFountainMistTask(Task* task)
+{
+    enum {
+        ACROPOLIS_PATIO_MIST_INIT            = 0,
+        ACROPOLIS_PATIO_MIST_DRIFT           = 0,
+        ACROPOLIS_PATIO_MIST_GATHER          = 1,
+        ACROPOLIS_PATIO_MIST_DRIFT_CENTRE    = 16,
+        ACROPOLIS_PATIO_MIST_DRIFT_MASK      = 31,
+        ACROPOLIS_PATIO_MIST_AIM_SAMPLE_MASK = 3,
+        ACROPOLIS_PATIO_MIST_GATHER_WEIGHT   = ONE / 128,
+        ACROPOLIS_PATIO_MIST_JITTER_MASK     = 15,
+        ACROPOLIS_PATIO_MIST_JITTER_CENTRE   = 8,
+        ACROPOLIS_PATIO_MIST_DRIFT_CHANCE    = 120,
+        ACROPOLIS_PATIO_MIST_GATHER_CHANCE   = 60
+    };
+
     EffectWork*             work;
     GfxCoord*               coord;
     EffectPointTileScratch* tileScratch;
-    SVECTOR*                dir;
+    SVECTOR*                velocity;
     SVECTOR*                anchors;
-    TILE_1*                 prim;
-    u32                     level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -2237,82 +2327,60 @@ void func_acropolis_patio_8017E730(Task* task)
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
         tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
         actorRenderComposeCoord(coord);
-        if (task->state == 0) {
+        if (task->state == ACROPOLIS_PATIO_MIST_INIT) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            work->move.vx   = ACROPOLIS_PATIO_MIST_DRIFT_CENTRE - ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_DRIFT_MASK);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            work->move.vy   = ACROPOLIS_PATIO_MIST_DRIFT_CENTRE - ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_DRIFT_MASK);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            work->move.vz   = ACROPOLIS_PATIO_MIST_DRIFT_CENTRE - ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_DRIFT_MASK);
             task->state++;
         }
-        if (work->index != 0) {
+        // Gather re-aims on a random quarter of ticks, rather than periodically.
+        if (work->index != ACROPOLIS_PATIO_MIST_DRIFT) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 3) == 0) {
+            if (((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_AIM_SAMPLE_MASK) == 0) {
                 anchors       = D_acropolis_patio_80182DDC;
-                dir           = &work->move;
+                velocity      = &work->move;
                 work->move.vx = (u16)anchors[task->spawnArg1.value].vx -
                                 (u16)coord->coord.t[0];
                 work->move.vy = (u16)anchors[task->spawnArg1.value].vy -
                                 (u16)coord->coord.t[1];
                 work->move.vz = (u16)anchors[task->spawnArg1.value].vz -
                                 (u16)coord->coord.t[2];
-                VectorNormalSS(dir, dir);
-                gte_lddp(0x20);
-                gte_ldsv(dir);
+                VectorNormalSS(velocity, velocity);
+                gte_lddp(ACROPOLIS_PATIO_MIST_GATHER_WEIGHT);
+                gte_ldsv(velocity);
                 gte_gpf12();
-                gte_stsv(dir);
+                gte_stsv(velocity);
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx  -= ((gRandomLcgState >> 16) & 0xF) - 8;
+            work->move.vx  -= ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_JITTER_MASK) - ACROPOLIS_PATIO_MIST_JITTER_CENTRE;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy  -= ((gRandomLcgState >> 16) & 0xF) - 8;
+            work->move.vy  -= ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_JITTER_MASK) - ACROPOLIS_PATIO_MIST_JITTER_CENTRE;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz  -= ((gRandomLcgState >> 16) & 0xF) - 8;
+            work->move.vz  -= ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_JITTER_MASK) - ACROPOLIS_PATIO_MIST_JITTER_CENTRE;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 0x78) == 0) {
-                work->index = 0;
+            if ((u16)((gRandomLcgState >> 16) % ACROPOLIS_PATIO_MIST_DRIFT_CHANCE) == 0) {
+                work->index = ACROPOLIS_PATIO_MIST_DRIFT;
             }
         } else {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            work->move.vx   = ACROPOLIS_PATIO_MIST_DRIFT_CENTRE - ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_DRIFT_MASK);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            work->move.vy   = ACROPOLIS_PATIO_MIST_DRIFT_CENTRE - ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_DRIFT_MASK);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            work->move.vz   = ACROPOLIS_PATIO_MIST_DRIFT_CENTRE - ((gRandomLcgState >> 16) & ACROPOLIS_PATIO_MIST_DRIFT_MASK);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 0x3C) == 0) {
-                work->index = 1;
+            if ((u16)((gRandomLcgState >> 16) % ACROPOLIS_PATIO_MIST_GATHER_CHANCE) == 0) {
+                work->index = ACROPOLIS_PATIO_MIST_GATHER;
             }
         }
         coord->coord.t[0]  += work->move.vx;
         coord->coord.t[1]  += work->move.vy;
         coord->coord.t[2]  += work->move.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        // Project the cached view position; screen coordinates go straight into the tile.
-        tileScratch->viewPoint.vx = coord->workm.t[0];
-        tileScratch->viewPoint.vy = coord->workm.t[1];
-        tileScratch->viewPoint.vz = coord->workm.t[2];
-        gte_SetTransMatrix(&GsWSMATRIX);
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&tileScratch->viewPoint);
-        gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setTile1(prim);
-        gte_stsxy(&prim->x0);
-        gte_stszotz(&tileScratch->depth);
-        if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            level           = gRandomLcgState >> 16;
-            level          %= 0xC0;
-            prim->r0        = level;
-            prim->g0        = level;
-            prim->b0        = level;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, tileScratch->depth);
-        }
+        _acropolisPatioDrawFountainMistPoint(coord, tileScratch);
         SCRATCH_STACK_RELEASE_BLOCK(EffectPointTileScratch);
     }
 }

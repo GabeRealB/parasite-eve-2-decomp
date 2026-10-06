@@ -49151,7 +49151,7 @@ local rather than reaching for a pin.
 
 The `r = g = b` trick is usually described as a store-order fix, but it also
 decides which address `high` is emitted — and therefore coloured — first. In
-`func_acropolis_patio_8017DF48` the target is
+`_acropolisPatioActivateRoom2` the target is
 
 ```
 lui a1, %hi(gGameSession)
@@ -61442,7 +61442,7 @@ A non-zero leftover byte in the word's fourth slot does not change this, and
 does not call for a 3-byte struct copied from a named `static const`. The
 initializer's constant is emitted with its function, so define the leftover as
 a one-byte `static const u8` directly *below* that function and it lands at
-`+3`. `func_acropolis_patio_8017E324` (levels `0x50, 0x30, 0x40`, then `0xF2`)
+`+3`. `acropolisPatioFountainJetTask` (levels `0x50, 0x30, 0x40`, then `0xF2`)
 is the worked example; being a single-unit overlay it needed no cut either.
 
 ## `lh` + `andi 0x3f` for a clut is `getClut(x * 16, y)`, not `(x & 0x3f) | base`
@@ -61617,7 +61617,7 @@ Note this is the *opposite* direction from "Array index vs intermediate pointer
 for `addu` operand order", which is about `p = base + idx` naming the whole
 element. Here the local names only the base, and the index stays at the use, so
 the `lui`/`addiu` pair is still emitted once inside the block. That single edit
-took `func_acropolis_patio_8017E730` from 99.918% to 100%.
+took `acropolisPatioFountainMistTask` from 99.918% to 100%.
 
 ## `x % C == 0`: an inline cast beats a named 16-bit temp, and `%=` ties the `subu`
 
@@ -61672,7 +61672,7 @@ and wrong when the constants are a *local array initialiser*, because GCC
 materialises those on the stack from the function's own `.rodata`, which the
 shared object then owns for every carrier at once.
 
-`func_acropolis_patio_8017E324` is the worked refusal: the lamp task ends with
+`acropolisPatioFountainJetTask` is the worked refusal: the sprite task ends with
 
 ```c
 u8 levels[3] = { 0x50, 0x30, 0x10 };
@@ -61752,7 +61752,7 @@ function set of the two halves against the original before building.
 ## A body's own string literal is shareable; a stack-materialised initialiser is not
 
 The refusal recorded above ("A shared body's constants are part of the object")
-is right about `func_acropolis_patio_8017E324` and too strong as a rule. What
+is right about `acropolisPatioFountainJetTask` and too strong as a rule. What
 decides it is not where the data sits but **how the body reaches it**. A
 `const char*` handed to a callee compiles to `lui %hi(sym)` / `addiu %lo(sym)`,
 and an `extern` array compiles to exactly the same two instructions, so
@@ -87194,7 +87194,7 @@ body with the `%hi`s the other way round, and it confirms the mechanism decides
 both directions — so use the target's first `lui` as the selector:
 
 ```
-func_mine_cavern_8017E330        func_acropolis_patio_8017DF48
+func_mine_cavern_8017E330        _acropolisPatioActivateRoom2
 lui a1, %hi(D_8007216D)          lui a1, %hi(gGameSession)
 lui a0, %hi(gGameSession)        lui v1, %hi(D_8007216D)
 lw  v1, %lo(gGameSession)(a0)    lw  a0, %lo(gGameSession)(a1)

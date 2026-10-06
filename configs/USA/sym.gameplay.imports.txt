@@ -595,9 +595,9 @@ func_acropolis_observatory_8017E6F8 = 0x8017E6F8; // type:func absolute:True own
 
 func_acropolis_patio_8017E100 = 0x8017E100; // type:func absolute:True owner=acropolis_patio
 
-func_acropolis_patio_8017E324 = 0x8017E324; // type:func absolute:True owner=acropolis_patio
+acropolisPatioFountainJetTask = 0x8017E324; // type:func absolute:True owner=acropolis_patio
 
-func_acropolis_patio_8017E730 = 0x8017E730; // type:func absolute:True owner=acropolis_patio
+acropolisPatioFountainMistTask = 0x8017E730; // type:func absolute:True owner=acropolis_patio
 
 func_acropolis_plaza_801802C0 = 0x801802C0; // type:func absolute:True owner=acropolis_plaza shared=rooms
 

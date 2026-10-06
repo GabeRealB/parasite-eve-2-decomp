@@ -190,6 +190,13 @@ D_acropolis_patio_80187065 = 0x80187065; // size:0x1 defined:True
 
 func_acropolis_patio_8017E100 = 0x8017E100; // type:func
 
-func_acropolis_patio_8017E324 = 0x8017E324; // type:func
+acropolisPatioFountainJetTask = 0x8017E324; // type:func
 
-func_acropolis_patio_8017E730 = 0x8017E730; // type:func
+acropolisPatioFountainMistTask = 0x8017E730; // type:func
+_acropolisPatioRefuseKeyItemUse = 0x8017dd44; // type:func
+_acropolisPatioHandleSoundMessage = 0x8017dd4c; // type:func
+_acropolisPatioPlayerHeadAimTask = 0x8017de2c; // type:func
+_acropolisPatioActivateRoom2 = 0x8017df48; // type:func
+_acropolisPatioSetActorControl = 0x8017df70; // type:func
+_acropolisPatioRoomIdleState = 0x8017df7c; // type:func
+_acropolisPatioPlayerTurnLeftTask = 0x8017e054; // type:func
