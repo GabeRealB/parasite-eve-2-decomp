@@ -285,86 +285,90 @@ WorldCollisionSurfaceProperties* D_dryfield_night_r08_8018195C[8] = {
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
-/// On the task's first tick, stores three fixed ids into `gRoomEffectFlashId`,
-/// `gRoomEffectTwinTrailId` and `gRoomEffectSparkBurstId`, then draws the placements the current camera
-/// view shows with the beam and sprite drawers below. The placement names are
-/// windows onto one run of 8-byte `SVECTOR`s, so `80180664` is `805BC[21]`,
-/// `805AC[23]` and `805CC[19]` as well; views 3 and 9 name it directly and the
-/// compiler merges their last two calls into one tail.
-void func_dryfield_night_r08_8017D718(Task* arg0)
+/// Texture column and perspective half-extent numerator for the room's fixed flares.
+///
+/// Pixel half-extent is the radius scale times 39 / (camera Z / 4).
+enum {
+    DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE   = 0x300,
+    DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN = 1
+};
+
+/// Draws the eight fixed flares shared by views 3, 6 and 8.
+static inline void _dryfieldNightR08DrawMainFlares(void)
 {
-    if (arg0->state == 0) {
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[13], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[14], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[15], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[16], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[20], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[21], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[22], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+    glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+}
+
+void dryfieldNightR08DrawGlowsTask(Task* task)
+{
+    // Beam radii scale by 64 / depth; RGB factors occupy bits 8..15, 4 and 0.
+    enum { GLOWS_INITIALIZE,
+           GLOWS_DRAW,
+           DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE = 0x200,
+           DRYFIELD_NIGHT_R08_BEAM_GREEN        = 1 << 4,
+           DRYFIELD_NIGHT_R08_BEAM_RED          = 1 << 8,
+           DRYFIELD_NIGHT_R08_BEAM_WHITE        = (1 << 8) | (1 << 4) | 1 };
+
+    // Publish the room-local callbacks before enemies can spawn their effects.
+    if (task->state == GLOWS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_DRYFIELD_NIGHT_R08_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_DRYFIELD_NIGHT_R08_TWIN_TRAIL;
         gRoomEffectSparkBurstId = EFFECT_DRYFIELD_NIGHT_R08_SPARK_BURST;
-        arg0->state             = 1;
+        task->state             = GLOWS_DRAW;
     }
 
+    // Each beam borrows a consecutive endpoint pair; flare points are single entries.
     switch (gGameSession->location.loc.view) {
         case 3:
-            _glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805BC[2], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[11], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[12], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[13], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[14], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[18], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[19], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[20], 1, 0x300);
-            glowDrawFlareClipped(D_dryfield_night_r08_80180664, 1, 0x300);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            _dryfieldNightR08DrawMainFlares();
             break;
         case 2:
         case 5:
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[0], 0x200, 0x800, 0x111);
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[2], 0x200, 0x800, 0x111);
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[4], 0x200, 0, 0x111);
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[6], 0x200, 0, 0x111);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[0], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_WHITE);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_WHITE);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_WHITE);
+            _glowDrawBeam(&D_dryfield_night_r08_8018056C[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_WHITE);
             break;
         case 4:
-            _glowDrawBeam(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805BC[4], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805BC[6], 0x200, 0x800, 0x100);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[14], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[20], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805BC[21], 1, 0x300);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[16], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[22], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
             break;
         case 6:
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[0], 0x200, 0x800, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], 0x200, 0x800, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], 0x200, 0x800, 0x100);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[13], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[14], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[15], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[16], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[20], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[21], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[22], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], 1, 0x300);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[0], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            _dryfieldNightR08DrawMainFlares();
             break;
         case 7:
-            _glowDrawBeam(D_dryfield_night_r08_801805AC, 0x200, 0x800, 0x10);
+            _glowDrawBeam(D_dryfield_night_r08_801805AC, DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
             break;
         case 8:
-            _glowDrawBeam(&D_dryfield_night_r08_801805CC[0], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805CC[2], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805CC[4], 0x200, 0x800, 0x100);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[9], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[10], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[11], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[12], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[16], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[17], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[18], 1, 0x300);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805CC[19], 1, 0x300);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            _dryfieldNightR08DrawMainFlares();
             break;
         case 9:
-            _glowDrawBeam(&D_dryfield_night_r08_801805DC[0], 0x200, 0, 0x10);
-            _glowDrawBeam(&D_dryfield_night_r08_801805DC[2], 0x200, 0x800, 0x100);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805DC[10], 1, 0x300);
-            glowDrawFlareClipped(D_dryfield_night_r08_80180664, 1, 0x300);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[16], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
             break;
     }
 }
@@ -377,14 +381,14 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_dryfield_night_r08_8017E5B0(Task* arg0)
+void dryfieldNightR08RoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_dryfield_night_r08_8017F014(Task* task)
+void dryfieldNightR08RoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

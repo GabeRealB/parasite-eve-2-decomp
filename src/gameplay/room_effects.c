@@ -920,7 +920,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017F3F8, { NULL } },                                // 0x17B
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLeafFallTask, { NULL } },                             // 0x17C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sterilization_room_801823D8, { NULL } },                 // 0x17D
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017D718, { NULL } },                            // 0x17E
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08DrawGlowsTask, { NULL } },                               // 0x17E
     { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_pyke_8011D7D4, { NULL } },                                     // 0x17F
     { { { TASK_BODY_COORD, 0x70 } }, func_actor_800100_80161F20, { NULL } },                                  // 0x180
     { { { TASK_BODY_COORD, 0x70 } }, actor800100PykeFlameTask, { NULL } },                                    // 0x181
@@ -993,7 +993,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_bulwark_8017F6D8, { NULL } },                            // 0x1C4
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pyramid_8017DBF0, { NULL } },                               // 0x1C5
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryEffectSpriteRiseTask, { NULL } },               // 0x1C6
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017E5B0, { NULL } },                            // 0x1C7
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08RoomVisualEffectsFlashTask, { NULL } },                  // 0x1C7
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_80180D18, { NULL } },                      // 0x1C8
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017E760, { NULL } },          // 0x1C9
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80180DCC, { NULL } },                          // 0x1CA
@@ -1021,7 +1021,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryRoomVisualEffectsFlashTask, { NULL } },                  // 0x1E0
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017FF84, { NULL } },                                // 0x1E1
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pyramid_8017DC50, { NULL } },                               // 0x1E2
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_r08_8017F014, { NULL } },                            // 0x1E3
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightR08RoomVisualEffectsTwinTrailTask, { NULL } },              // 0x1E3
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_8018177C, { NULL } },                      // 0x1E4
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017F1C4, { NULL } },          // 0x1E5
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80181830, { NULL } },                          // 0x1E6

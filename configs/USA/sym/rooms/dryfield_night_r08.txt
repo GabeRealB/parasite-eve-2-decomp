@@ -40,11 +40,11 @@ D_actor_535700_8013DADC = 0x8013DADC; // absolute:True owner=actor_535700
 gActor535700PairWalkTasks = 0x80146810; // absolute:True owner=actor_535700
 D_map_dryfield_full_8017B508 = 0x8017B508; // absolute:True owner=map_dryfield_full
 
-func_dryfield_night_r08_8017D718 = 0x8017D718; // type:func
+dryfieldNightR08DrawGlowsTask = 0x8017D718; // type:func
 
-func_dryfield_night_r08_8017E5B0 = 0x8017E5B0; // type:func
+dryfieldNightR08RoomVisualEffectsFlashTask = 0x8017E5B0; // type:func
 
-func_dryfield_night_r08_8017F014 = 0x8017F014; // type:func
+dryfieldNightR08RoomVisualEffectsTwinTrailTask = 0x8017F014; // type:func
 
 func_dryfield_night_r08_8017F8FC = 0x8017F8FC; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E854; // type:func
