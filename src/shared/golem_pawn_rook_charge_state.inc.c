@@ -81,7 +81,14 @@ void golemPawnRookChargeState(Task* arg0)
             dzAim                        = delta->vz;
             dist                         = SquareRoot0((dxAim * dxAim) + (dzAim * dzAim));
             if (work->interruptDamage >= 0x4C) {
-                goto reset;
+                work->behavior         = GOLEM_PAWN_ROOK_BEHAVIOR_STAGGER;
+                work->step             = 0;
+                work->forwardSpeed     = 0;
+                work->turnRate         = 0;
+                work->attackActive     = 0;
+                work->shieldRaised     = 0;
+                work->strikeBody.flags = (u16)(work->strikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+                break;
             }
             if (dist < 0x5DC) {
                 work->step         = 2;
@@ -103,7 +110,6 @@ void golemPawnRookChargeState(Task* arg0)
             work->forwardSpeed = 0;
             work->turnRate     = 0;
             if ((work->animFrame < 0xD) && (work->interruptDamage >= 0x4C)) {
-            reset:
                 work->behavior         = GOLEM_PAWN_ROOK_BEHAVIOR_STAGGER;
                 work->step             = 0;
                 work->forwardSpeed     = 0;
