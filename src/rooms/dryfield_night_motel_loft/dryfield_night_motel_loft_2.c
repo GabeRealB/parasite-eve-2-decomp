@@ -647,7 +647,19 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
 
 #undef DRYFIELD_NIGHT_MOTEL_LOFT_STEP_AND_DRAW_SHARD
 
-/// Adds the coordinate's cached translation to a corner, wrapping to 16 bits.
+/// Translates a rotated shard corner into the cached transform's output space.
+///
+/// `corner` supplies a live, writable vector already rotated by `coord->workm`.
+/// Its XYZ and the cache's initialized translation use integer game-coordinate
+/// units. The cache must correspond to that rotation; this helper uses its
+/// existing translation even when `composeStamp` marks it stale.
+///
+/// Each component sum keeps its low 16 bits as a signed coordinate, wrapping
+/// rather than saturating. The unsigned halfword conversions bound each sum
+/// to 0..131070 before narrowing, avoiding signed 32-bit translation overflow.
+/// Writes only XYZ, leaving the vector's fourth halfword unchanged. Both
+/// objects are borrowed for this call and must be disjoint; no pointer is
+/// retained, and neither the coordinate nor GTE state is changed.
 static __inline__ void _dryfieldNightMotelLoftTranslateShardCorner(SVECTOR* corner, const GfxCoord* coord)
 {
     corner->vx = (u16)corner->vx + (u16)coord->workm.t[0];
