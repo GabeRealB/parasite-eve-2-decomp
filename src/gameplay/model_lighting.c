@@ -275,6 +275,18 @@ u32 D_80114BAC = 0x10FF2220;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
+/// Tests the quad's second triangle once the first has failed the facing test.
+///
+/// The GTE screen FIFO must hold corners 1, 2 and 3. Stores their NCLIP result
+/// through `gteResultDestination`, which must address `workspace->gteResult`,
+/// and returns nonzero when it is negative.
+static inline s32 _tmdSecondHalfFacesViewer(const TmdStreamWorkspace* workspace, s32* gteResultDestination)
+{
+    gte_nclip();
+    gte_stopz(gteResultDestination);
+    return workspace->gteResult < 0;
+}
+
 /// Lights a Gouraud textured quad's four corners from one loaded GTE material.
 ///
 /// The caller supplies GTE light/colour matrices and background colour, and
@@ -1393,13 +1405,7 @@ u32* tmdDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* workspace, s32 objectFl
                 gte_stflg(gteFlagDestination);
                 if ((workspace->gteFlag & projectionErrorMask) == 0) {
                     // Draw if NCLIP(0,1,2) > 0, or otherwise NCLIP(1,2,3) < 0.
-                    if (workspace->gteResult > 0) {
-                        goto draw;
-                    }
-                    gte_nclip();
-                    gte_stopz(gteResultDestination);
-                    if (workspace->gteResult < 0) {
-                    draw:
+                    if (workspace->gteResult > 0 || _tmdSecondHalfFacesViewer(workspace, gteResultDestination)) {
                         gte_stsxy2(&packetPair[0].x3);
                         gte_stsxy2(&packetPair[1].x3);
                         gte_avsz4();
