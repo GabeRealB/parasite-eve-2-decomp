@@ -39,113 +39,113 @@ static SVECTOR D_m4a1_bayonet_8011DEC8[1] = { { 0, 0x0300, 0x0040, 0 } };
 /// arithmetic, so it is an object of its own rather than element 1.
 static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 
-/// Per-frame task for the M4A1 bayonet's blade trail. Nothing runs while
-/// `gRoomEffectState->effectControl` is not running; the task is released at
-/// cancellation. State 0 places the tip frame at
-/// `D_m4a1_bayonet_8011DEC8[0]` under the muzzle and the hilt frame at
-/// `[1]` under it, then seeds all sixteen trail slots with that pose. State 1
-/// re-poses both frames every frame, writes them into trail slot
-/// `age & 7`, re-runs the whole ring so the older slots follow their
-/// parents, and hands the ribbon to `_bladeTrailDraw`. The task
-/// lives 13 frames.
-void func_m4a1_bayonet_8011D1E4(Task* task)
+/// Captures an endpoint's world pose independently of the moving weapon.
+///
+/// Endpoint and view caches must be current, with an orthonormal view rotation.
+/// The distinct, word-aligned coordinates remain caller-owned. Leaves the
+/// destination stamp and parameters untouched; mark it dirty before recomposing.
+/// Retains only the persistent view parent. Changes GTE matrix registers and
+/// requires 48 free scratch-stack bytes, released before return.
+static inline void _m4a1BayonetStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* endpoint)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GfxCoord*   slot;
-    GfxCoord    hilt;
-    s32         phase;
-    SVECTOR*    vec;
-    s32         vx;
-    s32         vy;
-    s32         vz;
-    s32         i;
-    s32         alive;
+    historyFrame->parent = &gGfxViewCoord;
+    historyFrame->workm  = endpoint->workm;
+    gte_SetRotMatrix(&endpoint->workm);
+    gte_SetTransMatrix(&endpoint->workm);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
+}
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    phase = gRoomEffectState->effectControl;
-    if (phase == ROOM_EFFECT_CONTROL_RUNNING) {
-        work->age++;
+void m4a1BayonetTrailTask(Task* task)
+{
+    enum {
+        M4A1_BAYONET_TRAIL_SEED           = 0,
+        M4A1_BAYONET_TRAIL_RECORD         = 1,
+        M4A1_BAYONET_TRAIL_LIFETIME_TICKS = 13
+    };
+    EffectWork*    effectWork;
+    GfxCoord*      tipCoord;
+    GfxCoord*      historyFrame;
+    GfxCoord       nearEndpoint;
+    s32            effectControl;
+    const SVECTOR* nearOffset;
+    s32            offsetX;
+    s32            offsetY;
+    s32            offsetZ;
+    s32            historyIndex;
+    s32            keepTask;
+
+    effectWork    = task->spawnArg2.pointer;
+    tipCoord      = task->extra.coordBody->coord;
+    effectControl = gRoomEffectState->effectControl;
+    if (effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+        effectWork->age++;
         switch (task->state) {
-            case 0:
-                coord->parent       = work->parent;
-                coord->coord.t[0]   = D_m4a1_bayonet_8011DEC8[0].vx;
-                coord->coord.t[1]   = D_m4a1_bayonet_8011DEC8[0].vy;
-                coord->coord.t[2]   = D_m4a1_bayonet_8011DEC8[0].vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                task->state = 1;
+            case M4A1_BAYONET_TRAIL_SEED:
+                tipCoord->parent       = effectWork->parent;
+                tipCoord->coord.t[0]   = D_m4a1_bayonet_8011DEC8[0].vx;
+                tipCoord->coord.t[1]   = D_m4a1_bayonet_8011DEC8[0].vy;
+                tipCoord->coord.t[2]   = D_m4a1_bayonet_8011DEC8[0].vz;
+                tipCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(tipCoord);
+                task->state = M4A1_BAYONET_TRAIL_RECORD;
 
-                vx                = D_m4a1_bayonet_8011DEC8[1].vx;
-                vec               = &D_m4a1_bayonet_8011DEC8[1];
-                vy                = vec->vy;
-                vz                = vec->vz;
-                hilt.parent       = coord;
-                hilt.composeStamp = GRAPHICS_COORD_DIRTY;
-                hilt.coord.t[0]   = vx;
-                hilt.coord.t[1]   = vy;
-                hilt.coord.t[2]   = vz;
-                actorRenderComposeCoord(&hilt);
+                // Only endpoint translations feed the ribbon; the temporary rotation is left uninitialized.
+                // The seed chains the second endpoint beneath the tip; recording uses the weapon parent.
+                offsetX                   = D_m4a1_bayonet_8011DEC8[1].vx;
+                nearOffset                = &D_m4a1_bayonet_8011DEC8[1];
+                offsetY                   = nearOffset->vy;
+                offsetZ                   = nearOffset->vz;
+                nearEndpoint.parent       = tipCoord;
+                nearEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
+                nearEndpoint.coord.t[0]   = offsetX;
+                nearEndpoint.coord.t[1]   = offsetY;
+                nearEndpoint.coord.t[2]   = offsetZ;
+                actorRenderComposeCoord(&nearEndpoint);
 
-                for (i = 0; i < 8; i++) {
-                    slot         = &gBladeTrailBase[i];
-                    slot->parent = &gGfxViewCoord;
-                    slot->workm  = coord->workm;
-                    gte_SetRotMatrix(&coord->workm);
-                    gte_SetTransMatrix(&coord->workm);
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                // Seed every slot with the same world pose, detached from the moving weapon.
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
+                    historyFrame = &gBladeTrailBase[historyIndex];
+                    _m4a1BayonetStoreTrailFrame(historyFrame, tipCoord);
 
-                    slot         = &gBladeTrailTip[i];
-                    slot->parent = &gGfxViewCoord;
-                    slot->workm  = hilt.workm;
-                    gte_SetRotMatrix(&hilt.workm);
-                    gte_SetTransMatrix(&hilt.workm);
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                    historyFrame = &gBladeTrailTip[historyIndex];
+                    _m4a1BayonetStoreTrailFrame(historyFrame, &nearEndpoint);
                 }
                 break;
-            case 1:
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
+            case M4A1_BAYONET_TRAIL_RECORD:
+                tipCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(tipCoord);
 
-                hilt.parent       = work->parent;
-                hilt.composeStamp = GRAPHICS_COORD_DIRTY;
-                hilt.coord.t[0]   = D_m4a1_bayonet_8011DED0.vx;
-                hilt.coord.t[1]   = D_m4a1_bayonet_8011DED0.vy;
-                hilt.coord.t[2]   = D_m4a1_bayonet_8011DED0.vz;
-                actorRenderComposeCoord(&hilt);
+                nearEndpoint.parent       = effectWork->parent;
+                nearEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
+                nearEndpoint.coord.t[0]   = D_m4a1_bayonet_8011DED0.vx;
+                nearEndpoint.coord.t[1]   = D_m4a1_bayonet_8011DED0.vy;
+                nearEndpoint.coord.t[2]   = D_m4a1_bayonet_8011DED0.vz;
+                actorRenderComposeCoord(&nearEndpoint);
 
-                slot         = &gBladeTrailBase[work->age & 7];
-                slot->parent = &gGfxViewCoord;
-                slot->workm  = coord->workm;
-                gte_SetRotMatrix(&coord->workm);
-                gte_SetTransMatrix(&coord->workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                historyFrame = &gBladeTrailBase[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
+                _m4a1BayonetStoreTrailFrame(historyFrame, tipCoord);
 
-                slot         = &gBladeTrailTip[work->age & 7];
-                slot->parent = &gGfxViewCoord;
-                slot->workm  = hilt.workm;
-                gte_SetRotMatrix(&hilt.workm);
-                gte_SetTransMatrix(&hilt.workm);
-                gfxMakeRelativeTransform(&gGfxViewCoord.workm, &slot->workm, &slot->coord);
+                historyFrame = &gBladeTrailTip[effectWork->age & (ARRAY_SIZE(gBladeTrailTip) - 1)];
+                _m4a1BayonetStoreTrailFrame(historyFrame, &nearEndpoint);
 
-                for (i = 0; i < 8; i++) {
-                    slot               = &gBladeTrailBase[i];
-                    slot->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(slot);
-                    slot               = &gBladeTrailTip[i];
-                    slot->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(slot);
+                // Recompose all retained world poses against the current view before drawing.
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
+                    historyFrame               = &gBladeTrailBase[historyIndex];
+                    historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(historyFrame);
+                    historyFrame               = &gBladeTrailTip[historyIndex];
+                    historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(historyFrame);
                 }
-                _bladeTrailDraw(work->age & 7, BLADE_TRAIL_TINT_BLUE_WHITE);
+                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), BLADE_TRAIL_TINT_BLUE_WHITE);
                 break;
         }
-        alive = work->age < 0xD;
+        keepTask = effectWork->age < M4A1_BAYONET_TRAIL_LIFETIME_TICKS;
     } else {
-        alive = phase < ROOM_EFFECT_CONTROL_CANCEL_MIN;
+        keepTask = effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN;
     }
-    if (!alive) {
-        effectKillTask(work, task);
+    if (!keepTask) {
+        effectKillTask(effectWork, task);
     }
 }
 

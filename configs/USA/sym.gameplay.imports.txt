@@ -1997,7 +1997,7 @@ m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_jav
 
 func_tonfa_baton_8011D1EC = 0x8011D1EC; // type:func absolute:True owner=tonfa_baton shared=weapons
 
-func_m4a1_bayonet_8011D1E4 = 0x8011D1E4; // type:func absolute:True owner=m4a1_bayonet shared=weapons
+m4a1BayonetTrailTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_bayonet shared=weapons
 
 func_p229_8011D1DC = 0x8011D1DC; // type:func absolute:True owner=p229 shared=weapons
 

@@ -600,7 +600,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask3B, { NULL } },                                             // 0x03B
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_breezeway_80181264, { NULL } },                            // 0x03C
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyDebrisTask, { NULL } },                         // 0x03D
-    { { { TASK_BODY_COORD, 0x70 } }, func_m4a1_bayonet_8011D1E4, { NULL } },                                  // 0x03E
+    { { { TASK_BODY_COORD, 0x70 } }, m4a1BayonetTrailTask, { NULL } },                                        // 0x03E
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask3F, { NULL } },                                          // 0x03F
     { { { TASK_BODY_COORD, 0x70 } }, func_p229_8011D1DC, { NULL } },                                          // 0x040
     { { { TASK_BODY_COORD, 0x70 } }, func_mp5a5_8011D1E0, { NULL } },                                         // 0x041
