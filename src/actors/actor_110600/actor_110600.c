@@ -1580,12 +1580,11 @@ static void func_actor_110600_80134728(Task* arg0)
         if ((targetAngle - currentAngle) >= 0x101) {
             work->lookYaw = (s16)(currentAngleBits + 0x100);
         } else {
-            goto block_31;
+            work->lookYaw = (s16)targetAngleBits;
         }
     } else if ((currentAngle - targetAngle) >= 0x101) {
         work->lookYaw = (s16)(currentAngleBits - 0x100);
     } else {
-    block_31:
         work->lookYaw = (s16)targetAngleBits;
     }
     turnNow = work->lookYaw;
