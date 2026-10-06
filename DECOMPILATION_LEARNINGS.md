@@ -149099,3 +149099,117 @@ nest normally, and `kind = 0x16` was not needed (10 gotos -> 5).
   test's load for the first compare of the body; the image reloads the byte at
   the loop top. `func_acropolis_plaza_8017DFE0` keeps one `goto` from state 5
   back into state 2 (an inline for state 2's body would need its own `slot[]`).
+
+## Removing `goto`: switch trees with no-op cases, real loops under constant locals (main and gameplay, 2026-10-06)
+
+### `if (r < 4) { if (r == 0) ok; else goto fail; } else { fail: ... }` is a switch with a case above the range
+
+Symptom: `sltiu v0,v1,4; beqz fail; bnez v1,fail` in `_mcStateFinishSectionRead`
+and `_mcStateResolveFileHeaderWrite`. `if (r < 4 && r == 0)` folds to
+`r == 0` (fold-const merges the two range tests). Writing the failure code in
+both arms does not merge back when it contains a loop.
+
+Fix: a three-node tree. `case 0:` plus a range `case 1: case 2: case 3:` plus
+any single case above 4, the last two sharing the `default:` code:
+
+```c
+switch (writeResult) {
+    case McErrNone: ...; break;
+    case McErrCardNotExist:
+    case McErrCardInvalid:
+    case McErrNewCard:
+    case McErrFileNotExist:
+    default: ...fail...; break;
+}
+```
+
+The middle node (1..3) is the pivot: `index > 3 -> right node`, whose test is
+deleted because it and the default jump to one label; `index >= 1 -> fail`;
+what is left is case 0. With only `case 0` and `case 1..3` (two nodes) the
+result is a single `bnez`. Which case sat above 4 is not recoverable from the
+bytes; `McErrFileNotExist` is a placeholder for it. The hoisted
+`filenameByte = Mc_FileName` written in both arms of the old form was reorg
+filling the two branch delay slots from the one failure block, and is gone.
+
+### No-op cases stay in the tree; two-node lists pivot on the first node
+
+`_tmdEnableSourceLayeredTextures` tested `==0x3B; <0x3C: ==0x38; else:
+==0x79; >=0x7A -> skip; ==0x78`, written as nine gotos. It is
+
+```c
+switch (opcode) {
+    case GT3: *stream = GT3 | LAYERED; break;
+    case GT4: *stream = GT4 | LAYERED; break;
+    case GT3 | PRE_XFORM:
+    case GT3 | PRE_XFORM | SEMI_TRANS:
+    case GT4 | PRE_XFORM:
+    case GT4 | PRE_XFORM | SEMI_TRANS:
+        break;
+}
+```
+
+A `case X: break;` is a node like any other and its `beq X,end` is emitted;
+it disappears only where it ends up directly in front of the jump to the same
+label (a leaf). Reading the list back: six nodes 0x38 0x39 0x3B 0x78 0x79 0x7B
+pivot on the third (0x3B); the left list `0x38 0x39` pivots on its *first*
+node, so 0x39's test is the deleted leaf; the right list of three pivots on
+0x79, giving `==0x79`, `>0x79 -> right` (0x7B, deleted leaf), `==0x78`. Four
+cases (0x38 0x3B 0x78 0x79) give the same root but the right list `0x78 0x79`
+then tests 0x78 first and drops the 0x79 test. 0x3A and 0x7A cannot be the
+extra cases: they would merge with their neighbour into a range. The two
+`j end; addiu a0,a0,8` that looked like a separate "skip other payload" block
+are reorg filling the default jumps' delay slots from the code after the
+switch. `_mcMenuUpdatePromptChoices` is the same idea with
+`case 3: default:` making three nodes so that 2 is tested first.
+
+### Constant locals in front of a `goto` loop were loop.c's hoists
+
+`textSkipLines` (`lineFeed = '\n'` and three more locals, loop spelled with
+`goto`) is `while (lineCount > 0) { ...; if (byte == '\0') break; ... }` with
+the character constants written in place: loop.c hoists the four `li` in the
+order the body mentions them. `_tmdEnableSourceLayeredTextures` likewise is
+two nested `while` loops with no `groupEnd` local; the inner loop's constants
+split between the two preheaders on their own.
+
+The converse fails: the four task walkers of `src/main/task.c`
+(`taskExecList`, `taskExecDefaultList`, `taskExecListForPriority`,
+`taskCallExitForPriority`) reload `li v0,1` and `li v0,0xFF` on every
+iteration. Any real loop (`do`/`while` inside the `if`, `while (1)` with
+`continue`) hoists both into `$s3/$s4` (`-dL`: "life 1, savings 1, moved"),
+6 insns longer. They stay `goto` loops; what made the original loop invisible
+to loop.c is not known. `_tmdResolveSourceDrawHandlers` is the same case (no
+constant is hoisted, and the entry jumps to the bottom test without the test
+being duplicated); only its `goto done` went, as the store and a `return`.
+
+### A giv is reduced unless the biv has several increments
+
+`func_800DA6E8` scans with `p++` written in three arms. With one `p++` (in
+the `for` header or at the end of the body) loop.c reduces `&p->amount` to its
+own register (`addiu a2,v1,4`, `lh v0,0(a2)`): the benefit of a giv is
+lowered by `add_cost * biv_count`, so three increments leave it unreduced.
+The `for` with `break` matches only with the three increments kept.
+
+### An inline called in two switch arms shows as a constant replaced by the switch index
+
+`taskKill` (11 gotos) had two copies of "stop, test the countdown, release
+the body by kind, mark released", one comparing `task->bodyKind` with the
+constant 2 and one with the register holding the outer switch's index. That
+is one `static inline` (`_taskReleaseBodyInline`) called under
+`case TASK_BODY_COORD:` and under `case TASK_BODY_NONE: default:`; in the
+first, cse knows the index is 2 and uses its register. The shared
+release/mark tails are cross-jumping. The outer `==1; <2 -> default; ==2`
+needs `case TASK_BODY_NONE:` listed with the default (three nodes).
+
+### `streamFindMovieSlot`, not converted: what was established
+
+Written as a real loop with `Stream_Slots`, `STREAM_KIND_MOVIE` and
+`(requireViewStream & 0xFFFF)` in place (no `slotTable`/`movieKind` locals),
+loop.c hoists exactly the image's three values in the image's order. The
+match block after the `return` is `find_and_verify_loops` moving
+`if (requireViewStream == 0) { hasMatch = 1; matched = i; break; }` out of
+the loop (it only moves a block the preceding conditional jumps *over*, so
+`a || b` in the condition, which puts a label in the block, prevents it).
+Two forms each got one half: a `do`/`while` keeps `(subId & 0xFFFF)` in the
+loop but jump.c rotates the body around the match block; a `for` has the
+image's layout but hoists `subId & 0xFFFF` as well (one insn longer). Six
+attempts; left as it was.
