@@ -1008,19 +1008,19 @@ shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask = 0x8018177C; // type:func a
 
 shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func absolute:True owner=shelter_b1_golem_freezer_1
 
-func_shelter_b1_main_corridor_8017DDF0 = 0x8017DDF0; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
+shelterB1MainCorridorDrawViewLightsTask = 0x8017DDF0; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
 
-func_shelter_b1_main_corridor_8017EAD4 = 0x8017EAD4; // type:func absolute:True owner=shelter_b1_main_corridor
+shelterB1MainCorridorRoomVisualEffectsMoteTask = 0x8017EAD4; // type:func absolute:True owner=shelter_b1_main_corridor
 
-func_shelter_b1_main_corridor_8017F81C = 0x8017F81C; // type:func absolute:True owner=shelter_b1_main_corridor
+shelterB1MainCorridorRoomVisualEffectsHaloTask = 0x8017F81C; // type:func absolute:True owner=shelter_b1_main_corridor
 
-func_shelter_b1_main_corridor_8017FBB4 = 0x8017FBB4; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
+shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask = 0x8017FBB4; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
 
 func_shelter_b1_main_corridor_80180FC4 = 0x80180FC4; // type:func absolute:True owner=shelter_b1_main_corridor
 
-func_shelter_b1_main_corridor_801810F8 = 0x801810F8; // type:func absolute:True owner=shelter_b1_main_corridor
+shelterB1MainCorridorRoomVisualEffectsFlashTask = 0x801810F8; // type:func absolute:True owner=shelter_b1_main_corridor
 
-func_shelter_b1_main_corridor_80181B5C = 0x80181B5C; // type:func absolute:True owner=shelter_b1_main_corridor
+shelterB1MainCorridorRoomVisualEffectsTwinTrailTask = 0x80181B5C; // type:func absolute:True owner=shelter_b1_main_corridor
 
 func_shelter_b1_main_corridor_80182444 = 0x80182444; // type:func absolute:True owner=shelter_b1_main_corridor
 

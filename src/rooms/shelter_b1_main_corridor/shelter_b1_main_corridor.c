@@ -106,11 +106,13 @@ extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 /// The two points the beam runs between, relative to its parent coordinate;
 /// the second is also declared on its own.
 
-s32 func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_main_corridor_8017DCEC(Task*, s32, s32, s32);
-s32 func_shelter_b1_main_corridor_8017DCF4(Task*, s32, s32, s32);
-s32 func_shelter_b1_main_corridor_8017DCFC(Task*, s32, s32, s32);
-s32 func_shelter_b1_main_corridor_8017DD04(Task*, s32, s32, s32);
+s32        func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1MainCorridorRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _shelterB1MainCorridorIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterB1MainCorridorIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32 _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
+
+enum { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -118,10 +120,10 @@ TaskDesc D_shelter_b1_main_corridor_80183098 = { { { TASK_BODY_NONE, 32 } }, roo
 
 TaskMessageEntry D_shelter_b1_main_corridor_801830A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_main_corridor_8017DA8C },
-    { 5105, func_shelter_b1_main_corridor_8017DCEC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_main_corridor_8017DCFC },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_main_corridor_8017DCF4 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b1_main_corridor_8017DD04 },
+    { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB1MainCorridorRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1MainCorridorIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1MainCorridorIgnoreCommand },
+    { ROOM_MESSAGE_SOUND, _shelterB1MainCorridorHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -692,7 +694,7 @@ RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_b1_main_corridor_8017DD4C(Task* task);
-static void           func_shelter_b1_main_corridor_8017DD90(Task* task);
+static void           _shelterB1MainCorridorMessageTaskIdle(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -795,29 +797,43 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
     return 1;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCEC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request, returning zero to the inventory.
+///
+/// The collected item ID and the zero second payload word are ignored.
+static s32 _shelterB1MainCorridorRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCF4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and their payload words, always returning zero.
+static s32 _shelterB1MainCorridorIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCFC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the borrowed direction-action request and returns zero.
+///
+/// The request is neither read nor retained; its second payload word is zero.
+static s32 _shelterB1MainCorridorIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b1_main_corridor_8017DD04(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Queues room-bank scripts 13 and 14 for the corresponding sound-message IDs.
+///
+/// Other sound IDs are ignored. All requests return zero even when sound
+/// admission fails; the second payload word is unused.
+static s32 _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundId, s32 unusedArg)
 {
-    if (arg2 != 0xD) {
-        if (arg2 == 0xE) {
-            sndEvtRequestScriptStart(0x540F000E, 0, 0);
+    enum { ROOM_SOUND_SCRIPT_13 = 13,
+           ROOM_SOUND_SCRIPT_14 = 14 };
+
+    if (soundId != ROOM_SOUND_SCRIPT_13) {
+        if (soundId == ROOM_SOUND_SCRIPT_14) {
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, ROOM_SOUND_SCRIPT_14), 0, 0);
         }
     } else {
-        sndEvtRequestScriptStart(0x540F000D, 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, ROOM_SOUND_SCRIPT_13), 0, 0);
     }
     return 0;
 }
@@ -831,14 +847,14 @@ static void func_shelter_b1_main_corridor_8017DD4C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Idle state of the room's message task.
-static void func_shelter_b1_main_corridor_8017DD90(Task* task)
+/// Keeps the room task available for messages without per-frame work or state changes.
+static void _shelterB1MainCorridorMessageTaskIdle(Task* task)
 {
 }
 
 /// States of the room's message task: install the message table, idle, die.
 static const TaskFuncTable3 D_shelter_b1_main_corridor_8017D5F0 = {
-    { func_shelter_b1_main_corridor_8017DD4C, func_shelter_b1_main_corridor_8017DD90, taskKill },
+    { func_shelter_b1_main_corridor_8017DD4C, _shelterB1MainCorridorMessageTaskIdle, taskKill },
 };
 
 /// Runs the room's message task: calls the state handler `task->state` selects
@@ -851,12 +867,28 @@ void func_shelter_b1_main_corridor_8017DD98(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Per-frame drawing task: on its first tick it sets seven gameplay effect ids,
-/// then every tick draws the capsules and sprites of whichever camera view is
-/// active (views 2-10).
-void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
+/// Draws two beams from four consecutive borrowed world-space endpoints.
+static inline void _shelterB1MainCorridorDrawBeamPair(const SVECTOR lightPoints[4], s32 radiusScale, s32 startAngle, s32 packedColor)
 {
-    if (arg0->state == 0) {
+    _glowDrawBeam(&lightPoints[0], radiusScale, startAngle, packedColor);
+    _glowDrawBeam(&lightPoints[2], radiusScale, startAngle, packedColor);
+}
+
+void shelterB1MainCorridorDrawViewLightsTask(Task* task)
+{
+    // Beam scales multiply 64/depth; flare scales multiply 39/depth, with depth camera Z/4.
+    enum { LIGHTS_INITIALIZE,
+           LIGHTS_DRAW,
+           BEAM_RADIUS_SCALE    = 0x200,
+           FLARE_RADIUS_SCALE   = 0x300,
+           FLARE_TEXTURE_COLUMN = 1,
+           BEAM_WHITE           = 0x111,
+           BEAM_GREEN           = 0x010,
+           BEAM_RED             = 0x100,
+           VIEW_INDEX_MASK      = 0xFF };
+
+    // Publish the effect entries before any room effect spawns use them.
+    if (task->state == LIGHTS_INITIALIZE) {
         gRoomEffectMoteId         = EFFECT_SHELTER_B1_MAIN_CORRIDOR_MOTE;
         gRoomEffectHaloId         = EFFECT_SHELTER_B1_MAIN_CORRIDOR_HALO;
         gRoomEffectOrangeBurstId  = EFFECT_SHELTER_B1_MAIN_CORRIDOR_ORANGE_BURST;
@@ -864,59 +896,60 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
         gRoomEffectFlashId        = EFFECT_SHELTER_B1_MAIN_CORRIDOR_FLASH;
         gRoomEffectTwinTrailId    = EFFECT_SHELTER_B1_MAIN_CORRIDOR_TWIN_TRAIL;
         gRoomEffectSparkBurstId   = EFFECT_SHELTER_B1_MAIN_CORRIDOR_SPARK_BURST;
-        arg0->state               = 1;
+        task->state               = LIGHTS_DRAW;
     }
 
-    switch (viewGetMappedIndex() & 0xFF) {
+    // Each view selects fixed world-space endpoint pairs and flare centres.
+    // Some offsets continue through the neighboring point declarations.
+    switch (viewGetMappedIndex() & VIEW_INDEX_MASK) {
         case 2:
         case 3: {
-            SVECTOR* p;
-            p = D_shelter_b1_main_corridor_801830D4;
-            _glowDrawBeam(&p[0], 0x200, 0x800, 0x111);
-            _glowDrawBeam(&p[2], 0x200, 0x800, 0x111);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_main_corridor_801830D4;
+            _shelterB1MainCorridorDrawBeamPair(lightPoints, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_WHITE);
             break;
         }
         case 4: {
-            SVECTOR* p;
-            p = D_shelter_b1_main_corridor_80183114;
-            _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-            _glowDrawBeam(&p[4], 0x200, 0, 0x10);
-            glowDrawFlareClipped(&p[10], 1, 0x300);
-            glowDrawFlareClipped(&p[11], 1, 0x300);
-            glowDrawFlareClipped(&p[17], 1, 0x300);
-            glowDrawFlareClipped(&p[18], 1, 0x300);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_main_corridor_80183114;
+            _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
+            _glowDrawBeam(&lightPoints[4], BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
+            glowDrawFlareClipped(&lightPoints[10], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[11], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[17], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[18], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
             break;
         }
         case 5:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183134, 0x200, 0, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183134, BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
             break;
         case 6:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183114, 0x200, 0x800, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183114, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
             break;
         case 7: {
-            SVECTOR* p;
-            p = D_shelter_b1_main_corridor_80183124;
-            _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-            _glowDrawBeam(&p[4], 0x200, 0, 0x10);
-            _glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
-            glowDrawFlareClipped(&p[13], 1, 0x300);
-            glowDrawFlareClipped(&p[14], 1, 0x300);
-            glowDrawFlareClipped(&p[20], 1, 0x300);
-            glowDrawFlareClipped(&p[21], 1, 0x300);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_main_corridor_80183124;
+            _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
+            _glowDrawBeam(&lightPoints[4], BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
+            _glowDrawBeam(&lightPoints[6], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_RED);
+            glowDrawFlareClipped(&lightPoints[13], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[14], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[20], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&lightPoints[21], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
             break;
         }
         case 8: {
-            SVECTOR* p;
-            p = D_shelter_b1_main_corridor_80183124;
-            _glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
-            _glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
+            const SVECTOR* lightPoints;
+            lightPoints = D_shelter_b1_main_corridor_80183124;
+            _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
+            _glowDrawBeam(&lightPoints[6], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_RED);
             break;
         }
         case 9:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183144, 0x200, 0, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183144, BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
             break;
         case 10:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183124, 0x200, 0x800, 0x10);
+            _glowDrawBeam(D_shelter_b1_main_corridor_80183124, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
             break;
     }
 }
@@ -927,21 +960,21 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b1_main_corridor_8017EAD4(Task* task)
+void shelterB1MainCorridorRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b1_main_corridor_8017F81C(Task* arg0)
+void shelterB1MainCorridorRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b1_main_corridor_8017FBB4(Task* arg0)
+void shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -954,14 +987,14 @@ void func_shelter_b1_main_corridor_80180FC4(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_main_corridor_801810F8(Task* arg0)
+void shelterB1MainCorridorRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_main_corridor_80181B5C(Task* task)
+void shelterB1MainCorridorRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

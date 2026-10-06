@@ -840,7 +840,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017DBC8, { NULL } },             // 0x12B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ArmoryDrawGlowsTask, { NULL } },                                   // 0x12C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sleeping_quarters_8017D8E0, { NULL } },                     // 0x12D
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017DDF0, { NULL } },                         // 0x12E
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorDrawViewLightsTask, { NULL } },                     // 0x12E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sterilization_room_8018188C, { NULL } },                    // 0x12F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_access_tunnel_8017E7D4, { NULL } },                     // 0x130
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomDrawGlowsTask, { NULL } },                              // 0x131
@@ -998,7 +998,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017E760, { NULL } },             // 0x1C9
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80180DCC, { NULL } },                             // 0x1CA
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80180EDC, { NULL } },             // 0x1CB
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_801810F8, { NULL } },                         // 0x1CC
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorRoomVisualEffectsFlashTask, { NULL } },             // 0x1CC
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_access_tunnel_8017F138, { NULL } },                     // 0x1CD
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_8018092C, { NULL } },                       // 0x1CE
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlashTask, { NULL } },     // 0x1CF
@@ -1026,7 +1026,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_8017F1C4, { NULL } },             // 0x1E5
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80181830, { NULL } },                             // 0x1E6
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80181940, { NULL } },             // 0x1E7
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_80181B5C, { NULL } },                         // 0x1E8
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorRoomVisualEffectsTwinTrailTask, { NULL } },         // 0x1E8
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_access_tunnel_8017FB9C, { NULL } },                     // 0x1E9
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_80181390, { NULL } },                       // 0x1EA
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask, { NULL } }, // 0x1EB
@@ -1122,7 +1122,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsMoteTask, { NULL } },              // 0x245
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017E7A8, { NULL } },                             // 0x246
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017E8B8, { NULL } },             // 0x247
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017EAD4, { NULL } },                         // 0x248
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorRoomVisualEffectsMoteTask, { NULL } },              // 0x248
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_8017E308, { NULL } },                       // 0x249
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_elevator_hall_8017F1D8, { NULL } },                         // 0x24A
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_north_maintenance_walkway_8017F590, { NULL } },             // 0x24B
@@ -1134,7 +1134,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsHaloTask, { NULL } },              // 0x251
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017F4F0, { NULL } },                             // 0x252
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017F600, { NULL } },             // 0x253
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017F81C, { NULL } },                         // 0x254
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorRoomVisualEffectsHaloTask, { NULL } },              // 0x254
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_8017F050, { NULL } },                       // 0x255
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_elevator_hall_8017FF20, { NULL } },                         // 0x256
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_north_maintenance_walkway_801802D8, { NULL } },             // 0x257
@@ -1145,7 +1145,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask, { NULL } },   // 0x25C
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_8017F888, { NULL } },                             // 0x25D
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_8017F998, { NULL } },             // 0x25E
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_8017FBB4, { NULL } },                         // 0x25F
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorRoomVisualEffectsHaloOrangeBurstTask, { NULL } },   // 0x25F
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_8017F3E8, { NULL } },                       // 0x260
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_elevator_hall_801802B8, { NULL } },                         // 0x261
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_north_maintenance_walkway_80180670, { NULL } },             // 0x262
