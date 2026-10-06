@@ -91,4 +91,4 @@ D_acropolis_observatory_801834DC = 0x801834DC; // size:0x20 defined:True
 
 func_acropolis_observatory_8017E6F8 = 0x8017E6F8; // type:func
 
-func_acropolis_observatory_8017E424 = 0x8017E424; // type:func
+acropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func

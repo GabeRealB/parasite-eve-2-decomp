@@ -1070,86 +1070,109 @@ void func_acropolis_observatory_8017E19C(Task* task)
     }
 }
 
-/// Draws the observatory's lens flare: the model's world position is projected
-/// through `GsWSMATRIX` into an `EffectCentreScratch` block off the scratch stack,
-/// and, when the `rtps` reports no error, the projected point becomes the
-/// centre of a semi-transparent `POLY_FT4` on tpage 0x2B. The depth used for
-/// both the size and the ordering-table slot is the raw `depth` pulled 0x40
-/// towards the camera and clamped to 0x10, so the flare stops growing once it
-/// is very close. The CLUT alternates between two palettes on odd and even
-/// frames, which is what makes the flare flicker.
-void func_acropolis_observatory_8017E424(Task* arg0)
+/// Sets a glow quad's corners around its projected centre and pixel half-extent.
+///
+/// Borrows the live projection and packet. Edge arithmetic retains the low 16
+/// bits in signed screen coordinates; it neither clips nor retains pointers.
+static inline void _acropolisObservatorySetGlowScreenBounds(POLY_FT4* quad, const EffectCentreScratch* projection)
 {
-    void**               scratch;
-    u8*                  head;
-    EffectCentreScratch* blk;
-    POLY_FT4*            prim;
-    GfxCoord*            coord;
-    void*                mem;
-    u16                  vz;
-    s16                  x;
-    s16                  y;
+    s16 horizontalEdge;
+    s16 verticalEdge;
 
-    coord = arg0->extra.coordBody->coord;
-    mem   = arg0->spawnArg2.pointer;
+    horizontalEdge = projection->screenX - (u16)projection->screenExtent;
+    quad->x2       = horizontalEdge;
+    quad->x0       = horizontalEdge;
+    horizontalEdge = projection->screenX + (u16)projection->screenExtent;
+    quad->x3       = horizontalEdge;
+    quad->x1       = horizontalEdge;
+    verticalEdge   = projection->screenY - (u16)projection->screenExtent;
+    quad->y1       = verticalEdge;
+    quad->y0       = verticalEdge;
+    verticalEdge   = projection->screenY + (u16)projection->screenExtent;
+    quad->y3       = verticalEdge;
+    quad->y2       = verticalEdge;
+}
+
+void acropolisObservatoryAmbientGlowTask(Task* task)
+{
+    enum {
+        ACROPOLIS_OBSERVATORY_GLOW_DEPTH_BIAS                = 0x40,
+        ACROPOLIS_OBSERVATORY_GLOW_MIN_DEPTH                 = 0x10,
+        ACROPOLIS_OBSERVATORY_GLOW_HALF_EXTENT_DEPTH_PRODUCT = 0x5D00,
+        ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_DEPTH_4BIT        = 0,
+        ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_X            = 704,
+        ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_Y            = 0,
+        ACROPOLIS_OBSERVATORY_GLOW_CLUT_X                    = 0xE0,
+        ACROPOLIS_OBSERVATORY_GLOW_CLUT_Y                    = 0x10F,
+        ACROPOLIS_OBSERVATORY_GLOW_PALETTE_STRIDE            = 16,
+        ACROPOLIS_OBSERVATORY_GLOW_PALETTE_COUNT             = 2,
+        ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V             = 0xA0,
+        ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN              = 31,
+    };
+
+    void**               scratchCursor;
+    u8*                  scratchTop;
+    EffectCentreScratch* projection;
+    POLY_FT4*            quad;
+    GfxCoord*            coord;
+    EffectWork*          effectWork;
+    u16                  viewZ;
+
+    coord      = task->extra.coordBody->coord;
+    effectWork = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
 
-    scratch            = SCRATCH_STACK_CURSOR_SLOT;
-    head               = *scratch;
-    blk                = (EffectCentreScratch*)(head - sizeof(EffectCentreScratch));
-    blk->worldPoint.vx = (u16)coord->workm.t[0];
-    blk->worldPoint.vy = (u16)coord->workm.t[1];
-    vz                 = (u16)coord->workm.t[2];
-    *scratch           = blk;
-    blk->worldPoint.vz = vz;
+    // Narrow the composed view position for projection; the quad stays aligned to the screen.
+    scratchCursor             = SCRATCH_STACK_CURSOR_SLOT;
+    scratchTop                = *scratchCursor;
+    projection                = (EffectCentreScratch*)(scratchTop - sizeof(EffectCentreScratch));
+    projection->worldPoint.vx = (u16)coord->workm.t[0];
+    projection->worldPoint.vy = (u16)coord->workm.t[1];
+    viewZ                     = (u16)coord->workm.t[2];
+    *scratchCursor            = projection;
+    projection->worldPoint.vz = viewZ;
 
     {
-        SVECTOR* v = &blk->worldPoint;
+        SVECTOR* viewPoint = &projection->worldPoint;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(v);
+        gte_ldv0(viewPoint);
     }
     gte_rtps();
-    gte_stsxy(&blk->screenX);
-    gte_stflg(&blk->projectionFlags);
-    if (blk->projectionFlags >= 0) {
-        gte_stszotz(&blk->depth);
-        blk->depth -= 0x40;
-        if (blk->depth < 0x10) {
-            blk->depth = 0x10;
+    gte_stsxy(&projection->screenX);
+    gte_stflg(&projection->projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        // Bias SZ3 / 4 towards the camera and cap the glow's growth at close range.
+        gte_stszotz(&projection->depth);
+        projection->depth -= ACROPOLIS_OBSERVATORY_GLOW_DEPTH_BIAS;
+        if (projection->depth < ACROPOLIS_OBSERVATORY_GLOW_MIN_DEPTH) {
+            projection->depth = ACROPOLIS_OBSERVATORY_GLOW_MIN_DEPTH;
         }
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage       = 0x2B;
-        prim->clut        = getClut(0xE0 + (u32)(gDisplayState.animFrame & 1) * 0x10, 0x10F);
-        prim->u0          = 0;
-        prim->v0          = 0xA0;
-        prim->u1          = 0x1F;
-        prim->v1          = 0xA0;
-        prim->u2          = 0;
-        prim->v2          = 0xBF;
-        prim->u3          = 0x1F;
-        prim->v3          = 0xBF;
-        blk->screenExtent = 0x5D00 / blk->depth;
-        x                 = blk->screenX - (u16)blk->screenExtent;
-        prim->x2          = x;
-        prim->x0          = x;
-        x                 = blk->screenX + (u16)blk->screenExtent;
-        prim->x3          = x;
-        prim->x1          = x;
-        y                 = blk->screenY - (u16)blk->screenExtent;
-        prim->y1          = y;
-        prim->y0          = y;
-        y                 = blk->screenY + (u16)blk->screenExtent;
-        prim->y3          = y;
-        prim->y2          = y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setSemiTrans(quad, true);
+        setShadeTex(quad, true);
+        quad->tpage              = getTPage(ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD,
+                                            ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_X, ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_Y);
+        quad->clut               = getClut(ACROPOLIS_OBSERVATORY_GLOW_CLUT_X +
+                                               (u32)(gDisplayState.animFrame & (ACROPOLIS_OBSERVATORY_GLOW_PALETTE_COUNT - 1)) * ACROPOLIS_OBSERVATORY_GLOW_PALETTE_STRIDE,
+                                           ACROPOLIS_OBSERVATORY_GLOW_CLUT_Y);
+        quad->u0                 = 0;
+        quad->v0                 = ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V;
+        quad->u1                 = ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
+        quad->v1                 = ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V;
+        quad->u2                 = 0;
+        quad->v2                 = ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V + ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
+        quad->u3                 = ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
+        quad->v3                 = ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V + ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
+        projection->screenExtent = ACROPOLIS_OBSERVATORY_GLOW_HALF_EXTENT_DEPTH_PRODUCT / projection->depth;
+        _acropolisObservatorySetGlowScreenBounds(quad, projection);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
-    effectKillTask(mem, arg0);
+    effectKillTask(effectWork, task);
 }
 
 /// Re-spawns the observatory's ambient effects for the current camera view,

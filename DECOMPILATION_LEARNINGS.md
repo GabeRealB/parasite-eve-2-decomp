@@ -31924,17 +31924,17 @@ across a volatile asm, so writing the alias next to the `gte_ldv0` leaves it
 after the `ctc2` block instead of up with the scratch store:
 
 ```c
-*scratch = blk;
-blk->worldPoint.vz = vz;
+*scratchCursor = projection;
+projection->worldPoint.vz = viewZ;
 {
-    SVECTOR* v = &blk->worldPoint;     /* not down by the gte_ldv0 */
+    SVECTOR* viewPoint = &projection->worldPoint;     /* not down by the gte_ldv0 */
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(v);
+    gte_ldv0(viewPoint);
 }
 ```
 
-`func_acropolis_observatory_8017E424` is the example: with the alias at the
+`acropolisObservatoryAmbientGlowTask` is the example: with the alias at the
 `gte_ldv0` the only diff is that one `move`, scheduled ~15 instructions late.
 
 The scratch store itself then floats: once the alias is in place, the only

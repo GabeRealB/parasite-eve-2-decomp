@@ -589,7 +589,7 @@ func_acropolis_helicopter_landing_pad_80181064 = 0x80181064; // type:func absolu
 
 acropolisHelicopterLandingPadPerimeterLightsTask = 0x801818F0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
-func_acropolis_observatory_8017E424 = 0x8017E424; // type:func absolute:True owner=acropolis_observatory shared=rooms
+acropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func absolute:True owner=acropolis_observatory shared=rooms
 
 func_acropolis_observatory_8017E6F8 = 0x8017E6F8; // type:func absolute:True owner=acropolis_observatory
 

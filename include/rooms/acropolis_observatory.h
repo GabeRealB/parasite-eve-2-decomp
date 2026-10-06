@@ -32,7 +32,19 @@ extern WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[];
 
 void func_acropolis_observatory_8017E6F8(Task* task);
 
-void func_acropolis_observatory_8017E424(Task* arg0);
+/// Draws one frame of the observatory's additive ambient glow, then retires its effect.
+///
+/// Requires a live coordinate body and counted `EffectWork` in `spawnArg2.pointer`
+/// from the effect spawner. The composed view position narrows to signed 16-bit
+/// coordinates before projection through `GsWSMATRIX`. A negative
+/// GTE FLAG suppresses drawing; otherwise the square uses a pixel half-extent
+/// of 0x5D00 / max(SZ3 / 4 - 64, 16) and alternates two palettes each frame.
+///
+/// Requires an initialized scratch stack with room for one `EffectCentreScratch`,
+/// a current depth ordering table, and room for one `POLY_FT4` in the frame arena.
+/// Releases scratch and the counted work, and kills the task even when drawing
+/// is suppressed. A queued packet remains live through GPU drawing.
+void acropolisObservatoryAmbientGlowTask(Task* task);
 
 void func_acropolis_observatory_8017D950(Task* task);
 
