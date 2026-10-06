@@ -203,39 +203,38 @@ static inline void _roomVisualEffectsFlyingOrangeBurstTask(Task* task)
         if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto kill;
-    } else {
-        work->age++;
-        if (task->state == BURST_INITIALIZE) {
-            work->age    = 1;
-            work->scale  = 0xE0;
-            work->angle  = 0x80;
-            work->period = 0xE0;
-            work->step   = 0x80;
-            task->state  = BURST_EXPAND;
-        }
-        actorRenderComposeCoord(coord);
-        rgb[0]         = work->scale;
-        rgb[1]         = work->scale >> 1;
-        rgb[2]         = work->scale >> 2;
-        glowHalfExtent = work->angle + 0x10;
-        work->angle    = glowHalfExtent;
-        _roomVisualEffectsDrawFlyingDisc(coord, (s16)(glowHalfExtent * 2), rgb);
-        _roomVisualEffectsDrawFlyingBurstGlow(coord, work->angle);
-        // Fade the expanding ring before reducing the central burst brightness.
-        if (work->period > BURST_LEVEL_STEP) {
-            rgb[0] = work->period;
-            rgb[1] = work->period >> 1;
-            rgb[2] = work->period >> 2;
-            _roomVisualEffectsDrawFlyingRing(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
-            work->period -= BURST_LEVEL_STEP;
-            work->step   += 0x30;
-            return;
-        }
-        work->scale -= BURST_LEVEL_STEP;
-        if (work->scale < BURST_LEVEL_STEP) {
-        kill:
-            effectKillTask(work, task);
-        }
+        effectKillTask(work, task);
+        return;
+    }
+    work->age++;
+    if (task->state == BURST_INITIALIZE) {
+        work->age    = 1;
+        work->scale  = 0xE0;
+        work->angle  = 0x80;
+        work->period = 0xE0;
+        work->step   = 0x80;
+        task->state  = BURST_EXPAND;
+    }
+    actorRenderComposeCoord(coord);
+    rgb[0]         = work->scale;
+    rgb[1]         = work->scale >> 1;
+    rgb[2]         = work->scale >> 2;
+    glowHalfExtent = work->angle + 0x10;
+    work->angle    = glowHalfExtent;
+    _roomVisualEffectsDrawFlyingDisc(coord, (s16)(glowHalfExtent * 2), rgb);
+    _roomVisualEffectsDrawFlyingBurstGlow(coord, work->angle);
+    // Fade the expanding ring before reducing the central burst brightness.
+    if (work->period > BURST_LEVEL_STEP) {
+        rgb[0] = work->period;
+        rgb[1] = work->period >> 1;
+        rgb[2] = work->period >> 2;
+        _roomVisualEffectsDrawFlyingRing(coord, (s16)(work->step * 3 / 2), 0x60, rgb);
+        work->period -= BURST_LEVEL_STEP;
+        work->step   += 0x30;
+        return;
+    }
+    work->scale -= BURST_LEVEL_STEP;
+    if (work->scale < BURST_LEVEL_STEP) {
+        effectKillTask(work, task);
     }
 }
