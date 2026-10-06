@@ -150295,3 +150295,45 @@ attempts; left as it was.
     (as `u8` its zero-extension is hoisted to the preheader) what remains is
     `$a2/$a3` swapped between `rec` and `id` in the first scan: as a real loop
     the uses of `id` weigh more than `rec`'s.
+
+### Goto removal, batch 27: a mode ladder whose case 0 joins the default, the companion's arrival jump (2026-10-06)
+
+- **A mode ladder where mode 0 does something and then runs the default body,
+  with mode 2's block between them in the image** (`sucklercephUpdateState`,
+  seven gotos and `one = 1`). Neither `case 0: ...; /* fallthrough */ default:`
+  (case 0 lands next to the default, after case 2) nor a `static inline` for the
+  body called under `case 0:` and `default:` matches. The inline's two copies
+  do merge, but sched runs before cross-jumping: in case 0's copy the first
+  call's `move a0,s0` is pulled up into the load delay slot of the stores in
+  front of it, so the merge starts one insn late and reorg then fills every
+  `j default` slot with that `move`. The form that matches keeps the body out
+  of the switch: `switch (mode) { case 0: clear; break; case 2: set; return;
+  case 1: colour; shadow; return; }`, then the body, then `colour; shadow;`
+  again. Case 1's copy of the tail is cross-jumped into the function's end and
+  its `beq` goes straight there. The 1 the compare tree needs is shared with
+  the `flags = 1` store by cse on its own.
+- **`case 3: goto call;` into the then-arm of an `if`/`else` after the switch**
+  (`func_actor_800200_80162750`) is the call written in the case; first try.
+- **`value = A; goto store;` into `if (value < MIN) { value = MIN; store:
+  timer = value; }`** (`func_actor_800200_801647A8`) is a `static inline void`
+  that stores `timer = A` and returns early, and otherwise `timer = value; if
+  (value < MIN) { timer = MIN; }`. The inline is needed only because the code
+  continues into the next case, so there is nothing to `return` from.
+- **The companion's `goto arrived;` from case 0 into case 1's `if (waypoint ==
+  LAST) { arrived: routeComplete = 1; ...; return; }`** converts by writing the
+  two statements in case 0 only where cse leaves both copies alone:
+  `func_actor_800200_80162990`, `_80162BFC` and `_8016337C` (LAST is 3 or 2,
+  `stateAux = 1` a literal). It fails in the other seven of the list for two
+  reasons, both the label's doing (a block with two predecessors starts a new
+  cse path): where LAST is 1, case 1's copy stores the register that held the
+  waypoint (`bne v1,v0; sb v1`) in place of a fresh `li v0,1`
+  (`_80163180`, `_80163584`, `_80163044`); where case 0 stores `stateAux`
+  through the `s32 flag = 1` local, case 0's copy keeps that register across
+  the distance call and case 1's copy stores the switch index, known to be 1
+  (`_801637B4`, `_8016390C`, `_80163A54`, `_80163B90`). `actor->stateAux++`
+  in place of the `flag` local is not folded to a constant. Those seven keep
+  the goto.
+- Not converted: `func_actor_800200_80163F5C`'s `goto resume;` from the
+  follow cases back into case 0's else arm. Written as a loop around the
+  follow cases with the start block as an inline, loop.c hoists and the frame
+  grows by two saved registers (137 -> 155 insns).
