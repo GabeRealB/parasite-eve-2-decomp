@@ -608,26 +608,16 @@ static s32 CapCaption_LineHeight(const u16* arg0)
 
 static s32 CapCaption_FindKeyedLine(s32 arg0)
 {
-    s32                flag;
-    s32                id;
-    CapSequenceRecord* base;
     CapSequenceRecord* p;
 
-    flag = CAP_TEXT_REF_END;
-    id   = CapCaption_Data_8015E666;
-    base = CapCaption_Data_8015E658;
-    p    = Gp_CapEventAt(base, arg0);
-loop:
-    if (p->textRef.offset == flag) {
-        goto done;
+    for (;;) {
+        p = Gp_CapEventAt(CapCaption_Data_8015E658, arg0);
+        if (p->textRef.offset != CAP_TEXT_REF_END && p->key != CapCaption_Data_8015E666) {
+            arg0++;
+        } else {
+            break;
+        }
     }
-    if (p->key == id) {
-        goto done;
-    }
-    p++;
-    arg0++;
-    goto loop;
-done:
     return arg0;
 }
 
