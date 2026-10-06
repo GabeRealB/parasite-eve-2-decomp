@@ -119335,7 +119335,7 @@ after it keep `&mtx`, as the target does.
 Inputs: `base_6.i` (100.000%) `db58f1bd357d142b`, `base_5.i` (`&mtx` everywhere, 96.025%)
 `ecb6a7bb2e2cb0f4`.
 
-## One pointer variable reused across both `switch` cases, not a temp per store: block-local quantities pin to `$v0` (func_dryfield_night_gas_station_80180DC8, 2026-09-17)
+## One pointer variable reused across both `switch` cases, not a temp per store: block-local quantities pin to `$v0` (_dryfieldNightGasStationSetFlickerSpritesVisible, 2026-09-17)
 
 **Symptom.** A 53-instruction `switch (index)` whose two case bodies each load three
 view pointers and store a byte through them sat at 98.962% with `regs=11` and nothing
@@ -119374,14 +119374,14 @@ temps — while in case 1 nothing competes and every temp takes `$v0`.
 **Fix.** Write the pointer loads through *one* variable for the whole function:
 
 ```c
-    DryfieldNightGasStationSprtView* view;
+    SpriteBatch* batches;
 
-    switch (arg0) {
-        case 0:
-            view           = rec->field_A0;
-            view->field_44 = 1;
-            view->field_4C = 1;
-            view           = rec->field_AC;
+    switch (visible) {
+        case DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_OFF:
+            batches           = views[13].batches;
+            batches[8].hidden = 1;
+            batches[9].hidden = 1;
+            batches           = views[14].batches;
             …
 ```
 
@@ -119389,7 +119389,7 @@ The single pseudo is now used in two basic blocks, so `REG_BASIC_BLOCK < 0` and
 global-alloc gives it one register for the function (`$v1`), which is exactly the
 target's shape. m2c's per-store temporaries (`temp_v1`, `temp_v1_2`, …) are the
 opposite of what the body needs — and so is the untemped
-`rec->field_A0->field_44 = 1; rec->field_A0->field_4C = 1;`, which reloads the
+`views[13].batches[8].hidden = 1; views[13].batches[9].hidden = 1;`, which reloads the
 pointer for each store (20 `insert`, 66.465%) because a `sb` may alias anything.
 Three temps per case but *shared* between the cases is the other shape that would
 work.
@@ -120986,7 +120986,7 @@ the four arms), which leaves `$v1` unclaimed when global-alloc reaches the
 record pointer, and the two names swap.
 
 **Fix.** One `view` variable for the whole function, as in
-`func_dryfield_night_gas_station_80180DC8`:
+`_dryfieldNightGasStationSetFlickerSpritesVisible`:
 
 ```c
     NaetSprtView* view;

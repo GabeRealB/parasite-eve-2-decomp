@@ -544,9 +544,9 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                   // 0x003
     { { { TASK_BODY_NONE, 0x4F } }, func_800EA420, { NULL } },                                              // 0x004
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsFlashTask, { NULL } },            // 0x005
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_gas_station_80181D80, { NULL } },                  // 0x006
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationRoomVisualEffectsFlashTask, { NULL } },         // 0x006
     { { { TASK_BODY_NONE, 0x70 } }, Gp_EffCtlTask07, { NULL } },                                            // 0x007
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_gas_station_801827E4, { NULL } },                  // 0x008
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationRoomVisualEffectsTwinTrailTask, { NULL } },     // 0x008
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_gas_station_801830CC, { NULL } },                  // 0x009
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetRoomVisualEffectsFlashTask, { NULL } },         // 0x00A
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityDischargeConeTask, { NULL } },                            // 0x00B

@@ -195,7 +195,19 @@ extern Task* D_dryfield_night_gas_station_801907AC;
 void        func_dryfield_night_gas_station_8017FBD4(s32 arg0);
 static void func_dryfield_night_gas_station_80180C20(void);
 static void func_dryfield_night_gas_station_80180D1C(void);
-static void func_dryfield_night_gas_station_80180DC8(s16 arg0);
+static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible);
+
+/// Visibility arguments for the cutscene's background batches.
+enum {
+    DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_SHOWN,
+    DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_HIDDEN
+};
+
+/// Appearance arguments shared by the timed flashes and the flicker task.
+enum {
+    DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_OFF,
+    DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON
+};
 
 void func_dryfield_night_gas_station_80180828(Task*);
 
@@ -263,7 +275,7 @@ void                              func_dryfield_night_gas_station_80180A34(void)
 void                              func_dryfield_night_gas_station_80180B04(void);
 void                              func_dryfield_night_gas_station_80180B38(void);
 void                              func_dryfield_night_gas_station_80180BEC(void);
-void                              func_dryfield_night_gas_station_80180C3C(s32);
+static void                       _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentWord);
 
 extern AnimationPlayRequest D_dryfield_night_gas_station_80184084;
 void                        func_dryfield_night_gas_station_8017FB64(u8);
@@ -999,7 +1011,7 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1010 }, { .message = { .pointer = &D_dryfield_night_gas_station_801889AC } }, { .message = { .pointer = &D_dryfield_night_gas_station_801889DC } } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_801807A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180A00 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180C3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneSpritesHidden }, { .value = DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_HIDDEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_night_gas_station_80188B5C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180720 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1010,7 +1022,7 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180740 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_night_gas_station_80180C3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneSpritesHidden }, { .value = DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_SHOWN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180A34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
@@ -2966,7 +2978,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
                 offset.vy = -0x64;
                 offset.vz = -0x12C;
                 Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x300, &offset);
-                func_dryfield_night_gas_station_80180DC8(1);
+                _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
             case 1:
@@ -2974,7 +2986,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
                 offset.vy = -0x64;
                 offset.vz = -0xC8;
                 Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x200, &offset);
-                func_dryfield_night_gas_station_80180DC8(1);
+                _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
             case 2:
@@ -2982,11 +2994,11 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
                 offset.vy = -0x64;
                 offset.vz = -0xC8;
                 Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x200, &offset);
-                func_dryfield_night_gas_station_80180DC8(1);
+                _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
             default:
-                func_dryfield_night_gas_station_80180DC8(0);
+                _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_OFF);
                 break;
         }
     }
@@ -3138,8 +3150,8 @@ void func_dryfield_night_gas_station_80180A34(void)
 
 /// Steps the room's blinking-light table: each tick it re-derives whether the
 /// current entry's `vx` is odd, and when that flag flips it republishes it to
-/// `func_dryfield_night_gas_station_80180DC8` (which switches the lamp effect
-/// between its on and off appearance, or back to dark for the -1 state). The
+/// `_dryfieldNightGasStationSetFlickerSpritesVisible` (which switches the flicker
+/// batches between visible and hidden, hiding them when this task exits). The
 /// index runs to 100 and then wraps.
 void func_dryfield_night_gas_station_80180A60(Task* arg0)
 {
@@ -3150,7 +3162,7 @@ void func_dryfield_night_gas_station_80180A60(Task* arg0)
         temp_v0 = (D_dryfield_night_gas_station_80188580[arg0->killCountdown].vx & 1) ^ 1;
         if (arg0->spawnArg1.value != temp_v0) {
             arg0->spawnArg1.value = temp_v0;
-            func_dryfield_night_gas_station_80180DC8((s16)arg0->spawnArg1.value);
+            _dryfieldNightGasStationSetFlickerSpritesVisible((s16)arg0->spawnArg1.value);
         }
         temp_v0_2           = (u16)arg0->killCountdown + 1;
         arg0->killCountdown = temp_v0_2;
@@ -3158,7 +3170,7 @@ void func_dryfield_night_gas_station_80180A60(Task* arg0)
             arg0->killCountdown = 0;
         }
     } else {
-        func_dryfield_night_gas_station_80180DC8(0);
+        _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_OFF);
         taskKill(arg0);
     }
 }
@@ -3220,51 +3232,46 @@ static void func_dryfield_night_gas_station_80180C20(void)
     D_dryfield_night_gas_station_801907AC = 0;
 }
 
-/// Hides or shows sprite commands 6 and 7 of five of the area's views on its
-/// own argument, through their `SpriteBatch::hidden`: cleared for a 0 argument,
-/// set for a 1, and any other argument changes nothing. The first view takes
-/// only command 6 and the last two only command 7;
-/// `func_dryfield_night_gas_station_80180DC8` drives commands 8 to 10 of the
-/// last three views instead.
-void func_dryfield_night_gas_station_80180C3C(s32 arg0)
+/// Applies the hide flag to the background groups temporarily suppressed by the cutscene.
+static inline void _dryfieldNightGasStationWriteCutsceneSpriteVisibility(SpriteView* views, s32 hidden)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
-    SpriteBatch*     batches;
-    s32              flag;
+    SpriteBatch* batches;
 
-    sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
-    flag = arg0 & 0xFF;
+    batches           = views[4].batches;
+    batches[6].hidden = hidden;
+    batches           = views[12].batches;
+    batches[6].hidden = hidden;
+    batches[7].hidden = hidden;
+    batches           = views[13].batches;
+    batches[6].hidden = hidden;
+    batches[7].hidden = hidden;
+    batches           = views[14].batches;
+    batches[7].hidden = hidden;
+    batches           = views[16].batches;
+    batches[7].hidden = hidden;
+}
 
-    switch (flag) {
-        case 0:
-            batches           = rec[4].batches;
-            batches[6].hidden = 0;
-            batches           = rec[12].batches;
-            batches[6].hidden = 0;
-            batches[7].hidden = 0;
-            batches           = rec[13].batches;
-            batches[6].hidden = 0;
-            batches[7].hidden = 0;
-            batches           = rec[14].batches;
-            batches[7].hidden = 0;
-            batches           = rec[16].batches;
-            batches[7].hidden = 0;
+/// Hides or restores the background sprite groups temporarily suppressed by the cutscene.
+///
+/// The low byte of `hiddenArgumentWord` is 0 to show or 1 to hide; other
+/// values leave the batches untouched. Requires the night gas station's
+/// sprite-view tables to be loaded and selected by the current session.
+static void _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentWord)
+{
+    GameLocationKey* location;
+    SpriteView*      views;
+    s32              hidden;
+
+    location = &gGameSession->location.loc;
+    views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    hidden   = hiddenArgumentWord & 0xFF;
+
+    switch (hidden) {
+        case DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_SHOWN:
+            _dryfieldNightGasStationWriteCutsceneSpriteVisibility(views, 0);
             break;
-        case 1:
-            batches           = rec[4].batches;
-            batches[6].hidden = flag;
-            batches           = rec[12].batches;
-            batches[6].hidden = flag;
-            batches[7].hidden = flag;
-            batches           = rec[13].batches;
-            batches[6].hidden = flag;
-            batches[7].hidden = flag;
-            batches           = rec[14].batches;
-            batches[7].hidden = flag;
-            batches           = rec[16].batches;
-            batches[7].hidden = flag;
+        case DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_HIDDEN:
+            _dryfieldNightGasStationWriteCutsceneSpriteVisibility(views, hidden);
             break;
     }
 }
@@ -3291,47 +3298,44 @@ static void func_dryfield_night_gas_station_80180D1C(void)
     }
 }
 
-/// Switches the room's lamp effect between its lit and dark appearance: the
-/// current room's three lamp views have their three flags written to 1 for the
-/// 0 argument and to 0 for the 1 argument, and any other argument changes
-/// nothing. `func_dryfield_night_gas_station_80180A60` drives it from the
-/// blinking-light table, whose own exit passes 0.
-static void func_dryfield_night_gas_station_80180DC8(s16 arg0)
+/// Shows or hides the background flicker batches used by the timed flashes.
+///
+/// `visible` is 0 to hide or 1 to show; other signed-halfword values leave
+/// the batches untouched. Requires the night gas station's sprite-view tables
+/// to be loaded and selected by the current session.
+static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      rec =
-        Gp_SprtTables[sess->stage - 1][0]
-            .areaViews[sess->area - 1];
-    SpriteBatch* batches;
+    // Applies the hide flag to the three flicker sprite groups.
+    // viewArray and hiddenValue are evaluated repeatedly and must have no side effects.
+    // batchCursor is writable SpriteBatch* scratch shared by both switch arms.
+#define DRYFIELD_NIGHT_GAS_STATION_WRITE_FLICKER_SPRITE_VISIBILITY(viewArray, batchCursor, hiddenValue) \
+    do {                                                                                                \
+        (batchCursor)            = (viewArray)[13].batches;                                             \
+        (batchCursor)[8].hidden  = (hiddenValue);                                                       \
+        (batchCursor)[9].hidden  = (hiddenValue);                                                       \
+        (batchCursor)            = (viewArray)[14].batches;                                             \
+        (batchCursor)[8].hidden  = (hiddenValue);                                                       \
+        (batchCursor)[9].hidden  = (hiddenValue);                                                       \
+        (batchCursor)[10].hidden = (hiddenValue);                                                       \
+        (batchCursor)            = (viewArray)[16].batches;                                             \
+        (batchCursor)[8].hidden  = (hiddenValue);                                                       \
+        (batchCursor)[9].hidden  = (hiddenValue);                                                       \
+        (batchCursor)[10].hidden = (hiddenValue);                                                       \
+    } while (0)
 
-    switch (arg0) {
-        case 0:
-            batches            = rec[13].batches;
-            batches[8].hidden  = 1;
-            batches[9].hidden  = 1;
-            batches            = rec[14].batches;
-            batches[8].hidden  = 1;
-            batches[9].hidden  = 1;
-            batches[10].hidden = 1;
-            batches            = rec[16].batches;
-            batches[8].hidden  = 1;
-            batches[9].hidden  = 1;
-            batches[10].hidden = 1;
+    GameLocationKey* location = &gGameSession->location.loc;
+    SpriteView*      views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    SpriteBatch*     batches;
+
+    switch (visible) {
+        case DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_OFF:
+            DRYFIELD_NIGHT_GAS_STATION_WRITE_FLICKER_SPRITE_VISIBILITY(views, batches, 1);
             break;
-        case 1:
-            batches            = rec[13].batches;
-            batches[8].hidden  = 0;
-            batches[9].hidden  = 0;
-            batches            = rec[14].batches;
-            batches[8].hidden  = 0;
-            batches[9].hidden  = 0;
-            batches[10].hidden = 0;
-            batches            = rec[16].batches;
-            batches[8].hidden  = 0;
-            batches[9].hidden  = 0;
-            batches[10].hidden = 0;
+        case DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON:
+            DRYFIELD_NIGHT_GAS_STATION_WRITE_FLICKER_SPRITE_VISIBILITY(views, batches, 0);
             break;
     }
+#undef DRYFIELD_NIGHT_GAS_STATION_WRITE_FLICKER_SPRITE_VISIBILITY
 }
 
 /// Room effect task tick. The first tick installs the room's three effect ids
@@ -3421,14 +3425,14 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_dryfield_night_gas_station_80181D80(Task* arg0)
+void dryfieldNightGasStationRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_dryfield_night_gas_station_801827E4(Task* task)
+void dryfieldNightGasStationRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }

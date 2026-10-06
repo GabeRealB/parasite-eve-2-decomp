@@ -262,9 +262,9 @@ D_dryfield_night_gas_station_80184084 = 0x80184084; // size:0x14 defined:True
 D_dryfield_night_gas_station_80184098 = 0x80184098; // size:0x14 defined:True
 RoomFx_TrailOffsets = 0x80189DA0; // size:0x10 defined:True
 
-func_dryfield_night_gas_station_80181D80 = 0x80181D80; // type:func
+dryfieldNightGasStationRoomVisualEffectsFlashTask = 0x80181D80; // type:func
 
-func_dryfield_night_gas_station_801827E4 = 0x801827E4; // type:func
+dryfieldNightGasStationRoomVisualEffectsTwinTrailTask = 0x801827E4; // type:func
 
 func_dryfield_night_gas_station_801830CC = 0x801830CC; // type:func
 
@@ -298,3 +298,5 @@ _glowDrawCapsule = 0x801812B4; // type:func
 _glowDrawFlare = 0x80181AF8; // type:func
 roomVariantGasStationMsg = 0x8017F544; // type:func
 gasStationCueSoundMsg = 0x8017F6B8; // type:func
+_dryfieldNightGasStationSetFlickerSpritesVisible = 0x80180dc8; // type:func
+_dryfieldNightGasStationSetCutsceneSpritesHidden = 0x80180c3c; // type:func
