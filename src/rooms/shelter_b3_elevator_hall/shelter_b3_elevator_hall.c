@@ -302,19 +302,27 @@ void shelterB3ElevatorHallRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Draws four capsule glows from eight consecutive world-space endpoints.
+/// Draws the hall's four additive strip glows from consecutive endpoint pairs.
 ///
-/// Borrows the points during the call. Radius is scaled by 64 / (camera Z / 4);
-/// RGB nibbles 2,2,2 give level 32 per channel, with odd-frame flicker added.
-static inline void _shelterB3ElevatorHallDrawGlowStrips(const SVECTOR stripPoints[8])
+/// Borrows eight word-aligned world-space endpoints during the call, pairing
+/// indices 0/1, 2/3, 4/5 and 6/7. Each end's pixel radius is 384 * 64 / depth,
+/// where depth is camera Z / 4 and must be nonzero for accepted projections.
+/// A negative GTE flag at either end rejects that strip. RGB intensity is 32
+/// on even animation frames and 40 on odd frames, fading to a black rim.
+///
+/// Requires the composed view matrix, scratch-stack room for
+/// `OverlayPointPairScratch`, and the current frame's arena and ordering table.
+/// Queues up to 24 `POLY_G4` packets and 24 additive blend commands; packets
+/// remain in the frame arena until GPU drawing completes.
+static inline void _shelterB3ElevatorHallDrawGlowStrips(const SVECTOR stripEndpoints[8])
 {
-    enum { STRIP_RADIUS      = 0x180,
-           STRIP_RGB_NIBBLES = 0x222 };
+    enum { STRIP_RADIUS_SCALE = 0x180,
+           STRIP_RGB_NIBBLES  = 0x222 };
 
-    _glowDrawCapsule(&stripPoints[0], STRIP_RADIUS, STRIP_RGB_NIBBLES);
-    _glowDrawCapsule(&stripPoints[2], STRIP_RADIUS, STRIP_RGB_NIBBLES);
-    _glowDrawCapsule(&stripPoints[4], STRIP_RADIUS, STRIP_RGB_NIBBLES);
-    _glowDrawCapsule(&stripPoints[6], STRIP_RADIUS, STRIP_RGB_NIBBLES);
+    _glowDrawCapsule(&stripEndpoints[0], STRIP_RADIUS_SCALE, STRIP_RGB_NIBBLES);
+    _glowDrawCapsule(&stripEndpoints[2], STRIP_RADIUS_SCALE, STRIP_RGB_NIBBLES);
+    _glowDrawCapsule(&stripEndpoints[4], STRIP_RADIUS_SCALE, STRIP_RGB_NIBBLES);
+    _glowDrawCapsule(&stripEndpoints[6], STRIP_RADIUS_SCALE, STRIP_RGB_NIBBLES);
 }
 
 void shelterB3ElevatorHallDrawGlowsTask(Task* task)
