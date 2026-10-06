@@ -6,7 +6,7 @@
 
 #include "types.h"
 
-/// Color/light matrix written by Gfx_SetDefaultFlatLight / Gfx_SetLightAmbient.
+/// Color/light matrix written by _gfxSetDefaultFlatLight / _gfxSetDefaultAmbientColor.
 extern MATRIX D_80074080;
 
 /// Captures the displayed 320x240 16-bit frame in the area's RAM image slot.
@@ -56,6 +56,17 @@ void gfxRestoreAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex);
 /// this resets resident nodes in place without allocating or changing lights.
 void gfxResetView(void);
 
-void Gpu_InitDefaultLights(void);
+/// Restores the three resident default directional lights and ambient colour.
+///
+/// Uses world-space directions (100,100,100), (20,-50,-100) and (-20,20,100),
+/// normalized and negated into `GsLIGHTWSMATRIX`. Their grayscale RGB bytes
+/// are 208, 128 and 96, scaled by 16 into `D_80074080`'s colour columns.
+/// Ambient RGB is 64 in raw GTE background-register units (4 RGB units).
+/// Direction-matrix translation and both matrices' alignment bytes are retained.
+///
+/// Requires an initialized, word-aligned scratch stack with 48 free bytes,
+/// released after each light. Changes GTE normalization state; the matrices
+/// supply later TMD draws without installing the GTE light/colour registers.
+void gfxResetDefaultLights(void);
 
 #endif // MAIN_PRIVATE_GFX_H

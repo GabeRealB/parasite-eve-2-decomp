@@ -39,7 +39,22 @@ extern GfxCoord Gfx_ViewOffsetCoord;
 /// generation; bit 31 is visit parity.
 extern GfxCoord gGfxViewCoord;
 
-void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx);
+/// Installs one flat directional light in a direction/colour matrix pair.
+///
+/// `lightIndex` is 0..2, selecting a row of `directionMatrix->m` and a column
+/// of `colorMatrix->m`. The input's signed xyz may use any common scale; its
+/// normalized, negated direction is stored with length approximately `ONE`
+/// (4096), in the input's coordinate frame. Zero xyz produces a zero row.
+/// Each RGB byte is shifted left by four into the matching colour column,
+/// giving Q12 coefficients in 0..4080. Other entries, translations (including
+/// ambient RGB in `colorMatrix->t`) and alignment bytes are retained.
+///
+/// Requires a readable, word-aligned, complete `GsF_LIGHT`, writable matrices,
+/// and an initialized, word-aligned scratch stack with 48 free bytes: 24 for
+/// the direction and 24 more during normalization. Caller objects must be
+/// disjoint from that reservation, released before return. Changes GTE
+/// arithmetic and leading-sign-bit-count state; retains no caller pointer.
+void gfxSetFlatLight(s32 lightIndex, const GsF_LIGHT* light, MATRIX* directionMatrix, MATRIX* colorMatrix);
 
 /// Builds Rx(x) * Ry(y) * Rz(z) and replaces or composes `matrix`'s rotation.
 ///

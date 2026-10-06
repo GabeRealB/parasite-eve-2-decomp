@@ -17651,9 +17651,9 @@ at `-0x10`.
 
 ## `static __inline__` forces scratch-head rematerialisation (not s-reg CSE)
 
-`Gfx_SetFlatLight` takes `MATRIX* dirMtx/colorMtx` and keeps
+`gfxSetFlatLight` takes `MATRIX* directionMatrix/colorMatrix` and keeps
 `scratch = SCRATCH_STACK_CURSOR_SLOT` in a callee-saved reg (`lui`/`ori` + `$sN`).
-`Gfx_SetDefaultFlatLight` is the same body writing to globals `&GsLIGHTWSMATRIX` /
+`_gfxSetDefaultFlatLight` is the same body writing to globals `&GsLIGHTWSMATRIX` /
 `&D_80074080`, but the ROM rematerialises `0x1F8003FC` on every access
 (`lui $r,0x1f80` / `lw|sw 0x3fc($r)`) and only uses five s-regs (frame `0x28`).
 
@@ -17663,21 +17663,21 @@ The match is a `static __inline__` helper that takes the matrix pointers,
 called as:
 
 ```c
-static __inline__ void setLightToMatrices(s32 id, FlatLight* light,
-                                          MATRIX* dirMtx, MATRIX* colorMtx)
+static __inline__ void _gfxWriteFlatLightMatrices(s32 lightIndex, const GsF_LIGHT* light,
+                                                MATRIX* directionMatrix, MATRIX* colorMatrix)
 {
-    /* same body as Gfx_SetFlatLight */
+    /* same body as gfxSetFlatLight */
 }
 
-void Gfx_SetDefaultFlatLight(s32 id, FlatLight* light)
+static void _gfxSetDefaultFlatLight(s32 lightIndex, const GsF_LIGHT* light)
 {
-    setLightToMatrices(id, light, &GsLIGHTWSMATRIX, &D_80074080);
+    _gfxWriteFlatLightMatrices(lightIndex, light, &GsLIGHTWSMATRIX, &D_80074080);
 }
 ```
 
 Inlining that form rematerialises the scratch address and matches. Do **not**
-also route `Gfx_SetFlatLight` through the same inline — that changes its
-scratch-pointer codegen and breaks the existing match. Keep `Gfx_SetFlatLight`'s
+also route `gfxSetFlatLight` through the same inline — that changes its
+scratch-pointer codegen and breaks the existing match. Keep `gfxSetFlatLight`'s
 body out-of-line as written.
 
 ## Nested blocks force pointer reloads between store groups
@@ -31417,7 +31417,7 @@ register s32 scale asm("t0");
 ```
 
 `_worldCoordWriteConeLightMatrixOutOfLine` is the example. It also writes `-lightScratch->result.direction` into the
-direction-matrix row (same as `Gfx_SetFlatLight`).
+direction-matrix row (same as `gfxSetFlatLight`).
 
 ## Local `s32` prototype so `Display_SetFadeMax(0xFF)` can fill a delay slot
 
@@ -37349,7 +37349,7 @@ member is at offset 4 rather than padding the frame by hand.
 
 ## `static __inline__` also flips scratch-head codegen at a single call site
 
-The `Gfx_SetDefaultFlatLight` note above (inline helper → `lui 0x1F80` /
+The `_gfxSetDefaultFlatLight` note above (inline helper → `lui 0x1F80` /
 `lw|sw 0x3FC` per access, instead of CSE into an `$sN`) is not specific to
 being called several times. `Gp_SpawnViewCoordTask` calls its helper once and still
 gets the rematerialised form. Writing the same body straight into the caller —
@@ -52409,7 +52409,7 @@ therefore mean two different source shapes in the *same* function:
 - a `void** scratch = SCRATCH_STACK_CURSOR_SLOT;` local, whose load/store pair is
   the register form, and
 - a `static __inline__` helper containing the rest of the alloc/use/free, whose
-  accesses rematerialise (same effect as the `Gfx_SetDefaultFlatLight` /
+  accesses rematerialise (same effect as the `_gfxSetDefaultFlatLight` /
   `Gp_SpawnViewCoordTask` notes above, applied to only part of a function).
 
 The inline helper also breaks the store-to-load forwarding that otherwise
@@ -100488,7 +100488,7 @@ each entry is `0x00808080`, the r/g/b triple -- so the walker becomes
     GsF_LIGHT *light = D_actor_303600_8016E490;
     ...
     for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
-        Gfx_SetFlatLight(i, light, &mats->lightMtx, &mats->colorMtx);
+        gfxSetFlatLight(i, light, &mats->lightMtx, &mats->colorMtx);
     }
 ```
 

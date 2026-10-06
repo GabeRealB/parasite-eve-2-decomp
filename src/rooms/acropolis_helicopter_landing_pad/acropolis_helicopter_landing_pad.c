@@ -224,7 +224,7 @@ static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
     for (i = 0, light = D_acropolis_helicopter_landing_pad_80182340; i < 3; i++, light++) {
-        Gfx_SetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
+        gfxSetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
     }
 }
 

@@ -2167,7 +2167,7 @@ static void func_actor_303600_80162A0C(Task* task)
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
     for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
-        Gfx_SetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
+        gfxSetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
     }
 }
 

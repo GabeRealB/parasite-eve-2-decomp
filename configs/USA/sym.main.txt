@@ -1253,10 +1253,10 @@ strncpy                     = 0x8003AE94;
 //--------------------------------------------------------------------
 //--- PA: 0x2B704   VA: 0x8003AF04   subsegment: c, 2B704
 //--------------------------------------------------------------------
-Gpu_InitDefaultLights               = 0x8003AF04; // type:func
-Gfx_SetFlatLight               = 0x8003B140; // type:func
-Gfx_SetDefaultFlatLight               = 0x8003B228; // type:func
-Gfx_SetLightAmbient               = 0x8003B318; // type:func
+gfxResetDefaultLights               = 0x8003AF04; // type:func
+gfxSetFlatLight               = 0x8003B140; // type:func
+_gfxSetDefaultFlatLight               = 0x8003B228; // type:func
+_gfxSetDefaultAmbientColor               = 0x8003B318; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2BB30   VA: 0x8003B330   subsegment: o, libgs/gs_107

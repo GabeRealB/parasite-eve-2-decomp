@@ -639,7 +639,7 @@ static void Gfx_InitGraph(void)
     otCtx[1].tag    = (GsOT_TAG*)(ot + 2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES - 1);
     GameMain_SpawnBootTask();
     gfxResetView();
-    Gpu_InitDefaultLights();
+    gfxResetDefaultLights();
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
 }
 

@@ -128,7 +128,7 @@ void Display_SetMode(s32 modeBits)
     gDisplayState.dispEnv[0].isinter = interlaced;
     if (!(modeBits & DISPLAY_SETUP_KEEP_VIEW)) {
         gfxResetView();
-        Gpu_InitDefaultLights();
+        gfxResetDefaultLights();
     }
 }
 
