@@ -7,8 +7,7 @@
 /// scans the five `WorldCollisionContact` records of `hits[0]` for the first whose `key`
 /// high halfword is attack kind 2 -- the contact point goes into the block's
 /// `contactPoint` and the key into `attackKey`. A record with `key` 0 ends the scan with no
-/// hit. The scan is written with labels rather than a `for` so `loop.c` parks
-/// the match arm out of line in both room builds.
+/// hit. The scan is `_gluttonScanGroup`.
 ///
 /// A hit spawns the impact effect on the part's coordinate, publishes
 /// `Gp_GetIdParam2` of the attack id to all four per-group slots at 0xE8C, and
