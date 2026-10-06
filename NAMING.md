@@ -422,6 +422,13 @@ implementation interface is `src/shared/actor_messages.h`; configuration
 bindings and constants use `ACTOR_MESSAGE_`. A carrier can select a private
 instance of a placement fragment separately from its ordinary shared entry.
 
+`modelPlacement` owns the included TMD coordinate placement helpers and child
+model attachment states. Its private implementation interface is
+`src/shared/model_placement.h`; configuration bindings use `MODEL_PLACEMENT_`.
+An attachment instance links a model root to a parent model part, borrows the
+parent's lighting matrices and joins the parent's task teardown tree. A carrier
+can bind a second private instance independently of the ordinary shared entry.
+
 `actor_contacts.h` uses the prefix `actorContact`. The block of its push
 along obstacle bearings is `ActorContactBearingPushScratch`, private to that
 interface; the markers its bearing slots take use

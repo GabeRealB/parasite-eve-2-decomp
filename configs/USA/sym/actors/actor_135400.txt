@@ -83,3 +83,4 @@ actorMotionPlayAnim = 0x80132650; // type:func
 actorMsgPlaceEuler = 0x8013276C; // type:func
 _actorMsgPlaceEuler = 0x80132E40; // type:func
 modelPlacementAttachPart = 0x80132450; // type:func
+_modelPlacementAttachPart = 0x8013252C; // type:func

@@ -94,7 +94,7 @@ STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasPlaces, 0x30);
 
 /// The actor's two-entry `TaskDesc` table, indexed by `taskSpawnFromTable`:
 /// entry 1 is the model-bearing part task `modelPlacementAttachPart`
-/// reparents, entry 2 the second part (`func_actor_135400_8013252C`).
+/// reparents, entry 2 the second part (`_modelPlacementAttachPart`).
 extern TaskDesc D_actor_135400_8013A4AC[];
 
 extern TaskMessageEntry D_actor_135400_8013A4D0[5];
@@ -135,7 +135,7 @@ static void func_actor_135400_80131EB4(Task* task);
 static void func_actor_135400_80132064(Task* arg0);
 static void func_actor_135400_801322A8(Task* task);
 static void func_actor_135400_801324CC(Task* task);
-static void func_actor_135400_8013252C(Task* task);
+static void _modelPlacementAttachPart(Task* childTask);
 static void func_actor_135400_80132614(Task* arg0);
 static void func_actor_135400_80132634(Task* task);
 s32         func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3);
@@ -155,11 +155,11 @@ static const TaskFuncTable3 D_actor_135400_80131E24 = { {
 } };
 
 /// State table of the second part task: state 0 reparents it
-/// (`func_actor_135400_8013252C`), state 1 runs its placement phases
+/// (`_modelPlacementAttachPart`), state 1 runs its placement phases
 /// (`func_actor_135400_80131EB4`) and state 2 kills it. Dispatched by
 /// `func_actor_135400_801324D4`.
 static const TaskFuncTable3 D_actor_135400_80131E30 = { {
-    func_actor_135400_8013252C,
+    _modelPlacementAttachPart,
     func_actor_135400_80131EB4,
     taskKill,
 } };
@@ -752,10 +752,12 @@ void func_actor_135400_801324D4(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// A second copy, under this file's own name.
-#define modelPlacementAttachPart func_actor_135400_8013252C
+/// Selects the private setup callback for the carried model's state table.
+///
+/// The binding is a declared `void(Task*)` function identifier, consumed by
+/// the following fragment inclusion.
+#define MODEL_PLACEMENT_ATTACH_PART_TASK _modelPlacementAttachPart
 #include "../../shared/model_placement_attach_part.inc.c"
-#undef modelPlacementAttachPart
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
 /// from `D_actor_135400_80131E3C`, skipping the frame while `gSceneCombatState.actorControl` is
