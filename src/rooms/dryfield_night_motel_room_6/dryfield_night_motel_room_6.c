@@ -907,65 +907,50 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_6_8017D6B4 = {
 /// task 0x11.
 void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
 {
-    Task* task;
-
-    task = arg0;
-    switch (task->state) {
+    switch (arg0->state) {
         case 0:
-            goto L_case0;
+            Gp_MsgPlayerWeapon(0);
+            Gp_RunCapCmd1(0x10);
+            arg0->state++;
+            break;
         case 1:
-            goto advance;
+            arg0->state++;
+            break;
         case 2:
-            goto L_case2;
+            if (Gp_GetCapEventKey() == 0xB) {
+                taskKill(arg0);
+                Gp_MsgPlayerWeapon(1);
+            }
+            arg0->state++;
+            break;
         case 3:
-            goto L_case3;
+            gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN, 2);
+            arg0->state++;
+            break;
         case 4:
-            goto L_case4;
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+            arg0->state++;
+            break;
         case 5:
-            goto L_case5;
+            Gp_FillPlayerHpMp();
+            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+            Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_80186270);
+            if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
+                Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_801862B0);
+            }
+            gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
+            gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_030, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_R08;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+            gDisplayState.spriteVariant                                = 1;
+            Task_Spawn(0, 0x11, 0, 0);
+            taskKill(arg0);
+            break;
     }
-    return;
-
-L_case0:
-    Gp_MsgPlayerWeapon(0);
-    Gp_RunCapCmd1(0x10);
-    goto advance;
-
-L_case2:
-    if (Gp_GetCapEventKey() == 0xB) {
-        taskKill(task);
-        Gp_MsgPlayerWeapon(1);
-    }
-    goto advance;
-
-L_case3:
-    gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN, 2);
-    goto advance;
-
-L_case4:
-    if (Gp_CapBusy() != 0) {
-        return;
-    }
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    Gp_FillPlayerHpMp();
-    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_80186270);
-    if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
-        Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_801862B0);
-    }
-    gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
-    gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
-    gameFlagSetNibble(GAME_FLAG_030, 0);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_R08;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-    gDisplayState.spriteVariant                                = 1;
-    Task_Spawn(0, 0x11, 0, 0);
-    taskKill(task);
 }
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
