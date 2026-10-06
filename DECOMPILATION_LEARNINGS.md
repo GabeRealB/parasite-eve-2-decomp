@@ -92907,7 +92907,7 @@ Inputs: `base.c` 68.806% (`branch=3 regs=4 insert=6 delete=5`), `base_1.c`
 SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 ## A rodata ownership cut is a three-line edit when the cut lands on the table's own offset
 
-`func_mine_tunnel_entrance_8017D720` is a `switch` whose extracted
+`mineTunnelEntranceDrawFlaresTask` is a `switch` whose extracted
 `jtbl_mine_tunnel_entrance_8017D5D4` sat in the *first* unit's leading rodata
 (`0x14..0x28`, the last of four symbols ahead of the code at `0x30`).
 Decompiling it into unit `_3` makes GCC emit its own table, while unit 1's

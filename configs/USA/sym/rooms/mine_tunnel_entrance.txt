@@ -55,5 +55,10 @@ Actor00700_D075A8 = 0x801513C8; // absolute:True owner=actor_200700
 D_actor_400600_80151B10 = 0x80151B10; // absolute:True owner=actor_400600
 D_actor_300700_80165B88 = 0x80165B88; // absolute:True owner=actor_300700
 
-func_mine_tunnel_entrance_8017D720 = 0x8017D720; // type:func
+mineTunnelEntranceDrawFlaresTask = 0x8017D720; // type:func
 _glowDrawFlare = 0x8017D868; // type:func
+_mineTunnelEntranceRejectKeyItem = 0x8017d5e8; // type:func
+_mineTunnelEntranceIgnoreCommand = 0x8017d634; // type:func
+_mineTunnelEntranceIgnoreAction = 0x8017d63c; // type:func
+_mineTunnelEntranceAdvanceSceneEvent = 0x8017d690; // type:func
+_mineTunnelEntranceIdle = 0x8017d6b4; // type:func

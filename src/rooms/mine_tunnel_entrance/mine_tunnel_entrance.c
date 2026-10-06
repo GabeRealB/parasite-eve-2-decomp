@@ -52,22 +52,25 @@ extern SVECTOR D_mine_tunnel_entrance_8017DB38[];
 extern SVECTOR D_mine_tunnel_entrance_8017DB48[];
 
 static void func_mine_tunnel_entrance_8017D644(Task* arg0);
-static void func_mine_tunnel_entrance_8017D690(Task* task);
-static void func_mine_tunnel_entrance_8017D6B4(Task* task);
+static void _mineTunnelEntranceAdvanceSceneEvent(Task* unusedTask);
+static void _mineTunnelEntranceIdle(Task* unusedTask);
 
 /// State handlers of the room task `func_mine_tunnel_entrance_8017D6BC` runs:
 /// set-up, the scene-event state, an idle state and `taskKill`.
 static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
     func_mine_tunnel_entrance_8017D644,
-    func_mine_tunnel_entrance_8017D690,
-    func_mine_tunnel_entrance_8017D6B4,
+    _mineTunnelEntranceAdvanceSceneEvent,
+    _mineTunnelEntranceIdle,
     taskKill,
 };
 
-s32 func_mine_tunnel_entrance_8017D5E8(Task*, s32, s32, s32);
-s32 func_mine_tunnel_entrance_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_tunnel_entrance_8017D634(Task*, s32, s32, s32);
-s32 func_mine_tunnel_entrance_8017D63C(Task*, s32, s32, s32);
+static s32 _mineTunnelEntranceRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_mine_tunnel_entrance_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _mineTunnelEntranceIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _mineTunnelEntranceIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+/// The inventory's room-specific key-item use request.
+enum { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 extern WorldCollisionGrid         D_mine_tunnel_entrance_8017E0C0[1];
 extern WorldCollisionTrigger      D_mine_tunnel_entrance_8017ECEC[8];
@@ -79,9 +82,9 @@ extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_entrance_8017D5F0 },
-    { 5105, func_mine_tunnel_entrance_8017D5E8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_tunnel_entrance_8017D63C },
-    { ROOM_MESSAGE_COMMAND, func_mine_tunnel_entrance_8017D634 },
+    { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM, _mineTunnelEntranceRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mineTunnelEntranceIgnoreAction },
+    { ROOM_MESSAGE_COMMAND, _mineTunnelEntranceIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -483,7 +486,11 @@ WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[8] = {
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-s32 func_mine_tunnel_entrance_8017D5E8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the tunnel entrance.
+///
+/// All arguments are ignored. Returns 0 so the inventory displays its
+/// unavailable-item message and leaves the item unused.
+static s32 _mineTunnelEntranceRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
     return 0;
 }
@@ -497,12 +504,19 @@ s32 func_mine_tunnel_entrance_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, R
     return 1;
 }
 
-s32 func_mine_tunnel_entrance_8017D634(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands and returns 0 without changing room state.
+///
+/// The command ID and its integer argument are unused, as are the task and
+/// message ID. The result is forwarded unchanged to the sender.
+static s32 _mineTunnelEntranceIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_mine_tunnel_entrance_8017D63C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-triggered room actions and returns 0.
+///
+/// All arguments are ignored; the borrowed request is neither read nor retained.
+static s32 _mineTunnelEntranceIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
@@ -517,15 +531,24 @@ static void func_mine_tunnel_entrance_8017D644(Task* arg0)
     gStageSceneMusicEntry = 1;
 }
 
-/// State 1 of the room task: moves the saved scene event from 9 on to 10.
-static void func_mine_tunnel_entrance_8017D690(Task* task)
+/// Advances the saved mine-arrival event when the tunnel entrance is entered.
+///
+/// Room-task state 1 leaves every other event unchanged and remains in that
+/// state. The task argument is unused; progress belongs to the live save state.
+static void _mineTunnelEntranceAdvanceSceneEvent(Task* unusedTask)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 9) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xA;
+    enum {
+        MINE_TUNNEL_ENTRANCE_SCENE_EVENT_MINE_ARRIVAL   = 9,
+        MINE_TUNNEL_ENTRANCE_SCENE_EVENT_TUNNEL_ENTERED = 10,
+    };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == MINE_TUNNEL_ENTRANCE_SCENE_EVENT_MINE_ARRIVAL) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = MINE_TUNNEL_ENTRANCE_SCENE_EVENT_TUNNEL_ENTERED;
     }
 }
 
-static void func_mine_tunnel_entrance_8017D6B4(Task* task)
+/// Keeps room-task state 2 idle without changing the task or saved state.
+static void _mineTunnelEntranceIdle(Task* unusedTask)
 {
 }
 
@@ -539,44 +562,49 @@ void func_mine_tunnel_entrance_8017D6BC(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Sets `gRoomEffectState->roomEffectMode` to 2, then draws the quads the current
-/// camera view shows, one `_glowDrawFlare` call per
-/// position with UV column 0 or 1 and half-extent 0x300 (0x200 for view 6's
-/// second quad). Other views draw nothing.
-void func_mine_tunnel_entrance_8017D720(Task* unused)
+void mineTunnelEntranceDrawFlaresTask(Task* unusedTask)
 {
+    enum {
+        MINE_TUNNEL_ENTRANCE_VIEW_INDEX_MASK          = 0xFF,
+        MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_0          = 0,
+        MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1          = 1,
+        MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE       = 0x300,
+        MINE_TUNNEL_ENTRANCE_FLARE_SMALL_RADIUS_SCALE = 0x200,
+    };
+
+    // Enable room view effects even in views without visible flares.
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    switch (viewGetMappedIndex() & 0xFF) {
+    switch (viewGetMappedIndex() & MINE_TUNNEL_ENTRANCE_VIEW_INDEX_MASK) {
         case 2: {
-            SVECTOR* p = D_mine_tunnel_entrance_8017DB18;
-            _glowDrawFlare(&p[0], 0, 0x300);
-            _glowDrawFlare(&p[1], 0, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
-            _glowDrawFlare(&p[5], 1, 0x300);
+            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB18;
+            _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_0, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_0, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePoints[2], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePoints[5], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             break;
         }
         case 3: {
-            SVECTOR* p = D_mine_tunnel_entrance_8017DB30;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
+            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB30;
+            _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePoints[2], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             break;
         }
         case 4: {
-            SVECTOR* p = D_mine_tunnel_entrance_8017DB30;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x300);
+            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB30;
+            _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             break;
         }
         case 5: {
-            SVECTOR* p = D_mine_tunnel_entrance_8017DB38;
-            _glowDrawFlare(&p[0], 1, 0x300);
+            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB38;
+            _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             break;
         }
         case 6: {
-            SVECTOR* p = D_mine_tunnel_entrance_8017DB48;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[1], 1, 0x200);
+            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB48;
+            _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_SMALL_RADIUS_SCALE);
             break;
         }
     }

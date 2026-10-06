@@ -30,7 +30,16 @@ extern SpriteView D_mine_tunnel_entrance_8017EA4C[];
 
 extern WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[];
 
-void func_mine_tunnel_entrance_8017D720(Task* unused);
+/// Draws the tunnel entrance's flickering light flares for the current view.
+///
+/// Bank-6 effect task 0x122 ignores its task argument and enables room view
+/// effects on every frame. Mapped views 2..6 select world-space flare centres;
+/// other views draw nothing. Each flare's pixel half-extent is its radius scale
+/// (768, or 512 for view 6's second flare) times 39 divided by camera Z / 4.
+/// Requires nonzero accepted projection depths, the loaded room overlay,
+/// composed view matrices, scratch stack, ordering table and packet arena.
+/// Queued packets live until the current frame has finished on the GPU.
+void mineTunnelEntranceDrawFlaresTask(Task* unusedTask);
 
 void func_mine_tunnel_entrance_8017D6BC(Task* task);
 

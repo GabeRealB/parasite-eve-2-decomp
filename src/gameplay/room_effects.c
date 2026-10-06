@@ -828,7 +828,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterDriftTaskU16, { NULL } },                     // 0x11F
     { { { TASK_BODY_COORD, 0x70 } }, mineMesaDrawViewFlaresTask, { NULL } },                                  // 0x120
     { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_8017E474, { NULL } },                                   // 0x121
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_tunnel_entrance_8017D720, { NULL } },                          // 0x122
+    { { { TASK_BODY_COORD, 0x70 } }, mineTunnelEntranceDrawFlaresTask, { NULL } },                            // 0x122
     { { { TASK_BODY_COORD, 0x70 } }, mineTunnelDrawViewFlaresTask, { NULL } },                                // 0x123
     { { { TASK_BODY_COORD, 0x70 } }, mineGorgeDrawViewFlaresTask, { NULL } },                                 // 0x124
     { { { TASK_BODY_COORD, 0x70 } }, mineRefugeDrawGlowsTask, { NULL } },                                     // 0x125

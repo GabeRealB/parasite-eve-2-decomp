@@ -1843,7 +1843,7 @@ dryfieldNightCellarDrawGlowsTask = 0x8017DA28; // type:func absolute:True owner=
 
 dryfieldNightUnderpassDrawFlaresTask = 0x8017DC3C; // type:func absolute:True owner=dryfield_night_underpass shared=rooms
 
-func_mine_tunnel_entrance_8017D720 = 0x8017D720; // type:func absolute:True owner=mine_tunnel_entrance shared=rooms
+mineTunnelEntranceDrawFlaresTask = 0x8017D720; // type:func absolute:True owner=mine_tunnel_entrance shared=rooms
 
 mineTunnelDrawViewFlaresTask = 0x8017D7D4; // type:func absolute:True owner=mine_tunnel shared=rooms
 
