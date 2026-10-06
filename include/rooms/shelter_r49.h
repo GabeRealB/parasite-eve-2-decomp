@@ -34,6 +34,12 @@ extern WorldCollisionSurfaceProperties* D_shelter_r49_8017DDF8[];
 
 void func_shelter_r49_8017D6C4(Task* task);
 
-void func_shelter_r49_8017D9D0(Task* unused);
+/// No-op per-frame callback for Shelter R49's room-effect task.
+///
+/// Effect bank 6, slot 0x162 supplies a coordinate-body task. `unusedTask` is
+/// ignored; the callback draws nothing and leaves the task and its resources
+/// live for external teardown. The `shelter_r49` overlay must remain loaded
+/// while this callback can run.
+void shelterR49EffectNoopTask(Task* unusedTask);
 
 #endif // INCLUDE_ROOMS_SHELTER_R49_H
