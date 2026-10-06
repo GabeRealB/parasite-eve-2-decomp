@@ -60,23 +60,23 @@ gRoomEventStagedMsg = 0x80185B74; // size:0x8 defined:True
 D_shelter_b1_north_maintenance_walkway_80185B7C = 0x80185B7C; // size:0x4 defined:True
 gRoomEventLatched = 0x80185B80; // size:0xC defined:True
 
-func_shelter_b1_north_maintenance_walkway_8017E8B8 = 0x8017E8B8; // type:func
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsMoteTask = 0x8017E8B8; // type:func
 
-func_shelter_b1_north_maintenance_walkway_80180EDC = 0x80180EDC; // type:func
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80180EDC; // type:func
 
-func_shelter_b1_north_maintenance_walkway_80181940 = 0x80181940; // type:func
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x80181940; // type:func
 
 func_shelter_b1_north_maintenance_walkway_80182228 = 0x80182228; // type:func
 
 func_shelter_b1_north_maintenance_walkway_80182E70 = 0x80182E70; // type:func
 
-func_shelter_b1_north_maintenance_walkway_801833C8 = 0x801833C8; // type:func
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask = 0x801833C8; // type:func
 
-func_shelter_b1_north_maintenance_walkway_80184028 = 0x80184028; // type:func
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask = 0x80184028; // type:func
 
-func_shelter_b1_north_maintenance_walkway_8017F600 = 0x8017F600; // type:func
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloTask = 0x8017F600; // type:func
 
-func_shelter_b1_north_maintenance_walkway_8017F998 = 0x8017F998; // type:func
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask = 0x8017F998; // type:func
 
 func_shelter_b1_north_maintenance_walkway_80180DA8 = 0x80180DA8; // type:func
 

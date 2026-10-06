@@ -352,21 +352,21 @@ RoomLatchedEvent gRoomEventLatched;
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_shelter_b1_north_maintenance_walkway_8017E8B8(Task* task)
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_shelter_b1_north_maintenance_walkway_8017F600(Task* arg0)
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
-void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0)
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsHaloOrangeBurstTask(arg0);
+    _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
@@ -379,14 +379,14 @@ void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0)
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
 
-void func_shelter_b1_north_maintenance_walkway_80180EDC(Task* arg0)
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task)
 {
-    _roomVisualEffectsFlashTask(arg0);
+    _roomVisualEffectsFlashTask(task);
 }
 
 #include "../../shared/room_visual_effects_trails.inc.c"
 
-void func_shelter_b1_north_maintenance_walkway_80181940(Task* task)
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 {
 #include "../../shared/room_visual_effects_trail_task.inc.c"
 }
@@ -406,16 +406,16 @@ void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
     RoomFx_GlowDiscTask(arg0);
 }
 
-void func_shelter_b1_north_maintenance_walkway_801833C8(Task* task)
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)
 {
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst.inc.c"
 
-void func_shelter_b1_north_maintenance_walkway_80184028(Task* arg0)
+void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
-    _roomVisualEffectsFlyingOrangeBurstTask(arg0);
+    _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
 #include "../../shared/room_visual_effects_burst_draw.inc.c"
