@@ -385,6 +385,25 @@ typedef struct {
 } _Actor00400AreaConfig;
 STATIC_ASSERT_SIZEOF(_Actor00400AreaConfig, 0x14);
 
+/// Clip indices used by the water status hold and the scripted introductions.
+enum {
+    ACTOR_00400_ANIM_SURFACED               = 1,
+    ACTOR_00400_ANIM_SWIM                   = 3,
+    ACTOR_00400_ANIM_DISCHARGE              = 7,
+    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_ENTER = 14
+};
+
+/// Sound-script instance tag: the diver's placement index occupies bits 8..15.
+enum { ACTOR_00400_SOUND_INSTANCE_SHIFT = 8 };
+
+/// Scripted room-introduction positions in the root's view-parent space.
+enum {
+    ACTOR_00400_ROOM_INTRO_X       = -0x6C0,
+    ACTOR_00400_ROOM_INTRO_START_Z = -0xBB8,
+    ACTOR_00400_ROOM_INTRO_STOP_Z  = -0x2008,
+    ACTOR_00400_ROOM_INTRO_DEPTH   = 0x3E8
+};
+
 static void _actor00400TurnTowardPointMaskedRange(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
 static void _actor00400RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16 blendFrames);
 static void Actor00400_Fn02648(Task* arg0, s32 arg1);
@@ -421,13 +440,13 @@ static void Actor00400_Fn0A9F4(Task* arg0);
 static void Actor00400_Fn0AA40(Task* arg0);
 static void Actor00400_Fn0A3D4(Task* arg0);
 static void Actor00400_Fn0A414(Task* arg0);
-static void Actor00400_Fn098A8(Task* arg0);
+static void _actor00400SwimStatusHoldEnter(Task* task);
 static void Actor00400_Fn09924(Task* arg0);
 static s16  _actor00400ApplyHitReaction(Task* task);
 static void Actor00400_Fn0A5B8(Task* arg0);
 static void Actor00400_Fn019B4(Task* arg0);
 static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3);
-static void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst);
+static void _actor00400CopyRotation(const MATRIX* source, MATRIX* destination);
 
 static s32  Actor00400_Fn02208(Task* arg0);
 static void Actor00400_Fn0A680(Task* arg0);
@@ -490,20 +509,20 @@ static void Actor00400_Fn094DC(Task* arg0);
 static void Actor00400_Fn095D8(Task* arg0);
 static void Actor00400_Fn096C0(Task* arg0);
 static void Actor00400_Fn09A1C(Task* arg0);
-static void Actor00400_Fn09A48(Task* arg0);
-static void Actor00400_Fn09A8C(Task* arg0);
-static void Actor00400_Fn09AE0(Task* arg0);
-static void Actor00400_Fn09B44(Task* arg0);
+static void _actor00400TunnelPatrolEnter(Task* task);
+static void _actor00400TunnelPatrolWaitForCue(Task* task);
+static void _actor00400TunnelIntroEnter(Task* task);
+static void _actor00400TunnelIntroWaitForSwim(Task* task);
 static void Actor00400_Fn09B74(Task* arg0);
-static void Actor00400_Fn09BDC(Task* arg0);
+static void _actor00400TunnelIntroWaitForPatrol(Task* task);
 static void Actor00400_Fn09C04(Task* arg0);
 static void Actor00400_Fn09C84(Task* arg0);
-static void Actor00400_Fn09CCC(Task* arg0);
-static void Actor00400_Fn09D3C(Task* arg0);
+static void _actor00400RoomIntroEnter(Task* task);
+static void _actor00400RoomIntroWaitForSwim(Task* task);
 static void Actor00400_Fn09D98(Task* arg0);
-static void Actor00400_Fn09E70(Task* arg0);
-static void Actor00400_Fn09F18(Task* arg0);
-static void Actor00400_Fn09FDC(Task* arg0);
+static void _actor00400RoomIntroWaitForSurface(Task* task);
+static void _actor00400RoomIntroWaitAfterDischarge(Task* task);
+static void _actor00400RoomIntroWaitForFight(Task* task);
 
 extern EnemyParams Actor00400_D0FDC8;
 /// Pair table `Actor00400_Fn0A190` packs, at index 1, into the `key` of the
@@ -1302,7 +1321,7 @@ static void            Actor00400_Fn06380(Task* arg0);
 static inline void     Actor00400_SpawnMarker(Task* arg0);
 static void            Actor00400_Fn064B0(Task* arg0);
 static void            Actor00400_Fn06798(Task* arg0);
-static void            Actor00400_Fn06A44(Task* arg0);
+static void            _actor00400RoomIntroBeginDischarge(Task* task);
 static inline s32      _actor00400ConsumeWoundedHitReaction(_Actor00400Work* work);
 static void            Actor00400_Fn07400(Task* arg0);
 static void            Actor00400_Fn07518(Task* arg0);
@@ -1597,8 +1616,8 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     gfxExtractEulerAngles(m3, &rot2);
     RotMatrixX(rot1.vx, &ma.mat);
     RotMatrixX(rot2.vx, &mb.mat);
-    Actor00400_Fn08A1C(&ma.mat, m2);
-    Actor00400_Fn08A1C(&mb.mat, m3);
+    _actor00400CopyRotation(&ma.mat, m2);
+    _actor00400CopyRotation(&mb.mat, m3);
     actorRenderComposeCoord(c1);
     actorRenderComposeCoord(c2);
     actorRenderComposeCoord(c3);
@@ -1618,7 +1637,7 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     MulMatrix(&t1, &t2);
     MulMatrix(&t1, &t3);
     MulMatrix(&t1, &mc.mat);
-    Actor00400_Fn08A1C(&t1, &c4->coord);
+    _actor00400CopyRotation(&t1, &c4->coord);
 }
 
 /* Links the actor's four collision objects and clears their record tables;
@@ -2096,14 +2115,14 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 rot.rotationWords.m20M21 = 0;
                 ir->m22                  = ONE;
                 RotMatrix(&work->lowerNeckAngles, &rot.mat);
-                Actor00400_Fn08A1C(&rot.mat, &c2->coord);
+                _actor00400CopyRotation(&rot.mat, &c2->coord);
                 rot.rotationWords.m00M01 = ONE;
                 rot.rotationWords.m02M10 = 0;
                 ir->m11M12               = ONE;
                 rot.rotationWords.m20M21 = 0;
                 ir->m22                  = ONE;
                 RotMatrix(&work->upperNeckAngles, &rot.mat);
-                Actor00400_Fn08A1C(&rot.mat, &c3->coord);
+                _actor00400CopyRotation(&rot.mat, &c3->coord);
                 if ((abs(work->lowerNeckAngles.vx) < 0x30) && (abs(work->lowerNeckAngles.vy) < 0x30) && (abs(work->lowerNeckAngles.vz) < 0x30) &&
                     (abs(work->upperNeckAngles.vx) < 0x30) && (abs(work->upperNeckAngles.vy) < 0x30) && (abs(work->upperNeckAngles.vz) < 0x30)) {
                     work->neckPhase = ACTOR_00400_NECK_RETRACTED;
@@ -2132,7 +2151,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 scale.vy                = 0x1000;
                 scale.vz                = work->neckScale;
                 ScaleMatrix(&ma.mat, &scale);
-                Actor00400_Fn08A1C(&ma.mat, &base[2].coord);
+                _actor00400CopyRotation(&ma.mat, &base[2].coord);
                 ib                      = &mb.rotationWords;
                 mb.rotationWords.m00M01 = ONE;
                 mb.rotationWords.m02M10 = 0;
@@ -2143,7 +2162,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 scale.vy                = 0x1000;
                 scale.vz                = 0x1000;
                 ScaleMatrix(&mb.mat, &scale);
-                Actor00400_Fn08A1C(&mb.mat, &base[3].coord);
+                _actor00400CopyRotation(&mb.mat, &base[3].coord);
                 ic                      = &mc.rotationWords;
                 mc.rotationWords.m00M01 = ONE;
                 mc.rotationWords.m02M10 = 0;
@@ -2163,7 +2182,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 ir->m22                  = ONE;
                 RotMatrix(&euler2, &rot.mat);
                 MulMatrix(&mc.mat, &rot.mat);
-                Actor00400_Fn08A1C(&mc.mat, &c4->coord);
+                _actor00400CopyRotation(&mc.mat, &c4->coord);
                 base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2196,7 +2215,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             scale.vy                = 0x1000;
             scale.vz                = work->neckScale;
             ScaleMatrix(&ma.mat, &scale);
-            Actor00400_Fn08A1C(&ma.mat, &base[2].coord);
+            _actor00400CopyRotation(&ma.mat, &base[2].coord);
             ib                      = &mb.rotationWords;
             mb.rotationWords.m00M01 = ONE;
             mb.rotationWords.m02M10 = 0;
@@ -2207,7 +2226,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             scale.vy                = 0x1000;
             scale.vz                = 0x1000;
             ScaleMatrix(&mb.mat, &scale);
-            Actor00400_Fn08A1C(&mb.mat, &base[3].coord);
+            _actor00400CopyRotation(&mb.mat, &base[3].coord);
             ic                      = &mc.rotationWords;
             mc.rotationWords.m00M01 = ONE;
             mc.rotationWords.m02M10 = 0;
@@ -2227,7 +2246,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             ir->m22                  = ONE;
             RotMatrix(&euler2, &rot.mat);
             MulMatrix(&mc.mat, &rot.mat);
-            Actor00400_Fn08A1C(&mc.mat, &c4->coord);
+            _actor00400CopyRotation(&mc.mat, &c4->coord);
         } else {
             GfxRotationWords* ir;
             MATRIX*           m2;
@@ -2250,14 +2269,14 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             rot.rotationWords.m20M21 = 0;
             ir->m22                  = ONE;
             RotMatrix(&work->lowerNeckAngles, &rot.mat);
-            Actor00400_Fn08A1C(&rot.mat, m2);
+            _actor00400CopyRotation(&rot.mat, m2);
             rot.rotationWords.m00M01 = ONE;
             rot.rotationWords.m02M10 = 0;
             ir->m11M12               = ONE;
             rot.rotationWords.m20M21 = 0;
             ir->m22                  = ONE;
             RotMatrix(&work->upperNeckAngles, &rot.mat);
-            Actor00400_Fn08A1C(&rot.mat, m3);
+            _actor00400CopyRotation(&rot.mat, m3);
         }
         base[2].composeStamp = GRAPHICS_COORD_DIRTY;
         base[3].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2467,26 +2486,32 @@ static void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
 }
 
-/// Appends a projected stain quad to the frame arena and current ordering table.
+/// Queues one subtractive blob-texture quad for the wounded diver's ground stain.
 ///
-/// The caller must accept the projection flags and provide space for one packet.
-static inline void _actor00400QueueGroundStain(_Actor00400GroundStainScratch* scratch, u8 intensity)
+/// Borrows the four packed screen-XY words and projected depth in `scratch`
+/// for this call. The caller must have accepted the projection flags, provide
+/// one word-aligned `POLY_FT4` in the current frame arena and a current ordering
+/// table with 1024 depth tags. Depth is converted to a masked byte offset; high
+/// bits wrap. Intensity is 0..255, with red at half strength. Uses the 4-bit blob
+/// atlas and its palette; the packet stays live until the frame DMA finishes.
+static inline void _actor00400QueueGroundStain(const _Actor00400GroundStainScratch* scratch, u8 intensity)
 {
+    enum { ACTOR_00400_GROUND_STAIN_TEXTURE_4_BIT = 0 };
     POLY_FT4* quad;
 
     quad           = gGpuPrimCursor;
     gGpuPrimCursor = quad + 1;
     setPolyFT4(quad);
-    setSemiTrans(quad, 1);
+    setSemiTrans(quad, true);
     GPU_PRIMITIVE_XY_WORD(quad, 0) = scratch->screenCorners[0];
     GPU_PRIMITIVE_XY_WORD(quad, 1) = scratch->screenCorners[1];
     GPU_PRIMITIVE_XY_WORD(quad, 2) = scratch->screenCorners[2];
     GPU_PRIMITIVE_XY_WORD(quad, 3) = scratch->screenCorners[3];
     setUV4(quad, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-    quad->tpage = getTPage(0, GPU_BLEND_SUBTRACT, 512, 0);
+    quad->tpage = getTPage(ACTOR_00400_GROUND_STAIN_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT, 512, 0);
     quad->clut  = getClut(48, 266);
     setRGB0(quad, intensity >> 1, intensity, intensity);
-    addPrim((&gGpuCurrentOt[((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), quad);
 }
 
 /// Queues a subtractive blob-texture quad for the diver's ground stain.
@@ -4014,32 +4039,56 @@ static void Actor00400_Fn06798(Task* arg0)
     worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
 }
 
-static void Actor00400_Fn06A44(Task* arg0)
+/// Requests a normal-rate clip transition over `blendFrames` normal frames.
+///
+/// Borrows the live work block. The clip must name a loaded set for every body
+/// slot; the animation driver applies and acknowledges the request later.
+static inline void _actor00400RequestNormalClipBlend(_Actor00400Work* work, s16 clipIndex, s16 blendFrames)
 {
-    _Actor00400Work* work;
-    _Actor00400Work* w;
-    s32              id;
-    s32              pan;
+    work->animBlend   = blendFrames;
+    work->animStep    = ANIMATION_RATE_ONE;
+    work->animClip    = clipIndex;
+    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
+}
 
-    work = arg0->work;
+/// Starts the scripted room-introduction discharge on its timed cues.
+///
+/// Requires the live diver task, enemy and initialized model, with the step
+/// counter initially zero. Queues the room cue on frame 1, releases the neck
+/// on frame 8, then starts 24 discharge ticks and blends to the discharge clip
+/// on frame 20. Resets the counter for the following wait step.
+static void _actor00400RoomIntroBeginDischarge(Task* task)
+{
+    enum {
+        ACTOR_00400_INTRO_DISCHARGE_CUE_FRAME   = 1,
+        ACTOR_00400_INTRO_NECK_RELEASE_FRAME    = 8,
+        ACTOR_00400_INTRO_DISCHARGE_START_FRAME = 20,
+        ACTOR_00400_INTRO_DISCHARGE_FRAMES      = 24,
+        ACTOR_00400_SOUND_INTRO_DISCHARGE_CUE   = 0x54220005,
+        ACTOR_00400_SOUND_NECK_RELEASE          = 0x40040007
+    };
+    _Actor00400Work* work;
+    _Actor00400Work* animWork;
+    s32              soundId;
+    s32              panOffset;
+
+    work = task->work;
     work->stateFrames++;
-    if (work->stateFrames == 1) {
-        sndEvtRequestScriptStart(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54220005, 0, 0);
+    if (work->stateFrames == ACTOR_00400_INTRO_DISCHARGE_CUE_FRAME) {
+        sndEvtRequestScriptStart(((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_INTRO_DISCHARGE_CUE, 0, 0);
     }
-    if (work->stateFrames == 8) {
+    if (work->stateFrames == ACTOR_00400_INTRO_NECK_RELEASE_FRAME) {
         work->neckRetracted = 0;
-        id                  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040007;
-        pan                 = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        soundId             = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_NECK_RELEASE;
+        panOffset           = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->stateFrames == 0x14) {
-        work->attackFrames = 0x18;
-        w                  = arg0->work;
-        w->animBlend       = 4;
-        w->animStep        = ANIMATION_RATE_ONE;
-        w->animClip        = 7;
-        w->animRequest     = DIVER_ANIM_REQUEST_BLEND;
-        work->stateFrames  = 0;
+    // Start the spark window, then give the following wait its own counter.
+    if (work->stateFrames == ACTOR_00400_INTRO_DISCHARGE_START_FRAME) {
+        work->attackFrames = ACTOR_00400_INTRO_DISCHARGE_FRAMES;
+        animWork           = task->work;
+        _actor00400RequestNormalClipBlend(animWork, ACTOR_00400_ANIM_DISCHARGE, 4);
+        work->stateFrames = 0;
         work->subState++;
     }
 }
@@ -4511,7 +4560,7 @@ static void Actor00400_Fn07ABC(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn098A8,
+        _actor00400SwimStatusHoldEnter,
         Actor00400_Fn09924,
     };
 
@@ -4539,8 +4588,8 @@ static void Actor00400_Fn07B10(Task* arg0)
 
 /// States `Actor00400_Fn07B98` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable3 Actor00400_D0015C = { {
-    Actor00400_Fn09A48,
-    Actor00400_Fn09A8C,
+    _actor00400TunnelPatrolEnter,
+    _actor00400TunnelPatrolWaitForCue,
     Actor00400_Fn06798,
 } };
 
@@ -4560,10 +4609,10 @@ static void Actor00400_Fn07B98(Task* arg0)
 
 /// States `Actor00400_Fn07C04` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable4 Actor00400_D00168 = { {
-    Actor00400_Fn09AE0,
-    Actor00400_Fn09B44,
+    _actor00400TunnelIntroEnter,
+    _actor00400TunnelIntroWaitForSwim,
     Actor00400_Fn09B74,
-    Actor00400_Fn09BDC,
+    _actor00400TunnelIntroWaitForPatrol,
 } };
 
 static void Actor00400_Fn07C04(Task* arg0)
@@ -4726,13 +4775,13 @@ void Actor00400_Fn08004(Task* arg0)
 
 /// States `Actor00400_Fn09C04` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable7 Actor00400_D00178 = { {
-    Actor00400_Fn09CCC,
-    Actor00400_Fn09D3C,
+    _actor00400RoomIntroEnter,
+    _actor00400RoomIntroWaitForSwim,
     Actor00400_Fn09D98,
-    Actor00400_Fn09E70,
-    Actor00400_Fn06A44,
-    Actor00400_Fn09F18,
-    Actor00400_Fn09FDC,
+    _actor00400RoomIntroWaitForSurface,
+    _actor00400RoomIntroBeginDischarge,
+    _actor00400RoomIntroWaitAfterDischarge,
+    _actor00400RoomIntroWaitForFight,
 } };
 
 void Actor00400_Fn0805C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
@@ -4798,7 +4847,13 @@ static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3)
     arg2->vz = 0;
 }
 
-/// Rebuilds two model parts' world transforms after their local poses changed.
+/// Invalidates and recomposes two model parts' full parent-chain transforms.
+///
+/// Both coordinates and their acyclic ancestor chains must remain live and
+/// writable; the same coordinate may be supplied twice. Marks both dirty
+/// before composing either, so a changed ancestor cannot leave the other
+/// part's cached transform valid. Changes GTE state; the two calls retain
+/// the normal composition stamps.
 static inline void _actor00400ComposePartPair(GfxCoord* firstCoord, GfxCoord* secondCoord)
 {
     firstCoord->composeStamp  = GRAPHICS_COORD_DIRTY;
@@ -4909,7 +4964,15 @@ static void _actor00400AlignPartMidpointXZ(Task* task, s16 firstPartIndex, s16 s
 
 #include "../../shared/diver_restart_clip.inc.c"
 
-/// Applies the pending rate and blended seek to all driven body slots.
+/// Captures and blends driven body slots 1..14 toward the requested clip's track starts.
+///
+/// Requires the initialized rig bound to its live model, slots, pose buffers
+/// and loaded clip bank. `animClip` selects a loaded non-null set (1..19 here)
+/// supporting every body track. `animStep` is narrowed to the signed byte rate
+/// in sixteenths of a frame before each capture tick. `animBlend` counts normal
+/// frames (0..2047 keeps the signed remaining time nonnegative). Slot 0 and the
+/// request fields are preserved. Each seek advances/captures the old pose and
+/// changes the GTE state; the buffers stay live throughout the transition.
 static inline void _actor00400SeekBodySlotsWithBlend(_Actor00400Work* work)
 {
     s32 slotIndex;
@@ -5074,19 +5137,22 @@ static void Actor00400_Fn089C8(Task* arg0)
     states[work->state](arg0);
 }
 
-/// Copies the 3x3 rotation of `src` into `dst`, leaving `dst`'s translation row
-/// alone. Same body as src/lib/actors_shared_80132c4c.c.
-static void Actor00400_Fn08A1C(MATRIX* src, MATRIX* dst)
+/// Copies nine rotation/scale coefficients while preserving the destination translation.
+///
+/// Both matrices must be live; exact self-copy is allowed. Copies the signed
+/// Q12 coefficients without normalizing them. The alignment halfword between
+/// rotation and translation is preserved too.
+static void _actor00400CopyRotation(const MATRIX* source, MATRIX* destination)
 {
-    dst->m[0][0] = src->m[0][0];
-    dst->m[0][1] = src->m[0][1];
-    dst->m[0][2] = src->m[0][2];
-    dst->m[1][0] = src->m[1][0];
-    dst->m[1][1] = src->m[1][1];
-    dst->m[1][2] = src->m[1][2];
-    dst->m[2][0] = src->m[2][0];
-    dst->m[2][1] = src->m[2][1];
-    dst->m[2][2] = src->m[2][2];
+    destination->m[0][0] = source->m[0][0];
+    destination->m[0][1] = source->m[0][1];
+    destination->m[0][2] = source->m[0][2];
+    destination->m[1][0] = source->m[1][0];
+    destination->m[1][1] = source->m[1][1];
+    destination->m[1][2] = source->m[1][2];
+    destination->m[2][0] = source->m[2][0];
+    destination->m[2][1] = source->m[2][1];
+    destination->m[2][2] = source->m[2][2];
 }
 
 static void Actor00400_Fn08A88(Task* arg0)
@@ -5561,20 +5627,28 @@ static void Actor00400_Fn097C8(Task* arg0)
     }
 }
 
-static void Actor00400_Fn098A8(Task* arg0)
+/// Enters the swimming status hold with the trunk exposed as the target.
+///
+/// Requires the live diver task and initialized animation rig. Requests the
+/// hold-entry clip, sets the goal 100 coordinate units below the water level,
+/// restores default colouring, and applies the 100-fold critical-chance
+/// multiplier until the status hold ends. Advances to the hold step.
+static void _actor00400SwimStatusHoldEnter(Task* task)
 {
+    enum {
+        ACTOR_00400_STATUS_HOLD_DEPTH          = 100,
+        ACTOR_00400_STATUS_CRITICAL_MULTIPLIER = 100,
+        ACTOR_00400_TARGET_PART_TRUNK          = 1
+    };
     _Actor00400Work* work;
 
-    work              = arg0->work;
-    work->animBlend   = 8;
-    work->animStep    = ANIMATION_RATE_ONE;
-    work->animClip    = 0xE;
-    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
-    work->goalY       = (u16)work->waterLevel + 0x64;
-    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
-    work->critChanceScale = 100;
+    work = task->work;
+    _actor00400RequestNormalClipBlend(work, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_ENTER, 8);
+    work->goalY = (u16)work->waterLevel + ACTOR_00400_STATUS_HOLD_DEPTH;
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+    work->critChanceScale = ACTOR_00400_STATUS_CRITICAL_MULTIPLIER;
     work->stateFrames     = 0;
-    work->targetPart      = 1;
+    work->targetPart      = ACTOR_00400_TARGET_PART_TRUNK;
     work->subState        = work->subState + 1;
 }
 
@@ -5622,59 +5696,78 @@ static void Actor00400_Fn09A1C(Task* arg0)
     work->subState      = work->subState + 1;
 }
 
-static void Actor00400_Fn09A48(Task* arg0)
+/// Prepares the tunnel patrol animation at the first waypoint.
+///
+/// Requires the live diver work block. Starts a ten-frame blend to the normal
+/// swim clip and advances to the cue wait; it does not reset the frame counter.
+static void _actor00400TunnelPatrolEnter(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* w;
+    _Actor00400Work* animWork;
 
-    work                = arg0->work;
+    work                = task->work;
     work->waypointIndex = 0;
-    w                   = arg0->work;
-    w->animBlend        = 0xA;
-    w->animStep         = ANIMATION_RATE_ONE;
-    w->animClip         = 3;
-    w->animRequest      = DIVER_ANIM_REQUEST_BLEND;
-    work->subState      = work->subState + 1;
+    animWork            = task->work;
+    _actor00400RequestNormalClipBlend(animWork, ACTOR_00400_ANIM_SWIM, 0xA);
+    work->subState = work->subState + 1;
 }
 
-static void Actor00400_Fn09A8C(Task* arg0)
+/// Waits for the tunnel patrol cue or an already-seen tunnel introduction.
+///
+/// Advances to waypoint swimming when either condition holds. The command
+/// remains latched in the live diver work block.
+static void _actor00400TunnelPatrolWaitForCue(Task* task)
 {
     _Actor00400Work* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->command == ACTOR_00400_COMMAND_TUNNEL_PATROL || gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) != 0) {
         work->subState = work->subState + 1;
     }
 }
 
-static void Actor00400_Fn09AE0(Task* arg0)
+/// Places the tunnel-introduction diver at the scripted swim start.
+///
+/// Requires the live diver model and work block. Positions and the goal height
+/// are in the root's view-parent space; heading and roll start at zero. Restarts
+/// the swim clip at normal rate, clears the counter and advances to the swim cue.
+static void _actor00400TunnelIntroEnter(Task* task)
 {
+    enum {
+        ACTOR_00400_TUNNEL_INTRO_X = 0x10E0,
+        ACTOR_00400_TUNNEL_INTRO_Y = 0x178,
+        ACTOR_00400_TUNNEL_INTRO_Z = -0xDAC
+    };
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    _Actor00400Work* w;
+    GfxCoord*        rootCoord;
+    _Actor00400Work* animWork;
 
-    work              = arg0->work;
-    coord             = arg0->extra.tmd->coords;
-    coord->coord.t[0] = 0x10E0;
-    coord->coord.t[1] = 0x178;
-    work->goalY       = 0x178;
-    coord->coord.t[2] = -0xDAC;
-    work->rotation.vx = 0;
-    work->rotation.vy = 0;
-    work->rotation.vz = 0;
-    w                 = arg0->work;
-    w->animStep       = ANIMATION_RATE_ONE;
-    w->animClip       = 3;
-    w->animRequest    = DIVER_ANIM_REQUEST_RESET;
-    work->stateFrames = 0;
-    work->subState    = work->subState + 1;
+    work                  = task->work;
+    rootCoord             = task->extra.tmd->coords;
+    rootCoord->coord.t[0] = ACTOR_00400_TUNNEL_INTRO_X;
+    rootCoord->coord.t[1] = ACTOR_00400_TUNNEL_INTRO_Y;
+    work->goalY           = ACTOR_00400_TUNNEL_INTRO_Y;
+    rootCoord->coord.t[2] = ACTOR_00400_TUNNEL_INTRO_Z;
+    work->rotation.vx     = 0;
+    work->rotation.vy     = 0;
+    work->rotation.vz     = 0;
+    animWork              = task->work;
+    animWork->animStep    = ANIMATION_RATE_ONE;
+    animWork->animClip    = ACTOR_00400_ANIM_SWIM;
+    animWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+    work->stateFrames     = 0;
+    work->subState        = work->subState + 1;
 }
 
-static void Actor00400_Fn09B44(Task* arg0)
+/// Waits for the room command that starts the tunnel-introduction swim.
+///
+/// Advances one step on the latched swim cue without consuming the command
+/// or resetting the frame counter.
+static void _actor00400TunnelIntroWaitForSwim(Task* task)
 {
     _Actor00400Work* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->command == ACTOR_00400_COMMAND_TUNNEL_SWIM) {
         work->subState = work->subState + 1;
     }
@@ -5692,11 +5785,15 @@ static void Actor00400_Fn09B74(Task* arg0)
     work->subState++;
 }
 
-static void Actor00400_Fn09BDC(Task* arg0)
+/// Hands the tunnel-introduction diver to the patrol state on the patrol cue.
+///
+/// Requires the live diver work block. Selects the patrol entry step; the room
+/// command remains latched.
+static void _actor00400TunnelIntroWaitForPatrol(Task* task)
 {
     _Actor00400Work* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->command == ACTOR_00400_COMMAND_TUNNEL_PATROL) {
         work->state    = ACTOR_00400_SWIM_STATE_TUNNEL_PATROL;
         work->subState = 0;
@@ -5723,37 +5820,52 @@ static void Actor00400_Fn09C84(Task* arg0)
     states[work->subState](arg0);
 }
 
-static void Actor00400_Fn09CCC(Task* arg0)
+/// Places the room-introduction diver at its submerged swim start.
+///
+/// Requires the live diver model and initialized rig. Sets the root in its
+/// view-parent space facing a half turn (2048 angle units), retracts the neck,
+/// and restarts the swim clip at normal rate. Clears the counter and advances
+/// to the swim cue.
+static void _actor00400RoomIntroEnter(Task* task)
 {
+    enum { ACTOR_00400_ROOM_INTRO_REVERSE_HEADING = 0x800 };
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    _Actor00400Work* w;
+    GfxCoord*        rootCoord;
+    _Actor00400Work* animWork;
 
-    work                = arg0->work;
-    coord               = arg0->extra.tmd->coords;
-    work->neckRetracted = 1;
-    coord->coord.t[0]   = -0x6C0;
-    coord->coord.t[1]   = 0x3E8;
-    work->goalY         = 0x3E8;
-    coord->coord.t[2]   = -0xBB8;
-    work->rotation.vx   = 0;
-    work->rotation.vy   = 0x800;
-    work->rotation.vz   = 0;
-    w                   = arg0->work;
-    w->animStep         = ANIMATION_RATE_ONE;
-    w->animClip         = 3;
-    w->animRequest      = DIVER_ANIM_REQUEST_RESET;
-    work->stateFrames   = 0;
-    work->subState      = work->subState + 1;
+    work                  = task->work;
+    rootCoord             = task->extra.tmd->coords;
+    work->neckRetracted   = 1;
+    rootCoord->coord.t[0] = ACTOR_00400_ROOM_INTRO_X;
+    rootCoord->coord.t[1] = ACTOR_00400_ROOM_INTRO_DEPTH;
+    work->goalY           = ACTOR_00400_ROOM_INTRO_DEPTH;
+    rootCoord->coord.t[2] = ACTOR_00400_ROOM_INTRO_START_Z;
+    work->rotation.vx     = 0;
+    work->rotation.vy     = ACTOR_00400_ROOM_INTRO_REVERSE_HEADING;
+    work->rotation.vz     = 0;
+    animWork              = task->work;
+    animWork->animStep    = ANIMATION_RATE_ONE;
+    animWork->animClip    = ACTOR_00400_ANIM_SWIM;
+    animWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+    work->stateFrames     = 0;
+    work->subState        = work->subState + 1;
 }
 
-static void Actor00400_Fn09D3C(Task* arg0)
+/// Waits for the swim cue unless encounter progress skips the introductory swim.
+///
+/// Progress nibble 1 goes directly to the surface-cue step; it takes precedence
+/// over the latched swim command. Requires the live diver work block.
+static void _actor00400RoomIntroWaitForSwim(Task* task)
 {
+    enum {
+        ACTOR_00400_SEPTIC_TANK_SKIP_INTRO_SWIM      = 1,
+        ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_SURFACE = 3
+    };
     _Actor00400Work* work;
 
-    work = arg0->work;
-    if (gameFlagGetNibble(GAME_FLAG_0EB) == 1) {
-        work->subState = 3;
+    work = task->work;
+    if (gameFlagGetNibble(GAME_FLAG_0EB) == ACTOR_00400_SEPTIC_TANK_SKIP_INTRO_SWIM) {
+        work->subState = ACTOR_00400_ROOM_INTRO_STEP_WAIT_FOR_SURFACE;
     } else if (work->command == ACTOR_00400_COMMAND_INTRO_SWIM) {
         work->subState = work->subState + 1;
     }
@@ -5781,71 +5893,99 @@ static void Actor00400_Fn09D98(Task* arg0)
     }
 }
 
-static void Actor00400_Fn09E70(Task* arg0)
+/// Sets the scripted endpoint's XZ and neutral rotation, preserving root height.
+///
+/// Borrows the live work and root coordinate; coordinates use the view-parent
+/// space. The frame driver rebuilds the root matrix after the state handler.
+static inline void _actor00400PlaceRoomIntroEndpoint(_Actor00400Work* work, GfxCoord* rootCoord)
+{
+    rootCoord->coord.t[0] = ACTOR_00400_ROOM_INTRO_X;
+    rootCoord->coord.t[2] = ACTOR_00400_ROOM_INTRO_STOP_Z;
+    work->rotation.vx     = 0;
+    work->rotation.vy     = 0;
+    work->rotation.vz     = 0;
+}
+
+/// Holds the diver at the scripted endpoint until the room cues it to surface.
+///
+/// Requires the live diver model and initialized rig. Before the cue, resets
+/// the submerged position, rotation and counter every frame. On the cue, keeps
+/// the current root height, sets the goal to the water surface and requests an
+/// eight-frame blend to the surfaced clip before advancing. Coordinates are
+/// in the root's view-parent space.
+static void _actor00400RoomIntroWaitForSurface(Task* task)
 {
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    _Actor00400Work* w;
+    GfxCoord*        rootCoord;
+    _Actor00400Work* animWork;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // Hold the submerged pose until the cue changes the height goal.
     if (work->command == ACTOR_00400_COMMAND_INTRO_SURFACE) {
         work->stateFrames = 0;
         work->goalY       = work->waterLevel;
-        coord->coord.t[0] = -0x6C0;
-        coord->coord.t[2] = -0x2008;
-        work->rotation.vx = 0;
-        work->rotation.vy = 0;
-        work->rotation.vz = 0;
-        w                 = arg0->work;
-        w->animBlend      = 8;
-        w->animStep       = ANIMATION_RATE_ONE;
-        w->animClip       = 1;
-        w->animRequest    = DIVER_ANIM_REQUEST_BLEND;
-        work->subState    = work->subState + 1;
+        _actor00400PlaceRoomIntroEndpoint(work, rootCoord);
+        animWork = task->work;
+        _actor00400RequestNormalClipBlend(animWork, ACTOR_00400_ANIM_SURFACED, 8);
+        work->subState = work->subState + 1;
     } else {
         work->stateFrames = 0;
-        coord->coord.t[0] = -0x6C0;
-        coord->coord.t[2] = -0x2008;
-        work->rotation.vx = 0;
-        work->rotation.vy = 0;
-        work->rotation.vz = 0;
-        coord->coord.t[1] = 0x3E8;
-        work->goalY       = 0x3E8;
+        _actor00400PlaceRoomIntroEndpoint(work, rootCoord);
+        rootCoord->coord.t[1] = ACTOR_00400_ROOM_INTRO_DEPTH;
+        work->goalY           = ACTOR_00400_ROOM_INTRO_DEPTH;
     }
 }
 
-static void Actor00400_Fn09F18(Task* arg0)
+/// Runs the timed pause after the introduction's discharge.
+///
+/// Requires the live diver task, enemy and model. Counts from zero, queues the
+/// room end cue at frame 38 with the model's audio pan/depth, and advances at
+/// frame 48. Preserves the signed 16-bit counter comparison and wrap behavior.
+static void _actor00400RoomIntroWaitAfterDischarge(Task* task)
 {
-    u16              count;
-    s32              sound;
-    s32              pan;
+    enum {
+        ACTOR_00400_INTRO_DISCHARGE_END_CUE_FRAME = 38,
+        ACTOR_00400_INTRO_DISCHARGE_WAIT_FRAMES   = 48,
+        ACTOR_00400_SOUND_INTRO_DISCHARGE_END_CUE = 0x54220006
+    };
+    u16              elapsedFrames;
+    s32              soundId;
+    s32              panOffset;
     _Actor00400Work* work;
 
-    work              = arg0->work;
-    count             = work->stateFrames + 1;
-    work->stateFrames = count;
-    if ((s16)count == 0x26) {
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54220006;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    work              = task->work;
+    elapsedFrames     = work->stateFrames + 1;
+    work->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_00400_INTRO_DISCHARGE_END_CUE_FRAME) {
+        soundId   = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_INTRO_DISCHARGE_END_CUE;
+        panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if ((s16)work->stateFrames == 0x30) {
+    if ((s16)work->stateFrames == ACTOR_00400_INTRO_DISCHARGE_WAIT_FRAMES) {
         work->subState += 1;
     }
 }
 
-static void Actor00400_Fn09FDC(Task* arg0)
+/// Makes the introduction diver targetable and enters combat on the fight cue.
+///
+/// Requires the live diver task, linked enemy, model and surface-spot list.
+/// Clears all target flags, claims the spot nearest the current target and
+/// acquires one battle reference before selecting the dive entry step. The
+/// state transition prevents a second acquisition on the still-latched cue.
+static void _actor00400RoomIntroWaitForFight(Task* task)
 {
-    Enemy*           obj;
-    _Actor00400Work* work;
+    Enemy*                 enemy;
+    const _Actor00400Work* commandWork;
+    _Actor00400Work*       work;
 
-    obj = arg0->spawnArg2.pointer;
-    if (((_Actor00400Work*)arg0->work)->command == ACTOR_00400_COMMAND_FIGHT) {
-        obj->node.state.parts.flags = 0;
-        _actor00400ClaimNearestSurfaceSpot(arg0);
+    enemy       = task->spawnArg2.pointer;
+    commandWork = task->work;
+    if (commandWork->command == ACTOR_00400_COMMAND_FIGHT) {
+        enemy->node.state.parts.flags = 0;
+        _actor00400ClaimNearestSurfaceSpot(task);
         sceneAcquireBattleRef(0);
-        work           = arg0->work;
+        work           = task->work;
         work->state    = ACTOR_00400_SWIM_STATE_DIVE;
         work->subState = 0;
     }
