@@ -46,7 +46,10 @@ D_map_neo_ark_8017C0E0 = 0x8017C0E0; // absolute:True owner=map_neo_ark
 
 func_shelter_b6_growth_room_8017D9D8 = 0x8017D9D8; // type:func
 
-func_shelter_b6_growth_room_8017E564 = 0x8017E564; // type:func
+shelterB6GrowthRoomMistTask = 0x8017E564; // type:func
 
-func_shelter_b6_growth_room_8017EAC8 = 0x8017EAC8; // type:func
+shelterB6GrowthRoomDriftPuffTask = 0x8017EAC8; // type:func
 glowDrawDisc = 0x8017E0A8; // type:func
+_shelterB6GrowthRoomDrawMist = 0x8017e7f0; // type:func
+_shelterB6GrowthRoomDrawDriftPuff = 0x8017ed28; // type:func
+_shelterB6GrowthRoomDrawBottomGlow = 0x8017e448; // type:func

@@ -1318,9 +1318,9 @@ func_shelter_b6_corridor_8017ECA8 = 0x8017ECA8; // type:func absolute:True owner
 
 func_shelter_b6_growth_room_8017D9D8 = 0x8017D9D8; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
 
-func_shelter_b6_growth_room_8017E564 = 0x8017E564; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
+shelterB6GrowthRoomMistTask = 0x8017E564; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
 
-func_shelter_b6_growth_room_8017EAC8 = 0x8017EAC8; // type:func absolute:True owner=shelter_b6_growth_room
+shelterB6GrowthRoomDriftPuffTask = 0x8017EAC8; // type:func absolute:True owner=shelter_b6_growth_room
 
 func_shelter_b6_nursery_801800A0 = 0x801800A0; // type:func absolute:True owner=shelter_b6_nursery shared=rooms
 

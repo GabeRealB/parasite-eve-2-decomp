@@ -43,9 +43,26 @@
 #define D_shelter_b6_growth_room_8017F2C8 (D_shelter_b6_growth_room_8017F258 + 14)
 #define D_shelter_b6_growth_room_8017F300 (D_shelter_b6_growth_room_8017F258 + 21)
 
-static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1);
-static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 arg2, u16 arg3);
-static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
+static void _shelterB6GrowthRoomDrawBottomGlow(s16 heightPixels, s16 brightness);
+static void _shelterB6GrowthRoomDrawMist(const GfxCoord* coord, u16 frame, s16 size, u16 brightness);
+static void _shelterB6GrowthRoomDrawDriftPuff(const GfxCoord* coord, u16 frame, s16 size, s16 angle);
+
+// The two room particles use the same packed size, frame duration and drift speed.
+enum {
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_SIZE_MASK          = 0xFFF,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_FIELD_MASK  = 0xF000,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_SHIFT       = 12,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_MASK        = 7,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_DEFAULT_PERIOD     = 1,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_FIELD_MASK   = 0xFF0000,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_SHIFT        = 16,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_MASK         = 0xFF,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_DEFAULT_SPEED      = 0x40,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_FRAME_COUNT        = 10,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_TEXTURE_DEPTH_4BIT = 0,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_STATE_INIT         = 0,
+    SHELTER_B6_GROWTH_ROOM_PARTICLE_STATE_DRIFT        = 1
+};
 
 extern TaskDesc D_actor_450900_80135E78[];
 
@@ -489,7 +506,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
         pos.vz          = z + ((gRandomLcgState >> 16) & 1) * 1000;
         Gp_SpawnEff(EFFECT_SHELTER_B6_GROWTH_ROOM_DRIFT_PUFF, NULL, 0x183280, &pos);
     }
-    func_shelter_b6_growth_room_8017E448(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
+    _shelterB6GrowthRoomDrawBottomGlow(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
             glowDrawDisc(&D_shelter_b6_growth_room_8017F298[0], 0x180, 0x44);
@@ -559,282 +576,331 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
+/// Draws an additive black-to-grey gradient rising from the viewport's bottom edge.
+///
+/// `heightPixels` is the signed distance above centred Y=120; heights above 240
+/// extend beyond the viewport. `brightness` supplies the low byte
+/// of the bottom corners' RGB. Requires a live primitive arena and ordering table.
+static void _shelterB6GrowthRoomDrawBottomGlow(s16 heightPixels, s16 brightness)
 {
-    POLY_G4* prim;
+    enum {
+        SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_SORT_DEPTH        = 0x40,
+        SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS = 160,
+        SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS   = 120
+    };
+    POLY_G4* gradient;
 
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG4(prim);
-    setRGB0(prim, 0, 0, 0);
-    setRGB1(prim, 0, 0, 0);
-    setRGB2(prim, arg1, arg1, arg1);
-    setRGB3(prim, arg1, arg1, arg1);
-    setXY4(prim, -160, 120 - arg0, 160, 120 - arg0, -160, 120, 160, 120);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(0x40 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, 0x40);
+    gradient       = gGpuPrimCursor;
+    gGpuPrimCursor = gradient + 1;
+    setPolyG4(gradient);
+    setRGB0(gradient, 0, 0, 0);
+    setRGB1(gradient, 0, 0, 0);
+    setRGB2(gradient, brightness, brightness, brightness);
+    setRGB3(gradient, brightness, brightness, brightness);
+    setXY4(gradient,
+           -SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS - heightPixels,
+           SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS - heightPixels,
+           -SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS,
+           SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_SORT_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), gradient);
+    gpuSetPrimitiveBlendMode(gradient, GPU_BLEND_ADD, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_SORT_DEPTH);
 }
 
-void func_shelter_b6_growth_room_8017E564(Task* task)
+/// Converts a particle's sampled direction into its signed per-tick displacement.
+///
+/// Normalizes `move` in place to Q12, then multiplies by the integer speed in
+/// `step` with a 12-bit fractional shift. Borrows the live work block and changes
+/// GTE state; the speed is read after normalization and the block is not retained.
+static inline void _shelterB6GrowthRoomScaleDriftVelocity(EffectWork* work)
 {
+    VectorNormalSS(&work->move, &work->move);
+    gte_lddp(work->step);
+    gte_ldsv(&work->move);
+    gte_gpf12();
+    gte_stsv(&work->move);
+}
+
+void shelterB6GrowthRoomMistTask(Task* task)
+{
+    enum {
+        SHELTER_B6_GROWTH_ROOM_MIST_MAX_BRIGHTNESS = 64,
+        SHELTER_B6_GROWTH_ROOM_MIST_FADE_STEP      = 4,
+        SHELTER_B6_GROWTH_ROOM_MIST_FADE_TICKS     = 16
+    };
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    s32         vz;
-    s32         t;
-    s16         f2a;
-    u32         rng2;
-    u32         rng3;
+    s32         velocityZ;
+    s32         fadeAge;
+    s16         driftSpeed;
+    u32         randomX;
+    u32         randomZ;
 
     work->age++;
-    if (task->state == 0) {
-        work->scale = task->spawnArg1.value & 0xFFF;
+    if (task->state == SHELTER_B6_GROWTH_ROOM_PARTICLE_STATE_INIT) {
+        work->scale = task->spawnArg1.value & SHELTER_B6_GROWTH_ROOM_PARTICLE_SIZE_MASK;
 
-        if (task->spawnArg1.value & 0xF000) {
-            work->period = (task->spawnArg1.value >> 12) & 0x7;
+        if (task->spawnArg1.value & SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_FIELD_MASK) {
+            work->period = (task->spawnArg1.value >> SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_SHIFT) & SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_MASK;
         } else {
-            work->period = 1;
+            work->period = SHELTER_B6_GROWTH_ROOM_PARTICLE_DEFAULT_PERIOD;
         }
 
         work->age   = 0;
-        task->state = 1;
+        task->state = SHELTER_B6_GROWTH_ROOM_PARTICLE_STATE_DRIFT;
 
-        if (task->spawnArg1.value & 0xFF0000) {
-            f2a = (task->spawnArg1.value >> 16) & 0xFF;
+        if (task->spawnArg1.value & SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_FIELD_MASK) {
+            driftSpeed = (task->spawnArg1.value >> SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_SHIFT) & SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_MASK;
         } else {
-            f2a = 0x40;
+            driftSpeed = SHELTER_B6_GROWTH_ROOM_PARTICLE_DEFAULT_SPEED;
         }
 
-        work->step      = f2a;
+        work->step      = driftSpeed;
         work->move.vy   = 0;
-        rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng2;
-        work->move.vx   = 0x80 - ((rng2 >> 16) & 0xFF);
-        rng3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng3;
-        vz              = 0x80 - ((rng3 >> 16) & 0xFF);
-        work->move.vz   = vz;
-        VectorNormalSS(&work->move, &work->move);
-
-        gte_lddp(work->step);
-        gte_ldsv(&work->move);
-        gte_gpf12();
-        gte_stsv(&work->move);
+        randomX         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomX;
+        work->move.vx   = 0x80 - ((randomX >> 16) & 0xFF);
+        randomZ         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomZ;
+        velocityZ       = 0x80 - ((randomZ >> 16) & 0xFF);
+        work->move.vz   = velocityZ;
+        _shelterB6GrowthRoomScaleDriftVelocity(work);
     }
 
-    if (work->age < work->period * 10 - 16) {
-        if (work->angle < 0x40) {
-            work->angle += 4;
+    // The shared angle slot carries grey modulation here, rather than a rotation.
+    if (work->age < work->period * SHELTER_B6_GROWTH_ROOM_PARTICLE_FRAME_COUNT - SHELTER_B6_GROWTH_ROOM_MIST_FADE_TICKS) {
+        if (work->angle < SHELTER_B6_GROWTH_ROOM_MIST_MAX_BRIGHTNESS) {
+            work->angle += SHELTER_B6_GROWTH_ROOM_MIST_FADE_STEP;
         }
     } else {
-        t           = work->age + 16;
-        work->angle = 0x40 - (t - work->period * 10) * 4;
+        fadeAge     = work->age + SHELTER_B6_GROWTH_ROOM_MIST_FADE_TICKS;
+        work->angle = SHELTER_B6_GROWTH_ROOM_MIST_MAX_BRIGHTNESS - (fadeAge - work->period * SHELTER_B6_GROWTH_ROOM_PARTICLE_FRAME_COUNT) * SHELTER_B6_GROWTH_ROOM_MIST_FADE_STEP;
     }
 
-    func_shelter_b6_growth_room_8017E7F0(coord, work->index, work->scale, work->angle);
+    _shelterB6GrowthRoomDrawMist(coord, work->index, work->scale, work->angle);
 
+    // Draw the current placement before advancing it for the next update.
     coord->coord.t[0]  += work->move.vx;
     coord->coord.t[1]  += work->move.vy;
     coord->coord.t[2]  += work->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
+    // Age zero already advances the texture cursor; keep that first-tick ordering.
     if ((work->age % work->period) == 0) {
         work->index++;
-        if (work->index >= 0xA) {
+        if (work->index >= SHELTER_B6_GROWTH_ROOM_PARTICLE_FRAME_COUNT) {
             effectKillTask(work, task);
         }
     }
 }
 
-static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 arg2, u16 arg3)
+/// Draws one brightness-modulated, additive mist cell at a composed coordinate.
+///
+/// `coord` is borrowed read-only; its cached translation must be current in
+/// `GsWSMATRIX`'s input space. `frame` is 0..9 in a two-column 128x32-texel sheet.
+/// `size` is a signed perspective numerator: half-extents are size * 127 or 31
+/// divided by SZ3/4. RGB stores keep brightness's low byte. Projections require
+/// nonnegative FLAG and SZ3/4 >= 65. Requires initialized scratch and GPU arenas;
+/// releases its scratch block on every path and changes GTE state.
+static void _shelterB6GrowthRoomDrawMist(const GfxCoord* coord, u16 frame, s16 size, u16 brightness)
 {
-    void**              scratch;
-    EffectShapeScratch* head;
+    enum {
+        SHELTER_B6_GROWTH_ROOM_MIST_MIN_DEPTH          = 65,
+        SHELTER_B6_GROWTH_ROOM_MIST_COLUMN_SHIFT       = 7,
+        SHELTER_B6_GROWTH_ROOM_MIST_ROW_SHIFT          = 5,
+        SHELTER_B6_GROWTH_ROOM_MIST_WIDTH_SPAN_TEXELS  = 127,
+        SHELTER_B6_GROWTH_ROOM_MIST_HEIGHT_SPAN_TEXELS = 31
+    };
     EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    SVECTOR*            vec;
-    s32                 u0;
-    s32                 v0;
-    s32                 u1;
-    s32                 v1;
-    s16                 xy;
-    u16                 vz;
+    POLY_FT4*           quad;
+    s32                 uLeft;
+    s32                 vTop;
+    s32                 uRight;
+    s32                 vBottom;
+    s16                 edgePixels;
 
-    scratch                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                      = *scratch;
-    (head - 1)->worldPoint.vx = (u16)coord->workm.t[0];
-    block                     = head - 1;
-    block->worldPoint.vy      = (u16)coord->workm.t[1];
-    vz                        = (u16)coord->workm.t[2];
-    *scratch                  = block;
-    block->worldPoint.vz      = vz;
-    vec                       = &block->worldPoint;
+    // Project the centre once; the texture remains aligned with the screen axes.
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
     if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        if (block->depth >= 0x41) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            prim->tpage = 0x2C;
-            prim->clut  = 0x4386;
-            u0          = (arg1 & 1) << 7;
-            v0          = (arg1 >> 1) << 5;
-            u1          = u0 + 0x7F;
-            v1          = v0 + 0x1F;
-            setRGB0(prim, arg3, arg3, arg3);
-            setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-            setSemiTrans(prim, 1);
-            block->extent.corner.x = (arg2 * 127) / block->depth;
-            block->extent.corner.y = (arg2 * 31) / block->depth;
-            xy                     = block->screenX - (u16)block->extent.corner.x;
-            prim->x2               = xy;
-            prim->x0               = xy;
-            xy                     = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = xy;
-            prim->x1               = xy;
-            xy                     = block->screenY - (u16)block->extent.corner.y;
-            prim->y1               = xy;
-            prim->y0               = xy;
-            xy                     = block->screenY + (u16)block->extent.corner.y;
-            prim->y3               = xy;
-            prim->y2               = xy;
+        gte_stszotz(&block->depth);
+        if (block->depth >= SHELTER_B6_GROWTH_ROOM_MIST_MIN_DEPTH) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            quad->tpage = getTPage(SHELTER_B6_GROWTH_ROOM_PARTICLE_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 768, 0);
+            quad->clut  = getClut(96, 270);
+            uLeft       = (frame & 1) << SHELTER_B6_GROWTH_ROOM_MIST_COLUMN_SHIFT;
+            vTop        = (frame >> 1) << SHELTER_B6_GROWTH_ROOM_MIST_ROW_SHIFT;
+            uRight      = uLeft + SHELTER_B6_GROWTH_ROOM_MIST_WIDTH_SPAN_TEXELS;
+            vBottom     = vTop + SHELTER_B6_GROWTH_ROOM_MIST_HEIGHT_SPAN_TEXELS;
+            setRGB0(quad, brightness, brightness, brightness);
+            setUV4(quad, uLeft, vTop, uRight, vTop, uLeft, vBottom, uRight, vBottom);
+            setSemiTrans(quad, 1);
+            block->extent.corner.x = (size * SHELTER_B6_GROWTH_ROOM_MIST_WIDTH_SPAN_TEXELS) / block->depth;
+            block->extent.corner.y = (size * SHELTER_B6_GROWTH_ROOM_MIST_HEIGHT_SPAN_TEXELS) / block->depth;
+            edgePixels             = block->screenX - (u16)block->extent.corner.x;
+            quad->x2               = edgePixels;
+            quad->x0               = edgePixels;
+            edgePixels             = block->screenX + (u16)block->extent.corner.x;
+            quad->x3               = edgePixels;
+            quad->x1               = edgePixels;
+            edgePixels             = block->screenY - (u16)block->extent.corner.y;
+            quad->y1               = edgePixels;
+            quad->y0               = edgePixels;
+            edgePixels             = block->screenY + (u16)block->extent.corner.y;
+            quad->y3               = edgePixels;
+            quad->y2               = edgePixels;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-void func_shelter_b6_growth_room_8017EAC8(Task* task)
+void shelterB6GrowthRoomDriftPuffTask(Task* task)
 {
+    enum {
+        SHELTER_B6_GROWTH_ROOM_PUFF_ANGLE_MASK     = ONE - 1,
+        SHELTER_B6_GROWTH_ROOM_PUFF_Y_ACCELERATION = 2
+    };
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    s32         vz;
-    s16         f2a;
-    u32         rng2;
-    u32         rng3;
+    s32         velocityZ;
+    s16         driftSpeed;
+    u32         randomX;
+    u32         randomZ;
 
     work->age++;
-    if (task->state == 0) {
-        work->scale     = task->spawnArg1.value & 0xFFF;
+    if (task->state == SHELTER_B6_GROWTH_ROOM_PARTICLE_STATE_INIT) {
+        work->scale     = task->spawnArg1.value & SHELTER_B6_GROWTH_ROOM_PARTICLE_SIZE_MASK;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->angle     = (gRandomLcgState >> 16) & 0xFFF;
+        work->angle     = (gRandomLcgState >> 16) & SHELTER_B6_GROWTH_ROOM_PUFF_ANGLE_MASK;
 
-        if (task->spawnArg1.value & 0xF000) {
-            work->period = (task->spawnArg1.value >> 12) & 0x7;
+        if (task->spawnArg1.value & SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_FIELD_MASK) {
+            work->period = (task->spawnArg1.value >> SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_SHIFT) & SHELTER_B6_GROWTH_ROOM_PARTICLE_PERIOD_MASK;
         } else {
-            work->period = 1;
+            work->period = SHELTER_B6_GROWTH_ROOM_PARTICLE_DEFAULT_PERIOD;
         }
 
         work->age   = 0;
-        task->state = 1;
+        task->state = SHELTER_B6_GROWTH_ROOM_PARTICLE_STATE_DRIFT;
 
-        if (task->spawnArg1.value & 0xFF0000) {
-            f2a = (task->spawnArg1.value >> 16) & 0xFF;
+        if (task->spawnArg1.value & SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_FIELD_MASK) {
+            driftSpeed = (task->spawnArg1.value >> SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_SHIFT) & SHELTER_B6_GROWTH_ROOM_PARTICLE_SPEED_MASK;
         } else {
-            f2a = 0x40;
+            driftSpeed = SHELTER_B6_GROWTH_ROOM_PARTICLE_DEFAULT_SPEED;
         }
 
-        work->step      = f2a;
+        work->step      = driftSpeed;
         work->move.vy   = 0;
-        rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng2;
-        work->move.vx   = ((rng2 >> 16) & 0x7F) + 0x40;
-        rng3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng3;
-        vz              = 0x40 - ((rng3 >> 16) & 0x7F);
-        work->move.vz   = vz;
-        VectorNormalSS(&work->move, &work->move);
-
-        gte_lddp(work->step);
-        gte_ldsv(&work->move);
-        gte_gpf12();
-        gte_stsv(&work->move);
+        randomX         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomX;
+        work->move.vx   = ((randomX >> 16) & 0x7F) + 0x40;
+        randomZ         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomZ;
+        velocityZ       = 0x40 - ((randomZ >> 16) & 0x7F);
+        work->move.vz   = velocityZ;
+        _shelterB6GrowthRoomScaleDriftVelocity(work);
     }
 
-    func_shelter_b6_growth_room_8017ED28(coord, work->index, work->scale, work->angle);
+    _shelterB6GrowthRoomDrawDriftPuff(coord, work->index, work->scale, work->angle);
 
+    // Draw the current placement before advancing it for the next update.
     coord->coord.t[0]  += work->move.vx;
     coord->coord.t[1]  += work->move.vy;
     coord->coord.t[2]  += work->move.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->move.vy      += 2;
+    work->move.vy      += SHELTER_B6_GROWTH_ROOM_PUFF_Y_ACCELERATION;
 
+    // Age zero already advances the texture cursor; keep that first-tick ordering.
     if ((work->age % work->period) == 0) {
         work->index++;
-        if (work->index >= 0xA) {
+        if (work->index >= SHELTER_B6_GROWTH_ROOM_PARTICLE_FRAME_COUNT) {
             effectKillTask(work, task);
         }
     }
 }
 
-static void func_shelter_b6_growth_room_8017ED28(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3)
+/// Draws one raw-texture, additive puff cell as a rotated screen-space square.
+///
+/// `coord` is borrowed read-only with a current cache in `GsWSMATRIX`'s input
+/// space. `frame` is 0..9: five columns with a 48-texel pitch, sampling rows
+/// 40..87 or 88..135. `size` * 47 / (SZ3/4) is the signed pixel half-diagonal;
+/// `angle` uses 4096 units per turn. Q12 products round down when negative.
+/// Requires nonnegative FLAG, SZ3/4 >= 65 and initialized scratch/GPU arenas;
+/// releases its scratch block on every path and changes GTE state.
+static void _shelterB6GrowthRoomDrawDriftPuff(const GfxCoord* coord, u16 frame, s16 size, s16 angle)
 {
-    void**              scratch;
-    EffectShapeScratch* head;
+    enum {
+        SHELTER_B6_GROWTH_ROOM_PUFF_MIN_DEPTH                = 65,
+        SHELTER_B6_GROWTH_ROOM_PUFF_COLUMNS                  = 5,
+        SHELTER_B6_GROWTH_ROOM_PUFF_CELL_PITCH_TEXELS        = 48,
+        SHELTER_B6_GROWTH_ROOM_PUFF_UV_SPAN_TEXELS           = 47,
+        SHELTER_B6_GROWTH_ROOM_PUFF_FIRST_TEXEL_ROW          = 40,
+        SHELTER_B6_GROWTH_ROOM_PUFF_LAST_CELL_TEXEL_ROW      = 87,
+        SHELTER_B6_GROWTH_ROOM_PUFF_QUARTER_TURN             = ONE / 4,
+        SHELTER_B6_GROWTH_ROOM_PUFF_TRIG_FRACTION_BITS       = 12,
+        SHELTER_B6_GROWTH_ROOM_PUFF_RAW_SEMITRANSPARENT_CODE = 0x2F
+    };
     EffectShapeScratch* block;
-    POLY_FT4*           prim;
-    SVECTOR*            vec;
-    s32                 u0;
-    s32                 v0;
-    s32                 u1;
-    s32                 v1;
-    s32                 ang;
-    s32                 ang2;
-    u16                 vz;
+    POLY_FT4*           quad;
+    s32                 uLeft;
+    s32                 vTop;
+    s32                 uRight;
+    s32                 vBottom;
+    s32                 cornerAngle;
+    s32                 perpendicularAngle;
 
-    scratch                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                      = *scratch;
-    (head - 1)->worldPoint.vx = (u16)coord->workm.t[0];
-    block                     = head - 1;
-    block->worldPoint.vy      = (u16)coord->workm.t[1];
-    vz                        = (u16)coord->workm.t[2];
-    *scratch                  = block;
-    block->worldPoint.vz      = vz;
-    vec                       = &block->worldPoint;
+    // Project one centre, then build the two pairs of opposite corners around it.
+    block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+    block->worldPoint.vx = coord->workm.t[0];
+    block->worldPoint.vy = coord->workm.t[1];
+    block->worldPoint.vz = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
+    gte_ldv0(&block->worldPoint);
     gte_rtps();
-    gte_stsxy(&(head - 1)->screenX);
-    gte_stflg(&(head - 1)->projectionFlags);
+    gte_stsxy(&block->screenX);
+    gte_stflg(&block->projectionFlags);
     if (block->projectionFlags >= 0) {
-        gte_stszotz(&(head - 1)->depth);
-        if (block->depth >= 0x41) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage = 0x2B;
-            prim->clut  = 0x4384;
-            u0          = (arg1 % 5) * 0x30;
-            v0          = (arg1 / 5) * 0x30;
-            u1          = u0 + 0x2F;
-            v1          = v0 + 0x57;
-            v0          = v0 + 0x28;
-            setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-            ang                    = arg3;
-            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang)) >> 12;
-            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            ang2                   = ang + 0x400;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((arg2 * 47) / block->depth) * rsin(ang2)) >> 12;
-            block->extent.corner.y = (((arg2 * 47) / block->depth) * rcos(ang2)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+        gte_stszotz(&block->depth);
+        if (block->depth >= SHELTER_B6_GROWTH_ROOM_PUFF_MIN_DEPTH) {
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
+            setcode(quad, SHELTER_B6_GROWTH_ROOM_PUFF_RAW_SEMITRANSPARENT_CODE);
+            quad->tpage = getTPage(SHELTER_B6_GROWTH_ROOM_PARTICLE_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 704, 0);
+            quad->clut  = getClut(64, 270);
+            uLeft       = (frame % SHELTER_B6_GROWTH_ROOM_PUFF_COLUMNS) * SHELTER_B6_GROWTH_ROOM_PUFF_CELL_PITCH_TEXELS;
+            vTop        = (frame / SHELTER_B6_GROWTH_ROOM_PUFF_COLUMNS) * SHELTER_B6_GROWTH_ROOM_PUFF_CELL_PITCH_TEXELS;
+            uRight      = uLeft + SHELTER_B6_GROWTH_ROOM_PUFF_UV_SPAN_TEXELS;
+            vBottom     = vTop + SHELTER_B6_GROWTH_ROOM_PUFF_LAST_CELL_TEXEL_ROW;
+            vTop        = vTop + SHELTER_B6_GROWTH_ROOM_PUFF_FIRST_TEXEL_ROW;
+            setUV4(quad, uLeft, vTop, uRight, vTop, uLeft, vBottom, uRight, vBottom);
+            cornerAngle            = angle;
+            block->extent.corner.x = (((size * SHELTER_B6_GROWTH_ROOM_PUFF_UV_SPAN_TEXELS) / block->depth) * rsin(cornerAngle)) >> SHELTER_B6_GROWTH_ROOM_PUFF_TRIG_FRACTION_BITS;
+            block->extent.corner.y = (((size * SHELTER_B6_GROWTH_ROOM_PUFF_UV_SPAN_TEXELS) / block->depth) * rcos(cornerAngle)) >> SHELTER_B6_GROWTH_ROOM_PUFF_TRIG_FRACTION_BITS;
+            quad->x0               = block->screenX + (u16)block->extent.corner.x;
+            quad->x3               = block->screenX - (u16)block->extent.corner.x;
+            quad->y0               = block->screenY - (u16)block->extent.corner.y;
+            perpendicularAngle     = cornerAngle + SHELTER_B6_GROWTH_ROOM_PUFF_QUARTER_TURN;
+            quad->y3               = block->screenY + (u16)block->extent.corner.y;
+            block->extent.corner.x = (((size * SHELTER_B6_GROWTH_ROOM_PUFF_UV_SPAN_TEXELS) / block->depth) * rsin(perpendicularAngle)) >> SHELTER_B6_GROWTH_ROOM_PUFF_TRIG_FRACTION_BITS;
+            block->extent.corner.y = (((size * SHELTER_B6_GROWTH_ROOM_PUFF_UV_SPAN_TEXELS) / block->depth) * rcos(perpendicularAngle)) >> SHELTER_B6_GROWTH_ROOM_PUFF_TRIG_FRACTION_BITS;
+            quad->x1               = block->screenX + (u16)block->extent.corner.x;
+            quad->x2               = block->screenX - (u16)block->extent.corner.x;
+            quad->y1               = block->screenY - (u16)block->extent.corner.y;
+            quad->y2               = block->screenY + (u16)block->extent.corner.y;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);

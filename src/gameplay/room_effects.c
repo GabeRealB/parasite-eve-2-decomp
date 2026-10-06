@@ -953,8 +953,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, flareSparkTask, { NULL } },                                            // 0x19E
     { { { TASK_BODY_COORD, 0x70 } }, func_mist_shooting_gallery_801811EC, { NULL } },                       // 0x19F
     { { { TASK_BODY_COORD, 0x70 } }, func_combustion_801308E0, { NULL } },                                  // 0x1A0
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_growth_room_8017E564, { NULL } },                      // 0x1A1
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_growth_room_8017EAC8, { NULL } },                      // 0x1A2
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomMistTask, { NULL } },                               // 0x1A1
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomDriftPuffTask, { NULL } },                          // 0x1A2
     { { { TASK_BODY_TMD, 0x70 } }, func_shelter_b6_nursery_80181314, { &gShelterB6NurseryModel07BAC } },    // 0x1A3
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryAnimatedParticleTask, { NULL } },                      // 0x1A4
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurserySparkShowerShardTask, { NULL } },                      // 0x1A5
