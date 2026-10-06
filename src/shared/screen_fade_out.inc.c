@@ -1,10 +1,14 @@
 /* Part of the screen fade library; see screen_fade.h. */
 
-/// Raises all three signed fade channels by the task's unsigned low-halfword rate.
+/// Advances a fade-out ramp by the task's unsigned 16-bit intensity increment.
 ///
-/// Requires writable channel storage and a live task. Each ordered addition
-/// promotes to int and narrows to signed 16 bits without clamping; zero is a
-/// no-op. The caller draws first and tests completion after the stored ramp step.
+/// Requires writable `fade` and readable `task` storage. The low halfword of
+/// `task->spawnArg1` is 0..65535 intensity units per update; the high halfword
+/// is ignored. Red, green and blue are updated in that order, each reading the
+/// rate separately. Additions promote to int, then narrow to signed 16 bits
+/// without clamping: values can wrap negative, and zero preserves them.
+/// The caller draws before stepping and tests the stored red value afterwards;
+/// this helper neither draws nor ends the task and leaves other storage intact.
 static inline void _screenFadeStepUp(ScreenFadeWork* fade, const Task* task)
 {
     fade->r += task->spawnArg1.halves.low;
