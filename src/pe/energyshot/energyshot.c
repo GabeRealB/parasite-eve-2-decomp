@@ -374,11 +374,15 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-/// Seeds a billboard's fixed upward displacement and screen rotation.
+/// Initializes an Energy Shot billboard's fixed upward velocity and screen rotation.
 ///
-/// `work` is the task's writable effect block; its signed `move.vy` is in
-/// parent-coordinate units per tick and `scale` stores 4096 angle units per turn.
-/// Consumes two successive shared random draws, velocity before rotation.
+/// Borrows writable `work` for this call. Sets `move` to (0, -79..-16, 0)
+/// in parent-coordinate units per callback tick and `scale` to an angle in
+/// 0..4095 (4096 units per turn). The angle's clear upper four bits select
+/// palette zero when passed to `effectDrawSpinningBillboard`.
+///
+/// Advances `gRandomLcgState` twice, choosing velocity before rotation.
+/// Animation counters and ownership remain with the caller; no pointer is retained.
 static inline void _energyshotInitRisingBillboard(EffectWork* work)
 {
     enum {
@@ -390,8 +394,9 @@ static inline void _energyshotInitRisingBillboard(EffectWork* work)
     work->move.vx   = 0;
     work->move.vz   = 0;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = ENERGYSHOT_BILLBOARD_Y_VELOCITY_BASE -
-                    ((gRandomLcgState >> 16) & ENERGYSHOT_BILLBOARD_Y_JITTER_MASK);
+    // Interpret the unsigned subtraction's low halfword as a signed Y displacement.
+    work->move.vy   = (s16)(ENERGYSHOT_BILLBOARD_Y_VELOCITY_BASE -
+                          ((gRandomLcgState >> 16) & ENERGYSHOT_BILLBOARD_Y_JITTER_MASK));
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->scale     = (gRandomLcgState >> 16) & ENERGYSHOT_BILLBOARD_ROTATION_MASK;
 }
