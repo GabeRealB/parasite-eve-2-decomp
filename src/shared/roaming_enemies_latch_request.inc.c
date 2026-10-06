@@ -8,17 +8,10 @@
 s32 roamerLatchRequest(Task* arg0, s32 arg1, const void* firstArg, s32 arg3)
 {
     const DirectionActionRequest* request = firstArg;
-    s16                           counter;
 
-    if (request->actionId != gRoamerLastRequest) {
-        counter = gRoamerCooldown;
-        if (counter == 0) {
-            gRoamerSpawnRequest = request->actionId;
-        } else {
-            goto L_clear;
-        }
+    if (request->actionId != gRoamerLastRequest && gRoamerCooldown == 0) {
+        gRoamerSpawnRequest = request->actionId;
     } else {
-    L_clear:
         gRoamerSpawnRequest = 0;
     }
     gRoamerLastRequest = request->actionId;
