@@ -67,6 +67,34 @@ static s16 D_metabolism_8012FB78[16];
 
 static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 
+/// Draws the metabolism disc and its glow bands at the work's current radius
+/// and brightness.
+static inline void _metabolismDrawGlow(GfxCoord* coord, EffectWork* mem)
+{
+    u8 rgb[3];
+
+    rgb[0] = mem->scale >> 2;
+    rgb[1] = (u8)mem->scale;
+    rgb[2] = mem->scale >> 1;
+    effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
+    effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
+    rgb[0] >>= 1;
+    rgb[1] >>= 1;
+    rgb[2] >>= 1;
+    effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
+    if (mem->age & 1) {
+        rgb[1] >>= 1;
+        rgb[2] <<= 1;
+        effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
+    }
+    if (mem->index != 0) {
+        rgb[0] >>= 1;
+        rgb[1] >>= 1;
+        rgb[2] >>= 1;
+        effectDrawOuterGlowBand(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
+    }
+}
+
 /// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD`
 /// or `gRoomEffectState->peEffectControl >= 4`) releases the work block. State 0 parents the
 /// coordinate to the player with an identity rotation lifted 0x400 above it,
@@ -90,7 +118,6 @@ void func_metabolism_8012EF34(Task* arg0)
     s32               bright;
     s32               i;
     s32               temp_lo;
-    u8                rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -173,7 +200,8 @@ void func_metabolism_8012EF34(Task* arg0)
                 func_metabolism_8012F840(coord, mem->angle, D_metabolism_8012FB78[i],
                                          mem->scale);
             }
-            goto draw;
+            _metabolismDrawGlow(coord, mem);
+            return;
         case 2:
             actorRenderComposeCoord(coord);
             for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
@@ -185,27 +213,7 @@ void func_metabolism_8012EF34(Task* arg0)
             if (mem->scale < 0x11) {
                 arg0->state = 3;
             }
-        draw:
-            rgb[0] = mem->scale >> 2;
-            rgb[1] = (u8)mem->scale;
-            rgb[2] = mem->scale >> 1;
-            effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
-            effectDrawGouraudDisc(coord, mem->angle >> 1, rgb);
-            rgb[0] >>= 1;
-            rgb[1] >>= 1;
-            rgb[2] >>= 1;
-            effectDrawOuterGlowBand(coord, mem->angle, 0x80, rgb);
-            if (mem->age & 1) {
-                rgb[1] >>= 1;
-                rgb[2] <<= 1;
-                effectDrawOuterGlowBand(coord, 0x80, mem->angle, rgb);
-            }
-            if (mem->index != 0) {
-                rgb[0] >>= 1;
-                rgb[1] >>= 1;
-                rgb[2] >>= 1;
-                effectDrawOuterGlowBand(coord, (s16)(mem->angle + 0x200), 0x80, rgb);
-            }
+            _metabolismDrawGlow(coord, mem);
             return;
         case 3:
             effectKillTask(mem, arg0);
