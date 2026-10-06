@@ -832,7 +832,6 @@ static void _tmdEnableSourceLayeredTextures(const TmdSource* source)
     u32  opcode;
     u32  dimensions;
     u32  elementStrideWords;
-    u32  groupEnd;
 
     /// Skips a dimensions word and its count-times-word-stride payload.
     ///
@@ -848,49 +847,26 @@ static void _tmdEnableSourceLayeredTextures(const TmdSource* source)
     } while (0)
 
     stream = source->stream;
-    // A stream whose first word is the terminator has no groups to rewrite.
-    if (*stream != TMD_STREAM_END) {
-        groupEnd = TMD_STREAM_GROUP_END;
-        do {
-            if (*stream != groupEnd) {
-                do {
-                    opcode = *stream;
-                    if (opcode == (TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS)) {
-                        goto skipPayload;
-                    }
-                    if (opcode <= (u32)(TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS | TMD_STREAM_PRE_XFORM)) {
-                        if (opcode == TMD_STREAM_GT3_CORNER_NORMALS) {
-                            goto convertTriangle;
-                        }
-                        goto skipOtherPayload;
-                    }
-                    if (opcode == (TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM)) {
-                        goto skipPayload;
-                    }
-                    if (opcode >= (u32)(TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_SEMI_TRANS)) {
-                        goto skipPayload;
-                    }
-                    if (opcode == TMD_STREAM_GT4_CORNER_NORMALS) {
-                        goto convertQuad;
-                    }
-                    goto skipOtherPayload;
-
-                convertTriangle:
+    while (*stream != TMD_STREAM_END) {
+        while (*stream != TMD_STREAM_GROUP_END) {
+            opcode = *stream;
+            switch (opcode) {
+                case TMD_STREAM_GT3_CORNER_NORMALS:
                     *stream = (TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE);
-                    goto skipPayload;
-                convertQuad:
+                    break;
+                case TMD_STREAM_GT4_CORNER_NORMALS:
                     *stream = (TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_LAYERED_TEXTURE);
-                skipPayload:
-                    stream += 2;
-                    goto readDimensions;
-                skipOtherPayload:
-                    stream += 2;
-                readDimensions:
-                    TMD_SKIP_STREAM_PAYLOAD(stream);
-                } while (*stream != TMD_STREAM_GROUP_END);
+                    break;
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
+                case TMD_STREAM_GT3_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM:
+                case TMD_STREAM_GT4_CORNER_NORMALS | TMD_STREAM_PRE_XFORM | TMD_STREAM_SEMI_TRANS:
+                    break;
             }
-            stream++;
-        } while (*stream != TMD_STREAM_END);
+            stream += 2;
+            TMD_SKIP_STREAM_PAYLOAD(stream);
+        }
+        stream++;
     }
 #undef TMD_SKIP_STREAM_PAYLOAD
 }
