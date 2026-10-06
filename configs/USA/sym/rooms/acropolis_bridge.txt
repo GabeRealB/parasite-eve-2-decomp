@@ -152,7 +152,7 @@ func_acropolis_bridge_8017F868 = 0x8017F868; // type:func
 
 acropolisBridgeGlowStarTask = 0x801812F4; // type:func
 
-func_acropolis_bridge_801819C8 = 0x801819C8; // type:func
+acropolisBridgeGroundGlowTask = 0x801819C8; // type:func
 
 func_acropolis_bridge_80181D28 = 0x80181D28; // type:func
 
@@ -204,3 +204,4 @@ _acropolisBridgeOffsetArrivalSpriteFrame = 0x8017eb4c; // type:func
 _acropolisBridgeSelectArrivalSpriteFrame = 0x8017f358; // type:func
 _acropolisBridgeEnemySetModelDraw = 0x80187bd0; // type:func
 _acropolisBridgeEnemyInactive = 0x80187d04; // type:func
+_acropolisBridgeEnemyRelightModel = 0x80187c10; // type:func

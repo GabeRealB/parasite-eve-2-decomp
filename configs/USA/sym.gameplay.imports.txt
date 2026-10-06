@@ -539,7 +539,7 @@ acropolisBridgeParticleStreakTask = 0x80180FF0; // type:func absolute:True owner
 
 acropolisBridgeGlowStarTask = 0x801812F4; // type:func absolute:True owner=acropolis_bridge
 
-func_acropolis_bridge_801819C8 = 0x801819C8; // type:func absolute:True owner=acropolis_bridge
+acropolisBridgeGroundGlowTask = 0x801819C8; // type:func absolute:True owner=acropolis_bridge
 
 func_acropolis_bridge_80181D28 = 0x80181D28; // type:func absolute:True owner=acropolis_bridge
 

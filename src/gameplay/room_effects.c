@@ -716,7 +716,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012FAF8, { NULL } },                                   // 0x0AF
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_8017F868, { NULL } },                            // 0x0B0
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGlowStarTask, { NULL } },                               // 0x0B1
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_801819C8, { NULL } },                            // 0x0B2
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGroundGlowTask, { NULL } },                             // 0x0B2
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_80181D28, { NULL } },                            // 0x0B3
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeFallingStreakTask, { NULL } },                          // 0x0B4
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeMidDustStreakTask, { NULL } },                          // 0x0B5

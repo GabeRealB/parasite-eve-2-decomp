@@ -58550,37 +58550,44 @@ addressed from, so it becomes a one-instruction derivation inside the loop:
 addiu  $a0, $a1, 0xC        # $a1 is the `block + 8*i` giv, disp 0xC
 ```
 
-`func_acropolis_bridge_801819C8` needs *both* in one loop — `2($a0)`/`4($a0)`
+`acropolisBridgeGroundGlowTask` needs *both* in one loop — `2($a0)`/`4($a0)`
 for the `vy`/`vz` stores and `addu $v0, $t1, $a3` for the GTE operands — which
 only happens if the two occurrences are separate expressions that CSE cannot
-merge. The associated form gives the first, plain `&block->vertices[i]` the
-second:
+merge. Direct stores through a dereferenced element address give the first,
+while the plain element address passed to the GTE gives the second:
 
 ```c
-v     = ((_AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vertices;
-v->vx = corners[i].axis0Sign * 0x300;
-v->vy = 0;
-v->vz = corners[i].axis1Sign * 0x300;
-gte_SetRotMatrix(m);
-gte_ldv0(&block->vertices[i]);  /* separate giv: addu $v0, $t1, $a3 */
+(&quadScratch->vertices[cornerIndex])->vx = unitCorners[cornerIndex].axis0Sign * ACROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
+(&quadScratch->vertices[cornerIndex])->vy = 0;
+(&quadScratch->vertices[cornerIndex])->vz = unitCorners[cornerIndex].axis1Sign * ACROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
+gte_SetRotMatrix(worldMatrix);
+gte_ldv0(&quadScratch->vertices[cornerIndex]);  /* separate giv: addu $v0, $t1, $a3 */
 gte_rtv0();
-gte_stsv(&block->vertices[i]);
+gte_stsv(&quadScratch->vertices[cornerIndex]);
+(&quadScratch->vertices[cornerIndex])->vx = coord->workm.t[0];
+(&quadScratch->vertices[cornerIndex])->vy = coord->workm.t[1];
+(&quadScratch->vertices[cornerIndex])->vz = coord->workm.t[2];
 ```
 
-The `vx` store does not need the member spelling to stay on that base giv:
-`v->vx` still comes out `sh $v0, 0xC($a1)`, while `v->vy` / `v->vz` go
-through the derived register. So all three stores can be written through `v`,
-and the loop's increment can then sit at its end.
+The `vx` store stays on the base giv (`sh $v0, 0xC($a1)`), while the `vy` /
+`vz` stores go through the derived register. This typed form replaces the
+shifted whole-struct view without changing the function's bytes. The unsigned
+lvalue and right-hand-side casts on the translation stores are redundant:
+the `s16` destinations keep the low halfwords, and the target's `lhu` loads
+still match. The loop can be a `for` loop with its increment at the end;
+keeping its initialization before the matrix alias retains the preheader
+instruction order.
 
-No typed spelling of the element address was found for `v`. `block->vertices +
-i`, `&block->vertices[0] + i` and `&*(block->vertices + i)` all compile as
+Giving the element address its own pointer local still shares the GTE
+operands' register. `block->vertices + i`, `&block->vertices[0] + i` and
+`&*(block->vertices + i)` all compile as
 `&block->vertices[i]` does and share the GTE operands' register; a local alias
 `vecs = block->vertices; v = &vecs[i]` becomes a pointer giv initialised in the
-preheader (`addiu $a1, $v1, -0x20`). The constant ends up last only when it is
-the offset of a member of an object the index has already located.
+preheader (`addiu $a1, $v1, -0x20`). Keeping the member access at each store
+avoids that pointer-local obstruction.
 
-A read-modify-write does have a typed spelling, because it needs no pointer
-local at all. `acropolisPlazaSirenLightTask` adds a translation to each rotated
+A read-modify-write has the same typed spelling, with no pointer local.
+`acropolisPlazaSirenLightTask` adds a translation to each rotated
 vertex after the same pair of GTE operands, and the target is the same split:
 `0x24($a2)` for `vx`, then `addiu $a0, $a2, 0x24` and `2($a0)` / `4($a0)`.
 Dereferencing the element's address in each compound assignment produces it:
@@ -58601,9 +58608,9 @@ never forms `$a0`. A local `v = &beam->vertices[i]` used for all three shares
 the GTE operands' register, as above. The same local with the first sum written
 as a member access compiles exactly like the three member accesses. This is the
 shape a pointer-taking macro expands to, so a helper applied to
-`&block->vertices[i]` is worth trying before a shifted-block cast. It has only
-been shown for `+=`; why the compound form keeps the address in a register of
-its own has not been traced through the compiler.
+`&block->vertices[i]` can express the typed member accesses as well. Both plain
+and compound assignments can retain the separate register; why the member
+spelling prevents sharing has not been traced through the compiler.
 
 A walking `v++` is a third, distinct shape: GCC rebases the biv onto the last
 field it stores (`-0x2($a0)` / `0($a0)`) and gives it its own increment, so it
@@ -58616,7 +58623,7 @@ means index form, an `addiu $a0, $v0, -0x20` preheader init means a pointer.
 `setUV4(p, u0,v0,u1,v1,u2,v2,u3,v3)` assigns in `u0,v0,u1,v1,…` order, and the
 scheduler then reorders the `sb`s freely because they are distinct MEMs. Eight
 hand-written assignments in the *emitted* order look equivalent and are not:
-in `func_acropolis_bridge_801819C8` the hand-written form serialised the two
+in `acropolisBridgeGroundGlowTask` the hand-written form serialised the two
 constants through `$v0` (`li 0x10` … `li 0x27` … `li 0x37`), while the macro
 let the first pass hoist `li $v1, 0x27` above the `0x10` stores so the
 allocator gave it its own register. Same store order, 96.1% vs 98.0%. When the

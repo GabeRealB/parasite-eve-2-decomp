@@ -2758,7 +2758,20 @@ enum {
 
 static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId);
 static void            func_acropolis_bridge_801876A8(Task* task, u32 attackId);
-static void            func_acropolis_bridge_80187C10(Task* task, s16 arg1);
+static void            _acropolisBridgeEnemyRelightModel(Task* task, s16 recomposeRoot);
+
+/// Reserves and initializes one textured-quad packet from the frame's primitive cursor.
+///
+/// Requires room for a complete `POLY_FT4`; the caller fills and queues it.
+static __inline__ POLY_FT4* _acropolisBridgeReserveGroundGlowQuad(void)
+{
+    POLY_FT4* quad;
+
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    return quad;
+}
 
 /// Room message handler: answers msg 0xF (first use of the bridge) by running
 /// the cutscene once and marking the area object, and msg 0xB by asking for
@@ -4224,84 +4237,80 @@ void acropolisBridgeParticleStreakTask(Task* task)
 #define GLOW_STAR_TASK acropolisBridgeGlowStarTask
 #include "../../shared/acropolis_glows_star.inc.c"
 
-/// The bridge's dust cloud: one semi-transparent `POLY_FT4` billboard placed at
-/// the task's world position. The four corners are taken from the unit quad in
-/// `D_acropolis_bridge_8018990C`, scaled by 0x300 and rotated by the
-/// coordinate's `workm` - and then each rotated corner is overwritten with that
-/// same `workm` translation, so all four collapse onto the object origin. The
-/// quad is projected with one `RTPS` plus one `RTPT` directly into the
-/// primitive, tinted a random grey, and linked into the OT at the `RTPS` depth
-/// biased by 0x20; depths under 0x11 are dropped rather than drawn. The task
-/// releases its work block on every tick, so the puff lasts one frame.
-void func_acropolis_bridge_801819C8(Task* task)
+void acropolisBridgeGroundGlowTask(Task* task)
 {
-    void**                       scratch;
-    _AcropolisBridgeQuadScratch* head;
-    _AcropolisBridgeQuadScratch* block;
-    EffectUnitQuadCorner*        corners;
-    POLY_FT4*                    prim;
-    GfxCoord*                    coord;
-    EffectWork*                  work;
-    MATRIX*                      m;
-    SVECTOR*                     v;
-    s32                          i;
-    u8                           col;
+    enum {
+        ACROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT   = 0x300, // Game-coordinate units
+        ACROPOLIS_BRIDGE_GROUND_GLOW_DEPTH_BIAS    = 0x20,  // Camera Z / 4
+        ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_PAGE  = 0x2B,
+        ACROPOLIS_BRIDGE_GROUND_GLOW_PALETTE       = 0x4381,
+        ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_TOP_V = 0x10,
+        ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_LAST  = 0x27,
+        ACROPOLIS_BRIDGE_GROUND_GLOW_GREY_MASK     = 0xF
+    };
+    _AcropolisBridgeQuadScratch** scratchCursor;
+    _AcropolisBridgeQuadScratch*  reservedTop;
+    _AcropolisBridgeQuadScratch*  quadScratch;
+    const EffectUnitQuadCorner*   unitCorners;
+    POLY_FT4*                     quad;
+    GfxCoord*                     coord;
+    EffectWork*                   work;
+    const MATRIX*                 worldMatrix;
+    s32                           cornerIndex;
+    u8                            grey;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     actorRenderComposeCoord(coord);
 
-    scratch   = SCRATCH_STACK_CURSOR_SLOT;
-    i         = 0;
-    m         = &coord->workm;
-    corners   = D_acropolis_bridge_8018990C;
-    head      = SCRATCH_HEAD_AT(scratch, _AcropolisBridgeQuadScratch) - 1;
-    work->age = task->spawnArg1.halves.low;
-    *scratch  = head;
-    block     = *scratch;
-    do {
-        // `v` is `&block->vertices[i]`, reached as the member of a block shifted
-        // by `i` vectors. Every typed spelling adds the member offset before the
-        // index, which is the GTE operands' address, and the two then share one
-        // register; the original keeps a second one for the stores through `v`.
-        v     = ((_AcropolisBridgeQuadScratch*)((SVECTOR*)block + i))->vertices;
-        v->vx = corners[i].axis0Sign * 0x300;
-        v->vy = 0;
-        v->vz = corners[i].axis1Sign * 0x300;
-        gte_SetRotMatrix(m);
-        gte_ldv0(&block->vertices[i]);
+    scratchCursor  = &SCRATCH_STACK_CURSOR(_AcropolisBridgeQuadScratch);
+    cornerIndex    = 0;
+    worldMatrix    = &coord->workm;
+    unitCorners    = D_acropolis_bridge_8018990C;
+    reservedTop    = *scratchCursor - 1;
+    work->age      = task->spawnArg1.halves.low;
+    *scratchCursor = reservedTop;
+    quadScratch    = *scratchCursor;
+    for (; cornerIndex < ARRAY_SIZE(quadScratch->vertices); cornerIndex++) {
+        (&quadScratch->vertices[cornerIndex])->vx = unitCorners[cornerIndex].axis0Sign * ACROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
+        (&quadScratch->vertices[cornerIndex])->vy = 0;
+        (&quadScratch->vertices[cornerIndex])->vz = unitCorners[cornerIndex].axis1Sign * ACROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
+        gte_SetRotMatrix(worldMatrix);
+        gte_ldv0(&quadScratch->vertices[cornerIndex]);
         gte_rtv0();
-        gte_stsv(&block->vertices[i]);
-        (u16) v->vx = (u16)coord->workm.t[0];
-        i++;
-        (u16) v->vy = (u16)coord->workm.t[1];
-        (u16) v->vz = (u16)coord->workm.t[2];
-    } while (i < ARRAY_SIZE(D_acropolis_bridge_8018990C));
+        gte_stsv(&quadScratch->vertices[cornerIndex]);
+        // Replace the rotated corners with the origin, narrowed to signed halfwords.
+        (&quadScratch->vertices[cornerIndex])->vx = coord->workm.t[0];
+        (&quadScratch->vertices[cornerIndex])->vy = coord->workm.t[1];
+        (&quadScratch->vertices[cornerIndex])->vz = coord->workm.t[2];
+    }
 
+    // Project all four corners into one packet, then apply the ordering-depth bias.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vertices[0]);
+    gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&block->vertices[1], &block->vertices[2], &block->vertices[3]);
+    quad = _acropolisBridgeReserveGroundGlowQuad();
+    gte_stsxy(&quad->x0);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
-    setUV4(prim, 0, 0x10, 0x27, 0x10, 0, 0x37, 0x27, 0x37);
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&block->otz);
-    block->otz += 0x20;
-    if (block->otz >= 0x11) {
-        prim->tpage     = 0x2B;
-        prim->clut      = 0x4381;
+    setUV4(quad, 0, ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_TOP_V,
+           ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_LAST, ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_TOP_V,
+           0, ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_TOP_V + ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_LAST,
+           ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_LAST,
+           ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_TOP_V + ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_LAST);
+    gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
+    gte_stszotz(&quadScratch->otz);
+    quadScratch->otz += ACROPOLIS_BRIDGE_GROUND_GLOW_DEPTH_BIAS;
+    if (quadScratch->otz >= GLOW_MIN_DEPTH) {
+        quad->tpage     = ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_PAGE;
+        quad->clut      = ACROPOLIS_BRIDGE_GROUND_GLOW_PALETTE;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        col             = (gRandomLcgState >> 16) & 0xF;
-        setRGB0(prim, col, col, col);
-        setSemiTrans(prim, 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+        grey            = (gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_GROUND_GLOW_GREY_MASK;
+        setRGB0(quad, grey, grey, grey);
+        setSemiTrans(quad, 1);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisBridgeQuadScratch);
     effectKillTask(work, task);
@@ -6148,29 +6157,36 @@ static s32 _acropolisBridgeEnemySetModelDraw(Task* task, s32 messageId, s32 draw
     return 1;
 }
 
-/// Relights the bridge enemy's model. Borrows a `VECTOR` from the scratchpad
-/// arena, optionally refreshes the TMD's root coordinate first (`arg1 == 1`),
-/// then feeds that part's world translation to `worldCoordSetModelLighting` so the object's
-/// colour matrix is rebuilt for its current position, and releases the scratch.
-static void func_acropolis_bridge_80187C10(Task* task, s16 arg1)
+/// Rebuilds the bridge enemy model's lighting at its root's world position.
+///
+/// `recomposeRoot == 1` marks the root dirty and composes it before sampling;
+/// every other value uses its existing world matrix. Requires a live model
+/// with writable light and colour matrices and a composed current view.
+/// Borrows one `VECTOR` from the scratch stack, queries all three light slots
+/// and releases it after the query, including any nested lighting scratch.
+static void _acropolisBridgeEnemyRelightModel(Task* task, s16 recomposeRoot)
 {
-    void**  scratch;
-    u8*     head;
-    VECTOR* pos;
+    enum {
+        ACROPOLIS_BRIDGE_ENEMY_RELIGHT_RECOMPOSE_ROOT = 1,
+        ACROPOLIS_BRIDGE_ENEMY_RELIGHT_LIGHT_COUNT    = 3
+    };
+    VECTOR** scratchCursor;
+    VECTOR*  previousTop;
+    VECTOR*  worldPosition;
 
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    pos      = (VECTOR*)(head - 0x10);
-    *scratch = pos;
-    if (arg1 == 1) {
+    scratchCursor  = &SCRATCH_STACK_CURSOR(VECTOR);
+    previousTop    = *scratchCursor;
+    worldPosition  = previousTop - 1;
+    *scratchCursor = worldPosition;
+    if (recomposeRoot == ACROPOLIS_BRIDGE_ENEMY_RELIGHT_RECOMPOSE_ROOT) {
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(task->extra.tmd->coords);
     }
-    ((VECTOR*)(head - 0x10))->vx = task->extra.tmd->coords->workm.t[0];
-    pos->vy                      = task->extra.tmd->coords->workm.t[1];
-    pos->vz                      = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(task->extra.tmd, pos, 0, 3);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    (previousTop - 1)->vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition->vy     = task->extra.tmd->coords->workm.t[1];
+    worldPosition->vz     = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, worldPosition, 0, ACROPOLIS_BRIDGE_ENEMY_RELIGHT_LIGHT_COUNT);
+    *scratchCursor += 1;
 }
 
 /// Hides and disarms the bridge enemy in its inactive state.

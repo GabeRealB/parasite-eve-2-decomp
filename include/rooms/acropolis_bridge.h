@@ -47,7 +47,18 @@ void func_acropolis_bridge_8017F868(Task* task);
 /// and task before returning; queued packets remain live until GPU completion.
 void acropolisBridgeGlowStarTask(Task* task);
 
-void func_acropolis_bridge_801819C8(Task* task);
+/// Draws the bridge's one-frame ground glow and releases its effect work.
+///
+/// Requires a coordinate body, owned and counted `EffectWork` in
+/// `spawnArg2.pointer`, a composed current view and room for one `POLY_FT4`.
+/// The low spawn halfword is copied to age but does not affect the draw.
+/// The horizontal quad's rotated corners are all replaced with the composed
+/// origin narrowed to signed halfwords, preserving the collapsed quad.
+/// Queues it with a random grey in 0..15 when camera Z / 4 plus 32 is at least
+/// 17. Consumes its packet even when clipped; queued packets live until GPU
+/// completion. Borrows and releases 44 scratch-stack bytes before killing the
+/// effect and freeing its work.
+void acropolisBridgeGroundGlowTask(Task* task);
 
 void func_acropolis_bridge_80181D28(Task* task);
 
