@@ -462,6 +462,14 @@ body-fire tasks included by the incinerator room and `actor_342100`.
 bytes they never read, then the heat-haze `ScreenWaveCtx` the fade finishes.
 Each package extends that prefix with its own tasks and scene state.
 
+`screenFade` owns the included subtractive full-screen fade tasks, with
+`src/shared/screen_fade.h` as their private implementation interface. The
+resident `fade` API draws their overlay; each included task owns its ramp
+state and lifetime. Configuration bindings and task constants use
+`SCREEN_FADE_`. A carrier with a second fade-in instance binds
+`SCREEN_FADE_IN_TASK` to that instance's identifier; TU-local instances keep
+the subsystem prefix and the `_` marker.
+
 `actionPrompt` owns the point-and-click action cursor shared by room and actor
 overlays. The resident per-port state and its public types are gameplay
 (`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The hotspot

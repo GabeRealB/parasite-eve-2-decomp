@@ -130,8 +130,11 @@ extern WorldCoordRoomLights  D_dryfield_gas_station_80184B48[1];
 extern TaskDesc              Actor04400_D107E4;
 extern TaskDesc              Actor00100_D1BA84;
 void                         func_dryfield_gas_station_801807E0(Task*);
-void                         func_dryfield_gas_station_80180984(Task*);
+static void                  _screenFadeInTask(Task* task);
 void                         func_dryfield_gas_station_80180A60(void);
+
+/// Fade-in callback slot in the cutscene task descriptor table.
+enum { DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN = 1 };
 
 TaskDesc D_dryfield_gas_station_80181E7C[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_801802C0, { .value = 0 } },
@@ -277,7 +280,7 @@ EvsCommand D_dryfield_gas_station_8018303C[10] = {
 
 TaskDesc D_dryfield_gas_station_8018312C[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_801807E0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_80180984, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
 };
 
 SVECTOR D_dryfield_gas_station_80183144 = { 4378, -1383, -215, 0 };
@@ -742,7 +745,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN:
             switch (work->commandStep) {
                 case 0:
-                    taskSpawnFromTable(D_dryfield_gas_station_8018312C, 1, 0x1E, 0);
+                    taskSpawnFromTable(D_dryfield_gas_station_8018312C, DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN, 0x1E, 0);
                     // The spawn and the one-frame wait share this update.
                 case 1:
                     work->commandStep++;
@@ -820,10 +823,11 @@ void func_dryfield_gas_station_80180944(void)
     }
 }
 
-/// A second copy of the fade-in task, which this file's own task table names.
-#define screenFadeInTask func_dryfield_gas_station_80180984
+#undef SCREEN_FADE_IN_TASK
+/// Binds the fade-in fragment to the cutscene table's private task callback.
+#define SCREEN_FADE_IN_TASK _screenFadeInTask
 #include "../../shared/screen_fade_in.inc.c"
-#undef screenFadeInTask
+#undef SCREEN_FADE_IN_TASK
 
 /// Opens the cutscene's view of the player: restores effects when
 /// `playerEffectsSuppressed` is set, places the player at the third placement

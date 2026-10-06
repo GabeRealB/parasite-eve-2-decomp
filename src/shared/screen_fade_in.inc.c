@@ -1,41 +1,56 @@
 /* Part of the screen fade library; see screen_fade.h. */
 
-/// Fade from black, entry 1 of the actor's task table.
-///
-/// State 0 allocates the channel block and seeds all three channels at 0xFF;
-/// a failed allocation kills the task. State 1 runs every frame: it draws a
-/// subtractive `fadeDrawOverlay` tinted `r`/`g`/`r` (`b` is stepped but never
-/// drawn), then lowers all three channels by `Task::spawnArg1`, the fade rate.
-/// Once `r` has gone negative the screen is clear and the task kills itself.
-void screenFadeInTask(Task* arg0)
+/// Lowers the three signed channel counters by the task's unsigned halfword rate.
+static inline void _screenFadeStepDown(ScreenFadeWork* fade, Task* task)
 {
-    ScreenFadeWork* fade;
-    ScreenFadeWork* alloc;
+    fade->r -= task->spawnArg1.halves.low;
+    fade->g -= task->spawnArg1.halves.low;
+    fade->b -= task->spawnArg1.halves.low;
+}
 
-    fade = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+/// Reveals the screen by reducing a subtractive full-screen overlay each update.
+///
+/// Start at state 0 with no owned work. The low 16 bits of `spawnArg1` are
+/// intensity units removed per update. A zero rate holds the overlay
+/// indefinitely. The task owns its primary-heap `ScreenFadeWork` until task
+/// teardown; allocation failure kills it.
+/// All channels start at 255 and are stored as signed 16-bit values, but the
+/// overlay uses the low bytes of red/green/red. The initializing update also
+/// draws and steps the ramp. Each subtraction narrows back to signed 16 bits;
+/// the task ends when the stored red value is negative.
+void SCREEN_FADE_IN_TASK(Task* task)
+{
+    enum {
+        SCREEN_FADE_IN_STATE_INITIALIZE = 0,
+        SCREEN_FADE_IN_STATE_RAMP       = 1,
+        SCREEN_FADE_IN_MAX_INTENSITY    = 255,
+    };
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
+
+    fade = task->work;
+    switch (task->state) {
+        case SCREEN_FADE_IN_STATE_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            fade         = alloc;
-            fade->b      = 0xFF;
-            fade->g      = 0xFF;
-            fade->r      = 0xFF;
-            arg0->state += 1;
+            fade         = allocatedFade;
+            fade->b      = SCREEN_FADE_IN_MAX_INTENSITY;
+            fade->g      = SCREEN_FADE_IN_MAX_INTENSITY;
+            fade->r      = SCREEN_FADE_IN_MAX_INTENSITY;
+            task->state += 1;
+            // Draw immediately so initialization does not expose an unfaded frame.
             /* fallthrough */
-        case 1:
+        case SCREEN_FADE_IN_STATE_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r -= (u16)arg0->spawnArg1.value;
-            fade->g -= (u16)arg0->spawnArg1.value;
-            fade->b -= (u16)arg0->spawnArg1.value;
+            _screenFadeStepDown(fade, task);
             if (fade->r >= 0) {
                 return;
             }
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
