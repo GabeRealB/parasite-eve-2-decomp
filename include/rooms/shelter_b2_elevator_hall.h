@@ -82,10 +82,11 @@ void shelterB2ElevatorHallRoomVisualEffectsMoteTask(Task* task);
 ///
 /// Requires a coordinate body and counted, zero-initialized `EffectWork` in
 /// `spawnArg2.pointer`. Its parent is borrowed and its position is a local offset
-/// in world units. The signed halves of `spawnArg1` hold a positive expansion
-/// duration in active ticks (low) and tint index 0..2 (high). Initialization
-/// replaces that word with the countdown. Nonzero room effect control pauses
-/// it; four or above cancels it. Completion or cancellation releases work and task.
+/// in world units. The unsigned low half of `spawnArg1` holds expansion duration
+/// 1..65535 in active ticks; the signed high half holds tint index 0..2.
+/// Initialization replaces that word with the countdown. Nonzero room effect
+/// control pauses it; four or above cancels it. Completion or cancellation
+/// releases work and task.
 void shelterB2ElevatorHallRoomVisualEffectsHaloTask(Task* task);
 
 /// Runs the elevator hall's orange burst with an expanding glow and fading ring.
