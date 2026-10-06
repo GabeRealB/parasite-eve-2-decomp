@@ -42711,7 +42711,7 @@ end in one shared block instead of two); the m2c temps add `stack=1` on top.
 Fix: read the guarded pointer once per arm, write the tail out in full in each
 arm, `break`, and let cross-jumping pick the merge point. Do **not** delete the
 in-block read while keeping the `goto` - that is the direction entry above.
-`func_actor_135400_801328DC` (84.5% → 100% first build) is the example; its
+`_actor135400GaryDouglasApplyCommand` (84.5% → 100% first build) is the example; its
 case 5 additionally re-reads the pointer *after* storing `spawnArg1`, and that
 reload has to stay, because the store is what forces it.
 
@@ -82752,8 +82752,8 @@ The same overlay can carry more than one work block: `index->work` is the
 argument at the allocation site before assuming a function's `work` is the
 overlay's named work struct.
 
-**The mirror case: an offset m2c left unscaled.** `func_actor_135400_801322A8`
-reaches the same three calls on `field_8[1]`, but its seed printed the offsets as
+**The mirror case: an offset m2c left unscaled.** `_actor135400GaryDouglasTick`
+reaches the same three calls on `coords[ACTOR_135400_GARY_DOUGLAS_SHADOW_PART]`, but its seed printed the offsets as
 raw byte arithmetic (`field_8 + 0x88`) because `Task::extra` is `void*` and m2c
 never typed the pointer — so the seed's immediates already *were* the target's,
 and casting them to `(u8*)` to make it compile scored 94.941%. The penalty line
@@ -89513,7 +89513,7 @@ element count the *writer* of the seed guessed.
 The same wrong base type turns up as a wrong **walk stride** when the seed steps
 the pointer by bytes rather than indexing: `var_s2 += 0x10` on an `M2C_UNK *`
 adds `0x10 * 4` and the target's `addiu $s2, $s2, 0x10` comes out `0x40`. That
-one immediate was the entire diff in `func_actor_135400_80132CB0` (99.828%,
+one immediate was the entire diff in `_actor135400FlintInitLighting` (99.828%,
 `regs=1`); typing the walk at its real element width fixed it:
 
 ```c
@@ -100581,7 +100581,7 @@ Inputs: `base_1.i`
 
 ## m2c's scalar locals for a copied table become callee-saved registers across a call
 
-`func_actor_135400_80132B60` copies five words out of a rodata table into a
+`_actor135400FlintSpawn` copies five words out of a rodata table into a
 local, and copies that local into its work block *after* a `memCalloc`. m2c
 renders the local as five sibling `s32` scalars, and GCC keeps them in
 `$s2`-`$s6` across the call: the object saves five `$s` registers, the frame is
@@ -100599,12 +100599,12 @@ table a record type, declare the local with it, and assign wholesale:
 extern const AnimationPlayRequest D_actor_135400_80131EA0;   /* rodata, 5 words */
 AnimationPlayRequest spawn;
 
-spawn = D_actor_135400_80131EA0;   /* lw t0/t1/t2, sw..., lw t0/t1, sw... */
+cycleRequest = D_actor_135400_80131EA0;   /* lw t0/t1/t2, sw..., lw t0/t1, sw... */
 ...
-work->params = spawn;              /* 5 loads then 5 stores, through the stack */
+work->cycleRequest = cycleRequest;              /* 5 loads then 5 stores, through the stack */
 ```
 
-100% on the next build (`func_actor_135400_80132B60`, 59.539% -> 100.000%, one
+100% on the next build (`_actor135400FlintSpawn`, 59.539% -> 100.000%, one
 build). This is the mirror of the "m2c's scalar locals for a struct copy die in
 CSE" entry: there the scalars are dead and their stores vanish, here they are
 live and get registers. What decides it is whether the target's own copy
@@ -102756,7 +102756,7 @@ So the ordering is: (1) `overlay_dup_index.py find` for the body; (2) read a
 matched carrier's C — for this shape `src/actors/lib/actor_105500_tail.c`
 (`Actor05500_Fn03C54`), `src/actors/actor_302600/actor_302600_7.c`
 (`func_actor_302600_80165A6C`) and `src/actors/actor_135400/actor_135400_2.c`
-(`func_actor_135400_80132B60`) all carry it; (3) write the new function in that
+(`_actor135400FlintSpawn`) all carry it; (3) write the new function in that
 style; (4) only then reach for `SOFT_BARRIER`/`TOUCH_REG`. The corpus entry
 above is the case where the source genuinely has to keep an untyped local and
 the barrier is load-bearing — it is not the first move.
@@ -127298,7 +127298,7 @@ Inputs: `base_3.i` (100.000%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run; `.cse` dumps retained in the scratch.
 
-## A `0.98`-shape sibling is still a whole answer; the `.s` diff names the field (func_actor_135400_80132EBC, 2026-09-17)
+## A `0.98`-shape sibling is still a whole answer; the `.s` diff names the field (_actor135400FlintSetDrawMode, 2026-09-17)
 
 "A twin of a matched sibling is provable before you write any C" uses the
 four-class `1.00`/asterisk signal, but the method needs no asterisk: a sibling at
@@ -127325,24 +127325,24 @@ here is what picks `s32` over `s8` for `_Actor135400FlintWork::freeCountdown`.
 operand is in the disassembly text, so the two are not equal bodies and there is
 nothing to promote.
 
-Inputs: scratch `nonmatchings/func_actor_135400_80132EBC-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor135400FlintSetDrawMode-vacuum`, `base.c`
 71.375%, `base_1.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A switch's identical case tails are one block the compiler made: keep the two statements separate (func_actor_135400_801327E8, 2026-09-17)
+## A switch's identical case tails are one block the compiler made: keep the two statements separate (_actor135400GaryDouglasSetDrawMode, 2026-09-17)
 
 The 4-way `TmdObject::flags` switch this body shares with
-`func_actor_135400_80132EBC` / `func_actor_141000_80133E8C` writes case 0 as
+`_actor135400FlintSetDrawMode` / `func_actor_141000_80133E8C` writes case 0 as
 
 ```c
         case 0:
-            obj->field_C |= 0x80;
-            obj->field_C &= ~4;
+            bodyModel->flags |= 0x80;
+            bodyModel->flags &= ~4;
             break;
         case 1:
-            obj->field_C &= ~0x80;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->field_C &= ~4;
+            bodyModel->flags &= ~0x80;
+            tmdAllocPrimitiveBuffer(bodyModel);
+            bodyModel->flags &= ~4;
             break;
 ```
 
@@ -127354,7 +127354,7 @@ tail of the two case blocks, so case 0's store is emitted once, after the join,
 and case 0 jumps into what reads like case 1's code.
 
 Two traps follow. Fusing case 0 into one expression
-(`field_C = (field_C | 0x80) & ~4;`) keeps `andi`/`sh` inside case 0's own block
+(`flags = (flags | 0x80) & ~4;`) keeps `andi`/`sh` inside case 0's own block
 and loses the shape. And reading the target backwards as a source-level
 fall-through (`case 0:` with no `break`, falling into case 1) is wrong for a
 different reason: case 0 would then run case 1's `tmdAllocPrimitiveBuffer`. Only the
@@ -127363,14 +127363,14 @@ instruction to write.
 
 The same family generalises as a port: this is the fourth member, and only
 case 2's middle statement (a `tmdFreePrimitiveBuffer` here, a mode latch in the twins)
-plus the trailing copy onto `work->field_4B8->extra` distinguishes it — one
+plus the trailing copy onto `work->headTask->extra.tmd` distinguishes it — one
 build from the sibling's C, against an m2c seed at 74.279%.
 
-Inputs: scratch `nonmatchings/func_actor_135400_801327E8-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor135400GaryDouglasSetDrawMode-vacuum`, `base.c`
 74.279%, `base_1.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## m2c splits a load that feeds both an index and a later `+1`, and the split makes the load die in the shift (func_actor_135400_801329B0, 2026-09-17)
+## m2c splits a load that feeds both an index and a later `+1`, and the split makes the load die in the shift (_actor135400FlintTick, 2026-09-17)
 
 The actor tick reads `AnimationPlayRequest::animationId` twice: once as the index of the
 per-step frame table and once to advance the step by one. Retail shares the
@@ -127412,10 +127412,10 @@ Reading the two uses back as two reads of the same lvalue is the whole fix -
 `cse` folds them into one load whose last use is the `addiu`:
 
 ```c
-    if (D_actor_135400_8013F8C4[work->cycleRequest.animationId] < (s16) count) {
+    if (D_actor_135400_8013F8C4[work->cycleRequest.animationId] < (s16) holdFrames) {
         work->cycleRequest.animationId = work->cycleRequest.animationId + 1;
-        if (work->cycleRequest.animationId >= 7) {
-            work->cycleRequest.animationId = 1;
+        if (work->cycleRequest.animationId >= ACTOR_135400_FLINT_CYCLE_CLIP_LIMIT) {
+            work->cycleRequest.animationId = ACTOR_135400_FLINT_FIRST_CYCLE_CLIP;
         }
 ```
 
@@ -127425,7 +127425,7 @@ Expect this shape whenever m2c prints a `temp_a`/`temp_v` pair whose two
 members are one load and one `+ 1` of it, and the target's `sw` is fed from the
 load's register.
 
-Inputs: scratch `nonmatchings/func_actor_135400_801329B0-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor135400FlintTick-vacuum`, `base.c`
 91.463%, `base_1.c` 99.753%, `base_2.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
@@ -127542,7 +127542,7 @@ The reverse of the usual advice to split a reused variable: when the target has
 a copy that the source's second use does not need, check whether the *conflict
 set* is the thing being matched, and merge rather than split.
 
-## A load written after a call cannot be scheduled before it -- calls clobber memory, so the ROM's order is the source's order (func_actor_135400_80131EB4, 2026-09-17)
+## A load written after a call cannot be scheduled before it -- calls clobber memory, so the ROM's order is the source's order (_actor135400GaryDouglasUpdateCarriedPlacement, 2026-09-17)
 
 The target opens the shared body of a `switch` with the coordinate load, then the
 identity splat, then the `RotMatrixY` call:
@@ -127557,7 +127557,7 @@ identity splat, then the `RotMatrixY` call:
 	jal	RotMatrixY
 ```
 
-Writing `coord = ((TmdObject*)task->extra)->coords;` *after* the identity
+Writing `rootCoord = task->extra.tmd->coords;` *after* the identity
 splat and the call gave 97.972% -- instruction for instruction the same code,
 except the two loads sat after the `jal` (108 -> 109 instructions, `branch=1
 reorder=2 insert=1`). They are not merely mis-scheduled; sched2 cannot move
