@@ -202,19 +202,12 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
         result = -1;
     } else {
-        i = 0;
-        do {
-        loop:
+        for (i = 0; i < 0xD; i++, p++) {
             if (!(p->expCeiling < spend)) {
                 idx = i;
                 break;
             }
-            i++;
-            p++;
-            if (i < 0xD) {
-                goto loop;
-            }
-        } while (0);
+        }
 
         save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         idx += save->state.gameMode;
@@ -224,8 +217,7 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
         }
         one  = 1;
         mask = save->state.shopTiers;
-        do {
-        loop2:
+        for (; i < 0xD; i++) {
             if ((mask & (one << idx)) == 0) {
                 break;
             }
@@ -233,11 +225,7 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
             if (idx >= 0xD) {
                 idx -= 0xD;
             }
-            i += 1;
-            if (i < 0xD) {
-                goto loop2;
-            }
-        } while (0);
+        }
         result = idx;
     }
     if (result < 0) {
