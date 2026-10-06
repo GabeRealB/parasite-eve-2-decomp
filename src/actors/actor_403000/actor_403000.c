@@ -3835,15 +3835,11 @@ static void func_actor_403000_801386E8(Task* arg0)
     Task*                     task;
     s16                       step;
     s16                       angle;
-    s16                       i;
-    s32                       found;
-    s32                       value;
     s32                       dist;
     s32                       mag;
     SVECTOR*                  t;
     GfxCoord*                 coord2;
     GfxCoord*                 coord3;
-    WorldCollisionContact*    recs;
     GameActor*                pw;
 
     work                                           = arg0->work;
@@ -3886,26 +3882,14 @@ static void func_actor_403000_801386E8(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if ((u16)(work->stateFrame - 5) < 10) {
-        t      = &scratch->offset;
-        coord3 = arg0->extra.tmd->coords;
-        t->vx  = gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0];
-        t->vy  = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
-        t->vz  = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-        coord2 = arg0->extra.tmd->coords;
-        angle  = ratan2(t->vx, t->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-        if (angle < 0) {
-        loop_neg:
-            if (angle < -0x800) {
-                angle += 0x1000;
-                goto loop_neg;
-            }
-        } else {
-        loop_pos:
-            if (angle > 0x800) {
-                angle -= 0x1000;
-                goto loop_pos;
-            }
-        }
+        t             = &scratch->offset;
+        coord3        = arg0->extra.tmd->coords;
+        t->vx         = gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0];
+        t->vy         = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
+        t->vz         = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
+        coord2        = arg0->extra.tmd->coords;
+        angle         = ratan2(t->vx, t->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
+        angle         = actorWrapAngle(angle);
         scratch->turn = mag = angle;
         if (scratch->turn > 0x40) {
             scratch->turn = 0x40;
@@ -3915,21 +3899,8 @@ static void func_actor_403000_801386E8(Task* arg0)
         scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
     }
-    recs = work->headCapsule.contacts;
     if (work->stateFrame == 0x17) {
-        for (i = 0; i < ARRAY_SIZE(work->headCapsule.contacts); i++) {
-            value = recs[i].key.value;
-            if (value == 0) {
-                break;
-            }
-            if ((value & 0xFFFF0000) == 0x10000) {
-                found = 1;
-                goto done;
-            }
-        }
-        found = 0;
-    done:
-        if (found != 0 && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
+        if (_actor403000HasPlayerContact(work->headCapsule.contacts, ARRAY_SIZE(work->headCapsule.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
             D_actor_403000_80158D90.placement.pos.vx = player->extra.tmd->coords->coord.t[0];
             D_actor_403000_80158D90.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
             D_actor_403000_80158D90.placement.pos.vz = player->extra.tmd->coords->coord.t[2];
