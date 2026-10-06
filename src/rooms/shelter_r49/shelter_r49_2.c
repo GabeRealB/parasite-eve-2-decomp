@@ -203,77 +203,60 @@ void func_shelter_r49_8017D71C(Task* arg0)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            SetDispMask(0);
+            task->killCountdown = 0;
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            task->killCountdown++;
+            if (task->killCountdown < 0x1F) {
+                break;
+            }
+            Mem_AllocAuxWithImages(1);
+            task->state++;
+            break;
         case 2:
-            goto L_case2;
+            key          = gGameSession->location;
+            key.loc.view = 0x64;
+            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            task->state++;
+            break;
         case 3:
-            goto L_case3;
+            if (queue->movieReady == 0) {
+                break;
+            }
+            SetDispMask(1);
+            task->state++;
+            break;
         case 4:
-            goto L_case4;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                SetDispMask(0);
+                task->state++;
+                break;
+            }
+            if (Pad_CheckFlag800() == 0) {
+                break;
+            }
+            SetDispMask(0);
+            CdCmd_ActivatePhase1();
+            task->state++;
+            break;
         case 5:
-            goto L_case5;
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                break;
+            }
+            Stream_ResetRestoreState();
+            task->state++;
+            break;
         case 6:
-            goto L_case6;
+            if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
+                break;
+            }
+            taskKill(task);
+            displayResumeGameLoop();
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    task->killCountdown = 0;
-    task->state         = task->state + 1;
-    return;
-
-L_case1:
-    task->killCountdown = task->killCountdown + 1;
-    if (task->killCountdown < 0x1F) {
-        return;
-    }
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case2:
-    key          = gGameSession->location;
-    key.loc.view = 0x64;
-    slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case3:
-    if (queue->movieReady == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case4:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case5:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case6:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    taskKill(task);
-    displayResumeGameLoop();
 }
 
 void func_shelter_r49_8017D8D8(Task* arg0)
