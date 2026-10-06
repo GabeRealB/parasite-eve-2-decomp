@@ -13,64 +13,44 @@ void streamedScenePlay(Task* arg0)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            SetDispMask(0);
+            Mem_AllocAuxWithImages(1);
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            key          = gGameSession->location;
+            key.loc.view = 0x64;
+            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            task->state++;
+            break;
         case 2:
-            goto L_case2;
+            if (queue->movieReady != 0) {
+                SetDispMask(1);
+                task->state++;
+            }
+            break;
         case 3:
-            goto L_case3;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                SetDispMask(0);
+                task->state++;
+            } else if (Pad_CheckFlag800() != 0) {
+                SetDispMask(0);
+                CdCmd_ActivatePhase1();
+                task->state++;
+            }
+            break;
         case 4:
-            goto L_case4;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                Stream_ResetRestoreState();
+                task->state++;
+            }
+            break;
         case 5:
-            goto L_case5;
+            if (Stream_RestoreAfterLoad(0, 1) & 0xFFFF) {
+                taskKill(task);
+                displayResumeGameLoop();
+            }
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key          = gGameSession->location;
-    key.loc.view = 0x64;
-    slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case2:
-    if (queue->movieReady == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        goto advance;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    goto advance;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    taskKill(task);
-    displayResumeGameLoop();
 }
