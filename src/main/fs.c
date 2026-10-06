@@ -1108,164 +1108,156 @@ static void Fs_InitStage0TablesCb(u8 status, u8* result)
     u16*        fileSect0;
 
     streamIdx = 0;
-    if (status == CdlDiskError) {
-        goto on_error;
-    }
+    if (status != CdlDiskError) {
+        // The first 3 words contain the sector header.
+        // Make sure that we seeked to the correct location.
+        Fs_VBlank = VSync(-1);
+        CdGetSector(currLoc, 3);
 
-    // The first 3 words contain the sector header.
-    // Make sure that we seeked to the correct location.
-    Fs_VBlank = VSync(-1);
-    CdGetSector(currLoc, 3);
-
-    Fs_CurrSector = currPos = CdPosToInt(currLoc);
-    if (currPos == Fs_ReqSector) {
-        goto sector_start;
-    } else {
-        goto on_error;
-    }
-
-table_end:
-    CdReadyCallback(NULL);
-    Fs_CdOpStatus = -1;
-    CdControlF(CdlPause, NULL);
-    return;
-
-sector_start:
-    // Read the sector data.
-    Fs_ReqSector += 1;
-    CdGetSector(Fs_CdSector.words, FS_SECTOR_WORD_SIZE);
-
-    headerOffset = 0;
-
-    while (true) {
-        sectorBuffer = &Fs_CdSector;
-        streamTable  = Fs_Streams;
-        fileSect0    = Fs_FileOffsetsCat0;
-        fileSect5    = Fs_FileOffsetsCat5;
-        fileSect90   = Fs_FileOffsetsCat90;
-
-        if ((u16)headerOffset >= FS_SECTOR_WORD_SIZE) {
+        Fs_CurrSector = currPos = CdPosToInt(currLoc);
+        if (currPos != Fs_ReqSector) {
+            Fs_OnCdError(FS_ERROR_SOFT);
             return;
         }
 
-        entry  = &sectorBuffer->words[(u16)headerOffset];
-        fileId = *entry;
-        if (fileId == FS_CDF_STAGE0_CANARY) {
-            goto table_end;
-        }
+        // Read the sector data.
+        Fs_ReqSector += 1;
+        CdGetSector(Fs_CdSector.words, FS_SECTOR_WORD_SIZE);
 
-        if ((s32)fileId < 0) {
-            *entry    &= FILE_SYSTEM_HED_STREAM_HEADER_MASK;
-            entryBytes = (u8*)entry;
+        headerOffset = 0;
 
-            // Copy the stream header into the stream table.
-            streamCpyPos = (u8*)&streamTable[(u16)streamIdx];
-            for (i = 0; (u16)i < sizeof(StreamSlot); i++) {
-                streamCpyPos[(u16)i] = entryBytes[(u16)i];
+        while (true) {
+            sectorBuffer = &Fs_CdSector;
+            streamTable  = Fs_Streams;
+            fileSect0    = Fs_FileOffsetsCat0;
+            fileSect5    = Fs_FileOffsetsCat5;
+            fileSect90   = Fs_FileOffsetsCat90;
+
+            if ((u16)headerOffset >= FS_SECTOR_WORD_SIZE) {
+                return;
             }
 
-            // Move to the next entry and adjust the offset to be the absolute
-            // offset on the CD rom.
-            streamTable[(u16)streamIdx++].startSector += Fs_StageCdfSectors[0];
-            headerOffset                              += sizeof(StreamSlot) / sizeof(u32);
-        } else {
-            fileCategory = fileId / 10000;
+            entry  = &sectorBuffer->words[(u16)headerOffset];
+            fileId = *entry;
+            if (fileId == FS_CDF_STAGE0_CANARY) {
+                CdReadyCallback(NULL);
+                Fs_CdOpStatus = -1;
+                CdControlF(CdlPause, NULL);
+                return;
+            }
 
-            isValidCategory = false;
-            switch (fileCategory) {
-                case 0:
-                    i = 0;
-                    while (true) {
-                        fileSect0[(u16)i] = (&sectorBuffer->words[(u16)headerOffset])[1];
-                        i++;
-                        if ((u16)i >= 0x2D) {
-                            break;
+            if ((s32)fileId < 0) {
+                *entry    &= FILE_SYSTEM_HED_STREAM_HEADER_MASK;
+                entryBytes = (u8*)entry;
+
+                // Copy the stream header into the stream table.
+                streamCpyPos = (u8*)&streamTable[(u16)streamIdx];
+                for (i = 0; (u16)i < sizeof(StreamSlot); i++) {
+                    streamCpyPos[(u16)i] = entryBytes[(u16)i];
+                }
+
+                // Move to the next entry and adjust the offset to be the absolute
+                // offset on the CD rom.
+                streamTable[(u16)streamIdx++].startSector += Fs_StageCdfSectors[0];
+                headerOffset                              += sizeof(StreamSlot) / sizeof(u32);
+            } else {
+                fileCategory = fileId / 10000;
+
+                isValidCategory = false;
+                switch (fileCategory) {
+                    case 0:
+                        i = 0;
+                        while (true) {
+                            fileSect0[(u16)i] = (&sectorBuffer->words[(u16)headerOffset])[1];
+                            i++;
+                            if ((u16)i >= 0x2D) {
+                                break;
+                            }
+                            headerOffset += 2;
                         }
-                        headerOffset += 2;
+                        isValidCategory = true;
+                        break;
+
+                    case 1: {
+                        u32 n;
+
+                        isValidCategory = true;
+                        tbl             = Fs_FileTableCat1;
+                        n               = Fs_FileTableCat1Len;
+                        Fs_FileTableCat1Len++;
+                        tbl[n].idInCategory = fileId - 10000;
+                        tbl[n].sectorOffset = entry[1];
+                        break;
                     }
-                    isValidCategory = true;
-                    break;
 
-                case 1: {
-                    u32 n;
+                    case 2: {
+                        u32 n;
 
-                    isValidCategory = true;
-                    tbl             = Fs_FileTableCat1;
-                    n               = Fs_FileTableCat1Len;
-                    Fs_FileTableCat1Len++;
-                    tbl[n].idInCategory = fileId - 10000;
-                    tbl[n].sectorOffset = entry[1];
-                    break;
+                        isValidCategory = true;
+                        tbl             = Fs_FileTableCat2;
+                        n               = Fs_FileTableCat2Len;
+                        Fs_FileTableCat2Len++;
+                        tbl[n].idInCategory = fileId - fileCategory * 10000;
+                        tbl[n].sectorOffset = entry[1];
+                        break;
+                    }
+
+                    case 3: {
+                        u32 n;
+
+                        isValidCategory = true;
+                        tbl             = Fs_FileTableCat3;
+                        n               = Fs_FileTableCat3Len;
+                        Fs_FileTableCat3Len++;
+                        tbl[n].idInCategory = fileId - 30000;
+                        tbl[n].sectorOffset = entry[1];
+                        break;
+                    }
+
+                    case 4: {
+                        u32 n;
+
+                        isValidCategory = true;
+                        tbl             = Fs_FileTableCat4;
+                        n               = Fs_FileTableCat4Len;
+                        Fs_FileTableCat4Len++;
+                        tbl[n].idInCategory = fileId - fileCategory * 10000;
+                        tbl[n].sectorOffset = entry[1];
+                        break;
+                    }
+
+                    case 5:
+                        fileSect5[*entry % 100] = entry[1];
+                        isValidCategory         = true;
+                        break;
+
+                    case 90:
+                        fileSect90[*entry % 100] = entry[1];
+                        isValidCategory          = true;
+                        break;
                 }
 
-                case 2: {
-                    u32 n;
+                if (!isValidCategory) {
+                    u32 id;
 
-                    isValidCategory = true;
-                    tbl             = Fs_FileTableCat2;
-                    n               = Fs_FileTableCat2Len;
-                    Fs_FileTableCat2Len++;
-                    tbl[n].idInCategory = fileId - fileCategory * 10000;
-                    tbl[n].sectorOffset = entry[1];
-                    break;
+                    cursor.words = sectorBuffer->words;
+                    id           = cursor.words[(u16)headerOffset];
+                    if (id / 100000 != 0) {
+                        u32 n;
+
+                        cursor.files = Fs_FileTable;
+                        n            = Fs_FileTableLen;
+                        Fs_FileTableLen++;
+                        cursor.files[n].fileId       = id;
+                        cursor.files[n].sectorOffset = (&sectorBuffer->words[(u16)headerOffset])[1];
+                    }
                 }
 
-                case 3: {
-                    u32 n;
-
-                    isValidCategory = true;
-                    tbl             = Fs_FileTableCat3;
-                    n               = Fs_FileTableCat3Len;
-                    Fs_FileTableCat3Len++;
-                    tbl[n].idInCategory = fileId - 30000;
-                    tbl[n].sectorOffset = entry[1];
-                    break;
-                }
-
-                case 4: {
-                    u32 n;
-
-                    isValidCategory = true;
-                    tbl             = Fs_FileTableCat4;
-                    n               = Fs_FileTableCat4Len;
-                    Fs_FileTableCat4Len++;
-                    tbl[n].idInCategory = fileId - fileCategory * 10000;
-                    tbl[n].sectorOffset = entry[1];
-                    break;
-                }
-
-                case 5:
-                    fileSect5[*entry % 100] = entry[1];
-                    isValidCategory         = true;
-                    break;
-
-                case 90:
-                    fileSect90[*entry % 100] = entry[1];
-                    isValidCategory          = true;
-                    break;
+                headerOffset += sizeof(FsCdfFile) / sizeof(u32);
             }
-
-            if (!isValidCategory) {
-                u32 id;
-
-                cursor.words = sectorBuffer->words;
-                id           = cursor.words[(u16)headerOffset];
-                if (id / 100000 != 0) {
-                    u32 n;
-
-                    cursor.files = Fs_FileTable;
-                    n            = Fs_FileTableLen;
-                    Fs_FileTableLen++;
-                    cursor.files[n].fileId       = id;
-                    cursor.files[n].sectorOffset = (&sectorBuffer->words[(u16)headerOffset])[1];
-                }
-            }
-
-            headerOffset += sizeof(FsCdfFile) / sizeof(u32);
         }
     }
 
-on_error:
     Fs_OnCdError(FS_ERROR_SOFT);
 }
 
