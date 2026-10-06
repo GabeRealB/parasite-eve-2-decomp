@@ -374,35 +374,60 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-void func_energyshot_8012FFB8(Task* arg0)
+/// Seeds a billboard's fixed upward displacement and screen rotation.
+///
+/// `work` is the task's writable effect block; its signed `move.vy` is in
+/// parent-coordinate units per tick and `scale` stores 4096 angle units per turn.
+/// Consumes two successive shared random draws, velocity before rotation.
+static inline void _energyshotInitRisingBillboard(EffectWork* work)
 {
-    EffectWork* mem;
+    enum {
+        ENERGYSHOT_BILLBOARD_Y_VELOCITY_BASE = -16,
+        ENERGYSHOT_BILLBOARD_Y_JITTER_MASK   = 0x3F,
+        ENERGYSHOT_BILLBOARD_ROTATION_MASK   = 0xFFF,
+    };
+
+    work->move.vx   = 0;
+    work->move.vz   = 0;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = ENERGYSHOT_BILLBOARD_Y_VELOCITY_BASE -
+                    ((gRandomLcgState >> 16) & ENERGYSHOT_BILLBOARD_Y_JITTER_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->scale     = (gRandomLcgState >> 16) & ENERGYSHOT_BILLBOARD_ROTATION_MASK;
+}
+
+void energyshotRisingBillboardTask(Task* task)
+{
+    enum {
+        ENERGYSHOT_BILLBOARD_STATE_INITIALIZE = 0,
+        ENERGYSHOT_BILLBOARD_STATE_ANIMATE    = 1,
+        ENERGYSHOT_BILLBOARD_TICKS_PER_FRAME  = 4,
+        ENERGYSHOT_BILLBOARD_FRAME_COUNT      = 8,
+        ENERGYSHOT_BILLBOARD_SIZE             = 0x400,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s32         y;
+    s32         nextY;
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    if (arg0->state == 0) {
-        mem->move.vx    = 0;
-        mem->move.vz    = 0;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->move.vy    = 0xFFF0 - ((gRandomLcgState >> 16) & 0x3F);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
-        arg0->state     = 1;
+    work      = task->spawnArg2.pointer;
+    coord     = task->extra.coordBody->coord;
+    work->age = work->age + 1;
+    if (task->state == ENERGYSHOT_BILLBOARD_STATE_INITIALIZE) {
+        _energyshotInitRisingBillboard(work);
+        task->state = ENERGYSHOT_BILLBOARD_STATE_ANIMATE;
     }
 
-    y                   = coord->coord.t[1] + mem->move.vy;
+    // Initialization falls through to movement and drawing on the first tick.
+    nextY               = coord->coord.t[1] + work->move.vy;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]   = y;
+    coord->coord.t[1]   = nextY;
     actorRenderComposeCoord(coord);
-    if ((mem->age & 3) == 0) {
-        mem->index = mem->index + 1;
+    if ((work->age & (ENERGYSHOT_BILLBOARD_TICKS_PER_FRAME - 1)) == 0) {
+        work->index = work->index + 1;
     }
-    if (mem->index < 8) {
-        effectDrawSpinningBillboard(coord, mem->index, 0x400, mem->scale);
+    if (work->index < ENERGYSHOT_BILLBOARD_FRAME_COUNT) {
+        effectDrawSpinningBillboard(coord, work->index, ENERGYSHOT_BILLBOARD_SIZE, work->scale);
         return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }

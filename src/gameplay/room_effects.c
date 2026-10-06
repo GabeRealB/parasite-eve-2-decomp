@@ -759,7 +759,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_inferno_8012F530, { NULL } },                                       // 0x0DA
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyInitRoomEffectsTask, { NULL } },                     // 0x0DB
     { { { TASK_BODY_COORD, 0x70 } }, motelRoom6DayDrawGlow, { NULL } },                                       // 0x0DC
-    { { { TASK_BODY_COORD, 0x70 } }, func_energyshot_8012FFB8, { NULL } },                                    // 0x0DD
+    { { { TASK_BODY_COORD, 0x70 } }, energyshotRisingBillboardTask, { NULL } },                               // 0x0DD
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_hole_8017E040, { NULL } },                           // 0x0DE
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldCellarDrawGlowsTask, { NULL } },                                 // 0x0DF
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE0, { NULL } },                                          // 0x0E0

@@ -2029,7 +2029,7 @@ func_apobiosis_8012EF4C = 0x8012EF4C; // type:func absolute:True owner=apobiosis
 
 func_inferno_8012F530 = 0x8012F530; // type:func absolute:True owner=inferno
 
-func_energyshot_8012FFB8 = 0x8012FFB8; // type:func absolute:True owner=energyshot
+energyshotRisingBillboardTask = 0x8012FFB8; // type:func absolute:True owner=energyshot
 
 func_lifedrain_801308C0 = 0x801308C0; // type:func absolute:True owner=lifedrain
 
