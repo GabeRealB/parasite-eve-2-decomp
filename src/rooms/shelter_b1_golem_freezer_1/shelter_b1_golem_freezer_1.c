@@ -546,11 +546,17 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
 
 #include "../../shared/glow_draw_disc.inc.c"
 
-/// Chooses and quantizes a mist puff's fixed local-XZ displacement per task tick.
+/// Initializes a mist puff's constant displacement in its coordinate's XZ plane.
 ///
-/// Consumes two LCG draws for components in -127..128, normalizes to Q12,
-/// then scales by `speed` (1..255 local-coordinate units per tick). Only
-/// `step` and `move` in the live work block are changed; GTE registers are clobbered.
+/// `work` borrows writable effect storage; `speed` is 1..255 local-coordinate
+/// units per task tick. Stores the requested magnitude in `step` and the
+/// displacement in `move`. Approximate Q12 normalization followed by GTE
+/// scaling rounds each component down, so its length need not equal `speed`.
+///
+/// Consumes two successive shared LCG draws for X and Z in -127..128, with
+/// Y zero. Their correlation excludes a zero direction. Only `step` and the
+/// three `move` components change; the vector's pad is preserved. Clobbers
+/// GTE state and retains no pointer.
 static inline void _shelterB1GolemFreezer1InitializeMistDrift(EffectWork* work, s16 speed)
 {
     enum {
@@ -558,10 +564,10 @@ static inline void _shelterB1GolemFreezer1InitializeMistDrift(EffectWork* work, 
         SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK      = 0xFF,
         SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT = 16,
     };
-    s32 directionZ;
     u32 directionXState;
     u32 directionZState;
 
+    // Draw a nonzero horizontal bearing before normalizing it in place.
     work->step      = speed;
     work->move.vy   = 0;
     directionXState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -569,10 +575,10 @@ static inline void _shelterB1GolemFreezer1InitializeMistDrift(EffectWork* work, 
     work->move.vx   = SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT - ((directionXState >> SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK);
     directionZState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = directionZState;
-    directionZ      = SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT - ((directionZState >> SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK);
-    work->move.vz   = directionZ;
+    work->move.vz   = SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT - ((directionZState >> SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK);
     VectorNormalSS(&work->move, &work->move);
 
+    // Convert the Q12 bearing to whole coordinate units for each task tick.
     gte_lddp(work->step);
     gte_ldsv(&work->move);
     gte_gpf12();
@@ -642,15 +648,30 @@ void shelterB1GolemFreezer1FloorMistTask(Task* task)
     }
 }
 
-/// Stores one mist billboard's rightward and upward pixel half-diagonal components.
+/// Stores the rightward and upward pixel offsets to one mist billboard corner.
 ///
-/// `projection` is live scratch with positive SZ3/4 depth; `sizeFactor * 47 / depth`
-/// truncates toward zero before Q12 rotation. Products must fit s32. `cornerAngle`
-/// uses 4096 units per turn, with zero up and a quarter turn right for positive size.
+/// `projection` borrows a live, word-aligned scratch block with positive
+/// `depth` in SZ3/4 units. `sizeFactor * 47 / depth` is the signed half-diagonal
+/// in integer pixels, truncated toward zero before Q12 rotation. Rotation
+/// products must fit s32; the right shift rounds down. The caller supplies
+/// size factors in 0..4095 and depths of at least 65, keeping products in range.
+///
+/// `cornerAngle` uses 4096 units per turn and need not be normalized. For a
+/// positive size, zero points up and a quarter turn points right; the caller
+/// subtracts the upward offset from screen Y. Only `extent.corner.x` and
+/// `extent.corner.y` change. No storage is allocated or pointer retained.
 static inline void _shelterB1GolemFreezer1ComputeMistCornerOffset(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
-    projection->extent.corner.x = (((sizeFactor * SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS) / projection->depth) * rsin(cornerAngle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS;
-    projection->extent.corner.y = (((sizeFactor * SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS) / projection->depth) * rcos(cornerAngle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS;
+    q19_12 angleSine;
+    q19_12 angleCosine;
+    s32    halfDiagonalPixels;
+
+    angleSine                   = rsin(cornerAngle);
+    halfDiagonalPixels          = (sizeFactor * SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS) / projection->depth;
+    projection->extent.corner.x = (halfDiagonalPixels * angleSine) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS;
+    angleCosine                 = rcos(cornerAngle);
+    halfDiagonalPixels          = (sizeFactor * SHELTER_B1_GOLEM_FREEZER_1_MIST_UV_SPAN_TEXELS) / projection->depth;
+    projection->extent.corner.y = (halfDiagonalPixels * angleCosine) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS;
 }
 
 /// Queues one shaded, additive, semitransparent frame of the floor-mist billboard.
