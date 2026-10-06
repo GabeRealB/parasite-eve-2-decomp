@@ -90254,7 +90254,7 @@ void func_dryfield_night_water_hole_8017E630(Task* task)
 100.000% on the first build, all penalties zero. The remaining seven are
 `shelter_b4_upper_sewer_8017E4F4`, `shelter_b4_lower_sewer_8017E2D4`,
 `shelter_b2_septic_tank_8017EA50`, `shelter_b2_main_corridor_8017EB8C`,
-`shelter_b4_water_supply_8017ED28`, `shelter_b4_reservoir_8017FADC` and
+`_shelterB4WaterSupplyWaterTask`, `shelter_b4_reservoir_8017FADC` and
 `dryfield_water_hole_8017DFA0`; a ninth store site,
 `shelter_b4_upper_sewer_8017DC88`, writes the same field from inside a larger
 function. Write them from this template rather than from their m2c seeds.

@@ -1302,15 +1302,15 @@ func_shelter_b4_upper_sewer_80185880 = 0x80185880; // type:func absolute:True ow
 
 func_shelter_b4_water_supply_8017EE54 = 0x8017EE54; // type:func absolute:True owner=shelter_b4_water_supply
 
-func_shelter_b4_water_supply_8017F24C = 0x8017F24C; // type:func absolute:True owner=shelter_b4_water_supply
+shelterB4WaterSupplyWaterRippleTask = 0x8017F24C; // type:func absolute:True owner=shelter_b4_water_supply
 
-func_shelter_b4_water_supply_8017F6D4 = 0x8017F6D4; // type:func absolute:True owner=shelter_b4_water_supply shared=rooms
+shelterB4WaterSupplyWaterDriftTask = 0x8017F6D4; // type:func absolute:True owner=shelter_b4_water_supply shared=rooms
 
 func_shelter_b4_water_supply_801809DC = 0x801809DC; // type:func absolute:True owner=shelter_b4_water_supply
 
-func_shelter_b4_water_supply_80180F34 = 0x80180F34; // type:func absolute:True owner=shelter_b4_water_supply
+shelterB4WaterSupplyRoomVisualEffectsFlyingSparkTask = 0x80180F34; // type:func absolute:True owner=shelter_b4_water_supply
 
-func_shelter_b4_water_supply_80181B94 = 0x80181B94; // type:func absolute:True owner=shelter_b4_water_supply
+shelterB4WaterSupplyRoomVisualEffectsFlyingOrangeBurstTask = 0x80181B94; // type:func absolute:True owner=shelter_b4_water_supply
 
 func_shelter_b6_corridor_8017E238 = 0x8017E238; // type:func absolute:True owner=shelter_b6_corridor
 
