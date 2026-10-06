@@ -10,7 +10,6 @@
 void streamedScenePlayThenHold(Task* arg0)
 {
     u8          slotParam[4];
-    s32         state;
     GameLoc     key;
     CdCmdQueue* queue;
     Task*       task;
@@ -19,82 +18,57 @@ void streamedScenePlayThenHold(Task* arg0)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            goto L_case0;
+            SetDispMask(0);
+            Mem_AllocAuxWithImages(1);
+            task->state++;
+            break;
         case 1:
-            goto L_case1;
+            key          = gGameSession->location;
+            key.loc.view = 0x64;
+            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            task->state++;
+            break;
         case 2:
-            goto L_case2;
+            if (queue->movieReady != 0) {
+                SetDispMask(1);
+                task->state++;
+            }
+            break;
         case 3:
-            goto L_case3;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                SetDispMask(0);
+                task->spawnArg1.value = 0;
+                task->state++;
+            } else if (Pad_CheckFlag800() != 0) {
+                SetDispMask(0);
+                CdCmd_ActivatePhase1();
+                task->spawnArg1.value = 1;
+                task->state++;
+            }
+            break;
         case 4:
-            goto L_case4;
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                Stream_ResetRestoreState();
+                task->state++;
+            }
+            break;
         case 5:
-            goto L_case5;
+            if (Stream_RestoreAfterLoad(0, 1) & 0xFFFF) {
+                if (task->spawnArg1.value != 0) {
+                    taskKill(task);
+                    displayResumeGameLoop();
+                } else {
+                    task->state++;
+                }
+            }
+            break;
         case 6:
-            goto L_case6;
+            task->killCountdown++;
+            if (task->killCountdown >= 0x3D) {
+                taskKill(task);
+                displayResumeGameLoop();
+            }
+            break;
     }
-    return;
-
-L_case0:
-    SetDispMask(0);
-    Mem_AllocAuxWithImages(1);
-    goto advance;
-
-L_case1:
-    key          = gGameSession->location;
-    key.loc.view = 0x64;
-    slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-    goto advance;
-
-L_case2:
-    if (queue->movieReady == 0) {
-        return;
-    }
-    SetDispMask(1);
-    goto advance;
-
-L_case3:
-    if (CdCmd_IsIdle() & 0xFFFF) {
-        SetDispMask(0);
-        state                 = task->state;
-        task->spawnArg1.value = 0;
-        task->state           = state + 1;
-        return;
-    }
-    if (Pad_CheckFlag800() == 0) {
-        return;
-    }
-    SetDispMask(0);
-    CdCmd_ActivatePhase1();
-    task->spawnArg1.value = 1;
-    task->state           = task->state + 1;
-    return;
-
-L_case4:
-    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
-        return;
-    }
-    Stream_ResetRestoreState();
-    goto advance;
-
-L_case5:
-    if ((Stream_RestoreAfterLoad(0, 1) & 0xFFFF) == 0) {
-        return;
-    }
-    if (task->spawnArg1.value != 0) {
-        goto kill;
-    }
-advance:
-    task->state = task->state + 1;
-    return;
-
-L_case6:
-    task->killCountdown = task->killCountdown + 1;
-    if (task->killCountdown < 0x3D) {
-        return;
-    }
-kill:
-    taskKill(task);
-    displayResumeGameLoop();
 }
