@@ -1985,22 +1985,10 @@ static void func_actor_800300_801628D0(Task* arg0)
                 actor->actionValue = (u16)actor->actionValue - 1;
             } else {
                 angle = rand() & 0x3FF;
-                if ((0x800 - angle) < dist) {
-                    goto in_range;
+                if (((0x800 - angle) >= dist && actor->statePhase == 2) || (dist >= angle + 0xC00 && actor->statePhase == 1)) {
+                    actor->statePhase  = 0;
+                    actor->actionValue = 0x3C;
                 }
-                if (actor->statePhase == 2) {
-                    goto reset;
-                }
-            in_range:
-                if (dist < angle + 0xC00) {
-                    break;
-                }
-                if (actor->statePhase != 1) {
-                    break;
-                }
-            reset:
-                actor->statePhase  = 0;
-                actor->actionValue = 0x3C;
             }
             break;
     }
