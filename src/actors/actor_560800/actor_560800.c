@@ -5803,26 +5803,29 @@ void func_actor_560800_80136094(Task* arg0)
             work->g = 0xFF;
             work->r = 0xFF;
             taskReparent(D_actor_560800_8017578C, arg0);
-            goto state_inc;
+            arg0->state += 1;
+            break;
         case 6:
             SetDispMask(1);
+            /* fallthrough */
         case 1:
         case 2:
         case 3:
         case 4:
         case 5:
-        state_inc:
             arg0->state += 1;
-            /* fallthrough */
-        case 7:
-            fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
-            work->r -= (u16)arg0->spawnArg1.value;
-            work->g -= (u16)arg0->spawnArg1.value;
-            work->b -= (u16)arg0->spawnArg1.value;
-            if (work->r < 0) {
-                taskKill(arg0);
-            }
             break;
+        case 7:
+            break;
+        default:
+            return;
+    }
+    fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_SUBTRACT);
+    work->r -= (u16)arg0->spawnArg1.value;
+    work->g -= (u16)arg0->spawnArg1.value;
+    work->b -= (u16)arg0->spawnArg1.value;
+    if (work->r < 0) {
+        taskKill(arg0);
     }
 }
 
