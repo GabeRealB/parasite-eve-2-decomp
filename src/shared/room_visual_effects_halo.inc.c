@@ -249,64 +249,63 @@ static inline void _roomVisualEffectsHaloTask(Task* task)
         if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        goto kill;
-    } else {
-        work->age++;
-        switch (task->state) {
-            case HALO_INITIALIZE:
-                // Attach at the spawn offset and unpack the tint and expansion duration.
-                coord->parent = work->parent;
-                gfxSetRotIdentity(&coord->coord);
-                coord->coord.t[0]   = work->pos.vx;
-                coord->coord.t[1]   = work->pos.vy;
-                coord->coord.t[2]   = work->pos.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                tintIndex             = task->spawnArg1.halves.high;
-                work->index           = tintIndex;
-                task->spawnArg1.value = task->spawnArg1.halves.low;
-                task->state           = HALO_EXPAND;
-                work->step            = HALO_EXPANSION_TARGET / task->spawnArg1.value;
-                return;
-            case HALO_EXPAND:
-                // scale holds brightness; angle holds the radius in world units.
-                actorRenderComposeCoord(coord);
-                work->scale           += work->step;
-                work->angle           += work->step;
-                task->spawnArg1.value -= 1;
-                ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work);
-                _roomVisualEffectsDrawHaloDisc(coord, work->angle, rgb);
-                rgb[0] = rgb[0] >> 1;
-                rgb[1] = rgb[1] >> 1;
-                rgb[2] = rgb[2] >> 1;
-                if (work->age & 1) {
-                    _roomVisualEffectsDrawHaloDisc(coord, (s16)(work->angle + HALO_ECHO_RADIUS_DELTA), rgb);
-                }
-                _roomVisualEffectsDrawHaloRing(coord, (s16)(HALO_INITIAL_RING_RADIUS - (u16)work->angle * 2), HALO_RING_TINT_DELTA, rgb);
-                if (task->spawnArg1.value == 0) {
-                    work->scale = HALO_FULL_BRIGHTNESS;
-                    task->state = HALO_FADE;
-                    return;
-                }
-                return;
-            case HALO_FADE:
-                // Replace the disc and ring with a larger star until its tint is dark.
-                actorRenderComposeCoord(coord);
-                if (work->scale >= HALO_FADE_STEP + 1) {
-                    ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work);
-                    _roomVisualEffectsDrawHaloStar(coord, (u16)work->angle * HALO_STAR_RADIUS_SCALE, rgb);
-                    work->scale -= HALO_FADE_STEP;
-                    work->angle += HALO_FADE_RADIUS_STEP;
-                    return;
-                }
-                /* fallthrough */
-            case HALO_RELEASE:
-                goto kill;
-            default:
-                return;
-        }
+        effectKillTask(work, task);
+        return;
     }
-kill:
+    work->age++;
+    switch (task->state) {
+        case HALO_INITIALIZE:
+            // Attach at the spawn offset and unpack the tint and expansion duration.
+            coord->parent = work->parent;
+            gfxSetRotIdentity(&coord->coord);
+            coord->coord.t[0]   = work->pos.vx;
+            coord->coord.t[1]   = work->pos.vy;
+            coord->coord.t[2]   = work->pos.vz;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(coord);
+            tintIndex             = task->spawnArg1.halves.high;
+            work->index           = tintIndex;
+            task->spawnArg1.value = task->spawnArg1.halves.low;
+            task->state           = HALO_EXPAND;
+            work->step            = HALO_EXPANSION_TARGET / task->spawnArg1.value;
+            return;
+        case HALO_EXPAND:
+            // scale holds brightness; angle holds the radius in world units.
+            actorRenderComposeCoord(coord);
+            work->scale           += work->step;
+            work->angle           += work->step;
+            task->spawnArg1.value -= 1;
+            ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work);
+            _roomVisualEffectsDrawHaloDisc(coord, work->angle, rgb);
+            rgb[0] = rgb[0] >> 1;
+            rgb[1] = rgb[1] >> 1;
+            rgb[2] = rgb[2] >> 1;
+            if (work->age & 1) {
+                _roomVisualEffectsDrawHaloDisc(coord, (s16)(work->angle + HALO_ECHO_RADIUS_DELTA), rgb);
+            }
+            _roomVisualEffectsDrawHaloRing(coord, (s16)(HALO_INITIAL_RING_RADIUS - (u16)work->angle * 2), HALO_RING_TINT_DELTA, rgb);
+            if (task->spawnArg1.value == 0) {
+                work->scale = HALO_FULL_BRIGHTNESS;
+                task->state = HALO_FADE;
+                return;
+            }
+            return;
+        case HALO_FADE:
+            // Replace the disc and ring with a larger star until its tint is dark.
+            actorRenderComposeCoord(coord);
+            if (work->scale >= HALO_FADE_STEP + 1) {
+                ROOM_VISUAL_EFFECTS_SET_HALO_TINT(rgb, work);
+                _roomVisualEffectsDrawHaloStar(coord, (u16)work->angle * HALO_STAR_RADIUS_SCALE, rgb);
+                work->scale -= HALO_FADE_STEP;
+                work->angle += HALO_FADE_RADIUS_STEP;
+                return;
+            }
+            /* fallthrough */
+        case HALO_RELEASE:
+            break;
+        default:
+            return;
+    }
     effectKillTask(work, task);
 }
 #undef ROOM_VISUAL_EFFECTS_SET_HALO_TINT
