@@ -48620,7 +48620,7 @@ sh   v0,0x2a(s0)
 ```
 
 The same trick works for `s16` fields that need `lh` rather than `lhu`
-(`func_dryfield_motel_balcony_8017EA00`, `TaskSpawnArg::halves.high`).
+(`dryfieldMotelBalconyRoomVisualEffectsHaloTask`, `TaskSpawnArg::halves.high`).
 
 Do **not** build a pointer to the byte block first
 (`s8* bytes = task->spawnArg1.signedBytes;`): that materialises
@@ -65749,9 +65749,9 @@ placing the load before them reproduces the target schedule.
 
 ## Signed byte stored to a halfword: route through an `s32` local for `lb`
 
-`func_dryfield_motel_balcony_8017DCB8` (shared as `RoomsShared8017dcb8`)
+`dryfieldMotelBalconyRoomVisualEffectsMoteTask` (shared as `_roomVisualEffectsMoteTask`)
 loads a signed lifetime byte from `Task::spawnArg1 + 3` and stores it in
-`RoomEffWork::field_2A`. Direct `s8`-field assignment to the `u16` field
+`EffectWork::step`. Direct `s8`-field assignment to the `u16` field
 produced `lbu; sll 24; sra 24; sh`: the `.combine` dump retained a QI load
 and shifts into an HI subreg. Assigning the byte to an `s32 lifetime` first,
 then storing that local, gave `lb; sh` without changing shared field types.

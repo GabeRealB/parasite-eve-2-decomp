@@ -51,9 +51,31 @@ void dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_dryfield_motel_balcony_80181628(Task* task);
 
-void func_dryfield_motel_balcony_8017DCB8(Task* task);
+/// Runs this room's vertically drifting animated mote until its brightness fades.
+///
+/// Requires a coordinate body and a counted, owned `EffectWork` in
+/// `spawnArg2.pointer`, with age and animation index initially zero.
+/// `spawnArg1` packs a world-unit half-extent in bits 0..11, a palette selector
+/// in bits 12..15 (0 default), unsigned speed in bits 16..23 in coordinate
+/// units per active tick, and signed lifetime in bits 24..31 in active ticks.
+/// The overlapping bits 0..1 select motion: either bit makes it steady,
+/// bit 1 makes steady motion upward; otherwise it rises with added random speed.
+/// The first active tick initializes without drawing; later ticks move along
+/// local Y and draw on odd ages. Nonzero room effect control pauses it;
+/// control 4 or above or completion releases the work and task.
+void dryfieldMotelBalconyRoomVisualEffectsMoteTask(Task* task);
 
-void func_dryfield_motel_balcony_8017EA00(Task* arg0);
+/// Runs this room's expanding tinted halo, shrinking ring and fading star.
+///
+/// Requires a coordinate body and a counted, owned, zero-initialized
+/// `EffectWork` in `spawnArg2.pointer`; its borrowed parent must stay live.
+/// Initialization attaches at the work's parent-relative offset in game units.
+/// `spawnArg1.halves.low` is a nonzero unsigned expansion duration in active
+/// ticks, and `halves.high` selects tint row 0..2. Initialization replaces the
+/// argument word with the remaining expansion ticks. Nonzero room effect
+/// control pauses it, including a state-3 release request; control 4 or above
+/// or completion releases the work and task.
+void dryfieldMotelBalconyRoomVisualEffectsHaloTask(Task* task);
 
 /// Runs this room's expanding orange disc, layered glow and fading outer ring.
 ///
@@ -64,7 +86,12 @@ void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
 void func_dryfield_motel_balcony_801801A8(Task* arg0);
 
-void func_dryfield_motel_balcony_8017DC28(Task* arg0);
+/// Installs this room's seven enemy-effect IDs once, then keeps the task idle.
+///
+/// State 0 selects the mote, halo, orange burst, spark emitter, flash,
+/// twin-trail and spark-burst implementations for the gameplay room-effect
+/// slots, then becomes state 1. Later ticks do nothing until external teardown.
+void dryfieldMotelBalconyInitRoomEffectsTask(Task* task);
 
 void func_dryfield_motel_balcony_8017DBD0(Task* task);
 

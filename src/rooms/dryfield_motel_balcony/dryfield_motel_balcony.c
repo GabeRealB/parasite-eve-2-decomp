@@ -1191,11 +1191,12 @@ void func_dryfield_motel_balcony_8017DBD0(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// On its first tick, stores the room's seven effect ids into the gameplay
-/// slots `gRoomEffectSparkEmitterId`..`gRoomEffectFlashId`, then idles.
-void func_dryfield_motel_balcony_8017DC28(Task* arg0)
+void dryfieldMotelBalconyInitRoomEffectsTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum { INSTALL_EFFECT_IDS,
+           EFFECT_IDS_INSTALLED };
+
+    if (task->state == INSTALL_EFFECT_IDS) {
         gRoomEffectMoteId         = EFFECT_DRYFIELD_MOTEL_BALCONY_MOTE;
         gRoomEffectHaloId         = EFFECT_DRYFIELD_MOTEL_BALCONY_HALO;
         gRoomEffectOrangeBurstId  = EFFECT_DRYFIELD_MOTEL_BALCONY_ORANGE_BURST;
@@ -1203,22 +1204,22 @@ void func_dryfield_motel_balcony_8017DC28(Task* arg0)
         gRoomEffectFlashId        = EFFECT_DRYFIELD_MOTEL_BALCONY_FLASH;
         gRoomEffectTwinTrailId    = EFFECT_DRYFIELD_MOTEL_BALCONY_TWIN_TRAIL;
         gRoomEffectSparkBurstId   = EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_BURST;
-        arg0->state               = 1;
+        task->state               = EFFECT_IDS_INSTALLED;
     }
 }
 
 #include "../../shared/room_visual_effects.inc.c"
 
-void func_dryfield_motel_balcony_8017DCB8(Task* task)
+void dryfieldMotelBalconyRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
 #include "../../shared/room_visual_effects_halo.inc.c"
 
-void func_dryfield_motel_balcony_8017EA00(Task* arg0)
+void dryfieldMotelBalconyRoomVisualEffectsHaloTask(Task* task)
 {
-    _roomVisualEffectsHaloTask(arg0);
+    _roomVisualEffectsHaloTask(task);
 }
 
 void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task)

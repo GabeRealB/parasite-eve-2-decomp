@@ -688,9 +688,9 @@ dryfieldMainStreetRoomVisualEffectsTwinTrailTask = 0x8017F94C; // type:func abso
 
 func_dryfield_main_street_80180234 = 0x80180234; // type:func absolute:True owner=dryfield_main_street
 
-func_dryfield_motel_balcony_8017DCB8 = 0x8017DCB8; // type:func absolute:True owner=dryfield_motel_balcony
+dryfieldMotelBalconyRoomVisualEffectsMoteTask = 0x8017DCB8; // type:func absolute:True owner=dryfield_motel_balcony
 
-func_dryfield_motel_balcony_8017EA00 = 0x8017EA00; // type:func absolute:True owner=dryfield_motel_balcony
+dryfieldMotelBalconyRoomVisualEffectsHaloTask = 0x8017EA00; // type:func absolute:True owner=dryfield_motel_balcony
 
 dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask = 0x8017ED98; // type:func absolute:True owner=dryfield_motel_balcony
 
@@ -1795,7 +1795,7 @@ dryfieldDrivewayEnableAmbientEffectsTask = 0x8017DE6C; // type:func absolute:Tru
 
 dryfieldJunkYardEnableViewEffectsTask = 0x8017DD0C; // type:func absolute:True owner=dryfield_junk_yard shared=rooms
 
-func_dryfield_motel_balcony_8017DC28 = 0x8017DC28; // type:func absolute:True owner=dryfield_motel_balcony shared=rooms
+dryfieldMotelBalconyInitRoomEffectsTask = 0x8017DC28; // type:func absolute:True owner=dryfield_motel_balcony shared=rooms
 
 motelRoom6DayDrawGlow = 0x80182978; // type:func absolute:True owner=dryfield_motel_room_6
 

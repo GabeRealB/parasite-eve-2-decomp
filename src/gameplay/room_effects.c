@@ -757,7 +757,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldJunkYardEnableViewEffectsTask, { NULL } },                     // 0x0D8
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_trailer_coach_801838DC, { NULL } },                      // 0x0D9
     { { { TASK_BODY_COORD, 0x70 } }, func_inferno_8012F530, { NULL } },                                     // 0x0DA
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_8017DC28, { NULL } },                      // 0x0DB
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyInitRoomEffectsTask, { NULL } },                   // 0x0DB
     { { { TASK_BODY_COORD, 0x70 } }, motelRoom6DayDrawGlow, { NULL } },                                     // 0x0DC
     { { { TASK_BODY_COORD, 0x70 } }, func_energyshot_8012FFB8, { NULL } },                                  // 0x0DD
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_water_hole_8017E040, { NULL } },                         // 0x0DE
@@ -1180,8 +1180,8 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_8017F4DC, { NULL } },                    // 0x27F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_8017FA34, { NULL } },                    // 0x280
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_submarine_tunnel_80180694, { NULL } },                    // 0x281
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_8017DCB8, { NULL } },                      // 0x282
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_8017EA00, { NULL } },                      // 0x283
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsMoteTask, { NULL } },             // 0x282
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsHaloTask, { NULL } },             // 0x283
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask, { NULL } },  // 0x284
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_801801A8, { NULL } },                      // 0x285
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_8017FA68, { NULL } },                  // 0x286
