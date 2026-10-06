@@ -611,19 +611,14 @@ void LinInterp_Setup(LinInterp* ramp, s32 arg1, s32 arg2, s32 arg3)
     arg1 &= 0xFF;
     arg2 &= 0xFF;
 
-    if (arg1 != arg2) {
-        if (arg3 != 0) {
-            goto setup;
-        }
+    if (arg1 == arg2 || arg3 == 0) {
+        ramp->step       = 0;
+        ramp->targetGain = 0;
+        ramp->gain       = 0;
+        ramp->enabled    = LINEAR_INTERPOLATOR_BYPASS;
+        return;
     }
 
-    ramp->step       = 0;
-    ramp->targetGain = 0;
-    ramp->gain       = 0;
-    ramp->enabled    = LINEAR_INTERPOLATOR_BYPASS;
-    return;
-
-setup:
     limit      = LINEAR_INTERPOLATOR_UNITY_GAIN;
     ramp->step = limit / arg3;
     temp       = arg2 - arg1;
