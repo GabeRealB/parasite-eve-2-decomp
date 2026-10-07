@@ -34,6 +34,8 @@
 
 #include "main/task_types.h"
 
+#include "actor_messages.h"
+
 /// Work block of a paced walker, allocated zeroed at its full size by the
 /// walker's spawn state and kept at `Task::work`.
 ///
@@ -179,10 +181,28 @@ static s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTran
 
 static s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 
+#ifndef PACED_WALK_SET_PAIR_MODEL_DRAW
+/// Function identifier selecting a paced walker's paired model-draw callback.
+///
+/// Defaults to `pacedWalkShowPair`, with signature
+/// `s32 (Task* task, s32 messageId, s32 flags, s32 unusedArg)`.
+/// Bind before this header's first inclusion, or undefine and rebind around
+/// another draw fragment's inclusion. Declare additional private instances
+/// `static` in the carrier's prologue before their message tables: the fragment
+/// definition inherits that linkage. Use the same identifier in the table and
+/// at the definition, then restore the first binding afterwards.
+/// Each instance requires `PacedWalkWork` at `Task::work`, independent of
+/// `PACED_WALK_WORK_T`. Nonzero `Task::spawnArg1.value` requires a live paired TMD
+/// task in that work block; zero makes both model pointers alias the receiver.
+/// This object-like alias evaluates no arguments, captures no locals and uses
+/// no stringification or token pasting. Header guards select the default once.
+#define PACED_WALK_SET_PAIR_MODEL_DRAW pacedWalkShowPair
+#endif
+
 void       pacedWalkFrame(Enemy* enemy, Task* task);
 void       pacedWalkSpawn(Enemy* enemy, Task* task);
 static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
-s32        pacedWalkShowPair(Task* task, s32 arg1, s32 flags, s32 arg3);
+s32        PACED_WALK_SET_PAIR_MODEL_DRAW(Task* task, s32 messageId, s32 flags, s32 unusedArg);
 
 /* Defined by each package. */
 void pacedWalkExit(Task* task);

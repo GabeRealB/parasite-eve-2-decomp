@@ -77,7 +77,7 @@ extern _Actor460200AnimationBankExtensionStorage D_actor_460200_80135E30;
 
 s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
-s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags, s32 arg3);
+static s32 _pacedWalkSetSoldierCModelDraw(Task* task, s32 messageId, s32 flags, s32 unusedArg);
 
 // Message-table callbacks use the argument views required by this TU.
 
@@ -126,7 +126,6 @@ s32        func_actor_460200_80133568(Task* task, s32 msgId, ActorCommand* args,
 
 static TmdSource _gActor460200SoldierCBody;
 s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_460200_80133CD0(Task*, s32, s32, s32);
 static s32       _pacedWalkPlaceSoldierC(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 s32              func_actor_460200_80133DC4(Task*, s32, s32, s32);
 static s32       _pacedWalkSetSoldierCWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
@@ -1296,7 +1295,7 @@ static AnimationSet _gActor460200Animation0DE08 = {
 
 TaskMessageEntry gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, PACED_WALK_SET_PAIR_MODEL_DRAW },
     { ACTOR_MESSAGE_PLACE, PACED_WALK_PLACE },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80132C8C },
     { ACTOR_MESSAGE_WALK_TO, PACED_WALK_SET_WALK_TARGET },
@@ -2118,7 +2117,7 @@ static AnimationSet _gActor460200Animation1F6B4 = {
 
 TaskMessageEntry D_actor_460200_801514FC[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_460200_80133C64 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_460200_80133CD0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetSoldierCModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlaceSoldierC },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133DC4 },
     { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetSoldierCWalkTarget },
@@ -2513,10 +2512,12 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args,
     return -1;
 }
 
-/// A further copy, under this file's own name.
-#define pacedWalkShowPair func_actor_460200_80133CD0
+// Select Soldier C's private draw-message callback.
+#undef PACED_WALK_SET_PAIR_MODEL_DRAW
+#define PACED_WALK_SET_PAIR_MODEL_DRAW _pacedWalkSetSoldierCModelDraw
 #include "../../shared/paced_walk_show_pair.inc.c"
-#undef pacedWalkShowPair
+#undef PACED_WALK_SET_PAIR_MODEL_DRAW
+#define PACED_WALK_SET_PAIR_MODEL_DRAW pacedWalkShowPair
 
 // Soldier C's placement uses the restored PacedWalkWork binding.
 #undef PACED_WALK_PLACE

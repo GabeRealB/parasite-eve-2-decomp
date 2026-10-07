@@ -785,6 +785,14 @@ actor_460200 selects `_pacedWalkSetSoldierCWalkTarget` for its third walker.
 Each copy requires
 `PacedWalkWork` independently of `PACED_WALK_WORK_T`; rebind around its fragment
 and restore the first binding afterwards.
+`PACED_WALK_SET_PAIR_MODEL_DRAW` selects the paired model-draw message callback.
+Additional private copies are declared `static` in their carrier's prologue;
+the shared fragment inherits that linkage. The binding defaults to
+`pacedWalkShowPair`; actor_460200 selects `_pacedWalkSetSoldierCModelDraw` for
+its third walker, then restores the default. The callback requires
+`PacedWalkWork` independently of the work-type binding and selects a live
+`pairTask` only when `Task::spawnArg1.value` is nonzero; otherwise both model
+pointers refer to the receiver.
 
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by

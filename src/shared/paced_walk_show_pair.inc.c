@@ -1,33 +1,49 @@
 /* Part of the paced walk library; see paced_walk.h. */
 
-/// Script opcode: shows or hides this actor's model and the model of the task
-/// parked in `pairTask`. With `flags` bit 0 both models get `TmdObject::flags`
-/// 0, which shows them; without it they get 0x80, which hides them. Bit 1
-/// additionally ORs in 0x4. With `Task::spawnArg1` clear the actor drives its
-/// own model twice.
-s32 pacedWalkShowPair(Task* task, s32 arg1, s32 flags, s32 arg3)
+#ifndef SRC_SHARED_PACED_WALK_PAIR_DRAW_FLAGS
+#define SRC_SHARED_PACED_WALK_PAIR_DRAW_FLAGS
+/// Replaces both models' draw flags from an `ACTOR_MESSAGE_PAIR_*` request.
+///
+/// The pointers may alias. Preserve each model's ordered replace and OR writes.
+static inline void _pacedWalkReplacePairDrawFlags(TmdObject* model, TmdObject* pairModel, s32 flags)
+{
+    if (flags & ACTOR_MESSAGE_PAIR_SHOW) {
+        model->flags     = 0;
+        pairModel->flags = 0;
+    } else {
+        model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        pairModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    }
+    if (flags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+        model->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        pairModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    }
+}
+#endif
+
+/// Replaces the paced walker and its optional carried model's draw flags.
+///
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` on a live TMD task with
+/// `PacedWalkWork` at `Task::work`. Nonzero `Task::spawnArg1.value` requires a live
+/// TMD task in `PacedWalkWork::pairTask`; otherwise both writes target the
+/// receiver's model. `ACTOR_MESSAGE_PAIR_SHOW` clears every model flag; its
+/// absence replaces them with active-draw exclusion. The independent
+/// `ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER` bit adds automatic-buffer suppression.
+/// Other request bits are ignored. Neither allocates nor releases buffers.
+/// The message ID and second payload are ignored. Returns 0.
+s32 PACED_WALK_SET_PAIR_MODEL_DRAW(Task* task, s32 messageId, s32 flags, s32 unusedArg)
 {
     PacedWalkWork* work;
-    TmdObject*     self;
-    TmdObject*     other;
+    TmdObject*     model;
+    TmdObject*     pairModel;
 
-    self = task->extra.tmd;
-    work = task->work;
+    model = task->extra.tmd;
+    work  = task->work;
     if (task->spawnArg1.value != 0) {
-        other = work->pairTask->extra.tmd;
+        pairModel = work->pairTask->extra.tmd;
     } else {
-        other = self;
+        pairModel = model;
     }
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
+    _pacedWalkReplacePairDrawFlags(model, pairModel, flags);
     return 0;
 }
