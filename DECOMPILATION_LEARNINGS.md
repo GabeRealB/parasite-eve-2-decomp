@@ -48907,7 +48907,7 @@ Renaming a parameter by copying it into a local is the standard tidy-up after
 m2c, and it is not free. The copy is coalesced, so the reference count is
 unchanged, but the pseudo now starts at the copy rather than at function entry
 and `reg_live_length` drops sharply -- in
-`func_acropolis_security_room_80180368` (a three-state task handler) from 110
+`_acropolisSecurityRoomRightUnlockSoundTask` (a three-state task handler) from 110
 insns to 56. Global alloc sorts by roughly `log2(refs) * refs / live_length`,
 so the shorter range *raised* the task pointer's priority from 0.27 to 0.54,
 above the 0.38 of the `Task::work` pointer it should have lost to. The two
@@ -51817,7 +51817,7 @@ done:
 This is the counterpart of "A `move` duplicated in a delay slot *and* before
 the label": there the duplicate is `fill_slots_from_thread` stealing the join
 block's first insn, here it is two real call sites that never got merged.
-`func_acropolis_security_room_8017EADC`.
+`_acropolisSecurityRoomMonitorClose`.
 
 ### The `(s16)` cast only folds into `lh` if the local is `int`-wide
 
@@ -52043,7 +52043,7 @@ addiu $v1, $a0, 0xC     ; DR_MODE / DR_TWIN  (tag + u_long code[2])
 addiu $v1, $a0, 0x8     ; DR_TPAGE           (tag + u_long code[1])
 ```
 
-`func_acropolis_security_room_8017E37C` scored 99.93% with a single leftover,
+`_acropolisSecurityRoomDrawMonitorSweep` scored 99.93% with a single leftover,
 `addiu v1,a0,8` against the target's `addiu v1,a0,0xc`; swapping `DR_TPAGE` for
 `DR_MODE` — same two stores, only `code[]` is longer — took it to 100%. The
 second `code` word is simply left uninitialised, which is why nothing else in
@@ -86647,7 +86647,7 @@ id at first glance; it is the *payload*. `itemMenuUseKeyItemTask`
 (`src/gameplay/item_stats.c`) sends `taskMessageDispatch(roomTask, ROOM_MESSAGE_USE_KEY_ITEM, itemId, 0)` with the
 highlighted key item third, so the handler answers "is the highlighted item
 0x11B?", not "am I message 0x11B?". The matched C of the same query,
-`func_acropolis_security_room_8017FE24`, is the shape to copy.
+`_acropolisSecurityRoomPowerSupplyUseKeyItem`, is the shape to copy.
 
 The m2c seed wrote that same body with the condition inverted
 (`if (arg2 != 0x11B)`), which is not merely cosmetic: it blocks the delay-slot
@@ -149666,7 +149666,7 @@ attempts; left as it was.
   with the trailing `else` arm's `state = 2`. Then all three jumps go to the
   switch's end label from the start and the last copy survives.
 - **A scan `L: if (key != *p) { i++; p++; if (i >= 5) { f(FLAG, 0); goto done; }
-  goto L; } f(FLAG, i); done:`** (`func_acropolis_security_room_8017EADC`) is a
+  goto L; } f(FLAG, i); done:`** (`_acropolisSecurityRoomMonitorClose`) is a
   `static inline void` with `for (i = 0; i < 5; i++) { if (key == tbl[i]) {
   f(FLAG, i); return; } } f(FLAG, 0);`. The image's signature is the first
   argument loaded twice (`li a0,FLAG` in the hit branch's delay slot and again
