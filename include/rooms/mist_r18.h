@@ -30,6 +30,14 @@ extern SpriteView D_mist_r18_80186B60[];
 
 extern WorldCollisionSurfaceProperties* D_mist_r18_80186E70[];
 
-void func_mist_r18_8017ED64(Task* task);
+/// Runs the MIST briefing and its key-item menu before departure to Dryfield.
+///
+/// Requires a live room task with state 0 setup, 1 advance briefing scripts or
+/// 2 teardown; no index check is made. Setup registers the task in the resident
+/// room slot. State 1 waits for event/menu completion and repeats the key-item
+/// prompt until the Dryfield map is opened. A separate script cursor stops
+/// advancing once departure begins. The callback table is copied by value before
+/// dispatch. The room and Acropolis map overlays must remain loaded while active.
+void mistR18BriefingTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MIST_R18_H

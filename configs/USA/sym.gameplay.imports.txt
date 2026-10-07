@@ -1955,7 +1955,7 @@ shelterB1PodServiceGantrySpriteDriftTask = 0x8017D8F4; // type:func absolute:Tru
 
 dryfieldR08SpriteDriftTask = 0x8017D8B4; // type:func absolute:True owner=dryfield_r08
 
-shelterB2PodBottomArcFlashTask = 0x8017EC78; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
+shelterB2PodBottomArcFlashTask = 0x8017EC78; // type:func absolute:True owner=shelter_b2_pod_bottom
 
 shelterB2PodBottomEnergyRingTask = 0x8017F448; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 

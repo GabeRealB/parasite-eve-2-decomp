@@ -174,7 +174,7 @@ D_acropolis_west_elevator_hall_80185044 = 0x80185044; // absolute:True owner=acr
 D_acropolis_west_elevator_hall_80186408 = 0x80186408; // absolute:True owner=acropolis_west_elevator_hall
 D_acropolis_west_elevator_hall_801869FC = 0x801869FC; // absolute:True owner=acropolis_west_elevator_hall
 D_acropolis_west_elevator_hall_80186AC4 = 0x80186AC4; // absolute:True owner=acropolis_west_elevator_hall
-func_mist_r18_8017ED64 = 0x8017ED64; // type:func absolute:True owner=mist_r18
+mistR18BriefingTask = 0x8017ED64; // type:func absolute:True owner=mist_r18
 D_mist_r18_8018660C = 0x8018660C; // absolute:True owner=mist_r18 shared=rooms
 D_mist_r18_8018661C = 0x8018661C; // absolute:True owner=mist_r18
 D_mist_r18_80186620 = 0x80186620; // absolute:True owner=mist_r18

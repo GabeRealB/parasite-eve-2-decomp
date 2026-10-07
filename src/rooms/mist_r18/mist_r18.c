@@ -52,10 +52,19 @@ enum {
     MIST_R18_BACKDROP_RIGHT_VRAM_Y  = 256,
 };
 
+/// Next briefing script to start after the current event and menu have finished.
+enum {
+    MIST_R18_BRIEFING_PLACE_PROP         = 1,
+    MIST_R18_BRIEFING_FIRST_HELD_MODEL   = 2,
+    MIST_R18_BRIEFING_OPEN_KEY_ITEMS     = 3,
+    MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP = 4,
+    MIST_R18_BRIEFING_DEPARTING          = 5,
+};
+
 extern WorldCoordRoomLights D_mist_r18_80186E44[1];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
-static void func_mist_r18_8017D960(Task* task);
+static void _mistR18AdvanceBriefingState(Task* unusedTask);
 static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade);
 static void _mistR18CaptureBackdropState(Task* task);
 static void _mistR18AttachedModelIdleState(Task* task);
@@ -63,7 +72,7 @@ static void _mistR18DrawTile(const PrimDrawParams* draw);
 static void _mistR18DrawSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY);
 static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orderingTableSlot);
 static void _mistR18WaitForCrossfadeViewState(Task* task);
-static void func_mist_r18_8017ECF4(Task* arg0);
+static void _mistR18InitBriefingState(Task* task);
 
 /// The room's task-spawn table; its entries are started by index from the
 /// room's callbacks.
@@ -86,9 +95,9 @@ extern Task* D_mist_r18_80186E90;
 extern Task* D_mist_r18_80186E94;
 /// Handle of the task `func_mist_r18_8017EA2C` spawns.
 extern Task* D_mist_r18_80186E98;
-/// Step of the cutscene sequence `func_mist_r18_8017D960` walks.
+/// Step of the cutscene sequence `_mistR18AdvanceBriefingState` walks.
 extern s32 D_mist_r18_80186E9C;
-/// Set by `func_mist_r18_8017D960` when the alternate cutscene branch ran.
+/// Set by `_mistR18AdvanceBriefingState` when the alternate cutscene branch ran.
 extern s32 D_mist_r18_80186EA0;
 
 /// State handlers of the attached-model task `_mistR18AttachedModelTask`
@@ -98,13 +107,13 @@ static const TaskFuncTable3 D_mist_r18_8017D5C4 = {
     { _modelPlacementAttachPartTask, _mistR18AttachedModelIdleState, taskKill },
 };
 
-/// State handlers of the room's cutscene task `func_mist_r18_8017ED64`
+/// State handlers of the room's cutscene task `mistR18BriefingTask`
 /// dispatches: set-up, the cutscene step, then `taskKill`.
 static const TaskFuncTable3 D_mist_r18_8017D5D0 = {
-    { func_mist_r18_8017ECF4, func_mist_r18_8017D960, taskKill },
+    { _mistR18InitBriefingState, _mistR18AdvanceBriefingState, taskKill },
 };
 
-/// State handlers of the backdrop task `func_mist_r18_8017E854` dispatches:
+/// State handlers of the backdrop task `_mistR18CrossfadeTask` dispatches:
 /// capture the framebuffer as the backdrop, wait for the new view, crossfade, then
 /// `taskKill`.
 static const TaskFuncTable4 D_mist_r18_8017D5DC = {
@@ -123,13 +132,13 @@ void                 func_mist_r18_8017E824(void);
 void                 func_mist_r18_8017EA2C(void);
 static void          _mistR18KillPlacedProp(void);
 void                 func_mist_r18_8017EB48(void);
-void                 func_mist_r18_8017EBB8(void);
+static void          _mistR18PrepareBriefingScene(void);
 void                 func_mist_r18_8017EBF8(void);
-void                 func_mist_r18_8017EC38(void);
-void                 func_mist_r18_8017EC58(void);
-void                 func_mist_r18_8017EC78(void);
-void                 func_mist_r18_8017ECC0(s8);
-void                 func_mist_r18_8017ECCC(void);
+static void          _mistR18EnqueueScenePlayback(void);
+static void          _mistR18FinishSceneStream(void);
+static void          _mistR18CancelScene(void);
+static void          _mistR18SetOrderingDepthShift(s8 depthShift);
+static void          _mistR18OpenKeyItemMenu(void);
 
 static AnimationSet _gMistR18Animation02274;
 static AnimationSet _gMistR18Animation030E8;
@@ -147,7 +156,7 @@ static void         _mistR18CaptionTask(Task* task);
 static void         _mistR18TextureFadeTask(Task* task);
 static void         _mistR18AttachedModelTask(Task* task);
 static void         _mistR18FadeTileTask(Task* task);
-void                func_mist_r18_8017E854(Task*);
+static void         _mistR18CrossfadeTask(Task* task);
 static void         _mistR18PlacePropTask(Task* task);
 static void         _mistR18ReleaseScriptPauseTask(Task* task);
 
@@ -500,7 +509,7 @@ TaskDesc D_mist_r18_80184F04[8] = {
     { { { TASK_BODY_TMD, 192 } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Model072AC } },
     { { { TASK_BODY_TMD, 192 } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Prop } },
     { { { TASK_BODY_COORD, 192 } }, _mistR18TextureFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017E854, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistR18CrossfadeTask, { .value = 0 } },
     { { { TASK_BODY_TMD, 192 } }, _mistR18PlacePropTask, { .model = &_gMistR18Actor213000Prop } },
     { { { TASK_BODY_NONE, 192 } }, _mistR18CaptionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mistR18FadeTileTask, { .value = 0 } },
@@ -596,11 +605,11 @@ ActorCommand D_mist_r18_80185224 = { { .loc = { 0, 0 } }, 2 };
 ActorCommand D_mist_r18_80185228 = { { .loc = { 0, 0 } }, 3 };
 
 EvsCommand D_mist_r18_8018522C[56] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EBB8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18PrepareBriefingScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EBF8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EC38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -627,7 +636,7 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FAC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185088 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185164 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EC58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18FinishSceneStream }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -707,11 +716,11 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = DISPLAY_DEPTH_SHIFT_4X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_4X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185038 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185100 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801851A0 } }, { .value = 0 } },
@@ -733,7 +742,7 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EB48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -769,7 +778,7 @@ EvsCommand D_mist_r18_8018603C[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017ECCC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18OpenKeyItemMenu }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -792,7 +801,7 @@ EvsCommand D_mist_r18_801861BC[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017ECCC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18OpenKeyItemMenu }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -802,7 +811,7 @@ EvsCommand D_mist_r18_801861BC[20] = {
 EvsCommand D_mist_r18_8018639C[8] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EC78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185220 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -822,7 +831,7 @@ EvsCommand D_mist_r18_8018645C[8] = {
 };
 
 EvsCommand D_mist_r18_8018651C[3] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_mist_r18_8017ECC0 }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EB48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1179,35 +1188,47 @@ static void _mistR18CaptionTask(Task* task)
 #undef MIST_R18_DRAW_CAPTION_PREFIX
 }
 
-/// Cutscene step of the room's cutscene task: while no event is running and
-/// neither gate is set, start the next script of the sequence whose step
-/// `D_mist_r18_80186E9C` holds. At step 4 it branches on `mapAkropolisWasDryfieldMapSelected`,
-/// setting `D_mist_r18_80186EA0` and staying on that step when the alternate
-/// script runs.
-static void func_mist_r18_8017D960(Task* task)
+/// Starts a skippable briefing event and commits the cursor for its successor.
+///
+/// Both script arrays remain live through event playback. The interpreter marks
+/// the event active before the cursor advances, preventing another launch.
+static inline void _mistR18StartSkippableBriefingStep(EvsCommand* script, EvsCommand* skipScript, s32 nextStep)
 {
-    s32 state;
+    evsStartScriptWithSkip(script, EVENT_SCRIPT_HUD_HIDE_RESTORE, skipScript);
+    D_mist_r18_80186E9C = nextStep;
+}
 
-    if ((gGameSession->eventState == 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-        state = D_mist_r18_80186E9C;
-        if (state == 1) {
-            evsStartScriptWithSkip(D_mist_r18_80185EBC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_80186564);
-            D_mist_r18_80186E9C = 2;
-        } else if (state == 2) {
+/// Advances the briefing scripts and repeats the key-item menu until the Dryfield map is opened.
+///
+/// Runs only while the event interpreter is idle, the attachment wheel is closed
+/// and no display-mode transition is pending. The script cursor is independent
+/// of the task's state. A repeated menu preserves its map-opened latch; departure
+/// starts once the map choice is latched. `unusedTask` is required by task dispatch.
+static void _mistR18AdvanceBriefingState(Task* unusedTask)
+{
+    enum { MIST_R18_EVENT_IDLE = 0 };
+    s32 briefingStep;
+
+    // Event completion and menu teardown must finish before another script starts.
+    if ((gGameSession->eventState == MIST_R18_EVENT_IDLE) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+        briefingStep = D_mist_r18_80186E9C;
+        if (briefingStep == MIST_R18_BRIEFING_PLACE_PROP) {
+            _mistR18StartSkippableBriefingStep(D_mist_r18_80185EBC, D_mist_r18_80186564, MIST_R18_BRIEFING_FIRST_HELD_MODEL);
+        } else if (briefingStep == MIST_R18_BRIEFING_FIRST_HELD_MODEL) {
             evsStartScriptWithSkip(D_mist_r18_8018576C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018645C);
-            D_mist_r18_80186EA0 = 0;
-            D_mist_r18_80186E9C = 3;
-        } else if (state == 3) {
+            D_mist_r18_80186EA0 = false;
+            D_mist_r18_80186E9C = MIST_R18_BRIEFING_OPEN_KEY_ITEMS;
+        } else if (briefingStep == MIST_R18_BRIEFING_OPEN_KEY_ITEMS) {
             evsStartScript(D_mist_r18_8018603C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            D_mist_r18_80186E9C = 4;
-        } else if (state == 4) {
-            if (mapAkropolisWasDryfieldMapSelected() != 1) {
+            D_mist_r18_80186E9C = MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP;
+        } else if (briefingStep == MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP) {
+            // Reopen the reminder menu without resetting its map-opened latch.
+            if (mapAkropolisWasDryfieldMapSelected() != true) {
                 evsStartScript(D_mist_r18_801861BC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-                D_mist_r18_80186EA0 = 1;
+                D_mist_r18_80186EA0 = true;
                 return;
             }
-            evsStartScriptWithSkip(D_mist_r18_80185AE4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018651C);
-            D_mist_r18_80186E9C = 5;
+            _mistR18StartSkippableBriefingStep(D_mist_r18_80185AE4, D_mist_r18_8018651C, MIST_R18_BRIEFING_DEPARTING);
         }
     }
 }
@@ -1639,9 +1660,13 @@ void func_mist_r18_8017E824(void)
     taskSpawnFromTable(D_mist_r18_80184F04, 3, 0, 0);
 }
 
-/// Per-frame entry point of the backdrop task: run the handler its state
-/// selects from `D_mist_r18_8017D5DC`, copied onto the stack each frame.
-void func_mist_r18_8017E854(Task* task)
+/// Dispatches the room's captured-backdrop crossfade.
+///
+/// Requires a live task with state 0 capture, 1 wait for the replacement view,
+/// 2 fade to the live frame or 3 teardown. Handlers keep RGB modulation in
+/// `killCountdown` and borrow frame packets until GPU completion. The callback
+/// table is copied by value before dispatch; there is no index check.
+static void _mistR18CrossfadeTask(Task* task)
 {
     TaskFuncTable4 states;
 
@@ -1738,10 +1763,21 @@ void func_mist_r18_8017EB48(void)
     taskSpawn(0, 0x11, 0, 0);
 }
 
-void func_mist_r18_8017EBB8(void)
+/// Selects the briefing's scene stream and stages its deferred audio-start request.
+///
+/// Marks the view dirty first. Requires the current stage's descriptor table to
+/// contain scene key (1, 30, 11, 0) and no unfinished earlier scene selection.
+/// Selection saves random state; the stream and buffers remain live through
+/// playback. The resident CD dispatcher commits the deferred start separately.
+static void _mistR18PrepareBriefingScene(void)
 {
-    gGameSession->viewDirty = 1;
-    cdCmdSelectScene(1U, 0x1EU, 0xBU);
+    enum {
+        MIST_R18_BRIEFING_SCENE_GROUP     = 1,
+        MIST_R18_BRIEFING_SCENE_STREAM_ID = 30,
+        MIST_R18_BRIEFING_SCENE_SUB_ID    = 11,
+    };
+    gGameSession->viewDirty = true;
+    cdCmdSelectScene(MIST_R18_BRIEFING_SCENE_GROUP, MIST_R18_BRIEFING_SCENE_STREAM_ID, MIST_R18_BRIEFING_SCENE_SUB_ID);
     cdCmdStageSceneAudioStart();
 }
 
@@ -1752,18 +1788,30 @@ void func_mist_r18_8017EBF8(void)
     }
 }
 
-void func_mist_r18_8017EC38(void)
+/// Queues playback of the briefing's previously selected scene/audio session.
+///
+/// Requires prepared playback buffers and space in the resident CD request ring.
+/// An audio-free selection enters playing mode immediately.
+static void _mistR18EnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-void func_mist_r18_8017EC58(void)
+/// Ends briefing scene streaming and restores the random state saved at selection.
+///
+/// Requires a successful earlier scene selection. Buffer and task teardown remain
+/// with their owners; pending resident CD requests are left in place.
+static void _mistR18FinishSceneStream(void)
 {
     streamFinishScene();
 }
 
-/// Clear the queued CD command and restart the CD queue.
-void func_mist_r18_8017EC78(void)
+/// Requests scene cancellation when the briefing's introductory event is skipped.
+///
+/// Discards the deferred CD replacement and immediately finishes scene streaming,
+/// restoring saved random state. Resident CD dispatch completes cancellation;
+/// the skip script handles actor and display cleanup separately.
+static void _mistR18CancelScene(void)
 {
     cdCmdCancelScene();
 }
@@ -1779,35 +1827,46 @@ static void _mistR18ReleaseScriptPauseTask(Task* task)
     }
 }
 
-void func_mist_r18_8017ECC0(s8 arg0)
+/// Sets the camera-depth left shift used before ordering-table quantization.
+///
+/// The departure script passes `DISPLAY_DEPTH_SHIFT_4X` while view 5 is active and
+/// `DISPLAY_DEPTH_SHIFT_1X` to restore normal depth. The signed-byte EVS argument
+/// is stored as a byte without validation; supported renderer shifts are 0..3.
+static void _mistR18SetOrderingDepthShift(s8 depthShift)
 {
-    gDisplayState.otDepthShift = arg0;
+    gDisplayState.otDepthShift = depthShift;
 }
 
-void func_mist_r18_8017ECCC(void)
+/// Opens the briefing's key-item menu without reinitializing it on reminder passes.
+///
+/// The first pass marks the four briefing items collected and clears the map
+/// choice. Reminder passes skip that initialization. The map overlay and its UI
+/// must stay loaded until the queued display-mode task finishes.
+static void _mistR18OpenKeyItemMenu(void)
 {
     mapAkropolisOpenKeyItemMenu(0, D_mist_r18_80186EA0);
 }
 
-static void func_mist_r18_8017ECF4(Task* arg0)
+/// Registers the room task and starts the introductory briefing event with its skip script.
+///
+/// Requires fresh prop handles: initialization forgets them without killing tasks.
+/// Advances to task state 1 and seeds the separate cursor for the prop-placement
+/// script, which starts after the introductory event finishes or is skipped.
+static void _mistR18InitBriefingState(Task* task)
 {
-    D_mist_r18_80186E90 = 0;
-    D_mist_r18_80186E94 = 0;
-    D_mist_r18_80186E98 = 0;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    D_mist_r18_80186E90 = NULL;
+    D_mist_r18_80186E94 = NULL;
+    D_mist_r18_80186E98 = NULL;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     evsStartScriptWithSkip(D_mist_r18_8018522C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018639C);
-    arg0->state         = (s32)(arg0->state + 1);
-    D_mist_r18_80186E9C = 1;
+    task->state++;
+    D_mist_r18_80186E9C = MIST_R18_BRIEFING_PLACE_PROP;
 }
 
-/// Per-frame entry point of the room's cutscene task: run the handler its state
-/// selects from `D_mist_r18_8017D5D0` (set-up, the cutscene step
-/// `func_mist_r18_8017D960`, then `taskKill`), copied onto the stack each
-/// frame.
-void func_mist_r18_8017ED64(Task* task)
+void mistR18BriefingTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_mist_r18_8017D5D0;
-    sp.funcs[task->state](task);
+    states = D_mist_r18_8017D5D0;
+    states.funcs[task->state](task);
 }
