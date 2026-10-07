@@ -4165,7 +4165,6 @@ static void Actor00400_Fn070C0(Task* arg0)
     GfxCoord*         coord0           = ctx->coords;
     void              (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
     GfxMatrix         m;
-    GfxRotationWords* ia;
     _Actor00400Work*  w;
     _Actor00400Work*  w2;
     _Actor00400Work*  w3;
@@ -4208,12 +4207,7 @@ static void Actor00400_Fn070C0(Task* arg0)
             work->animStatus       = work->rig.slots[1].status.fields.flags;
             w2                     = arg0->work;
             coord                  = arg0->extra.tmd->coords;
-            ia                     = &m.rotationWords;
-            m.rotationWords.m00M01 = ONE;
-            m.rotationWords.m02M10 = 0;
-            ia->m11M12             = ONE;
-            m.rotationWords.m20M21 = 0;
-            ia->m22                = ONE;
+            gfxSetRotIdentity(&m.mat);
             RotMatrixZ(w2->rotation.vz, &m.mat);
             RotMatrixY(w2->rotation.vy, &m.mat);
             dst                 = &coord->coord;
