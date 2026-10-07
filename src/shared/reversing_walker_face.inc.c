@@ -1,9 +1,13 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// Installs a root rotation in both its stored Euler angles and local matrix.
+/// Installs the walk heading as stored Euler angles and a pure root rotation.
 ///
-/// Requires a live coordinate and a separate readable rotation, in 4096 units
-/// per turn. Translation is retained and composition is invalidated.
+/// Requires a live, writable root coordinate and separate readable rotation
+/// XYZ, in 4096 units per turn. Builds Rx(X) * Ry(Y) * Rz(Z) in the root's
+/// parent frame at unit scale, replacing the old rotation and scale.
+/// Translation, parent and the stored rotation's fourth halfword stay intact;
+/// the input's fourth halfword is unread. Composition is marked dirty so the
+/// cached matrix is rebuilt before use. Neither input pointer is retained.
 static inline void _reverseWalkApplyFacingRotation(GfxCoord* rootCoord, const SVECTOR* rotation)
 {
     rootCoord->param.rot.vx = rotation->vx;

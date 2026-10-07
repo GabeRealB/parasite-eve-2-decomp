@@ -1,13 +1,26 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// Binds the selected bank and applies a changed walk clip to the nineteen-part rig.
+/// Starts a changed walk clip on the reversing walker's nineteen-part rig.
 ///
-/// Requires a live TMD task with initialized `ReverseWalkWork` and a borrowed
-/// request with a loaded bank and clip. Drives slots 1..18; a bank change
-/// invalidates the old clip. The collision choice is ignored.
-/// An unchanged clip in the same bank leaves playback alone. The rig borrows
-/// work-owned slots/poses and the model's coordinates until playback ends.
-static inline void _reverseWalkApplyAnimationRequest(Task* task, const AnimationPlayRequest* request)
+/// Borrows the task handle read only; its live model and `ReverseWalkWork`
+/// remain writable. Initialize `model.bank` to `ACTOR_MODEL_STATE_NONE` and
+/// `model.ticking` to zero before the first request. Both carriers provide
+/// bank 0 with loaded clips 1..4. Bank and clip are compared as signed words,
+/// then stored and used as signed bytes; no bounds are checked.
+///
+/// A bank change binds the context and invalidates the previous clip. A changed
+/// clip drives slots 1..18, leaving root slot 0 alone. Nonzero `blend` with an
+/// already ticking rig captures its poses and blends toward each track start;
+/// otherwise the slots reset. `blendFrames` counts whole normal-rate frames
+/// (0..2047 keeps the signed blend time nonnegative) and is ignored on reset.
+/// The new slots tick once before `model.ticking` is set. An unchanged clip in
+/// the same bank leaves playback alone, even for a reset request.
+///
+/// The request must be readable and separate from playback storage; no request
+/// pointer is retained. Work-owned slots/poses, model coordinates and loaded
+/// clip tables/data must stay live throughout playback, with coordinates and
+/// tracks covering every driven index. The collision choice is ignored.
+static inline void _reverseWalkApplyAnimationRequest(const Task* task, const AnimationPlayRequest* request)
 {
     enum { REVERSE_WALK_FIRST_DRIVEN_SLOT = 1 };
     ReverseWalkWork* work;
@@ -16,6 +29,7 @@ static inline void _reverseWalkApplyAnimationRequest(Task* task, const Animation
 
     work  = task->work;
     model = task->extra.tmd;
+    // A new bank must select its clip even when the numeric clip ID agrees.
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
@@ -36,7 +50,7 @@ static inline void _reverseWalkApplyAnimationRequest(Task* task, const Animation
         for (slotIndex = REVERSE_WALK_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationTickSlot(&work->rig.anim, slotIndex);
         }
-        work->model.ticking = 1;
+        work->model.ticking = true;
     }
 }
 
