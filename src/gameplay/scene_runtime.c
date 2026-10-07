@@ -1446,11 +1446,11 @@ void animationAimHeadAtTask(Task* subject, Task* targetTask, s32 maxYaw, s32 max
     GfxCoord* subjectParts;
 
     // Accumulate the pre-head translations in the retained local * accumulated order.
-    partIndex                                 = 0;
+    partIndex = 0;
     gfxSetRotIdentity(&subjectRotation);
-    subjectPosition.vx                        = 0;
-    subjectPosition.vy                        = 0;
-    subjectPosition.vz                        = 0;
+    subjectPosition.vx = 0;
+    subjectPosition.vy = 0;
+    subjectPosition.vz = 0;
     for (partIndex = 0; partIndex < ANIMATION_HEAD_PART_INDEX; partIndex++) {
         subjectPart = &subject->extra.tmd->coords[partIndex];
         ApplyMatrixLV(&subjectRotation, (VECTOR*)subjectPart->coord.t, &transformedTranslation);
@@ -1461,11 +1461,11 @@ void animationAimHeadAtTask(Task* subject, Task* targetTask, s32 maxYaw, s32 max
     }
     subjectPart = &subject->extra.tmd->coords[partIndex];
     ApplyMatrixLV(&subjectRotation, (VECTOR*)subjectPart->coord.t, &transformedTranslation);
-    partIndex                                = 0;
+    partIndex = 0;
     gfxSetRotIdentity(&targetRotation);
-    targetPosition.vx                        = 0;
-    targetPosition.vy                        = 0;
-    targetPosition.vz                        = 0;
+    targetPosition.vx = 0;
+    targetPosition.vy = 0;
+    targetPosition.vz = 0;
     for (partIndex = 0; partIndex < ANIMATION_HEAD_PART_INDEX; partIndex++) {
         targetPart = &targetTask->extra.tmd->coords[partIndex];
         ApplyMatrixLV(&targetRotation, (VECTOR*)targetPart->coord.t, &transformedTranslation);
@@ -1519,9 +1519,9 @@ void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s3
 
     // Compose the complete five-part chain without the view transform.
     gfxSetRotIdentity(&subjectRotation);
-    headPosition.vx                           = 0;
-    headPosition.vy                           = 0;
-    headPosition.vz                           = 0;
+    headPosition.vx = 0;
+    headPosition.vy = 0;
+    headPosition.vz = 0;
     for (partIndex = 0; partIndex < ANIMATION_HEAD_PART_INDEX + 1; partIndex++) {
         headPart = &subject->extra.tmd->coords[partIndex];
         ApplyMatrixLV(&subjectRotation, (VECTOR*)headPart->coord.t, &transformedTranslation);
@@ -1762,17 +1762,17 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
     GfxCoord* subjectParts;
 
     // Accumulate both five-part chains, including the head-local offset.
-    partIndex              = 0;
-    headOffset             = D_80093A28;
-    yawLimit               = aim->yawLimit;
-    pitchLimit             = aim->pitchLimit;
-    blendWeight            = aim->rate;
-    lastPitchValid         = aim->lastPitchValid;
+    partIndex      = 0;
+    headOffset     = D_80093A28;
+    yawLimit       = aim->yawLimit;
+    pitchLimit     = aim->pitchLimit;
+    blendWeight    = aim->rate;
+    lastPitchValid = aim->lastPitchValid;
 
     gfxSetRotIdentity(&subjectRotation);
-    subjectHeadVector.vx                      = 0;
-    subjectHeadVector.vy                      = 0;
-    subjectHeadVector.vz                      = 0;
+    subjectHeadVector.vx = 0;
+    subjectHeadVector.vy = 0;
+    subjectHeadVector.vz = 0;
     for (partIndex = 0; partIndex <= ANIMATION_HEAD_PART_INDEX; partIndex++) {
         subjectPart = &subject->extra.tmd->coords[partIndex];
         ApplyMatrixLV(&subjectRotation, (VECTOR*)subjectPart->coord.t, &transformedTranslation);
@@ -1786,11 +1786,11 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
     subjectHeadVector.vy += transformedTranslation.vy;
     subjectHeadVector.vz += transformedTranslation.vz;
 
-    partIndex                                = 0;
+    partIndex = 0;
     gfxSetRotIdentity(&targetRotation);
-    targetPosition.vx                        = 0;
-    targetPosition.vy                        = 0;
-    targetPosition.vz                        = 0;
+    targetPosition.vx = 0;
+    targetPosition.vy = 0;
+    targetPosition.vz = 0;
     for (partIndex = 0; partIndex <= ANIMATION_HEAD_PART_INDEX; partIndex++) {
         targetPart = &targetTask->extra.tmd->coords[partIndex];
         ApplyMatrixLV(&targetRotation, (VECTOR*)targetPart->coord.t, &transformedTranslation);
