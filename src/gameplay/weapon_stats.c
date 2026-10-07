@@ -40,7 +40,7 @@ static inline u16* gpAmmoStats(s32 itemId)
     return &Gp_IdParamLo[itemId - 0x9F].amount;
 }
 
-/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
 /// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode);
@@ -55,7 +55,7 @@ static inline void _gpSetPreviewItem(s32 item, u8 slot);
 static inline void _gpSetPreviewItemWalk(s32 item, u8 slot);
 
 /// Draws `item` as `_gpDrawItemNameAt` does, but without the
-/// `func_800C22D8` marker.
+/// `itemMenuDrawEquipmentMarker` marker.
 static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item);
 
 u16 Gp_WeaponStats[33][4] = {
@@ -94,7 +94,7 @@ u16 Gp_WeaponStats[33][4] = {
     { 55, 80, 324, 0 }
 };
 
-/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
 /// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
@@ -111,12 +111,12 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
-        func_800C22D8(obj, x, y, item, mode);
+        itemMenuDrawEquipmentMarker(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 }
 
@@ -466,7 +466,7 @@ void Gp_EquipSummaryTask(Task* arg0)
 }
 
 /// Draws `item` as `_gpDrawItemNameAt` does, but without the
-/// `func_800C22D8` marker.
+/// `itemMenuDrawEquipmentMarker` marker.
 static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item)
 {
     TextDrawReq req;
@@ -483,9 +483,9 @@ static inline void _gpDrawItemNameUnmarkedAt(UiObject* obj, s32 x, s32 y, s32 co
         textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 }
 
@@ -580,7 +580,7 @@ void Gp_AmmoListTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     menu        = &D_8010E9A4;
     if (arg0->state == 0) {
-        Gp_CountAmmoRows(menu, spawnArg);
+        itemMenuSetWeaponChoiceRows(menu, spawnArg);
         uiFitPanelToList(menu, &(obj)->panel);
         if (spawnArg == 0) {
             menu->topInset                   += 0x4C;
@@ -801,9 +801,9 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
                 textDrawString(&draw.req, itemGetText(item, ITEM_TEXT_NAME, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
-                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                    itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
                 }
-                Gp_DrawItemIcon(obj, x, y, item, 0);
+                itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
             }
         }
     } else {

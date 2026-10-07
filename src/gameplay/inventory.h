@@ -70,4 +70,12 @@ static inline EquipmentWeaponLoad* _equipmentGetWeaponLoad(s32 weaponItemId)
     return &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
 }
 
+/// Borrows the zero-based armor-attachment candidate in a range, or NULL.
+///
+/// The range must fit its backing table; choiceIndex is nonnegative. Empty
+/// rows, items with ITEM_FLAG_NO_ATTACHMENT and the equipped weapon are
+/// excluded. Already attached items remain candidates. unused is ignored.
+/// Sorting, transfers or resetting storage can replace the returned contents.
+InventoryItemRow* inventoryFindNthAttachmentCandidate(const InventoryItemRange* range, s32 choiceIndex, s32 unused);
+
 #endif // GAMEPLAY_PRIVATE_INVENTORY_H

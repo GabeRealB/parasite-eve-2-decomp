@@ -359,13 +359,56 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj);
 
 void func_800C41A4(UiList* prompt, UiObject* obj);
 
-void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Drawing modifiers for itemMenuDrawItemIcon; unknown bits are ignored.
+enum {
+    ITEM_MENU_ICON_DEFAULT          = 0,
+    ITEM_MENU_ICON_FORCE_IDENTIFIED = 1,
+    ITEM_MENU_ICON_ENLARGED         = 2,
+    ITEM_MENU_ICON_DIMMED           = 4,
+    ITEM_MENU_ICON_HIGHLIGHTED      = 8
+};
 
-void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Item-row attachment states: only 2 requests the A fallback status mark.
+enum {
+    ITEM_MENU_ATTACHMENT_MARK_AUTOMATIC  = 0,
+    ITEM_MENU_ATTACHMENT_MARK_UNATTACHED = 1,
+    ITEM_MENU_ATTACHMENT_MARK_ATTACHED   = 2
+};
 
-void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Queues an inventory or packed P.E. icon relative to a panel's content origin.
+///
+/// x/y are pixels at the icon's bottom-left. itemId must be a valid inventory
+/// id (0 is an empty slot), or a synthetic P.E. id. Inventory ids and packed P.E.
+/// ids 0x300..0x33F choose their category/ability atlas cells; higher P.E.
+/// ids use the fallback cell. ITEM_MENU_ICON_* flags force identification,
+/// enlarge by two pixels per edge, dim the icon or draw its highlight tile.
+/// Requires resident menu textures and writable OT/primitive storage.
+void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 flags);
 
-void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
+/// Draws a P.E. level mark and signed decimal level at the right of an item row.
+///
+/// x/y are panel-relative row pixels; the mark starts at x + 108 and the
+/// number ends at x + 124. Callers normally supply levels 1..3; level must
+/// satisfy `textItoaSigned`'s input range.
+/// colorRgb is packed 24-bit RGB. Requires menu textures and GPU storage.
+void itemMenuDrawParasiteEnergyLevel(const UiObject* object, s32 x, s32 y, s32 level, s32 colorRgb);
+
+/// Draws the E, L or A status mark beside an inventory item row.
+///
+/// x/y are panel-relative row pixels. E means equipped armor/weapon or a
+/// selected consumable, irrespective of remaining load. Otherwise L means
+/// the weapon has a nonzero load whose consumable is carried; A is the
+/// fallback only when attachmentState is ITEM_MENU_ATTACHMENT_MARK_ATTACHED.
+/// The equipped path submits E twice. Requires text textures and GPU storage.
+void itemMenuDrawEquipmentMarker(const UiObject* object, s32 x, s32 y, s32 itemId, s32 attachmentState);
+
+/// Draws HP/MP values and meters plus EXP and BP in a menu panel.
+///
+/// topOffset is a pixel offset below contentTop, before the eight-pixel inset.
+/// Each call advances displayed HP/MP upward by one toward live values;
+/// decreases are not applied here. Maximums must be positive. Requires
+/// initialized display values, menu/text textures and writable GPU storage.
+void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset);
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -377,11 +420,25 @@ void Gp_HpMpBarTask(Task* arg0);
 
 void Gp_ArmorStatsPanelTask(Task* arg0);
 
-void Gp_PeGridPanelTask(Task* arg0);
+/// Draws the menu's four-element, three-ability Parasite Energy summary.
+///
+/// task->spawnArg2 supplies the live UiObject. Learned levels come from the
+/// current save or training table. The third ability is shown when learned
+/// or when both preceding abilities reach level three. Marks and captions
+/// share the panel's ordering-table layer; the result is cleared each draw.
+void itemMenuParasiteEnergySummaryTask(Task* task);
 
 void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1);
 
-void Gp_CountAmmoRows(UiList* arg0, s32 arg1);
+/// Sets row counts for carried weapons or their compatible consumable loads.
+///
+/// consumableItemId == INVENTORY_ITEM_NONE lists every carried weapon with
+/// four visible rows. Otherwise each matching primary/secondary load adds
+/// one row only for an attached or equipped weapon; a weapon can add two.
+/// Nonzero ids must be consumables 0xA0..0xBF. Counts narrow to the list's
+/// bytes, all counted rows are visible, and row height is fifteen pixels.
+/// The live carried range must fit its item table; no pointer is retained.
+void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId);
 
 void Gp_ItemDestCursorTask(Task* arg0);
 
@@ -390,8 +447,6 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj);
 void Gp_WeaponMenuTask(Task* arg0);
 
 void Gp_ArmorMenuTask(Task* arg0);
-
-InventoryItemRow* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 /// Three-entry dispatcher table: `Gp_ItemMenuInit`, `Gp_UiPromptUpdate`, `Gp_UiPromptDispatch`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
@@ -518,7 +573,7 @@ extern UiList D_8010EA74;
 
 extern UiObjectDesc D_8010EA98;
 
-/// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`,
+/// CLUT ids for the ten item-category icons drawn by `itemMenuDrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.
 extern const u16 D_80096F88[12];
 

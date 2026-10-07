@@ -530,13 +530,13 @@ void func_800D6334(Task* task)
         } else {
             item = 0;
         }
-        flags  = 2;
+        flags  = ITEM_MENU_ICON_ENLARGED;
         usable = 1;
         if (Gp_ItemIsUnusable(item, selected)) {
-            flags  = 6;
+            flags  = ITEM_MENU_ICON_ENLARGED | ITEM_MENU_ICON_DIMMED;
             usable = 0;
         }
-        Gp_DrawItemIcon(panel, selectedX, y, item, flags);
+        itemMenuDrawItemIcon(panel, selectedX, y, item, flags);
         selectedX = x;
         for (slot = 0; slot < equipmentGetArmorAttachmentSlotCount(armor); slot++, selectedX += 13) {
             if (slot != D_8010F884) {
@@ -556,8 +556,8 @@ void func_800D6334(Task* task)
                 if (selected != NULL) {
                     item = selected->itemId;
                 }
-                flags = (Gp_ItemIsUnusable(item, selected) != 0) * 4;
-                Gp_DrawItemIcon(panel, selectedX, y, item, flags);
+                flags = (Gp_ItemIsUnusable(item, selected) != 0) * ITEM_MENU_ICON_DIMMED;
+                itemMenuDrawItemIcon(panel, selectedX, y, item, flags);
             }
         }
     }

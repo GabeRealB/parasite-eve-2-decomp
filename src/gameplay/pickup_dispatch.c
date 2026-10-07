@@ -234,5 +234,5 @@ void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
 
 void func_800CE5D0(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    Gp_DrawItemIcon(arg0, arg1, arg2, arg3, 0);
+    itemMenuDrawItemIcon(arg0, arg1, arg2, arg3, ITEM_MENU_ICON_DEFAULT);
 }

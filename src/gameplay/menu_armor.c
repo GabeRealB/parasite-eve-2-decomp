@@ -21,7 +21,7 @@ extern const char Gp_StrSelectTitle[];
 
 extern char Gp_StrDetachArmorHelp[];
 
-/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
 /// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode);
@@ -123,7 +123,7 @@ char Gp_StrRemoveAmmoHelp[]    = "Remove loaded ammunition.";
 char Gp_StrDetachArmorHelp[]   = "Detach items from armor.";
 char Gp_StrChangeOrderHelp[36] = "Change the order of items carried.\000\335";
 
-/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
+/// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
 /// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
 static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
@@ -140,12 +140,12 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
-        func_800C22D8(obj, x, y, item, mode);
+        itemMenuDrawEquipmentMarker(obj, x, y, item, mode);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 }
 
@@ -194,7 +194,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
     s32                 item;
 
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    rec  = Gp_NthEquippableRec(scan, prompt->currentItemIndex, 0);
+    rec  = inventoryFindNthAttachmentCandidate(scan, prompt->currentItemIndex, 0);
     if (rec != NULL) {
         item = rec->itemId;
         {
@@ -355,7 +355,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     }
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     uiUpdateList(menu, &obj->panel);
-    rec = Gp_NthEquippableRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
+    rec = inventoryFindNthAttachmentCandidate(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
     if (rec != NULL) {
         val = rec->itemId;
     }

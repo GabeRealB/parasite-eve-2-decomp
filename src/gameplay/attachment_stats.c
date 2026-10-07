@@ -885,7 +885,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
 
         ret   = getAttachWheelLevel(Gp_StateC08.wheelIndex);
         color = 0x606060;
-        func_800C2538(&obj, -0xB, 0x28, ret, color);
+        itemMenuDrawParasiteEnergyLevel(&obj, -0xB, 0x28, ret, color);
         textDrawUiLine(&obj, 0x8E, 0x28, textItoaSigned(scratch.text.costDigits, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
         rect.x = arg1;
@@ -924,7 +924,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
             save   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             do {
                 best  = 0;
-                flags = 0;
+                flags = ITEM_MENU_ICON_DEFAULT;
                 for (j = 0; j < count; j++) {
                     _AttachmentWheelPoint* nearest = &points[best];
 
@@ -951,12 +951,12 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
                 slot = stepAttachWheelSaved(Gp_StateC08.wheelIndex, best, save);
 
                 if (Gp_CheckAttachThreshold(slot) != 0) {
-                    flags = 4;
+                    flags = ITEM_MENU_ICON_DIMMED;
                 }
                 if (best == 0 && hud->wheelTurn == 0) {
-                    flags |= 8;
+                    flags |= ITEM_MENU_ICON_HIGHLIGHTED;
                 }
-                Gp_DrawItemIcon(&obj, px, py, ((slot / 3) << 4) + ((slot % 3) << 2) + 0x301, flags);
+                itemMenuDrawItemIcon(&obj, px, py, ((slot / 3) << 4) + ((slot % 3) << 2) + 0x301, flags);
                 i++;
             } while (i < count);
         }
@@ -1050,7 +1050,7 @@ static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2)
         obj.panel.contentOriginY.unsignedValue = 0;
         obj.panel.otIndex.signedValue          = order;
         obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-        Gp_DrawItemIcon(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, 0);
+        itemMenuDrawItemIcon(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, ITEM_MENU_ICON_DEFAULT);
 
         dr             = gGpuPrimCursor;
         gGpuPrimCursor = dr + 1;

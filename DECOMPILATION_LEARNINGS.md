@@ -6838,7 +6838,7 @@ req.y = y + arg2;
 
 Assign `color = 0x606060` in the same branch so `lui a2, 0x60` fills the
 `beqz equipped` delay slot. Inlining `req.colorRgb = 0x606060` puts the
-constant in `$a1` and delays `la a1, Gp_StrE`. `func_800C22D8` is the
+constant in `$a1` and delays `la a1, Gp_StrE`. `itemMenuDrawEquipmentMarker` is the
 example.
 
 ## Save incoming `$a2` first, then split `SCRATCH_STACK_CURSOR_SLOT` so `lui` sits in the prologue
@@ -31265,7 +31265,7 @@ if ((u8)wrap < 0x20) {
     if ((u32)(id - 0x80) < 0x20U) {
 ```
 
-`Gp_NthEquippableRec` is the example. The same wrap vs range pair is in
+`inventoryFindNthAttachmentCandidate` is the example. The same wrap vs range pair is in
 `inventoryDetachItem`, which avoids the CSE by reloading `itemId` after a
 store instead.
 
@@ -32319,7 +32319,7 @@ immediately before `if (count < limit)`. Putting `i = count` inside the
 `if` lets the first `lui` of the loop-invariant tables steal the delay
 slot. Putting it next to `count = 0` hoists `move t3, t0` to the top of
 the prologue. The barrier keeps `slt t0, limit` from folding to `beqz
-limit` and stops `i = count` from riding `count = 0`. `Gp_CountAmmoRows`
+limit` and stops `i = count` from riding `count = 0`. `itemMenuSetWeaponChoiceRows`
 is the example.
 
 ## Split-address inline asm for `lui v1; addiu dest, v1` of a second global
@@ -32352,9 +32352,9 @@ register PlayerStatus* cfg asm("t4");
 }
 ```
 
-`Gp_CountAmmoRows` is the example.
+`itemMenuSetWeaponChoiceRows` is the example.
 
-**2026-10-06.** `Gp_CountAmmoRows` no longer uses this; the project has no instruction-emitting `asm` left. See "A conditional block that is empty by local-alloc" at the end of this file.
+**2026-10-06.** `itemMenuSetWeaponChoiceRows` no longer uses this; the project has no instruction-emitting `asm` left. See "A conditional block that is empty by local-alloc" at the end of this file.
 
 ## Assign the LCG back onto `gRandomLcgState`; split `t[1] +=` so `composeStamp = 0` fills the load delay
 
@@ -32558,7 +32558,7 @@ req.colorRgb    = color;
 ```
 
 The early `y` load also frees `$v1` after `gGpuPrimCursor = p + 1`, which is
-what stores the cursor bump before `p->x0`. `func_800C2538` is the example.
+what stores the cursor bump before `p->x0`. `itemMenuDrawParasiteEnergyLevel` is the example.
 The `textY = baseY - 3` half is the same pattern as `Gp_DrawQty`.
 
 ## Load a terminator key once so the record pointer stays in `$v1`
@@ -38027,7 +38027,7 @@ negative offsets from the `poly[1]` register (`sb t7, -0x25(a3)`): 96.4%.
 
 ## A shared prim constant can lose the `%hi` tie, and only a hard pin fixes it
 
-`func_800C0E20` builds a `TILE`, two `SPRT`s and a `POLY_FT4`, all with
+`itemMenuDrawMeter` builds a `TILE`, two `SPRT`s and a `POLY_FT4`, all with
 `clut = 0x3C0B`, and calls `addPrim` four times. Two block-local pseudos end up
 competing for the same pair of registers: the shared `0x3C0B` constant and the
 hoisted `lui %hi(gGpuCurrentOt)`. Both have 4 references, so `local_alloc`
@@ -38864,7 +38864,7 @@ if (level > 0)          /* bgtz */
 
 The temp does not cost a register when the compare and a later re-read of
 `p[0]` sit in different basic blocks — GCC 2.8.1's CSE is per extended basic
-block, so the later use re-emits its own `lbu`, exactly as in `Gp_PeGridPanelTask`.
+block, so the later use re-emits its own `lbu`, exactly as in `itemMenuParasiteEnergySummaryTask`.
 
 ## Preheader ordering tells you which initialisations are loop-generated
 
@@ -38880,7 +38880,7 @@ the preheader the order is always
 Read the target backwards with that rule. An assignment that appears *before*
 the hoisted `lui`s is a plain statement or a `for`-init; one that appears
 *after* them cannot be — it has to be a giv, so rewrite that accumulator as a
-function of the loop counter. In `Gp_PeGridPanelTask` the second loop nest needed
+function of the loop counter. In `itemMenuParasiteEnergySummaryTask` the second loop nest needed
 
 ```c
 for (col = 0; col < 4; col++) {
@@ -38919,7 +38919,7 @@ init is the *non-zero* constant means the add_val survived combining.
 Reusing one set of counters/pointers across two independent loop nests forces
 one pseudo per name across the whole function and pins the allocator. Declaring
 separate locals for the second nest lets GCC coalesce them into whatever
-callee-saved register is free per nest — in `Gp_PeGridPanelTask` that alone moved the
+callee-saved register is free per nest — in `itemMenuParasiteEnergySummaryTask` that alone moved the
 score from 90% to 95% and restored the target's 0x68 frame (`k` living in a
 caller-saved `$t1` with an explicit spill slot around the call). Conversely,
 scratch pointers that the target keeps in the *same* register across both nests
@@ -38957,7 +38957,7 @@ prim->u1 = prim->u3 = f7;
 ```
 
 This went from 96.9% to 100% in one attempt. Note the difference from the
-`%hi` tie in `func_800C0E20`: there the pin fixed which of two equal-priority
+`%hi` tie in `itemMenuDrawMeter`: there the pin fixed which of two equal-priority
 pseudos `local_alloc` coloured first; here it fixes *where the scheduler puts
 the `li`*, which is why picking the target's own registers (`v1`, `a1`) matters
 — they are the ones free at the slots the target fills.
@@ -39302,7 +39302,7 @@ Assigning `slot->timeLeft - 1` to a `u16` local first blocks the reassociation.
 
 The linker script emits one contiguous `<file>.c.o(.rodata)` chunk per TU, so a
 new jump table always appends directly onto that TU's existing `.rodata` slice.
-`Gp_DrawItemIcon` (gameplay `3688`) has two jtbls at 0x37A0/0x37C0, but the TU's
+`itemMenuDrawItemIcon` (gameplay `3688`) has two jtbls at 0x37A0/0x37C0, but the TU's
 `.rodata` ended at 0x377C and the splat blob `rodata_3688` (`Gp_ItemMenuStates`,
 `D_80096F88`, then the jtbls, then strings) filled the gap. Splitting the yaml
 into two `.rodata, 3688` cuts does not work — the same object may appear only
@@ -39313,7 +39313,7 @@ The fix is the reverse of "give the function its own C file": move the
 `.rodata` and not `.data`, positioned in the source between the function that
 owns the earlier jtbl and the new one. GCC 2.8.1 assembles file-scope
 definitions in source order, so `.rodata` comes out
-`jtbl(Gp_MenuRootTask) | Gp_ItemMenuStates | D_80096F88 | jtbl(Gp_DrawItemIcon)`.
+`jtbl(Gp_MenuRootTask) | Gp_ItemMenuStates | D_80096F88 | jtbl(itemMenuDrawItemIcon)`.
 Then trim the leading entries out of `asm/.../rodata_3688.rodata.s` and bump
 that segment's yaml address to the first surviving symbol. Existing `extern`
 declarations must gain `const` too; assigning a `const` struct to a plain local
@@ -39370,7 +39370,7 @@ setUV4(p, -tmp, 0xF0, 0xE - tmp, 0xF0, -tmp, 0xFE, 0xE - tmp, 0xFE);
 Where `gGpuPrimCursor = q + 1;` sits relative to the field writes is a
 real degree of freedom, not cosmetic: sched1 runs before the pseudos are
 coloured, so a different position changes both the hard registers and the final
-order. For the `TILE` in `Gp_DrawItemIcon` the eight placements scored 94.5% to
+order. For the `TILE` in `itemMenuDrawItemIcon` the eight placements scored 94.5% to
 100%; the house style (bump immediately after `q = gGpuPrimCursor;`) was 96.6% and
 the winner was after all four geometry fields and before the header writes:
 
@@ -39697,7 +39697,7 @@ barQuad->y3 = y + 0x13;
 ```
 
 was 99.75% → 100%. Note the two facts that make this work and that the earlier
-"only a hard pin fixes it" note (`func_800C0E20`) did not have: the priority is
+"only a hard pin fixes it" note (`itemMenuDrawMeter`) did not have: the priority is
 plain `n_refs / live_length` (no `floor_log2` weighting was needed to predict
 the crossover), and a *use* several statements away from the contested register
 is a legal, invisible place to move.
@@ -39711,7 +39711,7 @@ whole timeout. Always pass the thread count as a separate argument.
 
 ## When a hard pin fixes allocation but flips `addu` operands, pin the other half of the pair
 
-`Gp_DrawHpMpStats` had a clean two-register permutation: the target put the
+`itemMenuDrawPlayerStats` had a clean two-register permutation: the target put the
 `xOff + 6` local in `$s0` and the CSE'd `%hi(Gp_HpMpWork)` (later reused for a
 `y + 0x24` local) in `$s2`; GCC swapped them. No source reordering moved it —
 the two quantities' `n_refs / live_length` priorities are too close.
@@ -39734,7 +39734,7 @@ addend of `field_22 + y2`, which GCC already emits as `addu v0, v0, s2`.
 Rule of thumb: when two saved registers are transposed, pin whichever of the
 pair appears *last* in its commutative sums, or does not appear in one at all.
 
-*2026-10-07: neither pin is needed in `Gp_DrawHpMpStats`; see "A value loaded into one variable and copied to another" at the end of this file.*
+*2026-10-07: neither pin is needed in `itemMenuDrawPlayerStats`; see "A value loaded into one variable and copied to another" at the end of this file.*
 
 ## Interleave the UV pairs per corner instead of grouping equal constants
 
@@ -68369,7 +68369,7 @@ builds on it:
 So a target that shows `lui $v1, %hi(sym)` feeding an `addiu` into some *third*
 register can only come from an allocation where `$v0` was busy across the pair,
 which means the two `high` temps did overlap in the sched1 output. Statement
-reordering does not produce that overlap: in `Gp_CountAmmoRows` five positions
+reordering does not produce that overlap: in `itemMenuSetWeaponChoiceRows` five positions
 for `cfg = &gPlayerStatus;` (first, after `count = 0`, between the two
 `gMcSaveData` statements, after them, inside the guarded block) all kept the
 `high`/`lo_sum` pairs adjacent and all put the second `high` in `$v0`, leaving a
@@ -68379,7 +68379,7 @@ destination *is* `$v1` - remain the only known handles, and the first of those i
 an instruction-emitting asm rather than a match. What actually produced the
 overlap in the original build is unresolved.
 
-**2026-10-06.** Resolved for `Gp_CountAmmoRows`: the overlap is with the *limit load*, not with another `high`. Once the pre-test keeps its `slt`, sched1 leaves `lbu limit` between the `high` and its `lo_sum`. See "A conditional block that is empty by local-alloc" at the end of this file.
+**2026-10-06.** Resolved for `itemMenuSetWeaponChoiceRows`: the overlap is with the *limit load*, not with another `high`. Once the pre-test keeps its `slt`, sched1 leaves `lbu limit` between the `high` and its `lo_sum`. See "A conditional block that is empty by local-alloc" at the end of this file.
 
 ## A pinned local fed by a parameter deletes the copy; `USE_REG` on the parameter brings it back
 
@@ -142700,7 +142700,7 @@ live in `a0`. Nothing has been found that reproduces both at once.
 
 Follow-up (2026-09-27): the `top` pin can be removed by storing `row + top`
 directly to the selection field and moving both upper-bound clamps into
-`_gpClampArmorRow(menu, end)`. With the clamps in the caller, `end - 1`
+`_itemMenuClampArmorSelection(menu, end)`. With the clamps in the caller, `end - 1`
 inherits the pinned end's `a0`; the inline parameter instead uses the sum's
 pseudo (`r448` in `base_16.i.cse`), and the decrement result (`r453`) locally
 allocates to `v0`. `base_16.c` preserves the seed's 99.971% score and the full
@@ -144804,7 +144804,7 @@ over the same 14 insns, which ranks it above the bound (11 refs over 12) in
 global allocation. The two spellings emit identical instructions otherwise, so
 a hand-inverted loop with a pinned counter is worth one `while` attempt first.
 
-### The entry-tested loop's bound copy and pre-header address come from a narrow bound and a direct global (countItemRows, 2026-09-27)
+### The entry-tested loop's bound copy and pre-header address come from a narrow bound and a direct global (_itemMenuSetReorderableRows, 2026-09-27)
 
 A counted loop in the shape `andi a3,a0,0xff; beqz a3; …; lui/addiu t0,Global;
 move t1,a3; loop: … slt v0,a2,t1` was seeded as `if (n != 0) { p = &Global;
@@ -146314,7 +146314,7 @@ its initialiser in the preheader where the target has it. In the same body a
 separate statement *after* `x` was computed; assigned before, it changed the
 allocation of every pseudo in the block.
 
-## A pin swapping two block-local constants is local-alloc priority: move a statement out of the pinned one's range (func_800C0E20, 2026-09-27)
+## A pin swapping two block-local constants is local-alloc priority: move a statement out of the pinned one's range (itemMenuDrawMeter, 2026-09-27)
 A `register s32 clut asm("t3")` held a clut constant stored into two SPRTs and a POLY_FT4; unpinned, it swapped `t3`/`t4` with the `%hi(gGpuCurrentOt)` pseudo. Both had 4 refs in one block, so `local-alloc` ranked them by live length alone (170 vs 166 insns in `.lreg`'s `Register N used ... across` lines), and the constant lost by a few insns. The fix was a statement sitting inside the constant's range that belonged after it: `setlen(poly, 9)` had been written mid-primitive, and moving it down beside `setcode(poly, ...)`, after the last `clut` store, shortened the range by two insns and sched2 still emitted the stores in target order. When two equal-ref pseudos swap, compare their ranges in `.lreg` and look for a statement that can move across either end.
 
 ## A `nop` after the index load, then `lui` of the table, is a `desc = &table[i]` local (func_800C41A4, 2026-09-27)
@@ -146892,10 +146892,10 @@ re-extended on the way out, the pattern no longer fits the store-flag rewrite,
 and both arms survive. A narrow local in the caller does not do the same, since
 it is promoted to a full register before the test.
 
-## Test coupled barriers together before preserving either one (Gp_CountAmmoRows, 2026-09-27)
+## Test coupled barriers together before preserving either one (itemMenuSetWeaponChoiceRows, 2026-09-27)
 
 Two empty-asm sites can each appear necessary only because the other remains.
-`Gp_CountAmmoRows` had `USE_REG(limit)` after loading the row count and
+`itemMenuSetWeaponChoiceRows` had `USE_REG(limit)` after loading the row count and
 `TOUCH_REG(count)` after loading the first row. Removing only the touch moved
 `slt` ahead of the first-row load and added a load-delay nop (98.179%); removing
 only the use reversed the two loads and also added a nop (98.495%). Removing
@@ -148178,13 +148178,13 @@ threshold at that insn. A count that is off by two is one narrow local: an
 `s16`/`s8` invariant used in arithmetic contributes a hoisted extension pair
 that is invisible in the output. Try the type of each invariant local before
 any construct that changes cse's blocks.
-## Unresolved, with the mechanism measured: a counter's zero that the loop pre-test still reads from a register (Gp_CountAmmoRows, Gp_BuildAttachList, Gp_DrawHpMpStats, Gp_DrawAmmoRow, 2026-10-05)
+## Unresolved, with the mechanism measured: a counter's zero that the loop pre-test still reads from a register (itemMenuSetWeaponChoiceRows, Gp_BuildAttachList, itemMenuDrawPlayerStats, Gp_DrawAmmoRow, 2026-10-05)
 
 A second dehack pass removed nothing from these four, but it replaced "the pin
 is needed" with what each pin stands for. Nothing below is a fix; each is the
 condition a natural source has to meet.
 
-**`slt v0,count,limit` before the loop, where `count` is 0.** `Gp_CountAmmoRows`
+**`slt v0,count,limit` before the loop, where `count` is 0.** `itemMenuSetWeaponChoiceRows`
 written exactly like its hack-free sibling `inventoryGetNthWeaponForConsumable` (`table[idx].field`
 everywhere, `for (i = 0; i < scan->rowCount; i++)`, two `for (j…)` loops with
 `break`) reproduces all 94 instructions except the prologue and three register
@@ -148225,13 +148225,13 @@ depth (1 outside, 2 in the outer loop, 3 in the inner):
 
 | function | has to be allocated first | measured | competitor |
 |---|---|---|---|
-| `Gp_CountAmmoRows` | the reduced `&table[idx]` giv (`$a3`) | 15 refs / 52 = 0.865 | hoisted `(id - 0x80) * 4`, 5 / 9 = 1.11; `count`, 20 / 69 = 1.16 |
-| `Gp_DrawHpMpStats` | `x` (`$s0`) | 10 refs / 180 = 0.167 | `y2`, 7 / 71 = 0.197 |
+| `itemMenuSetWeaponChoiceRows` | the reduced `&table[idx]` giv (`$a3`) | 15 refs / 52 = 0.865 | hoisted `(id - 0x80) * 4`, 5 / 9 = 1.11; `count`, 20 / 69 = 1.16 |
+| `itemMenuDrawPlayerStats` | `x` (`$s0`) | 10 refs / 180 = 0.167 | `y2`, 7 / 71 = 0.197 |
 | `Gp_DrawAmmoRow` | `spawnArg` (`$s4`) before the list (`$s5`) | 6 / 190 = 0.063 | list 13 / 396 = 0.098 |
 
 One more weighted reference to the giv (16 refs: `floor_log2` steps to 4, 1.23)
-orders all three `Gp_CountAmmoRows` registers as the target has them, with no
-pin. In `Gp_DrawHpMpStats` the alternative to priority is a conflict: `&req8`
+orders all three `itemMenuSetWeaponChoiceRows` registers as the target has them, with no
+pin. In `itemMenuDrawPlayerStats` the alternative to priority is a conflict: `&req8`
 is a block-local pseudo crossing a call, local-alloc gives it `$s0`, and a
 `y2` still live there cannot take `$s0` (writing the ninth draw's row as
 `y2 - 0x26` proves it - everything else then matches - but that is not what
@@ -148651,13 +148651,13 @@ test and it leaves `$v0`. 168 inline shapes (five bodies, two numerators,
 return / local / `start0` types) gave nothing closer. The target needs the zero
 set in the same block as the compare and after the `lh`, yet unknown to cse2.
 
-**2026-10-06, `Gp_CountAmmoRows` resolved.** The read of `count` that keeps the `slt` is not needed: a basic-block boundary between `count = 0` and the pre-test does it, and the giv's missing reference is a second `idx++`. See "A conditional block that is empty by local-alloc" at the end of this file. The other three functions are unchanged.
+**2026-10-06, `itemMenuSetWeaponChoiceRows` resolved.** The read of `count` that keeps the `slt` is not needed: a basic-block boundary between `count = 0` and the pre-test does it, and the giv's missing reference is a second `idx++`. See "A conditional block that is empty by local-alloc" at the end of this file. The other three functions are unchanged.
 
-**2026-10-06, `Gp_BuildAttachList` resolved, and `Gp_CountAmmoRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
+**2026-10-06, `Gp_BuildAttachList` resolved, and `itemMenuSetWeaponChoiceRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
 
 **2026-10-07, `Gp_DrawAmmoRow` resolved without pins or barriers.** The table row above is right about the list pointer but treats it as a two-way contest, and the inlined colour pseudo (937) has to rank below both: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
 
-**2026-10-07, `Gp_DrawHpMpStats` resolved without the pin.** The table row above has the contest right (`x` 10 / 180 against `y2` 7 / 71) but looked for the answer on `y2`'s side. sched1 recounts live lengths, so `y2`'s 71 is fixed by the target's layout; what moves is `x`, which needs 12 references. See "A value loaded into one variable and copied to another" at the end of this file.
+**2026-10-07, `itemMenuDrawPlayerStats` resolved without the pin.** The table row above has the contest right (`x` 10 / 180 against `y2` 7 / 71) but looked for the answer on `y2`'s side. sched1 recounts live lengths, so `y2`'s 71 is fixed by the target's layout; what moves is `x`, which needs 12 references. See "A value loaded into one variable and copied to another" at the end of this file.
 ## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
 
 **Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
@@ -149948,7 +149948,7 @@ attempts; left as it was.
   the `||` condition moves the block behind it.
 - Not converted: the `goto stop` of `HOLD` in the two mount walkers of
   `actor_107600.c` (an inline at all four sites swaps `$t0/$t1` exactly as the
-  written-out copy does), and `Gp_CountAmmoRows`'s `goto increment` from the
+  written-out copy does), and `itemMenuSetWeaponChoiceRows`'s `goto increment` from the
   `arg1 == 0` test into the second scan (`count++` there keeps the earlier
   copy; the other three went as `if (slot > NONE || weapon == item) count++;
   break;`).
@@ -150870,7 +150870,7 @@ Not found: a fence that is ordinary C. Do not retry `volatile`, a
 `for (i = 0; i < 1; i++)` around the call (leaves the counter and its
 branch), or any single-statement spelling of the increment.
 
-## A conditional block that is empty by local-alloc: the surviving `slt count,limit`, `lui $v1`, and a giv ranked by duplicated increments (Gp_CountAmmoRows, 2026-10-06)
+## A conditional block that is empty by local-alloc: the surviving `slt count,limit`, `lui $v1`, and a giv ranked by duplicated increments (itemMenuSetWeaponChoiceRows, 2026-10-06)
 
 **Was.** Four pins, a barrier, a `goto` and the project's only
 instruction-emitting `asm` (`lui %1, %hi(gPlayerStatus)`). Three earlier
@@ -151127,13 +151127,13 @@ twice or more it floats to the top of the block whenever the stores between
 are fed by loads. Then test the hypothesis by deleting the other sets in a
 scratch copy: if the function matches, the constant was never the problem.
 
-## A register zeroed twice: cse turns the second `i = 0` into a copy from the longest-lived zero (Gp_BuildAttachList, Gp_CountAmmoRows, 2026-10-06)
+## A register zeroed twice: cse turns the second `i = 0` into a copy from the longest-lived zero (Gp_BuildAttachList, itemMenuSetWeaponChoiceRows, 2026-10-06)
 
 **Was.** `Gp_BuildAttachList` held `n = count; if (mode != 2) { SOFT_TOUCH_REG(n); i = n; do { ... } while (i < 3); }`
 for `move s3,s5` / `move s2,s3`, and three entries concluded that the copy
 `i = n` had to be hidden from cse (`reload_cse` cannot produce it: a
 `CONST_INT` is `VOIDmode`, so a zero is not forwarded through `move s3,s5`).
-`Gp_CountAmmoRows` needed a read of `count` between its zeroing and the loop
+`itemMenuSetWeaponChoiceRows` needed a read of `count` between its zeroing and the loop
 pre-test and got it from a block that vanished after combine.
 
 **Mechanism.** Nobody wrote `i = n`. The index was zeroed twice:
@@ -151180,7 +151180,7 @@ deletes it afterwards as a dead set. So:
 be assigned after the call, and `i`'s first zero can be an initialiser or a
 statement (`count = 0; i = 0;` at the top, then `for (i = 0; ...)`).
 
-**Gp_CountAmmoRows is the same thing.** With `s32 count = 0; s32 i = 0;` and
+**itemMenuSetWeaponChoiceRows is the same thing.** With `s32 count = 0; s32 i = 0;` and
 `for (i = 0; i < scan->rowCount; i++)` the loop init becomes `i = count`
 (`move t3,t0`): the read of `count` between its zeroing and the pre-test that
 breaks combine's `LOG_LINK`, so `slt v0,t0,v0` survives, and with it the
@@ -152118,7 +152118,7 @@ bytes, and the image cannot tell them apart.
 - A halfword store has no mode between itself and SImode, so this does not
   rescue an `sh` of a compared constant.
 
-### A value loaded into one variable and copied to another keeps two references on the first (Gp_DrawHpMpStats, 2026-10-07)
+### A value loaded into one variable and copied to another keeps two references on the first (itemMenuDrawPlayerStats, 2026-10-07)
 
 **Was.** `register s32 y2 asm("s2")` on the row cursor (`y2 = y + 0x12`, later
 `y2 = y + 0x24`). Unpinned, `y2` took `$s0` and `x` (`xOff + 6`) `$s2`.
@@ -152526,7 +152526,7 @@ merges the load into the copy (`(set gv:HI (zero_extend:HI (mem:QI)))`, the
 image's `lbu t5,9(v1)`), and because `gh` has other sets its count is not
 reset: `Register 99 used 21 times across 157 insns`, 5350. No insn is added,
 so B holds by itself. No statement is needed between the load and the copy
-here, unlike Gp_DrawHpMpStats (measured; presumably because the copy is `HI`
+here, unlike itemMenuDrawPlayerStats (measured; presumably because the copy is `HI`
 from `SI` and cse's copy swap wants equal modes - not checked in the dumps). The same thing through `gu`, or in the glyph loop through
 `width`, gives the right order too but moves one `lbu` (the merged load sits
 where the copy was).
@@ -152637,7 +152637,7 @@ source. Each statement reads the field itself:
 t                       = t / h;
 t                       = t + 1;
 menu->selectedItemIndex = t + menu->firstVisibleItemIndex.signedValue;
-_gpClampArmorRow(menu, menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue);
+_itemMenuClampArmorSelection(menu, menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue);
 ```
 
 - The store to `selectedItemIndex` sits between the two reads, so cse does not

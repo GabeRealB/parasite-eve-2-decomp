@@ -781,7 +781,7 @@ void Gp_TickBoostPanel(Task* arg0)
         panel->bounds.rect.x = -panel->bounds.rect.w / 2;
         arg0->state++;
     }
-    Gp_DrawHpMpStats(panel, 0);
+    itemMenuDrawPlayerStats(panel, 0);
 }
 
 s32 Gp_HasStockedItem(s32 arg0)

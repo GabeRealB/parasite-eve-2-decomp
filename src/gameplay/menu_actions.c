@@ -2218,7 +2218,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
     }
     Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     if (count != 0) {
-        func_800C2538(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, count, arg0->colorRgb);
+        itemMenuDrawParasiteEnergyLevel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, count, arg0->colorRgb);
     }
     status = arg1->panel.control.word;
     one    = 1;
@@ -2806,7 +2806,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     mask  = arg1 & 3;
     Gp_DrawItemLabel(arg0, x, y, arg1, color, 0);
     if (mask != 0) {
-        func_800C2538(arg0, x, y, mask, color);
+        itemMenuDrawParasiteEnergyLevel(arg0, x, y, mask, color);
     }
 
     text           = Gp_StrAreaEffect;

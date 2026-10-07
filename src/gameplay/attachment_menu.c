@@ -408,12 +408,12 @@ void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
         req.alignment  = TEXT_ALIGNMENT_LEFT;
         req.drawMode   = TEXT_DRAW_OUTLINED;
         textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
-        func_800C22D8(arg1, x, y, item, one);
+        itemMenuDrawEquipmentMarker(arg1, x, y, item, one);
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(arg1, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(arg1, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(arg1, x, y, item, 0);
+        itemMenuDrawItemIcon(arg1, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {

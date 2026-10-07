@@ -97,7 +97,15 @@ s32 itemMenuGetPrimaryPreviewItem(void);
 
 extern char Gp_StrEmpty[];
 
-void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u32 arg6);
+/// Draws a framed proportional meter in panel-relative pixels.
+///
+/// left/right bound its width and centerY locates the two-pixel fill.
+/// value/maximum use the same units (including fixed-point quantities).
+/// For left < right, maximum must be nonzero and the signed scaling product
+/// must fit s32. Fill clips at width - 2 and is omitted at nonpositive width;
+/// left >= right draws nothing. colorRgb is the fill's packed 24-bit RGB.
+/// Requires resident menu textures and writable OT/primitive storage.
+void itemMenuDrawMeter(const UiPanel* panel, s32 left, s32 right, s32 centerY, s32 maximum, s32 value, u32 colorRgb);
 
 /// Command-indexed menu descriptors. Zero rows reserve unused command IDs.
 extern UiObjectDesc D_8010EAB4[50];

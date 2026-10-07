@@ -648,7 +648,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         arg1->killCountdown = 0xBC;
         arg1->state         = arg1->state + 1;
     }
-    Gp_DrawHpMpStats(&(arg0)->panel, 0);
+    itemMenuDrawPlayerStats(&(arg0)->panel, 0);
     if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Gp_HpMpWork.hp == cfg->hp) {
             if (Gp_HpMpWork.mp == cfg->mp) {
@@ -853,9 +853,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(arg0, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(arg0, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(arg0, x, y, item, 0);
+        itemMenuDrawItemIcon(arg0, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
     item        = work->usedAddonItemId;
@@ -872,9 +872,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(arg0, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(arg0, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(arg0, x, y, item, 0);
+        itemMenuDrawItemIcon(arg0, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
     y += 0xF;
     textDrawUiLine(arg0, x, y, (const u8*)Gp_StrUsedDot, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -893,9 +893,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(arg0, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(arg0, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(arg0, x, y, item, 0);
+        itemMenuDrawItemIcon(arg0, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
     item = work->returnedAddonItemId;
     if (item != 0) {
@@ -912,9 +912,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
             temp = item - 0xF;
             if ((u32)temp < 0x24U) {
-                func_800C2538(arg0, x, y, temp % 3 + 1, color);
+                itemMenuDrawParasiteEnergyLevel(arg0, x, y, temp % 3 + 1, color);
             }
-            Gp_DrawItemIcon(arg0, x, y, item, 0);
+            itemMenuDrawItemIcon(arg0, x, y, item, ITEM_MENU_ICON_DEFAULT);
         }
         item = work->returnedClipItemId;
         if (item != 0) {
@@ -931,9 +931,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 textDrawString(&sp20.u.req, itemGetText(item, ITEM_TEXT_NAME, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
-                    func_800C2538(arg0, x, y, temp % 3 + 1, color);
+                    itemMenuDrawParasiteEnergyLevel(arg0, x, y, temp % 3 + 1, color);
                 }
-                Gp_DrawItemIcon(arg0, x, y, item, 0);
+                itemMenuDrawItemIcon(arg0, x, y, item, ITEM_MENU_ICON_DEFAULT);
             }
         }
     }
@@ -1419,9 +1419,9 @@ void Gp_PickupTitleTask(Task* arg0)
         textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
     if ((u32)(item - 0xA0) < 0x20U) {
         _gpDrawQty(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_PubItemQty, 0x606060);
@@ -1642,13 +1642,13 @@ void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s3
         req.drawMode   = TEXT_DRAW_OUTLINED;
         textDrawString(&req, itemGetText(arg3, ITEM_TEXT_NAME, 0));
         if (arg5 != 0) {
-            func_800C22D8(arg0, arg1, arg2, arg3, arg5);
+            itemMenuDrawEquipmentMarker(arg0, arg1, arg2, arg3, arg5);
         }
         temp = arg3 - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(arg0, arg1, arg2, temp % 3 + 1, arg4);
+            itemMenuDrawParasiteEnergyLevel(arg0, arg1, arg2, temp % 3 + 1, arg4);
         }
-        Gp_DrawItemIcon(arg0, arg1, arg2, arg3, 0);
+        itemMenuDrawItemIcon(arg0, arg1, arg2, arg3, ITEM_MENU_ICON_DEFAULT);
     }
 }
 
@@ -1673,13 +1673,13 @@ void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, 
         req.drawMode   = TEXT_DRAW_OUTLINED;
         textDrawString(&req, itemGetText(arg3, ITEM_TEXT_NAME, 0));
         if (arg5 != 0) {
-            func_800C22D8(arg0, arg1, arg2, arg3, arg5);
+            itemMenuDrawEquipmentMarker(arg0, arg1, arg2, arg3, arg5);
         }
         temp = arg3 - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(arg0, arg1, arg2, temp % 3 + 1, arg4);
+            itemMenuDrawParasiteEnergyLevel(arg0, arg1, arg2, temp % 3 + 1, arg4);
         }
-        Gp_DrawItemIcon(arg0, arg1, arg2, arg3, 0);
+        itemMenuDrawItemIcon(arg0, arg1, arg2, arg3, ITEM_MENU_ICON_DEFAULT);
     }
     uiDrawRecessedRect(&arg0->panel, arg1, (arg2 - 0xE), 0xE, 0xE, 0);
 }

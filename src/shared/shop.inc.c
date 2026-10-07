@@ -988,8 +988,8 @@ static void Shop_ChargeTask(Task* task)
     Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, supplyItemId, 0x606060, 0);
     Gp_DrawQty(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
     h = obj->panel.contentBottom.signedValue;
-    func_800C0E20(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, h - 6, qty,
-                  Shop_Data_80187628, 0x1741F);
+    itemMenuDrawMeter(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, h - 6, qty,
+                      Shop_Data_80187628, 0x1741F);
 
     if (task->state == 2) {
         countdown           = task->killCountdown - 1;

@@ -6,6 +6,7 @@
 
 #include "common.h"
 
+#include "gameplay/attachment_state.h"
 #include "attachments.h"
 #include "hud_sprites.h"
 #include "gameplay/inventory.h"
@@ -33,42 +34,81 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+/// Inventory domains and P.E. menu encoding used by the label and row filters.
+enum {
+    ITEM_MENU_ARMOR_ITEM_FIRST             = 0x60,
+    ITEM_MENU_ARMOR_ITEM_COUNT             = 0x20,
+    ITEM_MENU_WEAPON_ITEM_COUNT            = 0x20,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST   = 0x0F,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT   = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT,
+    ITEM_MENU_PACKED_PARASITE_ENERGY_FIRST = 0x300,
+    ITEM_MENU_PACKED_PARASITE_ENERGY_LIMIT = 0x340,
+    ITEM_MENU_TONFA_BATON_ITEM             = 0x92,
+    ITEM_MENU_LIST_ROW_HEIGHT              = 15,
+    ITEM_MENU_WEAPON_CHOICE_VISIBLE_ROWS   = 4,
+    ITEM_MENU_REORDER_VISIBLE_ROWS         = 9,
+    ITEM_MENU_LEVEL_MARK_CLUT              = 0x3C02,
+    ITEM_MENU_FIRE_EARTH_CAPTION_CLUT      = 0x3C85,
+    ITEM_MENU_WIND_WATER_CAPTION_CLUT      = 0x3C86,
+    ITEM_MENU_ELEMENT_EARTH                = 3,
+    ITEM_MENU_FIRE_CAPTION_WIDTH           = 24,
+    ITEM_MENU_OTHER_ELEMENT_CAPTION_WIDTH  = 32,
+    ITEM_MENU_METER_FRAME_CLUT             = 0x3C0B,
+    ITEM_MENU_STAT_TEXT_COLOR              = 0x606060,
+    ITEM_MENU_STAT_METER_COLOR             = 0x01741F
+};
+
+/// Sets a menu-stat request's style, leaving its pixel coordinates intact.
+///
+/// request is a side-effect-free TextDrawReq lvalue, evaluated five times;
+/// panel is a readable UiPanel pointer. Other arguments are evaluated once.
+/// Use as a standalone block statement; do not attach an else to the call.
+#define ITEM_MENU_INIT_STATS_TEXT(request, panel, rgb, glyphs, align, mode) \
+    {                                                                       \
+        (request).otIndex    = (panel)->otIndex.signedValue + 1;            \
+        (request).colorRgb   = (rgb);                                       \
+        (request).glyphTable = (glyphs);                                    \
+        (request).alignment  = (align);                                     \
+        (request).drawMode   = (mode);                                      \
+    }
+
+/// Sets result to 1 when an inventory item is selected as equipment.
+///
+/// result must start at 0 and player must point to the live PlayerStatus.
+/// itemId and player are evaluated repeatedly and must have no side effects.
+/// Reads load selections even at zero quantity; none of them is modified.
+/// result must be a side-effect-free writable s32 lvalue.
+/// Use as a standalone block statement; do not attach an else to the call.
+#define EQUIPMENT_CHECK_ACTIVE_ITEM(result, player, itemId)                                                                                                            \
+    {                                                                                                                                                                  \
+        if ((((u32)((itemId) - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) && ((player)->weapon == ((itemId) - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)))) || \
+            (((u32)((itemId) - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_ARMOR_ITEM_COUNT) && ((player)->armor == ((itemId) - (ITEM_MENU_ARMOR_ITEM_FIRST - 1)))) ||     \
+            (((u32)((itemId) - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) && ((player)->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&            \
+             ((equipmentGetWeaponLoad((player)->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->primaryItemId == (itemId)) ||                                             \
+              (equipmentGetWeaponLoad((player)->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId == (itemId))))) {                                         \
+            (result) = 1;                                                                                                                                              \
+        }                                                                                                                                                              \
+    }
+
 static void func_800C0B98(UiList* arg0, UiObject* arg1, u32 arg2);
 
-/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
-/// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
-/// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
-static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode);
+static inline void _itemMenuDrawItemLabelAt(const UiObject* object, s32 x, s32 y, s32 colorRgb, s32 itemId, s32 attachmentState);
 
-/// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
-/// in its colour.
-static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode);
+static inline void _itemMenuDrawItemRowLabel(const UiList* list, const UiObject* object, s32 itemId, s32 attachmentState);
 
-/// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
-/// not attached to armour and not the equipped armour or weapon - or NULL
-/// when there are fewer. The out-of-line copy is `func_800CECC0`.
-static inline InventoryItemRow* _gpNthLooseRec(InventoryItemRange* scan, s32 index);
+static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryItemRange* range, s32 choiceIndex);
 
-static __inline__ void countItemRows(UiList* menu);
+static __inline__ void _itemMenuSetReorderableRows(UiList* list);
 
 static void Gp_ItemListTask(Task* arg0);
 
-/// Replaces the layout position a spawned child copied from its descriptor
-/// with `x`, `y`.
-static inline void _gpSetSpawnOffset(UiObject* obj, s32 x, s32 y);
+static inline void _itemMenuSetChildPosition(UiObject* child, s32 x, s32 y);
 
-/// Sets the weapon menu's row count from the current weapon's item: one row
-/// for weapon index 0 and for item 0x92, otherwise three when the item's
-/// load supports a secondary consumable slot (`secondaryItemId` !=
-/// `EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE`) and two when it does not.
-static inline void _gpWeaponMenuSetRows(UiList* menu);
+static inline void _itemMenuSetWeaponRows(UiList* list);
 
-/// Keeps the armor attachment selection within the visible rows and item count.
-static inline void _gpClampArmorRow(UiList* menu, s32 end);
+static inline void _itemMenuClampArmorSelection(UiList* list, s32 visibleEndIndex);
 
-/// Whether item `id` is the equipped weapon, the equipped armour, or a
-/// consumable selected in either firing mode of the equipped weapon.
-static inline s32 _gpIsEquippedItem(s32 id);
+static inline s32 _equipmentIsActiveItem(s32 itemId);
 
 char Gp_StrEmpty[]     = "";
 char Gp_StrReleasePe[] = "Release Parasite Energy.";
@@ -152,187 +192,215 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
     arg0->panel.bounds.unsignedRect.y = 0x68 - arg0->panel.bounds.unsignedRect.h;
 }
 
-void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void itemMenuDrawItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId, s32 flags)
 {
-    POLY_FT4* p;
-    TILE*     q;
-    s32       icon;
-    s32       kind;
-    s32       tu;
-    s32       tv;
-    s32       clut;
-    s32       flag0;
-    s32       flag1;
-    s32       flag2;
-    s32       flag3;
-    s32       idx;
-    s32       rel;
-    s32       tmp;
+    enum {
+        ITEM_MENU_ICON_CATEGORY_PARASITE_ENERGY = -1,
+        ITEM_MENU_ICON_CATEGORY_WEAPON          = 0,
+        ITEM_MENU_ICON_CATEGORY_AMMUNITION      = 1,
+        ITEM_MENU_ICON_CATEGORY_UNIDENTIFIED    = 2,
+        ITEM_MENU_ICON_CATEGORY_ARMOR           = 3,
+        ITEM_MENU_ICON_CATEGORY_MEDICINE        = 4,
+        ITEM_MENU_ICON_CATEGORY_OTHER_ITEM      = 6,
+        ITEM_MENU_ICON_CATEGORY_KEY_ITEM        = 7,
+        ITEM_MENU_ICON_CATEGORY_EMPTY           = 8,
+        ITEM_MENU_ICON_PALETTE_DIRECT           = -1,
+        ITEM_MENU_ICON_PALETTE_MEDICINE         = 1,
+        ITEM_MENU_ICON_PALETTE_FALLBACK         = 2,
+        ITEM_MENU_ICON_PALETTE_9MM              = 3,
+        ITEM_MENU_ICON_PALETTE_44_MAGNUM        = 4,
+        ITEM_MENU_ICON_PALETTE_12_GAUGE         = 5,
+        ITEM_MENU_ICON_PALETTE_556MM            = 6,
+        ITEM_MENU_ICON_PALETTE_40MM             = 7,
+        ITEM_MENU_ICON_PALETTE_BATTERY          = 8,
+        ITEM_MENU_ICON_PALETTE_OTHER_ITEM       = 9,
+        ITEM_MENU_SMG_CLIP_HOLDER_ITEM          = 0x09,
+        ITEM_MENU_RIFLE_CLIP_HOLDER_ITEM        = 0x0A,
+        ITEM_MENU_SNAIL_MAGAZINE_ITEM           = 0x0C,
+        ITEM_MENU_M4_ATTACHMENT_ITEM_FIRST      = 0x42,
+        ITEM_MENU_M4_ATTACHMENT_ITEM_LIMIT      = 0x47
+    };
+    POLY_FT4* iconQuad;
+    TILE*     highlightTile;
+    s32       paletteIndex;
+    s32       categoryIndex;
+    s32       textureU;
+    s32       textureV;
+    s32       paletteClut;
+    s32       forceIdentified;
+    s32       enlarge;
+    s32       dimmed;
+    s32       highlight;
+    s32       abilityIndex;
+    s32       firstConsumableItemId;
+    s32       textureOffset;
 
-    clut  = 0;
-    tv    = 0;
-    tu    = 0;
-    flag0 = arg4 & 1;
-    flag1 = (arg4 >> 1) & 1;
-    flag2 = (arg4 >> 2) & 1;
-    flag3 = (arg4 >> 3) & 1;
+    paletteClut     = 0;
+    textureV        = 0;
+    textureU        = 0;
+    forceIdentified = flags & ITEM_MENU_ICON_FORCE_IDENTIFIED;
+    enlarge         = (flags >> 1) & (ITEM_MENU_ICON_ENLARGED >> 1);
+    dimmed          = (flags >> 2) & (ITEM_MENU_ICON_DIMMED >> 2);
+    highlight       = (flags >> 3) & (ITEM_MENU_ICON_HIGHLIGHTED >> 3);
 
-    if (arg3 >= 0x300) {
-        icon = -1;
-        kind = -1;
-        if (arg3 < 0x340) {
-            tu   = ((arg3 & 0xC) << 2) + 0xB0;
-            tv   = (arg3 & 0xF0) + 0x80;
-            clut = getClut((arg3 & 0xF0) + 0x40, 0xF0);
+    // P.E. icons use their own atlas cells; ordinary items share category shapes and palettes.
+    if (itemId >= ITEM_MENU_PACKED_PARASITE_ENERGY_FIRST) {
+        paletteIndex  = ITEM_MENU_ICON_PALETTE_DIRECT;
+        categoryIndex = ITEM_MENU_ICON_CATEGORY_PARASITE_ENERGY;
+        if (itemId < ITEM_MENU_PACKED_PARASITE_ENERGY_LIMIT) {
+            textureU    = ((itemId & 0xC) << 2) + 0xB0;
+            textureV    = (itemId & 0xF0) + 0x80;
+            paletteClut = getClut((itemId & 0xF0) + 0x40, 0xF0);
         } else {
-            tu   = 0xE0;
-            tv   = 0x40;
-            clut = 0x3C8B;
+            textureU    = 0xE0;
+            textureV    = 0x40;
+            paletteClut = 0x3C8B;
         }
-    } else if (arg3 == 0) {
-        icon = 6;
-        kind = 8;
-    } else if (flag0 == 0 && itemIsIdentified(arg3) == 0) {
-        icon = 2;
-        kind = 2;
-    } else if (arg3 < 0x60) {
-        if ((u32)(arg3 - 0xF) < 0x24) {
-            idx  = (arg3 - 0xF) / 3;
-            icon = -1;
-            kind = -1;
-            tu   = (idx % 3) * 16 + 0xB0;
-            tv   = (idx / 3) * 16 + 0x80;
-            clut = getClut((idx / 3) * 16 + 0x40, 0xF0);
-        } else if ((Gp_ItemDescs[arg3].classification & ITEM_SUBTYPE_MASK) == ITEM_SUBTYPE_MEDICINE) {
-            icon = 1;
-            kind = 4;
+    } else if (itemId == INVENTORY_ITEM_NONE) {
+        paletteIndex  = ITEM_MENU_ICON_PALETTE_556MM;
+        categoryIndex = ITEM_MENU_ICON_CATEGORY_EMPTY;
+    } else if (forceIdentified == 0 && itemIsIdentified(itemId) == 0) {
+        paletteIndex  = ITEM_MENU_ICON_PALETTE_FALLBACK;
+        categoryIndex = ITEM_MENU_ICON_CATEGORY_UNIDENTIFIED;
+    } else if (itemId < ITEM_MENU_ARMOR_ITEM_FIRST) {
+        if ((u32)(itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) < ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
+            abilityIndex  = (itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST) / ATTACHMENT_AREA_LEVEL_COUNT;
+            paletteIndex  = ITEM_MENU_ICON_PALETTE_DIRECT;
+            categoryIndex = ITEM_MENU_ICON_CATEGORY_PARASITE_ENERGY;
+            textureU      = (abilityIndex % 3) * 16 + 0xB0;
+            textureV      = (abilityIndex / 3) * 16 + 0x80;
+            paletteClut   = getClut((abilityIndex / 3) * 16 + 0x40, 0xF0);
+        } else if ((Gp_ItemDescs[itemId].classification & ITEM_SUBTYPE_MASK) == ITEM_SUBTYPE_MEDICINE) {
+            paletteIndex  = ITEM_MENU_ICON_PALETTE_MEDICINE;
+            categoryIndex = ITEM_MENU_ICON_CATEGORY_MEDICINE;
         } else {
-            if (arg3 < 0x47) {
-                if (arg3 < 0x42) {
-                    switch (arg3) {
-                        case 9:
-                        case 0xC:
-                            icon = 3;
+            if (itemId < ITEM_MENU_M4_ATTACHMENT_ITEM_LIMIT) {
+                if (itemId < ITEM_MENU_M4_ATTACHMENT_ITEM_FIRST) {
+                    switch (itemId) {
+                        case ITEM_MENU_SMG_CLIP_HOLDER_ITEM:
+                        case ITEM_MENU_SNAIL_MAGAZINE_ITEM:
+                            paletteIndex = ITEM_MENU_ICON_PALETTE_9MM;
                             break;
-                        case 0xA:
-                            icon = 6;
+                        case ITEM_MENU_RIFLE_CLIP_HOLDER_ITEM:
+                            paletteIndex = ITEM_MENU_ICON_PALETTE_556MM;
                             break;
                         default:
-                            icon = 9;
+                            paletteIndex = ITEM_MENU_ICON_PALETTE_OTHER_ITEM;
                             break;
                     }
                 } else {
-                    icon = 6;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_556MM;
                 }
             } else {
-                icon = 9;
+                paletteIndex = ITEM_MENU_ICON_PALETTE_OTHER_ITEM;
             }
-            kind = 6;
+            categoryIndex = ITEM_MENU_ICON_CATEGORY_OTHER_ITEM;
         }
-    } else if (arg3 < 0x80) {
-        icon = 9;
-        kind = 3;
-    } else if (arg3 < 0xA0) {
-        rel = Gp_RelatedQty0.rows[arg3 - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[0];
-        if (rel == INVENTORY_ITEM_NONE) {
-            icon = 2;
+    } else if (itemId < EQUIPMENT_WEAPON_ITEM_FIRST) {
+        paletteIndex  = ITEM_MENU_ICON_PALETTE_OTHER_ITEM;
+        categoryIndex = ITEM_MENU_ICON_CATEGORY_ARMOR;
+    } else if (itemId < INVENTORY_CONSUMABLE_ITEM_FIRST) {
+        firstConsumableItemId = Gp_RelatedQty0.rows[itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[0];
+        if (firstConsumableItemId == INVENTORY_ITEM_NONE) {
+            paletteIndex = ITEM_MENU_ICON_PALETTE_FALLBACK;
         } else {
-            switch (Gp_ItemDescs[rel].classification & ITEM_SUBTYPE_MASK) {
+            switch (Gp_ItemDescs[firstConsumableItemId].classification & ITEM_SUBTYPE_MASK) {
                 case ITEM_AMMO_9MM:
-                    icon = 3;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_9MM;
                     break;
                 case ITEM_AMMO_44_MAGNUM:
-                    icon = 4;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_44_MAGNUM;
                     break;
                 case ITEM_AMMO_40MM:
-                    icon = 7;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_40MM;
                     break;
                 case ITEM_AMMO_12_GAUGE:
-                    icon = 5;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_12_GAUGE;
                     break;
                 case ITEM_AMMO_556MM:
-                    icon = 6;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_556MM;
                     break;
                 case ITEM_AMMO_BATTERY:
-                    icon = 8;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_BATTERY;
                     break;
                 default:
-                    icon = 2;
+                    paletteIndex = ITEM_MENU_ICON_PALETTE_FALLBACK;
                     break;
             }
         }
-        kind = 0;
-    } else if (arg3 < 0xC0) {
-        switch (Gp_ItemDescs[arg3].classification & ITEM_SUBTYPE_MASK) {
+        categoryIndex = ITEM_MENU_ICON_CATEGORY_WEAPON;
+    } else if (itemId < INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        switch (Gp_ItemDescs[itemId].classification & ITEM_SUBTYPE_MASK) {
             case ITEM_AMMO_9MM:
-                icon = 3;
+                paletteIndex = ITEM_MENU_ICON_PALETTE_9MM;
                 break;
             case ITEM_AMMO_44_MAGNUM:
-                icon = 4;
+                paletteIndex = ITEM_MENU_ICON_PALETTE_44_MAGNUM;
                 break;
             case ITEM_AMMO_40MM:
-                icon = 7;
+                paletteIndex = ITEM_MENU_ICON_PALETTE_40MM;
                 break;
             case ITEM_AMMO_12_GAUGE:
-                icon = 5;
+                paletteIndex = ITEM_MENU_ICON_PALETTE_12_GAUGE;
                 break;
             case ITEM_AMMO_556MM:
-                icon = 6;
+                paletteIndex = ITEM_MENU_ICON_PALETTE_556MM;
                 break;
             default:
-                icon = 2;
+                paletteIndex = ITEM_MENU_ICON_PALETTE_FALLBACK;
                 break;
         }
-        kind = 1;
+        categoryIndex = ITEM_MENU_ICON_CATEGORY_AMMUNITION;
     } else {
-        icon = 1;
-        kind = 7;
+        paletteIndex  = ITEM_MENU_ICON_PALETTE_MEDICINE;
+        categoryIndex = ITEM_MENU_ICON_CATEGORY_KEY_ITEM;
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    p->x2 = p->x0 = arg0->panel.contentOriginX.unsignedValue + arg1;
-    p->x1 = p->x3 = p->x0 + 0xE;
-    p->y1 = p->y0 = arg0->panel.contentOriginY.unsignedValue + arg2 - 0xE;
-    p->y2 = p->y3 = p->y0 + 0xE;
-    if (flag1 != 0) {
-        p->x2 = p->x0 = p->x0 - 2;
-        p->x3 = p->x1 = p->x1 + 2;
-        p->y1 = p->y0 = p->y0 - 2;
-        p->y3 = p->y2 = p->y2 + 2;
+    // Queue the icon first so an optional highlight tile sits behind it in the OT.
+    iconQuad       = gGpuPrimCursor;
+    gGpuPrimCursor = iconQuad + 1;
+    iconQuad->x2 = iconQuad->x0 = object->panel.contentOriginX.unsignedValue + x;
+    iconQuad->x1 = iconQuad->x3 = iconQuad->x0 + 0xE;
+    iconQuad->y1 = iconQuad->y0 = object->panel.contentOriginY.unsignedValue + y - 0xE;
+    iconQuad->y2 = iconQuad->y3 = iconQuad->y0 + 0xE;
+    if (enlarge != 0) {
+        iconQuad->x2 = iconQuad->x0 = iconQuad->x0 - 2;
+        iconQuad->x3 = iconQuad->x1 = iconQuad->x1 + 2;
+        iconQuad->y1 = iconQuad->y0 = iconQuad->y0 - 2;
+        iconQuad->y3 = iconQuad->y2 = iconQuad->y2 + 2;
     }
-    if (kind >= 0) {
-        tmp = (kind + 1) * 16;
-        setUV4(p, -tmp, 0xF0, 0xE - tmp, 0xF0, -tmp, 0xFE, 0xE - tmp, 0xFE);
+    if (categoryIndex >= 0) {
+        textureOffset = (categoryIndex + 1) * 16;
+        setUV4(iconQuad, -textureOffset, 0xF0, 0xE - textureOffset, 0xF0, -textureOffset, 0xFE, 0xE - textureOffset, 0xFE);
     } else {
-        setUVWH(p, tu + 1, tv + 1, 0xE, 0xE);
+        setUVWH(iconQuad, textureU + 1, textureV + 1, 0xE, 0xE);
     }
-    if (icon >= 0) {
-        p->clut = D_80096F88[icon];
+    if (paletteIndex >= 0) {
+        iconQuad->clut = D_80096F88[paletteIndex];
     } else {
-        p->clut = clut;
+        iconQuad->clut = paletteClut;
     }
-    p->tpage = 0x1E;
-    if (flag2 == 0) {
-        setlen(p, 9);
-        setcode(p, 0x2D);
+    iconQuad->tpage = 0x1E;
+    if (dimmed == 0) {
+        setlen(iconQuad, 9);
+        setcode(iconQuad, 0x2D);
     } else {
-        GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
-        setlen(p, 9);
-        setcode(p, 0x2C);
+        GPU_PRIMITIVE_COLOR_WORD(iconQuad, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
+        setlen(iconQuad, 9);
+        setcode(iconQuad, 0x2C);
     }
-    addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, p);
-    if (flag3 != 0) {
-        q                              = gGpuPrimCursor;
-        q->x0                          = p->x0 - 1;
-        q->y0                          = p->y0 - 1;
-        q->w                           = p->x1 - p->x0 + 2;
-        q->h                           = p->y2 - p->y0 + 2;
-        gGpuPrimCursor                 = q + 1;
-        GPU_PRIMITIVE_COLOR_WORD(q, 0) = GPU_PACK_COLOR_WORD(0xc0, 0xc0, 0xc0, 0);
-        setlen(q, 3);
-        setcode(q, 0x60);
-        addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, q);
+    addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, iconQuad);
+    if (highlight != 0) {
+        highlightTile                              = gGpuPrimCursor;
+        highlightTile->x0                          = iconQuad->x0 - 1;
+        highlightTile->y0                          = iconQuad->y0 - 1;
+        highlightTile->w                           = iconQuad->x1 - iconQuad->x0 + 2;
+        highlightTile->h                           = iconQuad->y2 - iconQuad->y0 + 2;
+        gGpuPrimCursor                             = highlightTile + 1;
+        GPU_PRIMITIVE_COLOR_WORD(highlightTile, 0) = GPU_PACK_COLOR_WORD(0xc0, 0xc0, 0xc0, 0);
+        setlen(highlightTile, 3);
+        setcode(highlightTile, 0x60);
+        addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, highlightTile);
     }
 }
 
@@ -413,249 +481,201 @@ void Gp_StatusPanelTask(Task* arg0)
     }
 }
 
-void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u32 arg6)
+void itemMenuDrawMeter(const UiPanel* panel, s32 left, s32 right, s32 centerY, s32 maximum, s32 value, u32 colorRgb)
 {
-    TILE*     tile;
-    SPRT*     sp;
-    POLY_FT4* poly;
-    s32       span;
-    s32       max;
-    s32       bar;
-    s32       right;
-    s32       clut;
+    TILE*     fillTile;
+    SPRT*     capSprite;
+    POLY_FT4* frameQuad;
+    s32       width;
+    s32       interiorWidth;
+    s32       fillWidth;
+    s32       rightCapX;
+    s32       frameClut;
 
-    if (arg1 < arg2) {
-        span = arg2 - arg1;
-        max  = span - 2;
-        bar  = (max * arg5) / arg4;
-        arg1 = arg1 + arg0->contentOriginX.signedValue;
-        arg3 = arg3 + arg0->contentOriginY.signedValue;
-        if (max < bar) {
-            bar = max;
+    if (left < right) {
+        width         = right - left;
+        interiorWidth = width - 2;
+        fillWidth     = (interiorWidth * value) / maximum;
+        left          = left + panel->contentOriginX.signedValue;
+        centerY       = centerY + panel->contentOriginY.signedValue;
+        if (interiorWidth < fillWidth) {
+            fillWidth = interiorWidth;
         }
-        if (bar > 0) {
-            tile                              = gGpuPrimCursor;
-            gGpuPrimCursor                    = tile + 1;
-            tile->x0                          = arg1 + 1;
-            tile->y0                          = arg3 - 1;
-            tile->w                           = bar;
-            tile->h                           = 2;
-            GPU_PRIMITIVE_COLOR_WORD(tile, 0) = arg6;
-            setlen(tile, 3);
-            setcode(tile, 0x60);
-            addPrim(gGpuCurrentOt + arg0->otIndex.signedValue + 1, tile);
+        // Scale and clip the fill before drawing the two caps and stretched frame.
+        if (fillWidth > 0) {
+            fillTile                              = gGpuPrimCursor;
+            gGpuPrimCursor                        = fillTile + 1;
+            fillTile->x0                          = left + 1;
+            fillTile->y0                          = centerY - 1;
+            fillTile->w                           = fillWidth;
+            fillTile->h                           = 2;
+            GPU_PRIMITIVE_COLOR_WORD(fillTile, 0) = colorRgb;
+            setlen(fillTile, 3);
+            setcode(fillTile, 0x60);
+            addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, fillTile);
         }
-        arg3 = arg3 - 4;
-        clut = 0x3C0B;
+        centerY   = centerY - 4;
+        frameClut = ITEM_MENU_METER_FRAME_CLUT;
 
-        sp             = gGpuPrimCursor;
-        gGpuPrimCursor = sp + 1;
-        sp->x0         = arg1;
-        sp->y0         = arg3;
-        sp->u0         = 0x98;
-        sp->v0         = 0x68;
-        sp->clut       = clut;
-        setlen(sp, 3);
-        setcode(sp, 0x75);
-        addPrim(gGpuCurrentOt + arg0->otIndex.signedValue + 1, sp);
+        capSprite       = gGpuPrimCursor;
+        gGpuPrimCursor  = capSprite + 1;
+        capSprite->x0   = left;
+        capSprite->y0   = centerY;
+        capSprite->u0   = 0x98;
+        capSprite->v0   = 0x68;
+        capSprite->clut = frameClut;
+        setlen(capSprite, 3);
+        setcode(capSprite, 0x75);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, capSprite);
 
-        sp             = gGpuPrimCursor;
-        gGpuPrimCursor = sp + 1;
-        right          = (arg1 + span) - 8;
-        sp->x0         = right;
-        sp->y0         = arg3;
-        sp->u0         = 0xA8;
-        sp->v0         = 0x68;
-        sp->clut       = clut;
-        setlen(sp, 3);
-        setcode(sp, 0x75);
-        addPrim(gGpuCurrentOt + arg0->otIndex.signedValue + 1, sp);
+        capSprite       = gGpuPrimCursor;
+        gGpuPrimCursor  = capSprite + 1;
+        rightCapX       = (left + width) - 8;
+        capSprite->x0   = rightCapX;
+        capSprite->y0   = centerY;
+        capSprite->u0   = 0xA8;
+        capSprite->v0   = 0x68;
+        capSprite->clut = frameClut;
+        setlen(capSprite, 3);
+        setcode(capSprite, 0x75);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, capSprite);
 
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        poly->x2       = arg1 + 8;
-        poly->x0       = arg1 + 8;
-        poly->y3       = arg3 + 8;
-        poly->y2       = arg3 + 8;
-        poly->u0       = 0xA0;
-        poly->u2       = 0xA0;
-        poly->v2       = 0x70;
-        poly->v3       = 0x70;
-        poly->tpage    = 0x3E;
-        poly->x3       = right;
-        poly->x1       = right;
-        poly->y1       = arg3;
-        poly->y0       = arg3;
-        poly->v0       = 0x68;
-        poly->u1       = 0xA8;
-        poly->v1       = 0x68;
-        poly->u3       = 0xA8;
-        poly->clut     = clut;
-        setlen(poly, 9);
-        setcode(poly, 0x2D);
-        addPrim(gGpuCurrentOt + arg0->otIndex.signedValue + 1, poly);
+        frameQuad        = gGpuPrimCursor;
+        gGpuPrimCursor   = frameQuad + 1;
+        frameQuad->x2    = left + 8;
+        frameQuad->x0    = left + 8;
+        frameQuad->y3    = centerY + 8;
+        frameQuad->y2    = centerY + 8;
+        frameQuad->u0    = 0xA0;
+        frameQuad->u2    = 0xA0;
+        frameQuad->v2    = 0x70;
+        frameQuad->v3    = 0x70;
+        frameQuad->tpage = 0x3E;
+        frameQuad->x3    = rightCapX;
+        frameQuad->x1    = rightCapX;
+        frameQuad->y1    = centerY;
+        frameQuad->y0    = centerY;
+        frameQuad->v0    = 0x68;
+        frameQuad->u1    = 0xA8;
+        frameQuad->v1    = 0x68;
+        frameQuad->u3    = 0xA8;
+        frameQuad->clut  = frameClut;
+        setlen(frameQuad, 9);
+        setcode(frameQuad, 0x2D);
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, frameQuad);
     }
 }
 
-void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
+void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
 {
-    u8            buf[0x20];
-    TextDrawReq   req1;
-    TextDrawReq   req2;
-    TextDrawReq   req3;
-    TextDrawReq   req4;
-    TextDrawReq   req5;
-    TextDrawReq   req6;
-    TextDrawReq   req7;
-    TextDrawReq   req8;
-    TextDrawReq   req9;
-    TextDrawReq   req10;
-    TextDrawReq   req11;
-    PlayerStatus* cfg;
-    s32           xOff;
-    s32           x;
-    s32           y;
-    s32           y2;
-    s32           barX;
-    s32           color;
-    s32           max;
+    u8            numberText[0x20];
+    TextDrawReq   hpValueText;
+    TextDrawReq   hpSeparatorText;
+    TextDrawReq   hpMaximumText;
+    TextDrawReq   mpValueText;
+    TextDrawReq   mpSeparatorText;
+    TextDrawReq   mpMaximumText;
+    TextDrawReq   experienceText;
+    TextDrawReq   textReq;
+    TextDrawReq   mpLabelText;
+    TextDrawReq   experienceLabelText;
+    TextDrawReq   bpLabelText;
+    PlayerStatus* player;
+    s32           contentLeft;
+    s32           valueX;
+    s32           firstRowY;
+    s32           rowY;
+    s32           meterBaseX;
+    s32           textColorRgb;
+    s32           maximum;
 
-    cfg = &gPlayerStatus;
-    /* The left edge is read into x and copied out before x is indented: the
-     * image only shows that x's register outranks the row cursor's, which the
-     * two references of this load supply (combine merges the load into the
-     * copy and keeps the count). The load precedes contentTop's, so the copy
-     * sits here; what the original named these two values is unknown. */
-    x    = arg0->contentLeft.signedValue;
-    arg1 = arg1 + 8;
-    xOff = x;
-    x   += 6;
-    y    = arg0->contentTop.signedValue + arg1;
-    if (Gp_HpMpWork.hp < cfg->hp) {
+    player = &gPlayerStatus;
+    // Keep the panel edge for the BP column before indenting the numeric rows.
+    valueX      = panel->contentLeft.signedValue;
+    topOffset   = topOffset + 8;
+    contentLeft = valueX;
+    valueX     += 6;
+    firstRowY   = panel->contentTop.signedValue + topOffset;
+    // Menu healing advances the displayed values upward by one per draw.
+    if (Gp_HpMpWork.hp < player->hp) {
         Gp_HpMpWork.hp = Gp_HpMpWork.hp + 1;
     }
-    if (Gp_HpMpWork.mp < cfg->mp) {
+    if (Gp_HpMpWork.mp < player->mp) {
         Gp_HpMpWork.mp = Gp_HpMpWork.mp + 1;
     }
-    color = 0x606060;
+    textColorRgb = ITEM_MENU_STAT_TEXT_COLOR;
 
-    req1.x          = arg0->contentOriginX.unsignedValue + 0x17 + x;
-    req1.y          = arg0->contentOriginY.unsignedValue + y;
-    req1.otIndex    = arg0->otIndex.signedValue + 1;
-    req1.colorRgb   = color;
-    req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req1.alignment  = TEXT_ALIGNMENT_LEFT;
-    req1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req1, textItoaUnsigned(buf, Gp_HpMpWork.hp));
+    hpValueText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
+    hpValueText.y = panel->contentOriginY.unsignedValue + firstRowY;
+    ITEM_MENU_INIT_STATS_TEXT(hpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&hpValueText, textItoaUnsigned(numberText, Gp_HpMpWork.hp));
 
-    req2.x          = arg0->contentOriginX.unsignedValue + 0x32 + x;
-    req2.y          = arg0->contentOriginY.unsignedValue + y;
-    req2.otIndex    = arg0->otIndex.signedValue + 1;
-    req2.colorRgb   = color;
-    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req2.alignment  = TEXT_ALIGNMENT_CENTER;
-    req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req2, Gp_StrSlash);
+    hpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
+    hpSeparatorText.y = panel->contentOriginY.unsignedValue + firstRowY;
+    ITEM_MENU_INIT_STATS_TEXT(hpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&hpSeparatorText, Gp_StrSlash);
 
-    req3.x          = arg0->contentOriginX.unsignedValue + 0x37 + x;
-    req3.y          = arg0->contentOriginY.unsignedValue + y;
-    req3.otIndex    = arg0->otIndex.signedValue + 1;
-    req3.colorRgb   = color;
-    req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req3.alignment  = TEXT_ALIGNMENT_LEFT;
-    req3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req3, textItoaUnsigned(buf, cfg->hpMax));
+    hpMaximumText.x = panel->contentOriginX.unsignedValue + 0x37 + valueX;
+    hpMaximumText.y = panel->contentOriginY.unsignedValue + firstRowY;
+    ITEM_MENU_INIT_STATS_TEXT(hpMaximumText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&hpMaximumText, textItoaUnsigned(numberText, player->hpMax));
 
-    max  = cfg->hpMax;
-    barX = xOff + 7;
-    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 5, max, Gp_HpMpWork.hp, 0x1741F);
+    maximum    = player->hpMax;
+    meterBaseX = contentLeft + 7;
+    itemMenuDrawMeter(panel, valueX, meterBaseX + ((maximum - 1) * 0x25) / 64, firstRowY + 5, maximum, Gp_HpMpWork.hp, ITEM_MENU_STAT_METER_COLOR);
 
-    y2              = y + 0x12;
-    req4.x          = arg0->contentOriginX.unsignedValue + 0x17 + x;
-    req4.y          = arg0->contentOriginY.unsignedValue + y2;
-    req4.otIndex    = arg0->otIndex.signedValue + 1;
-    req4.colorRgb   = color;
-    req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req4.alignment  = TEXT_ALIGNMENT_LEFT;
-    req4.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req4, textItoaUnsigned(buf, Gp_HpMpWork.mp));
+    rowY          = firstRowY + 0x12;
+    mpValueText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
+    mpValueText.y = panel->contentOriginY.unsignedValue + rowY;
+    ITEM_MENU_INIT_STATS_TEXT(mpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&mpValueText, textItoaUnsigned(numberText, Gp_HpMpWork.mp));
 
-    req5.x          = arg0->contentOriginX.unsignedValue + 0x32 + x;
-    req5.y          = arg0->contentOriginY.unsignedValue + y2;
-    req5.otIndex    = arg0->otIndex.signedValue + 1;
-    req5.colorRgb   = color;
-    req5.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req5.alignment  = TEXT_ALIGNMENT_CENTER;
-    req5.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req5, Gp_StrSlash);
+    mpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
+    mpSeparatorText.y = panel->contentOriginY.unsignedValue + rowY;
+    ITEM_MENU_INIT_STATS_TEXT(mpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&mpSeparatorText, Gp_StrSlash);
 
-    req6.x          = arg0->contentOriginX.unsignedValue + 0x37 + x;
-    req6.y          = arg0->contentOriginY.unsignedValue + y2;
-    req6.otIndex    = arg0->otIndex.signedValue + 1;
-    req6.colorRgb   = color;
-    req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req6.alignment  = TEXT_ALIGNMENT_LEFT;
-    req6.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req6, textItoaUnsigned(buf, cfg->mpMax));
+    mpMaximumText.x = panel->contentOriginX.unsignedValue + 0x37 + valueX;
+    mpMaximumText.y = panel->contentOriginY.unsignedValue + rowY;
+    ITEM_MENU_INIT_STATS_TEXT(mpMaximumText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&mpMaximumText, textItoaUnsigned(numberText, player->mpMax));
 
-    max = cfg->mpMax;
-    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.mp, 0x1741F);
+    maximum = player->mpMax;
+    itemMenuDrawMeter(panel, valueX, meterBaseX + ((maximum - 1) * 0x25) / 64, firstRowY + 0x17, maximum, Gp_HpMpWork.mp, ITEM_MENU_STAT_METER_COLOR);
 
-    y2              = y + 0x24;
-    req7.x          = arg0->contentOriginX.unsignedValue + 0x17 + x;
-    req7.y          = arg0->contentOriginY.unsignedValue + y2;
-    req7.otIndex    = arg0->otIndex.signedValue + 1;
-    req7.colorRgb   = color;
-    req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req7.alignment  = TEXT_ALIGNMENT_LEFT;
-    req7.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req7, textItoaUnsigned(buf, cfg->exp));
+    rowY             = firstRowY + 0x24;
+    experienceText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
+    experienceText.y = panel->contentOriginY.unsignedValue + rowY;
+    ITEM_MENU_INIT_STATS_TEXT(experienceText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&experienceText, textItoaUnsigned(numberText, player->exp));
 
-    req8.x          = arg0->contentOriginX.unsignedValue + xOff + 0x72;
-    req8.y          = arg0->contentOriginY.unsignedValue + y2;
-    req8.otIndex    = arg0->otIndex.signedValue + 1;
-    req8.colorRgb   = color;
-    req8.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req8.alignment  = TEXT_ALIGNMENT_LEFT;
-    req8.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req8, textItoaUnsigned(buf, cfg->bp));
+    textReq.x = panel->contentOriginX.unsignedValue + contentLeft + 0x72;
+    textReq.y = panel->contentOriginY.unsignedValue + rowY;
+    ITEM_MENU_INIT_STATS_TEXT(textReq, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    textDrawString(&textReq, textItoaUnsigned(numberText, player->bp));
 
-    req8.x          = arg0->contentLeft.unsignedValue + (arg0->contentOriginX.unsignedValue + 2);
-    req8.y          = arg0->contentOriginY.unsignedValue + (y - 2);
-    req8.otIndex    = arg0->otIndex.signedValue + 1;
-    req8.colorRgb   = color;
-    req8.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req8.alignment  = TEXT_ALIGNMENT_LEFT;
-    req8.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req8, Gp_StrHp);
+    textReq.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
+    textReq.y = panel->contentOriginY.unsignedValue + (firstRowY - 2);
+    ITEM_MENU_INIT_STATS_TEXT(textReq, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&textReq, Gp_StrHp);
 
-    req9.x          = arg0->contentLeft.unsignedValue + (arg0->contentOriginX.unsignedValue + 2);
-    req9.y          = arg0->contentOriginY.unsignedValue + 0x10 + y;
-    req9.otIndex    = arg0->otIndex.signedValue + 1;
-    req9.colorRgb   = color;
-    req9.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req9.alignment  = TEXT_ALIGNMENT_LEFT;
-    req9.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req9, Gp_StrMp);
+    mpLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
+    mpLabelText.y = panel->contentOriginY.unsignedValue + 0x10 + firstRowY;
+    ITEM_MENU_INIT_STATS_TEXT(mpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&mpLabelText, Gp_StrMp);
 
-    req10.x          = arg0->contentLeft.unsignedValue + (arg0->contentOriginX.unsignedValue + 2);
-    req10.y          = arg0->contentOriginY.unsignedValue + 0x22 + y;
-    req10.otIndex    = arg0->otIndex.signedValue + 1;
-    req10.colorRgb   = color;
-    req10.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req10.alignment  = TEXT_ALIGNMENT_LEFT;
-    req10.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req10, Gp_StrExp);
+    experienceLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
+    experienceLabelText.y = panel->contentOriginY.unsignedValue + 0x22 + firstRowY;
+    ITEM_MENU_INIT_STATS_TEXT(experienceLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&experienceLabelText, Gp_StrExp);
 
-    req11.x          = arg0->contentLeft.unsignedValue + (arg0->contentOriginX.unsignedValue + 0x57);
-    req11.y          = arg0->contentOriginY.unsignedValue + 0x22 + y;
-    req11.otIndex    = arg0->otIndex.signedValue + 1;
-    req11.colorRgb   = color;
-    req11.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req11.alignment  = TEXT_ALIGNMENT_LEFT;
-    req11.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req11, Gp_StrBp);
+    bpLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 0x57);
+    bpLabelText.y = panel->contentOriginY.unsignedValue + 0x22 + firstRowY;
+    ITEM_MENU_INIT_STATS_TEXT(bpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    textDrawString(&bpLabelText, Gp_StrBp);
 }
+
+#undef ITEM_MENU_INIT_STATS_TEXT
 
 void Gp_HpMpBarTask(Task* arg0)
 {
@@ -714,7 +734,7 @@ void Gp_HpMpBarTask(Task* arg0)
     addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, poly);
     uiDrawVerticalSeparator(&(obj)->panel, obj->panel.contentTop.signedValue - 3, obj->panel.contentBottom.signedValue + 2, obj->panel.contentRight.signedValue - 0x32);
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue - 2, obj->panel.contentRight.signedValue - 0x32, obj->panel.contentTop.signedValue + 8);
-    Gp_DrawHpMpStats(&(obj)->panel, 0xB);
+    itemMenuDrawPlayerStats(&(obj)->panel, 0xB);
 }
 
 void Gp_ArmorStatsPanelTask(Task* arg0)
@@ -830,121 +850,126 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
                 id = found->itemId;
             }
             if (id != 0) {
-                Gp_DrawItemIcon(obj, x + col * 16, y + row * 16, id, 0);
+                itemMenuDrawItemIcon(obj, x + col * 16, y + row * 16, id, ITEM_MENU_ICON_DEFAULT);
             }
             uiDrawRecessedRect(&obj->panel, x + col * 16, y + row * 16 - 0xE, 0xE, 0xE, 0x102010);
         }
     }
 }
 
-void Gp_PeGridPanelTask(Task* arg0)
+void itemMenuParasiteEnergySummaryTask(Task* task)
 {
-    u8          buf[8];
-    TextDrawReq req;
-    UiObject*   obj;
-    SPRT*       p;
-    const u8*   levels;
-    s32         startX;
-    s32         colStep;
-    s32         row;
-    s32         col;
-    s32         slot;
-    s32         x;
-    s32         y;
-    s32         rowOff;
-    s32         show;
-    s32         panelY;
-    s32         level;
-    s32         three;
-    s32         capY;
-    const u8*   colLevels;
-    s32         iconCol;
-    s32         iconSlot;
-    s32         baseSlot;
-    s32         markOff;
+    enum { ITEM_MENU_ABILITIES_PER_ELEMENT = 3 };
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    startX      = obj->panel.contentLeft.signedValue + 3;
-    colStep     = (obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue) / 4;
-    uiDrawTitle(&(obj)->panel, Gp_StrPEnergy);
+    u8          numberText[8];
+    TextDrawReq levelText;
+    UiObject*   object;
+    SPRT*       sprite;
+    const u8*   abilityLevel;
+    s32         firstColumnX;
+    s32         columnWidth;
+    s32         abilityRow;
+    s32         element;
+    s32         elementLastAbility;
+    s32         columnX;
+    s32         numberY;
+    s32         numberRowOffset;
+    s32         showThirdAbility;
+    s32         bottomY;
+    s32         learnedLevel;
+    s32         maxLevel;
+    s32         markY;
+    const u8*   elementLevels;
+    s32         captionElement;
+    s32         lastAbilityIndex;
+    s32         elementLastAbilityIndex;
+    s32         markRowOffset;
 
-    row    = 0;
-    three  = 3;
-    rowOff = 2;
-    panelY = obj->panel.contentBottom.signedValue;
-    for (; row < 3; row++) {
-        for (col = 0, y = panelY - rowOff, x = startX, slot = 2; col < 4; col++) {
-            levels = attachmentGetLearnedLevels() + (slot - row);
-            show   = 0;
-            if (row == 0) {
-                level = levels[0];
-                if ((level > 0) || ((levels[-1] == three) && (levels[-2] == three))) {
-                    show = 1;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    firstColumnX   = object->panel.contentLeft.signedValue + 3;
+    columnWidth    = (object->panel.contentRight.signedValue - object->panel.contentLeft.signedValue) / (s32)ARRAY_SIZE(D_8010E844);
+    uiDrawTitle(&(object)->panel, Gp_StrPEnergy);
+
+    // Draw levels from the third ability upward; the third appears once it can be learned.
+    abilityRow      = 0;
+    maxLevel        = ATTACHMENT_AREA_LEVEL_COUNT;
+    numberRowOffset = 2;
+    bottomY         = object->panel.contentBottom.signedValue;
+    for (; abilityRow < ITEM_MENU_ABILITIES_PER_ELEMENT; abilityRow++) {
+        for (element = 0, numberY = bottomY - numberRowOffset, columnX = firstColumnX, elementLastAbility = ITEM_MENU_ABILITIES_PER_ELEMENT - 1; element < (s32)ARRAY_SIZE(D_8010E844); element++) {
+            abilityLevel     = attachmentGetLearnedLevels() + (elementLastAbility - abilityRow);
+            showThirdAbility = 0;
+            if (abilityRow == 0) {
+                learnedLevel = abilityLevel[0];
+                if ((learnedLevel > 0) || ((abilityLevel[-1] == maxLevel) && (abilityLevel[-2] == maxLevel))) {
+                    showThirdAbility = 1;
                 }
             }
-            if ((row != 0) || (show != 0)) {
-                req.x          = obj->panel.contentOriginX.unsignedValue + 0xC + x;
-                req.y          = obj->panel.contentOriginY.unsignedValue + y;
-                req.otIndex    = obj->panel.otIndex.signedValue + 1;
-                req.colorRgb   = 0x606060;
-                req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-                req.alignment  = TEXT_ALIGNMENT_LEFT;
-                req.drawMode   = three;
-                textDrawString(&req, textItoaSigned(buf, levels[0]));
+            if ((abilityRow != 0) || (showThirdAbility != 0)) {
+                levelText.x          = object->panel.contentOriginX.unsignedValue + 0xC + columnX;
+                levelText.y          = object->panel.contentOriginY.unsignedValue + numberY;
+                levelText.otIndex    = object->panel.otIndex.signedValue + 1;
+                levelText.colorRgb   = 0x606060;
+                levelText.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+                levelText.alignment  = TEXT_ALIGNMENT_LEFT;
+                // The level-limit local also supplies mode 3 (translucent outlined text).
+                levelText.drawMode = maxLevel;
+                textDrawString(&levelText, textItoaSigned(numberText, abilityLevel[0]));
             }
-            x    += colStep;
-            slot += 3;
+            columnX            += columnWidth;
+            elementLastAbility += ITEM_MENU_ABILITIES_PER_ELEMENT;
         }
-        rowOff += 9;
+        numberRowOffset += 9;
     }
 
-    for (iconCol = 0; iconCol < 4; iconCol++) {
-        p              = gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        setlen(p, 4);
-        GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
-        setcode(p, 0x64);
-        addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, p);
-        p->x0   = D_8010E844[iconCol].xOffset + (obj->panel.contentOriginX.unsignedValue + startX + iconCol * colStep);
-        p->y0   = obj->panel.contentOriginY.unsignedValue + panelY - 0x23;
-        p->w    = (iconCol == 0) ? 0x18 : 0x20;
-        p->h    = 8;
-        p->u0   = D_8010E844[iconCol].u;
-        p->v0   = D_8010E844[iconCol].v;
-        p->clut = ((iconCol == 0) || (iconCol == 3)) ? 0x3C85 : 0x3C86;
+    // Draw each element caption and one level mark for every visible ability.
+    for (captionElement = 0; captionElement < (s32)ARRAY_SIZE(D_8010E844); captionElement++) {
+        sprite         = gGpuPrimCursor;
+        gGpuPrimCursor = sprite + 1;
+        setlen(sprite, 4);
+        GPU_PRIMITIVE_COLOR_WORD(sprite, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
+        setcode(sprite, 0x64);
+        addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, sprite);
+        sprite->x0   = D_8010E844[captionElement].xOffset + (object->panel.contentOriginX.unsignedValue + firstColumnX + captionElement * columnWidth);
+        sprite->y0   = object->panel.contentOriginY.unsignedValue + bottomY - 0x23;
+        sprite->w    = (captionElement == 0) ? ITEM_MENU_FIRE_CAPTION_WIDTH : ITEM_MENU_OTHER_ELEMENT_CAPTION_WIDTH;
+        sprite->h    = 8;
+        sprite->u0   = D_8010E844[captionElement].u;
+        sprite->v0   = D_8010E844[captionElement].v;
+        sprite->clut = ((captionElement == 0) || (captionElement == ITEM_MENU_ELEMENT_EARTH)) ? ITEM_MENU_FIRE_EARTH_CAPTION_CLUT : ITEM_MENU_WIND_WATER_CAPTION_CLUT;
 
-        iconSlot = (iconCol + 1) * 3 - 1;
-        for (row = 0, baseSlot = iconSlot, markOff = 6; row < 3; row++) {
-            colLevels = attachmentGetLearnedLevels();
-            show      = 0;
-            if (row == 0) {
-                colLevels += baseSlot;
-                if ((colLevels[0] != 0) ||
-                    ((colLevels[-1] == 3) && (colLevels[-2] == 3))) {
-                    show = 1;
+        lastAbilityIndex = (captionElement + 1) * ITEM_MENU_ABILITIES_PER_ELEMENT - 1;
+        for (abilityRow = 0, elementLastAbilityIndex = lastAbilityIndex, markRowOffset = 6; abilityRow < ITEM_MENU_ABILITIES_PER_ELEMENT; abilityRow++) {
+            elementLevels    = attachmentGetLearnedLevels();
+            showThirdAbility = 0;
+            if (abilityRow == 0) {
+                elementLevels += elementLastAbilityIndex;
+                if ((elementLevels[0] != 0) ||
+                    ((elementLevels[-1] == ATTACHMENT_AREA_LEVEL_COUNT) && (elementLevels[-2] == ATTACHMENT_AREA_LEVEL_COUNT))) {
+                    showThirdAbility = 1;
                 }
             }
-            if ((row != 0) || (show != 0)) {
-                p              = gGpuPrimCursor;
-                gGpuPrimCursor = p + 1;
-                p->x0          = obj->panel.contentOriginX.unsignedValue + startX + iconCol * colStep;
-                capY           = obj->panel.contentOriginY.unsignedValue + panelY - markOff;
-                p->w           = 8;
-                p->h           = 8;
-                p->u0          = 0xA8;
-                p->v0          = 0x88;
-                p->clut        = 0x3C02;
-                setlen(p, 4);
-                GPU_PRIMITIVE_COLOR_WORD(p, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
-                setcode(p, 0x64);
-                p->y0 = capY;
-                addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, p);
+            if ((abilityRow != 0) || (showThirdAbility != 0)) {
+                sprite         = gGpuPrimCursor;
+                gGpuPrimCursor = sprite + 1;
+                sprite->x0     = object->panel.contentOriginX.unsignedValue + firstColumnX + captionElement * columnWidth;
+                markY          = object->panel.contentOriginY.unsignedValue + bottomY - markRowOffset;
+                sprite->w      = 8;
+                sprite->h      = 8;
+                sprite->u0     = 0xA8;
+                sprite->v0     = 0x88;
+                sprite->clut   = ITEM_MENU_LEVEL_MARK_CLUT;
+                setlen(sprite, 4);
+                GPU_PRIMITIVE_COLOR_WORD(sprite, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
+                setcode(sprite, 0x64);
+                sprite->y0 = markY;
+                addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, sprite);
             }
-            markOff += 9;
+            markRowOffset += 9;
         }
     }
-    uiQueueTexturePage(obj->panel.otIndex.signedValue + 1, 0);
+    uiQueueTexturePage(object->panel.otIndex.signedValue + 1, 0);
 }
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -995,186 +1020,184 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void itemMenuDrawEquipmentMarker(const UiObject* object, s32 x, s32 y, s32 itemId, s32 attachmentState)
 {
-    u8                   buf[2];
-    TextDrawReq          req;
-    s32                  equipped;
-    s32                  hasMod;
-    PlayerStatus*        cfg;
-    EquipmentWeaponLoad* slot;
-    s32                  color;
-    s32                  x;
-    s32                  y;
+    u8                   markerText[2];
+    TextDrawReq          markerReq;
+    s32                  active;
+    s32                  hasCarriedLoad;
+    PlayerStatus*        player;
+    EquipmentWeaponLoad* load;
+    s32                  markerColorRgb;
+    s32                  markerX;
+    s32                  markerY;
 
-    equipped = 0;
-    cfg      = &gPlayerStatus;
-    buf[0]   = 0;
-    buf[1]   = 0;
-    if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->weapon == (arg3 - 0x7F))) ||
-        (((u32)(arg3 - 0x60) < 0x20U) && (cfg->armor == (arg3 - 0x5F))) ||
-        (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-         ((equipmentGetWeaponLoad(cfg->weapon + 0x7F)->primaryItemId == arg3) ||
-          (equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId == arg3)))) {
-        equipped = 1;
-    }
-    if (equipped != 0) {
-        buf[0]         = 0x45;
-        color          = 0x606060;
-        x              = arg0->panel.contentOriginX.unsignedValue - 1;
-        req.x          = x + arg1;
-        y              = arg0->panel.contentOriginY.unsignedValue - 2;
-        req.y          = y + arg2;
-        req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.colorRgb   = color;
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED_SINGLE_ENTRY;
-        textDrawString(&req, Gp_StrE);
+    active        = 0;
+    player        = &gPlayerStatus;
+    markerText[0] = 0;
+    markerText[1] = 0;
+    EQUIPMENT_CHECK_ACTIVE_ITEM(active, player, itemId);
+    // Equipped status takes priority, then a carried load, then the requested attachment mark.
+    if (active != 0) {
+        markerText[0]        = 'E';
+        markerColorRgb       = 0x606060;
+        markerX              = object->panel.contentOriginX.unsignedValue - 1;
+        markerReq.x          = markerX + x;
+        markerY              = object->panel.contentOriginY.unsignedValue - 2;
+        markerReq.y          = markerY + y;
+        markerReq.otIndex    = object->panel.otIndex.signedValue + 1;
+        markerReq.colorRgb   = markerColorRgb;
+        markerReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        markerReq.alignment  = TEXT_ALIGNMENT_LEFT;
+        markerReq.drawMode   = TEXT_DRAW_OUTLINED_SINGLE_ENTRY;
+        textDrawString(&markerReq, Gp_StrE);
     } else {
-        hasMod = 0;
-        if ((u32)(arg3 - 0x80) < 0x20U) {
-            slot = equipmentGetWeaponLoad(arg3);
-            if (((slot->primaryQty != 0) && (inventoryFindLastCarriedItemRow(slot->primaryItemId) != NULL)) ||
-                ((slot->secondaryQty != 0) && (inventoryFindLastCarriedItemRow(slot->secondaryItemId) != NULL))) {
-                hasMod = 1;
+        hasCarriedLoad = 0;
+        if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) {
+            load = equipmentGetWeaponLoad(itemId);
+            if (((load->primaryQty != 0) && (inventoryFindLastCarriedItemRow(load->primaryItemId) != NULL)) ||
+                ((load->secondaryQty != 0) && (inventoryFindLastCarriedItemRow(load->secondaryItemId) != NULL))) {
+                hasCarriedLoad = 1;
             }
         }
-        if (hasMod != 0) {
-            buf[0] = 0x4C;
-        } else if (arg4 == 2) {
-            buf[0] = 0x41;
+        if (hasCarriedLoad != 0) {
+            markerText[0] = 'L';
+        } else if (attachmentState == ITEM_MENU_ATTACHMENT_MARK_ATTACHED) {
+            markerText[0] = 'A';
         }
     }
-    if (buf[0] != 0) {
-        color          = 0x606060;
-        x              = arg0->panel.contentOriginX.unsignedValue - 1;
-        req.x          = x + arg1;
-        y              = arg0->panel.contentOriginY.unsignedValue - 2;
-        req.y          = y + arg2;
-        req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.colorRgb   = color;
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED_SINGLE_ENTRY;
-        textDrawString(&req, buf);
+    // The equipped path also draws the constant E above; retain both submissions.
+    if (markerText[0] != 0) {
+        markerColorRgb       = 0x606060;
+        markerX              = object->panel.contentOriginX.unsignedValue - 1;
+        markerReq.x          = markerX + x;
+        markerY              = object->panel.contentOriginY.unsignedValue - 2;
+        markerReq.y          = markerY + y;
+        markerReq.otIndex    = object->panel.otIndex.signedValue + 1;
+        markerReq.colorRgb   = markerColorRgb;
+        markerReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        markerReq.alignment  = TEXT_ALIGNMENT_LEFT;
+        markerReq.drawMode   = TEXT_DRAW_OUTLINED_SINGLE_ENTRY;
+        textDrawString(&markerReq, markerText);
     }
 }
 
-void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void itemMenuDrawParasiteEnergyLevel(const UiObject* object, s32 x, s32 y, s32 level, s32 colorRgb)
 {
-    u8          buf[0x20];
-    TextDrawReq req;
-    SPRT*       p;
-    s32         y;
-    s32         textY;
-    s32         color;
+    u8          levelText[0x20];
+    TextDrawReq levelReq;
+    SPRT*       markSprite;
+    s32         originY;
+    s32         textOriginY;
+    s32         markColorRgb;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    p->x0          = arg0->panel.contentOriginX.unsignedValue + arg1 + 0x6C;
-    y              = arg0->panel.contentOriginY.unsignedValue;
-    color          = arg4;
-    p->w           = 8;
-    p->h           = 8;
-    p->u0          = 0xA8;
-    p->v0          = 0x88;
-    p->clut        = 0x3C02;
-    setlen(p, 4);
-    GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
-    setcode(p, 0x64);
-    p->y0 = y + arg2 - 7;
-    addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, p);
-    uiQueueTexturePage(arg0->panel.otIndex.signedValue + 1, 0);
+    markSprite       = gGpuPrimCursor;
+    gGpuPrimCursor   = markSprite + 1;
+    markSprite->x0   = object->panel.contentOriginX.unsignedValue + x + 0x6C;
+    originY          = object->panel.contentOriginY.unsignedValue;
+    markColorRgb     = colorRgb;
+    markSprite->w    = 8;
+    markSprite->h    = 8;
+    markSprite->u0   = 0xA8;
+    markSprite->v0   = 0x88;
+    markSprite->clut = ITEM_MENU_LEVEL_MARK_CLUT;
+    setlen(markSprite, 4);
+    GPU_PRIMITIVE_COLOR_WORD(markSprite, 0) = markColorRgb;
+    setcode(markSprite, 0x64);
+    markSprite->y0 = originY + y - 7;
+    addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, markSprite);
+    uiQueueTexturePage(object->panel.otIndex.signedValue + 1, 0);
 
-    req.x          = arg0->panel.contentOriginX.unsignedValue + arg1 + 0x7C;
-    textY          = arg0->panel.contentOriginY.unsignedValue - 3;
-    req.y          = textY + arg2;
-    req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req.colorRgb   = color;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&req, textItoaSigned(buf, arg3));
+    levelReq.x          = object->panel.contentOriginX.unsignedValue + x + 0x7C;
+    textOriginY         = object->panel.contentOriginY.unsignedValue - 3;
+    levelReq.y          = textOriginY + y;
+    levelReq.otIndex    = object->panel.otIndex.signedValue + 1;
+    levelReq.colorRgb   = markColorRgb;
+    levelReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    levelReq.alignment  = TEXT_ALIGNMENT_RIGHT;
+    levelReq.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+    textDrawString(&levelReq, textItoaSigned(levelText, level));
 }
 
-/// Draws `item`'s name, its `func_800C22D8` marker in `mode`, the variant
-/// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
-/// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
-static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32 item, s32 mode)
+/// Draws an item name, equipment mark, P.E. level and icon at a panel-relative row.
+///
+/// Coordinates are pixels at the icon's bottom-left; hidden panels submit no packets.
+/// `attachmentState` requests A only for ITEM_MENU_ATTACHMENT_MARK_ATTACHED.
+static inline void _itemMenuDrawItemLabelAt(const UiObject* object, s32 x, s32 y, s32 colorRgb, s32 itemId, s32 attachmentState)
 {
-    TextDrawReq req;
-    s32         temp;
+    TextDrawReq nameReq;
+    s32         abilityItemOffset;
 
-    if (obj->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
-        req.x          = obj->panel.contentOriginX.unsignedValue + 0x11 + x;
-        req.y          = obj->panel.contentOriginY.unsignedValue + (y - 6);
-        req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.colorRgb   = color;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
-        func_800C22D8(obj, x, y, item, mode);
-        temp = item - 0xF;
-        if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
+    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        nameReq.x          = object->panel.contentOriginX.unsignedValue + 0x11 + x;
+        nameReq.y          = object->panel.contentOriginY.unsignedValue + (y - 6);
+        nameReq.otIndex    = object->panel.otIndex.signedValue + 1;
+        nameReq.colorRgb   = colorRgb;
+        nameReq.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        nameReq.alignment  = TEXT_ALIGNMENT_LEFT;
+        nameReq.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&nameReq, itemGetText(itemId, ITEM_TEXT_NAME, 0));
+        itemMenuDrawEquipmentMarker(object, x, y, itemId, attachmentState);
+        abilityItemOffset = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
+        if ((u32)abilityItemOffset < ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
+            itemMenuDrawParasiteEnergyLevel(object, x, y, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
     }
 }
 
-/// Draws `item` as `_gpDrawItemNameAt` does, at the prompt row's position and
-/// in its colour.
-static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode)
+/// Draws the item label at the list's current row position and text color.
+static inline void _itemMenuDrawItemRowLabel(const UiList* list, const UiObject* object, s32 itemId, s32 attachmentState)
 {
-    _gpDrawItemNameAt(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, prompt->colorRgb, item, mode);
+    _itemMenuDrawItemLabelAt(object, list->rowTextX.signedValue, list->rowTextY.signedValue, list->colorRgb, itemId, attachmentState);
 }
 
-/// Returns the `index`-th row (from 0) of `scan` that is free to reorder -
-/// not attached to armour and not the equipped armour or weapon - or NULL
-/// when there are fewer. The out-of-line copy is `func_800CECC0`.
-static inline InventoryItemRow* _gpNthLooseRec(InventoryItemRange* scan, s32 index)
+/// Borrows the zero-based reorderable row in a range, or NULL if absent.
+///
+/// The range must fit its backing table and choiceIndex must be nonnegative.
+/// Attached items and the equipped armor and weapon are excluded. Sorting,
+/// transfers or resetting the table can replace the returned row's contents.
+static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryItemRange* range, s32 choiceIndex)
 {
-    PlayerStatus*     p;
-    InventoryItemRow* table;
-    InventoryItemRow* found;
-    s32               i;
-    s32               ok;
-    s32               id;
-    s32               one;
-    s32               count;
-    s32               n;
+    PlayerStatus*     player;
+    InventoryItemRow* row;
+    InventoryItemRow* foundRow;
+    s32               rowIndex;
+    s32               reorderable;
+    s32               itemId;
+    s32               eligibleValue;
+    s32               rangeCount;
+    s32               rowLimit;
 
-    table = inventoryGetRangeTable(scan);
-    found = NULL;
-    i     = 0;
-    count = scan->rowCount;
-    table = &table[scan->firstRow];
-    if (count != 0) {
-        p   = &gPlayerStatus;
-        one = 1;
-        n   = count;
+    row        = inventoryGetRangeTable(range);
+    foundRow   = NULL;
+    rowIndex   = 0;
+    rangeCount = range->rowCount;
+    row        = &row[range->firstRow];
+    if (rangeCount != 0) {
+        player        = &gPlayerStatus;
+        eligibleValue = 1;
+        rowLimit      = rangeCount;
         do {
-            id = table->itemId;
-            ok = 1;
-            if ((table->attachSlot != INVENTORY_ATTACHMENT_NONE) ||
-                (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
-                (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F))) {
-                ok = 0;
+            itemId      = row->itemId;
+            reorderable = 1;
+            if ((row->attachSlot != INVENTORY_ATTACHMENT_NONE) ||
+                (((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_ARMOR_ITEM_COUNT) && (player->armor == itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) ||
+                (((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) && (player->weapon == itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)))) {
+                reorderable = 0;
             }
-            if (ok == one) {
-                index--;
+            if (reorderable == eligibleValue) {
+                choiceIndex--;
             }
-            if (index < 0) {
-                found = table;
+            if (choiceIndex < 0) {
+                foundRow = row;
                 break;
             }
-            i++;
-            table++;
-        } while (i < n);
+            rowIndex++;
+            row++;
+        } while (rowIndex < rowLimit);
     }
-    return found;
+    return foundRow;
 }
 
 /// Shows `item`'s name in the holder (the empty-slot text for item 0) and
@@ -1198,7 +1221,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
     s32               idx2;
     UiObject*         obj;
 
-    sel = _gpNthLooseRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0->currentItemIndex);
+    sel = _inventoryFindNthReorderableRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0->currentItemIndex);
     if (sel == NULL) {
         Gp_DrawSortCmd(arg0, arg1);
         return;
@@ -1254,7 +1277,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
         }
     }
 
-    _gpDrawItemName(arg0, arg1, item, 1);
+    _itemMenuDrawItemRowLabel(arg0, arg1, item, ITEM_MENU_ATTACHMENT_MARK_UNATTACHED);
 
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (Gp_ItemOrderMode == 0) {
@@ -1285,90 +1308,94 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
     }
 }
 
-void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
+void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId)
 {
-    InventoryItemRow*   table;
-    InventoryItemRange* scan;
-    PlayerStatus*       cfg;
-    s32                 count = 0;
-    s32                 idx;
-    s32                 i = 0;
-    s32                 j;
+    InventoryItemRow*   rows;
+    InventoryItemRange* carried;
+    PlayerStatus*       player;
+    s32                 choiceCount = 0;
+    s32                 rowIndex;
+    s32                 scannedRows = 0;
+    s32                 acceptedItemIndex;
 
-    table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    cfg   = &gPlayerStatus;
-    idx   = scan->firstRow;
-    for (i = 0; i < scan->rowCount; i++) {
-        if ((u8)(table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
-            idx++;
+    rows     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
+    carried  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    player   = &gPlayerStatus;
+    rowIndex = carried->firstRow;
+    for (scannedRows = 0; scannedRows < carried->rowCount; scannedRows++) {
+        if ((u8)(rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+            rowIndex++;
             continue;
         }
-        if (arg1 == 0) {
-            count++;
+        if (consumableItemId == INVENTORY_ITEM_NONE) {
+            choiceCount++;
         } else {
             // Search the primary, then the secondary load choices of this weapon.
-            for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
-                if (Gp_RelatedQty0.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
-                    if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
-                        count++;
+            for (acceptedItemIndex = 0; acceptedItemIndex < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); acceptedItemIndex++) {
+                if (Gp_RelatedQty0.rows[rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[acceptedItemIndex] == consumableItemId) {
+                    if (rows[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || player->weapon == rows[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
+                        choiceCount++;
                     }
                     break;
                 }
             }
-            for (j = 0; j < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); j++) {
-                if (Gp_RelatedQty1.rows[table[idx].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[j] == arg1) {
-                    if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
-                        count++;
+            for (acceptedItemIndex = 0; acceptedItemIndex < ARRAY_SIZE(Gp_RelatedQty1.rows[0].acceptedItemIds); acceptedItemIndex++) {
+                if (Gp_RelatedQty1.rows[rows[rowIndex].itemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[acceptedItemIndex] == consumableItemId) {
+                    if (rows[rowIndex].attachSlot > INVENTORY_ATTACHMENT_NONE || player->weapon == rows[rowIndex].itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
+                        choiceCount++;
                     }
                     break;
                 }
             }
         }
-        idx++;
+        rowIndex++;
     }
 
-    arg0->itemCount                     = count;
-    arg0->visibleRowCount.unsignedValue = count;
-    if (arg1 == 0) {
+    list->itemCount                     = choiceCount;
+    list->visibleRowCount.unsignedValue = choiceCount;
+    if (consumableItemId == INVENTORY_ITEM_NONE) {
         // The weapon list shows four rows however many weapons are carried.
-        arg0->rowHeight                     = 0xF;
-        arg0->visibleRowCount.unsignedValue = 4;
+        list->rowHeight                     = ITEM_MENU_LIST_ROW_HEIGHT;
+        list->visibleRowCount.unsignedValue = ITEM_MENU_WEAPON_CHOICE_VISIBLE_ROWS;
     } else {
-        arg0->rowHeight = 0xF;
+        list->rowHeight = ITEM_MENU_LIST_ROW_HEIGHT;
     }
 }
 
-static __inline__ void countItemRows(UiList* menu)
+/// Sets list counts for loose carried items plus the Sort command row.
+///
+/// Attached items and equipped armor/weapon rows are excluded from the scan.
+/// At most nine rows are visible; stored counts retain their byte narrowing.
+static __inline__ void _itemMenuSetReorderableRows(UiList* list)
 {
-    InventoryItemRange* scan;
-    InventoryItemRow*   table;
-    s32                 i;
-    u16                 count;
-    s32                 ok;
-    s32                 id;
+    InventoryItemRange* range;
+    InventoryItemRow*   row;
+    s32                 rowIndex;
+    u16                 rowCount;
+    s32                 reorderable;
+    s32                 itemId;
 
-    scan            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table           = inventoryGetRangeTable(scan);
-    table           = &table[scan->firstRow];
-    menu->itemCount = scan->rowCount;
-    count           = scan->rowCount;
-    for (i = 0; i < count; i++, table++) {
-        id = table->itemId;
-        ok = 1;
-        if ((table->attachSlot != INVENTORY_ATTACHMENT_NONE) ||
-            (((u32)(id - 0x60) < 0x20U) && (gPlayerStatus.armor == id - 0x5F)) ||
-            (((u32)(id - 0x80) < 0x20U) && (gPlayerStatus.weapon == id - 0x7F))) {
-            ok = 0;
+    range           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    row             = inventoryGetRangeTable(range);
+    row             = &row[range->firstRow];
+    list->itemCount = range->rowCount;
+    rowCount        = range->rowCount;
+    for (rowIndex = 0; rowIndex < rowCount; rowIndex++, row++) {
+        itemId      = row->itemId;
+        reorderable = 1;
+        if ((row->attachSlot != INVENTORY_ATTACHMENT_NONE) ||
+            (((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_ARMOR_ITEM_COUNT) && (gPlayerStatus.armor == itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) ||
+            (((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) && (gPlayerStatus.weapon == itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)))) {
+            reorderable = 0;
         }
-        if (ok == 0) {
-            menu->itemCount--;
+        if (reorderable == 0) {
+            list->itemCount--;
         }
     }
-    menu->itemCount                     = menu->itemCount + 1;
-    menu->visibleRowCount.unsignedValue = menu->itemCount;
-    if (menu->visibleRowCount.signedValue >= 0xA) {
-        menu->visibleRowCount.unsignedValue = 9;
+    list->itemCount                     = list->itemCount + 1;
+    list->visibleRowCount.unsignedValue = list->itemCount;
+    if (list->visibleRowCount.signedValue > ITEM_MENU_REORDER_VISIBLE_ROWS) {
+        list->visibleRowCount.unsignedValue = ITEM_MENU_REORDER_VISIBLE_ROWS;
     }
 }
 
@@ -1400,11 +1427,11 @@ static void Gp_ItemListTask(Task* arg0)
         }
         arg0->work           = workAllocation;
         menu->wrapNavigation = 0;
-        countItemRows(menu);
+        _itemMenuSetReorderableRows(menu);
         menu->visibleRowCount.unsignedValue = 9;
         menu->itemCount                     = 9;
         uiFitPanelToList(menu, &(obj)->panel);
-        countItemRows(menu);
+        _itemMenuSetReorderableRows(menu);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->selectedItemIndex                   = 0;
         menu->firstVisibleItemIndex.unsignedValue = 0;
@@ -1415,7 +1442,7 @@ static void Gp_ItemListTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     uiDrawPanelLabel(&(obj)->panel, Gp_StrItemHdr);
-    countItemRows(menu);
+    _itemMenuSetReorderableRows(menu);
     uiRefreshListViewport(menu, &(obj)->panel);
     menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
     if (menu->selectedItemIndex >= menu->itemCount) {
@@ -1520,12 +1547,13 @@ void Gp_ItemDestCursorTask(Task* arg0)
     }
 }
 
-/// Replaces the layout position a spawned child copied from its descriptor
-/// with `x`, `y`.
-static inline void _gpSetSpawnOffset(UiObject* obj, s32 x, s32 y)
+/// Sets a spawned child's panel position to the low 16 bits of x and y.
+///
+/// Coordinates are layout pixels in the same space as its descriptor's bounds.
+static inline void _itemMenuSetChildPosition(UiObject* child, s32 x, s32 y)
 {
-    obj->panel.bounds.unsignedRect.y = y;
-    obj->panel.bounds.unsignedRect.x = x;
+    child->panel.bounds.unsignedRect.y = y;
+    child->panel.bounds.unsignedRect.x = x;
 }
 
 void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
@@ -1584,13 +1612,13 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                 Gp_SelItemRec = NULL;
             }
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                Gp_CountAmmoRows(&D_8010E9A4, 0);
+                itemMenuSetWeaponChoiceRows(&D_8010E9A4, 0);
                 if (D_8010E9A4.itemCount >= 2U || (D_8010E9A4.itemCount == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
                     UiObject* spawned;
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     spawned = uiSpawnObject(&D_8010ECE4, 0, 1, 0x10, obj);
                     if (spawned != NULL) {
-                        _gpSetSpawnOffset(spawned, -8, -0x5C);
+                        _itemMenuSetChildPosition(spawned, -8, -0x5C);
                     }
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
@@ -1641,9 +1669,9 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
         textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
@@ -1749,9 +1777,9 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 textDrawString(&draw.name, itemGetText(item, ITEM_TEXT_NAME, 0));
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
-                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                    itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
                 }
-                Gp_DrawItemIcon(obj, x, y, item, 0);
+                itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
             }
             uiDrawRecessedRect(&obj->panel, x, y - 0xE, 0xE, 0xE, 0);
         }
@@ -1804,23 +1832,24 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
     }
 }
 
-/// Sets the weapon menu's row count from the current weapon's item: one row
-/// for weapon index 0 and for item 0x92, otherwise three when the item's
-/// load supports a secondary consumable slot (`secondaryItemId` !=
-/// `EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE`) and two when it does not.
-static inline void _gpWeaponMenuSetRows(UiList* menu)
+/// Sets rows for the equipped weapon and its available load slots.
+///
+/// No weapon and the Tonfa Baton have one row; other weapons have two, or
+/// three when a secondary load exists. The unused no-weapon load address is
+/// formed before the test but never dereferenced.
+static inline void _itemMenuSetWeaponRows(UiList* list)
 {
-    s32                  id;
-    EquipmentWeaponLoad* slot;
+    s32                  weaponItemId;
+    EquipmentWeaponLoad* load;
 
-    id   = gPlayerStatus.weapon + 0x7F;
-    slot = equipmentGetWeaponLoad(id);
-    if (id < 0x80 || id == 0x92) {
-        menu->itemCount = 1;
-    } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-        menu->itemCount = 3;
+    weaponItemId = gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+    load         = equipmentGetWeaponLoad(weaponItemId);
+    if (weaponItemId < EQUIPMENT_WEAPON_ITEM_FIRST || weaponItemId == ITEM_MENU_TONFA_BATON_ITEM) {
+        list->itemCount = 1;
+    } else if (load->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+        list->itemCount = 3;
     } else {
-        menu->itemCount = 2;
+        list->itemCount = 2;
     }
 }
 
@@ -1844,12 +1873,12 @@ void Gp_WeaponMenuTask(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(obj)->panel, Gp_StrWeaponTitle);
     if (arg0->state == 0) {
-        _gpWeaponMenuSetRows(menu);
+        _itemMenuSetWeaponRows(menu);
         menu->selectedItemIndex = 0;
         uiInitList(menu, &(obj)->panel);
         arg0->state = arg0->state + 1;
     }
-    _gpWeaponMenuSetRows(menu);
+    _itemMenuSetWeaponRows(menu);
     uiRefreshListViewport(menu, &(obj)->panel);
     uiUpdateList(menu, &obj->panel);
     if ((Gp_ItemCountShow == 1) && (uiIsPanelHidingOrHidden(obj) == 0)) {
@@ -2073,12 +2102,12 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                 draw.name.alignment  = TEXT_ALIGNMENT_LEFT;
                 draw.name.drawMode   = one;
                 textDrawString(&draw.name, itemGetText(item, ITEM_TEXT_NAME, 0));
-                func_800C22D8(obj, x, y, item, one);
+                itemMenuDrawEquipmentMarker(obj, x, y, item, one);
                 temp = item - 0xF;
                 if ((u32)temp < 0x24U) {
-                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                    itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
                 }
-                Gp_DrawItemIcon(obj, x, y, item, 0);
+                itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
             }
             uiDrawRecessedRect(&obj->panel, x, y - 0xE, 0xE, 0xE, 0);
         }
@@ -2142,14 +2171,17 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
     }
 }
 
-/// Keeps the armor attachment selection within the visible rows and item count.
-static inline void _gpClampArmorRow(UiList* menu, s32 end)
+/// Caps armor selection at the last visible row and last item.
+///
+/// visibleEndIndex is exclusive. This applies upper limits only; an empty
+/// list can select -1, and negative selections are left intact.
+static inline void _itemMenuClampArmorSelection(UiList* list, s32 visibleEndIndex)
 {
-    if (menu->selectedItemIndex >= end) {
-        menu->selectedItemIndex = end - 1;
+    if (list->selectedItemIndex >= visibleEndIndex) {
+        list->selectedItemIndex = visibleEndIndex - 1;
     }
-    if (menu->selectedItemIndex >= menu->itemCount) {
-        menu->selectedItemIndex = menu->itemCount - 1;
+    if (list->selectedItemIndex >= list->itemCount) {
+        list->selectedItemIndex = list->itemCount - 1;
     }
 }
 
@@ -2369,9 +2401,9 @@ void Gp_ArmorMenuTask(Task* arg0)
         textDrawString(&locals.req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, textColorRgb);
+            itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, textColorRgb);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (arg0->state == 2)) {
@@ -2470,7 +2502,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                 t                       = t / h;
                 t                       = t + 1;
                 menu->selectedItemIndex = t + menu->firstVisibleItemIndex.signedValue;
-                _gpClampArmorRow(menu, menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue);
+                _itemMenuClampArmorSelection(menu, menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue);
             }
         }
         obj->resultValue        = 0;
@@ -2523,48 +2555,46 @@ void Gp_ArmorMenuTask(Task* arg0)
     }
 }
 
-/// Whether item `id` is the equipped weapon, the equipped armour, or a
-/// consumable selected in either firing mode of the equipped weapon.
-static inline s32 _gpIsEquippedItem(s32 id)
+/// Returns 1 for the equipped armor/weapon or either selected weapon consumable.
+///
+/// Item ids use the inventory domains. Selected consumables count even when
+/// their loaded quantity is zero; no equipment or save state is changed.
+static inline s32 _equipmentIsActiveItem(s32 itemId)
 {
-    s32           ret;
-    PlayerStatus* p;
+    s32           active;
+    PlayerStatus* player;
 
-    ret = 0;
-    p   = &gPlayerStatus;
-    if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
-        (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
-        (((u32)(id - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-         ((equipmentGetWeaponLoad(p->weapon + 0x7F)->primaryItemId == id) ||
-          (equipmentGetWeaponLoad(p->weapon + 0x7F)->secondaryItemId == id)))) {
-        ret = 1;
-    }
-    return ret;
+    active = 0;
+    player = &gPlayerStatus;
+    EQUIPMENT_CHECK_ACTIVE_ITEM(active, player, itemId);
+    return active;
 }
 
-InventoryItemRow* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 arg2)
-{
-    InventoryItemRow* table;
-    s32               i;
-    InventoryItemRow* rec;
+#undef EQUIPMENT_CHECK_ACTIVE_ITEM
 
-    table = inventoryGetRangeTable(arg0);
-    rec   = NULL;
-    table = &table[arg0->firstRow];
-    for (i = 0; i < arg0->rowCount; i++, table++) {
-        if ((Gp_ItemDescs[table->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (table->itemId == INVENTORY_ITEM_NONE)) {
+InventoryItemRow* inventoryFindNthAttachmentCandidate(const InventoryItemRange* range, s32 choiceIndex, s32 unused)
+{
+    InventoryItemRow* row;
+    s32               rowIndex;
+    InventoryItemRow* foundRow;
+
+    row      = inventoryGetRangeTable(range);
+    foundRow = NULL;
+    row      = &row[range->firstRow];
+    for (rowIndex = 0; rowIndex < range->rowCount; rowIndex++, row++) {
+        if ((Gp_ItemDescs[row->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (row->itemId == INVENTORY_ITEM_NONE)) {
             continue;
         }
-        if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {
+        if ((u8)(row->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT && _equipmentIsActiveItem(row->itemId)) {
             continue;
         }
-        arg1--;
-        if (arg1 < 0) {
-            rec = table;
+        choiceIndex--;
+        if (choiceIndex < 0) {
+            foundRow = row;
             break;
         }
     }
-    return rec;
+    return foundRow;
 }
 
 /// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the

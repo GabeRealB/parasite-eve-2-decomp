@@ -123,9 +123,9 @@ static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, 
         textDrawString(req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(obj, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(obj, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(obj, x, y, item, 0);
+        itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 }
 
@@ -776,9 +776,9 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
         textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
         temp = item - 0xF;
         if ((u32)temp < 0x24U) {
-            func_800C2538(arg1, x, y, temp % 3 + 1, color);
+            itemMenuDrawParasiteEnergyLevel(arg1, x, y, temp % 3 + 1, color);
         }
-        Gp_DrawItemIcon(arg1, x, y, item, 0);
+        itemMenuDrawItemIcon(arg1, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
 
     status = arg1->panel.control.word;

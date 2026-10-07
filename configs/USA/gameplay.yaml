@@ -93,7 +93,7 @@ segments:
       - [0x3670, .rodata, pickup_dispatch]
       - [0x3684, pad] # end of pickup dispatcher before the menu TU
       - [0x3688, .rodata, menu_root] # jtbl from Gp_MenuRootTask, the menu labels, then the jtbl from Gp_BuildItemCmdList
-      - [0x37A0, .rodata, menu_prompt] # Gp_DrawItemIcon jump tables
+      - [0x37A0, .rodata, menu_prompt] # itemMenuDrawItemIcon jump tables
       - [0x37D8, .rodata, menu_armor] # menu labels
       - [0x3964, pad] # original 8-byte jump-table alignment
       - [0x3968, .rodata, item_panels] # item-command jump table, panel labels and tables
