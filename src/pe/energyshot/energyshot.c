@@ -22,6 +22,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
+#include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/sound.h"
