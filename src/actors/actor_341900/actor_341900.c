@@ -1117,7 +1117,7 @@ void func_actor_341900_801635A4(void)
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &msg, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_341900_80163B28, 0);
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Script callback: queues the replacement overlay load.
@@ -1137,5 +1137,5 @@ void func_actor_341900_80163658(void)
 void func_actor_341900_80163678(void)
 {
     streamFinishScene();
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }

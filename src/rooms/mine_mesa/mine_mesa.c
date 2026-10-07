@@ -3023,7 +3023,7 @@ void func_mine_mesa_8017E5E0(void)
 /// Room script callback: clear the queued CD command and restart the CD queue.
 void func_mine_mesa_8017E600(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 void func_mine_mesa_8017E620(void)

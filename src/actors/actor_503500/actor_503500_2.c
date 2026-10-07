@@ -1828,7 +1828,7 @@ void func_actor_503500_80132BB8(void)
 /// CD command and restarts the CD queue.
 void func_actor_503500_80132BD8(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 void func_actor_503500_80132BF8(void)

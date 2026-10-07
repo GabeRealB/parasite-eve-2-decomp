@@ -1459,7 +1459,7 @@ void func_actor_342000_8016439C(void)
         taskKill(work->framebufferBlend);
         work->framebufferBlend = NULL;
     }
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Script callback: queues the replacement overlay load.
@@ -1479,5 +1479,5 @@ void func_actor_342000_8016449C(void)
 void func_actor_342000_801644BC(void)
 {
     streamFinishScene();
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }

@@ -1970,11 +1970,11 @@ void func_actor_303600_80162678(void)
 
 /// Opcode-0x0D callback in the actor's cutscene script: restores the stream
 /// random-number state, then drops the pending replacement CD command through
-/// `CdCmd_CancelReplaceAndActivate`.
+/// `cdCmdCancelScene`.
 void func_actor_303600_80162698(void)
 {
     streamFinishScene();
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Spawn state of the package's scrolling shaft: allocates the work block the

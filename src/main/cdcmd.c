@@ -53,7 +53,7 @@ static inline s32 _cdCmdEnqueue(s32 command, const void* fileKey, const void* co
 
 static inline u16 _cdCmdIsIdle(void);
 
-static s32 CdCmd_GetOverlayStatus(void);
+static s32 _cdCmdGetSceneSelectionStatus(void);
 
 static s16 _cdCmdGetSceneAudioMode(void);
 
@@ -61,9 +61,9 @@ static void CdCmd_UnusedStub1(void);
 
 static void CdCmd_UnusedStub2(void);
 
-static void CdCmd_EnqueueReplaceOverlay81(void);
+static void _cdCmdStageScenePlayback(void);
 
-static void CdCmd_ResetRing(void);
+static void _cdCmdResetRing(void);
 
 static s32* CdCmd_MapHeapSizes[] = {
     NULL,
@@ -600,10 +600,11 @@ static void CdCmd_HandleMount(void)
     }
 }
 
-/// Saves the captured head opcode and the remaining seven request bytes.
+/// Saves the ring head for cancellation or suspension.
 ///
-/// Keeps the saved resume sector and phase intact for the caller's transition.
-/// The ring head must remain valid throughout the bytewise snapshot.
+/// `headCommand` is the opcode captured at the start of the caller's transition.
+/// The other seven bytes come from the current head; its index and contents must
+/// stay valid throughout the copy. The saved resume sector and phase stay intact.
 static inline void _cdCmdSnapshotHeadRequest(CdCmdQueue* queue, u8 headCommand)
 {
     queue->activeRequest.entry.cmd           = headCommand;
@@ -1021,9 +1022,9 @@ u16 cdCmdIsIdle(void)
     return queue->writeIdx == queue->readIdx;
 }
 
-u16 CdCmd_IsSlotEmpty(s16 arg0)
+u16 cdCmdIsSlotEmpty(s16 slot)
 {
-    return gCdCmdQueue.entries[arg0].cmd == CD_COMMAND_EMPTY;
+    return gCdCmdQueue.entries[slot].cmd == CD_COMMAND_EMPTY;
 }
 
 void cdCmdPrepareViewMovie(void)
@@ -1079,20 +1080,29 @@ void cdCmdSelectMovieWorkspace(void)
     queue->movieFrameAvailable = 0;
 }
 
-static s32 CdCmd_GetOverlayStatus(void)
+/// Returns 2 for a selected scene slot, otherwise -1 or 3 from the fallback sign.
+///
+/// A negative `field_236` selects -1; nonnegative selects 3. The fallback field's
+/// role and the meaning of status 3 are unproven; this entry point has no callers.
+static s32 _cdCmdGetSceneSelectionStatus(void)
 {
-    CdCmdQueue* p;
-    s32         ret;
+    enum {
+        CD_COMMAND_SCENE_SELECTION_FAILED   = -1,
+        CD_COMMAND_SCENE_SELECTION_SELECTED = 2,
+        CD_COMMAND_SCENE_SELECTION_FALLBACK = 3,
+    };
+    CdCmdQueue* queue;
+    s32         fallbackStatus;
 
-    p = &gCdCmdQueue;
-    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
-        return 2;
+    queue = &gCdCmdQueue;
+    if (queue->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        return CD_COMMAND_SCENE_SELECTION_SELECTED;
     }
-    if (p->field_236 < 0) {
-        return -1;
+    if (queue->field_236 < 0) {
+        return CD_COMMAND_SCENE_SELECTION_FAILED;
     }
-    ret = 3;
-    return ret;
+    fallbackStatus = CD_COMMAND_SCENE_SELECTION_FALLBACK;
+    return fallbackStatus;
 }
 
 /// Returns the scene/audio mode (0 inactive, 1 scene playback, 2 starting audio).
@@ -1101,21 +1111,21 @@ static s16 _cdCmdGetSceneAudioMode(void)
     return gCdCmdQueue.sceneAudioMode;
 }
 
-void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2)
+void cdCmdSelectScene(u16 group, u16 streamId, u16 subId)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p                 = &gCdCmdQueue;
-    p->field_1FF      = 1;
-    p->field_236      = -1;
-    p->sceneSlotIndex = streamSelectScene(arg0, arg1, arg2, 0);
+    queue                 = &gCdCmdQueue;
+    queue->field_1FF      = 1;
+    queue->field_236      = -1;
+    queue->sceneSlotIndex = streamSelectScene(group, streamId, subId, 0);
 }
 
 void cdCmdSceneControlNoOp(void)
 {
 }
 
-void CdCmd_CancelReplaceAndActivate(void)
+void cdCmdCancelScene(void)
 {
     gCdCmdQueue.replacementEntry.cmd = CD_COMMAND_EMPTY;
     cdCmdRequestCancel();
@@ -1152,28 +1162,35 @@ void cdCmdEnqueueScenePlayback(void)
     }
 }
 
-static void CdCmd_EnqueueReplaceOverlay81(void)
+/// Stages a deferred playback request for the selected scene/audio session.
+///
+/// No selected slot leaves the previous replacement intact. Selection and
+/// playback storage must survive the later commit and playback. The scene/audio
+/// mode is unchanged; the playback handler changes it when the request runs.
+static void _cdCmdStageScenePlayback(void)
 {
-    CdCmdQueue* p;
-    u8          sp10;
+    CdCmdQueue* queue;
+    u8          commandArgs[sizeof(queue->entries[0].args.bytes)];
 
-    p = &gCdCmdQueue;
-    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
-        sp10 = p->sceneSlotIndex;
-        cdCmdStageReplacement(CD_COMMAND_PLAY_SCENE_AUDIO, 0, &sp10);
+    queue = &gCdCmdQueue;
+    if (queue->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        // Preserve the unused argument bytes and the raw low-RAM key reads.
+        commandArgs[0] = queue->sceneSlotIndex;
+        cdCmdStageReplacement(CD_COMMAND_PLAY_SCENE_AUDIO, 0, commandArgs);
     }
 }
 
-void CdCmd_EnqueueOverlay82(void)
+void cdCmdEnqueueSceneAudioStart(void)
 {
-    CdCmdQueue* p;
-    u8          sp10;
+    CdCmdQueue* queue;
+    u8          commandArgs[sizeof(queue->entries[0].args.bytes)];
 
-    p = &gCdCmdQueue;
-    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
-        sp10              = p->sceneSlotIndex;
-        p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
-        cdCmdEnqueue(CD_COMMAND_START_SCENE_AUDIO, 0, &sp10);
+    queue = &gCdCmdQueue;
+    if (queue->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        // Preserve the unused argument bytes and the raw low-RAM key reads.
+        commandArgs[0]        = queue->sceneSlotIndex;
+        queue->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
+        cdCmdEnqueue(CD_COMMAND_START_SCENE_AUDIO, 0, commandArgs);
     }
 }
 
@@ -1200,45 +1217,38 @@ void cdCmdStageReplacement(s32 command, const void* fileKey, const void* command
     _cdCmdStoreRequest(entry, command, fileKey, commandArgs);
 }
 
-s32 CdCmd_CommitReplace(void)
+s16 cdCmdCommitReplacement(void)
 {
-    CdCmdQueue* p;
+    enum { CD_COMMAND_NO_REPLACEMENT = -1 };
+    CdCmdQueue* queue;
     CdCmdEntry* entry;
-    u16         writeIdx;
-    u16         next;
-    u8          paramA[4];
-    u8*         paramB;
+    u16         writtenSlot;
+    u16         nextWriteSlot;
+    u8          fileKeyBytes[4];
 
-    p = &gCdCmdQueue;
-    if (*(volatile u8*)&p->replacementEntry.cmd == CD_COMMAND_EMPTY) {
-        return -1;
+    queue = &gCdCmdQueue;
+    if (*(volatile u8*)&queue->replacementEntry.cmd == CD_COMMAND_EMPTY) {
+        return CD_COMMAND_NO_REPLACEMENT;
     }
 
-    paramA[3] = p->replacementEntry.stage;
-    paramA[2] = p->replacementEntry.fileGroup;
-    paramA[0] = p->replacementEntry.fileIndex;
+    // Snapshot the file key before packing all eight request bytes into the ring.
+    fileKeyBytes[3] = queue->replacementEntry.stage;
+    fileKeyBytes[2] = queue->replacementEntry.fileGroup;
+    fileKeyBytes[0] = queue->replacementEntry.fileIndex;
 
-    writeIdx         = p->writeIdx;
-    entry            = &p->entries[writeIdx];
-    entry->cmd       = p->replacementEntry.cmd;
-    entry->stage     = paramA[3];
-    entry->fileGroup = paramA[2];
-    entry->fileIndex = paramA[0];
+    writtenSlot = queue->writeIdx;
+    entry       = &queue->entries[writtenSlot];
+    _cdCmdStoreRequest(entry, queue->replacementEntry.cmd, fileKeyBytes, queue->replacementEntry.args.bytes);
 
-    paramB               = p->replacementEntry.args.bytes;
-    entry->args.bytes[0] = paramB[0];
-    entry->args.bytes[1] = paramB[1];
-    entry->args.bytes[2] = paramB[2];
-    entry->args.bytes[3] = paramB[3];
+    // Retire the replacement before publishing the next ring position.
+    queue->replacementEntry.cmd = CD_COMMAND_EMPTY;
 
-    p->replacementEntry.cmd = CD_COMMAND_EMPTY;
-
-    writeIdx    = p->writeIdx;
-    next        = writeIdx + 1;
-    p->writeIdx = next;
-    next        = p->writeIdx % ARRAY_SIZE(p->entries);
-    p->writeIdx = next;
-    return (s16)writeIdx;
+    writtenSlot     = queue->writeIdx;
+    nextWriteSlot   = writtenSlot + 1;
+    queue->writeIdx = nextWriteSlot;
+    nextWriteSlot   = queue->writeIdx % ARRAY_SIZE(queue->entries);
+    queue->writeIdx = nextWriteSlot;
+    return writtenSlot;
 }
 
 u16 cdCmdIsIdleOrSceneAudioPending(void)
@@ -1288,17 +1298,25 @@ void cdCmdClearBusy(void)
     }
 }
 
-static void CdCmd_ResetRing(void)
+/// Clears every queued request byte and resets ring and handler progress.
+///
+/// Retains the active snapshot, replacement, dispatch phase and busy latches.
+/// Drive operations and playback storage must be quiescent before this reset.
+static void _cdCmdResetRing(void)
 {
-    CdCmdQueue* state;
+    enum {
+        CD_COMMAND_HANDLER_BEGIN        = 0,
+        CD_COMMAND_SUSPEND_RESUME_BEGIN = 0,
+    };
+    CdCmdQueue* queue;
 
-    state = &gCdCmdQueue;
-    memFillBytes(state->entries, 0, sizeof(state->entries));
-    state->writeIdx          = 0;
-    state->readIdx           = 0;
-    state->step              = 0;
-    state->cancelStep        = CD_COMMAND_CANCEL_BEGIN;
-    state->suspendResumeStep = 0;
+    queue = &gCdCmdQueue;
+    memFillBytes(queue->entries, 0, sizeof(queue->entries));
+    queue->writeIdx          = 0;
+    queue->readIdx           = 0;
+    queue->step              = CD_COMMAND_HANDLER_BEGIN;
+    queue->cancelStep        = CD_COMMAND_CANCEL_BEGIN;
+    queue->suspendResumeStep = CD_COMMAND_SUSPEND_RESUME_BEGIN;
 }
 
 void cdCmdResetEntryIterator(void)

@@ -3212,7 +3212,7 @@ void func_dryfield_water_tower_80180220(void)
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823A8, 0);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
     gGameSession->viewDirty                                    = 1;
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
     streamFinishScene();
 }
 

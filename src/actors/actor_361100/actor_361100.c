@@ -1505,7 +1505,7 @@ static void _actor361100FinishScene(void)
 /// CD command and restarts the CD queue.
 void func_actor_361100_8016297C(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Spawns and retains this scene's initially relaxed player-head aim task.

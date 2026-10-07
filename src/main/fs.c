@@ -350,7 +350,7 @@ void Fs_StepBootImage(void)
         case 0:
             break;
         case 1:
-            if (CdCmd_IsSlotEmpty(Fs_BootLoadSlot)) {
+            if (cdCmdIsSlotEmpty(Fs_BootLoadSlot)) {
                 Fs_BootLoadPhase = 2;
                 D5B498_8006AC9C  = 0;
             }

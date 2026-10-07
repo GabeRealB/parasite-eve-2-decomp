@@ -3021,7 +3021,7 @@ void func_dryfield_night_gas_station_80180760(void)
 
 void func_dryfield_night_gas_station_80180780(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Spawns entry 0 of the room's task table and tracks it in

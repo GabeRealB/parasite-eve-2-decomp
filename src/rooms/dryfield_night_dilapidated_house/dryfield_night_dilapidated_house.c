@@ -279,7 +279,7 @@ void func_dryfield_night_dilapidated_house_8017DAB0(void)
 /// queue.
 void func_dryfield_night_dilapidated_house_8017DAD0(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Cutscene script callback: spawns the first task of the room's two-entry

@@ -635,5 +635,5 @@ void func_dryfield_night_garage_80180964(void)
 /// Cancels the queued overlay replacement and restarts the CD queue.
 void func_dryfield_night_garage_80180984(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }

@@ -2140,7 +2140,7 @@ void func_actor_160900_801347F0(void)
     work->playerCue.id = 0;
     work->kyleCue.id   = 0;
     work->effectCue.id = 0;
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
     SetDispMask(1);
 }
 
@@ -2156,6 +2156,6 @@ void func_actor_160900_80134850(void)
 
 void func_actor_160900_80134870(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
     streamFinishScene();
 }

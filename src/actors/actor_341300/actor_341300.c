@@ -608,7 +608,7 @@ static void _actor341300FinishSceneStream(void)
 /// CD command and restarts the CD queue.
 void func_actor_341300_801623FC(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Starts the textured-quad task and stores its handle in the script's shared task slot.

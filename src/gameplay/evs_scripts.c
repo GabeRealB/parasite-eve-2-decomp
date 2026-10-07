@@ -221,7 +221,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
     if (padIsStartPressed() != 0 && D_801156D0 != NULL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
         if (D_801156F4.sceneKey != NULL) {
-            CdCmd_CancelReplaceAndActivate();
+            cdCmdCancelScene();
         }
         D_801156A4               = 0;
         continuation             = D_801156D0;

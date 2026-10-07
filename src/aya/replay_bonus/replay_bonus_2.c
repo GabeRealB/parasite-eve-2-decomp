@@ -417,8 +417,8 @@ void func_replay_bonus_80117A08(Task* arg0)
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             D_replay_bonus_801192B0                 = 0;
             arg0->killCountdown                     = D_replay_bonus_80119294->startHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
-            CdCmd_StartOverlay(0U, 1U, 0xBU);
-            CdCmd_EnqueueOverlay82();
+            cdCmdSelectScene(0U, 1U, 0xBU);
+            cdCmdEnqueueSceneAudioStart();
             arg0->state += 1;
             return;
         case 1:
@@ -439,7 +439,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             }
             if (padIsStartPressed() != 0) {
                 taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
-                CdCmd_CancelReplaceAndActivate();
+                cdCmdCancelScene();
                 arg0->state         = 0xB;
                 arg0->killCountdown = 0x1E;
                 return;
@@ -461,7 +461,7 @@ void func_replay_bonus_80117A08(Task* arg0)
                 arg0->killCountdown     = params->endHold * REPLAY_BONUS_STF_HOLD_UNIT_FRAMES;
             }
             if (padIsStartPressed() != 0) {
-                CdCmd_CancelReplaceAndActivate();
+                cdCmdCancelScene();
                 taskSpawnFromTable(D_replay_bonus_8011922C, 2, 0x1E, 0);
                 arg0->killCountdown = 0x1E;
                 arg0->state        += 1;

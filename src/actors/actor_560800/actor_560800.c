@@ -5675,7 +5675,7 @@ void func_actor_560800_80135AEC(s32 arg0)
             D_actor_560800_80175798 = gDisplayState.frameCount - D_actor_560800_801757A4;
         }
     }
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
     streamFinishScene();
 }
 
@@ -6153,7 +6153,7 @@ void func_actor_560800_80136878(void)
         } while (0);
     }
     roomEffectRequestCancelAll();
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
     SetDispMask(0);
 }
 

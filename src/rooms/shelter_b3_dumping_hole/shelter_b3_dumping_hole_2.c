@@ -3221,7 +3221,7 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     ent->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE;
     ent->fadeStop           = 1;
     ent->actorSpritesStop   = 1;
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Stages deferred audio start for the debris event's selected scene.
@@ -3245,7 +3245,7 @@ static void _shelterB3DumpingHoleDebrisEventEnqueuePlayback(void)
 void func_shelter_b3_dumping_hole_80180034(void)
 {
     streamFinishScene();
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Draws a tumbling triangular shard sampled from the collapse model's emitter.
@@ -3696,7 +3696,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     desc3[3] = 0;
     desc3[4] = 0;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, desc3, 0);
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 void func_shelter_b3_dumping_hole_80181560(Task* task)
@@ -3817,7 +3817,7 @@ static void _shelterB3DumpingHoleCollapseEventEnqueuePlayback(void)
 void func_shelter_b3_dumping_hole_801819F0(void)
 {
     streamFinishScene();
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Spawns a vertical three-pixel shake alternating for nine updates, then clearing.

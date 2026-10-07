@@ -11204,7 +11204,7 @@ return ret;         /* becomes: li v0, 3; jr ra; nop */
 
 Also prefer a local pointer (`p = &global`) so the base lands in `$v1` and gets
 overwritten by later field loads — matching the target's register reuse.
-`CdCmd_GetOverlayStatus` needs this pattern.
+`_cdCmdGetSceneSelectionStatus` needs this pattern.
 
 ## `u16 x = index` for early `move v0,a0` + prologue `sw ra`
 
@@ -12169,7 +12169,7 @@ CdCmd_EntryIter = CdCmd_EntryIter % 8;  /* not &= 7, not (slot+1)&7 */
 
 `cdCmdNextQueuedEntry` (8-entry queue walk of `gCdCmdQueue.entries`) is a pure example.
 The same double-store shape appears on `field_1c8` / `field_1ca` updates in the
-nearby ring producers (e.g. `CdCmd_CommitReplace`).
+nearby ring producers (e.g. `cdCmdCommitReplacement`).
 
 ## `s8` globals load with `lb`, not `lbu`
 
@@ -17038,9 +17038,9 @@ entry->cmd = p->replacementEntry.cmd;   /* second load now materializes */
 ```
 
 (The cast can sit on either access.) Same shape already used in `cdcmd.c` for
-`entry->stage`. `CdCmd_CommitReplace` (commit `replacementEntry` into the ring) is the pure
-example; pair with `(s16)writeIdx` when the return needs `sll`/`sra 16`
-sign-extend rather than Enqueue's `andi …, 0xffff` zero-extend.
+`entry->stage`. `cdCmdCommitReplacement` (commit `replacementEntry` into the ring) is the pure
+example; its `s16` return converts `writtenSlot` with `sll`/`sra 16`
+sign-extension rather than Enqueue's `andi …, 0xffff` zero-extension.
 
 ## Empty `asm volatile("")` blocks delay-slot fill of independent ops after abs
 

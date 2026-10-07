@@ -1621,7 +1621,7 @@ void func_mist_r18_8017EB48(void)
 void func_mist_r18_8017EBB8(void)
 {
     gGameSession->viewDirty = 1;
-    CdCmd_StartOverlay(1U, 0x1EU, 0xBU);
+    cdCmdSelectScene(1U, 0x1EU, 0xBU);
     cdCmdStageSceneAudioStart();
 }
 
@@ -1645,7 +1645,7 @@ void func_mist_r18_8017EC58(void)
 /// Clear the queued CD command and restart the CD queue.
 void func_mist_r18_8017EC78(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 void func_mist_r18_8017EC98(Task* task)

@@ -1043,7 +1043,7 @@ static void _actor335800FinishStreamedScene(void)
 /// loaded one.
 void func_actor_335800_801620A0(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 void func_actor_335800_801620C0(void)

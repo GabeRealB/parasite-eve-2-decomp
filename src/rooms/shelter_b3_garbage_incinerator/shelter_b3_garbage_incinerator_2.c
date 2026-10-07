@@ -736,7 +736,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             }
             break;
         case 2:
-            if (CdCmd_IsSlotEmpty(arg0->spawnArg1.value)) {
+            if (cdCmdIsSlotEmpty(arg0->spawnArg1.value)) {
                 arg0->spawnArg2.pointer = taskSpawnFromTable(D_actor_342000_80164FF8, 0, 0, 0);
                 arg0->state++;
             }

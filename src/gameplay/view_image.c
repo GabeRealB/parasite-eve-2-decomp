@@ -84,10 +84,10 @@ void Gp_ViewLoadImage(Task* task)
             task->state++;
             param = (u8)D_80114C40;
             cdCmdStageReplacement(CD_COMMAND_PLAY_STREAM, 0, &param);
-            CdCmd_CommitReplace();
+            cdCmdCommitReplacement();
             task->killCountdown = 0;
         } else {
-            if ((s16)CdCmd_CommitReplace() >= 0) {
+            if (cdCmdCommitReplacement() >= 0) {
                 task->state += 2;
             } else {
                 task->state = -1;

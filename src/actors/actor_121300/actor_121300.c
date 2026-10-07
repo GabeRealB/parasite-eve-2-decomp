@@ -2755,7 +2755,7 @@ void func_actor_121300_8013427C(void)
     work->wave.state          = SCREEN_WAVE_RAMP_FINISHED;
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
     taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 /// Starts a fade that reveals the scene after three black updates.
@@ -2815,5 +2815,5 @@ static void _actor121300QueueScenePlayback(void)
 void func_actor_121300_801343A4(void)
 {
     streamFinishScene();
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }

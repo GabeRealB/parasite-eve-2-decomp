@@ -1960,7 +1960,7 @@ void func_actor_120300_80133330(s32 arg0)
         TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
         TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[5], 0);
         work->scale = 0x1000;
-        CdCmd_CancelReplaceAndActivate();
+        cdCmdCancelScene();
     }
     work->playerRequest = 0;
     work->bodyRequest   = 0;

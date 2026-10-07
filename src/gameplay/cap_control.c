@@ -173,7 +173,7 @@ s32 func_800E7434(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_800E7498(Task* arg0, s32 arg1, EvsSceneKey* sceneKey, s32 arg3)
 {
     if (sceneKey != NULL) {
-        CdCmd_StartOverlay(sceneKey->group, sceneKey->streamId, sceneKey->subId);
+        cdCmdSelectScene(sceneKey->group, sceneKey->streamId, sceneKey->subId);
     }
     D_801156B4 = 1;
     D_801156B1 = sceneKey != NULL;

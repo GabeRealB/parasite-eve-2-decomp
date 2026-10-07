@@ -281,7 +281,7 @@ void func_dryfield_toilet_8017DC90(void)
 
 void func_dryfield_toilet_8017DCB0(void)
 {
-    CdCmd_CancelReplaceAndActivate();
+    cdCmdCancelScene();
 }
 
 void func_dryfield_toilet_8017DCD0(s32 arg0)

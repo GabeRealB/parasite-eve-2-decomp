@@ -63,11 +63,16 @@ s32 cdCmdEnqueue(s32 command, const void* fileKey, const void* commandArgs);
 /// Saves a deferred replacement request without advancing the CD ring.
 ///
 /// Uses the byte-source contract of `cdCmdEnqueue`, overwrites the previous
-/// replacement, and retains no source pointers. `CdCmd_CommitReplace` later
+/// replacement, and retains no source pointers. `cdCmdCommitReplacement` later
 /// appends it to the ring; a zero command marks the replacement empty.
 void cdCmdStageReplacement(s32 command, const void* fileKey, const void* commandArgs);
 
-s32 CdCmd_CommitReplace(void);
+/// Appends the deferred replacement to the CD ring and retires its staged opcode.
+///
+/// Returns the written slot (0..7), or -1 when no replacement is staged. Copies
+/// all eight request bytes, including opcode-unused arguments. Requires the free
+/// ring capacity of `cdCmdEnqueue`; the saved active request is unchanged.
+s16 cdCmdCommitReplacement(void);
 
 /// Discards requests after the ring head, preserving that head and its progress.
 ///
@@ -81,7 +86,12 @@ s32 cdCmdDropQueuedTail(void);
 /// test the display-busy latch, drive status or saved scene-audio request.
 u16 cdCmdIsIdle(void);
 
-u16 CdCmd_IsSlotEmpty(s16 slot);
+/// Returns 1 when a CD-ring slot has an empty or retired opcode, otherwise 0.
+///
+/// `slot` must be in 0..7, normally a value returned by an enqueue. This tests
+/// only that slot's opcode; it does not test queue or drive idleness. Poll before
+/// another producer reuses the slot, since slot indices carry no generation.
+u16 cdCmdIsSlotEmpty(s16 slot);
 
 /// Marks a blocking CD operation busy and latches the display's CD-busy state.
 ///
@@ -133,12 +143,19 @@ s32 CdCmd_PollStatus(s32 arg0, s32 arg1);
 /// request. Uses `cdCmdEnqueue`'s ring-capacity contract.
 void cdCmdEnqueueScenePlayback(void);
 
-void CdCmd_EnqueueOverlay82(void);
+/// Enqueues audio start for the selected scene/audio session.
+///
+/// A selected slot queues `CD_COMMAND_START_SCENE_AUDIO` and marks audio as
+/// starting; no slot leaves the queue and mode unchanged. Its handler retires
+/// the request when audio has started, retaining the session for later playback.
+/// Selection and prepared buffers must survive consumption. Uses `cdCmdEnqueue`'s
+/// free-ring-capacity contract.
+void cdCmdEnqueueSceneAudioStart(void);
 
 /// Stages a deferred audio-start request for the selected scene slot.
 ///
 /// A valid slot replaces the deferred request with `CD_COMMAND_START_SCENE_AUDIO`;
-/// no slot leaves the previous replacement intact. `CdCmd_CommitReplace` later
+/// no slot leaves the previous replacement intact. `cdCmdCommitReplacement` later
 /// enqueues it. Its handler retires the request once audio has started, retaining
 /// the scene session for a later playback request. Selection/buffers must remain
 /// valid through consumption; this routine does not change scene/audio mode.
@@ -147,7 +164,13 @@ void cdCmdStageSceneAudioStart(void);
 /// Empty entry point in the caption/scene-control handshake; its intended role is unproven.
 void cdCmdSceneControlNoOp(void);
 
-void CdCmd_CancelReplaceAndActivate(void);
+/// Discards the deferred replacement, requests CD cancellation and finishes the scene.
+///
+/// Cancellation targets the ring head or retained scene/audio session and
+/// completes through subsequent CD dispatches. Scene streaming flags and saved
+/// random state are restored immediately. Requires a prior successful scene
+/// selection; buffer and task teardown remain with their owners.
+void cdCmdCancelScene(void);
 
 /// Reserves scene VLC/timing/decode storage and the current movie workspace.
 ///
@@ -181,7 +204,15 @@ void cdCmdPrepareViewMovie(void);
 /// initializes a decoder; the selected workspace must survive movie playback.
 void cdCmdSelectMovieWorkspace(void);
 
-void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2);
+/// Selects a scene/audio descriptor for subsequent buffer setup and playback.
+///
+/// Matches the three exact 16-bit key values and a secondary sub-ID of zero.
+/// Group 0 searches stage-zero descriptors, otherwise the loaded stage table.
+/// Saves the selected slot, or `CD_COMMAND_NO_SCENE_SLOT` on failure. Successful
+/// selection borrows the descriptor and saves/seeds random state; keep the table
+/// live until the scene finishes, and finish an earlier scene before selecting
+/// another. Buffer allocation and request staging/enqueue happen separately.
+void cdCmdSelectScene(u16 group, u16 streamId, u16 subId);
 
 /// Display-resource profiles accepted by `cdCmdEnqueueDisplayResource`.
 enum {
