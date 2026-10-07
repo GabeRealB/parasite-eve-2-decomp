@@ -207,3 +207,4 @@ _actor535700ApplyWalkerCommand = 0x80132910; // type:func
 _actor535700IgnorePairWalkerCommand = 0x8013332c; // type:func
 _actorRenderWalkerFrame = 0x801324d4; // type:func
 _actorRenderWalkerFrameSecond = 0x80132f74; // type:func
+_actor535700FootstepWalkerTask = 0x80132478; // type:func

@@ -91,7 +91,7 @@ static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor535700AyaBreaBody;
-void             func_actor_535700_80132478(Task*);
+static void      _actor535700FootstepWalkerTask(Task* walkerTask);
 
 static s32 _actor535700SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 flags, s32 unusedArgument);
 static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument);
@@ -750,7 +750,7 @@ TaskMessageEntry gFootstepWalkMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_535700_8013DADC = { { { TASK_BODY_TMD, 192 } }, func_actor_535700_80132478, { .model = &_gActor535700AyaBreaBody } };
+TaskDesc D_actor_535700_8013DADC = { { { TASK_BODY_TMD, 192 } }, _actor535700FootstepWalkerTask, { .model = &_gActor535700AyaBreaBody } };
 
 u8 gFootstepWalkAnims[140] = {
     0,
@@ -1132,11 +1132,13 @@ Task* gFootstepWalkTask;
 /// of the animation clip; request values narrow to 16 bits without checking.
 static s16 _gFootstepWalkMode;
 
-/// Queues the scene's opaque black cover in the current frame's packet arena.
+/// Queues a centered 320-by-256-pixel opaque black cover for the scene.
 ///
-/// Requires space for one aligned `TILE` and a live ordering table with tag 10.
-/// Coordinates and extent are pixels relative to the draw origin; the packet
-/// belongs to the frame until GPU drawing completes.
+/// Borrows `sizeof(TILE)` writable, word-aligned bytes at `gGpuPrimCursor` and
+/// advances the cursor by that extent without checking capacity. The rectangle
+/// starts at (-160, -128) relative to the draw origin and links at tag index 10
+/// of `gGpuCurrentOt`, which must be live and contain that entry. The packet
+/// and table must survive GPU drawing; no task storage or countdown is changed.
 static __inline__ void _actor535700DrawBlackoutTile(void)
 {
     enum {
@@ -1227,19 +1229,29 @@ static void _actor535700FinishScene(void)
 
 #include "../../shared/footstep_walk_update.inc.c"
 
-/// The first enemy's task body: publishes the task's work block in
-/// `_gFootstepWalkWork`, then runs the handler for the task's state from
-/// a table built on the stack - the spawn handler `_footstepWalkSpawn`,
-/// then the per-frame `_actorRenderWalkerFrame`.
-void func_actor_535700_80132478(Task* task)
+/// Initializes and updates the scene's footstep-enabled nineteen-part walker.
+///
+/// `walkerTask` must own a live TMD model and an `Enemy` in `spawnArg2.pointer`.
+/// Its state is an unchecked index: 0 allocates and initializes the work block,
+/// then enters state 1; 1 refreshes lighting, advances motion and animation, and
+/// draws the ground shadow. State 0 requires no existing work; state 1 requires
+/// the initialized task-owned `FootstepWalkWork` and borrowed animation data.
+/// The package, model, clip data and frame resources must remain live.
+///
+/// Publishes the task's work before dispatch for the singleton animation and
+/// message handlers. Initialization replaces that pointer with its allocation;
+/// allocation failure destroys the enemy and starts task teardown. Published
+/// pointers are not cleared at teardown and must not be used afterwards.
+static void _actor535700FootstepWalkerTask(Task* walkerTask)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    const EnemyTaskFunc stateHandlers[] = {
         _footstepWalkSpawn,
         _actorRenderWalkerFrame,
     };
 
-    _gFootstepWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    // Singleton helpers must see this task's work before its state runs.
+    _gFootstepWalkWork = walkerTask->work;
+    stateHandlers[walkerTask->state](walkerTask->spawnArg2.pointer, walkerTask);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
