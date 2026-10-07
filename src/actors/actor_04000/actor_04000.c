@@ -2807,7 +2807,6 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
     _Actor04000StateTable table;
     GfxCoord              coord;
     _Actor04000Work*      work;
-    GfxRotationWords*     mw;
     s32                   snd;
     s32                   pan;
     s32                   id;
@@ -2828,12 +2827,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
                 effectDrawGroundShadow(MATRIX_TRANS(&arg1->extra.tmd->coords->workm), 0x100, gRoomEffectState->groundShadowShade);
             }
             if (work->state == ACTOR_04000_STATE_DROP) {
-                mw                                        = (GfxRotationWords*)&coord.coord;
-                mw->m00M01                                = ONE;
-                ((GfxRotationWords*)&coord.coord)->m02M10 = 0;
-                mw->m11M12                                = ONE;
-                ((GfxRotationWords*)&coord.coord)->m20M21 = 0;
-                mw->m22                                   = ONE;
+                gfxSetRotIdentity(&coord.coord);
                 coord.coord.t[0]                          = arg1->extra.tmd->coords->coord.t[0];
                 coord.coord.t[1]                          = 0;
                 coord.coord.t[2]                          = arg1->extra.tmd->coords->coord.t[2];
