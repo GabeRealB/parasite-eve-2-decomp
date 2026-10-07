@@ -53,3 +53,4 @@ _dryfieldNightWarehouseIgnoreCommand = 0x8017d600; // type:func
 _dryfieldNightWarehouseIgnoreDirectionAction = 0x8017d608; // type:func
 _dryfieldNightWarehouseRoomIdle = 0x8017d654; // type:func
 _dryfieldNightWarehouseDrawLightBeam = 0x8017dff4; // type:func
+_dryfieldNightWarehouseInitRoomTask = 0x8017d610; // type:func

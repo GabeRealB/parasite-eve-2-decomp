@@ -53,6 +53,7 @@ static s32  _dryfieldNightMotelRoom4RejectKeyItemUse(Task* unusedTask, s32 messa
 static s32  _dryfieldNightMotelRoom4IgnoreCommand(Task* unusedTask, s32 messageId, s32 commandId, s32 commandMode);
 static s32  _dryfieldNightMotelRoom4IgnoreActionRequest(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _dryfieldNightMotelRoom4IdleRoomTask(Task* unusedTask);
+static void _dryfieldNightMotelRoom4InitRoomTask(Task* task);
 
 extern WorldCollisionGrid     D_dryfield_night_motel_room_4_8017E1D0[1];
 extern WorldCollisionOccluder D_dryfield_night_motel_room_4_80180044[2];
@@ -617,8 +618,6 @@ WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_4_8018039C[8] = {
     D_dryfield_night_motel_room_4_8018037C,
 };
 
-static void func_dryfield_night_motel_room_4_8017D670(Task* task);
-
 /// Refuses every key-item use request in Dryfield Night Motel Room 4.
 ///
 /// Returns 0 so the inventory shows its "No use now" notice. All arguments
@@ -650,13 +649,15 @@ static s32 _dryfieldNightMotelRoom4IgnoreActionRequest(Task* unusedTask, s32 mes
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and advances to the next state.
-static void func_dryfield_night_motel_room_4_8017D670(Task* task)
+/// Registers the room task and its message handlers, then enters its idle state.
+///
+/// Called in state 0 with a live task. The loaded room's table is borrowed
+/// for subsequent synchronous messages while the registered task remains alive.
+static void _dryfieldNightMotelRoom4InitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_4_8017DA48;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the registered room task idle between message dispatches.
@@ -669,17 +670,15 @@ static void _dryfieldNightMotelRoom4IdleRoomTask(Task* unusedTask)
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_night_motel_room_4_8017D5C4 = {
-    { func_dryfield_night_motel_room_4_8017D670, _dryfieldNightMotelRoom4IdleRoomTask, taskKill },
+    { _dryfieldNightMotelRoom4InitRoomTask, _dryfieldNightMotelRoom4IdleRoomTask, taskKill },
 };
 
-/// The room task's callback: runs the state `Task::state` selects from a
-/// stack copy of `D_dryfield_night_motel_room_4_8017D5C4`.
-void func_dryfield_night_motel_room_4_8017D6BC(Task* task)
+void dryfieldNightMotelRoom4RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_dryfield_night_motel_room_4_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_dryfield_night_motel_room_4_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare_clipped.inc.c"

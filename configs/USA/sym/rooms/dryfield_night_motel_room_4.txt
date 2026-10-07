@@ -55,3 +55,5 @@ _dryfieldNightMotelRoom4RejectKeyItemUse = 0x8017d5d0; // type:func
 _dryfieldNightMotelRoom4IgnoreCommand = 0x8017d660; // type:func
 _dryfieldNightMotelRoom4IgnoreActionRequest = 0x8017d668; // type:func
 _dryfieldNightMotelRoom4IdleRoomTask = 0x8017d6b4; // type:func
+_dryfieldNightMotelRoom4InitRoomTask = 0x8017d670; // type:func
+dryfieldNightMotelRoom4RoomTask = 0x8017d6bc; // type:func

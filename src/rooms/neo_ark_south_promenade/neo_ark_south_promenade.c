@@ -51,13 +51,13 @@ extern TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[];
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
 /// `[1]` under its own name, which the per-frame path reads directly.
 
-static void func_neo_ark_south_promenade_8017D62C(Task* task);
+static void _neoArkSouthPromenadeInitRoomTask(Task* task);
 static void _neoArkSouthPromenadeIdleRoomTask(Task* task);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, idle, then kill the task.
 static const TaskFuncTable3 D_neo_ark_south_promenade_8017D5C4 = {
-    { func_neo_ark_south_promenade_8017D62C, _neoArkSouthPromenadeIdleRoomTask, taskKill },
+    { _neoArkSouthPromenadeInitRoomTask, _neoArkSouthPromenadeIdleRoomTask, taskKill },
 };
 
 static s32 _neoArkSouthPromenadeRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -387,14 +387,15 @@ static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, c
     return 0;
 }
 
-/// State 0 of the room's message-driven task: parks the room's message table
-/// in `Task::msgTable`, publishes the task in pointer slot 7 and advances to
-/// state 1.
-static void func_neo_ark_south_promenade_8017D62C(Task* task)
+/// Registers the room task and its message handlers, then enters its idle state.
+///
+/// Called in state 0 with a live task. The loaded room's table is borrowed
+/// for subsequent synchronous messages while the registered task remains alive.
+static void _neoArkSouthPromenadeInitRoomTask(Task* task)
 {
     task->msgTable = D_neo_ark_south_promenade_8017F6B4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the room task idle in state 1 while its message table remains available.

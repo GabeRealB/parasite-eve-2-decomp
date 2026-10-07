@@ -94955,11 +94955,12 @@ did not matter; where the locals are *born* did. Same family as "Shape a live
 range by *where* a local is introduced", but the actionable form against an m2c
 seed is mechanical: move the declaration into the branch, not the assignment.
 
-## A call argument that repeats a value CSE already has in a register is a variable, not a literal (func_neo_ark_submarine_gallery_8017EF14, 2026-09-16)
+## A call argument that repeats a value CSE already has in a register is a variable, not a literal (_neoArkSubmarineGalleryUpdateRedDiscTask, 2026-09-16)
 
 The original experiment passed the room variant as the drawer's unused second
 argument. The final `_neoArkSubmarineGalleryDrawRedDisc(u16 radius)` interface
-removes that operand, and the caller still matches with the `mode` local below.
+removes that operand. Its caller now matches with
+`NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT` used directly and no `mode` local.
 The literal-versus-variable measurements here describe that earlier experiment;
 `drawDiscWithVariant` below denotes its two-argument test interface.
 
@@ -94969,10 +94970,10 @@ A handler that forces a session state and passes the same state on:
     if (gGameSession->location.loc.variant != 4 && gGameSession->battleResetPending != 0) {
         gGameSession->location.loc.variant = 4;
     }
-    if (arg0->killCountdown < 0x780) {
-        arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);
+    if (task->killCountdown < 0x780) {
+        task->killCountdown = (s16)((u16)task->killCountdown + 0x10);
     }
-    drawDiscWithVariant((u16)arg0->killCountdown, 4);
+    drawDiscWithVariant((u16)task->killCountdown, 4);
 ```
 
 is 93.333% (`insert=1 delete=1`), and the whole difference is the `jal`'s delay
@@ -94997,7 +94998,7 @@ copy instead of a raw constant:
             gGameSession->location.loc.variant = mode;
         }
         ...
-        drawDiscWithVariant((u16)arg0->killCountdown, mode);
+        drawDiscWithVariant((u16)task->killCountdown, mode);
     }
 ```
 

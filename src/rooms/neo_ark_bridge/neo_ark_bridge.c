@@ -39,10 +39,12 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// The room's message table.
 extern TaskMessageEntry D_neo_ark_bridge_80181F30[];
 
-static s32 _neoArkBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32 _neoArkBridgeResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32 _neoArkBridgeIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32 _neoArkBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _neoArkBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _neoArkBridgeResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _neoArkBridgeIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _neoArkBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static void _neoArkBridgeInitRoomTask(Task* task);
+static void _neoArkBridgeIdleRoomTask(Task* unusedTask);
 
 TaskDesc D_neo_ark_bridge_80181F18 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
@@ -55,9 +57,6 @@ TaskMessageEntry D_neo_ark_bridge_80181F30[5] = {
     { ROOM_MESSAGE_COMMAND, _neoArkBridgeIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-
-static void func_neo_ark_bridge_8017E888(Task* arg0);
-static void func_neo_ark_bridge_8017E8F4(Task* task);
 
 #include "../../shared/water_refraction_task.inc.c"
 
@@ -105,26 +104,31 @@ static s32 _neoArkBridgeIgnoreRoomAction(Task* task, s32 messageId, const Direct
     return 0;
 }
 
-/// Room entry task tick: installs the room's message table (ids `0x13EE`-`0x13F1`),
-/// hands the task to pointer slot 7, queues sound events `0x551B0003` and
-/// `0x551B0004`, then advances state.
-static void func_neo_ark_bridge_8017E888(Task* arg0)
+/// Registers the room task and starts the bridge's two ambient sound scripts.
+///
+/// Called in state 0 with a live task; enters the idle state after queuing both
+/// sounds with no pan offset or attenuation. The loaded room's message table
+/// is borrowed while the registered task remains alive.
+static void _neoArkBridgeInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_neo_ark_bridge_80181F30;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_neo_ark_bridge_80181F30;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_BRIDGE_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_BRIDGE_AMBIENCE_2, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
-static void func_neo_ark_bridge_8017E8F4(Task* task)
+/// Keeps room-task state 1 idle while its message handlers remain available.
+///
+/// Ignores the task argument and leaves its state and resources unchanged.
+static void _neoArkBridgeIdleRoomTask(Task* unusedTask)
 {
 }
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_bridge_8017E8FC`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_bridge_8017D614 = {
-    { func_neo_ark_bridge_8017E888, func_neo_ark_bridge_8017E8F4, taskKill }
+    { _neoArkBridgeInitRoomTask, _neoArkBridgeIdleRoomTask, taskKill }
 };
 
 /// Task tick that dispatches on the task's state through the three-entry

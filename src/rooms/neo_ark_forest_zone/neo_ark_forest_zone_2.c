@@ -85,7 +85,7 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     taskKill,
 } };
 
-s32        func_neo_ark_forest_zone_801813BC(Task*, s32, s32, s32);
+static s32 _neoArkForestZoneIgnorePoolAActorCommand(Task* unusedTask, s32 unusedMessageId, const ActorCommand* unusedCommand, s32 unusedSecondArg);
 static s32 _roamerExtendCooldown(Task* unusedTask, s32 unusedMessageId, s32 unusedEventValue, s32 unusedSecondArg);
 static s32 _roamerLatchSpawnRequestPoolA(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _roamerLatchSpawnRequestPoolB(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -533,7 +533,7 @@ s16 gRoamerReleasePending = 0;
 TaskMessageEntry gRoamerMsgTableA[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolA },
     { ROOM_MESSAGE_ACTOR_EVENT, _roamerBankRetreat },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_forest_zone_801813BC },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _neoArkForestZoneIgnorePoolAActorCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -720,7 +720,11 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     _gRoamerPendingSpawnPoint = ROAMER_SPAWN_POINT_NONE;
 }
 
-s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores actor commands sent to the forest's first reserve-enemy pool.
+///
+/// Returns zero without changing the pool or receiver. All arguments are
+/// ignored; the borrowed command is neither accessed nor retained.
+static s32 _neoArkForestZoneIgnorePoolAActorCommand(Task* unusedTask, s32 unusedMessageId, const ActorCommand* unusedCommand, s32 unusedSecondArg)
 {
     return 0;
 }

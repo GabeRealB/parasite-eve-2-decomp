@@ -45,10 +45,11 @@ extern TaskMessageEntry D_dryfield_night_souvenir_shop_8017E03C[];
 /// `[8..15]`.
 extern SVECTOR gGlowPrismCorners[];
 
-static s32 _dryfieldNightSouvenirShopRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-static s32 _dryfieldNightSouvenirShopResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-static s32 _dryfieldNightSouvenirShopIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32 _dryfieldNightSouvenirShopIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static s32  _dryfieldNightSouvenirShopRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32  _dryfieldNightSouvenirShopResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _dryfieldNightSouvenirShopIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _dryfieldNightSouvenirShopIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _dryfieldNightSouvenirShopInitRoomTask(Task* task);
 
 /// Inventory key-item use routed to this room's message table.
 enum {
@@ -397,8 +398,6 @@ WorldCollisionSurfaceProperties* D_dryfield_night_souvenir_shop_8017F6CC[8] = {
     D_dryfield_night_souvenir_shop_8017F6A4,
 };
 
-static void func_dryfield_night_souvenir_shop_8017D610(Task* task);
-
 /// Rejects every key-item use in this room, returning 0 without consuming the item.
 ///
 /// `itemId` is the inventory item's integer ID; the second payload word is unused.
@@ -440,13 +439,15 @@ static s32 _dryfieldNightSouvenirShopIgnoreRoomAction(Task* task, s32 messageId,
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and advances to the next state.
-static void func_dryfield_night_souvenir_shop_8017D610(Task* task)
+/// Registers the room task and its message handlers, then enters its idle state.
+///
+/// Called in state 0 with a live task. The loaded room's table is borrowed
+/// for subsequent synchronous messages while the registered task remains alive.
+static void _dryfieldNightSouvenirShopInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_souvenir_shop_8017E03C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task idle until its state changes externally.
@@ -459,7 +460,7 @@ static void _dryfieldNightSouvenirShopIdleRoomTask(Task* task)
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_night_souvenir_shop_8017D5C4 = {
-    { func_dryfield_night_souvenir_shop_8017D610, _dryfieldNightSouvenirShopIdleRoomTask, taskKill },
+    { _dryfieldNightSouvenirShopInitRoomTask, _dryfieldNightSouvenirShopIdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a

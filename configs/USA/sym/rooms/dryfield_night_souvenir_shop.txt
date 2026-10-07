@@ -51,3 +51,4 @@ _dryfieldNightSouvenirShopResolveRoomEvent = 0x8017d5d8; // type:func
 _dryfieldNightSouvenirShopIgnoreRoomCommand = 0x8017d600; // type:func
 _dryfieldNightSouvenirShopIgnoreRoomAction = 0x8017d608; // type:func
 _dryfieldNightSouvenirShopIdleRoomTask = 0x8017d654; // type:func
+_dryfieldNightSouvenirShopInitRoomTask = 0x8017d610; // type:func

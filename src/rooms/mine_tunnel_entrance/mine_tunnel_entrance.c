@@ -52,14 +52,14 @@ extern SVECTOR D_mine_tunnel_entrance_8017DB30[];
 extern SVECTOR D_mine_tunnel_entrance_8017DB38[];
 extern SVECTOR D_mine_tunnel_entrance_8017DB48[];
 
-static void func_mine_tunnel_entrance_8017D644(Task* arg0);
+static void _mineTunnelEntranceInitRoomTask(Task* task);
 static void _mineTunnelEntranceAdvanceSceneEvent(Task* unusedTask);
 static void _mineTunnelEntranceIdle(Task* unusedTask);
 
 /// State handlers of the room task `func_mine_tunnel_entrance_8017D6BC` runs:
 /// set-up, the scene-event state, an idle state and `taskKill`.
 static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
-    func_mine_tunnel_entrance_8017D644,
+    _mineTunnelEntranceInitRoomTask,
     _mineTunnelEntranceAdvanceSceneEvent,
     _mineTunnelEntranceIdle,
     taskKill,
@@ -528,14 +528,19 @@ static s32 _mineTunnelEntranceIgnoreAction(Task* task, s32 messageId, const Dire
     return 0;
 }
 
-/// State 0 of the room task: installs the room's message table, publishes the
-/// task in pointer slot 7, advances to the next state and selects scene music entry 1.
-static void func_mine_tunnel_entrance_8017D644(Task* arg0)
+/// Registers the room task and selects the tunnel's scene-music countdown entry.
+///
+/// Called in state 0 with a live task; advances to the mine-arrival event state.
+/// The room message table remains borrowed while the task is registered, and
+/// the stage music task later reads the selected entry from the Shelter map.
+static void _mineTunnelEntranceInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_mine_tunnel_entrance_8017DAF0;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state           = (s32)(arg0->state + 1);
-    gStageSceneMusicEntry = 1;
+    enum { MINE_TUNNEL_ENTRANCE_SCENE_MUSIC_ENTRY = 1 };
+
+    task->msgTable = D_mine_tunnel_entrance_8017DAF0;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state++;
+    gStageSceneMusicEntry = MINE_TUNNEL_ENTRANCE_SCENE_MUSIC_ENTRY;
 }
 
 /// Advances the saved mine-arrival event when the tunnel entrance is entered.

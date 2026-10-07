@@ -56,6 +56,7 @@ static s32  _shelter1fAirlockResolveRoomTransition(Task* task, s32 messageId, Ro
 static s32  _shelter1fAirlockIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static s32  _shelter1fAirlockIgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 static void _shelter1fAirlockIdle(Task* unusedTask);
+static void _shelter1fAirlockInitRoomTask(Task* task);
 
 extern WorldCollisionGrid     D_shelter_1f_airlock_8017E838[1];
 extern WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2];
@@ -390,8 +391,6 @@ WorldCollisionSurfaceProperties* D_shelter_1f_airlock_8017F84C[8] = {
     D_shelter_1f_airlock_8017F83C,
 };
 
-static void func_shelter_1f_airlock_8017D62C(Task* task);
-
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
 /// Refuses every key-item use in this room, returning the menu's rejection result.
@@ -436,13 +435,15 @@ static s32 _shelter1fAirlockIgnoreActionMessage(Task* unusedTask, s32 unusedMess
     return 0;
 }
 
-/// State 0 of the room's event task: installs the room's message table,
-/// publishes the task in pointer slot 7 and advances to state 1.
-static void func_shelter_1f_airlock_8017D62C(Task* task)
+/// Registers the room task and its message handlers, then enters its idle state.
+///
+/// Called in state 0 with a live task. The loaded room's table is borrowed
+/// for subsequent synchronous messages while the registered task remains alive.
+static void _shelter1fAirlockInitRoomTask(Task* task)
 {
     task->msgTable = D_shelter_1f_airlock_8017E494;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the room task in its idle state while its message table remains installed.
@@ -453,7 +454,7 @@ static void _shelter1fAirlockIdle(Task* unusedTask)
 /// The event task's three states: install the message table, idle, and kill.
 static const TaskFuncTable3 D_shelter_1f_airlock_8017D5C4 = {
     {
-        func_shelter_1f_airlock_8017D62C,
+        _shelter1fAirlockInitRoomTask,
         _shelter1fAirlockIdle,
         taskKill,
     },

@@ -90,3 +90,5 @@ _neoArkBridgeRejectKeyItemUse = 0x8017e82c; // type:func
 _neoArkBridgeResolveRoomTransition = 0x8017e834; // type:func
 _neoArkBridgeIgnoreRoomCommand = 0x8017e878; // type:func
 _neoArkBridgeIgnoreRoomAction = 0x8017e880; // type:func
+_neoArkBridgeInitRoomTask = 0x8017e888; // type:func
+_neoArkBridgeIdleRoomTask = 0x8017e8f4; // type:func

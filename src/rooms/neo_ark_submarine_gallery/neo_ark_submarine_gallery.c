@@ -73,9 +73,16 @@ static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
 static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0);
 
 static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius);
-static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0);
-static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0);
-static void func_neo_ark_submarine_gallery_8017EF8C(Task* arg0);
+static void _neoArkSubmarineGalleryInitRedDiscTask(Task* task);
+static void _neoArkSubmarineGalleryUpdateRedDiscTask(Task* task);
+static void _neoArkSubmarineGalleryIdleRedDiscTask(Task* unusedTask);
+
+/// Red-disc room selection and radius, in whole room-coordinate units.
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT     = 4,
+    NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_FULL = 1920,
+    NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_STEP = 16,
+};
 
 #include "../../shared/water_refraction_task.inc.c"
 
@@ -308,32 +315,44 @@ static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius)
 #undef NEO_ARK_SUBMARINE_GALLERY_QUEUE_DISC_WEDGE
 }
 
-static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
+/// Initializes the red-disc radius and enters the disc's per-frame state.
+///
+/// Called in state 0 with a live task. `Task::killCountdown` holds the radius
+/// in room-coordinate units: full size in variant 4, otherwise zero.
+static void _neoArkSubmarineGalleryInitRedDiscTask(Task* task)
 {
-    if (gGameSession->location.loc.variant != 4) {
-        arg0->killCountdown = 0;
+    if (gGameSession->location.loc.variant != NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
+        task->killCountdown = 0;
     } else {
-        arg0->killCountdown = 0x780;
+        task->killCountdown = NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_FULL;
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
-static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
+/// Grows and draws the red disc while the player task exists.
+///
+/// State 1 uses `Task::killCountdown` as a signed-halfword room-space radius.
+/// Initialization and 16-unit steps keep it in 0..1920. Each active frame grows
+/// it before drawing; frames without a player neither grow nor draw it.
+/// A pending battle reset selects variant 4 without restarting the radius.
+/// Requires the live room's projection, scratch, packet arena and ordering table.
+static void _neoArkSubmarineGalleryUpdateRedDiscTask(Task* task)
 {
-    s32 mode;
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] != NULL) {
-        mode = 4;
-        if (gGameSession->location.loc.variant != mode && gGameSession->battleResetPending != 0) {
-            gGameSession->location.loc.variant = mode;
+        if (gGameSession->location.loc.variant != NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT && gGameSession->battleResetPending != 0) {
+            gGameSession->location.loc.variant = NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT;
         }
-        if (arg0->killCountdown < 0x780) {
-            arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);
+        if (task->killCountdown < NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_FULL) {
+            task->killCountdown = (s16)((u16)task->killCountdown + NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_STEP);
         }
-        _neoArkSubmarineGalleryDrawRedDisc((u16)arg0->killCountdown);
+        _neoArkSubmarineGalleryDrawRedDisc((u16)task->killCountdown);
     }
 }
 
-static void func_neo_ark_submarine_gallery_8017EF8C(Task* arg0)
+/// Leaves red-disc state 2 idle, preserving the radius without drawing.
+///
+/// Ignores the task argument; this state does not release the task or its body.
+static void _neoArkSubmarineGalleryIdleRedDiscTask(Task* unusedTask)
 {
 }
 
@@ -341,8 +360,8 @@ static void func_neo_ark_submarine_gallery_8017EF8C(Task* arg0)
 /// `func_neo_ark_submarine_gallery_8017EF94`: set-up, the per-frame disc sweep,
 /// then an idle state.
 static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D63C = {
-    { func_neo_ark_submarine_gallery_8017EED8, func_neo_ark_submarine_gallery_8017EF14,
-      func_neo_ark_submarine_gallery_8017EF8C }
+    { _neoArkSubmarineGalleryInitRedDiscTask, _neoArkSubmarineGalleryUpdateRedDiscTask,
+      _neoArkSubmarineGalleryIdleRedDiscTask }
 };
 
 /// Disc task tick: dispatches on the task's state through

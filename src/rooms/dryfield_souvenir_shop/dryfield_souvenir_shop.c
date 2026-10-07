@@ -49,6 +49,7 @@ static s32  _dryfieldSouvenirShopResolveRoomEvent(Task* task, s32 messageId, con
 static s32  _dryfieldSouvenirShopIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32  _dryfieldSouvenirShopIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _dryfieldSouvenirShopIdleRoomTask(Task* task);
+static void _dryfieldSouvenirShopInitRoomTask(Task* task);
 
 /// Inventory's request to use a key item in this room.
 enum { DRYFIELD_SOUVENIR_SHOP_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -372,8 +373,6 @@ WorldCollisionSurfaceProperties* D_dryfield_souvenir_shop_8017F640[8] = {
     D_dryfield_souvenir_shop_8017F618,
 };
 
-static void func_dryfield_souvenir_shop_8017D610(Task* task);
-
 /// Refuses every key-item use in this room without consuming the item.
 ///
 /// Returns 0 so inventory displays its "No use now" notice. `itemId` is the
@@ -416,13 +415,15 @@ static s32 _dryfieldSouvenirShopIgnoreRoomAction(Task* task, s32 messageId, cons
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and advances to the next state.
-static void func_dryfield_souvenir_shop_8017D610(Task* task)
+/// Registers the room task and its message handlers, then enters its idle state.
+///
+/// Called in state 0 with a live task. The loaded room's table is borrowed
+/// for subsequent synchronous messages while the registered task remains alive.
+static void _dryfieldSouvenirShopInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_souvenir_shop_8017E014;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task idle until its state changes externally.
@@ -434,7 +435,7 @@ static void _dryfieldSouvenirShopIdleRoomTask(Task* task)
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_souvenir_shop_8017D5C4 = {
-    { func_dryfield_souvenir_shop_8017D610, _dryfieldSouvenirShopIdleRoomTask, taskKill },
+    { _dryfieldSouvenirShopInitRoomTask, _dryfieldSouvenirShopIdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a

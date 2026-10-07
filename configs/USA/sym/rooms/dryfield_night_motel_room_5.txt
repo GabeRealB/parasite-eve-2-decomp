@@ -67,3 +67,5 @@ _roomVariantMotelBalconyMsg = 0x8017D5F8; // type:func
 _dryfieldNightMotelRoom5RejectKeyItemUse = 0x8017d5f0; // type:func
 _dryfieldNightMotelRoom5IgnoreRoomCommand = 0x8017d674; // type:func
 _dryfieldNightMotelRoom5IgnoreRoomAction = 0x8017d67c; // type:func
+_dryfieldNightMotelRoom5InitRoomTask = 0x8017d684; // type:func
+_dryfieldNightMotelRoom5IdleRoomTask = 0x8017d6c8; // type:func

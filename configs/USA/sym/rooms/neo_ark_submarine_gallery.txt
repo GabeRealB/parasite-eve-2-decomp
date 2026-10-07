@@ -75,3 +75,6 @@ _glowDrawCapsule = 0x80180254; // type:func
 glowDrawDisc = 0x80180AC8; // type:func
 _neoArkSubmarineGalleryDrawLightPrism = 0x80180e80; // type:func
 _neoArkSubmarineGalleryDrawRedDisc = 0x8017ec24; // type:func
+_neoArkSubmarineGalleryInitRedDiscTask = 0x8017eed8; // type:func
+_neoArkSubmarineGalleryUpdateRedDiscTask = 0x8017ef14; // type:func
+_neoArkSubmarineGalleryIdleRedDiscTask = 0x8017ef8c; // type:func

@@ -41,6 +41,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_4_8018039C[]
 /// packets use the arena until GPU completion.
 void dryfieldNightMotelRoom4DrawFlaresTask(Task* unusedTask);
 
-void func_dryfield_night_motel_room_4_8017D6BC(Task* task);
+/// Runs Dryfield Night Motel Room 4's message-driven room task.
+///
+/// Requires a live task with state 0 (register), 1 (idle) or 2 (release).
+/// State 0 publishes its message table and registers it in `GAME_TASK_SLOT_ROOM`.
+/// Keep the room overlay loaded while the task and its handlers are in use;
+/// state 2 releases the task through `taskKill`.
+void dryfieldNightMotelRoom4RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_MOTEL_ROOM_4_H

@@ -32,9 +32,11 @@ static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEven
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[];
 
-static s32 _dryfieldNightMotelRoom5RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32 _dryfieldNightMotelRoom5IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32 _dryfieldNightMotelRoom5IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _dryfieldNightMotelRoom5RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _dryfieldNightMotelRoom5IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _dryfieldNightMotelRoom5IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static void _dryfieldNightMotelRoom5InitRoomTask(Task* task);
+static void _dryfieldNightMotelRoom5IdleRoomTask(Task* unusedTask);
 
 TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyMsg },
@@ -43,9 +45,6 @@ TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
     { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom5IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-
-static void func_dryfield_night_motel_room_5_8017D684(Task* task);
-static void func_dryfield_night_motel_room_5_8017D6C8(Task* task);
 
 /// Refuses every key-item use request without consuming the selected item.
 ///
@@ -76,23 +75,27 @@ static s32 _dryfieldNightMotelRoom5IgnoreRoomAction(Task* task, s32 messageId, c
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and advances to the next state.
-static void func_dryfield_night_motel_room_5_8017D684(Task* task)
+/// Registers the room task and its message handlers, then enters its idle state.
+///
+/// Called in state 0 with a live task. The loaded room's table is borrowed
+/// for subsequent synchronous messages while the registered task remains alive.
+static void _dryfieldNightMotelRoom5InitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_5_8017DA30;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
-/// Second state of the room task: the room has nothing to do each frame.
-static void func_dryfield_night_motel_room_5_8017D6C8(Task* task)
+/// Keeps room-task state 1 idle while its message handlers remain available.
+///
+/// Ignores the task argument and leaves its state and resources unchanged.
+static void _dryfieldNightMotelRoom5IdleRoomTask(Task* unusedTask)
 {
 }
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_night_motel_room_5_8017D5C4 = {
-    { func_dryfield_night_motel_room_5_8017D684, func_dryfield_night_motel_room_5_8017D6C8, taskKill },
+    { _dryfieldNightMotelRoom5InitRoomTask, _dryfieldNightMotelRoom5IdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a
