@@ -1686,7 +1686,7 @@ static void func_actor_401800_8013945C(Task* arg0)
 /// Per-frame body of the live actor: arms the animation slots and the two
 /// `hitBody` / `gridBody` nodes, re-seeds the 0x8E8 and 0xA28 contact
 /// records, then — while work bit 0x100 is set — picks `state` from the
-/// enemy's HP sign and its buildup bit (`reactionFlags`). Same body as `Actor01900_Fn09BE8`.
+/// enemy's HP sign and its buildup bit (`reactionFlags`). Same body as `_actor01900StateRefall`.
 static void func_actor_401800_8013971C(Task* arg0)
 {
     OddStrangerWork* work;

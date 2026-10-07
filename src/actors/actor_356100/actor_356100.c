@@ -3077,6 +3077,8 @@ static void _actor356100Hide(Task* actor)
 /// selected set with blending disabled. Later ticks invalidate the root and
 /// advance playback without changing state. Requires initialized live work,
 /// enemy and model; no recovered transition selects this handler.
+/// Shares the playback sequence with `_actor01900StatePlayWalk`, without its
+/// two collision-body flag masks.
 static void _actor356100PlayWalk(Task* actor)
 {
     Enemy*            enemy;

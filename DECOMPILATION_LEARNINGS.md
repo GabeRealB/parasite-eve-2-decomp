@@ -2340,7 +2340,7 @@ if (enemy->hp <= 0) {
 }
 ```
 
-Example: `Actor01900_Fn09BE8` — phi local 99.765% `regs=4`, else-if stores
+Example: `_actor01900StateRefall` — phi local 99.765% `regs=4`, else-if stores
 100%. Related to the `||` / `return K` delay-slot case, but the leftover
 is a store phi rather than a return.
 
@@ -81537,11 +81537,11 @@ before touching registers. If the *set* of roles is right and only the order is
 reversed, the priorities are wrong, not the RTL: look for a C variable that is
 assigned twice in regions that do not overlap, and give the later region its own
 local.
-## Actor01900_Fn0A7C0: interleaved constant stores prevent register reuse
+## _actor01900StatePlayWalk: interleaved constant stores prevent register reuse
 
 Controlled base_2 moved `work->animRequest = 2` before `work->animRate = 0x10`, leaving `work->animId = 2` afterward. The three stores are independent. Against base_1 this alone changed 98.214% (regs=3 reorder=1) to exact; the permuter pointer alias was unnecessary. sched1 kept the constant-2 live range around constant 16; lreg changed constant 2 from 3 refs/6 insns in v0 to 3 refs/10 insns in v1. greg retained those homes. sched2 then moved the B66 load ahead of the constant-2 stores, freed from the former v0 dependency. This is another instance of CODEGEN_MODEL 10.6, not proof of a general per-pseudo priority rule. No pins or asm helpers.
 
-Evidence: tools/permuter_findings/Actor01900_Fn0A7C0/; scratch base_2 controlled plan/build, lreg and sched2 retained by conclude-permuter.
+Evidence: tools/permuter_findings/_actor01900StatePlayWalk/; scratch base_2 controlled plan/build, lreg and sched2 retained by conclude-permuter.
 base_1.i SHA256: b9da53f87bdd617a8ed8a1cd2990269fb345f44896860477b89e7a87b70a6f45
 base_2.i SHA256: a473c47c9e01960ee8585b82f39e6b76f0b85af46ab14a0c9727dbfe1900dd48
 
@@ -88077,7 +88077,7 @@ once it is matched, the compiler emits the table, so remove the entries.
 
 ## Top-tested angle wrap plus `lui`/`ori` and absolute scratch forms: look for the known inline helpers
 
-`Actor01900_Fn080A8` has the top-tested `sll`/`sra`/`slti` + `j` wrap loops, a
+`_actor01900StateAlertRepeat` has the top-tested `sll`/`sra`/`slti` + `j` wrap loops, a
 `bgez` on `sll s0,s0,16` with the delay slots all `sll v0,v1,16`, and a 0x34
 scratch block whose head accesses are absolute (`lui $s2`/`lw 0x3FC($s2)`,
 `lui $at`/`sw`) between two `lui`/`ori` register-form bumps. Written out flat
@@ -88230,7 +88230,7 @@ sat between them in the source.
 
 ### A pointer reloaded in both arms before a shared call is one call per arm, cross-jumped
 
-`Actor01900_Fn07BA8` picks a turn of `±0x4B0` for `gfxRotMatrixY(&obj->field_8->coord, turn, 0)`.
+`_actor01900StateBackOff` picks a turn of `±0x4B0` for `gfxRotMatrixY(&task->extra.tmd->coords->coord, turn, 0)`.
 The target loads `lw v0, 0x2C(s4)` *twice* - once in each arm - and only the
 `lw a0, 8(v0)` / `jal` tail is shared. A variable assigned in an `if`/`else`
 (or a ternary) loads the pointer once after the join. Write the call in each arm;
@@ -88296,7 +88296,7 @@ class of `vec` and takes an entry with **equal address cost and higher rtx
 cost**, which is `(plus x 44)`, so `vec->vx` becomes `0x2C(x)`. A
 `(plus head -8)` address only has equal-cost `(plus x 44)` alternatives and is
 left alone. `vec->vy` / `vec->vz` (`(plus vec 2)`) stay on `vec` for the same
-reason. Fix in `Actor01900_Fn06100`: `_actorMovementTranslateForwardNonzero` (reads `displacement->vx`)
+reason. Fix in `_actor01900StateApproach`: `_actorMovementTranslateForwardNonzero` (reads `displacement->vx`)
 instead of `_actorMovementStepForward`.
 
 ## A base-register + displacement residual at ≥99%: grep the corpus for the address, not the mechanism
@@ -88321,7 +88321,7 @@ place to *discover* it.
 
 ## `addiu v0,head,-K` + `move sN,v0` at a scratch push: `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1; s = *SCRATCH_STACK_CURSOR_SLOT`
 
-`Actor01900_Fn06F40` opens a 0xC block with the head load scheduled late (after
+`_actor01900StatePatrol` opens a 0xC block with the head load scheduled late (after
 the first field's operands, just before its `sh v0,-0xC(a1)`), then
 `addiu v0,a1,-0xC` / `move s4,v0`, and the head store `sw s4,0(a0)` only after
 the second field. Written as `head = *SCRATCH_STACK_CURSOR_SLOT; s = head - 1;` the block
@@ -88407,7 +88407,7 @@ body uses later.
 
 **When the head store lands *after* the field writes and holds the copy's
 register, the compound push cannot produce it; an input-only `asm` between the
-carve and the copy can.** `Actor01900_Fn09694` has the usual pair
+carve and the copy can.** `_actor01900StateStrike` has the usual pair
 (`addiu a1,s0,-0x10` / `move s4,a1`) but its head store is `sw s4,0(a3)` several
 insns later, so what reaches memory is the *copy*, while the compound push
 always stores the carve. Written plainly (`p = head - 1; ... q = p;`) the copy
@@ -88431,7 +88431,7 @@ copy takes the callee-saved one the rest of the body uses, which also drops the
 extra save from the frame. Use the *input-only* form: a read/write
 `SOFT_TOUCH_REG` blocks the fold as well, but its `"+r"` redefines the pointer,
 so CSE loses the `carve == head - K` equivalence and every offset-0 access comes
-back as `0(sN)` instead of the target's `-K(head)` (95.34%). `Actor01900_Fn083E8`
+back as `0(sN)` instead of the target's `-K(head)` (95.34%). `_actor01900StateScriptedWatch`
 in the same TU is the same shape.
 
 Try the compound push anyway before reaching for the asm: a late store off the
@@ -108705,7 +108705,7 @@ and not an allocation.
 
 ## A duplicated store triplet survives CSE: the ROM has two, so the source wrote two (`oddStrangerPatrol`, 2026-09-16)
 
-`oddStrangerPatrol` is the patrol body its twins `Actor01900_Fn06F40`
+`oddStrangerPatrol` is the patrol body its twins `_actor01900StatePatrol`
 and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
 way — the waypoint delta into `s->delta`, then
 `if (!_actorRangeOutsideRadiusXZ(&s->delta, 0xA0) || work->stateTimer >= 0x15)` — it
@@ -109239,7 +109239,7 @@ else if (f(arg0) == kind) { ... }`), and the outer test inverted (`if (kind != 1
 GCC canonicalises all four into the same blocks, so only the store form reaches the target.
 
 Confirmed alongside, same function: `(u32)((work->field_5A & 0x3FF) - 0x10) < 7U` is the exact
-range-test idiom (`oddStrangerGrabRelease`'s `sltiu`), matching `Actor01900_Fn05F38`.
+range-test idiom (`oddStrangerGrabRelease`'s `sltiu`), matching `_actor01900StateStepBack`.
 
 Inputs: `base_9.i` SHA256
 `3640a55079bd08537a312231a0c0b1e10df334a846aba76517f5ff6831035931`; target SHA256
@@ -113932,8 +113932,8 @@ inside its branch, so `lbu` fills the second load-delay slot, the
 `li $a0,1` hoists out of the fallthrough block exactly as the target has it.
 
 The cross-overlay twin is what pointed at it. The brief's shape-similar list
-offered `Actor01900_Fn06100` at 0.86; it is the same body with different field
-offsets and constants, and its two call sites pass `index->field_2C->field_8`
+offered `_actor01900StateApproach` at 0.86; it is the same body with different field
+offsets and constants, and its two call sites pass `task->extra.tmd->coords`
 directly. Read the similar-body candidate's *source* even when it is not a
 byte-identical twin — the constants differ, the call shape did not.
 
@@ -131884,7 +131884,7 @@ controlled hoist `3e0d77ca009e3738aa119783efa92a2e0978fcb28b0cc0f1365a65e3ff0db5
 Sources, predictions and dumps are retained under
 `tools/permuter_findings/_actor356100UpdateAnimation/`.
 
-## A leaf use blocks combine's copy merge; a read-write touch does the same but moves the whole chain (Actor01900_Fn083E8, 2026-09-18)
+## A leaf use blocks combine's copy merge; a read-write touch does the same but moves the whole chain (_actor01900StateScriptedWatch, 2026-09-18)
 
 combine turns `(set tmp expr)` + `(set p tmp)` into `(set p expr)` whenever
 `tmp` has a single use, so a pointer temp whose only consumer is the copy
@@ -131912,7 +131912,7 @@ aim->delta.vy = ...;       /* 2(s1) */
 source otherwise. Input hash
 `82edf687a76160b863a2f35acd418b4d2f9d359d2501597390ffc8084641a8e3` (`base_13.i`).
 
-## An `s16` round-trip turns a redundant sign-extension into the `move` the ROM has, and re-dates the pseudo (Actor01900_Fn083E8, 2026-09-18)
+## An `s16` round-trip turns a redundant sign-extension into the `move` the ROM has, and re-dates the pseudo (_actor01900StateScriptedWatch, 2026-09-18)
 
 Where a wrapped `s16` feeds both a `sh` and a signed compare, the ROM has
 `sra a2,v0,16; move v1,a2; sh a2,...; lh a0,...; slt v0,a0,v1` — the `sra`
@@ -143428,7 +143428,7 @@ gte_stsxy(&scratch->screenX);
 ```
 
 The value of `*G -= 1` is a short-lived pseudo that local-alloc colours `$v0`
-and joins to `block` by a copy (see the `Actor01900_Fn06F40` entry); CSE still
+and joins to `block` by a copy (see the `_actor01900StatePatrol` entry); CSE still
 knows it equals `head - 0x1C`, so the first store and the `screenX`/`projectionFlags`/`depth`
 addresses come out `-K(head)` without any cast. With `$v0` taken the field
 loads move to `$v1`, the scratch address to `$a1`, and `value` to `$t1` with a
