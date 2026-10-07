@@ -1653,7 +1653,6 @@ static void func_actor_400500_8013226C(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
     GfxMatrix                    rot;
-    GfxMatrix*                   src;
     GfxCoord*                    parts;
     GfxCoord*                    part7;
     GfxCoord*                    part10;
@@ -1676,14 +1675,9 @@ static void func_actor_400500_8013226C(Task* arg0)
     coord->coord.t[0]         = 0x400;
     coord->coord.t[1]         = 0;
     coord->coord.t[2]         = 0;
-    src                       = &rot;
-    rot.rotationWords.m00M01  = ONE;
-    src->rotationWords.m02M10 = 0;
-    src->rotationWords.m11M12 = ONE;
-    src->rotationWords.m20M21 = 0;
-    src->rotationWords.m22    = ONE;
-    RotMatrixY((s16)(-0x180), &src->mat);
-    _actor400500CopyRotation(&src->mat, &coord->coord);
+    gfxSetRotIdentity(&rot.mat);
+    RotMatrixY((s16)(-0x180), &rot.mat);
+    _actor400500CopyRotation(&rot.mat, &coord->coord);
     parentTmd              = arg0->extra.tmd;
     tmd                    = child->extra.tmd;
     tmd->texturePageOffset = parentTmd->texturePageOffset;
@@ -1709,13 +1703,9 @@ static void func_actor_400500_8013226C(Task* arg0)
         tmdBuildBufferHalf(tmd);
         tmdBuildBufferHalf(tmd);
     }
-    rot.rotationWords.m00M01  = ONE;
-    src->rotationWords.m02M10 = 0;
-    src->rotationWords.m11M12 = ONE;
-    src->rotationWords.m20M21 = 0;
-    src->rotationWords.m22    = ONE;
-    RotMatrixY((s16)(0x180), &src->mat);
-    _actor400500CopyRotation(&src->mat, &coord->coord);
+    gfxSetRotIdentity(&rot.mat);
+    RotMatrixY((s16)(0x180), &rot.mat);
+    _actor400500CopyRotation(&rot.mat, &coord->coord);
 }
 
 static void func_actor_400500_80132438(Task* arg0)
