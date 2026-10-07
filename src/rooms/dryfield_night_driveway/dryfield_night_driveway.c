@@ -62,32 +62,6 @@
 /// Set once the driveway event has been spawned.
 extern u8 gDrivewayEventSpawned;
 
-/// The clips two of the room's scene scripts add to the player's animation
-/// bank, with the two play requests stored after them.
-///
-/// Each of those scripts sends the player a copy request for the first ten
-/// words of this storage before it plays an extended clip. That is more than
-/// the clip table holds: the three set pointers and the NULL after them occupy
-/// extended ids 47-50, and the five words of `unusedPlay` and the bank selector
-/// of `firstClipPlay` are written into the bank after them. The scripts play
-/// only ids 47-49 and one of the bank's own clips on the player, so none of
-/// those following words is played as a clip.
-///
-/// The two requests are part of this object only because the copied span runs
-/// through the first and one word into the second; the requests for ids 48 and
-/// 49 follow as separate objects. The storage is only read.
-typedef union {
-    struct {
-        AnimationSet*        sets[4];       // Player clips for extended ids 47-49, then the NULL that ends the table
-        AnimationPlayRequest unusedPlay;    // Same request as `firstClipPlay`; nothing refers to it
-        AnimationPlayRequest firstClipPlay; // Starts extended id 47 without a blend; the first extended clip each script plays
-    } data;                                 // The records by name
-    s32 words[14];                          // The same storage as the copy reads it; the last four words lie beyond the copied span
-} _DryfieldNightDrivewayAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_DryfieldNightDrivewayAnimationBankExtensionStorage, 56);
-
-extern _DryfieldNightDrivewayAnimationBankExtensionStorage D_dryfield_night_driveway_8017F8C4;
-
 /// Descriptor of the room's event task, which the event gate spawns.
 extern TaskDesc gRoomEventStagedTaskDesc;
 
@@ -338,13 +312,30 @@ ActorTransform D_dryfield_night_driveway_8017F894 = { { -8800, 0, -1500, 0 }, { 
 
 ActorTransform D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3413, 0, 0 } };
 
-_DryfieldNightDrivewayAnimationBankExtensionStorage D_dryfield_night_driveway_8017F8C4 = { .data = { { &_gDryfieldNightDrivewayAnimation01870, &_gDryfieldNightDrivewayAnimation01A84, &_gDryfieldNightDrivewayAnimation01D64, NULL }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } };
+/// Player clips for extended ids 47-49, then the NULL that ends the table.
+///
+/// Two of the room's scene scripts each send the player the copy request before
+/// they play an extended clip. `D_dryfield_night_driveway_8017F924` copies ten
+/// words starting here into the player's bank, which is six words past the end
+/// of this array: the read runs on through `D_dryfield_night_driveway_8017F8D4`
+/// and the first word of `D_dryfield_night_driveway_8017F8E8`. That overrun is
+/// the original's and is kept as it is: the request carries a literal count
+/// larger than the table, while the table was stored with only its own entries.
+/// The scripts play only ids 47-49 and one of the bank's own clips on the
+/// player, so none of the words installed after the table is played as a clip.
+AnimationSet* D_dryfield_night_driveway_8017F8C4[4] = { &_gDryfieldNightDrivewayAnimation01870, &_gDryfieldNightDrivewayAnimation01A84, &_gDryfieldNightDrivewayAnimation01D64, NULL };
+
+// Same request as the next one; nothing refers to it.
+AnimationPlayRequest D_dryfield_night_driveway_8017F8D4 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+
+// Starts extended id 47 without a blend; the first extended clip each script plays.
+AnimationPlayRequest D_dryfield_night_driveway_8017F8E8 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F8FC = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F910 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationBankCopyRequest D_dryfield_night_driveway_8017F924 = { { .words = D_dryfield_night_driveway_8017F8C4.words }, 10 };
+AnimationBankCopyRequest D_dryfield_night_driveway_8017F924 = { { .sets = D_dryfield_night_driveway_8017F8C4 }, 10 };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F92C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -395,7 +386,7 @@ EvsCommand D_dryfield_night_driveway_8017FB00[51] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1019 }, { .message = { .pointer = &D_dryfield_night_driveway_8017F81C } }, { .message = { .pointer = &D_dryfield_night_driveway_8017F990 } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8C4.data.firstClipPlay }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8E8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8FC }, { .value = 0 } },
@@ -472,7 +463,7 @@ EvsCommand D_dryfield_night_driveway_80180118[49] = {
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F97C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8C4.data.firstClipPlay }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8E8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_driveway_8017F8FC }, { .value = 0 } },
