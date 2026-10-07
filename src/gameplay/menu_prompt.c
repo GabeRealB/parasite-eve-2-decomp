@@ -2467,18 +2467,10 @@ void Gp_ArmorMenuTask(Task* arg0)
             if (t < 0) {
                 menu->selectedItemIndex = menu->firstVisibleItemIndex.signedValue;
             } else {
-                s32          row9;
-                s32          f5;
-                register s32 vis asm("a0");
-                t    = t / h;
-                row9 = menu->firstVisibleItemIndex.signedValue;
-                f5   = menu->visibleRowCount.signedValue;
-                vis  = row9;
-                TOUCH_REG(vis);
-                vis                     = vis + f5;
+                t                       = t / h;
                 t                       = t + 1;
-                menu->selectedItemIndex = t + row9;
-                _gpClampArmorRow(menu, vis);
+                menu->selectedItemIndex = t + menu->firstVisibleItemIndex.signedValue;
+                _gpClampArmorRow(menu, menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue);
             }
         }
         obj->resultValue        = 0;

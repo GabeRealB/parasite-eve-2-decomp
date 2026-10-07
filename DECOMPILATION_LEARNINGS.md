@@ -142664,6 +142664,10 @@ bigger loop is past the span cut), and the second `scratch->otz` load was
 just `addPrim(&ot[scratch->otz], p)` re-reading after the store to `p->tag`.
 ## Unresolved: `move a0,v0; addu a0,a0,v1; addu v0,a1,v0` - a copy accumulated in place while its source is read later as the *second* operand (Gp_ArmorMenuTask, 2026-09-26)
 
+*Note 2026-10-07:* resolved with no pin and no barrier. The copy is a second
+read of the field, turned into a move by `reload_cse_regs`; see the section at
+the end of this file with this function's name.
+
 The target copies a loaded value, adds to the copy in place, and then reads the
 original as the right-hand operand of a later add (`end = top; end += count;
 sel = row + top`). This initially kept two pins and a `TOUCH_REG`. Every plain
@@ -148229,6 +148233,8 @@ local-alloc hands the first one `$s0` before `x` is considered.
 `top` is reassigned between the two, and `top = t + top` is then expanded with
 the operands swapped. `top = menu->selectedItemIndex = t + top` keeps the
 operand order but `top` is not the class head there and the copy dies again.
+*2026-10-07: resolved; there is no C-level copy. See the section at the end of
+this file with this function's name.*
 
 ### A pseudo that dies where another is set inherits its register preferences: give the other branch its own local (_mcUpdateOkPrompt and its three siblings, 2026-10-05)
 
@@ -152588,3 +152594,45 @@ together. And when a loop's giv initialisers and updates come out in the same
 order, look for one biv; here the image contradicts that through the bare
 read, which is the open question (a tail statement recomputing the `(j+1)`
 terms would settle it, and would be a dead store).
+
+### `move a0,v0` / `addu a0,a0,v1` / `addu v0,a1,v0`: the field is read at each use, and the `+ 1` is its own statement (Gp_ArmorMenuTask, 2026-10-07)
+
+**Symptom.** `lb v0,9(s4)` / `lb v1,5(s4)` / `move a0,v0` / `addu a0,a0,v1` /
+`addiu a1,a1,1` / `addu v0,a1,v0` / `sw v0,16(s4)`: the first visible row is
+copied, the row count is added to the copy, and the original is then read as
+the second operand of the selection sum. The source held the row in a local,
+pinned the copy to `$a0` and kept it with `TOUCH_REG`. Three earlier passes
+recorded it as unresolved.
+
+**Mechanism.** The same as func_actor_521100_80133104: there is no copy in the
+source. Each statement reads the field itself:
+
+```c
+t                       = t / h;
+t                       = t + 1;
+menu->selectedItemIndex = t + menu->firstVisibleItemIndex.signedValue;
+_gpClampArmorRow(menu, menu->firstVisibleItemIndex.signedValue + menu->visibleRowCount.signedValue);
+```
+
+- The store to `selectedItemIndex` sits between the two reads, so cse does not
+  merge them (it drops varying-address memory at any store).
+- sched1 lifts the second read and the count read above the sum and the store
+  (in-struct loads at other offsets do not depend on the store). After reload
+  the order is `lb v0,9` / `lb a0,9` / `lb v1,5` / `addu v0,a1,v0` / `sw` /
+  `addu a0,a0,v1`, and `reload_cse_regs` rewrites the second load as
+  `move a0,v0` because `$v0` still holds the field. sched2 then gives the
+  final order.
+- The sum of the two fields is the inline's argument and lands in `$a0`; `t`
+  keeps `$a1`. Neither needed a pin.
+- `t + 1` has to be a statement of its own. With `menu->sel = t + 1 + first`
+  the `1` is added to the field's register (`addiu v0,v0,1`) before the second
+  read is reached, `$v0` no longer holds the field and both `lb` stay. With
+  `t = t / h + 1` the quotient is a separate pseudo (`mflo v0` /
+  `addiu a1,v0,1`).
+
+**Use.** A `move` followed by an in-place add of a value loaded just before,
+where a store to the same structure follows: write the field at both uses and
+drop the local. When the result shows two identical loads next to each other
+instead of the move, something modifies the first register before the second
+read in the post-reload order; look for a constant folded into the first
+read's expression and give it its own statement.
