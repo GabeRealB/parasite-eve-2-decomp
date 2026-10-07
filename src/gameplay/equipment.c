@@ -23,19 +23,21 @@ extern u8 D_8010D320[2];
 
 extern u8 D_8010D324[3];
 
-/// Spends one loaded unit and counts its use, consuming the first carried stack.
+/// Spends one loaded weapon unit and records its use in the live save.
 ///
-/// The quantity must be nonzero and cheat mode must already be excluded.
-static inline void _equipmentConsumeLoadedUnit(u8* quantity, s32 consumableItemId, s32* useCount)
+/// Callers must exclude cheat mode and supply a nonzero `loadedQuantity`.
+/// Both pointers borrow writable fields of that weapon in the live save.
+/// The first carried stack loses one unit if present; a missing stack does
+/// not prevent consumption. `weaponUseCount` advances only below 999999;
+/// counts already at or above that threshold are left intact.
+static inline void _equipmentConsumeLoadedUnit(u8* loadedQuantity, s32 consumableItemId, s32* weaponUseCount)
 {
     enum { EQUIPMENT_WEAPON_USE_COUNT_MAX = 999999 };
-    s32 previousUseCount;
 
-    (*quantity)--;
+    (*loadedQuantity)--;
     inventoryConsumeFirstStack(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, consumableItemId, 1);
-    previousUseCount = *useCount;
-    if (previousUseCount <= EQUIPMENT_WEAPON_USE_COUNT_MAX - 1) {
-        *useCount = previousUseCount + 1;
+    if (*weaponUseCount < EQUIPMENT_WEAPON_USE_COUNT_MAX) {
+        (*weaponUseCount)++;
     }
 }
 
