@@ -1759,25 +1759,17 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
     s32       currentYawMagnitude;
     s32       pitchMagnitude;
     s32       yawMagnitude;
-    MATRIX*   subjectRotationStorage;
-    MATRIX*   targetRotationStorage;
     GfxCoord* subjectParts;
-    MATRIX*   headRotation;
 
     // Accumulate both five-part chains, including the head-local offset.
     partIndex              = 0;
-    subjectRotationStorage = &subjectRotation;
     headOffset             = D_80093A28;
     yawLimit               = aim->yawLimit;
     pitchLimit             = aim->pitchLimit;
     blendWeight            = aim->rate;
     lastPitchValid         = aim->lastPitchValid;
 
-    MATRIX_PAIR(&subjectRotation, 0, 0)       = ONE;
-    MATRIX_PAIR(&subjectRotation, 0, 2)       = 0;
-    MATRIX_PAIR(subjectRotationStorage, 1, 1) = ONE;
-    MATRIX_PAIR(&subjectRotation, 2, 0)       = 0;
-    subjectRotationStorage->m[2][2]           = ONE;
+    gfxSetRotIdentity(&subjectRotation);
     subjectHeadVector.vx                      = 0;
     subjectHeadVector.vy                      = 0;
     subjectHeadVector.vz                      = 0;
@@ -1795,12 +1787,7 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
     subjectHeadVector.vz += transformedTranslation.vz;
 
     partIndex                                = 0;
-    targetRotationStorage                    = &targetRotation;
-    MATRIX_PAIR(&targetRotation, 0, 0)       = ONE;
-    MATRIX_PAIR(&targetRotation, 0, 2)       = 0;
-    MATRIX_PAIR(targetRotationStorage, 1, 1) = ONE;
-    MATRIX_PAIR(&targetRotation, 2, 0)       = 0;
-    targetRotationStorage->m[2][2]           = ONE;
+    gfxSetRotIdentity(&targetRotation);
     targetPosition.vx                        = 0;
     targetPosition.vy                        = 0;
     targetPosition.vz                        = 0;
@@ -1858,13 +1845,8 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
     ANIMATION_BLEND_HEAD_AIM(aimAngles, currentAngles, blendWeight, pitchLimit, yawLimit);
 #undef ANIMATION_BLEND_HEAD_AIM
 
-    headRotation                           = &subjectPart->coord;
-    MATRIX_PAIR(&subjectPart->coord, 0, 0) = ONE;
-    MATRIX_PAIR(headRotation, 0, 2)        = 0;
-    MATRIX_PAIR(headRotation, 1, 1)        = ONE;
-    MATRIX_PAIR(headRotation, 2, 0)        = 0;
-    headRotation->m[2][2]                  = ONE;
-    RotMatrix(&aimAngles, headRotation);
+    gfxSetRotIdentity(&subjectPart->coord);
+    RotMatrix(&aimAngles, &subjectPart->coord);
     subjectPart->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
