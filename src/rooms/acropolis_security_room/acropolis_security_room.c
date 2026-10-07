@@ -2584,12 +2584,12 @@ static void func_acropolis_security_room_8017E37C(Task* task)
 
 /// Two-state dispatcher whose handler table is built on the stack rather than
 /// read from `.data`: state 0 runs `actionPromptReset` and
-/// state 1 runs `actionPromptMoveCursors`.
+/// state 1 runs `_actionPromptMoveCursorsDefault`.
 void func_acropolis_security_room_8017E9D8(Task* task)
 {
     TaskFunc funcs[2] = {
         actionPromptReset,
-        actionPromptMoveCursors,
+        _actionPromptMoveCursorsDefault,
     };
 
     funcs[task->state](task);
@@ -2875,7 +2875,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
 #include "../../shared/action_prompt_move_cursors.inc.c"
 #undef ACTION_PROMPT_MOVE_CURSORS_TASK
-#define ACTION_PROMPT_MOVE_CURSORS_TASK actionPromptMoveCursors
+#define ACTION_PROMPT_MOVE_CURSORS_TASK _actionPromptMoveCursorsDefault
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 #undef ACTION_PROMPT_DRAW_CURSOR

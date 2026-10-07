@@ -30,7 +30,8 @@ static inline void _actionPromptClampCursor(ActionPrompt* prompt)
 /// any other value. Borrows the initialized per-port prompts and pad samples;
 /// it neither owns task work nor changes the task state. Movement uses signed
 /// Q12 left-stick axes: mouse-format input is linear, analog input is squared
-/// with its sign restored. D-pad motion is added before clamping the signed
+/// with its sign restored. Held direction bits, including synthesized stick
+/// directions, add D-pad motion before clamping the signed
 /// 1/512-pixel position to X [-160, 159] and Y [-110, 110] pixels.
 ///
 /// Confirm is Cross; cancel is Circle or Square. A second press within
@@ -40,7 +41,7 @@ static inline void _actionPromptClampCursor(ActionPrompt* prompt)
 /// The u16 arm counters advance by `frameTicks` and wrap without saturation.
 /// Requires the packet arena, ordering table and cursor textures needed by
 /// `ACTION_PROMPT_DRAW_CURSOR`; hidden mode still updates motion and buttons.
-void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task)
+static void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task)
 {
     enum {
         ACTION_PROMPT_PORT_0_ONLY            = 1,
@@ -61,7 +62,7 @@ void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task)
     s32           endPort;
     s32           inputFormat;
     s32           stickValue;
-    s32           motionValue; // Stick step, then D-pad heading; one reused signed temporary
+    s32           motionValue; // Stick step, then D-pad heading; separate locals change register allocation
     s32           buttonMask;
     s32           cursorSpeed;
     s32           buttonSlot;

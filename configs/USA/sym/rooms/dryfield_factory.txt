@@ -123,7 +123,7 @@ gFactoryNightJoltRecs = 0x8018A7C8; // absolute:True owner=dryfield_night_factor
 
 dryfieldFactoryDrawGlowsTask = 0x801825F0; // type:func
 actionPromptOutlineRect = 0x80180BA4; // type:func
-actionPromptMoveCursors = 0x801810D8; // type:func
+_actionPromptMoveCursorsDefault = 0x801810D8; // type:func
 _actionPromptDrawCursorDefault = 0x80181538; // type:func
 actionPromptHitTest = 0x80181778; // type:func
 actionPromptReset = 0x80181BB4; // type:func

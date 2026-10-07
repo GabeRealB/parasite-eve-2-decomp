@@ -8,9 +8,10 @@
  * _outline_rect and _event_end (each with the .inc.c suffix). A package includes only the
  * fragments it carries. The cursor drawer has a static instance in each
  * carrier, as does the event-end state (declared in its carrier's prologue);
- * the other fragments default to external linkage for callers in the same
- * package's other files. Reset and motion bindings can also select additional
- * private instances declared in the carrier's prologue.
+ * cursor-motion instances are also static. The other fragments default to
+ * external linkage for callers in the same package's other files. Reset and
+ * motion bindings can select additional private instances declared in the
+ * carrier's prologue.
  */
 
 #ifndef SRC_SHARED_ACTION_PROMPT_H
@@ -54,19 +55,19 @@ void ACTION_PROMPT_RESET_TASK(Task* task);
 
 /// Selects the task callback defined by the cursor-motion fragment.
 ///
-/// Bind to a function identifier with signature `void(Task* task)`. The default
-/// is `actionPromptMoveCursors`, shared between files in some packages.
+/// Bind to a translation-unit-local function identifier with signature
+/// `void(Task* task)`. The default is `_actionPromptMoveCursorsDefault`.
 /// Acropolis security and Shelter R47 bind an additional static instance,
 /// `_actionPromptMoveCursors`, declared in each carrier's prologue before its
 /// callers. Rebind around its move fragment and restore the default afterwards;
 /// `ACTION_PROMPT_DRAW_CURSOR` selects the drawer called by that instance.
-/// A binding supplied before this header also selects this prototype.
+/// A binding supplied before this header also selects its static prototype.
 /// This object-like alias captures no arguments, repeats no evaluation and
 /// uses neither stringification nor token pasting.
 #ifndef ACTION_PROMPT_MOVE_CURSORS_TASK
-#define ACTION_PROMPT_MOVE_CURSORS_TASK actionPromptMoveCursors
+#define ACTION_PROMPT_MOVE_CURSORS_TASK _actionPromptMoveCursorsDefault
 #endif
-void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task);
+static void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task);
 
 /// Selects the cursor drawer declared and called by the included prompt fragments.
 ///

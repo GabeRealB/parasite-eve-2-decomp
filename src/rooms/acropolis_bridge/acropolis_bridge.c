@@ -3469,7 +3469,7 @@ static void _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 o
 /// action prompts, state 1 moves and draws their cursors.
 void func_acropolis_bridge_8017F280(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
+    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

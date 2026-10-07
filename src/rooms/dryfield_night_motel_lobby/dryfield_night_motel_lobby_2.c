@@ -836,7 +836,7 @@ static s16 func_dryfield_night_motel_lobby_80180734(void)
 
 void func_dryfield_night_motel_lobby_80180D08(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
+    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

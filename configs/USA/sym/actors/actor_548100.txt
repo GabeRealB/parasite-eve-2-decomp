@@ -42,6 +42,6 @@ D_actor_548100_80135B57 = 0x80135B57; // size:0x1 defined:True
 D_actor_548100_80135B58 = 0x80135B58; // size:0x1 defined:True
 D_actor_548100_80135B5C = 0x80135B5C; // size:0x2710 defined:True
 actionPromptOutlineRect = 0x80132EA8; // type:func
-actionPromptMoveCursors = 0x80131ED8; // type:func
+_actionPromptMoveCursorsDefault = 0x80131ED8; // type:func
 _actionPromptDrawCursorDefault = 0x80132338; // type:func
 actionPromptReset = 0x80135154; // type:func

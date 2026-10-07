@@ -975,12 +975,12 @@ void func_shelter_r47_80183210(void)
 
 /// Two-state dispatcher of the action prompt, with its handler table built on
 /// the stack: state 0 runs `actionPromptReset` and state 1 runs
-/// `actionPromptMoveCursors`.
+/// `_actionPromptMoveCursorsDefault`.
 void func_shelter_r47_80183234(Task* task)
 {
     TaskFunc funcs[2] = {
         actionPromptReset,
-        actionPromptMoveCursors,
+        _actionPromptMoveCursorsDefault,
     };
 
     funcs[task->state](task);

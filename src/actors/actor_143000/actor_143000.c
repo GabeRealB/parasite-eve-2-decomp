@@ -673,13 +673,13 @@ static void func_actor_143000_80132D10(Task* arg0)
 /// Callback of the action-prompt task that `func_actor_143000_801324C8` spawns
 /// from `D_actor_143000_80134558`: a two-state dispatcher whose handler table
 /// is built on the stack. State 0, `actionPromptReset`, resets both
-/// prompt slots; state 1, `actionPromptMoveCursors`, drives the cursor every
+/// prompt slots; state 1, `_actionPromptMoveCursorsDefault`, drives the cursor every
 /// frame from then on.
 void func_actor_143000_80133578(Task* task)
 {
     TaskFunc funcs[2] = {
         actionPromptReset,
-        actionPromptMoveCursors,
+        _actionPromptMoveCursorsDefault,
     };
 
     funcs[task->state](task);

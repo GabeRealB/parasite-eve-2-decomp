@@ -2375,7 +2375,7 @@ static void _shelterB1UndergroundParkingDrawPanelIndicators(void)
 /// pair on the stack and calls the entry `Task::state` names.
 void func_shelter_b1_underground_parking_80184234(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
+    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

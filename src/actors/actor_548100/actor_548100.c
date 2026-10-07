@@ -2013,13 +2013,13 @@ static void func_actor_548100_8013461C(_Actor548100TexRect* rect)
 
 /// Callback of the action-prompt task: a two-state dispatcher whose handler
 /// table is built on the stack. State 0, `actionPromptReset`, resets
-/// both prompt slots; state 1, `actionPromptMoveCursors`, drives the cursor
+/// both prompt slots; state 1, `_actionPromptMoveCursorsDefault`, drives the cursor
 /// every frame from then on.
 void func_actor_548100_80134728(Task* task)
 {
     TaskFunc funcs[2] = {
         actionPromptReset,
-        actionPromptMoveCursors,
+        _actionPromptMoveCursorsDefault,
     };
 
     funcs[task->state](task);

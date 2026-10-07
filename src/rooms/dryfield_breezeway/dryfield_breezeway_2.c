@@ -1157,11 +1157,11 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, SVECTOR* arg2, 
 /// The room's prompt task, run from `D_dryfield_breezeway_80182DC0`: state 0
 /// resets both action-prompt slots (`actionPromptReset`), state
 /// 1 drives the cursor every frame after that
-/// (`actionPromptMoveCursors`). The handler pair is built on the stack
+/// (`_actionPromptMoveCursorsDefault`). The handler pair is built on the stack
 /// rather than read from rodata.
 void func_dryfield_breezeway_8017FA80(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
+    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

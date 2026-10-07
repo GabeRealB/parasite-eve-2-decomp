@@ -84,7 +84,7 @@ acropolisSecurityRoomMonitorFeedTask = 0x80180E34; // type:func
 acropolisSecurityRoomFallingQuadTask = 0x80181108; // type:func
 
 acropolisSecurityRoomMonitorGlowTask = 0x801817A4; // type:func
-actionPromptMoveCursors = 0x8017E490; // type:func
+_actionPromptMoveCursorsDefault = 0x8017E490; // type:func
 _actionPromptDrawCursorDefault = 0x8017E8F0; // type:func
 _actionPromptMoveCursors = 0x8017F480; // type:func
 _actionPromptDrawCursor = 0x8017F8E0; // type:func

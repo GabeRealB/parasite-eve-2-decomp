@@ -4,7 +4,7 @@
 /// moves and draws the cursors every frame.
 void factoryPromptTask(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
+    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

@@ -1906,7 +1906,7 @@ static void func_shelter_r47_80184658(Task* task)
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
 #include "../../shared/action_prompt_move_cursors.inc.c"
 #undef ACTION_PROMPT_MOVE_CURSORS_TASK
-#define ACTION_PROMPT_MOVE_CURSORS_TASK actionPromptMoveCursors
+#define ACTION_PROMPT_MOVE_CURSORS_TASK _actionPromptMoveCursorsDefault
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 #undef ACTION_PROMPT_DRAW_CURSOR

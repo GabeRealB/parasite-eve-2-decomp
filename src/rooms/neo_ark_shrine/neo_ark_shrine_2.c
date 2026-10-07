@@ -1057,7 +1057,7 @@ NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16] = { 0 };
 /// state 1 moves the cursor from the pad every frame after.
 void func_neo_ark_shrine_8017EA70(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
+    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }
