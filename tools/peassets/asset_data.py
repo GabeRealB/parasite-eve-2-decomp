@@ -5726,6 +5726,8 @@ EMBEDDED_ASSETS = {
     'acropolis_forked_road_path_039C0': {"source": 'acropolis_forked_road.pe2pkg', "vram": 0x80180F80, "size": 0x960, "ext": '.path', "type": 'movie_path', "include": 'u16'},
     'acropolis_observatory_path_0124C': {"source": 'acropolis_observatory.pe2pkg', "vram": 0x8017E80C, "size": 0x960, "ext": '.path', "type": 'movie_path', "include": 'u16'},
     'acropolis_observatory_path_01BAC': {"source": 'acropolis_observatory.pe2pkg', "vram": 0x8017F16C, "size": 0x960, "ext": '.path', "type": 'movie_path', "include": 'u16'},
+    'dryfield_water_tank_motion_06F70': {"source": 'dryfield_water_tank.pe2pkg', "vram": 0x80184530, "size": 0x290, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
+    'dryfield_water_tank_motion_07200': {"source": 'dryfield_water_tank.pe2pkg', "vram": 0x801847C0, "size": 0x1A0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
     'dryfield_water_tower_model_03D14': {"source": 'dryfield_water_tower.pe2pkg', "vram": 0x801812D4, "size": 0x748, "ext": '.tmd', "type": 'model'},
     'gameplay_effect_80111fc8_normals': {"source": 'gameplay.pe2pkg', "vram": 0x80111F28, "size": 0x20, "ext": '.modelpart', "type": 'model', "include": 'u16'},
     'gameplay_effect_80111fc8_packets': {"source": 'gameplay.pe2pkg', "vram": 0x80111F48, "size": 0x80, "ext": '.modelpart', "type": 'model', "include": 'u32'},
