@@ -5,6 +5,8 @@
 
 #include "types.h"
 
+#include "gameplay/attachment_state.h"
+#include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
 #include "item_menu.h"
 #include "item_use.h"
@@ -31,6 +33,9 @@ enum {
     ITEM_MENU_NOTICE_TEXT_COLOR_RGB  = 0x606060,
     ITEM_MENU_NOTICE_ITEM_COLOR_RGB  = 0x037A78
 };
+
+/// Opening delay for equipment command and confirmation panels, in callback ticks.
+enum { ITEM_MENU_COMMAND_OPEN_DELAY_TICKS = 1 };
 
 /// Returns 1 for armor catalogue ids 0x60..0x7F, otherwise 0.
 static inline s32 _itemIsArmorItem(u8 itemId)
@@ -181,41 +186,53 @@ static inline void _itemMenuApplyChildDialogResults(UiObject* object, Task* task
     }
 }
 
-/// Switches to a carried weapon, transferring its armor slot to the previous weapon.
+/// Selects a carried weapon while preserving equipment in its former armor slot.
 ///
-/// Both weapon rows must exist when their selectors are nonzero. If the new
-/// weapon has no positive attachment slot, the previous weapon's removable
-/// loads are cleared. A changed weapon is detached from armor and identified.
+/// weaponItemId must be 0x80..0x9F; a changed selection requires its carried row
+/// and the previous weapon's row when the old selector is nonzero. The live
+/// carried range must fit its table. Selecting the current weapon changes nothing.
+/// The previous weapon inherits a positive armor slot from the new row; without
+/// one, its removable load selections and quantities are cleared, preserving
+/// built-in supplies. The new one-based selector is stored before detaching the
+/// row so its loads survive detachment, then the item is marked identified.
+/// Row pointers are borrowed only for this call; no inventory quantity changes.
 static inline void _equipmentEquipCarriedWeapon(s32 weaponItemId)
 {
     PlayerStatus*     player;
     InventoryItemRow* weaponRow;
     InventoryItemRow* previousWeaponRow;
-    u8                previousWeapon;
+    u8                previousWeaponSelector;
 
-    player         = &gPlayerStatus;
-    weaponRow      = inventoryFindLastCarriedItemRow(weaponItemId);
-    previousWeapon = player->weapon;
-    if (previousWeapon != weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
-        if (previousWeapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-            previousWeaponRow = inventoryFindLastCarriedItemRow(previousWeapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
-            if (weaponRow->attachSlot > INVENTORY_ATTACHMENT_NONE) {
-                previousWeaponRow->attachSlot = weaponRow->attachSlot;
-            } else {
-                equipmentClearSelectedRemovableLoads(previousWeaponRow->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
-            }
-        }
-        player->weapon = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
-        inventoryDetachItem(weaponRow);
-        itemSetIdentified(weaponItemId, 1);
+    player                 = &gPlayerStatus;
+    weaponRow              = inventoryFindLastCarriedItemRow(weaponItemId);
+    previousWeaponSelector = player->weapon;
+    if (previousWeaponSelector == weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
+        return;
     }
+    // Leave the previous weapon in the incoming weapon's armor position, or unload it.
+    if (previousWeaponSelector != PLAYER_STATUS_EQUIPMENT_NONE) {
+        previousWeaponRow = inventoryFindLastCarriedItemRow(previousWeaponSelector + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
+        if (weaponRow->attachSlot > INVENTORY_ATTACHMENT_NONE) {
+            previousWeaponRow->attachSlot = weaponRow->attachSlot;
+        } else {
+            equipmentClearSelectedRemovableLoads(previousWeaponRow->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
+        }
+    }
+    // Detachment keeps loads belonging to the weapon selected here.
+    player->weapon = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+    inventoryDetachItem(weaponRow);
+    itemSetIdentified(weaponItemId, 1);
 }
 
 /// Advances a notice's tick counter and publishes dismissal or menu cancellation.
 ///
-/// The live task owns the object. Opening and inactive panels still count down;
-/// only active panels act on expiration or pressed buttons. Dismissal resets the
-/// signed-halfword counter to defer another timeout during the closing animation.
+/// task and its owned object must remain live, with killCountdown initialized by
+/// the notice. Decrements once per callback, narrowing to s16 even while inactive.
+/// Only a fully active control word accepts input or expiry. Menu takes priority
+/// and publishes CANCEL without resetting the counter. Otherwise expiry or
+/// Confirm/Cancel publishes DISMISS and resets the counter to 32767, deferring
+/// repeated expiry during teardown. Leaves any existing result intact otherwise;
+/// the caller clears it each update and handles closing. No object is released.
 static inline void _itemMenuUpdateNoticeResult(UiObject* object, Task* task)
 {
     task->killCountdown--;
@@ -436,60 +453,82 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
     }
 }
 
-void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1)
+/// Draws a visible armor choice's name, equipment status and item icon.
+///
+/// x/y are signed panel-relative row pixels. Origin-Y subtraction is promoted
+/// to s32 before adding y. The retained P.E. level path handles ordinary ability
+/// item ids; the armor-choice scan itself returns only armor or an empty id.
+/// attachmentState follows `itemMenuDrawEquipmentMarker`; object is borrowed
+/// for this draw, with menu/text textures and writable GPU storage required.
+static inline void _itemMenuDrawArmorChoiceContents(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState)
 {
-    TextDrawReq req;
-    s32         item;
-    s32         x;
-    s32         y;
-    s32         color;
-    s32         one;
-    s32         temp;
-    s32         baseY;
-    s32         status;
+    enum {
+        ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST = 15,
+        ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT
+    };
+    TextDrawReq nameRequest;
+    s32         abilityItemOffset;
+    s32         textBaseY;
 
-    item   = _itemMenuGetUnequippedArmorItem(arg0->currentItemIndex);
-    status = arg1->panel.control.word;
-    if (((status >> 16) == 1) || (status == 1)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            if (item == 0) {
-                uiSetPromptText(Gp_StrEmpty, 0, 0);
+    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        nameRequest.x          = object->panel.contentOriginX.unsignedValue + 0x11 + x;
+        textBaseY              = object->panel.contentOriginY.unsignedValue - 6;
+        nameRequest.y          = textBaseY + y;
+        nameRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+        nameRequest.colorRgb   = colorRgb;
+        nameRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        nameRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+        nameRequest.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));
+        itemMenuDrawEquipmentMarker(object, x, y, itemId, attachmentState);
+        abilityItemOffset = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
+        if ((u32)abilityItemOffset < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
+            itemMenuDrawParasiteEnergyLevel(object, x, y, abilityItemOffset % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
+        }
+        itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
+    }
+}
+
+void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object)
+{
+    enum {
+        ITEM_MENU_ARMOR_EQUIP_NOTICE_PANEL = 41,
+        ITEM_MENU_ARMOR_INFO_PANEL         = 45
+    };
+    s32 armorItemId;
+    s32 panelControl;
+    s32 rowX;
+    s32 rowY;
+    s32 textColorRgb;
+    s32 attachmentState;
+
+    armorItemId  = _itemMenuGetUnequippedArmorItem(list->currentItemIndex);
+    panelControl = object->panel.control.word;
+    // Keep the selected description while the active panel is suspended by a child.
+    if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            if (armorItemId == INVENTORY_ITEM_NONE) {
+                uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
             } else {
-                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(armorItemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
     }
 
-    x     = arg0->rowTextX.signedValue;
-    y     = arg0->rowTextY.signedValue;
-    color = arg0->colorRgb;
-    one   = 1;
-    if (arg1->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
-        req.x          = arg1->panel.contentOriginX.unsignedValue + 0x11 + x;
-        baseY          = arg1->panel.contentOriginY.unsignedValue - 6;
-        req.y          = baseY + y;
-        req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.colorRgb   = color;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
-        itemMenuDrawEquipmentMarker(arg1, x, y, item, one);
-        temp = item - 0xF;
-        if ((u32)temp < 0x24U) {
-            itemMenuDrawParasiteEnergyLevel(arg1, x, y, temp % 3 + 1, color);
-        }
-        itemMenuDrawItemIcon(arg1, x, y, item, ITEM_MENU_ICON_DEFAULT);
-    }
+    rowX            = list->rowTextX.signedValue;
+    rowY            = list->rowTextY.signedValue;
+    textColorRgb    = list->colorRgb;
+    attachmentState = ITEM_MENU_ATTACHMENT_MARK_UNATTACHED;
+    _itemMenuDrawArmorChoiceContents(object, rowX, rowY, armorItemId, textColorRgb, attachmentState);
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            uiSpawnObject(&D_8010EAB4[41], item, 1, 1, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_ARMOR_EQUIP_NOTICE_PANEL], armorItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[45], item | 0x10000, 1, 1, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_ARMOR_INFO_PANEL], armorItemId | ITEM_MENU_INFO_RELOCATED_PREVIEW, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
@@ -748,88 +787,93 @@ void itemMenuEquipNoticeTask(Task* task)
     _itemMenuUpdateNoticeResult(obj, task);
 }
 
-void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1)
+/// Draws an equipment command label at the current list row's pixel position.
+///
+/// Coordinates retain the unsigned halfword views used by command lists.
+/// The encoded label is borrowed for this draw; panel visibility does not gate it.
+static inline void _itemMenuDrawEquipmentCommandLabel(const UiList* list, const UiObject* object, const u8* label)
 {
-    TextDrawReq req;
-    UiObject*   obj;
-    s32         val;
-    s32         one;
+    TextDrawReq labelRequest;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrLoad);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    labelRequest.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    labelRequest.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    labelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    labelRequest.colorRgb   = list->colorRgb;
+    labelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    labelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&labelRequest, label);
+}
+
+void itemMenuDrawLoadRow(UiList* list, UiObject* object)
+{
+    enum {
+        ITEM_MENU_LOAD_WEAPON_CHOICE_PANEL = 38,
+        ITEM_MENU_LOAD_SLOT_CHOICE_PANEL   = 40
+    };
+    UiObject* loadDialog;
+    s32       selectedItemId;
+
+    _itemMenuDrawEquipmentCommandLabel(list, object, (const u8*)Gp_StrLoad);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            val = Gp_SelItemRec->itemId;
+            // Capture the selected row before the sound request; it remains the dialog payload.
+            selectedItemId = Gp_SelItemRec->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            if ((u32)(val - 0x80) < 0x20U) {
-                Gp_ReloadMode = 0;
-                one           = 1;
-                obj           = uiSpawnObject(&D_8010EAB4[40], val, one, one, arg1);
-            } else if ((u32)(val - 0xA0) < 0x20U) {
-                one = 1;
-                obj = uiSpawnObject(&D_8010EAB4[38], val, one, one, arg1);
+            if ((u32)(selectedItemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
+                Gp_ReloadMode = EQUIPMENT_CLEAR_LOAD_BOTH;
+                loadDialog    = uiSpawnObject(&D_8010EAB4[ITEM_MENU_LOAD_SLOT_CHOICE_PANEL], selectedItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
+            } else if ((u32)(selectedItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                loadDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_LOAD_WEAPON_CHOICE_PANEL], selectedItemId, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
             } else {
                 return;
             }
-            if (obj != NULL) {
-                uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
+            if (loadDialog != NULL) {
+                uiPositionRowDialog(&loadDialog->panel, list, &object->panel);
             }
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            arg0->actionResult       = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
+            // A recognized command consumes input even if its child allocation failed.
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            list->actionResult         = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
         }
     }
 }
 
-void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawExchangeRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    UiObject*   obj;
-    s32         val;
-    s32         one;
-    s32         x;
-    s32         y;
+    enum {
+        ITEM_MENU_EXCHANGE_ARMOR_CHOICE_PANEL  = 18,
+        ITEM_MENU_EXCHANGE_AMMO_CHOICE_PANEL   = 19,
+        ITEM_MENU_EXCHANGE_WEAPON_CHOICE_PANEL = 20,
+        ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS    = 16
+    };
+    UiObject* exchangeDialog;
+    s32       selectedItemId;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrExchange);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    _itemMenuDrawEquipmentCommandLabel(list, object, (const u8*)Gp_StrExchange);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            val = 0;
+            selectedItemId = INVENTORY_ITEM_NONE;
             if (Gp_SelItemRec != NULL) {
-                val = Gp_SelItemRec->itemId;
+                selectedItemId = Gp_SelItemRec->itemId;
             }
-            if (((u32)(val - 0xA0) < 0x20U) || (val == 0)) {
-                one = 1;
-                obj = uiSpawnObject(&D_8010EAB4[19], gPlayerStatus.weapon + 0x7F, one, 0x10, arg1);
-            } else if ((u32)(val - 0x80) < 0x20U) {
-                one = 1;
-                obj = uiSpawnObject(&D_8010EAB4[20], 0, one, 0x10, arg1);
-            } else if ((u32)(val - 0x60) < 0x20U) {
-                one = 1;
-                obj = uiSpawnObject(&D_8010EAB4[18], 0, one, 0x10, arg1);
+            // An empty or consumable slot chooses ammunition for the equipped weapon.
+            if (((u32)(selectedItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) || (selectedItemId == INVENTORY_ITEM_NONE)) {
+                exchangeDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_EXCHANGE_AMMO_CHOICE_PANEL], gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1), USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
+            } else if ((u32)(selectedItemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
+                exchangeDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_EXCHANGE_WEAPON_CHOICE_PANEL], INVENTORY_ITEM_NONE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
+            } else if ((u32)(selectedItemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U) {
+                exchangeDialog = uiSpawnObject(&D_8010EAB4[ITEM_MENU_EXCHANGE_ARMOR_CHOICE_PANEL], INVENTORY_ITEM_NONE, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_EXCHANGE_OPEN_DELAY_TICKS, object);
             } else {
                 return;
             }
-            if (obj != NULL) {
-                y                                = -0x5C;
-                obj->panel.bounds.unsignedRect.y = y;
-                x                                = -8;
-                obj->panel.bounds.unsignedRect.x = x;
+            if (exchangeDialog != NULL) {
+                exchangeDialog->panel.bounds.rect.y = -0x5C;
+                exchangeDialog->panel.bounds.rect.x = -8;
             }
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            arg0->actionResult       = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
+            // A recognized command consumes input even if its child allocation failed.
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            list->actionResult         = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
         }
     }
 }

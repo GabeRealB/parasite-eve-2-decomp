@@ -267,7 +267,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
                 Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
                 if ((arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
-                    Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
+                    Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
                 }
                 Gp_ItemCmdFns[n++] = itemMenuDrawMoveRow;
                 Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
@@ -280,21 +280,21 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
         case 1:
             if (arg2 != 0) {
                 if ((u32)(arg2 - 0x80) < 0x20U) {
-                    Gp_ItemCmdFns[n++] = Gp_DrawExchangeCmd;
+                    Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
                 }
             }
             break;
         case 2:
             if (arg2 == 0) {
-                Gp_ItemCmdFns[n++] = Gp_DrawExchangeCmd;
+                Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                Gp_ItemCmdFns[n++] = Gp_DrawExchangeCmd;
+                Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
             }
             break;
         case 3:
             if (arg2 != 0) {
                 if ((u32)(arg2 - 0x60) < 0x20U) {
-                    Gp_ItemCmdFns[n++] = Gp_DrawExchangeCmd;
+                    Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
                 }
             }
             break;
@@ -304,14 +304,14 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
             } else if ((u32)(arg2 - 0x80) < 0x20U) {
                 Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
                 if ((arg2 != 0x92) && (arg2 != 0x95)) {
-                    Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
+                    Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
                 }
                 Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
                 Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
                 if ((arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
-                    Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
+                    Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
                 }
                 Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
             } else {

@@ -305,7 +305,7 @@ UiListRowCallback D_8010E9C8[1] = { Gp_DrawRemoveAmmoRow };
 
 UiList D_8010E9CC = { D_8010E9C8, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback D_8010E9F0[1] = { Gp_DrawArmorSelectRow };
+UiListRowCallback D_8010E9F0[1] = { itemMenuDrawArmorChoiceRow };
 
 UiList D_8010E9F4 = { D_8010E9F0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 

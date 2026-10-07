@@ -145,12 +145,40 @@ void Gp_AttachListTask(Task* arg0);
 
 void Gp_SelectAmmoMenuTask(Task* arg0);
 
-void Gp_DrawArmorSelectRow(UiList* arg0, UiObject* arg1);
+/// Draws an unequipped carried armor choice and opens equip or information panels.
+///
+/// currentItemIndex is zero-based in the carried armor list, excluding equipped
+/// armor; a missing row resolves to item 0. The selected description stays visible
+/// when either control half denotes active mode. Hidden panels omit the row's
+/// name, E/L marker and icon. Active Confirm equips the choice; Triangle opens its
+/// information with a relocated preview. Either request makes the parent inactive
+/// even if allocation fails. Borrows the live list/object and carried save;
+/// requires the range to fit its table and menu/text textures and GPU storage.
+void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object);
 
 void Gp_SelectArmorMenuTask(Task* arg0);
 
-void Gp_DrawLoadCmd(UiList* arg0, UiObject* arg1);
+/// Draws Load and opens a weapon-slot or compatible-weapon choice on active Confirm.
+///
+/// `Gp_SelItemRec` must remain a live carried row. A weapon id 0x80..0x9F
+/// opens its load-slot list and resets the removal selector to both slots;
+/// a consumable id 0xA0..0xBF opens the compatible-weapon list. Other ids only
+/// play the confirmation sound. A recognized request consumes row input and
+/// makes the parent inactive even if allocation fails; a successful child is
+/// positioned at the command row. Drawing uses unsigned row-coordinate views
+/// and requires menu/text textures and writable GPU storage, even when hidden.
+void itemMenuDrawLoadRow(UiList* list, UiObject* object);
 
-void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1);
+/// Draws Exchange and opens the ammunition, weapon or armor replacement list.
+///
+/// Active Confirm uses the borrowed selected row: consumable ids 0xA0..0xBF
+/// or a missing/empty row select ammunition for the equipped weapon, weapon ids
+/// 0x80..0x9F select a carried weapon, and armor ids 0x60..0x7F select armor.
+/// The ammunition path requires an equipped weapon selector in 1..32. Other ids
+/// only play the confirmation sound. Recognized requests consume row input and
+/// make the parent inactive even if allocation fails. Children open after sixteen
+/// callback ticks at screen-centered (-8, -92) pixels. Drawing uses unsigned row
+/// coordinates and requires menu/text textures and writable GPU storage, even hidden.
+void itemMenuDrawExchangeRow(UiList* list, UiObject* object);
 
 #endif // GAMEPLAY_PRIVATE_ATTACHMENTS_H

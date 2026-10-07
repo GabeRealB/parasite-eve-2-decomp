@@ -29600,7 +29600,7 @@ val = *Gp_SelItemRec;
 sndEvtRequestScriptStart(3, 0, 0);
 ```
 
-`Gp_DrawLoadCmd` is the example. The post-call load stuck at 68.6%
+`itemMenuDrawLoadRow` is the example. The post-call load stuck at 68.6%
 (wrong saved-reg assignment and the `jal` before the `lbu`).
 
 ## Use a fresh temp for the last `base + saved` add
@@ -33265,7 +33265,7 @@ beq   v0, a0, ...
 Assigning `item = 0` before the loop parks it in `$s0` and drops the
 `move`. Use two names: `found = i` (stays in `$a0`), then after
 `status = obj->status` write `item = found` so the copy is the delay of
-that `lw`. `Gp_DrawArmorSelectRow` is the example.
+that `lw`. `itemMenuDrawArmorChoiceRow` is the example.
 
 ## `do { } while (0)` + `goto` loop + `break` for the found path
 
@@ -33294,7 +33294,7 @@ if (count != 0) {
 ```
 
 No initial `slt`, no unroll, and `if (remaining < 0) break` stays
-`bltz` to an out-of-line `move a0, t0` / `j` join. `Gp_DrawArmorSelectRow` is
+`bltz` to an out-of-line `move a0, t0` / `j` join. `itemMenuDrawArmorChoiceRow` is
 the example.
 
 ## Volatile `sll` so a scaled add can run even when the count is 0
@@ -33328,7 +33328,7 @@ if (count != 0) {
 The volatile `sll` fills the `lbu count` delay and sits before `beqz`.
 The integer add is the always-executed `addu` after the branch (same
 bytes as a delay-slot add when nothing else claims that slot).
-`Gp_DrawArmorSelectRow` is the example.
+`itemMenuDrawArmorChoiceRow` is the example.
 
 ## Assign an inlined helper result to a field, not a local across a call
 
