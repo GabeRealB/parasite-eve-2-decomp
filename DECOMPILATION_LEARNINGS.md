@@ -109034,8 +109034,6 @@ Inputs: `base_1.i` SHA256
 `*HeightClamp` table, match `(GameSession.location.loc.stage, .area)` against a
 row's `field_0` / `field_2`, clamp `coord->coord.t[1]` into [`lo`, `hi`] and
 return. Its twins are `_actor401300ClampRoomHeight` (`USA/actors/actor_401300`)
-and `Actor01900_Fn03C04` (`src/actors/lib/actor_101900_text.c`), and BRIEF's
-return. Its twins are `func_actor_401300_80132BE4` (`USA/actors/actor_401300`)
 and `_actor01900ClampRootHeight` (`src/actors/actor_01900/actor_01900.c`), and BRIEF's
 `shape` / `fields` classes rate both 0.99 — but `overlay_dup_index.py find`
 reports this body as its own only copy, because the twins are *not* equivalent:
@@ -112763,13 +112761,9 @@ use.
 
 **Family.** The body - blend pose slots 1..N, the first ten from both animation
 contexts with `0x1000 - weight`, the rest ticked - now has three matched members, each
-an overlay-local `*AnimWork` view of the task work block: `Actor01900_Fn01950`
-(`anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
-weight +0xAD4, bound 0x18) and `_actor356100TickBlendedAnimation` (`anim` +0x1C, weight
-+0x98C, bound 0x15). Because `1BC.h` `AnimationContext` is 0x14 bytes, each view's slot array
 using its actor's task work block: `_actor01900TickBlendedAnimSlots`
 (`rig.anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
-weight +0xAD4, bound 0x18) and `func_actor_356100_801633DC` (`anim` +0x1C, weight
+weight +0xAD4, bound 0x18) and `_actor356100TickBlendedAnimation` (`rig.anim` +0x1C, weight
 +0x98C, bound 0x15). Because `AnimationContext` is 0x14 bytes, each rig's slot array
 starts exactly 0x14 after its context, which fixes `slots[i].rate` at `+9` off that
 base - so the three displacements 0x39 / 0x39 / 0x39 are the same number and only the
