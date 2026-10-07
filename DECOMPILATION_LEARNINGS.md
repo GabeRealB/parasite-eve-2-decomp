@@ -13196,7 +13196,7 @@ pointers plus the `0x00000000` word that pads the `jtbl_actor_107600_80131E44`
 after it — but `_actor107600UpdateMountBehaviour` copies three words, so the extern is
 `TaskFuncTable3` and the trailing zero belongs to nobody. Declaring it
 `TaskFuncTable4` because the symbol measures 16 bytes emits the four-word
-multi-load the sibling `func_actor_107600_801328CC` has and costs the match.
+multi-load the sibling `_actor107600MountTask` has and costs the match.
 **Past ~0x20 bytes the copy stops being a straight-line multi-load and becomes
 a loop, and m2c then renders it as a `do`/`while` plus a tail — which reads
 like hand-written control flow and is not.** An eleven-entry table (0x2C bytes)
@@ -49646,7 +49646,7 @@ shape, check the m2c seed's `gameSetTaskSlot` arity first — the fix is one
 argument and it is free.
 ## The same rule at an indirect call, where there is no callee `.s` to check
 
-`func_actor_107600_801348A0` copies a four-entry `TaskFuncTable4` onto the stack
+`_actor107600TargetTask` copies a four-entry `TaskFuncTable4` onto the stack
 and dispatches through it. The copy leaves the table base in `$a3` and two of
 its entries in `$a1`/`$a2`, so m2c emitted a seven-argument call through the
 stack slot — over a target whose `jalr $v0` sets up nothing at all. Those
@@ -49658,7 +49658,7 @@ TU already has:
 TaskFuncTable4 handlers;
 
 handlers = D_actor_107600_80131E74;
-handlers.funcs[arg0->state](arg0);
+handlers.funcs[task->state](task);
 ```
 
 Count the `$a1`-`$a3` writes the sequence actually performs before the `jalr`
@@ -62738,7 +62738,7 @@ have no counterpart*, not for operand renames.
 The twin need not sit in the same unit, and the nearby-TU list need not name it.
 BRIEF.md's "Similar matched bodies" block ranks *already-matched* bodies by
 `shape` (opcode order, operands dropped); a `shape` score of 1.00 is an
-invitation to diff immediately, before writing anything. `func_actor_107600_80132B0C`
+invitation to diff immediately, before writing anything. `_actor107600UpdateMountColor`
 came back from `overlay_dup_index.py find` as its own only copy, while the block
 listed `func_actor_107600_801349E0` at `shape` 1.00 and `fields` 1.00 — the two
 disassemblies are identical instruction for instruction except the `jal`
@@ -76921,7 +76921,7 @@ was written first and thrown away). A `lhu` on its own, with no extension
 after it, says even less: `dst->m[0][0] = src->m[0][0]` through `MATRIX*`
 emits `lhu`/`sh` because the sign extension is dead in a pure copy.
 
-Example: `func_actor_107600_80134EF4`.
+Example: `_actor107600ApplyTargetScale`.
 
 ## A live call result pushes the scratch-head reload from `$v0` into `$v1` - and that is what costs the `nop`
 
@@ -106099,42 +106099,42 @@ was what let the *preceding* range-test branch take `lui $v1` into its delay slo
 
 ### A per-case `lw` of the same pointer plus a shared store tail is a hand-inlined setter: give each case its own block local
 
-`func_actor_107600_80134BAC` switches on a request and, in every case, reloads
-`index->field_1C` and jumps to one shared `sh v0,0x158(v1); sh zero,0x15A(v1)`
+`_actor107600ConsumeTargetHitReaction` switches on a request and, in every case, reloads
+`task->work` and jumps to one shared `sh v0,0x158(v1); sh zero,0x15A(v1)`
 tail - the body of the sibling setter `_actor107600SetTargetState`, which GCC
 2.8.1 does not inline on its own (the plain call builds a frame). Writing
-`index->field_1C->state = 2; index->field_1C->step = 0;` per case keeps
-two loads (93%). A block-scoped `{ _Actor107600TargetWork* w = arg0->field_1C;
-w->state = N; w->step = 0; break; }` per case loads once, and
+`((_Actor107600TargetWork*)task->work)->state = 2; ((_Actor107600TargetWork*)task->work)->step = 0;` per case keeps
+two loads (93%). A block-scoped `{ _Actor107600TargetWork* reactionWork = task->work;
+reactionWork->state = N; reactionWork->step = 0; break; }` per case loads once, and
 cross-jumping merges the stores into the shared tail - 100%.
 
 The jump table sat last in the leading rodata at a non-8-aligned offset, so
 landing it needed a `rodata` cut plus `units` cuts around the function
 (`actor_107600` manifest entry), exactly as in "Compiler-generated jump tables".
 
-## Local function-pointer table interleaved with the loads: put the initialized pointer locals *before* the aggregate initializer (func_actor_107600_80132930, 2026-09-16)
+## Local function-pointer table interleaved with the loads: put the initialized pointer locals *before* the aggregate initializer (_actor107600UpdateMount, 2026-09-16)
 
 Target prologue: `lui/addiu %lo(tableFn0)`, saves, the three `lw` loads of the
 task's pointers, *then* `sw $v0,0x10($sp)` and the second element. Per-element
-stores (`funcs[0] = ...;` after the loads) hoisted only the `lui` and left the
+stores (`handlers[0] = ...;` after the loads) hoisted only the `lui` and left the
 `addiu`/`sw` after the loads (`reorder=1`); a top-of-function aggregate
 initializer emitted the whole table before the loads (83%). Declaring the
 pointer locals with initializers first and the table initializer last matched
 the order exactly:
 
 ```c
-    TmdObject*       ext      = arg0->extra;
-    GfxCoord*      coord    = (GfxCoord*)ext->field_8;
-    _Actor107600MountWork* work = arg0->work;
-    TaskFunc         funcs[2] = { fnA, fnB };
+    TmdObject*             model       = task->extra.tmd;
+    GfxCoord*              rootCoord   = model->coords;
+    _Actor107600MountWork* work        = task->work;
+    TaskFunc               handlers[2] = { fnA, fnB };
 ```
 
-The `coord`/`work` order is not cosmetic: the target loads `work` before
-`field_8` but gives `work` `$s0`. With 5 vs 6 refs the two pseudos' global
-priorities (`log2(refs)*refs/live`) were within 1%, so starting `coord`'s
+The `rootCoord`/`work` order is not cosmetic: the target loads `work` before
+`coords` but gives `work` `$s0`. With 5 vs 6 refs the two pseudos' global
+priorities (`log2(refs)*refs/live`) were within 1%, so starting `rootCoord`'s
 life one statement earlier lowered its ratio and swapped the pair; the
 scheduler still emits the `work` load first. The case-1 fallthrough store
-through `ext` after a call needed a second pointer (`obj = ext;`) to get the
+through `model` after a call needed a second pointer (`visibleModel = model;`) to get the
 target's `move $s3,$a0` in the switch's first delay slot while case 2 kept
 using `$a0`.
 
@@ -150029,7 +150029,7 @@ attempts; left as it was.
   is real (duplicated arms cannot merge the `capCmd` store, 1 insn longer);
   `if (A) {...} else if (B) {...} else return 1;` with the stores after it
   puts the tail behind arm B (1 insn shorter).
-- Not converted: `func_actor_107600_80131F10`'s `goto fail` from the failed
+- Not converted: `_actor107600InitMount`'s `goto fail` from the failed
   allocation back into the too-close arm. The duplicate is not merged (cse
   reuses the scratch-head register in the second copy only, 20 insns longer),
   an inline for the block merges into the *later* copy, and the allocation in
