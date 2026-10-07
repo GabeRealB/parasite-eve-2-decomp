@@ -79,15 +79,6 @@
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
-#define D_shelter_b3_garbage_incinerator_8018754C (D_shelter_b3_garbage_incinerator_80187544 + 1)
-#define D_shelter_b3_garbage_incinerator_80187554 (D_shelter_b3_garbage_incinerator_80187544 + 2)
-#define D_shelter_b3_garbage_incinerator_80187564 (D_shelter_b3_garbage_incinerator_80187544 + 4)
-#define D_shelter_b3_garbage_incinerator_80187574 (D_shelter_b3_garbage_incinerator_80187544 + 6)
-#define D_shelter_b3_garbage_incinerator_8018759C (D_shelter_b3_garbage_incinerator_80187544 + 11)
-#define D_shelter_b3_garbage_incinerator_801875AC (D_shelter_b3_garbage_incinerator_80187544 + 13)
-#define D_shelter_b3_garbage_incinerator_801875B4 (D_shelter_b3_garbage_incinerator_80187544 + 14)
-#define D_shelter_b3_garbage_incinerator_80187614 (D_shelter_b3_garbage_incinerator_80187544 + 26)
-
 static void _shelterB3GarbageIncineratorDrawPulsingDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor, s32 pulseRate);
 static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoint, u16 radiusScale, u16 packedColor, u16 pulseAndRotation);
 
@@ -1975,71 +1966,71 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
     switch (mappedViewIndex) {
         case 0x02:
         case 0x16:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[11], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[12], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[16], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[27], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[28], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[35], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[36], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x03:
         case 0x17:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[2], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[6], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[7], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[18], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[19], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[20], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[26], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[27], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[28], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[11], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[12], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[13], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[16], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[17], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[18], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[27], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[28], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[29], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[30], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[31], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[35], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[36], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[37], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[38], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[39], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x04:
         case 0x18:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[0], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[1], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[2], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[18], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[19], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[21], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[28], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[29], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[30], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[31], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[32], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[33], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[13], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[14], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[15], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[19], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[31], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[32], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[33], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[34], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[41], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[42], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[43], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[44], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[45], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[46], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x05:
         case 0x19:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[0], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[1], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[5], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[6], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[7], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875B4[10], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[19], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[20], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[28], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[29], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[30], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[31], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[32], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[33], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[34], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[49], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[50], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875B4[51], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[14], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[15], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[19], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[21], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[24], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[33], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[34], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[42], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[43], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[44], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[45], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[46], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[47], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[48], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[63], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[64], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[65], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x06:
         case 0x1A:
@@ -2127,15 +2118,15 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
             break;
         case 0x09:
         case 0x1D:
-            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, work->scale, SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[5], 0x280, SHELTER_B3_GARBAGE_INCINERATOR_GREEN_LAMP);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[6], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[7], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[22], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018754C[25], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[1], 0x200, work->scale, SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[6], 0x280, SHELTER_B3_GARBAGE_INCINERATOR_GREEN_LAMP);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[7], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[8], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[23], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[26], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
             break;
         case 0x0A:
-            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187554[0], 0x180, SHELTER_B3_GARBAGE_INCINERATOR_GREEN_PULSE, SHELTER_B3_GARBAGE_INCINERATOR_GREEN_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[2], 0x180, SHELTER_B3_GARBAGE_INCINERATOR_GREEN_PULSE, SHELTER_B3_GARBAGE_INCINERATOR_GREEN_PULSE_RATE);
             /* fallthrough */
         case 0x1E:
         case 0x26:
@@ -2143,26 +2134,26 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[22], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
             break;
         case 0x0B:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187564[0], 0x280, SHELTER_B3_GARBAGE_INCINERATOR_CYAN_LAMP);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[4], 0x280, SHELTER_B3_GARBAGE_INCINERATOR_CYAN_LAMP);
             break;
         case 0x0C:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[0], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[1], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[2], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[5], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[6], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_801875AC[7], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[20], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[21], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[28], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[29], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[30], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[31], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[32], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[33], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[34], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[50], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_801875AC[51], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[13], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[14], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[15], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_2);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[18], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[19], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[20], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_1);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[33], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[34], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[41], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[42], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[43], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[44], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[45], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[46], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_2, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[47], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[63], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[64], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_1, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x0E:
             _shelterB3GarbageIncineratorDrawWarningAndGreyLamps(work->scale);
@@ -2171,9 +2162,9 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
         case 0x0F:
         case 0x1F:
         case 0x27:
-            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_8018754C[0], 0x200, work->scale, SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE);
+            _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[1], 0x200, work->scale, SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE);
             if (gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_WARP) {
-                _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_8018754C[2], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_EXIT_GLOW, SHELTER_B3_GARBAGE_INCINERATOR_EXIT_PULSE_AND_ROTATION);
+                _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[3], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_EXIT_GLOW, SHELTER_B3_GARBAGE_INCINERATOR_EXIT_PULSE_AND_ROTATION);
             }
             break;
         case 0x10:
@@ -2188,30 +2179,30 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
             glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[25], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
             break;
         case 0x11:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[0], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[1], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_8018759C[5], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[16], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[17], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[24], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_8018759C[25], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[11], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[12], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[16], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_3);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[27], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[28], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[35], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[36], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_3, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x12:
         case 0x21:
             _shelterB3GarbageIncineratorDrawLayeredGlow(&D_shelter_b3_garbage_incinerator_80187544[0], 0x200, work->scale, SHELTER_B3_GARBAGE_INCINERATOR_WARNING_GLOW_RATE);
             break;
         case 0x13:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187614[0], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_LAMP);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187614[35], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187614[36], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[26], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_LAMP);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[61], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[62], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
         case 0x15:
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[0], 0x280, SHELTER_B3_GARBAGE_INCINERATOR_RED_LAMP);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[1], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[2], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
-            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187574[20], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187574[56], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
-            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187574[72], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[6], 0x280, SHELTER_B3_GARBAGE_INCINERATOR_RED_LAMP);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[7], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[8], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_GREY_LAMP);
+            glowDrawDisc(&D_shelter_b3_garbage_incinerator_80187544[26], 0x200, SHELTER_B3_GARBAGE_INCINERATOR_RED_FLICKER_4);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[62], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
+            _shelterB3GarbageIncineratorDrawPulsingDisc(&D_shelter_b3_garbage_incinerator_80187544[78], 0x300, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_4, SHELTER_B3_GARBAGE_INCINERATOR_RED_PULSE_RATE);
             break;
     }
 }
