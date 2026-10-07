@@ -85687,7 +85687,7 @@ the checksum stricter; `ninja` simply relinks it on the next run.
 
 ## A `&&` right operand's pointer load sits in the block the *source* put it in
 
-`func_actor_401300_80141EF8` (13 insns) compares an enemy halfword against -999
+`_actor401300StateDead` (13 insns) compares an enemy halfword against -999
 and, if a work-block flag is clear, stamps the sentinel. The target's first
 block holds **both** pointer loads even though only the `&&` right operand
 needs the second one:
@@ -102580,7 +102580,7 @@ second. A `units` cut before the other table's function plus `rodata_head` at
 the first table fixed it; `touch` the renamed `.c` files (see the `git mv`
 entry above).
 
-## `move` in an abs `bgez` delay slot is still `ABS()`, when the result gets its own register (func_actor_401300_80134BA4, 2026-09-16)
+## `move` in an abs `bgez` delay slot is still `ABS()`, when the result gets its own register (_actor401300SpawnHitEffect, 2026-09-16)
 
 The "`ABS()` leaves the delay slot empty" tell only holds when the abs is done
 in place. When the source and destination of the single `abssi2` insn get
@@ -102593,11 +102593,11 @@ negu  v1, v1
 1:
 ```
 
-`mag = value; if (mag < 0) mag = -mag;` and `(arg1 < 0) ? -arg1 : arg1`
+`absoluteHitYaw = value; if (absoluteHitYaw < 0) absoluteHitYaw = -absoluteHitYaw;` and `(hitYaw < 0) ? -hitYaw : hitYaw`
 both scheduled the copy (or the `sra` of the `s16` parameter) above the scratch
-head store, so `mag` conflicted with `$v0`/`$v1` and landed in `$a0` (96.8%),
+head store, so `absoluteHitYaw` conflicted with `$v0`/`$v1` and landed in `$a0` (96.8%),
 which also pushed `slti` into the next delay slot instead of `lui %hi(global)`.
-`mag = (value >= 0) ? arg1 : -arg1;` (the `ABS()` shape) was 100%. Also here: a
+`absoluteHitYaw = (value >= 0) ? hitYaw : -hitYaw;` (the `ABS()` shape) was 100%. Also here: a
 `(u32)` LCG draw switched as `switch ((s32)(x >> 16) & 3)` gets the balanced
 `beq 1 / slti 2` case tree; unsigned gave a linear chain.
 
@@ -103510,7 +103510,7 @@ Scratch `nonmatchings/Actor00400_Fn0A190-vacuum`.
 ## A `similar` candidate that stars in both `calls` and `cflow` is instruction-identical outside one region, even across overlays (Actor00100_Fn03340, 2026-09-16)
 
 The brief's similar-body list for `Actor00100_Fn03340` named a single candidate,
-`func_actor_401300_80134BA4`, scoring shape 0.96 / calls 1.00 / cflow 1.00 - a
+`_actor401300SpawnHitEffect`, scoring shape 0.96 / calls 1.00 / cflow 1.00 - a
 sibling in a **different overlay** (`actor_401300`) that happens to load at the
 same address. Stripping the address and comment columns and the local label
 names from the two `.s` files and diffing them shows they are
@@ -108431,7 +108431,7 @@ promotion of `count` and compare the already-widened pair; with the duplicated
 tail it cannot, so the test shifts both halfwords left by 16 and compares those
 (`slt` on two values with the same low 16 bits is the 16-bit signed compare),
 which needs a second live copy of `count` in `$s4` and the extra stack slot.
-`func_actor_401300_80132910` carries the duplication in its matched source with
+`_actor401300ApplyBodyPushback` carries the duplication in its matched source with
 this note on it; the m2c seed has the shared spelling and scores 73.4%.
 
 ## A relational branch always targets the `else` clause; `>=` reaches it with `bnez`
@@ -111684,7 +111684,7 @@ the labels were called.
 
 Both fall out of copying a sibling: this function is byte-for-byte the same body
 as the matched `Actor00100_Fn03340` (`src/actors/lib/actor_400100_damage.c`) and
-`func_actor_401300_80134BA4`, which score 1.00 on shape, fields, calls and cflow
+`_actor401300SpawnHitEffect`, which score 1.00 on shape, fields, calls and cflow
 in the duplicate index. Nothing had to be reasoned about - the arms, the
 unreachable ones included, transferred verbatim. When the index reports that
 four-way agreement, transcribe the sibling first and adapt only the overlay-local
@@ -113790,7 +113790,7 @@ turn = (ActorTurnScratch*)(*(u32*)SCRATCH_STACK_CURSOR_SLOT -= 0xC);
 The store the expression performs *is* the reservation, so no separate
 `*(T**)SCRATCH_STACK_CURSOR_SLOT = turn;` statement may follow. `SCRATCH_STACK_CURSOR_SLOT` is
 `PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`; cast the slot to `u32*` to update its 32-bit address in bytes, or to `T**` to step the stored pointer by `sizeof(T)` per element.
-`func_actor_401300_80134BA4` uses byte steps through `sc = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);`.
+`_actor401300SpawnHitEffect` uses a typed block step through `hitOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);`.
 Writing the head into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
 collapse to the single `addiu` and lose the copy. Same family as "Combined
 `*scratch = tmp` assignment keeps the add in `$v0` without a pin" above: one
@@ -114849,7 +114849,7 @@ site becomes `addiu $v0,$zero,1` plus a jump to the condition, and the
 fall-out-of-loop `return 0` becomes `addu $v0,$zero,$zero` **at the loop exit**
 — a zero store sitting after the loop, not hoisted before it, which a
 `found`-variable version (`found = 0; for (...) { ... found = 1; }`) never
-produces. The same helper exists as `Actor401300_HasRec10000` in
+produces. The same helper exists as `_actorContactFirstIsPlayerBody` in
 `src/actors/actor_401300/actor_401300.c` and `Actor00100_HasRecord10` in
 `include/actors/actor_400100_motion.h`, so the shape is worth recognising on
 sight.

@@ -64,13 +64,31 @@ STATIC_ASSERT_SIZEOF(ActorMsgYawWork, 0x18);
 /// ignored. Returns 1.
 s32 actorMsgPlace(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 
+/// Function identifier of the XYZ-placement fragment that records the root yaw.
+///
+/// Bind before this header and keep it bound through the fragment include;
+/// declare a private instance static in the carrier before including this header.
+/// The selected function has the `actorMsgPlaceRecordYaw` signature below.
+#ifndef ACTOR_MESSAGE_PLACE_RECORD_YAW
+#define ACTOR_MESSAGE_PLACE_RECORD_YAW actorMsgPlaceRecordYaw
+#endif
+
+/// Work type used by the XYZ-placement fragment's `placedYaw` store.
+///
+/// Bind through the fragment include to a type with a writable signed-halfword
+/// placedYaw member. The default handlers use `ActorMsgYawWork`; a carrier whose
+/// heading lives elsewhere selects its actual allocated work type.
+#ifndef ACTOR_MESSAGE_YAW_WORK_TYPE
+#define ACTOR_MESSAGE_YAW_WORK_TYPE ActorMsgYawWork
+#endif
+
 /// Places the model root with Rx * Ry * Rz and records its resulting heading.
 ///
-/// Has `actorMsgPlace`'s placement contract and requires writable work with the
-/// `ActorMsgYawWork` prefix. Stores ratan2(-m[2][0], m[2][2]) in `placedYaw`, in
+/// Has `actorMsgPlace`'s placement contract and requires writable work of
+/// `ACTOR_MESSAGE_YAW_WORK_TYPE`. Stores ratan2(-m[2][0], m[2][2]) in `placedYaw`, in
 /// 4096 units per turn; this is derived from the matrix rather than copied from
 /// the requested Y angle. The message ID and second payload are ignored. Returns 1.
-s32 actorMsgPlaceRecordYaw(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
+s32 ACTOR_MESSAGE_PLACE_RECORD_YAW(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 
 /// Places the model root with Ry * Rx * Rz and records its resulting heading.
 ///

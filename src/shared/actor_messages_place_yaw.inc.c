@@ -19,9 +19,9 @@ static __inline__ void _actorMsgApplyXyzPlacement(Task* task, const ActorTransfo
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-s32 actorMsgPlaceRecordYaw(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg)
+s32 ACTOR_MESSAGE_PLACE_RECORD_YAW(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg)
 {
-    ActorMsgYawWork* work;
+    ACTOR_MESSAGE_YAW_WORK_TYPE* work;
 
     work = task->work;
     _actorMsgApplyXyzPlacement(task, placement);

@@ -503,6 +503,13 @@ visibility, draw modes, presence queries and player-hold release. Its private
 implementation interface is `src/shared/actor_messages.h`; configuration
 bindings and constants use `ACTOR_MESSAGE_`. A carrier can select a private
 instance of a placement fragment separately from its ordinary shared entry.
+`ACTOR_MESSAGE_PLACE_RECORD_YAW` selects the XYZ placement fragment that records
+the matrix-derived heading. A private carrier declares its selected instance
+static before including the header, binds the identifier through the fragment
+include and then undefines it; other carriers retain `actorMsgPlaceRecordYaw`.
+`ACTOR_MESSAGE_YAW_WORK_TYPE` selects the work type whose signed-halfword
+`placedYaw` member the XYZ fragment stores. The default is `ActorMsgYawWork`;
+a carrier with a different member position binds its actual allocated type.
 
 `modelPlacement` owns the included TMD coordinate placement helpers and child
 model attachment states. Its private implementation interface is

@@ -1136,7 +1136,7 @@ static void            func_actor_401800_8013BB10(Task* arg0);
 #include "../../shared/odd_stranger_drive.inc.c"
 
 /// Binds the work block's light and color matrices onto the model object.
-/// Same body as `Actor01900_BindMatrices` / `Actor401300_BindMatrices`.
+/// Same body as `Actor01900_BindMatrices` / `_actor401300BindLightingMatrices`.
 static __inline__ void Actor401800_BindMatrices(Task* actor)
 {
     OddStrangerWork* work;
@@ -1327,7 +1327,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 /// or a zero `key`. Each kind 0x10000 / 0x30000 record contributes half its
 /// offset along X and Z, normalised to length 0x96 first when it is longer than
 /// that; `hit` reports whether one was seen.
-/// Same body as `_actor01900ApplyBodyPushback` / `func_actor_401300_80132910`, with the
+/// Same body as `_actor01900ApplyBodyPushback` / `_actor401300ApplyBodyPushback`, with the
 /// coordinate update written out in both arms of the length test.
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
