@@ -1533,7 +1533,7 @@ static void func_actor_503500_801353F0(Task* arg0)
             speed = 0;
         }
     }
-    work->walkSpeed      = speed;
+    work->walkSpeed = speed;
     gfxSetRotIdentity(&mat);
     RotMatrixY(work->yaw, &mat);
     scale              = speed >> 12;
@@ -2861,9 +2861,9 @@ static void func_actor_503500_80137678(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx                 = work->spin.fixed.vx.word >> 16;
-    rot.vy                 = work->spin.fixed.vy.word >> 16;
-    rot.vz                 = work->spin.fixed.vz.word >> 16;
+    rot.vx = work->spin.fixed.vx.word >> 16;
+    rot.vy = work->spin.fixed.vy.word >> 16;
+    rot.vz = work->spin.fixed.vz.word >> 16;
     gfxSetRotIdentity(&m.mat);
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
@@ -3197,11 +3197,11 @@ static void func_actor_503500_8013852C(Task* arg0)
     memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
-    coord->parent          = &arg0->parent->extra.tmd->coords[1];
-    part                   = &coord[ACTOR_503500_LARGE_CHAIN_TIP_PART];
-    coord->coord.t[0]      = D_actor_503500_8016F090[idx].vx;
-    coord->coord.t[1]      = D_actor_503500_8016F090[idx].vy;
-    coord->coord.t[2]      = D_actor_503500_8016F090[idx].vz;
+    coord->parent     = &arg0->parent->extra.tmd->coords[1];
+    part              = &coord[ACTOR_503500_LARGE_CHAIN_TIP_PART];
+    coord->coord.t[0] = D_actor_503500_8016F090[idx].vx;
+    coord->coord.t[1] = D_actor_503500_8016F090[idx].vy;
+    coord->coord.t[2] = D_actor_503500_8016F090[idx].vz;
     gfxSetRotIdentity(&m.mat);
     RotMatrix(&D_actor_503500_8016F0A0[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);

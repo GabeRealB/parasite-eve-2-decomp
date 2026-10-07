@@ -519,19 +519,19 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->work                                           = work;
-    work->worldCoord.parent                              = &gGfxViewCoord;
+    task->work              = work;
+    work->worldCoord.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->worldCoord.coord);
-    work->worldCoord.coord.t[0]                          = temp_s0->coord.t[0];
-    work->worldCoord.coord.t[1]                          = temp_s0->coord.t[1];
-    temp_a0                                              = &work->worldCoord;
-    work->worldCoord.coord.t[2]                          = temp_s0->coord.t[2];
-    temp_s0->parent                                      = temp_a0;
+    work->worldCoord.coord.t[0] = temp_s0->coord.t[0];
+    work->worldCoord.coord.t[1] = temp_s0->coord.t[1];
+    temp_a0                     = &work->worldCoord;
+    work->worldCoord.coord.t[2] = temp_s0->coord.t[2];
+    temp_s0->parent             = temp_a0;
     gfxSetRotIdentity(&temp_s0->coord);
-    temp_s0->coord.t[0]                                  = 0;
-    temp_s0->coord.t[1]                                  = 0x744;
-    temp_s0->coord.t[2]                                  = 0;
-    work->worldCoord.composeStamp                        = GRAPHICS_COORD_DIRTY;
+    temp_s0->coord.t[0]           = 0;
+    temp_s0->coord.t[1]           = 0x744;
+    temp_s0->coord.t[2]           = 0;
+    work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(temp_a0);
     temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(temp_s0);
@@ -2280,9 +2280,9 @@ static void func_actor_403600_8013A444(Task* arg0)
 /// an identity turn matrix for `RotMatrixY` to rotate.
 static inline void _actor403600ArcStart(_Actor403600RushPassScratch* s)
 {
-    s->offset.vx            = 0;
-    s->offset.vy            = 0;
-    s->offset.vz            = 0x3A98 - D_actor_403600_801605D4.vz;
+    s->offset.vx = 0;
+    s->offset.vy = 0;
+    s->offset.vz = 0x3A98 - D_actor_403600_801605D4.vz;
     gfxSetRotIdentity(&s->rotation.mat);
 }
 
@@ -3625,15 +3625,15 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     model->shading.screenFadeDistance = 0;
     work->worldCoord.parent           = &gGfxViewCoord;
     gfxSetRotIdentity(&work->worldCoord.coord);
-    work->worldCoord.coord.t[0]       = 0;
-    work->worldCoord.coord.t[1]       = 0;
-    work->worldCoord.coord.t[2]       = 0;
-    modelCoord->parent                = worldCoord;
+    work->worldCoord.coord.t[0] = 0;
+    work->worldCoord.coord.t[1] = 0;
+    work->worldCoord.coord.t[2] = 0;
+    modelCoord->parent          = worldCoord;
     gfxSetRotIdentity(&modelCoord->coord);
-    modelCoord->coord.t[0]            = 0;
-    modelCoord->coord.t[1]            = 0x744;
-    modelCoord->coord.t[2]            = 0;
-    work->worldCoord.composeStamp     = GRAPHICS_COORD_DIRTY;
+    modelCoord->coord.t[0]        = 0;
+    modelCoord->coord.t[1]        = 0x744;
+    modelCoord->coord.t[2]        = 0;
+    work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(worldCoord);
     modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(modelCoord);
@@ -4679,14 +4679,14 @@ static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1)
         return;
     }
 
-    arg1->work                    = work;
-    work->worldCoord.parent       = &gGfxViewCoord;
+    arg1->work              = work;
+    work->worldCoord.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->worldCoord.coord);
-    work->worldCoord.coord.t[0]   = coord->coord.t[0];
-    work->worldCoord.coord.t[1]   = coord->coord.t[1];
-    workCoord                     = &work->worldCoord;
-    work->worldCoord.coord.t[2]   = coord->coord.t[2];
-    coord->parent                 = workCoord;
+    work->worldCoord.coord.t[0] = coord->coord.t[0];
+    work->worldCoord.coord.t[1] = coord->coord.t[1];
+    workCoord                   = &work->worldCoord;
+    work->worldCoord.coord.t[2] = coord->coord.t[2];
+    coord->parent               = workCoord;
     gfxSetRotIdentity(&coord->coord);
     coord->coord.t[1]             = 0x690;
     coord->coord.t[0]             = 0;

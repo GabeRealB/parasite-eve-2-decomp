@@ -6709,16 +6709,16 @@ void func_actor_560800_80137F58(Task* task, s32 msgId, VECTOR* msg, s32 arg3)
             i    = 0;
             do {
                 if (work->chains[i & 0xFFFF] != NULL) {
-                    coord                     = work->chains[i & 0xFFFF]->extra.tmd->coords;
+                    coord = work->chains[i & 0xFFFF]->extra.tmd->coords;
                     gfxSetRotIdentity(&coord->coord);
-                    coord->parent             = &gGfxViewCoord;
-                    chain                     = work->chains[i & 0xFFFF]->work;
-                    chain->position.vx        = msg->vx + pose->pos.vx;
-                    chain->position.vy        = msg->vy + pose->pos.vy;
-                    chain->position.vz        = msg->vz + pose->pos.vz;
-                    chain->offset.vx          = 0;
-                    chain->offset.vy          = 0;
-                    chain->offset.vz          = 0;
+                    coord->parent      = &gGfxViewCoord;
+                    chain              = work->chains[i & 0xFFFF]->work;
+                    chain->position.vx = msg->vx + pose->pos.vx;
+                    chain->position.vy = msg->vy + pose->pos.vy;
+                    chain->position.vz = msg->vz + pose->pos.vz;
+                    chain->offset.vx   = 0;
+                    chain->offset.vy   = 0;
+                    chain->offset.vz   = 0;
                 }
                 i++;
                 pose++;
@@ -7244,9 +7244,9 @@ void func_actor_560800_80138FC8(Task* task)
             work               = task->work;
             coord->coord.t[1] += 5;
             if (work->pulseScale <= 0x1800) {
-                work->pulseGrowing    = 1;
-                c                     = task->extra.tmd->coords;
-                w                     = task->work;
+                work->pulseGrowing = 1;
+                c                  = task->extra.tmd->coords;
+                w                  = task->work;
                 gfxSetRotIdentity(&c[1].coord);
                 c++;
                 if (w->pulseGrowing == 0) {
@@ -7272,9 +7272,9 @@ void func_actor_560800_80138FC8(Task* task)
             work               = task->work;
             coord->coord.t[1] += 1;
             if (work->pulseScale >= 0x800) {
-                work->pulseGrowing    = 0;
-                c                     = task->extra.tmd->coords;
-                w                     = task->work;
+                work->pulseGrowing = 0;
+                c                  = task->extra.tmd->coords;
+                w                  = task->work;
                 gfxSetRotIdentity(&c[1].coord);
                 c++;
                 if (w->pulseGrowing == 0) {
@@ -7303,9 +7303,9 @@ void func_actor_560800_80138FC8(Task* task)
             work               = task->work;
             coord->coord.t[1] += 5;
             if (work->pulseScale <= 0x1800) {
-                work->pulseGrowing    = 1;
-                c                     = task->extra.tmd->coords;
-                w                     = task->work;
+                work->pulseGrowing = 1;
+                c                  = task->extra.tmd->coords;
+                w                  = task->work;
                 gfxSetRotIdentity(&c[1].coord);
                 c++;
                 if (w->pulseGrowing == 0) {

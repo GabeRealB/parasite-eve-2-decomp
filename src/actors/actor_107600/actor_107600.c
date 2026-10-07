@@ -1239,10 +1239,10 @@ static void func_actor_107600_80132B7C(Task* arg0)
     GfxCoord*              coord = arg0->extra.tmd->coords;
     MATRIX*                m;
 
-    work->pitch                 &= 0xFFF;
-    work->yaw                   &= 0xFFF;
-    work->roll                  &= 0xFFF;
-    m                            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
+    work->pitch &= 0xFFF;
+    work->yaw   &= 0xFFF;
+    work->roll  &= 0xFFF;
+    m            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
     gfxSetRotIdentity(m);
     SCRATCH_STACK_CURSOR(MATRIX) = m;
     RotMatrixZ(work->roll, m);
@@ -2154,10 +2154,10 @@ static void func_actor_107600_80134A50(Task* arg0)
     GfxCoord*               coord = arg0->extra.tmd->coords;
     MATRIX*                 m;
 
-    work->pitch                 &= 0xFFF;
-    work->yaw                   &= 0xFFF;
-    work->roll                  &= 0xFFF;
-    m                            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
+    work->pitch &= 0xFFF;
+    work->yaw   &= 0xFFF;
+    work->roll  &= 0xFFF;
+    m            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
     gfxSetRotIdentity(m);
     SCRATCH_STACK_CURSOR(MATRIX) = m;
     gfxRotMatrixZ(m, work->roll, GRAPHICS_ROTATION_COMPOSE);

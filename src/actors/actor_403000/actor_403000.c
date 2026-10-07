@@ -1763,11 +1763,11 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
     }
     gfxSetRotIdentity(&scratch->emitter.coord);
-    scratch->emitter.coord.t[0]                = -0x3C;
-    scratch->emitter.coord.t[1]                = -0x28;
-    scratch->emitter.coord.t[2]                = 0x12C;
-    scratch->emitter.parent                    = parent;
-    scratch->emitter.composeStamp              = GRAPHICS_COORD_DIRTY;
+    scratch->emitter.coord.t[0]   = -0x3C;
+    scratch->emitter.coord.t[1]   = -0x28;
+    scratch->emitter.coord.t[2]   = 0x12C;
+    scratch->emitter.parent       = parent;
+    scratch->emitter.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&scratch->emitter);
     walker                 = &scratch->emitter;
     pos                    = &scratch->emitterPos;
@@ -1883,11 +1883,11 @@ static void func_actor_403000_801330D4(GfxCoord* parent)
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
     }
     gfxSetRotIdentity(&scratch->emitter.coord);
-    scratch->emitter.coord.t[0]                = -0x3C;
-    scratch->emitter.coord.t[1]                = -0x28;
-    scratch->emitter.parent                    = parent;
-    scratch->emitter.coord.t[2]                = 0x12C;
-    scratch->emitter.composeStamp              = GRAPHICS_COORD_DIRTY;
+    scratch->emitter.coord.t[0]   = -0x3C;
+    scratch->emitter.coord.t[1]   = -0x28;
+    scratch->emitter.parent       = parent;
+    scratch->emitter.coord.t[2]   = 0x12C;
+    scratch->emitter.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&scratch->emitter);
     walker                 = &scratch->emitter;
     pos                    = &scratch->emitterPos;

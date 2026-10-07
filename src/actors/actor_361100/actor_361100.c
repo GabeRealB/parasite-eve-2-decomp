@@ -1003,13 +1003,13 @@ void func_actor_361100_80161E3C(Task* arg0)
                 func_actor_403600_80138C9C(state);
                 i += 1;
             } while (i < 0x1E);
-            coord->parent                    = &gGfxViewCoord;
+            coord->parent = &gGfxViewCoord;
             gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]                = 0x1CA2;
-            coord->coord.t[1]                = 0x712;
-            coord->coord.t[2]                = 0x189C;
-            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-            arg0->state                     += 1;
+            coord->coord.t[0]   = 0x1CA2;
+            coord->coord.t[1]   = 0x712;
+            coord->coord.t[2]   = 0x189C;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            arg0->state        += 1;
         }
         mode = *modePtr;
         if (mode == 11) {

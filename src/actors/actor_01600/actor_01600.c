@@ -1464,20 +1464,20 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
         enemyDestroy(ctx, actor);
         return;
     }
-    actor->work                                  = work;
-    obj->flags                                   = 0;
-    coord->composeStamp                          = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx                                = &work->lightMatrix;
-    obj->colorMtx                                = &work->colorMatrix;
-    work->targetAnchor.parent                    = &gGfxViewCoord;
+    actor->work               = work;
+    obj->flags                = 0;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    obj->lightMtx             = &work->lightMatrix;
+    obj->colorMtx             = &work->colorMatrix;
+    work->targetAnchor.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->targetAnchor.coord);
-    work->targetAnchor.coord.t[0]                = (s32)coord->coord.t[0];
-    work->targetAnchor.coord.t[1]                = (s32)coord->coord.t[1];
-    work->targetAnchor.coord.t[2]                = (s32)coord->coord.t[2];
-    work->targetAnchor.composeStamp              = GRAPHICS_COORD_DIRTY;
-    work->targetAnchorPhase                      = ACTOR_01600_TARGET_ANCHOR_FOLLOW;
-    ctx->field_4                                 = &coord->coord;
-    ctx->field_48                                = 0;
+    work->targetAnchor.coord.t[0]   = (s32)coord->coord.t[0];
+    work->targetAnchor.coord.t[1]   = (s32)coord->coord.t[1];
+    work->targetAnchor.coord.t[2]   = (s32)coord->coord.t[2];
+    work->targetAnchor.composeStamp = GRAPHICS_COORD_DIRTY;
+    work->targetAnchorPhase         = ACTOR_01600_TARGET_ANCHOR_FOLLOW;
+    ctx->field_4                    = &coord->coord;
+    ctx->field_48                   = 0;
     worldTargetLinkNode(&ctx->node);
     ctx->bodyPos.vy             = -0x190;
     ctx->node.state.parts.flags = 0;
@@ -3796,7 +3796,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
         }
     }
     // Turn the probe's length about Y to its yaw; the turned length is the capsule's far end.
-    rotation                       = &scratch->rotation;
+    rotation = &scratch->rotation;
     gfxSetRotIdentity(&rotation->mat);
     RotMatrixY(work->probeYaw, &rotation->mat);
     farEnd = &scratch->farEnd;
@@ -4685,10 +4685,10 @@ static void Actor01600_Fn06880(Task* arg0)
     if (work->deathScaleY >= 0x201) {
         work->deathScaleY = (u16)work->deathScaleY - 0x50;
     }
-    scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = (s32)work->deathScaleY;
-    scratch->scale.vz                    = ONE;
-    coord->coord                         = work->deathMatrix;
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = (s32)work->deathScaleY;
+    scratch->scale.vz = ONE;
+    coord->coord      = work->deathMatrix;
     gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);
@@ -4714,8 +4714,8 @@ static void Actor01600_Fn06974(Task* actor, s32 distance)
     block->step.vz                                   = 0;
     SCRATCH_STACK_CURSOR(_Actor01600SidestepScratch) = block;
     gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &block->facing);
-    rotation                       = &block->rotation;
-    block->yaw                     = ratan2(block->facing.vx, block->facing.vz);
+    rotation   = &block->rotation;
+    block->yaw = ratan2(block->facing.vx, block->facing.vz);
     gfxSetRotIdentity(&rotation->mat);
     RotMatrixY(block->yaw, &rotation->mat);
     ApplyMatrixLV(&rotation->mat, &block->step, &block->step);

@@ -748,10 +748,10 @@ static void func_actor_503500_8013AD64(Task* arg0)
     arg0->work = work;
     work->side = idx;
 
-    coord->parent                    = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[idx]];
+    coord->parent = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[idx]];
     gfxSetRotIdentity(&coord->coord);
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
@@ -1248,8 +1248,8 @@ static void func_actor_503500_8013BEE4(Task* arg0)
 
     coord->parent = &parent->extra.tmd->coords[ACTOR_503500_REAR_PART_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
@@ -1600,17 +1600,17 @@ static void func_actor_503500_8013CAE4(Task* arg0)
 
     coord->parent = &parent->extra.tmd->coords[1];
     gfxSetRotIdentity(&coord->coord);
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->coord                     = coord;
-    enemy->node.state.parts.flags    = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx                = pos->vx;
-    enemy->bodyPos.vy                = pos->vy;
-    enemy->bodyPos.vz                = pos->vz;
-    rec                              = work->contacts;
-    enemy->param                     = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                      = rec;
-    enemy->hp                        = enemy->param->hpMax;
+    enemy->field_4                = &coord->coord;
+    enemy->field_48               = 0;
+    enemy->coord                  = coord;
+    enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
+    enemy->bodyPos.vx             = pos->vx;
+    enemy->bodyPos.vy             = pos->vy;
+    enemy->bodyPos.vz             = pos->vz;
+    rec                           = work->contacts;
+    enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
+    enemy->recs                   = rec;
+    enemy->hp                     = enemy->param->hpMax;
 
     work->body.coord            = coord;
     work->body.context.contacts = rec;
@@ -2145,8 +2145,8 @@ static void func_actor_503500_8013DD10(Task* arg0)
 
     coord->parent = &parent->extra.tmd->coords[1];
     gfxSetRotIdentity(&coord->coord);
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
@@ -2594,8 +2594,8 @@ static void func_actor_503500_8013ECBC(Task* arg0)
 
     coord->parent = &parent->extra.tmd->coords[8];
     gfxSetRotIdentity(&coord->coord);
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
+    enemy->field_4  = &coord->coord;
+    enemy->field_48 = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
@@ -3026,10 +3026,10 @@ static void func_actor_503500_8013FA74(Task* arg0)
     memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
-    coord->parent          = &arg0->parent->extra.tmd->coords[1];
-    coord->coord.t[0]      = D_actor_503500_8016F3AC[idx].vx;
-    coord->coord.t[1]      = D_actor_503500_8016F3AC[idx].vy;
-    coord->coord.t[2]      = D_actor_503500_8016F3AC[idx].vz;
+    coord->parent     = &arg0->parent->extra.tmd->coords[1];
+    coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
+    coord->coord.t[1] = D_actor_503500_8016F3AC[idx].vy;
+    coord->coord.t[2] = D_actor_503500_8016F3AC[idx].vz;
     gfxSetRotIdentity(&m.mat);
     RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
@@ -4012,7 +4012,7 @@ static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
     for (i = 2; i < 8; i++) {
         m = &nodes[i].coord;
         gfxExtractSmallestEuler(&ang, m);
-        ang.vx                 = angles[i].vx;
+        ang.vx = angles[i].vx;
         gfxSetRotIdentity(&nodes[i].coord);
         RotMatrixZYX(&ang, m);
     }
@@ -4425,9 +4425,9 @@ static void func_actor_503500_80142980(Task* arg0)
             arg0->state++;
             break;
     }
-    rot.vx                 = work->spin.fixed.vx.word >> 16;
-    rot.vy                 = work->spin.fixed.vy.word >> 16;
-    rot.vz                 = work->spin.fixed.vz.word >> 16;
+    rot.vx = work->spin.fixed.vx.word >> 16;
+    rot.vy = work->spin.fixed.vy.word >> 16;
+    rot.vz = work->spin.fixed.vz.word >> 16;
     gfxSetRotIdentity(&m.mat);
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
@@ -4968,7 +4968,7 @@ static void func_actor_503500_80144300(Task* arg0)
     s32                            pan;
     coord = arg0->extra.tmd->coords;
 
-    work  = memCalloc(sizeof(*work), false);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -5159,7 +5159,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     s32                            pan2;
     coord = arg0->extra.tmd->coords;
 
-    work  = memCalloc(sizeof(*work), false);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
         return;
