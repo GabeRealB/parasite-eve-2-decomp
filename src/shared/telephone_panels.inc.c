@@ -14,7 +14,7 @@ static void Telephone_PromptTask(Task* task)
         task->exitCallback = Telephone_ClosePrompt;
         task->state       += 1;
     }
-    Gp_DrawPromptLines(obj, task);
+    itemMenuDrawTaskPrompt(obj, task);
 }
 
 /// Inserts a '.' into a digit string so `decimals` characters sit after the

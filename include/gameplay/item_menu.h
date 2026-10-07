@@ -22,9 +22,29 @@ void Gp_ItemPickupTilt(Task* arg0);
 
 void func_800B65B0(Task* task);
 
-void Gp_DrawPromptLines(UiObject* arg0, Task* arg1);
+/// Draws a menu prompt from the task's first spawn payload.
+///
+/// Words above 0xFFFF are borrowed encoded text addresses: draws at most two
+/// large, left-aligned outlined lines, 15 pixels apart, using the panel's normal
+/// text color. A packed P.E. id in 0x300..0x3FF instead draws its description
+/// and encoded level's casting cost (omitted at level 0). Those ids must satisfy
+/// the ability catalogue and cost-table bounds; other small values draw nothing.
+/// Text starts two pixels right of contentLeft and 15 pixels below contentTop;
+/// hidden panels skip text drawing, but the line scanner still reads the source.
+/// Requires a live object/task and loaded menu/font resources with writable
+/// primitive/OT storage. The payload and any text stay owned by the caller.
+/// Text must satisfy `textDrawUiLine` and `textSkipLines`, including a readable
+/// predecessor byte when its first byte is N/n. The task is never changed.
+void itemMenuDrawTaskPrompt(UiObject* object, const Task* task);
 
-void func_800CE5D0(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Queues a normal-size item icon using the live save's identification state.
+///
+/// x/y locate the 14-by-14 icon's bottom-left in pixels relative to the live object's
+/// panel content origin. itemId is a valid inventory id (0 is an empty slot)
+/// or a synthetic P.E. id; no enlargement, dimming or highlight is requested.
+/// Borrows the object without modifying or retaining it. Requires loaded menu
+/// textures and writable primitive/OT storage, even for a hidden panel.
+void itemMenuDrawDefaultItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId);
 
 void func_800CE22C(Task* arg0);
 

@@ -7,6 +7,7 @@
 #include "item_menu.h"
 #include "items.h"
 #include "menu.h"
+#include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "player_actor.h"
 #include "gameplay/player_state.h"
@@ -24,10 +25,6 @@
 /// Five-entry dispatcher table: `Gp_PublishItemObj`, `Gp_SpawnPickupUiTask`, `itemPickupHandleResultTask`,
 /// `itemPickupRestoreFrameTimingTask`, `Gp_PickupExitTask`. Copied onto the stack by `func_800CE22C`.
 extern const TaskFuncTable5 D_80096E70;
-
-static void func_800CE398(s32 arg0);
-
-static s32 func_800CE3A4(void);
 
 UiObjectTaskFunc D_8010D3A0[96] = {
     NULL,
@@ -170,12 +167,17 @@ void Gp_MenuExitCallback(Task* arg0)
     taskCallExit(arg0);
 }
 
-static void func_800CE398(s32 arg0)
+/// Sets the menu-exit room/view restoration latch without normalizing it.
+///
+/// Menu entry clears it to 0; map entry and preview loads that replace room
+/// resources set 1. Only the value 1 requests restoration on menu exit.
+static void _itemMenuSetRoomRestorePending(s32 pending)
 {
-    D_80114D88 = arg0;
+    D_80114D88 = pending;
 }
 
-static s32 func_800CE3A4(void)
+/// Returns the menu-exit room/view restoration latch without consuming it.
+static s32 _itemMenuGetRoomRestorePending(void)
 {
     return D_80114D88;
 }
@@ -211,28 +213,40 @@ void Gp_ItemMenuTask(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-void Gp_DrawPromptLines(UiObject* arg0, Task* arg1)
+/// Draws the first two encoded prompt lines with the panel's normal text color.
+///
+/// Borrows text under `textDrawUiLine` and `textSkipLines`'s stream contracts.
+static inline void _itemMenuDrawTwoLinePrompt(const UiObject* object, const u8* text)
 {
-    const u8*    text;
-    u32          textColorRgb;
-    s32          one;
-    TaskSpawnArg val;
+    const u8* secondLine;
+    u32       textColorRgb;
 
-    val = arg1->spawnArg1;
-    if (val.value != 0) {
-        if (val.unsignedValue > 0xFFFF) {
-            textColorRgb = uiGetTextColor(arg0, USER_INTERFACE_TEXT_COLOR_NORMAL);
-            one          = 1;
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0xF, val.pointer, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-            text = textSkipLines(val.pointer, one);
-            textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-        } else if ((u32)(val.value - 0x300) < 0x100U) {
-            itemMenuDrawAbilityDescription(arg0, val.value);
+    textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 15, text, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    secondLine = textSkipLines(text, 1);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 30, secondLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+}
+
+void itemMenuDrawTaskPrompt(UiObject* object, const Task* task)
+{
+    enum {
+        ITEM_MENU_PROMPT_INLINE_VALUE_MAX = 0xFFFF,
+        ITEM_MENU_PROMPT_ABILITY_ID_COUNT = 0x100
+    };
+    TaskSpawnArg promptPayload;
+
+    // Small payloads are catalogue selectors; larger words encode borrowed text addresses.
+    promptPayload = task->spawnArg1;
+    if (promptPayload.value != 0) {
+        if (promptPayload.unsignedValue > ITEM_MENU_PROMPT_INLINE_VALUE_MAX) {
+            _itemMenuDrawTwoLinePrompt(object, promptPayload.pointer);
+        } else if ((u32)(promptPayload.value - ITEM_TEXT_PACKED_ID_FIRST) < (u32)ITEM_MENU_PROMPT_ABILITY_ID_COUNT) {
+            itemMenuDrawAbilityDescription(object, promptPayload.value);
         }
     }
 }
 
-void func_800CE5D0(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+void itemMenuDrawDefaultItemIcon(const UiObject* object, s32 x, s32 y, s32 itemId)
 {
-    itemMenuDrawItemIcon(arg0, arg1, arg2, arg3, ITEM_MENU_ICON_DEFAULT);
+    itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
 }

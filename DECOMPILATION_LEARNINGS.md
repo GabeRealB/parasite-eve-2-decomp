@@ -27622,7 +27622,7 @@ the `UiObject*` lands in `$s3` and the string in `$s2`. The target wants the
 object in `$s2` and the string in `$s3`.
 
 Keep `spawnArg1` as an `s32 val` used only through the first draw + skip, and
-a separate `const u8* text` for the skip result (same shape as `Gp_DrawPromptLines`):
+a separate `const u8* text` for the skip result (same shape as `_itemMenuDrawTwoLinePrompt`):
 
 ```c
 val = arg0->spawnArg1;

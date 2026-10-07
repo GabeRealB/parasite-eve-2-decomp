@@ -377,7 +377,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         req.alignment     = TEXT_ALIGNMENT_LEFT;
         request->drawMode = TEXT_DRAW_OUTLINED;
         textDrawString(request, itemGetText(item, ITEM_TEXT_NAME, 0));
-        func_800CE5D0(arg1, x, y, item);
+        itemMenuDrawDefaultItemIcon(arg1, x, y, item);
     }
     limit = 1;
     if (value >= 10000) {
