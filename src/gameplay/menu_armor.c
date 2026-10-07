@@ -5,6 +5,7 @@
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
+#include "cdcmd.h"
 #include "items.h"
 
 #include "main/display.h"
@@ -458,7 +459,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     cdCmdDropQueuedTail();
     for (i = 0; i < ARRAY_SIZE(saved); i++) {
         if (flags[i] != -1) {
-            cdCmdEnqueueEntry(&saved[i]);
+            _cdCmdEnqueueEntry(&saved[i]);
         }
     }
 

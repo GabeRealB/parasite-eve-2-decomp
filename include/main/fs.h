@@ -209,23 +209,6 @@ void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProf
 
 void CdCmd_StepVlcRebuild(void);
 
-/// Enqueues `entry`'s command again, rebuilding from its fields the two
-/// parameter blocks `cdCmdEnqueue` unpacks into a slot.
-static inline s32 cdCmdEnqueueEntry(CdCmdEntry* entry)
-{
-    u8 paramA[8];
-    u8 paramB[8];
-
-    paramA[3] = entry->stage;
-    paramA[2] = entry->fileGroup;
-    paramA[0] = entry->fileIndex;
-    paramB[0] = entry->args.bytes[0];
-    paramB[1] = entry->args.bytes[1];
-    paramB[2] = entry->args.bytes[2];
-    paramB[3] = entry->args.bytes[3];
-    return cdCmdEnqueue(entry->cmd, paramA, paramB);
-}
-
 void Fs_ReadSectorEx(s32 sector, s32 endSector, u8* dest, u8 mode);
 
 bool Fs_StageCdfIsAvailable(u32 stageIdx);

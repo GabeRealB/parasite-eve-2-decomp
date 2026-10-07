@@ -14,6 +14,7 @@
 #include "gameplay/attachments.h"
 #include "attachments.h"
 #include "gameplay/captions.h"
+#include "cdcmd.h"
 #include "direction_input.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/inventory.h"
@@ -633,7 +634,7 @@ void func_800CF148(UiObject* arg0, Task* arg1)
 
 static s32 func_800CF204(CdCmdEntry* entry)
 {
-    return cdCmdEnqueueEntry(entry);
+    return _cdCmdEnqueueEntry(entry);
 }
 
 s32 Gp_GetPreviewItem(void)
