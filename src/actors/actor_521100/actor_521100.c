@@ -3131,7 +3131,7 @@ static void func_actor_521100_80134D88(Task* arg0)
 /// the hit body armed, survives while either is still moving and is cleared on the
 /// frame both arrive, which is what the update body tests before calling this.
 ///
-/// Same body as `Actor02000_Fn01698` and `func_actor_510900_80138D38`.
+/// Same body as `Actor02000_Fn01698` and `_actor510900ApplyHitTwist`.
 static void func_actor_521100_80135024(Task* arg0)
 {
     Actor521100Work* work;

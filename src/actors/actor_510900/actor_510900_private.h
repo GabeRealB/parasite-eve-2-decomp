@@ -174,6 +174,11 @@ void func_actor_510900_8013B524(Task* arg0);
 
 void func_actor_510900_8013B608(Task* arg0);
 
-void func_actor_510900_8013BC38(Task* arg0, GfxCoord* arg1);
+/// Samples room lighting at the body's cached translation and applies its colour state.
+///
+/// `task` must borrow its live enemy through the second spawn argument, and
+/// `coord->workm` must already be composed. Its three translation words are
+/// passed unchanged as the lighting sample, borrowed only through the update.
+void actor510900UpdateLighting(Task* task, const GfxCoord* coord);
 
 #endif // SRC_ACTORS_ACTOR_510900_ACTOR_510900_PRIVATE_H

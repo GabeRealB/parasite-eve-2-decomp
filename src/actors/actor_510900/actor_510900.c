@@ -2411,7 +2411,7 @@ void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    func_actor_510900_8013BC38(arg1, coord);
+    actor510900UpdateLighting(arg1, coord);
     if (work->flameMode != work->sentFlameMode) {
         if (work->flameJetTask != NULL) {
             work->flameJetTask->spawnArg1.value = work->flameMode;

@@ -51048,9 +51048,9 @@ assigned in another `case` or branch.
 
 ### The same twice-set local can cost a callee-saved register, not just an order
 
-`func_actor_510900_80138250` dispatches on a state word and plays a sound in
+`_actor510900TickSparkStun` dispatches on a state word and plays a sound in
 two of the three cases, each written the way the matched sibling
-`func_actor_510900_801384C4` is:
+`_actor510900TickDeath` is:
 
 ```c
 pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -75584,7 +75584,7 @@ puts `$ra` at `sp+0x20` (`0x28` frame), and the three stores land at
 assembly — same 0x28 frame, same `$ra` at `0x20` — so the frame does not
 discriminate them and the callee's `VECTOR *` parameter does not force the
 local's type. Declare whichever the source reads better as. What matters is only
-that the three writes share one addressable object. `func_actor_510900_8013BC38`.
+that the three writes share one addressable object. `actor510900UpdateLighting`.
 
 The next function in that TU, `func_actor_510900_8013C338`, is the same body with
 a different callee (`worldCoordSetModelLighting(obj, &pos, 0, 3)`) and shows the same numbers:
@@ -75663,7 +75663,7 @@ index, so an assignment written *inside* the subscript emits the table's
 `%hi`/`lo_sum` ahead of the load chain it feeds, stretching that quantity's span
 and dropping its priority below a competitor's.
 
-`func_actor_510900_8013B988` was stuck at 87.02% with the same four registers
+`_actor510900TickBuildupStun` was stuck at 87.02% with the same four registers
 wrong (`regs=15 insert=3 delete=3`, everything else 0). `tools/trace_gcc.py
 --regs` showed the two quantities that matter, all suggestions empty:
 
@@ -75698,7 +75698,7 @@ Inputs: `base_2.i` `3fb26df1182b80756fd7ce934400f2f9ee39cad6b96c2dcdf545fa3a803e
 
 ## A promoted `pan` local takes the callee-saved home the sound id was holding
 
-`func_actor_510900_80138A9C` queues two step sounds from an animation record,
+`_actor510900PlayStepSounds` queues two step sounds from an animation record,
 each from the same three pieces: a sound id built from the actor's attach
 coordinate, a `worldCoordGetOriginAudioPan` byte and a `worldCoordGetOriginAudioDepth` byte.
 
@@ -91369,7 +91369,7 @@ Inputs: `base_1.i` (90.4%, `regs=36 branch=4 insert=2 delete=4`), `base_2.i` (10
 
 ## A single-set pseudo is sunk to the end of its block by sched1's "birthing" boost
 
-`func_actor_510900_801387F4` truncates an int difference into an `s16` and
+`_actor510900TurnAlongLap` truncates an int difference into an `s16` and
 sign-extends the same int separately, so the copy and the shift both read the
 subtraction's destination and the two pseudos must conflict:
 
@@ -95815,9 +95815,9 @@ Do not reach for a register pin for this - the allocation follows the lifetime.
 
 Inputs: `base_1.i` (91.4%), `base_2.i` (100%).
 
-## An independent store scheduled into a multiply's latency, and the `regs` penalty it drags along (func_actor_510900_80138978, 2026-09-16)
+## An independent store scheduled into a multiply's latency, and the `regs` penalty it drags along (_actor510900AdvanceAlongLap, 2026-09-16)
 
-`func_actor_510900_80138978` writes three words of a `MATRIX::t`, of which the
+`_actor510900AdvanceAlongLap` writes three words of a `MATRIX::t`, of which the
 middle one is a constant zero and the other two each end in a `mult`/`mflo`.
 With m2c's statement order — the zero store first — the body scored 99.041% at
 `regs=2 reorder=1`, everything else zero and 73/73 instructions:
@@ -96060,7 +96060,7 @@ longer live range by computing it in an earlier block, not to look for a missing
 value. Count the `sw $sN` prologue stores first — that count is a direct
 statement about how many pseudos cross a call.
 
-## A following statement's load *before* an abs `bgez` proves the source used `ABS()` (func_actor_510900_8013864C, 2026-09-16)
+## A following statement's load *before* an abs `bgez` proves the source used `ABS()` (_actor510900UpdatePlayerRange, 2026-09-16)
 
 The two existing `ABS()` entries read the difference off the abs itself — an
 unfilled `bgez` delay slot, or a `$v0`/`$v1` inversion around it. There is a
@@ -96362,7 +96362,7 @@ lets cse2 fold it to `return 1`, which then cross-jumps onto an unrelated
 
 ## A store through a bare pointer cast lets `sched1` hoist a later struct load above it
 
-`func_actor_510900_80138D38` pushes a `MATRIX` onto the scratch stack and then
+`_actor510900ApplyHitTwist` pushes a `MATRIX` onto the scratch stack and then
 reads two pointers out of its argument:
 
     matrix                = (MATRIX*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x20);
