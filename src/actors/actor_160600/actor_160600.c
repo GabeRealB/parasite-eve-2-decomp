@@ -29,36 +29,6 @@
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
 
-/// The clips the package's scene adds to the companion's animation bank, with
-/// the two copy requests of the scene and the companion's first placement.
-///
-/// The opening script both of the package's scene scripts call sends `copy` to
-/// the companion and `playerCopy` to the player before any extended clip is
-/// played. The companion's copy takes ten words from the start of this
-/// storage, which is more than the clip table holds: the three set pointers
-/// occupy extended ids 47-49 of the companion's bank, and the four words of
-/// the two copy requests and the three position words of the placement are
-/// written into the bank after them. The scripts select ids 47-49 and ids of
-/// the bank's own clips only on the companion, so none of those following
-/// words is played as a clip.
-///
-/// The placement is the first of the run the package keeps for the companion,
-/// the player and its own actor, and is part of this object only because the
-/// copied span reaches into it; the rest of the run follows as separate
-/// objects. The storage is only read.
-typedef union {
-    struct {
-        AnimationSet*            sets[3];            // Companion clips for extended ids 47-49 of the companion's bank
-        AnimationBankCopyRequest copy;               // Installs the first ten words of this storage in the companion's bank extension
-        AnimationBankCopyRequest playerCopy;         // Installs the player's clips, `D_actor_160600_80134E00`; the count is the bank's capacity, not the fifteen entries of its source
-        ActorTransform           companionPlacement; // Where one of the two scene scripts places the companion before it walks it
-    } data;                                          // The records by name
-    s32 words[13];                                   // The same storage as the copy reads it; the last three words lie beyond the copied span
-} _Actor160600CompanionAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_Actor160600CompanionAnimationBankExtensionStorage, 52);
-
-extern _Actor160600CompanionAnimationBankExtensionStorage D_actor_160600_8013506C;
-
 // Message-table callbacks use the argument views required by this TU.
 
 static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArg);
@@ -432,7 +402,7 @@ static AnimationSet _gActor160600Animation02FB8 = {
 ///
 /// The opening script both of the package's scene scripts call sends the player
 /// its copy request before any extended clip is played.
-/// `D_actor_160600_8013506C.data.playerCopy` copies
+/// `D_actor_160600_80135080` copies
 /// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
 /// player's bank, which is 17 words past the end of this array: the read runs
 /// on through `D_actor_160600_80134E3C`, `D_actor_160600_80134E50`,
@@ -503,7 +473,29 @@ AnimationPlayRequest D_actor_160600_80135044 = { { .index = 1 }, 48, ANIMATION_B
 
 AnimationPlayRequest D_actor_160600_80135058 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-_Actor160600CompanionAnimationBankExtensionStorage D_actor_160600_8013506C = { .data = { { &_gActor160600Animation02BE0, &_gActor160600Animation02DA0, &_gActor160600Animation02FB8 }, { { .words = D_actor_160600_8013506C.words }, 10 }, { { .sets = D_actor_160600_80134E00 }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { 2350, 0, 1980, 0 }, { 0, 682, 0, 0 } } } };
+/// Companion clips for extended ids 47-49 of the companion's bank.
+///
+/// The opening script both of the package's scene scripts call sends the
+/// companion its copy request before any extended clip is played.
+/// `D_actor_160600_80135078` copies ten words starting here into the
+/// companion's bank, which is seven words past the end of this array: the read
+/// runs on through `D_actor_160600_80135078`, `D_actor_160600_80135080` and the
+/// first three words of `D_actor_160600_80135088`. That overrun is the
+/// original's and is kept as it is: the request carries a literal count larger
+/// than the table, while the table was stored with only its own entries. The
+/// scripts select ids 47-49 and ids of the bank's own clips only on the
+/// companion, so none of the words installed after the table is played as a
+/// clip.
+AnimationSet* D_actor_160600_8013506C[3] = { &_gActor160600Animation02BE0, &_gActor160600Animation02DA0, &_gActor160600Animation02FB8 };
+
+// Installs the companion's clips; the count is ten, not the three entries of its source.
+AnimationBankCopyRequest D_actor_160600_80135078 = { { .sets = D_actor_160600_8013506C }, 10 };
+
+// Installs the player's clips; the count is the bank's capacity, not the fifteen entries of its source.
+AnimationBankCopyRequest D_actor_160600_80135080 = { { .sets = D_actor_160600_80134E00 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+
+// Where one of the two scene scripts places the companion before it walks it; the first of the run of placements that follows.
+ActorTransform D_actor_160600_80135088 = { { 2350, 0, 1980, 0 }, { 0, 682, 0, 0 } };
 
 ActorTransform D_actor_160600_801350A0 = { { 4870, 0, 3400, 0 }, { 0, 682, 0, 0 } };
 
@@ -552,8 +544,8 @@ EvsCommand D_actor_160600_80135220[20] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_160600_8013506C.data.copy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_160600_8013506C.data.playerCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_160600_80135078 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_160600_80135080 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_160600_80135100 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_160600_801350D0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -683,7 +675,7 @@ EvsCommand D_actor_160600_80135D78[52] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100017 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_160600_801351BC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_160600_80135220 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_160600_8013506C.data.companionPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_160600_80135088 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1019 }, { .message = { .pointer = &D_actor_160600_801350A0 } }, { .message = { .pointer = &D_actor_160600_80135218 } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
