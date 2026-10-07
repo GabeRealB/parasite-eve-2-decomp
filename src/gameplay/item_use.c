@@ -563,7 +563,7 @@ void func_800D6334(Task* task)
     }
     labelX = panel->panel.contentLeft.signedValue + 2;
     labelY = panel->panel.contentTop.signedValue;
-    Gp_DrawItemLabel(panel, labelX, labelY + 15, armor, 0x606060, 0);
+    itemMenuDrawItemRow(panel, labelX, labelY + 15, armor, 0x606060, 0);
     uiDrawHorizontalSeparator(&(panel)->panel, panel->panel.contentLeft.signedValue, panel->panel.contentRight.signedValue, panel->panel.contentTop.signedValue + 17);
     label.x          = panel->panel.contentOriginX.unsignedValue + labelX;
     label.y          = panel->panel.contentOriginY.unsignedValue + labelY + 24;

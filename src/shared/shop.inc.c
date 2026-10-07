@@ -371,12 +371,12 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
-    Gp_DrawItemLabel(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, itemId, prompt->colorRgb, 0);
+    itemMenuDrawItemRow(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, itemId, prompt->colorRgb, 0);
     if ((u32)(itemId - 0xA0) < 0x20) {
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        Gp_DrawQty(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->packQty, prompt->colorRgb);
+        itemMenuDrawQuantity(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->packQty, prompt->colorRgb);
     }
     textItoaUnsigned(buf, price);
     textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -719,7 +719,7 @@ static void Shop_CategoryListTask(Task* task)
     obj->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6DC);
     if (task->state == 0) {
-        Gp_ClearPreviewItems();
+        itemMenuClearPreviewItems();
         D_80067634 = NULL;
         uiSpawnObject(&Shop_Data_80181B68, task->spawnArg1, 0, 1, obj);
         uiSpawnObject(&D_8010D80C, 0, 0, 0, obj);
@@ -983,10 +983,10 @@ static void Shop_ChargeTask(Task* task)
     }
 
     y = obj->panel.contentTop.signedValue;
-    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0xF, weaponItemId, 0x606060, 0);
+    itemMenuDrawItemRow(obj, obj->panel.contentLeft.signedValue + 2, y + 0xF, weaponItemId, 0x606060, 0);
     uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, y + 0x12);
-    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, supplyItemId, 0x606060, 0);
-    Gp_DrawQty(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
+    itemMenuDrawItemRow(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, supplyItemId, 0x606060, 0);
+    itemMenuDrawQuantity(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
     h = obj->panel.contentBottom.signedValue;
     itemMenuDrawMeter(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, h - 6, qty,
                       Shop_Data_80187628, 0x1741F);
@@ -1139,11 +1139,11 @@ static void Shop_QuantityTask(Task* task)
     x    = left + 2;
     top  = obj->panel.contentTop.signedValue;
     y    = top + 0xF;
-    Gp_DrawItemLabel(obj, x, y, itemId, 0x606060, 0);
+    itemMenuDrawItemRow(obj, x, y, itemId, 0x606060, 0);
     if ((u32)(itemId - 0xA0) < 0x20) {
         InventoryConsumableStack* stock = gpItemStock(itemId);
 
-        Gp_DrawQty(obj, x, y, stock->packQty, 0x606060);
+        itemMenuDrawQuantity(obj, x, y, stock->packQty, 0x606060);
     }
 
     count = task->extraState.value;

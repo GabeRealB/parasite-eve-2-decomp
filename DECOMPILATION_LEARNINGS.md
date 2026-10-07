@@ -8001,13 +8001,13 @@ the wrapped constant, so the load stays `lhu; addiu -K` and the later
 `+ arg2` is a separate `addu`:
 
 ```c
-s32 y;
+s32 textBaseY;
 
-y     = arg0->baseY - 3; /* lhu; addiu -3 */
-req.y = y + arg2;        /* addu s2 */
+textBaseY     = object->panel.contentOriginY.unsignedValue - 3; /* lhu; addiu -3 */
+textRequest.y = textBaseY + y;        /* addu s2 */
 ```
 
-`Gp_DrawQty` is the example. A cast alone (`(s32)index->baseY - 3`)
+`itemMenuDrawQuantity` is the example. A cast alone (`(s32)object->panel.contentOriginY.unsignedValue - 3`)
 folds away before RTL.
 
 ## Assign `(div + K)` inside the add so K stays on the dividend
@@ -24013,16 +24013,16 @@ jr    ra
 A pointer temporary plus assignments in that store order is what matches:
 
 ```c
-p   = arr;
-val = -1;
-p[2] = val;
-p[1] = val;
-p[0] = val;
-p[3] = val;
-p[4] = val;
+previewItemIds    = Gp_PreviewItems;
+emptyItemId       = ITEM_MENU_PREVIEW_EMPTY;
+previewItemIds[2] = emptyItemId;
+previewItemIds[1] = emptyItemId;
+previewItemIds[0] = emptyItemId;
+previewItemIds[3] = emptyItemId;
+previewItemIds[4] = emptyItemId;
 ```
 
-A counted `for` loop is not unrolled. `Gp_ClearPreviewItems` is the example;
+A counted `for` loop is not unrolled. `itemMenuClearPreviewItems` is the example;
 `func_800CCDC8` inlines the same five stores.
 
 ## Nested `!= 0` then `== 1` keeps the extra `beqz`
@@ -30922,21 +30922,21 @@ jal   uiDrawRecessedRect
 
 A `color` local assigned in both arms (`color = 0x102010` / `color = 0`)
 lets GCC CSE `a2`/`a3`/`0x10(sp)` *after* the join and remaps saved args
-(`arg3` steals `$s1`). Two full calls with an early `return` on the first
+(`itemId` steals `$s1`). Two full calls with an early `return` on the first
 keeps `s0`..`s3 = a0`..`a3` and leaves only the `jal` shared:
 
 ```c
-if (arg3 == 0) {
-    uiDrawRecessedRect(&arg0->panel, arg1, arg2 - 0xE,
+if (itemId == INVENTORY_ITEM_NONE) {
+    uiDrawRecessedRect(&object->panel, x, y - 0xE,
                        0xE, 0xE, 0x102010);
     return;
 }
 /* ... work ... */
-uiDrawRecessedRect(&arg0->panel, arg1, arg2 - 0xE,
+uiDrawRecessedRect(&object->panel, x, y - 0xE,
                    0xE, 0xE, 0);
 ```
 
-`Gp_DrawItemNameRow` is the example.
+`itemMenuDrawItemSlotRow` is the example.
 
 ## Split `tpage +=` / `tpage |=` with a named reload so `layerClutRowOffset` fills `lhu`
 
@@ -31103,17 +31103,17 @@ lh    v1, 0x2e(v0)
 ```
 
 A fresh `Task* child = index->firstChild` swaps the registers (`lw v0,
-0xc` / `lw a0, 0x20(v0)`). Assign the child task onto `spawned` and
-load `spawnArg2` into a new object pointer:
+0xc` / `lw a0, 0x20(v0)`). Keep the child task separate from the spawned UI object and
+load its second spawn argument into a new object pointer:
 
 ```c
-spawned = (UiObject*)arg0->firstChild;
-if (spawned != NULL) {
-    childObj = ((Task*)spawned)->spawnArg2;
-    if (childObj->result == 6) {
+childTask = task->firstChild;
+if (childTask != NULL) {
+    childObject = childTask->spawnArg2.pointer;
+    if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
 ```
 
-`Gp_PickupFullTask` is the example. Same first-child cast as `Gp_UiPromptUpdate`.
+`_itemPickupInventoryFullTask` is the example. The former first-child cast, also seen in `Gp_UiPromptUpdate`, is now expressed with a `Task*`.
 
 ## Pin two stack args and assign them in the desired `lw` order
 
@@ -31684,14 +31684,14 @@ Write the call in both arms. GCC merges them into one `jal` and keeps
 the `li a1, 1` / `move a1, zero` phi.
 
 ```c
-if (arg0->spawnArg1 & 0x10) {
-    uiSetListSystemCursorSound(menu, 1);
+if (task->spawnArg1.value & ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND) {
+    uiSetListSystemCursorSound(dialogList, 1);
 } else {
-    uiSetListSystemCursorSound(menu, 0);
+    uiSetListSystemCursorSound(dialogList, 0);
 }
 ```
 
-`Gp_YesNoMenuTask` is the example.
+`itemMenuDialogTask` is the example.
 
 ## Reuse the `actionResult` temp so confirm copies `lh` / `sh` without a reload
 
@@ -31713,14 +31713,14 @@ sh    v1, 0x2e(obj)
 Keep the load in a temp and assign that temp:
 
 ```c
-sel = menu->actionResult;
-if (sel == 6) {
-    obj->result = sel;
-    obj->resultValue = menu->commandResult.unsignedValue;
+actionResult = dialogList->actionResult;
+if (actionResult == USER_INTERFACE_RESULT_CONFIRM) {
+    object->result = actionResult;
+    object->resultValue = dialogList->commandResult.unsignedValue;
 }
 ```
 
-`Gp_YesNoMenuTask` is the example. `Gp_ItemCmdMenuTask` already uses this
+`itemMenuDialogTask` is the example. `Gp_ItemCmdMenuTask` already uses this
 `sel = menu->actionResult` form.
 
 ## s32 copies of s16 fields keep `lh` for compare-and-step
@@ -32559,7 +32559,7 @@ req.colorRgb    = color;
 
 The early `y` load also frees `$v1` after `gGpuPrimCursor = p + 1`, which is
 what stores the cursor bump before `p->x0`. `itemMenuDrawParasiteEnergyLevel` is the example.
-The `textY = baseY - 3` half is the same pattern as `Gp_DrawQty`.
+The `textY = baseY - 3` half is the same pattern as `itemMenuDrawQuantity`.
 
 ## Load a terminator key once so the record pointer stays in `$v1`
 
@@ -143755,20 +143755,20 @@ is 95.6%). `actorTintEffect` became a wrapper over the same helper and all its
 users still match.
 
 ## A `(plus K+off-reg)` `addu` operand swap after inlining: combine's complex-first rule, fixed by the helper temp's width (Gp_PickupTitleTask, 2026-09-26)
-Inlining `Gp_DrawQty` (`y = obj->baseY - 3; req.y = y + arg2;`) with
-`arg2 = (s16)obj->field_18 + 0xF` matched everything but
+Inlining `itemMenuDrawQuantity` (`textBaseY = object->panel.contentOriginY.unsignedValue - 3; textRequest.y = textBaseY + y;`) with
+`y = obj->panel.contentTop.signedValue + 0xF` matched everything but
 `addu v0,s0,v0` for target `addu v0,v0,s0` (baseY first). The inline's
 argument pseudo is set *before* the body, so combine sees it as i1 and the
-`y` temp as i2: substituting i2 gives `(plus (plus baseY f18') -3)`, then
+`textBaseY` temp as i2: substituting i2 gives `(plus (plus baseY f18') -3)`, then
 substituting i1 turns the inner `(plus baseY (plus f18 15))` round, because
 combine puts the complex operand first, and the sum comes out f18-first. With
-`y` declared `u16` (the type of `baseY`, which the halfword store makes free)
+`textBaseY` declared `u16` (the type of `baseY`, which the halfword store makes free)
 the temp is computed in HImode: `.combine` shows
 `(plus (subreg:SI (reg:HI baseY) 0) (reg f18))`, and the `subreg` is now the
-complex operand the rule puts first, so baseY leads. The out-of-line `Gp_DrawQty` matches with the
+complex operand the rule puts first, so baseY leads. The out-of-line `itemMenuDrawQuantity` matches with the
 same body, so it became a wrapper over the helper. When an inlined sum has
 its operands swapped, look at how many insns combine merged before changing
-the expression's order - reordering `y + arg2` / `arg2 + y` did nothing here.
+the expression's order - reordering `textBaseY + y` / `y + textBaseY` did nothing here.
 ## `move sN,v0` after a scratch carve with the head store *late*, and `v0`/`v1` pins on two parallel conversions (Gp_DrawMapCursor, 2026-09-26)
 
 **Carve.** Target: `lw v0,0(a1); addiu v0,v0,-0x1C; move s1,v0`, field stores

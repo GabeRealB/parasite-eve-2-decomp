@@ -319,7 +319,7 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
             if (arg1->owner->spawnArg1.value != two) {
                 cdCmdDropQueuedTail();
                 cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
-                Gp_ClearPreviewItems();
+                itemMenuClearPreviewItems();
                 arg1->owner->spawnArg1.value = two;
             }
         }
@@ -893,7 +893,7 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
 
 void func_800CFA34(UiObject* arg0, Task* arg1)
 {
-    Gp_UseHealItemPanel(arg0, arg1, Gp_SelItemRec->itemId);
+    itemMenuApplyHealingPanel(arg0, arg1, Gp_SelItemRec->itemId);
 }
 
 void func_800CFA60(Task* arg0)
@@ -2136,7 +2136,7 @@ void Gp_DiscardWarnTask(Task* arg0)
     text = Gp_PromptTexts[0];
     if (arg0->state == 0) {
         uiSizePanelForTextWide(&(obj)->panel, text);
-        spawned = func_800CD89C(obj);
+        spawned = itemMenuSpawnYesNoMenuDefaultNo(obj);
         if (spawned != NULL) {
             spawned->panel.bounds.unsignedRect.x = (obj->panel.bounds.unsignedRect.x + obj->panel.bounds.unsignedRect.w) - 0x18;
         }
@@ -2216,7 +2216,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
     if (count == 0) {
         arg0->colorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
-    Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
+    itemMenuDrawItemRow(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     if (count != 0) {
         itemMenuDrawParasiteEnergyLevel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, count, arg0->colorRgb);
     }
@@ -2452,7 +2452,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     TextDrawReq   req3;
     TextDrawReq   req4;
     UiObject*     obj;
-    UiObject*     frame;
+    UiObject*     dialog;
     UiObject*     childObj;
     Task*         child;
     Task*         next;
@@ -2479,10 +2479,10 @@ void Gp_PeUpgradePanelTask(Task* arg0)
 
     if (arg0->state == 0) {
         uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(2) + 1);
-        frame = func_800CD814(obj);
-        if (frame != NULL) {
-            frame->panel.animationTicks         = obj->panel.animationTicks - 8;
-            frame->panel.bounds.unsignedRect.y += 4;
+        dialog = itemMenuSpawnYesNoMenu(obj);
+        if (dialog != NULL) {
+            dialog->panel.animationTicks         = obj->panel.animationTicks - 8;
+            dialog->panel.bounds.unsignedRect.y += 4;
         }
         uiSpawnObject(D_8010F7C0, id, 0, 1, obj);
         arg0->state = arg0->state + 1;
@@ -2804,7 +2804,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     x     = arg0->panel.contentLeft.signedValue + 2;
     y     = arg0->panel.contentTop.signedValue + 0xF;
     mask  = arg1 & 3;
-    Gp_DrawItemLabel(arg0, x, y, arg1, color, 0);
+    itemMenuDrawItemRow(arg0, x, y, arg1, color, 0);
     if (mask != 0) {
         itemMenuDrawParasiteEnergyLevel(arg0, x, y, mask, color);
     }
@@ -3490,7 +3490,7 @@ void func_800D573C(Task* arg0)
 
     obj         = arg0->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    Gp_UseHealItemPanel(obj, arg0, arg0->spawnArg1.value);
+    itemMenuApplyHealingPanel(obj, arg0, arg0->spawnArg1.value);
 }
 
 void Gp_DrawSpecsCmd(Task* arg0)

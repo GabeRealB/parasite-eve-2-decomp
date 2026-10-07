@@ -77,6 +77,16 @@ typedef struct {
 } _ItemMenuWeaponCreateWork;
 STATIC_ASSERT_SIZEOF(_ItemMenuWeaponCreateWork, 0x14);
 
+/// Item-panel colors, ordinary P.E. item ids and update-count delays.
+enum {
+    ITEM_MENU_PANEL_TEXT_COLOR           = 0x606060,
+    ITEM_MENU_RECESSED_FILL_COLOR        = 0x102010,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST = 15,
+    ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT,
+    ITEM_MENU_DIALOG_OPEN_DELAY_TICKS    = 2,
+    ITEM_MENU_COMPLETED_COUNTDOWN        = 0x7FFF,
+};
+
 u8 Gp_MapRoomId;
 
 u8 Gp_MapRoomOff;
@@ -195,22 +205,13 @@ void func_800CCDC8(Task* arg0);
 
 void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRow* arg3);
 
-/// Body of `Gp_DrawQty`: prints the count `arg3` in colour `arg4` at row
-/// position (`arg1`, `arg2`) of `arg0`, then lays out the box beside it.
-/// Inlined where a caller draws a count without the call.
-static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-
 void Gp_PickupTitleTask(Task* arg0);
 
-void Gp_PickupAskTask(Task* arg0);
+static void _itemPickupAskTask(Task* task);
 
-void Gp_PickupFullTask(Task* arg0);
+static void _itemPickupInventoryFullTask(Task* task);
 
-void Gp_ObtainedNoticeTask(Task* arg0);
-
-static UiObject* func_800CD704(UiObject* arg0);
-
-static UiObject* func_800CD78C(UiObject* arg0);
+static void _itemPickupObtainedNoticeTask(Task* task);
 
 static inline void _gpSetPreviewItem(s32 itemId, u8 slot);
 
@@ -294,11 +295,11 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
 
 UiObjectDesc D_8010F02C[3] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 136 }, 56, 0, TASK_BODY_NONE, 192, Gp_PickupTitleTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, Gp_PickupAskTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, Gp_PickupFullTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, _itemPickupAskTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, 32, 288, 48 }, 44, 0, TASK_BODY_NONE, 192, _itemPickupInventoryFullTask, 0 },
 };
 
-UiObjectDesc D_8010F080 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -40, 160, 80 }, 8, 0, TASK_BODY_NONE, 192, Gp_ObtainedNoticeTask, 0 };
+UiObjectDesc D_8010F080 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -80, -40, 160, 80 }, 8, 0, TASK_BODY_NONE, 192, _itemPickupObtainedNoticeTask, 0 };
 
 UiObjectDesc D_8010F09C = { 0, { -144, 0, 90, 70 }, 52, 0, TASK_BODY_NONE, 192, func_800CCDC8, 0 };
 
@@ -572,94 +573,116 @@ void Gp_ItemCmdMenuTask(Task* arg0)
     }
 }
 
-void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
+/// Caps restored HP and MP at their maxima without changing their lower bounds.
+///
+/// player must be the live writable status record used by the healing panel.
+static inline void _itemMenuClampHealedStats(PlayerStatus* player)
 {
-    PlayerStatus* cfg;
-    HudHpMp*      hudHpMp;
-    McSaveData*   save;
-    s32           hp;
-    s32           mp;
-    s32           w;
-    s32           h;
-
-    cfg          = &gPlayerStatus;
-    arg0->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(arg0)->panel, Gp_StrStatus);
-    if (arg1->state == 0) {
-        uiSetPanelContentSize(&(arg0)->panel, 0xB0, 0x2F);
-        w                                 = (s16)arg0->panel.bounds.unsignedRect.w;
-        h                                 = (s16)arg0->panel.bounds.unsignedRect.h;
-        arg0->panel.bounds.unsignedRect.x = -(w >> 1);
-        arg0->panel.bounds.unsignedRect.y = -(h >> 1) - 0x10;
-        hp                                = cfg->hp;
-        hudHpMp                           = &Gp_HpMpWork;
-        hudHpMp->hp                       = hp;
-        mp                                = cfg->mp;
-        hudHpMp->mp                       = mp;
-        if (arg2 < 0x100) {
-            if (arg2 < 4) {
-                if (hp < cfg->hpMax) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
-                }
-                if (arg2 == 3) {
-                    cfg->hp = cfg->hpMax;
-                } else if (arg2 == 2) {
-                    cfg->hp = cfg->hp + 0x64;
-                } else {
-                    cfg->hp = cfg->hp + 0x32;
-                }
-            } else if (arg2 == 5) {
-                if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
-                }
-                cfg->mp = cfg->mp + 0x50;
-                cfg->hp = cfg->hp + 0x14;
-            } else if ((u32)(arg2 - 6) < 2U) {
-                if (mp < cfg->mpMax) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
-                }
-                if (arg2 == 7) {
-                    cfg->mp = cfg->mpMax;
-                } else {
-                    cfg->mp = cfg->mp + 0x1E;
-                }
-            } else if (arg2 == 0x3D) {
-                if ((mp < cfg->mpMax) || (hp < cfg->hpMax)) {
-                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
-                }
-                cfg->mp = cfg->mpMax;
-                cfg->hp = cfg->hpMax;
-            }
-        } else if (hp < cfg->hpMax) {
-            cfg->mp     = cfg->mp - attachmentGetPackedLevelValue(arg2, ATTACHMENT_LEVEL_CAST_COST);
-            hudHpMp->mp = cfg->mp;
-            cfg->hp     = cfg->hp + attachmentGetPackedLevelValue(arg2, ATTACHMENT_LEVEL_AMOUNT);
-            save        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-            if ((s16)save->state.attachUseCounts[7] < 0x270F) {
-                save->state.attachUseCounts[7] = save->state.attachUseCounts[7] + 1;
-            }
-        }
-        if (cfg->hp > cfg->hpMax) {
-            cfg->hp = cfg->hpMax;
-        }
-        if (cfg->mp > cfg->mpMax) {
-            cfg->mp = cfg->mpMax;
-        }
-        arg1->killCountdown = 0xBC;
-        arg1->state         = arg1->state + 1;
+    if (player->hp > player->hpMax) {
+        player->hp = player->hpMax;
     }
-    itemMenuDrawPlayerStats(&(arg0)->panel, 0);
-    if (arg0->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (Gp_HpMpWork.hp == cfg->hp) {
-            if (Gp_HpMpWork.mp == cfg->mp) {
-                arg1->killCountdown = arg1->killCountdown - 1;
+    if (player->mp > player->mpMax) {
+        player->mp = player->mpMax;
+    }
+}
+
+void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId)
+{
+    enum {
+        ITEM_MENU_HEALING_STATE_INIT       = 0,
+        ITEM_MENU_HEALING_DISPLAY_UPDATES  = 188,
+        ITEM_MENU_HEALING_RECOVERY_2       = 2,
+        ITEM_MENU_HEALING_RECOVERY_3       = 3,
+        ITEM_MENU_HEALING_COLA             = 5,
+        ITEM_MENU_HEALING_MP_BOOST_1       = 6,
+        ITEM_MENU_HEALING_MP_BOOST_2       = 7,
+        ITEM_MENU_HEALING_MP_BOOST_COUNT   = 2,
+        ITEM_MENU_HEALING_RINGERS_SOLUTION = 61,
+        ITEM_MENU_HEALING_USE_COUNT_MAX    = 9999
+    };
+    PlayerStatus* player;
+    HudHpMp*      displayedStats;
+    McSaveData*   save;
+    s32           previousHp;
+    s32           previousMp;
+    s32           panelWidth;
+    s32           panelHeight;
+
+    player         = &gPlayerStatus;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, Gp_StrStatus);
+    // Apply the effect once, retaining the old values for the rising stat display.
+    if (task->state == ITEM_MENU_HEALING_STATE_INIT) {
+        uiSetPanelContentSize(&object->panel, 0xB0, 0x2F);
+        panelWidth                          = (s16)object->panel.bounds.unsignedRect.w;
+        panelHeight                         = (s16)object->panel.bounds.unsignedRect.h;
+        object->panel.bounds.unsignedRect.x = -(panelWidth >> 1);
+        object->panel.bounds.unsignedRect.y = -(panelHeight >> 1) - 0x10;
+        previousHp                          = player->hp;
+        displayedStats                      = &Gp_HpMpWork;
+        displayedStats->hp                  = previousHp;
+        previousMp                          = player->mp;
+        displayedStats->mp                  = previousMp;
+        if (healingId < ITEM_TEXT_KEY_ID_FIRST) {
+            if (healingId < ITEM_MENU_HEALING_RECOVERY_3 + 1) {
+                if (previousHp < player->hpMax) {
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                }
+                if (healingId == ITEM_MENU_HEALING_RECOVERY_3) {
+                    player->hp = player->hpMax;
+                } else if (healingId == ITEM_MENU_HEALING_RECOVERY_2) {
+                    player->hp = player->hp + 0x64;
+                } else {
+                    player->hp = player->hp + 0x32;
+                }
+            } else if (healingId == ITEM_MENU_HEALING_COLA) {
+                if ((previousMp < player->mpMax) || (previousHp < player->hpMax)) {
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                }
+                player->mp = player->mp + 0x50;
+                player->hp = player->hp + 0x14;
+            } else if ((u32)(healingId - ITEM_MENU_HEALING_MP_BOOST_1) < (u32)ITEM_MENU_HEALING_MP_BOOST_COUNT) {
+                if (previousMp < player->mpMax) {
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                }
+                if (healingId == ITEM_MENU_HEALING_MP_BOOST_2) {
+                    player->mp = player->mpMax;
+                } else {
+                    player->mp = player->mp + 0x1E;
+                }
+            } else if (healingId == ITEM_MENU_HEALING_RINGERS_SOLUTION) {
+                if ((previousMp < player->mpMax) || (previousHp < player->hpMax)) {
+                    inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
+                }
+                player->mp = player->mpMax;
+                player->hp = player->hpMax;
+            }
+        } else if (previousHp < player->hpMax) {
+            player->mp         = player->mp - attachmentGetPackedLevelValue(healingId, ATTACHMENT_LEVEL_CAST_COST);
+            displayedStats->mp = player->mp;
+            player->hp         = player->hp + attachmentGetPackedLevelValue(healingId, ATTACHMENT_LEVEL_AMOUNT);
+            save               = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+            if (save->state.attachUseCounts[ATTACHMENT_INDEX_HEALING] < ITEM_MENU_HEALING_USE_COUNT_MAX) {
+                save->state.attachUseCounts[ATTACHMENT_INDEX_HEALING] = save->state.attachUseCounts[ATTACHMENT_INDEX_HEALING] + 1;
             }
         }
-        if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (arg1->killCountdown < 0)) {
-            Gp_HpMpWork.hp      = cfg->hp;
-            Gp_HpMpWork.mp      = cfg->mp;
-            arg0->result        = USER_INTERFACE_RESULT_DISMISS;
-            arg1->killCountdown = 0x7FFF;
+        _itemMenuClampHealedStats(player);
+        task->killCountdown = ITEM_MENU_HEALING_DISPLAY_UPDATES;
+        task->state         = task->state + 1;
+    }
+    // Start the dismissal countdown only after both displayed values catch up.
+    itemMenuDrawPlayerStats(&object->panel, 0);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        if (Gp_HpMpWork.hp == player->hp) {
+            if (Gp_HpMpWork.mp == player->mp) {
+                task->killCountdown = task->killCountdown - 1;
+            }
+        }
+        if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (task->killCountdown < 0)) {
+            Gp_HpMpWork.hp      = player->hp;
+            Gp_HpMpWork.mp      = player->mp;
+            object->result      = USER_INTERFACE_RESULT_DISMISS;
+            task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
         }
     }
 }
@@ -1039,59 +1062,60 @@ void func_800CC41C(UiObject* arg0, Task* arg1)
     Gp_InvokePeItemPanel(arg0, arg1, arg1->extraState.value);
 }
 
-void Gp_YesNoMenuTask(Task* arg0)
+void itemMenuDialogTask(Task* task)
 {
-    UiObject* obj;
-    UiList*   menu;
-    s32       mode;
-    s32       sel;
+    enum { ITEM_MENU_DIALOG_STATE_INIT = 0 };
+    UiObject* object;
+    UiList*   dialogList;
+    s32       commandMode;
+    s32       actionResult;
 
-    obj         = arg0->spawnArg2.pointer;
-    menu        = &D_8010EA74;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
-        mode = arg0->spawnArg1.value & 0xF;
-        switch (mode) {
-            case 1:
-                Gp_DialogCmdFns[0] = itemMenuDrawOkRow;
-                menu->itemCount    = mode;
+    object         = task->spawnArg2.pointer;
+    dialogList     = &D_8010EA74;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == ITEM_MENU_DIALOG_STATE_INIT) {
+        commandMode = task->spawnArg1.value & ITEM_MENU_DIALOG_LAYOUT_MASK;
+        switch (commandMode) {
+            case ITEM_MENU_DIALOG_OK:
+                Gp_DialogCmdFns[0]    = itemMenuDrawOkRow;
+                dialogList->itemCount = commandMode;
                 break;
-            case 2:
-                Gp_DialogCmdFns[0] = itemMenuDrawCancelRow;
-                menu->itemCount    = 1;
+            case ITEM_MENU_DIALOG_CANCEL:
+                Gp_DialogCmdFns[0]    = itemMenuDrawCancelRow;
+                dialogList->itemCount = 1;
                 break;
-            case 3:
-                Gp_DialogCmdFns[0] = itemMenuDrawYesRow;
-                Gp_DialogCmdFns[1] = itemMenuDrawNoRow;
-                menu->itemCount    = 2;
+            case ITEM_MENU_DIALOG_NO_SELECTED:
+                Gp_DialogCmdFns[0]    = itemMenuDrawYesRow;
+                Gp_DialogCmdFns[1]    = itemMenuDrawNoRow;
+                dialogList->itemCount = ARRAY_SIZE(Gp_DialogCmdFns);
                 break;
             default:
-                Gp_DialogCmdFns[0] = itemMenuDrawYesRow;
-                Gp_DialogCmdFns[1] = itemMenuDrawNoRow;
-                menu->itemCount    = 2;
+                Gp_DialogCmdFns[0]    = itemMenuDrawYesRow;
+                Gp_DialogCmdFns[1]    = itemMenuDrawNoRow;
+                dialogList->itemCount = ARRAY_SIZE(Gp_DialogCmdFns);
                 break;
         }
-        menu->visibleRowCount.unsignedValue = menu->itemCount;
-        uiFitPanelToList(menu, &(obj)->panel);
-        obj->panel.bounds.unsignedRect.y -= (s16)obj->panel.bounds.unsignedRect.h / 2;
-        if (arg0->spawnArg1.value & 0x10) {
-            uiSetListSystemCursorSound(menu, 1);
+        dialogList->visibleRowCount.unsignedValue = dialogList->itemCount;
+        uiFitPanelToList(dialogList, &object->panel);
+        object->panel.bounds.unsignedRect.y -= (s16)object->panel.bounds.unsignedRect.h / 2;
+        if (task->spawnArg1.value & ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND) {
+            uiSetListSystemCursorSound(dialogList, 1);
         } else {
-            uiSetListSystemCursorSound(menu, 0);
+            uiSetListSystemCursorSound(dialogList, 0);
         }
-        if ((arg0->spawnArg1.value & 0xF) == 3) {
-            menu->selectedItemIndex = 1;
+        if ((task->spawnArg1.value & ITEM_MENU_DIALOG_LAYOUT_MASK) == ITEM_MENU_DIALOG_NO_SELECTED) {
+            dialogList->selectedItemIndex = 1;
         } else {
-            menu->selectedItemIndex = 0;
+            dialogList->selectedItemIndex = 0;
         }
-        arg0->state = arg0->state + 1;
+        task->state = task->state + 1;
     }
-    uiUpdateList(menu, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        sel = menu->actionResult;
-        if (sel == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->result      = sel;
-            obj->resultValue = menu->commandResult.unsignedValue;
+    uiUpdateList(dialogList, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        actionResult = dialogList->actionResult;
+        if (actionResult == USER_INTERFACE_RESULT_CONFIRM) {
+            object->result      = actionResult;
+            object->resultValue = dialogList->commandResult.unsignedValue;
         }
     }
 }
@@ -1355,25 +1379,26 @@ void func_800CCDC8(Task* arg0)
     func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 }
 
-/// Body of `Gp_DrawQty`: prints the count `arg3` in colour `arg4` at row
-/// position (`arg1`, `arg2`) of `arg0`, then lays out the box beside it.
-/// Inlined where a caller draws a count without the call.
-static inline void _gpDrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+/// Draws the quantity and its recessed row box using a wrapped 16-bit Y origin.
+///
+/// Uses `itemMenuDrawQuantity`'s drawing contract. The u16 intermediate preserves
+/// the panel-coordinate wrap before the signed row offset is added.
+static inline void _itemMenuDrawQuantity(const UiObject* object, s32 x, s32 y, s32 quantity, s32 colorRgb)
 {
-    u8          buf[0x20];
-    TextDrawReq req;
-    u16         y;
+    u8          quantityText[0x20];
+    TextDrawReq textRequest;
+    u16         textBaseY;
 
-    req.x          = arg0->panel.contentOriginX.unsignedValue + 0x84 + arg1;
-    y              = arg0->panel.contentOriginY.unsignedValue - 3;
-    req.y          = y + arg2;
-    req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg4;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, textItoaSigned(buf, arg3));
-    uiDrawRecessedRect(&arg0->panel, (arg1 + 0x69), (arg2 - 8), 0x1B, 7, 0x102010);
+    textRequest.x          = object->panel.contentOriginX.unsignedValue + 0x84 + x;
+    textBaseY              = object->panel.contentOriginY.unsignedValue - 3;
+    textRequest.y          = textBaseY + y;
+    textRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    textRequest.colorRgb   = colorRgb;
+    textRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    textRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+    textRequest.drawMode   = TEXT_DRAW_FILL_ONLY;
+    textDrawString(&textRequest, textItoaSigned(quantityText, quantity));
+    uiDrawRecessedRect(&object->panel, (x + 0x69), (y - 8), 0x1B, 7, ITEM_MENU_RECESSED_FILL_COLOR);
 }
 
 void Gp_PickupTitleTask(Task* arg0)
@@ -1424,269 +1449,260 @@ void Gp_PickupTitleTask(Task* arg0)
         itemMenuDrawItemIcon(obj, x, y, item, ITEM_MENU_ICON_DEFAULT);
     }
     if ((u32)(item - 0xA0) < 0x20U) {
-        _gpDrawQty(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_PubItemQty, 0x606060);
+        _itemMenuDrawQuantity(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_PubItemQty, 0x606060);
     }
 }
 
-void Gp_PickupAskTask(Task* arg0)
+/// Creates a child dialog at the parent's lower-right content corner.
+///
+/// parent must be a live UiObject and layout an ITEM_MENU_DIALOG_* layout.
+/// The task owns the returned child. On success clears the parent's answer
+/// and transfers input; allocation failure returns NULL with parent unchanged.
+static inline UiObject* _itemMenuSpawnDialog(UiObject* parent, s32 layout)
 {
-    UiObject*           obj;
-    UiObject*           spawned;
-    UiObject*           childObj;
-    Task*               child;
-    InventoryItemRange* scan;
-    s32                 color;
-    s32                 one;
-    s32                 flag;
+    UiObject* dialog;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
-        spawned = uiSpawnObject(&D_8010EA98, 0, 1, 2, obj);
-        if (spawned != NULL) {
-            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
-            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
-            obj->resultValue                     = 0;
-            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
-        }
-        arg0->state = arg0->state + 1;
+    dialog = uiSpawnObject(&D_8010EA98, layout, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_DIALOG_OPEN_DELAY_TICKS, parent);
+    if (dialog != NULL) {
+        dialog->panel.bounds.unsignedRect.x = (parent->panel.contentOriginX.unsignedValue + parent->panel.contentRight.unsignedValue + 0xA) - dialog->panel.bounds.unsignedRect.w;
+        dialog->panel.bounds.unsignedRect.y = parent->panel.contentOriginY.unsignedValue + parent->panel.contentBottom.unsignedValue;
+        parent->resultValue                 = USER_INTERFACE_LIST_COMMAND_NONE;
+        parent->panel.control.word          = USER_INTERFACE_PANEL_INACTIVE;
     }
-    uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrMessage);
-    color = 0x606060;
-    one   = 1;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrPickupAsk, color, one, TEXT_ALIGNMENT_LEFT);
-    child = arg0->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        flag     = childObj->result;
-        if (flag != USER_INTERFACE_RESULT_CANCEL) {
-            if (flag == USER_INTERFACE_RESULT_CONFIRM) {
-                if (arg0->state == one) {
-                    if (childObj->resultValue == 0x33) {
-                        if (Gp_PubItemLoc < 0xC0U) {
-                            scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                            if (inventoryCanAddItem(scan, Gp_PubItemLoc) != 0) {
-                                inventoryGiveItem(scan, Gp_PubItemLoc, Gp_PubItemQty);
+    return dialog;
+}
+
+/// Asks whether to collect the published item and shows its obtained notice.
+///
+/// spawnArg2 is the live UiObject. State 0 attempts one Yes-selected child menu;
+/// state 1 accepts its answer. Ordinary ids below 0xC0 use the carried inventory,
+/// with a failed capacity check changed to No; ids 0xC0..0x1FF set a collection
+/// bit. A Yes answer waits for the obtained child to return CANCEL, then passes
+/// that result to the root while retaining the Yes answer in resultValue.
+static void _itemPickupAskTask(Task* task)
+{
+    enum {
+        ITEM_PICKUP_ASK_STATE_INIT        = 0,
+        ITEM_PICKUP_ASK_STATE_WAIT_ANSWER = 1,
+        ITEM_PICKUP_COLLECTION_ID_LIMIT   = 0x200
+    };
+    UiObject*           object;
+    UiObject*           childObject;
+    Task*               childTask;
+    InventoryItemRange* carriedItems;
+    s32                 textColorRgb;
+    s32                 drawMode;
+    s32                 childResult;
+
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == ITEM_PICKUP_ASK_STATE_INIT) {
+        _itemMenuSpawnDialog(object, ITEM_MENU_DIALOG_YES_SELECTED);
+        task->state = task->state + 1;
+    }
+    uiDrawPanelLabelWithChildFocus(&object->panel, Gp_StrMessage);
+    textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
+    drawMode     = TEXT_DRAW_OUTLINED;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrPickupAsk, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    childTask = task->firstChild;
+    if (childTask != NULL) {
+        childObject = childTask->spawnArg2.pointer;
+        childResult = childObject->result;
+        if (childResult != USER_INTERFACE_RESULT_CANCEL) {
+            if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
+                if (task->state == ITEM_PICKUP_ASK_STATE_WAIT_ANSWER) {
+                    // Recheck capacity before granting the published item.
+                    if (childObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
+                        if (Gp_PubItemLoc < (u32)(INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT)) {
+                            carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+                            if (inventoryCanAddItem(carriedItems, Gp_PubItemLoc) != 0) {
+                                inventoryGiveItem(carriedItems, Gp_PubItemLoc, Gp_PubItemQty);
                             } else {
-                                childObj->resultValue = 0x34;
+                                childObject->resultValue = USER_INTERFACE_LIST_COMMAND_NO;
                             }
-                        } else if (Gp_PubItemLoc < 0x200U) {
+                        } else if (Gp_PubItemLoc < (u32)ITEM_PICKUP_COLLECTION_ID_LIMIT) {
                             inventorySetCollectedBit(Gp_PubItemLoc);
                         }
                     }
-                    obj->resultValue = childObj->resultValue;
-                    if (obj->resultValue == 0x33) {
-                        uiSpawnObject(&D_8010F080, (s32)(Gp_PubItemLoc), 1, 1, obj);
-                        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                        uiStartTreeClosing(childObj, childObj->owner);
-                        arg0->state = arg0->state + 1;
+                    object->resultValue = childObject->resultValue;
+                    if (object->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
+                        uiSpawnObject(&D_8010F080, (s32)Gp_PubItemLoc, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                        object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                        uiStartTreeClosing(childObject, childObject->owner);
+                        task->state = task->state + 1;
                     } else {
-                        obj->result = USER_INTERFACE_RESULT_CANCEL;
+                        object->result = USER_INTERFACE_RESULT_CANCEL;
                     }
                 }
             }
         } else {
-            obj->result = flag;
+            object->result = childResult;
         }
     }
 }
 
-void Gp_PickupFullTask(Task* arg0)
+/// Shows an inventory-full warning and returns a No answer when OK is accepted.
+///
+/// spawnArg2 is the live UiObject. The warning attempts one OK child menu during
+/// initialization; acknowledgment reports CANCEL with command result No.
+static void _itemPickupInventoryFullTask(Task* task)
 {
+    enum { ITEM_PICKUP_FULL_STATE_INIT = 0 };
     Task*     childTask;
-    UiObject* obj;
-    UiObject* spawned;
-    UiObject* childObj;
-    s32       color;
-    s32       one;
+    UiObject* object;
+    UiObject* childObject;
+    s32       textColorRgb;
+    s32       drawMode;
 
-    obj = arg0->spawnArg2.pointer;
-    uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrWarning);
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
-        spawned = uiSpawnObject(&D_8010EA98, 1, 1, 2, obj);
-        if (spawned != NULL) {
-            spawned->panel.bounds.unsignedRect.x = (obj->panel.contentOriginX.unsignedValue + obj->panel.contentRight.unsignedValue + 0xA) - spawned->panel.bounds.unsignedRect.w;
-            spawned->panel.bounds.unsignedRect.y = obj->panel.contentOriginY.unsignedValue + obj->panel.contentBottom.unsignedValue;
-            obj->resultValue                     = 0;
-            obj->panel.control.word              = USER_INTERFACE_PANEL_INACTIVE;
-        }
-        arg0->state = arg0->state + 1;
+    object = task->spawnArg2.pointer;
+    uiDrawPanelLabelWithChildFocus(&object->panel, Gp_StrWarning);
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == ITEM_PICKUP_FULL_STATE_INIT) {
+        _itemMenuSpawnDialog(object, ITEM_MENU_DIALOG_OK);
+        task->state = task->state + 1;
     }
-    color = 0x606060;
-    one   = 1;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvFull, color, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, (const u8*)D_8010E588, color, one, TEXT_ALIGNMENT_LEFT);
-    childTask = arg0->firstChild;
+    textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
+    drawMode     = TEXT_DRAW_OUTLINED;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrInvFull, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, (const u8*)D_8010E588, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    childTask = task->firstChild;
     if (childTask != NULL) {
-        childObj = childTask->spawnArg2.pointer;
-        if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->result      = USER_INTERFACE_RESULT_CANCEL;
-            obj->resultValue = 0x34;
+        childObject = childTask->spawnArg2.pointer;
+        if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+            object->result      = USER_INTERFACE_RESULT_CANCEL;
+            object->resultValue = USER_INTERFACE_LIST_COMMAND_NO;
         }
     }
 }
 
-void Gp_ObtainedNoticeTask(Task* arg0)
+/// Shows the obtained item's name until timeout or permitted acknowledgment.
+///
+/// spawnArg2 is the live UiObject. spawnArg1's low 16 bits hold a valid catalogue
+/// item id; bit 16 disables Confirm/Cancel acknowledgment. The countdown advances
+/// every update, including while opening, and reports CANCEL only while active.
+static void _itemPickupObtainedNoticeTask(Task* task)
 {
-    UiObject* obj;
-    s32       item;
-    s32       width;
-    s32       temp;
-    s32       color;
-    s32       one;
-    const u8* text;
+    enum {
+        ITEM_PICKUP_OBTAINED_STATE_INIT     = 0,
+        ITEM_PICKUP_OBTAINED_NOTICE_UPDATES = 188,
+        ITEM_PICKUP_OBTAINED_ITEM_COLOR     = 0x037A78,
+        ITEM_PICKUP_OBTAINED_TIMEOUT_ONLY   = 0x10000
+    };
+    UiObject* object;
+    s32       itemId;
+    s32       contentWidth;
+    s32       noticeTextWidth;
+    s32       nameEndX;
+    s32       textColorRgb;
+    s32       drawMode;
+    const u8* itemName;
 
-    obj         = arg0->spawnArg2.pointer;
-    item        = (u16)arg0->spawnArg1.value;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
-    if (arg0->state == 0) {
-        arg0->killCountdown = 0xBC;
-        width               = textMeasureLineWidth(itemGetText(item, ITEM_TEXT_NAME, 0)) + 0xB;
-        temp                = textMeasureLineWidth((const u8*)Gp_StrObtained);
-        if (width < temp) {
-            width = temp;
+    object         = task->spawnArg2.pointer;
+    itemId         = (u16)task->spawnArg1.value;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, Gp_StrNotice);
+    if (task->state == ITEM_PICKUP_OBTAINED_STATE_INIT) {
+        task->killCountdown = ITEM_PICKUP_OBTAINED_NOTICE_UPDATES;
+        contentWidth        = textMeasureLineWidth(itemGetText(itemId, ITEM_TEXT_NAME, 0)) + 0xB;
+        noticeTextWidth     = textMeasureLineWidth((const u8*)Gp_StrObtained);
+        if (contentWidth < noticeTextWidth) {
+            contentWidth = noticeTextWidth;
         }
-        uiSetPanelContentSize(&(obj)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
-        (&(obj)->panel)->bounds.rect.x = (-(&(obj)->panel)->bounds.rect.w) >> 1;
-        arg0->state                    = arg0->state + 1;
+        uiSetPanelContentSize(&object->panel, contentWidth + 5, uiGetTextRowsHeight(2) + 1);
+        object->panel.bounds.rect.x = (-object->panel.bounds.rect.w) >> 1;
+        task->state                 = task->state + 1;
     }
-    color = 0x606060;
-    one   = 1;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrObtained, color, one, TEXT_ALIGNMENT_LEFT);
-    text = itemGetText(item, ITEM_TEXT_NAME, 0);
-    temp = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, 0x37A78, one, TEXT_ALIGNMENT_LEFT);
-    textDrawUiLine(obj, temp, obj->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, color, one, TEXT_ALIGNMENT_LEFT);
-    arg0->killCountdown--;
-    if (obj->panel.control.word == one) {
-        if ((arg0->killCountdown <= 0) ||
-            (((arg0->spawnArg1.value & 0x10000) == 0) &&
+    textColorRgb = ITEM_MENU_PANEL_TEXT_COLOR;
+    drawMode     = TEXT_DRAW_OUTLINED;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrObtained, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    itemName = itemGetText(itemId, ITEM_TEXT_NAME, 0);
+    nameEndX = textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, itemName, ITEM_PICKUP_OBTAINED_ITEM_COLOR, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, nameEndX, object->panel.contentTop.signedValue + 0x1E, (const u8*)Gp_StrDot, textColorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    task->killCountdown--;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        if ((task->killCountdown <= 0) ||
+            (((task->spawnArg1.value & ITEM_PICKUP_OBTAINED_TIMEOUT_ONLY) == 0) &&
              (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0))) {
-            obj->result         = USER_INTERFACE_RESULT_CANCEL;
-            arg0->killCountdown = 0x7FFF;
+            object->result      = USER_INTERFACE_RESULT_CANCEL;
+            task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
         }
     }
 }
 
-static UiObject* func_800CD704(UiObject* arg0)
+/// Opens an OK child menu below a live parent and transfers input on success.
+///
+/// Returns a task-owned UiObject, or NULL with parent unchanged on failure.
+static UiObject* _itemMenuSpawnOkMenu(UiObject* parent)
 {
-    UiObject* obj;
-
-    obj = uiSpawnObject(&D_8010EA98, 1, 1, 2, arg0);
-    if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->resultValue                = 0;
-        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
-    }
-    return obj;
+    return _itemMenuSpawnDialog(parent, ITEM_MENU_DIALOG_OK);
 }
 
-static UiObject* func_800CD78C(UiObject* arg0)
+/// Opens a Cancel child menu below a live parent and transfers input on success.
+///
+/// Returns a task-owned UiObject, or NULL with parent unchanged on failure.
+static UiObject* _itemMenuSpawnCancelMenu(UiObject* parent)
 {
-    UiObject* obj;
-
-    obj = uiSpawnObject(&D_8010EA98, 2, 1, 2, arg0);
-    if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->resultValue                = 0;
-        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
-    }
-    return obj;
+    return _itemMenuSpawnDialog(parent, ITEM_MENU_DIALOG_CANCEL);
 }
 
-UiObject* func_800CD814(UiObject* arg0)
+UiObject* itemMenuSpawnYesNoMenu(UiObject* parent)
 {
-    UiObject* obj;
-
-    obj = uiSpawnObject(&D_8010EA98, 0, 1, 2, arg0);
-    if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->resultValue                = 0;
-        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
-    }
-    return obj;
+    return _itemMenuSpawnDialog(parent, ITEM_MENU_DIALOG_YES_SELECTED);
 }
 
-UiObject* func_800CD89C(UiObject* arg0)
+UiObject* itemMenuSpawnYesNoMenuDefaultNo(UiObject* parent)
 {
-    UiObject* obj;
-
-    obj = uiSpawnObject(&D_8010EA98, 3, 1, 2, arg0);
-    if (obj != NULL) {
-        obj->panel.bounds.unsignedRect.x = (arg0->panel.contentOriginX.unsignedValue + arg0->panel.contentRight.unsignedValue + 0xA) - obj->panel.bounds.unsignedRect.w;
-        obj->panel.bounds.unsignedRect.y = arg0->panel.contentOriginY.unsignedValue + arg0->panel.contentBottom.unsignedValue;
-        arg0->resultValue                = 0;
-        arg0->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
-    }
-    return obj;
+    return _itemMenuSpawnDialog(parent, ITEM_MENU_DIALOG_NO_SELECTED);
 }
 
-void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+/// Draws a visible item's name, equipment mark, P.E. level and icon.
+///
+/// Uses `itemMenuDrawItemRow`'s coordinates, catalogue and GPU-storage contract.
+static inline void _itemMenuDrawItemRowContents(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState)
 {
-    TextDrawReq req;
-    s32         temp;
-    s32         y;
+    TextDrawReq nameRequest;
+    s32         energyLevelIndex;
+    s32         textBaseY;
 
-    if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
-        req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + arg1;
-        y              = arg0->panel.contentOriginY.unsignedValue - 6;
-        req.y          = y + arg2;
-        req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.colorRgb   = arg4;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, itemGetText(arg3, ITEM_TEXT_NAME, 0));
-        if (arg5 != 0) {
-            itemMenuDrawEquipmentMarker(arg0, arg1, arg2, arg3, arg5);
+    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        nameRequest.x          = object->panel.contentOriginX.unsignedValue + 0x11 + x;
+        textBaseY              = object->panel.contentOriginY.unsignedValue - 6;
+        nameRequest.y          = textBaseY + y;
+        nameRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+        nameRequest.colorRgb   = colorRgb;
+        nameRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        nameRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+        nameRequest.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));
+        if (attachmentState != ITEM_MENU_ATTACHMENT_MARK_AUTOMATIC) {
+            itemMenuDrawEquipmentMarker(object, x, y, itemId, attachmentState);
         }
-        temp = arg3 - 0xF;
-        if ((u32)temp < 0x24U) {
-            itemMenuDrawParasiteEnergyLevel(arg0, arg1, arg2, temp % 3 + 1, arg4);
+        energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;
+        if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {
+            itemMenuDrawParasiteEnergyLevel(object, x, y, energyLevelIndex % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb);
         }
-        itemMenuDrawItemIcon(arg0, arg1, arg2, arg3, ITEM_MENU_ICON_DEFAULT);
+        itemMenuDrawItemIcon(object, x, y, itemId, ITEM_MENU_ICON_DEFAULT);
     }
 }
 
-void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+void itemMenuDrawItemRow(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState)
 {
-    TextDrawReq req;
-    s32         temp;
-    s32         y;
+    _itemMenuDrawItemRowContents(object, x, y, itemId, colorRgb, attachmentState);
+}
 
-    if (arg3 == 0) {
-        uiDrawRecessedRect(&arg0->panel, arg1, (arg2 - 0xE), 0xE, 0xE, 0x102010);
+void itemMenuDrawItemSlotRow(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState)
+{
+    if (itemId == INVENTORY_ITEM_NONE) {
+        uiDrawRecessedRect(&object->panel, x, (y - 0xE), 0xE, 0xE, ITEM_MENU_RECESSED_FILL_COLOR);
         return;
     }
-    if (arg0->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
-        req.x          = arg0->panel.contentOriginX.unsignedValue + 0x11 + arg1;
-        y              = arg0->panel.contentOriginY.unsignedValue - 6;
-        req.y          = y + arg2;
-        req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.colorRgb   = arg4;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, itemGetText(arg3, ITEM_TEXT_NAME, 0));
-        if (arg5 != 0) {
-            itemMenuDrawEquipmentMarker(arg0, arg1, arg2, arg3, arg5);
-        }
-        temp = arg3 - 0xF;
-        if ((u32)temp < 0x24U) {
-            itemMenuDrawParasiteEnergyLevel(arg0, arg1, arg2, temp % 3 + 1, arg4);
-        }
-        itemMenuDrawItemIcon(arg0, arg1, arg2, arg3, ITEM_MENU_ICON_DEFAULT);
-    }
-    uiDrawRecessedRect(&arg0->panel, arg1, (arg2 - 0xE), 0xE, 0xE, 0);
+    _itemMenuDrawItemRowContents(object, x, y, itemId, colorRgb, attachmentState);
+    uiDrawRecessedRect(&object->panel, x, (y - 0xE), 0xE, 0xE, 0);
 }
 
-void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void itemMenuDrawQuantity(const UiObject* object, s32 x, s32 y, s32 quantity, s32 colorRgb)
 {
-    _gpDrawQty(arg0, arg1, arg2, arg3, arg4);
+    _itemMenuDrawQuantity(object, x, y, quantity, colorRgb);
 }
 
 void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3, s32 arg4, s32 arg5)
@@ -1752,18 +1768,19 @@ void Gp_SetPreviewItem(s32 arg0, s32 arg1)
     _gpSetPreviewItem(arg0, arg1);
 }
 
-void Gp_ClearPreviewItems(void)
+void itemMenuClearPreviewItems(void)
 {
-    s32* p;
-    s32  val;
+    enum { ITEM_MENU_PREVIEW_EMPTY = -1 };
+    s32* previewItemIds;
+    s32  emptyItemId;
 
-    p    = Gp_PreviewItems;
-    val  = -1;
-    p[2] = val;
-    p[1] = val;
-    p[0] = val;
-    p[3] = val;
-    p[4] = val;
+    previewItemIds    = Gp_PreviewItems;
+    emptyItemId       = ITEM_MENU_PREVIEW_EMPTY;
+    previewItemIds[2] = emptyItemId;
+    previewItemIds[1] = emptyItemId;
+    previewItemIds[0] = emptyItemId;
+    previewItemIds[3] = emptyItemId;
+    previewItemIds[4] = emptyItemId;
 }
 
 void Gp_CheckItemInfoButton(UiObject* arg0)
@@ -1809,46 +1826,55 @@ void Gp_SpawnPickupUiTask(Task* arg0)
     }
 }
 
-void Gp_PickupResultTask(Task* arg0)
+void itemPickupHandleResultTask(Task* task)
 {
-    UiObject* obj;
+    enum {
+        ITEM_PICKUP_BANK_ITEM           = 0,
+        ITEM_PICKUP_BANK_KEY_ITEM       = 1,
+        ITEM_PICKUP_PLACE_COLLECTED     = 2,
+        ITEM_PICKUP_PLACE_REPLENISHABLE = 3,
+        ITEM_PICKUP_CLOSE_DELAY_UPDATES = 12
+    };
+    UiObject* object;
     Enemy*    enemy;
 
-    obj   = arg0->spawnArg1.pointer;
-    enemy = arg0->spawnArg2.pointer;
-    switch (obj->result) {
+    object = task->spawnArg1.pointer;
+    enemy  = task->spawnArg2.pointer;
+    switch (object->result) {
         case USER_INTERFACE_RESULT_CANCEL:
-            if (obj->resultValue == 0x33) {
-                enemy->workType = 0;
+            // The obtained notice closes with CANCEL while retaining the Yes answer.
+            if (object->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
+                enemy->workType = INVENTORY_ITEM_NONE;
             }
+            // Fall through to the common prompt-closing path.
         case USER_INTERFACE_RESULT_CONFIRM:
             switch (Gp_PubItemLoc >> 8) {
-                case 0:
-                case 1:
-                    if (obj->resultValue == 0x33) {
-                        if (areaGetCurrentObjectState((u8)enemy->placeKey) != 3) {
-                            areaSetCurrentObjectState((u8)enemy->placeKey, 2);
+                case ITEM_PICKUP_BANK_ITEM:
+                case ITEM_PICKUP_BANK_KEY_ITEM:
+                    if (object->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
+                        if (areaGetCurrentObjectState((u8)enemy->placeKey) != ITEM_PICKUP_PLACE_REPLENISHABLE) {
+                            areaSetCurrentObjectState((u8)enemy->placeKey, ITEM_PICKUP_PLACE_COLLECTED);
                         }
                     }
                     break;
             }
 
-            uiStartTreeClosing(obj, obj->owner);
+            uiStartTreeClosing(object, object->owner);
             Wip_UiHolder         = NULL;
             gGameSession->uiOpen = 0;
-            arg0->killCountdown  = 0xC;
-            arg0->state          = arg0->state + 1;
+            task->killCountdown  = ITEM_PICKUP_CLOSE_DELAY_UPDATES;
+            task->state          = task->state + 1;
             break;
     }
 }
 
-void func_800CE188(Task* arg0)
+void itemPickupRestoreFrameTimingTask(Task* task)
 {
-    arg0->killCountdown--;
-    if (arg0->killCountdown <= 0) {
+    task->killCountdown--;
+    if (task->killCountdown <= 0) {
         displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-        arg0->killCountdown = 1;
-        arg0->state         = arg0->state + 1;
+        task->killCountdown = 1;
+        task->state         = task->state + 1;
     }
 }
 

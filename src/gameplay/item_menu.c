@@ -433,7 +433,7 @@ void Gp_ItemMoveTask(Task* arg0)
     if (arg0->state == 0) {
         Wip_UiHolder = NULL;
         D_80067634   = NULL;
-        Gp_ClearPreviewItems();
+        itemMenuClearPreviewItems();
         work = memCalloc(sizeof(*work), 0);
         i    = 0;
         if (work == NULL) {
@@ -519,14 +519,14 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
         }
     }
     if (arg1->owner->spawnArg1.value == 0) {
-        Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
+        itemMenuDrawItemRow(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     } else if (rec->attachSlot <= INVENTORY_ATTACHMENT_NONE) {
-        Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 1);
+        itemMenuDrawItemRow(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 1);
     } else {
-        Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 2);
+        itemMenuDrawItemRow(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 2);
     }
     if (item >= 0xA0 && item < 0xC0) {
-        Gp_DrawQty(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, rec->qty, arg0->colorRgb);
+        itemMenuDrawQuantity(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, rec->qty, arg0->colorRgb);
     }
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         Gp_SelItemRec = rec;
@@ -1011,7 +1011,7 @@ void func_800BDF6C(Task* task)
         task->state       = task->state + 1;
     }
     split = task->work;
-    Gp_DrawItemLabel(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, task->spawnArg1.value, 0x606060, 0);
+    itemMenuDrawItemRow(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, task->spawnArg1.value, 0x606060, 0);
     task->status = 0;
     totalQty     = split->containerQty + split->carriedQty;
     color        = 0x606060;

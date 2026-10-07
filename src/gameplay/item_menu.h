@@ -178,19 +178,41 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
 
 void Gp_CheckItemInfoButton(UiObject* arg0);
 
-void Gp_DrawItemNameRow(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+/// Draws an item row with a recessed icon slot, including an empty slot for id 0.
+///
+/// Uses `itemMenuDrawItemRow`'s coordinates, catalogue and drawing contract.
+/// The 14-pixel icon frame is drawn even when the panel is hidden; an empty
+/// slot uses a dark fill, while a populated slot has an unfilled frame.
+void itemMenuDrawItemSlotRow(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState);
 
 void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
 
 void Gp_ItemCmdMenuTask(Task* arg0);
 
-void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
+/// Applies an inventory recovery item or Healing P.E., then shows restored stats.
+///
+/// object and task must remain live through the panel updates. healingId is
+/// Recovery1/2/3 (1..3), Cola (5), MP Boost1/2 (6..7), Ringer's Solution (61),
+/// or a validated packed Healing P.E. id. Item use borrows `Gp_SelItemRec`
+/// and consumes one only when the affected HP/MP is below maximum. Spell use
+/// requires the caller to check MP affordability. State 0 applies the effect
+/// once; later updates wait for the displayed HP/MP to catch up, then count
+/// down from 188 on active updates. Confirm/Cancel or timeout reports DISMISS and
+/// synchronizes the displayed values with live stats.
+void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId);
 
 void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
 
 void func_800CC41C(UiObject* arg0, Task* arg1);
 
-void Gp_YesNoMenuTask(Task* arg0);
+/// Updates the shared OK, Cancel or Yes/No dialog list and publishes its answer.
+///
+/// task->spawnArg2 is its live UiObject. The first spawn argument selects an
+/// `ITEM_MENU_DIALOG_*` layout and optional system cursor sound; other low-nibble
+/// values select Yes/No with Yes selected. State 0 sizes and positions the list.
+/// Active confirmation returns CONFIRM with a `USER_INTERFACE_LIST_COMMAND_*`
+/// resultValue. Each update clears result before polling the shared list.
+void itemMenuDialogTask(Task* task);
 
 void Gp_PeListPanelTask(Task* arg0);
 
@@ -198,13 +220,29 @@ void Gp_ItemCountHeaderTask(Task* arg0);
 
 void Gp_PickupTask(Task* arg0);
 
-UiObject* func_800CD814(UiObject* arg0);
+/// Opens a Yes/No child menu with Yes selected, transferring input from parent.
+///
+/// Uses `itemMenuSpawnYesNoMenuDefaultNo`'s positioning, ownership, failure and
+/// result contract, with the initial selection on Yes instead.
+UiObject* itemMenuSpawnYesNoMenu(UiObject* parent);
 
 void Gp_SpawnPickupUiTask(Task* arg0);
 
-void Gp_PickupResultTask(Task* arg0);
+/// Finishes a placed-object prompt, records an accepted pickup and closes its UI.
+///
+/// task->spawnArg1 borrows the live root UiObject and spawnArg2 its source Enemy.
+/// CANCEL plus a Yes answer represents a collected item after its notice ends:
+/// clear the source kind, then share the CONFIRM closing path. Ordinary pickup
+/// banks 0/1 store place state 2 on Yes, preserving replenishable state 3.
+/// Both closing paths release the UI hold and start a twelve-update delay before
+/// the next pickup dispatcher state restores frame timing.
+void itemPickupHandleResultTask(Task* task);
 
-void func_800CE188(Task* arg0);
+/// Waits for pickup closing to finish, then restores two-VBlank gameplay timing.
+///
+/// Counts down once per dispatcher update. At zero, advances to the exit state
+/// with a one-update delay; the following state releases the UI primitive buffer.
+void itemPickupRestoreFrameTimingTask(Task* task);
 
 void Gp_PickupExitTask(Task* arg0);
 

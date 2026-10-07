@@ -743,7 +743,7 @@ static inline void Telephone_MenuTask(Task* task)
         obj->panel.control.word = one;
         gGameSession->uiOpen    = one;
         uiSetListSystemCursorSound(list, 1);
-        Gp_ClearPreviewItems();
+        itemMenuClearPreviewItems();
         D_80067634   = NULL;
         Wip_UiHolder = NULL;
         task->state  = task->state + 1;

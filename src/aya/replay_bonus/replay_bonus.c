@@ -356,7 +356,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
             return;
         }
-        Gp_ClearPreviewItems();
+        itemMenuClearPreviewItems();
         D_80067634 = 0;
         func_replay_bonus_80115D60(list, obj);
         uiFitPanelToList(list, &(obj)->panel);
@@ -658,9 +658,9 @@ void func_replay_bonus_80116964(Task* arg0)
         uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 4);
         arg0->state = arg0->state + 1;
     } else if (arg0->state == 1) {
-        spawned = func_800CD89C(obj);
+        spawned = itemMenuSpawnYesNoMenuDefaultNo(obj);
         if (spawned != NULL) {
-            spawned->owner->spawnArg1.value      |= 0x10;
+            spawned->owner->spawnArg1.value      |= ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND;
             spawned->panel.bounds.unsignedRect.y += 0x10;
             arg0->state                           = arg0->state + 1;
         }

@@ -21,8 +21,8 @@
 #include "main/ui.h"
 #include "main/wipsys_types.h"
 
-/// Five-entry dispatcher table: `Gp_PublishItemObj`, `Gp_SpawnPickupUiTask`, `Gp_PickupResultTask`,
-/// `func_800CE188`, `Gp_PickupExitTask`. Copied onto the stack by `func_800CE22C`.
+/// Five-entry dispatcher table: `Gp_PublishItemObj`, `Gp_SpawnPickupUiTask`, `itemPickupHandleResultTask`,
+/// `itemPickupRestoreFrameTimingTask`, `Gp_PickupExitTask`. Copied onto the stack by `func_800CE22C`.
 extern const TaskFuncTable5 D_80096E70;
 
 static void func_800CE398(s32 arg0);
@@ -128,7 +128,7 @@ UiObjectTaskFunc D_8010D3A0[96] = {
     NULL,
 };
 
-const TaskFuncTable5 D_80096E70 = { { Gp_PublishItemObj, Gp_SpawnPickupUiTask, Gp_PickupResultTask, func_800CE188, Gp_PickupExitTask } };
+const TaskFuncTable5 D_80096E70 = { { Gp_PublishItemObj, Gp_SpawnPickupUiTask, itemPickupHandleResultTask, itemPickupRestoreFrameTimingTask, Gp_PickupExitTask } };
 
 // "EXP"
 // "MP"
@@ -190,7 +190,7 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
     if (mem != NULL) {
         arg1->work = mem;
         if (gGameSession->cutsceneHold == 1) {
-            Gp_ClearPreviewItems();
+            itemMenuClearPreviewItems();
             uiSpawnObject(&D_8010EB94, 0, 1, 8, arg0);
             scale = 2;
         } else {

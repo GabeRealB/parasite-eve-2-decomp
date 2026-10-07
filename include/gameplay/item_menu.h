@@ -28,15 +28,49 @@ void func_800CE5D0(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 void func_800CE22C(Task* arg0);
 
-void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+/// Draws an item's name, icon and optional equipment mark in a menu row.
+///
+/// x/y are pixels at the icon's bottom-left relative to the panel content
+/// origin; the name starts at x + 17, y - 6. itemId must satisfy `itemGetText`
+/// and the item-icon catalogue contract. Ordinary P.E. items 15..50 also show
+/// level 1..3. attachmentState 0 omits the E/L/A mark, 1 allows E/L, and 2
+/// also allows A. Hidden panels draw nothing. Requires menu/text textures and
+/// writable GPU primitive and ordering-table storage.
+void itemMenuDrawItemRow(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState);
 
-void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+/// Draws a right-aligned signed quantity in a recessed box beside an item row.
+///
+/// x/y are panel-relative row pixels; the number ends at x + 132, y - 3.
+/// quantity follows `textItoaSigned`'s range and saturation; colorRgb is packed
+/// 24-bit RGB. The origin-Y subtraction wraps to u16 before adding y.
+/// Requires text textures and writable GPU primitive and ordering-table storage.
+void itemMenuDrawQuantity(const UiObject* object, s32 x, s32 y, s32 quantity, s32 colorRgb);
 
 void Gp_SetPreviewItem(s32 arg0, s32 arg1);
 
-void Gp_ClearPreviewItems(void);
+/// Marks all five requested item-preview slots empty (-1).
+///
+/// The slot ids change immediately; loaded resources and queued CD requests
+/// remain owned by the preview loader. Resource readiness is checked separately.
+void itemMenuClearPreviewItems(void);
 
-UiObject* func_800CD89C(UiObject* arg0);
+/// Dialog layouts in the low nibble of the content task's first spawn argument.
+enum {
+    ITEM_MENU_DIALOG_YES_SELECTED        = 0,
+    ITEM_MENU_DIALOG_OK                  = 1,
+    ITEM_MENU_DIALOG_CANCEL              = 2,
+    ITEM_MENU_DIALOG_NO_SELECTED         = 3,
+    ITEM_MENU_DIALOG_LAYOUT_MASK         = 0xF,
+    ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND = 0x10
+};
+
+/// Opens a Yes/No child menu with No selected, transferring input from parent.
+///
+/// parent must be a live task-owned UI object. Returns its task-owned child,
+/// or NULL without changing parent on allocation failure. The child opens after
+/// two nominal 60-Hz ticks, at the parent's lower-right content corner. Its
+/// CONFIRM result carries `USER_INTERFACE_LIST_COMMAND_YES` or `_NO`.
+UiObject* itemMenuSpawnYesNoMenuDefaultNo(UiObject* parent);
 
 void func_800C5F70(Task* arg0);
 

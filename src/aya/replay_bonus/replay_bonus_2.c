@@ -284,7 +284,7 @@ static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id
     u8 buf[0x20];
 
     itemSetIdentified(id, 1);
-    Gp_DrawItemLabel(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, id, 0x606060, 0);
+    itemMenuDrawItemRow(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, id, 0x606060, 0);
     textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, textItoaSigned(buf, replayBonusItemBp(id)), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
                    TEXT_ALIGNMENT_RIGHT);
 }

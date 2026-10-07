@@ -331,7 +331,7 @@ UiListRowCallback Gp_DialogCmdFns[2] = {
 
 UiList D_8010EA74 = { Gp_DialogCmdFns, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiObjectDesc D_8010EA98 = { 0, { 0, 0, 48, 32 }, 4, 0, TASK_BODY_NONE, 192, Gp_YesNoMenuTask, 0 };
+UiObjectDesc D_8010EA98 = { 0, { 0, 0, 48, 32 }, 4, 0, TASK_BODY_NONE, 192, itemMenuDialogTask, 0 };
 
 /// Indexed by menu command ID; empty rows reserve unused commands.
 UiObjectDesc D_8010EAB4[50] = {
@@ -396,7 +396,7 @@ void Gp_MenuRootTask(Task* arg0)
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             D_80114D88 = 0;
             SndEvt_EnqueueTypeD();
-            Gp_ClearPreviewItems();
+            itemMenuClearPreviewItems();
             D_80067634 = NULL;
             D_80114DE0 = -1;
             cfg        = &gPlayerStatus;

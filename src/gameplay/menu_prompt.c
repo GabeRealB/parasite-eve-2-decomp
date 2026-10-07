@@ -774,7 +774,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         item += 0x5F;
         color = 0x606060;
         attr  = &Gp_ModStatAttrs[(item)-0x60];
-        Gp_DrawItemLabel(obj, x, y, item, color, 0);
+        itemMenuDrawItemRow(obj, x, y, item, color, 0);
 
         y               = base + 0x1D;
         req1.x          = obj->panel.contentOriginX.unsignedValue + 0x20 + x;
@@ -986,7 +986,7 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         item += 0x7F;
     }
     color = 0x606060;
-    Gp_DrawItemLabel(PARENT_OF(arg0, UiObject, panel), arg1, arg2, item, color, 0);
+    itemMenuDrawItemRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, item, color, 0);
     uiDrawHorizontalSeparator(arg0, arg0->contentLeft.signedValue, arg0->contentRight.signedValue, arg0->contentTop.signedValue + 0x11);
     arg2          += 7;
     req.x          = arg0->contentOriginX.unsignedValue + arg1;
@@ -1004,17 +1004,17 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
             loadedItemId = slot->primaryItemId;
             count        = slot->primaryQty;
             if (loadedItemId != 0) {
-                Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
+                itemMenuDrawQuantity(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
             }
-            Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
+            itemMenuDrawItemSlotRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
             if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
                 loadedItemId = slot->secondaryItemId;
                 count        = slot->secondaryQty;
                 arg2        += 0x10;
                 if (loadedItemId != 0) {
-                    Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
+                    itemMenuDrawQuantity(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
                 }
-                Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
+                itemMenuDrawItemSlotRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
             }
         }
     }

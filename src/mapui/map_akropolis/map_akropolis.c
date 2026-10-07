@@ -267,7 +267,7 @@ static void func_map_akropolis_80179E8C(Task* task)
 
     if (task->state == 0) {
         Stage_InitPrimBufOnce();
-        Gp_ClearPreviewItems();
+        itemMenuClearPreviewItems();
         obj = uiSpawnObject(&D_map_akropolis_8017A9E4, task->spawnArg1, 1, 1, NULL);
         if (obj == NULL) {
             return;

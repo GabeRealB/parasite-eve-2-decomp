@@ -1017,7 +1017,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
         i++;
     } while (i < 10);
 
-    Gp_DrawItemLabel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
+    itemMenuDrawItemRow(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
     status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
