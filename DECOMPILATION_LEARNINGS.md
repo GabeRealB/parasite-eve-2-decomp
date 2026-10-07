@@ -70596,7 +70596,7 @@ Two constraints on the wrap:
 
 ## `lui %hi(table)` in the delay slot before `sll idx,2`: index the table inline, not through `p = &T[i]`
 
-`func_actor_342400_801626CC` bounds-checks an `s16` index, then reads two
+`_actor342400InCullZone` bounds-checks an `s16` index, then reads two
 fields of a 4-byte record. The target fills the check's `bnez` delay slot with
 `lui v0,%hi(T)` and computes `addiu`, `sll v1,v1,2`, `addu a0,v1,v0` after it.
 `p = &T[i]` (or `T + i`) expands the `sll` *before* the `high`/`lo_sum`; all
@@ -70758,7 +70758,7 @@ at priority 1 in sched1 - swapping `coord = obj->field_8;` above
 `enemy = index->spawnArg2;` changed their luids and matched.
 
 ### LCG draw indexing a table: write the `gRandomLcgState` update inside the index
-`func_actor_342400_801624A4` returns `table[row][rng >> 16 & 3]` after an LCG step.
+`_actor342400PickEncounterSpot` returns `table[row][rng >> 16 & 3]` after an LCG step.
 Target loads the constant and `lui/addiu %hi/%lo(table)` *before* `lw gRandomLcgState`
 (`$a2` = constant, `$a0` = table, `$v1` = new state). Writing the update as a
 statement (`gRandomLcgState = gRandomLcgState * 5 + 0x71357911; return T[k][gRandomLcgState >> 16 & 3];`,
@@ -86095,7 +86095,7 @@ wrong stride; the shift pair is the only place it shows.
 **The instruction order.** The remaining `reorder=2` was `sll`/`sra` emitted
 *before* `lui`/`addiu`, where the target leads with the symbol. `&T[i]` (or
 `T + i`) expands the index offset after the base, so the scaling is emitted
-first — the same asymmetry `[30]` records for `func_actor_342400_801626CC`.
+first — the same asymmetry `[30]` records for `_actor342400InCullZone`.
 Writing `T[i].vx` / `T[i].vy` / `T[i].vz` at every use with no pointer local
 lets CSE build the address symbol-first: 100%, and it matches the house shape
 already in the tree (`src/actors/actor_503500/actor_503500_6.c` writes
