@@ -8,7 +8,7 @@
 /// The task tables a spawn selects by bank number instead of by address, one
 /// entry per bank.
 ///
-/// `Task_Spawn` and `Task_GetDesc` pick a bank here and then index the
+/// `taskSpawn` and `taskGetDesc` pick a bank here and then index the
 /// `TaskDesc` run it points at. Several banks share one table.
 extern TaskDesc* gTaskDescBanks[15];
 

@@ -1164,7 +1164,7 @@ void func_actor_535700_80131F2C(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 5;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
         gDisplayState.spriteVariant                                = 1;
-        Task_Spawn(0, 0x11, 0, 0);
+        taskSpawn(0, 0x11, 0, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
         Gp_RestoreStreamRng();
     }

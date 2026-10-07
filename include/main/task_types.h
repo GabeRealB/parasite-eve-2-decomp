@@ -364,7 +364,7 @@ typedef struct Task {
     TaskBody                       extra;         // The body the task owns, attached and released according to `bodyKind`
     s32                            state;         // Callback-defined state or counter, often an index into a handler table
     TaskSpawnArg                   spawnArg1;     // First mutable payload word; callback defines values, pointer type and lifetime
-    u8                             status;        // Callback-defined byte; 0xFF signals a stop request to Task_PollKill
+    u8                             status;        // Callback-defined byte; 0xFF signals a stop request to taskPollKill
     byte                           unknown_39[3]; // No field access established; role unproven
     union {
         s32   value;

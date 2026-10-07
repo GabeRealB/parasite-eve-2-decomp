@@ -31,7 +31,7 @@ s32 D_dryfield_warehouse_801821B8;
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// Cutscene task spawned by state 0, polled by `Task_PollKill` in state 1 and
+/// Cutscene task spawned by state 0, polled by `taskPollKill` in state 1 and
 /// killed along with its parent in state 2.
 extern Task* D_dryfield_warehouse_801821B4;
 
@@ -281,7 +281,7 @@ void func_dryfield_warehouse_8017D8D4(Task* arg0)
             arg0->state                  += 1;
             return;
         case 1:
-            if (Task_PollKill(D_dryfield_warehouse_801821B4, &sp10) != 0) {
+            if (taskPollKill(D_dryfield_warehouse_801821B4, &sp10) != 0) {
                 arg0->state += 1;
                 return;
             }

@@ -1508,7 +1508,7 @@ static void Text_UiTaskCallback(Task* task)
         temp                = task->killCountdown - gDisplayState.frameTicks;
         task->killCountdown = temp;
         if (temp <= 0) {
-            Task_Spawn(0, 2, 0xC, 0);
+            taskSpawn(0, 2, 0xC, 0);
             taskCallExit(task);
         }
     }

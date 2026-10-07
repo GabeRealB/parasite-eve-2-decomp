@@ -640,7 +640,7 @@ static void _modelObjectStashLists(void)
     gTmdList.prev                  = &gTmdList;
     gModelObjectCoordBodyList.next = NULL;
     gModelObjectCoordBodyList.prev = &gModelObjectCoordBodyList;
-    _gModelObjectTemporaryDrawTask = Task_Spawn(0, MODEL_OBJECT_STASH_DRAW_TASK, 0, 0);
+    _gModelObjectTemporaryDrawTask = taskSpawn(0, MODEL_OBJECT_STASH_DRAW_TASK, 0, 0);
 }
 
 /// Stops the temporary draw task and restores the saved lists to their sentinels.

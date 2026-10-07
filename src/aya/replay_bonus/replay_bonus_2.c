@@ -929,7 +929,7 @@ void func_replay_bonus_80118C64(Task* arg0)
             arg0->state            += 1;
             break;
         case 1:
-            if (Task_PollKill(D_replay_bonus_80119228, &poll) != 0) {
+            if (taskPollKill(D_replay_bonus_80119228, &poll) != 0) {
                 t                        = arg0;
                 D_replay_bonus_80119227  = 0x78;
                 D_replay_bonus_80119226 ^= 1;

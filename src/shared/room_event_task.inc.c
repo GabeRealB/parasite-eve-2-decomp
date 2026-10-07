@@ -46,7 +46,7 @@ void roomEventTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = gRoomEventMsg.areaId;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gRoomEventMsg.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = (u8)gRoomEventMsg.room;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
     }

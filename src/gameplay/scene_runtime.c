@@ -1114,7 +1114,7 @@ static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent)
     Task*  task;
     Enemy* ret;
 
-    task = Task_Spawn(bank, type, arg2, 0);
+    task = taskSpawn(bank, type, arg2, 0);
     if (task != NULL) {
         ret = Gp_AllocEnemy(task, parent);
     } else {
@@ -1362,7 +1362,7 @@ static void Gp_StageLoadState2(Task* task)
     s32           out;
     DisplayState* ds;
 
-    if (Task_PollKill(task->spawnArg2.pointer, &out) != 0) {
+    if (taskPollKill(task->spawnArg2.pointer, &out) != 0) {
         ds                          = &gDisplayState;
         task->killCountdown         = 0;
         ds->gameMode                = DISPLAY_GAME_RESTART;

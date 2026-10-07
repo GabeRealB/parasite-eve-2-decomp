@@ -1422,7 +1422,7 @@ void func_acropolis_fountain_8017DA1C(void)
 
 void func_acropolis_fountain_8017DA78(s32 unused0, s32 unused1)
 {
-    Task_Spawn(2, 0xE, 0, 0);
+    taskSpawn(2, 0xE, 0, 0);
 }
 
 /// Takes scripted control and turns the player to face the ascent at yaw 2048.

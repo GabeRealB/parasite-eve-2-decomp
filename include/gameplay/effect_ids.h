@@ -3,7 +3,7 @@
 
 /// Effect ids for `Gp_SpawnEff` and the room effect slots.
 ///
-/// An id packs the `Task_Spawn` bank in bits 16..30 and the task type in the
+/// An id packs the `taskSpawn` bank in bits 16..30 and the task type in the
 /// low 16 bits. Bank 6 is the gameplay effect table `D_8010FC2C`, whose slot is
 /// the effect's own identifier; many slots hold one room's private handler.
 /// `EFFECT_<HHH>` is a placeholder for an effect whose look is not yet known.

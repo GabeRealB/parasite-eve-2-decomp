@@ -2687,7 +2687,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 /// message (`gGameSession->battleResetPending`), and state 7 -- reached once the save
 /// has not already banked this clear (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene`) -- applies the
 /// room's two area records, raises the progression flags, refills the party
-/// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
+/// and hands off to the results screen with `taskSpawn(0, 0x11, 0, 0)`.
 void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 {
     switch (task->state) {
@@ -2735,7 +2735,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_R08;
                 gDisplayState.spriteVariant                                 = 1;
-                Task_Spawn(0, 0x11, 0, 0);
+                taskSpawn(0, 0x11, 0, 0);
             }
             taskKill(task);
             return;

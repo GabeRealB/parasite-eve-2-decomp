@@ -1055,7 +1055,7 @@ void func_dryfield_water_tank_8017D948(Task* task)
             task->state++;
             return;
         case 1:
-            if (Task_PollKill(D_dryfield_water_tank_80188D44, &poll) != 0) {
+            if (taskPollKill(D_dryfield_water_tank_80188D44, &poll) != 0) {
                 taskKill(task);
             }
             return;
@@ -1278,7 +1278,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
             }
             break;
     }

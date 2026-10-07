@@ -804,7 +804,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
 
         case 1:
             if (gGameSession->eventState == 0) {
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
                 return;
             }
             func_dryfield_gas_station_801803C0(task);

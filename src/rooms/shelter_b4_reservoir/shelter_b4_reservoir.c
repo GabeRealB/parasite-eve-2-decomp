@@ -1081,7 +1081,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             D_shelter_b4_reservoir_80187500.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_reservoir_80187500.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b4_reservoir_80187500.rampFrames = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_shelter_b4_reservoir_80187500);
+            taskSpawn(1, 0x31, 0, &D_shelter_b4_reservoir_80187500);
             arg0->killCountdown = 0x1E;
             arg0->state++;
             break;
@@ -1101,7 +1101,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_reservoir_80187508.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1];
-            Task_Spawn(0, 0x11, 0x10, 0);
+            taskSpawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
     }

@@ -1957,7 +1957,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 D_shelter_b1_underground_parking_8018D750.blend      = SCREEN_FADE_SUBTRACT;
                 D_shelter_b1_underground_parking_8018D750.phase      = SCREEN_FADE_RUNNING;
                 D_shelter_b1_underground_parking_8018D750.rampFrames = 0x1E;
-                Task_Spawn(1, 0x31, 0, &D_shelter_b1_underground_parking_8018D750);
+                taskSpawn(1, 0x31, 0, &D_shelter_b1_underground_parking_8018D750);
                 task->killCountdown = 0x1E;
                 task->state++;
             } else {
@@ -2170,7 +2170,7 @@ void func_shelter_b1_underground_parking_801834D4(Task* task)
             task->state++;
             return;
         case 1:
-            if (Task_PollKill(D_shelter_b1_underground_parking_8018D74C, &poll) != 0) {
+            if (taskPollKill(D_shelter_b1_underground_parking_8018D74C, &poll) != 0) {
                 taskKill(task);
             }
             return;
@@ -2511,7 +2511,7 @@ static void func_shelter_b1_underground_parking_801846EC(Task* arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill(arg0->spawnArg2.pointer);
-    Task_RequestKill(arg0, 0);
+    taskRequestKill(arg0, 0);
 }
 
 /// Commits the selector panel's pending switch pattern and starts its closing fade.
@@ -2549,7 +2549,7 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
         gGameSession->hideHud                                      = 0;
         gGameSession->cutsceneHold                                 = 0;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
-        Task_RequestKill(task, 0);
+        taskRequestKill(task, 0);
     }
 }
 

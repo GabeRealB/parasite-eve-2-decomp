@@ -2960,7 +2960,7 @@ static void func_acropolis_bridge_8017DC1C(Task* arg0)
 {
     Task* temp_v0;
 
-    temp_v0                     = Task_Spawn(2, 8, 0, 0);
+    temp_v0                     = taskSpawn(2, 8, 0, 0);
     arg0->state                 = (s32)(arg0->state + 1);
     D_acropolis_bridge_80191798 = temp_v0;
 }
@@ -2969,7 +2969,7 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
 {
     ActorCommand msg = { { { 1, 0xB } }, 1 };
 
-    if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
+    if (taskPollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
             gGameSession->hideHud                                      = 0;
@@ -3016,7 +3016,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
     s32 unused[2]; // never read; the target still reserves sp+0x10..sp+0x18 for it
     s32 killed;
 
-    if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
+    if (taskPollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 1, 0x7D5);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
@@ -3068,7 +3068,7 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
             count               = task->killCountdown + 1;
             task->killCountdown = count;
             if (count >= 0x1F) {
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
                 return;
             }
             break;
@@ -3096,7 +3096,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
 
     work = memCalloc(sizeof(_AcropolisBridgeKeypadWork), 0);
     if (work == NULL) {
-        Task_RequestKill(task, 0);
+        taskRequestKill(task, 0);
         return;
     }
     task->spawnArg2.pointer = taskSpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
@@ -3633,7 +3633,7 @@ static void func_acropolis_bridge_8017F658(Task* task)
     displayReleaseMenuHold();
     func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     taskKill(task->spawnArg2.pointer);
-    Task_RequestKill(task, D_acropolis_bridge_801917A8);
+    taskRequestKill(task, D_acropolis_bridge_801917A8);
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;

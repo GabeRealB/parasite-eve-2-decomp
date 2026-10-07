@@ -1948,7 +1948,7 @@ static void func_shelter_r47_80185098(Task* task)
         }
         gGameSession->cutsceneHold = 0;
         taskKill(task->spawnArg2.pointer);
-        Task_RequestKill(task, 0);
+        taskRequestKill(task, 0);
     }
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     level = (u8)state->fade;
@@ -2056,7 +2056,7 @@ static void func_shelter_r47_80185510(Task* task)
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
     taskKill(task->spawnArg2.pointer);
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
 }
 
 static void func_shelter_r47_801855B8(Task* task)

@@ -59,11 +59,27 @@ extern TaskDesc Stage_MusicTaskDesc;
 /// A missing primitive buffer alone does not fail model spawning.
 Task* taskSpawnFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
-Task* Task_Spawn(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, TaskSpawnArg arg3);
+/// Spawns a bank entry or a directly supplied descriptor onto the selected execution list.
+///
+/// For `bank` in 0..14, `selector.value` is an unchecked signed element index
+/// in that bank's table. Every negative bank instead uses `selector.pointer`
+/// as a live, non-NULL `TaskDesc*`, without indexing it. The selected descriptor
+/// must not be a terminator. The current list head must be live, initialized
+/// and ordered by ascending byte priority; equal priorities retain spawn order.
+///
+/// Reads the descriptor synchronously, retaining no pointer and invoking no
+/// callback. Copies both payload words; their interpretation and pointer
+/// ownership/lifetime belong to the callback. Keep callback code and borrowed
+/// model geometry loaded while used. The new task owns its body and starts
+/// with `taskKill` as its exit handler. Insertion after a walk's cursor can
+/// dispatch the task in that same walk. Returns NULL on task allocation or
+/// required body-attachment failure; a missing model primitive buffer alone
+/// does not fail spawning.
+Task* taskSpawn(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
 static __inline__ Task* Task_SpawnPtr(s32 bank, s32 type, s32 arg2, const void* data)
 {
-    return Task_Spawn(bank, type, arg2, data);
+    return taskSpawn(bank, type, arg2, data);
 }
 
 /// Spawns an indexed descriptor onto the default execution list, restoring the selected list.
@@ -177,7 +193,13 @@ void taskReparent(Task* newParent, Task* task);
 /// Spawns can extend the walk; this is not a snapshot of the entry list.
 void taskCallExitForPriority(TaskNode* listHead, s32 priority);
 
-TaskDesc* Task_GetDesc(u32 bank, u32 type);
+/// Borrows the indexed descriptor from a task bank without spawning a task.
+///
+/// `bank` must be in 0..14 and `index` is an unsigned element index into that
+/// bank's live table; neither is checked. The returned entry is not copied and
+/// its table must remain loaded while used. Banks 11..13 share bank 2's table,
+/// so those results alias. A terminator must not be used as a spawn recipe.
+TaskDesc* taskGetDesc(u32 bank, u32 index);
 
 /// Borrows an entry at an unchecked unsigned element index in a descriptor table.
 ///
@@ -186,9 +208,33 @@ TaskDesc* Task_GetDesc(u32 bank, u32 type);
 /// loaded; a terminator is not a spawn recipe.
 TaskDesc* taskGetDescAt(TaskDesc* table, u32 index);
 
-void Task_RequestKill(Task* task, s32 arg1);
+/// Suspends a task with a result for its polling caller and dispatches its children's exits.
+///
+/// `task` must be non-NULL and remain live throughout this call. Stores the
+/// signed 32-bit `result`, sets the stop-request status 0xFF and replaces the
+/// frame callback with an inert handler. The result's meaning belongs to the
+/// task and its caller; zero is a result value, not an incomplete request.
+///
+/// Each child's parent is cleared before its exit handler runs; traversal and
+/// handler lifetime follow `taskCallChildExits`'s contract. Clears the child
+/// head afterward. Keeps this task's own work, body, parent relationship and
+/// execution-list membership, without invoking its own exit handler. A caller
+/// completes the handoff with `taskPollKill`; its exit handler must stay loaded.
+void taskRequestKill(Task* task, s32 result);
 
-s32 Task_PollKill(Task* task, s32* out);
+/// Dispatches a requested task exit, optionally returning its stored result.
+///
+/// `task` must be live and non-NULL with a loaded, non-NULL exit handler. Returns
+/// false unless its status is 0xFF, leaving the output and task unchanged.
+/// On a request, copies the signed result to writable `resultOut` when non-NULL
+/// before dispatching the exit, then returns true. Store the output outside any
+/// resources the handler can release if it must remain readable afterward.
+///
+/// The Boolean reports dispatch, not the result value or completed release.
+/// Cleanup follows the handler's contract: it may retain the task, defer body
+/// release or free it immediately. The status is not cleared. Stop polling
+/// after success; the task and its resources may no longer be live.
+bool taskPollKill(Task* task, s32* resultOut);
 
 /// Borrows the currently selected head used for spawning and tail unlinking.
 ///

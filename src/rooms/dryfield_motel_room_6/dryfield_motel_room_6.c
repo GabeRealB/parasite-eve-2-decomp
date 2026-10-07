@@ -2103,7 +2103,7 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Task_PollKill(D_dryfield_motel_room_6_80186828, &out) != 0) {
+            if (taskPollKill(D_dryfield_motel_room_6_80186828, &out) != 0) {
                 arg0->state++;
             }
             break;

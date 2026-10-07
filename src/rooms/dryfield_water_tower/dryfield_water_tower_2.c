@@ -410,7 +410,7 @@ extern ActorTransform D_dryfield_water_tower_801823A8;
 /// `actorMsgPlaceYawPitchRoll`, the handler the room's script table
 /// pairs with 0x7D4.
 
-/// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
+/// The pair of cutscene blocks `func_800E8634` hands to `taskSpawn` (bank 9,
 /// type 7): the one the running scene starts and the one it parks in
 /// `D_801156D0` for the task that follows it.
 extern EvsCommand D_dryfield_water_tower_80182464[];
@@ -2765,7 +2765,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
             break;
 
         case 4:
-            if (Task_PollKill(state->actorSceneTask, &out) != 0) {
+            if (taskPollKill(state->actorSceneTask, &out) != 0) {
                 arg0->state++;
             }
             break;
@@ -3141,7 +3141,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
                 return;
             }
             break;

@@ -7,7 +7,7 @@ memcard, title, and room overlays are all spawned the same way.
 
 Field-level layouts: [`include/main/task_types.h`](../include/main/task_types.h).
 Overlay RAM slots that many callbacks live in: [`OVERLAYS.md`](OVERLAYS.md).
-Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
+Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 
 | Area | Code / data |
 |------|-------------|
@@ -61,13 +61,25 @@ scripts, title and other tasks supply their own types.
 ### 1.2 Spawn
 
 ```c
-Task* Task_Spawn(s32 bank, s32 type, s32 spawnArg1, s32 spawnArg2);
+Task* taskSpawn(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 Task* taskSpawnFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 static Task* _taskSpawnFromDesc(TaskDesc* desc, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2, TaskNode* listHead);
 ```
 
-`Task_Spawn` indexes `gTaskDescBanks[bank][type]`. **Negative `bank`** means
-`type` is already a `TaskDesc*`. Args land on `Task::spawnArg1` / `spawnArg2`.
+For `bank` in 0..14, `taskSpawn` selects
+`gTaskDescBanks[bank][selector.value]`; the selector is a signed element index.
+Every negative `bank` instead selects the descriptor at `selector.pointer`,
+without indexing it. Neither path validates its selector: the selected
+descriptor must be live and must not be a table terminator. The currently
+selected execution-list head must already be initialized.
+
+Both payload words land unchanged in `Task::spawnArg1` / `spawnArg2`. The
+callback defines their interpretation and the lifetime and ownership of any
+pointed-to storage. Spawning reads the descriptor synchronously and does not
+run the callback; a task inserted after the current walk's cursor can run later
+in that same walk. The task owns its attached body, while callback code and
+borrowed model geometry must remain loaded for their use. Allocation or required
+body-attachment failure returns NULL without inserting a task.
 
 `TaskDesc` (0xC):
 
@@ -196,9 +208,21 @@ previous selection is restored. Child exit handlers must preserve the sibling
 successor until the parent's post-handler read, including when releasing the
 child immediately; callers must not access a task after its immediate release.
 
-`Task_RequestKill` marks `status = 0xFF` and stashes a result in `extraState`;
-it installs `taskNoopCallback` to suspend frame updates. `Task_PollKill` reads
-the request and then calls `exitCallback`.
+`taskRequestKill(task, result)` marks `status = 0xFF`, stores the signed result
+in `extraState.value` and installs `taskNoopCallback` to suspend frame updates.
+It also clears each child's parent and dispatches its exit handler, retaining
+the post-handler sibling-read contract above, then clears `firstChild`. The
+request leaves the task's own resources, parent relationship and execution-list
+membership intact; it does not dispatch the task's own exit handler.
+
+`taskPollKill(task, resultOut)` returns false without changing the output or
+dispatching an exit unless `status` is 0xFF. When requested, it copies the
+stored result to a non-NULL output before calling the current `exitCallback`,
+then returns true. This Boolean reports exit dispatch, not the stored result or
+completed resource release: a custom handler may retain the task, and default
+model teardown remains deferred. The status byte is left unchanged. The caller
+must stop polling after success; an immediate exit may already have freed the
+task. Both functions require a live, non-NULL task and loaded exit handlers.
 
 ### 1.5 Lists
 
@@ -269,7 +293,7 @@ Callback addresses fall in four windows:
 ## 3. Bank 0 — system
 
 This is the only bank we can describe entry-by-entry. Spawn with
-`Task_Spawn(0, type, spawnArg1, spawnArg2)`.
+`taskSpawn(0, type, spawnArg1, spawnArg2)`.
 
 | Type | Pri | Callback | Notes |
 |------|-----|----------|-------|
@@ -326,7 +350,7 @@ Several `func_*` rows are already matched C and only lack a role name.
 |------|-----|----------|-------|
 | `00`–`05`, `09`–`0A`, `0F`–`10` | `C0`/`20` | `taskKill` or NULL | Unused |
 | `06` | `80` | `func_800E7570` | Unnamed |
-| `07` | `20` | `func_800E8830` | Spawned from fade setup (`Task_Spawn(9, 7, …)`) |
+| `07` | `20` | `func_800E8830` | Spawned from fade setup (`taskSpawn(9, 7, …)`) |
 | `08` | `80` | `capHudSlideTask` | CAP demo-scene HP/MP slide; `spawnArg1.value` is -1 to hide, +1 to return; live handle `D_801156B8` |
 | `0B` | `80` | `Gp_EndWaitTask` | `spawnArg2` is `CapActionRequest*`; non-zero `done` sets the ending flag and kills |
 | `0C` | `20` | `evsScreenShakeTask` | Vertical display shake; packed `spawnArg2.value` holds signed amplitude above bit 7 and half-duration (1..255) in the low byte |
@@ -347,7 +371,7 @@ The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` 
 
 | Type | Callback | Notes |
 |------|----------|-------|
-| `07` | `func_800E70AC` | **Caption / dialogue.** `Gp_CapTask = Task_Spawn(2, 7, …)` or `displayQueueModeTask(Task_GetDesc(2, 7), …)` |
+| `07` | `func_800E70AC` | **Caption / dialogue.** `Gp_CapTask = taskSpawn(2, 7, …)` or `displayQueueModeTask(taskGetDesc(2, 7), …)` |
 | `0B` | `padScriptBinaryMotorHoldTask` | `Gp_SpawnPadHold` — port 0 binary-motor vibration, remaining script frames in `spawnArg1.value` |
 | `0C` | `padScriptVariableMotorRampTask` | `Gp_SpawnPadLerp` — port 0 variable-motor Q8 intensity ramp, owned work block in `work` |
 | `0D` | `Gp_Script18Task` | Script-18 dispatcher |
@@ -369,7 +393,7 @@ then kill the bodyless task (2). The first two states each advance once and
 walk the current attached-model list independently. Models and coordinates stay
 attached; buffer users, including the GPU, must finish before state 1 runs.
 
-`Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a primary-heap
+`Gp_SpawnEnemy(bank, type, arg, parent)` is `taskSpawn` plus a primary-heap
 `Enemy` allocation in `spawnArg2.pointer` (`Gp_AllocEnemy`). `enemyTaskExit`
 releases that allocation before default task teardown.
 
@@ -390,7 +414,7 @@ decompiling the overlay it points at.
 usually `modelObjectChildTask` (gameplay-resident), `data.model` a `TmdSource*` in
 weapon / actor overlay RAM (`0x8011xxxx`, `0x8016xxxx`, `0x8018xxxx`).
 
-`src/gameplay/player_actor.c` spawns these as `Task_Spawn(7, type, …)` when attaching
+`src/gameplay/player_actor.c` spawns these as `taskSpawn(7, type, …)` when attaching
 gear to an actor, then rewrites `parent` and TMD coord links.
 
 ### Banks 3, 4, 5, 8, 10, 14
@@ -420,8 +444,13 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `D_8010D1FC`, `D_8010FB4C`, `D_80115D9C`, `D_80119218`, `D_8011922C`, `D_80113340`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`1BC.c` `func_800B25B0` switches on `gMcSaveData`) |
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 
-`Task_GetDesc(bank, type)` is the typed way to hand a bank entry to
-`displayQueueModeTask` without spawning onto the current list.
+`taskGetDesc(bank, index)` borrows `gTaskDescBanks[bank][index]` without copying
+a descriptor or spawning a task. The unsigned bank must be in 0..14 and the
+unsigned element index must address an entry in its table; neither is checked.
+Banks 11..13 share bank 2's table, so their returned pointers alias. Callers keep
+the table loaded while using the result and exclude terminators when spawning.
+`displayQueueModeTask` uses this lookup to queue a bank entry without spawning
+onto the currently selected execution list.
 
 ---
 
@@ -439,7 +468,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 | `state` | Dispatcher index (`TaskFuncTable3`–`8` copied onto the stack) |
 | `status` | The task's own byte: a notice id, a course id, a parent's value copied down. `0xFF` is the stop request |
 | `killCountdown` | The task's own frame timer; the teardown delay while the task is being freed |
-| `extraState` | A payload the task carries; `Task_PollKill` hands it back with the stop request |
+| `extraState` | A payload the task carries; `taskPollKill` hands it back with the stop request |
 
 Message tables use an id word followed by a handler address, but their handler
 parameter counts, payload types and return types vary. `taskMessageDispatch` reads

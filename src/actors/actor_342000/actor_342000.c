@@ -992,7 +992,7 @@ static void func_actor_342000_80162F28(Task* arg0)
             break;
         case ACTOR_342000_STAGING_BLEND_ON:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
-            work->framebufferBlend                                     = Task_Spawn(1, 0x2D, 0x10, 0);
+            work->framebufferBlend                                     = taskSpawn(1, 0x2D, 0x10, 0);
             break;
         case ACTOR_342000_STAGING_BLEND_OFF:
             if (work->framebufferBlend != NULL) {
@@ -1180,7 +1180,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 gGameSession->sceneClock = D_shelter_b3_garbage_incinerator_8018FBC8[0];
                 taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
                 gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
                 return;
             }
             func_actor_342000_80162BBC(arg0);
@@ -1251,7 +1251,7 @@ void func_actor_342000_8016382C(Task* arg0)
             arg0->state++;
             break;
         case 11:
-            Task_RequestKill(arg0, 0);
+            taskRequestKill(arg0, 0);
             return;
     }
     if ((u32)(arg0->state - 6) < 5U) {

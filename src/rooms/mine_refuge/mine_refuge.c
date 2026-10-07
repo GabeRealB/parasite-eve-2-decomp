@@ -571,7 +571,7 @@ void func_mine_refuge_8017FA08(Task* task)
             task->state            = task->state + 1;
             return;
         case 3:
-            if (Task_PollKill(D_mine_refuge_80182AD8, &sp10) != 0) {
+            if (taskPollKill(D_mine_refuge_80182AD8, &sp10) != 0) {
                 D_mine_refuge_80182AD8 = NULL;
                 task->state            = task->state + 1;
             }

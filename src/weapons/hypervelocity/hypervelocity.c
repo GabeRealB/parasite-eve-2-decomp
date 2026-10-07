@@ -886,7 +886,7 @@ static void func_hypervelocity_8011F570(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     extra->flags        = 0;
     if (!(arg0->spawnArg1.value & 0xF)) {
-        child = Task_Spawn(7, 0x70, 1, 0);
+        child = taskSpawn(7, 0x70, 1, 0);
         if (child != NULL) {
             child->extra.tmd->coords->parent = coord;
             childExtra                       = child->extra.tmd;
@@ -894,7 +894,7 @@ static void func_hypervelocity_8011F570(Task* arg0)
             childExtra->lightMtx             = extra->lightMtx;
             taskReparent(arg0, child);
         }
-        child = Task_Spawn(7, 0x74, 2, 0);
+        child = taskSpawn(7, 0x74, 2, 0);
         if (child != NULL) {
             child->extra.tmd->coords->parent = coord;
             childExtra                       = child->extra.tmd;

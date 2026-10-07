@@ -123,7 +123,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             D_shelter_b1_elevator_hall_801849F0.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b1_elevator_hall_801849F0.fade.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
+            taskSpawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
             arg0->state++;
             break;
@@ -138,7 +138,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b1_elevator_hall_801849F8.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b1_elevator_hall_801849F8.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1];
-            Task_Spawn(0, 0x11, 0x10, 0);
+            taskSpawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
     }

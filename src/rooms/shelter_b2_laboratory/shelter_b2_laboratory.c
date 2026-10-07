@@ -1257,7 +1257,7 @@ void func_shelter_b2_laboratory_80180290(Task* task)
             task->state                     += 1;
             return;
         case 1:
-            if (Task_PollKill(D_shelter_b2_laboratory_80182A68, &result) != 0) {
+            if (taskPollKill(D_shelter_b2_laboratory_80182A68, &result) != 0) {
                 D_shelter_b2_laboratory_80182A68 = NULL;
                 if (result != 0) {
                     gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 1);

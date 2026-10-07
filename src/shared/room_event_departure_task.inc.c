@@ -49,7 +49,7 @@ void roomDepartureTask(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = ROOM_DEPARTURE.area;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ROOM_DEPARTURE.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ROOM_DEPARTURE.room;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
         default:

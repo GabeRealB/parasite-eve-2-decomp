@@ -2273,7 +2273,7 @@ static void func_actor_548100_80134E0C(Task* arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill(arg0->spawnArg2.pointer);
-    Task_RequestKill(arg0, 0);
+    taskRequestKill(arg0, 0);
 }
 
 static void func_actor_548100_80134E94(Task* arg0)

@@ -132,7 +132,7 @@ s32 func_800E7378(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (D_801156B8 != NULL) {
             return 0;
         }
-        D_801156B8 = Task_Spawn(9, 8, 0, 0);
+        D_801156B8 = taskSpawn(9, 8, 0, 0);
     } else {
         gGameSession->hideHud = 1;
     }

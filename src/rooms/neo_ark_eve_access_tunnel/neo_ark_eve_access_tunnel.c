@@ -520,7 +520,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1];
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
     }

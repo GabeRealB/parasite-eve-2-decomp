@@ -2180,13 +2180,13 @@ void func_acropolis_security_room_8017D77C(Task* arg0)
     switch (temp_v1) {
         case 0:
             printf("monitor\n");
-            D_acropolis_security_room_801855A8 = Task_Spawn(2, 9, 0, 0);
+            D_acropolis_security_room_801855A8 = taskSpawn(2, 9, 0, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
             arg0->state = arg0->state + 1;
             return;
         case 1:
-            if (Task_PollKill(D_acropolis_security_room_801855A8, &sp10) != 0) {
+            if (taskPollKill(D_acropolis_security_room_801855A8, &sp10) != 0) {
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 taskKill(arg0);
@@ -2209,13 +2209,13 @@ void func_acropolis_security_room_8017D834(Task* arg0)
     switch (temp_v1) {
         case 0:
             printf(PowerSupplyMsg);
-            D_acropolis_security_room_801855AC = Task_Spawn(2, 0xA, 0, 0);
+            D_acropolis_security_room_801855AC = taskSpawn(2, 0xA, 0, 0);
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(2);
             arg0->state = arg0->state + 1;
             return;
         case 1:
-            if (Task_PollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
+            if (taskPollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 Gp_MsgPlayerWeapon(1);
@@ -2652,7 +2652,7 @@ static void func_acropolis_security_room_8017EADC(Task* task)
     gGameSession->hideHud      = 0;
     gGameSession->eventState   = 0;
     taskKill(task->spawnArg2.pointer);
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
 }
 
 /// Idle state of the security monitor: hit-tests the action cursor against the
@@ -2984,7 +2984,7 @@ static void func_acropolis_security_room_8017FC30(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
     displayReleaseMenuHold();
     taskKill(task->spawnArg2.pointer);
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
 }
 
 /// The second prompt's copy.
@@ -3098,7 +3098,7 @@ static void func_acropolis_security_room_8017FF84(Task* task)
     _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
     s32                                    killArg;
 
-    if (Task_PollKill(work->sceneTask, &killArg) != 0) {
+    if (taskPollKill(work->sceneTask, &killArg) != 0) {
         task->state = task->state + 1;
     }
 }
@@ -3129,7 +3129,7 @@ static void func_acropolis_security_room_80180030(Task* task)
     gGameSession->cutsceneHold = 0;
     gGameSession->eventState   = 0;
     func_800E9BDC(0, 0xF9FF);
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
 }
 
 static void func_acropolis_security_room_801800A4(Task* task)
@@ -3170,7 +3170,7 @@ static void func_acropolis_security_room_801801C4(Task* task)
     _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
     s32                                    killArg;
 
-    if (Task_PollKill(work->sceneTask, &killArg) != 0) {
+    if (taskPollKill(work->sceneTask, &killArg) != 0) {
         Gp_MsgPlayer3F3(1);
         task->state = task->state + 1;
     }
@@ -3182,7 +3182,7 @@ static void func_acropolis_security_room_80180218(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
     displayReleaseMenuHold();
     func_800E9BDC(0, 0xF9FF);
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
     gGameSession->eventState   = 0;
@@ -3246,7 +3246,7 @@ void func_acropolis_security_room_80180368(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            Task_RequestKill(task, 0);
+            taskRequestKill(task, 0);
             return;
     }
 }
@@ -3273,7 +3273,7 @@ void func_acropolis_security_room_801804CC(Task* arg0)
             }
             return;
         case 2:
-            Task_RequestKill(arg0, 0);
+            taskRequestKill(arg0, 0);
             return;
     }
 }

@@ -1484,7 +1484,7 @@ void func_actor_136300_8013267C(Task* arg0)
             Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_TRUCK_KEY);
             gDisplayState.spriteVariant = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(arg0);
             return;
     }

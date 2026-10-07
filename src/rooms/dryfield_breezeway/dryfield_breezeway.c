@@ -52,7 +52,7 @@ extern RoomEventReq gRoomEventReq;
 /// Handle of the room's key-item event task, which
 /// `func_dryfield_breezeway_8017DC3C` spawns from
 /// `D_dryfield_breezeway_80182E18` in its state 0 and drops again once
-/// `Task_PollKill` reaps it; `func_dryfield_breezeway_8017DDB0` clears it when
+/// `taskPollKill` reaps it; `func_dryfield_breezeway_8017DDB0` clears it when
 /// the message task starts. `func_dryfield_breezeway_8017D90C` forwards message
 /// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
 extern Task* D_dryfield_breezeway_801843A8;
@@ -635,7 +635,7 @@ void func_dryfield_breezeway_8017DC3C(Task* arg0)
             arg0->state                  += 1;
             return;
         case 1:
-            if (Task_PollKill(D_dryfield_breezeway_801843A8, &sp10) != 0) {
+            if (taskPollKill(D_dryfield_breezeway_801843A8, &sp10) != 0) {
                 D_dryfield_breezeway_801843A8 = NULL;
                 taskKill(arg0);
             }

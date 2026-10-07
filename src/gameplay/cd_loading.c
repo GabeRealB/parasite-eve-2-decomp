@@ -812,7 +812,7 @@ void Gp_FinishLoadWait(Task* task)
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
         }
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
-        Task_Spawn(0, 0x17, 0, 0);
+        taskSpawn(0, 0x17, 0, 0);
         gGameSession->viewReady = 1;
         taskKill(task);
     }
@@ -846,7 +846,7 @@ static void Gp_ReloadFromSave(void)
     Pad_SetCooldown(0);
     Gp_SpawnCurView(2);
     gGameSession->viewReady = 0;
-    Task_Spawn(0, 0x1E, 1, 0);
+    taskSpawn(0, 0x1E, 1, 0);
 }
 
 static void Gp_ReloadAtLoc(s32 arg0)
@@ -860,7 +860,7 @@ static void Gp_ReloadAtLoc(s32 arg0)
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-    Task_Spawn(0, 0x1E, 0, 0);
+    taskSpawn(0, 0x1E, 0, 0);
 }
 
 void viewCommitIndexTask(Task* task)

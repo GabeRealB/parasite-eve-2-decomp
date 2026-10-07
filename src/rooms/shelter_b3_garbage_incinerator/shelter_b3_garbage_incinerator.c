@@ -103,7 +103,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.areaId;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.room;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
     }

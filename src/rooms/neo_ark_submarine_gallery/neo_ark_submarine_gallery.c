@@ -46,7 +46,7 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-/// 0x1E pair the gallery hands `Task_Spawn` for the helper it raises in state 3,
+/// 0x1E pair the gallery hands `taskSpawn` for the helper it raises in state 3,
 /// the same shape `D_mine_mesa_80189B38` has.
 extern RoomFadeStorage D_neo_ark_submarine_gallery_8018591C;
 
@@ -122,7 +122,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             D_neo_ark_submarine_gallery_8018591C.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_neo_ark_submarine_gallery_8018591C.fade.phase      = SCREEN_FADE_RUNNING;
             D_neo_ark_submarine_gallery_8018591C.fade.rampFrames = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
+            taskSpawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND, 0, 0);
             arg0->state++;
             break;
@@ -136,7 +136,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
-            Task_Spawn(0, 0x11, 0x10, 0);
+            taskSpawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
     }

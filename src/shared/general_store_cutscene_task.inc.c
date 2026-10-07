@@ -49,7 +49,7 @@ void storeCutsceneTask(Task* arg0)
                 gStoreFade.blend      = SCREEN_FADE_SUBTRACT;
                 gStoreFade.phase      = SCREEN_FADE_RUNNING;
                 gStoreFade.rampFrames = 8;
-                Task_Spawn(1, 0x31, 0, &gStoreFade);
+                taskSpawn(1, 0x31, 0, &gStoreFade);
                 arg0->state += 1;
                 return;
             }
@@ -65,7 +65,7 @@ void storeCutsceneTask(Task* arg0)
             gMcSaveData[0].state.location.loc.warp                     = gStoreWarp;
             gMcSaveData[0].state.location.loc.room                     = gStoreRoom;
             gDisplayState.spriteVariant                                = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             break;
         default:
             return;

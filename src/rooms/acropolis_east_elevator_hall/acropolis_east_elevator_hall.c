@@ -842,8 +842,8 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
     coord = task->extra.coordBody->coord;
     switch (task->state) {
         case 0:
-            Task_Spawn(1, 0x25, 0, 0);
-            Task_Spawn(1, 0x25, 1, 0);
+            taskSpawn(1, 0x25, 0, 0);
+            taskSpawn(1, 0x25, 1, 0);
             task->state++;
             /* fallthrough */
         case 1:

@@ -1106,7 +1106,7 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
             }
             gDisplayState.spriteVariant = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
     }
@@ -1148,7 +1148,7 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gDisplayState.spriteVariant                                = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
     }
@@ -1260,7 +1260,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
         case 1:
             if (gGameSession->eventState == 0) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1D;
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
             }
             break;
     }

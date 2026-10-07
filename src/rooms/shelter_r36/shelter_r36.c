@@ -655,7 +655,7 @@ void func_shelter_r36_8017D738(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;
-        Task_Spawn(0, 0x11, 0, 0);
+        taskSpawn(0, 0x11, 0, 0);
         Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 1);
     }
 }

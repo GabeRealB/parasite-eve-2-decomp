@@ -16,5 +16,5 @@ void actionPromptEventEnd(Task* task)
     gGameSession->cutsceneHold                                 = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     taskKill(task->spawnArg2.pointer);
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
 }

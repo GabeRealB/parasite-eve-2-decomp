@@ -486,7 +486,7 @@ static void func_actor_143000_80132A04(Task* arg0)
                 D_actor_143000_80135C08.phase      = SCREEN_FADE_RUNNING;
                 D_actor_143000_80135C08.rampFrames = 0xF;
                 arg0->killCountdown                = 0xF;
-                Task_Spawn(1, 0x31, 0, &D_actor_143000_80135C08);
+                taskSpawn(1, 0x31, 0, &D_actor_143000_80135C08);
                 break;
         }
     } else {
@@ -781,7 +781,7 @@ static void func_actor_143000_80133800(Task* arg0)
         taskSpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
     }
     taskKill(arg0->spawnArg2.pointer);
-    Task_RequestKill(arg0, work->codeAccepted);
+    taskRequestKill(arg0, work->codeAccepted);
 }
 
 static void func_actor_143000_801338C8(Task* arg0)

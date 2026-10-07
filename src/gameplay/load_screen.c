@@ -121,14 +121,14 @@ void func_800AA548(s32 arg0)
     gGameSession->cutsceneHold = 0;
     Gp_ResetMenuLock();
     displaySetShakeY(0);
-    Task_Spawn(0, 0x1D, 0, 0);
-    Task_Spawn(0, 0x1A, 0, 0);
-    gameSetTaskSlot(Task_Spawn(4, 5, 0, 0), 9);
-    Task_Spawn(0, 0x14, 0, 0);
+    taskSpawn(0, 0x1D, 0, 0);
+    taskSpawn(0, 0x1A, 0, 0);
+    gameSetTaskSlot(taskSpawn(4, 5, 0, 0), 9);
+    taskSpawn(0, 0x14, 0, 0);
     if ((arg0 & 0xFFFF) != 1) {
-        gameSetTaskSlot(Task_Spawn(0, 0x16, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
+        gameSetTaskSlot(taskSpawn(0, 0x16, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
     }
-    gameSetTaskSlot(Task_Spawn(0, 0x10, 0, 0), 2);
+    gameSetTaskSlot(taskSpawn(0, 0x10, 0, 0), 2);
     // The destination endpoint supplies actor placements and the default view.
     stage     = sess->stage;
     warp      = sess->warp;
@@ -168,18 +168,18 @@ void func_800AA548(s32 arg0)
     tmdBuildBufferHalf(model);
     tmdBuildBufferHalf(model);
     Gp_LoadStageView();
-    gameSetTaskSlot(Task_Spawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
-    gameSetTaskSlot(Task_Spawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
-    Task_Spawn(9, 6, 0, 0);
-    Task_Spawn(9, 0x11, 0, 0);
+    gameSetTaskSlot(taskSpawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
+    gameSetTaskSlot(taskSpawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
+    taskSpawn(9, 6, 0, 0);
+    taskSpawn(9, 0x11, 0, 0);
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB)) {
-        Task_Spawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, 1, 0, 0);
+        taskSpawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, 1, 0, 0);
     }
     Gp_SpawnPlaces(sess);
     Gp_SpawnArea(sess);
     sceneResetCombatState();
-    Task_Spawn(1, 0xF, 0, 0);
-    Task_Spawn(1, 0x10, 0, 0);
+    taskSpawn(1, 0xF, 0, 0);
+    taskSpawn(1, 0x10, 0, 0);
     // Read arrival effects after the room's setup has run.
     stage     = sess->stage;
     warp      = sess->warp;
@@ -225,7 +225,7 @@ void Gp_BeginSessionTask(Task* arg0)
         ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
-    Task_Spawn(0, 0x1C, arg0->spawnArg1.value & 0xF, 0);
+    taskSpawn(0, 0x1C, arg0->spawnArg1.value & 0xF, 0);
     ds->skipDraw                      = 0;
     queue->blockGamePause             = one;
     queue->releasePauseBlockAfterFade = one;

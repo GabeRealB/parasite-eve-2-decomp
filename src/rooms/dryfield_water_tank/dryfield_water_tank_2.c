@@ -1193,7 +1193,7 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
             task->state = task->state + 1;
             break;
         case 5:
-            Task_RequestKill(task, 0);
+            taskRequestKill(task, 0);
             break;
     }
 }

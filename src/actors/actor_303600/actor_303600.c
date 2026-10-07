@@ -1803,7 +1803,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gDisplayState.spriteVariant                                 = 1;
-                Task_Spawn(0, 0x11, 0x10, 0);
+                taskSpawn(0, 0x11, 0x10, 0);
                 taskKill(arg0);
                 break;
             }

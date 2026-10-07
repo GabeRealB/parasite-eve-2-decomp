@@ -142,7 +142,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
         temp->frameBuffer           = temp->drawBuffer ^ 1;
         previousList                = taskGetActiveList();
         taskInitList(&gTaskDisplayList);
-        ret = Task_Spawn(arg0, arg1, arg2, arg3);
+        ret = taskSpawn(arg0, arg1, arg2, arg3);
         if (ret != NULL) {
             temp->pendingMode            = DISPLAY_MODE_BARE_OT;
             temp->displayOwner           = DISPLAY_OWNER_TASK;
@@ -191,7 +191,7 @@ Task* Task_SpawnOnDefaultListA(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, T
 
     previousList = taskGetActiveList();
     taskSetActiveList(&gTaskDefaultList);
-    ret = Task_Spawn(arg0, arg1, arg2, arg3);
+    ret = taskSpawn(arg0, arg1, arg2, arg3);
     taskSetActiveList(previousList);
     return ret;
 }

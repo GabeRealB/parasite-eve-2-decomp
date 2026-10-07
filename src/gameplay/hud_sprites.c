@@ -1315,7 +1315,7 @@ static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1)
     GfxCoord* parent;
     GfxCoord  rel;
 
-    task = Task_Spawn(0, 0xE, 0, 0);
+    task = taskSpawn(0, 0xE, 0, 0);
     if (task == NULL) {
         return 0;
     }
@@ -1446,7 +1446,7 @@ void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MAT
 
 s32 Gp_TrySpawnViewTask(ViewCamera* camera)
 {
-    return Task_Spawn(0, 0xF, 0, camera) != NULL;
+    return taskSpawn(0, 0xF, 0, camera) != NULL;
 }
 
 void viewApplyCamera(const ViewCamera* camera)
@@ -1499,7 +1499,7 @@ void Gp_SpawnViewTasks(void)
     idx         = viewGetMappedIndex();
     camera      = gpViewAt(cameras, idx);
     Task_SpawnPtr(0, 0xF, 0, (camera - 1));
-    Task_Spawn(0, 0x17, 0, 0);
+    taskSpawn(0, 0x17, 0, 0);
 }
 
 ViewCamera* Gp_GetStageView(GameLocationKey* arg0)
@@ -1562,7 +1562,7 @@ void Gp_SpawnCurView(s32 arg0)
     camera      = gpViewAt(cameras, idx);
     Task_SpawnPtr(0, 0xF, 0, (camera - 1));
     if (arg0 == 0) {
-        Task_Spawn(0, 0x17, 0, 0);
+        taskSpawn(0, 0x17, 0, 0);
     }
     if (arg0 == 1) {
         Task_SpawnOnDefaultListA(0, 0x17, 0, 0);

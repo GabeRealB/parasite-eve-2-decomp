@@ -12,7 +12,7 @@ void factoryPanelSpawn(Task* task)
             task->state++;
             return;
         case 1:
-            if (Task_PollKill(*gFactoryPanelSlot, &poll) != 0) {
+            if (taskPollKill(*gFactoryPanelSlot, &poll) != 0) {
                 taskKill(task);
             }
             return;

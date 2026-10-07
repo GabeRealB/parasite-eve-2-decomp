@@ -873,7 +873,7 @@ void func_actor_450900_8013235C(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType     = 0;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gDisplayState.spriteVariant                                = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             Gp_RestoreStreamRng();
             taskKill(task);
             break;

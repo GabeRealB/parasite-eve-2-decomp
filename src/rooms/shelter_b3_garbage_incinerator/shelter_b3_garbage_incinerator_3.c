@@ -2500,7 +2500,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (Task_PollKill(arg0->spawnArg2.pointer, &out) != 0) {
+            if (taskPollKill(arg0->spawnArg2.pointer, &out) != 0) {
                 arg0->state++;
             }
             return;

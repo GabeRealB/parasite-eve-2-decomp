@@ -2067,7 +2067,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gDisplayState.spriteVariant                                 = 1;
-                Task_Spawn(0, 0x11, 0, 0);
+                taskSpawn(0, 0x11, 0, 0);
                 taskKill(arg0);
                 break;
             }

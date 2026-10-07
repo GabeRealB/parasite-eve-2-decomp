@@ -3962,7 +3962,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             return;
         case 4:
             if (gGameSession->eventState == 0) {
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
             }
             return;
     }
@@ -4167,7 +4167,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
         case 6:
             if (cdCmdIsIdle() != 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
             }
             break;
         default:
@@ -4391,7 +4391,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             if (cdCmdIsIdle() != 0) {
                 sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), 0xB4);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
             }
             func_acropolis_plaza_8017DE24(5);
             return;
@@ -4446,7 +4446,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
             }
             break;
     }
@@ -4487,7 +4487,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             break;
         case 2:
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
-            Task_RequestKill(task, 0);
+            taskRequestKill(task, 0);
             break;
     }
 }
@@ -4588,7 +4588,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
 /// so an event that arrives with the id's sign bit clear is only acted on when
 /// that global is set. Steps 0 and 2 latch the event into the work block and
 /// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
-/// the previous step spawned (`Task_PollKill`) and respawn the entry-1 stream
+/// the previous step spawned (`taskPollKill`) and respawn the entry-1 stream
 /// watcher over `sceneArg`. Step 3 is the only exit: it unlinks the scene's
 /// `WorldCollisionTrigger` and returns 1 when the latched kind is 2.
 static u16 func_acropolis_plaza_8017FB50(Task* task)
@@ -4631,7 +4631,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
             }
             break;
         case ACROPOLIS_PLAZA_STEP_RUN_FIRST_SCENE:
-            if (Task_PollKill(work->eventTask, &killed0) != 0) {
+            if (taskPollKill(work->eventTask, &killed0) != 0) {
                 work->sceneArg.skipStreamReset = 1;
                 work->sceneArg.startFrame      = work->resumeFrame;
                 work->sceneTask =
@@ -4679,7 +4679,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
             }
             break;
         case ACROPOLIS_PLAZA_STEP_RUN_SCENE:
-            if (Task_PollKill(work->eventTask, &killed1) != 0) {
+            if (taskPollKill(work->eventTask, &killed1) != 0) {
                 /* The kind byte is tested as an unsigned short, so it is
                    sign-extended and narrowed again at each comparison; routing
                    both tests through one variable folds the pair away. */
@@ -4703,7 +4703,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
         case ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE:
         case ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION:
         case ACROPOLIS_PLAZA_STEP_RUN_CAPTION:
-            if (Task_PollKill(work->eventTask, &killed2) != 0) {
+            if (taskPollKill(work->eventTask, &killed2) != 0) {
                 work->sceneArg.skipStreamReset = 1;
                 work->sceneArg.startFrame      = work->resumeFrame;
                 work->sceneTask =
@@ -4825,7 +4825,7 @@ void func_acropolis_plaza_80180054(Task* task)
             gDisplayState.spriteVariant                                 = 1;
             Gp_EnqueueHeldWeaponCd();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             q->blockGamePause = 0;
             taskKill(task);
             return;

@@ -549,7 +549,7 @@ void func_shelter_b2_elevator_8017D888(Task* task)
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = msg2.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = msg2.room;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
     }

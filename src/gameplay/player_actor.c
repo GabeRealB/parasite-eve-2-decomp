@@ -277,7 +277,7 @@ extern u16 D_80112B28[];
 /// `TaskSpawnArg::halves.high & 3` and stores the halfword in `EffectWork.period`.
 extern u16 D_80112C6C[];
 
-/// u8 Task_Spawn type bases. `func_80104258` indexes
+/// u8 taskSpawn type bases. `func_80104258` indexes
 /// `D_80112DFC[arg2 + gPlayerStatus.resourceVariant - 2]`.
 extern u8 D_80112DFC[];
 
@@ -5732,7 +5732,7 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     saved = &extra->coords[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
     type  = gPlayerStatus.resourceVariant - 2;
-    task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+    task  = taskSpawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
     }
@@ -5782,7 +5782,7 @@ inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
         return NULL;
     }
     type = D_80112DF4[row] - 1;
-    task = Task_Spawn(7, type + item, 0, 0);
+    task = taskSpawn(7, type + item, 0, 0);
     if (task == NULL) {
         return NULL;
     }
@@ -5878,7 +5878,7 @@ Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 ar
     GameActor* actor;
     GfxCoord*  coord;
 
-    task = Task_Spawn(7, gPlayerStatus.resourceVariant + 3, arg2, options);
+    task = taskSpawn(7, gPlayerStatus.resourceVariant + 3, arg2, options);
     if (task == NULL) {
         return NULL;
     }
@@ -6254,7 +6254,7 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     saved = &extra->coords[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
     type  = gPlayerStatus.resourceVariant - 2;
-    task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+    task  = taskSpawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
     }
@@ -6288,7 +6288,7 @@ Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         return NULL;
     }
     type = D_80112DF4[arg1] - 1;
-    task = Task_Spawn(7, type + arg2, arg3, 0);
+    task = taskSpawn(7, type + arg2, arg3, 0);
     if (task == NULL) {
         return NULL;
     }
@@ -6343,7 +6343,7 @@ Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     saved  = ((GameActor*)arg0->work)->equipmentTasks[1]->extra.tmd->coords;
     arg2 <<= 2;
     arg1  += 0x60;
-    task   = Task_Spawn(7, arg2 + arg1, arg3, 0);
+    task   = taskSpawn(7, arg2 + arg1, arg3, 0);
     if (task == NULL) {
         return NULL;
     }

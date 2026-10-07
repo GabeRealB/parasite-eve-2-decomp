@@ -208,7 +208,7 @@ void func_dryfield_gas_station_8017FE20(Task* arg0)
             arg0->state++;
             break;
         case 1:
-            if (Task_PollKill(D_dryfield_gas_station_80184BCC, &out) != 0) {
+            if (taskPollKill(D_dryfield_gas_station_80184BCC, &out) != 0) {
                 arg0->state++;
             }
             break;

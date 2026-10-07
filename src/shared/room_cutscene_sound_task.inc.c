@@ -12,7 +12,7 @@ void roomCutsceneSoundTask(Task* task)
             task->state += 1;
             break;
         case 0x78:
-            Task_RequestKill(task, 0);
+            taskRequestKill(task, 0);
             break;
         default:
             task->state += 1;

@@ -306,7 +306,7 @@ static void Title_MenuTask(Task* task)
                 gDisplayState.demoScene = GameMain_GetResetCount() + 2;
                 gDisplayState.demoScene = gDisplayState.demoScene % 3 + 1;
                 printf(Title_DemoStartMsg);
-                Task_Spawn(0, 3, 2, 0);
+                taskSpawn(0, 3, 2, 0);
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
                 gDisplayState.gameMode = DISPLAY_GAME_RESTART;
@@ -386,7 +386,7 @@ static void Title_MenuTask(Task* task)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            Task_Spawn(0, Title_MenuSpawnIds[work->selection], 0, 0);
+            taskSpawn(0, Title_MenuSpawnIds[work->selection], 0, 0);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             taskCallExit(task);
         }
@@ -590,9 +590,9 @@ void Title_BootTask(Task* arg0)
             return;
         case 3:
             if (Title_SkipFadeFlag != 0) {
-                Task_Spawn(0, 2, 0x80000000, 0);
+                taskSpawn(0, 2, 0x80000000, 0);
             } else {
-                Task_Spawn(0, 2, 0, 0);
+                taskSpawn(0, 2, 0, 0);
             }
             /* fallthrough */
         case 4:

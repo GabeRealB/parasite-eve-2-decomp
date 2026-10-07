@@ -1798,8 +1798,8 @@ void func_acropolis_square_801823DC(Task* task)
             task->msgTable = D_acropolis_square_80183B58;
             gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
             D_acropolis_square_80183B98 = 0;
-            Task_Spawn(1, 0x25, 0, 0);
-            Task_Spawn(1, 0x25, 1, 0);
+            taskSpawn(1, 0x25, 0, 0);
+            taskSpawn(1, 0x25, 1, 0);
             task->state++;
             return;
         case 1:

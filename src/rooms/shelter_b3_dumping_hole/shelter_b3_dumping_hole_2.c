@@ -3644,7 +3644,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     return;
                 case 6:
                     if (++work->timer >= 0xB) {
-                        work->framebufferBlend = Task_Spawn(1, 0x2D, 0x10, 0);
+                        work->framebufferBlend = taskSpawn(1, 0x2D, 0x10, 0);
                         work->timer            = 0;
                         work->step++;
                     }

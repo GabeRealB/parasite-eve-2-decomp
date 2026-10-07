@@ -417,7 +417,7 @@ GpuImageUpload D_dryfield_breezeway_80182F24[2] = {
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-/// The pair of cutscene blocks `func_800E8634` hands to `Task_Spawn` (bank 9,
+/// The pair of cutscene blocks `func_800E8634` hands to `taskSpawn` (bank 9,
 /// type 7): the table the spawned task starts from and the event-command
 /// stream it parks in `D_801156D0` for the task that follows it. Both live in
 /// the room's trailing data blob.

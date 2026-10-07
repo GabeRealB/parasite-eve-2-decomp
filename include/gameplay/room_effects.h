@@ -113,7 +113,7 @@ s32 effectGetGroundShadowShade(s16 halfSize, s16 baseShade, s16 viewYDisplacemen
 void roomEffectRecordAnimationSoundCue(s32 cueIndex);
 
 /// Spawns a counted effect task and its `EffectWork`.
-/// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
+/// `arg0` packs the `taskSpawn` bank in bits 16..30 and the type in the low
 /// 16 bits; a negative `arg0` bypasses the ordinary spawn limit (129) in
 /// `RoomEffectState::effectCount`. `arg1` is stored in `EffectWork::parent`;
 /// NULL stores the view coordinate there. The effect's own coordinate is

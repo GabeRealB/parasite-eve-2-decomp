@@ -21,7 +21,7 @@ void roomEventStagedTask(Task* arg0)
                     ROOM_EVENT_FADE.blend      = SCREEN_FADE_SUBTRACT;
                     ROOM_EVENT_FADE.phase      = SCREEN_FADE_RUNNING;
                     ROOM_EVENT_FADE.rampFrames = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &ROOM_EVENT_FADE);
+                    taskSpawn(1, 0x31, 0, &ROOM_EVENT_FADE);
                 }
                 arg0->state++;
             }
@@ -45,7 +45,7 @@ void roomEventStagedTask(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = gRoomEventStagedMsg.areaId;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gRoomEventStagedMsg.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gRoomEventStagedMsg.room;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
     }

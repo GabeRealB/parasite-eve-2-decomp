@@ -202,7 +202,7 @@ void GameFlow_StateByField34(Task* task)
             taskResetDefaultList();
             Tmd_InitLists();
             Mem_Init();
-            Task_Spawn(0, 9, 0, 0);
+            taskSpawn(0, 9, 0, 0);
         }
     } else {
         gDisplayState.demoScene = DISPLAY_DEMO_NONE;
@@ -232,7 +232,7 @@ void GameFlow_StateByField34(Task* task)
         taskResetDefaultList();
         Tmd_InitLists();
         Mem_Init();
-        Task_Spawn(0, 9, 0, 0);
+        taskSpawn(0, 9, 0, 0);
     }
 }
 
@@ -301,7 +301,7 @@ static void GameFlow_InitSystems(void)
     taskResetDefaultList();
     Tmd_InitLists();
     Mem_Init();
-    Task_Spawn(0, 9, 0, 0);
+    taskSpawn(0, 9, 0, 0);
 }
 
 static void Game_ResetSessionAndBuffers(Task* task)
@@ -372,7 +372,7 @@ static void GameFlow_CountdownAdvance(Task* task)
 static void GameFlow_SpawnMainWhenReady(Task* task)
 {
     if (gDisplayState.control.flags.pendingPlayerPos == 0) {
-        Task_Spawn(0, 2, 0, 0);
+        taskSpawn(0, 2, 0, 0);
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR);
         taskKill(task);
         return;
@@ -382,7 +382,7 @@ static void GameFlow_SpawnMainWhenReady(Task* task)
     taskResetDefaultList();
     Tmd_InitLists();
     Mem_Init();
-    Task_Spawn(0, 9, 0, 0);
+    taskSpawn(0, 9, 0, 0);
 }
 
 void GameFlow_DispatchTable5(Task* task)
@@ -427,7 +427,7 @@ void playClockResetMinuteTicks(void)
 static void GameFlow_SpawnWhenIdle(Task* task)
 {
     if (cdCmdIsIdle() != 0) {
-        Task_Spawn(0, 0x11, 1, 0);
+        taskSpawn(0, 0x11, 1, 0);
         taskKill(task);
     }
 }

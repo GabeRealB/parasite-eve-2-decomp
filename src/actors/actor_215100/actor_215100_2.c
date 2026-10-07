@@ -1922,7 +1922,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_actor_215100_8015E678.areaId;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_actor_215100_8015E678.warp;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_actor_215100_8015E678.room;
-                Task_Spawn(0, 0x11, 0, 0);
+                taskSpawn(0, 0x11, 0, 0);
                 taskKill(arg0);
             }
             break;

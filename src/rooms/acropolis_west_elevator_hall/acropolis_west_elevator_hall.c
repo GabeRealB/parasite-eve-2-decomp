@@ -1393,8 +1393,8 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
         case 0:
             task->msgTable = D_acropolis_west_elevator_hall_801849F4;
             gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
-            Task_Spawn(1, 0x25, 0, 0);
-            Task_Spawn(1, 0x25, 1, 0);
+            taskSpawn(1, 0x25, 0, 0);
+            taskSpawn(1, 0x25, 1, 0);
             task->state = task->state + 1;
             return;
         case 1:

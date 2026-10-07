@@ -94,7 +94,7 @@ extern SVECTOR D_shelter_b4_water_supply_80182680[];
 extern SVECTOR D_shelter_b4_water_supply_801826E0[];
 
 /// Spawn argument for the task `func_shelter_b4_water_supply_8017D7C0` starts
-/// with `Task_Spawn(1, 0x31, ...)`.
+/// with `taskSpawn(1, 0x31, ...)`.
 extern RoomFadeStorage D_shelter_b4_water_supply_80184E34;
 
 /// Staging save location the spawned task reads: area / `field_4` /
@@ -798,7 +798,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             D_shelter_b4_water_supply_80184E34.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_water_supply_80184E34.fade.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b4_water_supply_80184E34.fade.rampFrames = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_shelter_b4_water_supply_80184E34.fade);
+            taskSpawn(1, 0x31, 0, &D_shelter_b4_water_supply_80184E34.fade);
             arg0->killCountdown = 0x1E;
             arg0->state++;
             break;
@@ -818,7 +818,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_water_supply_80184E3C.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1];
-            Task_Spawn(0, 0x11, 0x10, 0);
+            taskSpawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
     }

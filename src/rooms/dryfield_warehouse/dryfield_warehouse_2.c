@@ -745,7 +745,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
             return;
         case 2:
             if (gGameSession->eventState == 0) {
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
                 return;
             }
             func_dryfield_warehouse_8017DBB0(arg0);

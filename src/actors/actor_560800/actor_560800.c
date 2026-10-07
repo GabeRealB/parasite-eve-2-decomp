@@ -5767,7 +5767,7 @@ void func_actor_560800_80135D54(Task* arg0)
                 msg[3] = 0;
                 msg[4] = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
                 return;
             }
             break;

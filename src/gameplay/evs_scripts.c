@@ -313,7 +313,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case EVENT_SCRIPT_OPCODE_START_FLASH:
-                work->primaryEffectTask = Task_Spawn(1, 0x19, work->command->operand0.value, work->command->operand1.value);
+                work->primaryEffectTask = taskSpawn(1, 0x19, work->command->operand0.value, work->command->operand1.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW:
@@ -409,7 +409,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND:
                 if (work->command->operand0.value != 0) {
-                    D_8010FBE0 = Task_Spawn(1, 0x2D, 0, 0);
+                    D_8010FBE0 = taskSpawn(1, 0x2D, 0, 0);
                 } else if (D_8010FBE0 != NULL) {
                     taskCallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
@@ -446,7 +446,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SHAKE_SCREEN:
-                Task_Spawn(9, 0xC, 0, (work->command->operand0.value << 8) | work->command->operand1.value);
+                taskSpawn(9, 0xC, 0, (work->command->operand0.value << 8) | work->command->operand1.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_CLEANUP_SCENE:
@@ -734,7 +734,7 @@ void func_800E8634(EvsCommand* arg0, s32 arg1, EvsCommand* arg2)
     D_801156F8               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     D_801156EC               = gPlayerStatus.weapon;
     sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    Task_Spawn(9, 7, arg1, arg0);
+    taskSpawn(9, 7, arg1, arg0);
 }
 
 Task* Gp_LookupSlot4(s32 arg0)

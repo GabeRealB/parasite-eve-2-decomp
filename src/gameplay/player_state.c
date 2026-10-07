@@ -1359,7 +1359,7 @@ Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2
     } else {
         type = arg1 + 0x82;
     }
-    task = Task_Spawn(7, type, arg2, options);
+    task = taskSpawn(7, type, arg2, options);
     if (task == NULL) {
         return NULL;
     }

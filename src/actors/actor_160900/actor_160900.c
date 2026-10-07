@@ -1938,7 +1938,7 @@ void func_actor_160900_8013418C(Task* arg0)
         case 2:
             if (gGameSession->eventState == 0) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1E;
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
             }
             break;
     }

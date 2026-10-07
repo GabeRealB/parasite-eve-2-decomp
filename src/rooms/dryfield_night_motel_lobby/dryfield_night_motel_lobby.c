@@ -241,7 +241,7 @@ void func_dryfield_night_motel_lobby_8017FD10(Task* task)
             task->state++;
             return;
         case 1:
-            if (Task_PollKill(D_dryfield_night_motel_lobby_801844CC, &poll) != 0) {
+            if (taskPollKill(D_dryfield_night_motel_lobby_801844CC, &poll) != 0) {
                 taskKill(task);
             }
             return;

@@ -742,7 +742,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             }
             break;
         case 3:
-            if (Task_PollKill(arg0->spawnArg2.pointer, &out) != 0) {
+            if (taskPollKill(arg0->spawnArg2.pointer, &out) != 0) {
                 taskKill(arg0);
             }
             break;

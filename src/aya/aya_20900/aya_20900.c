@@ -241,7 +241,7 @@ void func_aya_20900_80115CFC(Task* arg0)
             arg0->state += 1;
         case 1:
             if ((func_aya_20900_80115A14(arg0) << 0x10) != 0) {
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
             }
             return;
     }

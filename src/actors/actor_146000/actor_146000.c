@@ -614,7 +614,7 @@ void func_actor_146000_80131E24(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x19;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;
             gDisplayState.spriteVariant                                = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;
     }

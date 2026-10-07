@@ -240,7 +240,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
             task->state++;
             break;
         case 3:
-            if (Task_PollKill(D_shelter_1f_guardroom_8017E014, &poll) == 0) {
+            if (taskPollKill(D_shelter_1f_guardroom_8017E014, &poll) == 0) {
                 break;
             }
             task->state++;
@@ -365,7 +365,7 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
             break;
         case 2:
             if (cdCmdIsIdle() & 0xFFFF) {
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
             }
             break;
     }

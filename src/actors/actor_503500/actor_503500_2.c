@@ -62,7 +62,7 @@ extern SVECTOR D_actor_503500_8014B97C[];
 
 extern TaskDesc D_actor_503500_8014B964[];
 /// Event scripts in the overlay's `.data`, handed to `func_800E8634` (which
-/// forwards the first to `Task_Spawn`).
+/// forwards the first to `taskSpawn`).
 extern EvsCommand D_actor_503500_8014CD98[];
 extern EvsCommand D_actor_503500_8014D098[];
 
@@ -1837,7 +1837,7 @@ void func_actor_503500_80132BF8(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x16;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-    Task_Spawn(0, 0x11, 0, 0);
+    taskSpawn(0, 0x11, 0, 0);
 }
 
 void func_actor_503500_80132C40(s32 arg0)

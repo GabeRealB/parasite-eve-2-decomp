@@ -415,7 +415,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 D_shelter_1f_parking_garage_80181978.blend      = SCREEN_FADE_SUBTRACT;
                 D_shelter_1f_parking_garage_80181978.phase      = SCREEN_FADE_RUNNING;
                 D_shelter_1f_parking_garage_80181978.rampFrames = 0x1E;
-                Task_Spawn(1, 0x31, 0, &D_shelter_1f_parking_garage_80181978);
+                taskSpawn(1, 0x31, 0, &D_shelter_1f_parking_garage_80181978);
                 task->killCountdown = 0x1E;
                 task->state++;
             } else {

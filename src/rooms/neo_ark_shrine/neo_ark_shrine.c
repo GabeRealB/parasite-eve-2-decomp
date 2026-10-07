@@ -335,7 +335,7 @@ void func_neo_ark_shrine_8017D84C(Task* task)
             task->state++;
             return;
         case 1:
-            if (Task_PollKill(D_neo_ark_shrine_80186864, &sp10) != 0) {
+            if (taskPollKill(D_neo_ark_shrine_80186864, &sp10) != 0) {
                 D_neo_ark_shrine_80186864 = NULL;
                 taskKill(task);
             }

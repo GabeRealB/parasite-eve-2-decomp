@@ -395,7 +395,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             D_shelter_1f_bulwark_80180EC0.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_1f_bulwark_80180EC0.phase      = SCREEN_FADE_RUNNING;
             D_shelter_1f_bulwark_80180EC0.rampFrames = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
+            taskSpawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
             arg0->killCountdown = 0;
             sndEvtRequestScriptStart(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
             arg0->state++;
@@ -547,7 +547,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
             Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
-            Task_Spawn(0, 0x11, 0x10, 0);
+            taskSpawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
     }

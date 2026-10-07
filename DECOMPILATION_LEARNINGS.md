@@ -5327,7 +5327,7 @@ case 0:
     /* spawn ... */
     break;
 case 1:
-    if (Task_PollKill(child, &poll) != 0) {
+    if (taskPollKill(child, &poll) != 0) {
         t     = arg0;
         flag ^= 1;
         taskKill(t);
@@ -7683,7 +7683,7 @@ Assign the table to a local, then the subtract, then index:
 ```c
 table = D_80112DFC;
 type  = gPlayerStatus.resourceVariant - 2;
-task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+task  = taskSpawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
 ```
 
 `func_80104258` is the example. Inlining the table stuck at 96.8%
@@ -8032,7 +8032,7 @@ moved.
 
 ## New temp (not the index) so `lhu` targets `$a1`
 
-`table[value] + extra - 1` as a `Task_Spawn` argument emits `lhu a1` but
+`table[value] + extra - 1` as a `taskSpawn` argument emits `lhu a1` but
 reassociates to `addu a1, extra; addiu a1, -1`. Assigning
 `value = table[arg1] - 1` pins `-1` on the load (`addiu` then `addu`) but
 uses `$v0` as the load dest because `value` is still live as the index.
@@ -8044,7 +8044,7 @@ the address is computed:
 s32 type;
 
 type = D_80112DF4[arg1] - 1; /* lhu a1; addiu a1, -1 */
-task = Task_Spawn(7, type + arg2, arg3, 0);
+task = taskSpawn(7, type + arg2, arg3, 0);
 ```
 
 `func_80104364` is the example. Reusing `value` stuck at 99.7% with only
@@ -11937,7 +11937,7 @@ return _taskSpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
 Also: use `if (index >= 0)` (not `index < 0`) so the fall-through is the table
 path and the branch is `bltz` to the cast path — that matches the shared
 post-merge arg shuffle (`a1=a2`, `a2=saved a3`, `a3=_gTaskActiveList`) of
-`Task_Spawn`. Dual early returns force separate call setup and reg-shuffle
+`taskSpawn`. Dual early returns force separate call setup and reg-shuffle
 the args too early.
 
 ## `while (1)` for linked-list walks that re-enter at the null check
@@ -24934,7 +24934,7 @@ back to the `srav` form. `inventoryHasCollectedBit` is the example.
 
 ## `if (p != NULL) goto body; return NULL` emits `bnez` + `j` epilogue
 
-A shared-epilogue `return NULL` after `Task_Spawn` / `memCalloc` wants:
+A shared-epilogue `return NULL` after `taskSpawn` / `memCalloc` wants:
 
 ```
 bnez  s0, body
@@ -26245,7 +26245,7 @@ the lhs is a `COMPONENT_REF` (`preexpand_calls`), and `sched.c`'s
 chain written inline is read after the call that precedes it, which is what the
 target does. Do not hoist it into a local to help the allocator.
 
-## 1-based record as `Task_Spawn` arg: offset-first, then `ptr - 1`
+## 1-based record as `taskSpawn` arg: offset-first, then `ptr - 1`
 
 When the target scales a 1-based `u8` index into `$a3`, adds the saved
 base, then subtracts one element in the `jal` delay slot:
@@ -26255,7 +26255,7 @@ sll    a3, v0, 3
 addu   a3, a3, v0
 sll    a3, a3, 2
 addu   a3, a3, s0
-jal    Task_Spawn
+jal    taskSpawn
 addiu  a3, a3, -0x24
 ```
 
@@ -26267,7 +26267,7 @@ Build the address offset-first, then decrement the typed pointer:
 
 ```c
 camera = (ViewCamera*)(idx * sizeof(ViewCamera) + (s32)cameras);
-Task_Spawn(0, 0xF, 0, (s32)(camera - 1));
+taskSpawn(0, 0xF, 0, (s32)(camera - 1));
 ```
 
 Same integer form (`idx * sizeof + (s32)cameras - sizeof`) also matches.
@@ -32477,12 +32477,12 @@ if (dx < 0x69) {
 Split `dx = t[n]; dx -= other` so `t[n]` lands in `$v0` first.
 `Gp_PlayerMode2State4` is the example.
 
-## Inlined `return NULL` after `Task_Spawn` keeps `bnez` / `j` / `move a0, 0`
+## Inlined `return NULL` after `taskSpawn` keeps `bnez` / `j` / `move a0, 0`
 
 A local
 
 ```c
-task = Task_Spawn(...);
+task = taskSpawn(...);
 if (task != NULL) {
     extra = task->extra;
     ...
@@ -32501,8 +32501,8 @@ j       join
 ```
 
 `inline static` a small helper that `return NULL` on `item == 0` and on
-`Task_Spawn` failure. The inlined `return` is `task = 0; goto join`, and
-the 3rd helper arg (`item`) is allocated to `$t0` because `Task_Spawn`
+`taskSpawn` failure. The inlined `return` is `task = 0; goto join`, and
+the 3rd helper arg (`item`) is allocated to `$t0` because `taskSpawn`
 needs `$a2`. `Gp_SpawnWeaponEff` is the example.
 
 ## Put the `if (call != NULL)` body in the gap between if/else arms
@@ -37412,7 +37412,7 @@ best output differed from the base by that one swap and nothing else.
 
 ## Mask a parameter in place to free its incoming argument register
 
-`Gp_SpawnEff` unpacks its `s32 index` into a `Task_Spawn` bank
+`Gp_SpawnEff` unpacks its `s32 index` into a `taskSpawn` bank
 (`(index >> 16) & 0x7FFF`) and type (`index & 0xFFFF`), with a sign test and a
 cap check in between. Writing the bank into a local computed before the sign
 test gets the instruction order right, but the allocator keeps `index` in its
@@ -37422,7 +37422,7 @@ call:
 ```c
 bank = (arg0 >> 16) & 0x7FFF;   /* sra v0,a0,16 ; andi v1,v0,0x7fff */
 if ((arg0 & 0xFFFF) == 0) { ... }
-task = Task_Spawn(bank, arg0 & 0xFFFF, arg2, 0);   /* move a0,v1 */
+task = taskSpawn(bank, arg0 & 0xFFFF, arg2, 0);   /* move a0,v1 */
 ```
 
 The target instead copies the parameter out (`move v1, a0`) and lets the bank
@@ -37435,7 +37435,7 @@ assigns back to the same variable.
 bank  = (arg0 >> 16) & 0x7FFF;  /* move v1,a0 ; sra v0,v1,16 ; andi a0,v0,0x7fff */
 arg0 &= 0xFFFF;                 /* andi v1,v1,0xffff */
 if (arg0 == 0) { ... }
-task  = Task_Spawn(bank, arg0, arg2, 0);
+task  = taskSpawn(bank, arg0, arg2, 0);
 ```
 
 That single edit took the function from 99.4% to 100%. General rule: when a
@@ -38391,7 +38391,7 @@ D_801156D4.field_2 = val;
 (one `sh` at the join, with the `li 7` scheduled into the branch delay slot).
 Writing the store in both arms instead leaves `j; sh` + `sh` — the two `sh`s are
 never merged, even on one source line, even though the same function's
-`jal Task_Spawn` + `sw` two-instruction tail *is* merged into a shared
+`jal taskSpawn` + `sw` two-instruction tail *is* merged into a shared
 `.L800E7E88`. Whenever the ROM has one store at a join, the original selected a
 value into a local; whenever it has two, the original repeated the statement.
 
@@ -46730,7 +46730,7 @@ same in the frame size but not in the instruction stream.
 ## A filler local can precede the live one: aggregates sit below scalars
 
 `func_acropolis_bridge_8017DDEC` scored 99.2% with the whole body correct and
-only the frame wrong: `addiu $sp,$sp,-0x20` with the `Task_PollKill` out-param
+only the frame wrong: `addiu $sp,$sp,-0x20` with the `taskPollKill` out-param
 at `sp+0x10`, against the target's `-0x28` with it at `sp+0x18`. The extra
 eight bytes are an unused aggregate, as in "An unreferenced aggregate local
 still gets its stack slot" — but here the *live* variable is a scalar, and the
@@ -46738,7 +46738,7 @@ filler has to be declared **first**:
 
 ```c
 s32 unused[2];   /* sp+0x10..sp+0x18, never read */
-s32 killed;      /* sp+0x18: &killed goes to Task_PollKill */
+s32 killed;      /* sp+0x18: &killed goes to taskPollKill */
 ```
 
 So the ordering rule is not "the live local comes first"; GCC 2.8.1 lays the
@@ -55172,7 +55172,7 @@ every remaining difference a symbol *name* (`gMcSaveData+0x22` vs
 `D_8007218A`), i.e. already a match.
 
 Good discriminators to grep for: an unusual struct field offset, a rare callee
-(`Gp_SpawnScript18`, `Task_PollKill`), or a distinctive constant. Do this before
+(`Gp_SpawnScript18`, `taskPollKill`), or a distinctive constant. Do this before
 reshaping an m2c switch by hand — a matched twin gives you the struct, the
 payload types and the statement order for free.
 
@@ -85080,10 +85080,10 @@ linker resolves the raw name and the target object's relocation carries it
 (`R_MIPS_HI16 D_8017DA00`).
 
 The function itself is the standard "story trigger unless the demo is running"
-shape: `if (gMcSaveData.demoScene != 9)` — 9 is the `Task_Spawn` bank the
+shape: `if (gMcSaveData.demoScene != 9)` — 9 is the `taskSpawn` bank the
 `Gp_StrDemoWait` / `Gp_StrDemoPause` prompts key off — then arm the scene event
 byte `field_5C5` and spawn the table's task. `func_actor_450800_80132080` and
-`func_shelter_r36_8017D738` are the same shape with `Task_Spawn` instead.
+`func_shelter_r36_8017D738` are the same shape with `taskSpawn` instead.
 
 Inputs: `base.i` (seed retyped to `extern TaskDesc D_8017DA00;`, 100.000% with
 all-zero penalties on the first build)
@@ -89282,7 +89282,7 @@ gMcSaveData.field_6 = 0x26;
 gMcSaveData.field_8 = D_dryfield_general_store_80185709;
 gMcSaveData.field_5 = D_dryfield_general_store_8018570A;
 D_80071076          = 1;              /* last in the source */
-Task_Spawn(0, 0x11, 0, 0);
+taskSpawn(0, 0x11, 0, 0);
 ```
 
 m2c read the emitted order off the target - `field_6`, `D_80071076`, `field_8`,
@@ -95160,8 +95160,8 @@ return;
 L_case0:  ...; goto advance;
 L_case3:  ...; if (child == 0) { goto L_kill; }
 advance:  task->state = task->state + 1; return;
-L_case4:  if (Task_PollKill(slot->child, &killed) == 0) { return; }
-L_kill:   Task_RequestKill(task, 0);
+L_case4:  if (taskPollKill(slot->child, &killed) == 0) { return; }
+L_kill:   taskRequestKill(task, 0);
 ```
 
 The table does **not** grow a two-insn trampoline per `goto`. `jump_optimize`
@@ -132979,8 +132979,8 @@ deleting it and letting `Task` and its own work type say the same thing.
 
 Several of `Task`'s trailing slots are not single-purpose, and taking a field's
 name for its whole role gets the documentation wrong. The byte now called
-`status` is the example: `Task_RequestKill` records `0xFF` in it and
-`Task_PollKill` tests for that, but not one of the ~20 other writes is a bitwise
+`status` is the example: `taskRequestKill` records `0xFF` in it and
+`taskPollKill` tests for that, but not one of the ~20 other writes is a bitwise
 operation — the item panels put a notice id there, the ammo split a transfer
 result, part-swap code a course id, and a parent hands its value down to its
 children. A name claiming a bitmask on a byte every caller compares for equality

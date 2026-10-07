@@ -142,7 +142,7 @@ void Gp_CommitDirWarp(void)
     save->state.location.loc.area = (u8)Gp_WarpLoc.areaId;
     save->state.location.loc.warp = loc->warp;
     save->state.location.loc.room = loc->room;
-    Task_Spawn(0, 0x11, 0, 0);
+    taskSpawn(0, 0x11, 0, 0);
 
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;

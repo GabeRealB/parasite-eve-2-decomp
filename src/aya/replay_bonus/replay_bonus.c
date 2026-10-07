@@ -149,7 +149,7 @@ void func_replay_bonus_801159A0(Task* arg0)
                 if (strip == (imgWidth >> 4) - 1) {
                     memFreeFromHeap(D_replay_bonus_8011925C, true);
                     memFreeFromHeap(D_replay_bonus_80119260, true);
-                    Task_RequestKill(arg0, 0);
+                    taskRequestKill(arg0, 0);
                     return;
                 }
                 DecDCTout((u_long*)(D_replay_bonus_8011925C + ((D_replay_bonus_80119270 << 5) * (s16)D_replay_bonus_80119266)), (s16)D_replay_bonus_80119266 * 8);

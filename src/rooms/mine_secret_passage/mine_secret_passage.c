@@ -93,7 +93,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             D_mine_secret_passage_80183440.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_mine_secret_passage_80183440.fade.phase      = SCREEN_FADE_RUNNING;
             D_mine_secret_passage_80183440.fade.rampFrames = 0x1E;
-            Task_Spawn(1, 0x31, 0, &D_mine_secret_passage_80183440.fade);
+            taskSpawn(1, 0x31, 0, &D_mine_secret_passage_80183440.fade);
             sndEvtRequestScriptStart(SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT, 0, 0);
             arg0->state++;
             break;
@@ -109,7 +109,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_mine_secret_passage_80183448.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_mine_secret_passage_80183448.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_mine_secret_passage_80183448.areaId)[1];
-            Task_Spawn(0, 0x11, 0x10, 0);
+            taskSpawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
     }

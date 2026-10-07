@@ -1470,7 +1470,7 @@ static void Gp_InitState1C(Task* arg0)
     if (val != 0) {
         Gp_SpawnEff(val | 0x60000, 0, 0, 0);
     }
-    Task_Spawn(6, 0x80000007, 0, 0);
+    taskSpawn(6, 0x80000007, 0, 0);
 }
 
 static void Gp_TickState1C(Task* unused)
@@ -1652,7 +1652,7 @@ EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* ar
     if (arg0 == 0) {
         return NULL;
     }
-    task = Task_Spawn(bank, arg0, arg2, 0);
+    task = taskSpawn(bank, arg0, arg2, 0);
     if (task == NULL) {
         return NULL;
     }

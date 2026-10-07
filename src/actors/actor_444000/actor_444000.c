@@ -201,7 +201,7 @@ STATIC_ASSERT_SIZEOF(_GluttonHostTaskStorage, 8);
 /// task table the successor is spawned from, `D_shelter_b3_garbage_incinerator_8018FBC8[0]` the view id copied
 /// into `GameSession::sceneClock`, and `D_shelter_b3_garbage_incinerator_801855DE` a counter cleared with it.
 
-/// Spawn tables `func_800E8634` forwards to `Task_Spawn`, taken as raw
+/// Spawn tables `func_800E8634` forwards to `taskSpawn`, taken as raw
 /// addresses: the first pair is used by the `spawnArg1` fast path in state 0
 /// and the second by state 2.
 extern EvsCommand D_actor_444000_80144634[];
@@ -2834,7 +2834,7 @@ void func_actor_444000_801321FC(s32 arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
             Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
             if (arg0 == 1) {
-                work->framebufferBlend = Task_Spawn(1, 0x2D, 0x10, 0);
+                work->framebufferBlend = taskSpawn(1, 0x2D, 0x10, 0);
             }
             gGameSession->viewDirty = 1;
             break;

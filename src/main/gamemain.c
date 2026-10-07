@@ -646,9 +646,9 @@ static void Gfx_InitGraph(void)
 static void GameMain_SpawnBootTask(void)
 {
     if (D_8005EC64 == 1) {
-        Task_Spawn(0, 0x1F, 0, 0);
+        taskSpawn(0, 0x1F, 0, 0);
     } else {
-        Task_Spawn(0, 0x20, 0, 0);
+        taskSpawn(0, 0x20, 0, 0);
     }
 }
 

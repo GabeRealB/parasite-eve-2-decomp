@@ -191,7 +191,7 @@ extern ActorTransform D_actor_341900_80163AF8;
 extern ActorTransform D_actor_341900_80163B10;
 extern ActorTransform D_actor_341900_80163B28;
 /// Event scripts in the overlay's `.data`, handed to `func_800E8634` (which
-/// forwards the first to `Task_Spawn`).
+/// forwards the first to `taskSpawn`).
 extern EvsCommand D_actor_341900_80163B48[];
 extern EvsCommand D_actor_341900_80163FB0[];
 extern TaskDesc   D_actor_341900_80164190[];
@@ -948,7 +948,7 @@ void func_actor_341900_80162EFC(Task* arg0)
         case 2:
             if (gGameSession->eventState == 0) {
                 gameFlagSetNibble(GAME_FLAG_11D, 2);
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
                 return;
             }
             func_actor_341900_801628B8(arg0);

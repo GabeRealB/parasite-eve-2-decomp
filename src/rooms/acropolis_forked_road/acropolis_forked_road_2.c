@@ -1289,7 +1289,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
             break;
@@ -1370,7 +1370,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             work->playerMtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
             work->playerMtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
             if (work->skipFadeStarted != 0) {
-                if (Task_PollKill(work->skipFadeTask, &sp40) != 0) {
+                if (taskPollKill(work->skipFadeTask, &sp40) != 0) {
                     place.pos.vx = -0x190;
                     place.pos.vy = 1;
                     place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
@@ -1422,7 +1422,7 @@ void func_acropolis_forked_road_8017E1C0(Task* arg0)
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {
-        Task_RequestKill(arg0, 0);
+        taskRequestKill(arg0, 0);
     }
 }
 

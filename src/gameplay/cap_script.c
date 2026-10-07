@@ -32,7 +32,7 @@ void Gp_EndWaitTask(Task* task)
     request = task->spawnArg2.pointer;
     switch (task->state) {
         case 0:
-            Task_Spawn(1, 0x2C, 0, request);
+            taskSpawn(1, 0x2C, 0, request);
             task->state++;
             break;
         case 1:

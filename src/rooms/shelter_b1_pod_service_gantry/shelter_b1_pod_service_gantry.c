@@ -1536,7 +1536,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_FIRST_SCENE:
-            if (Task_PollKill(work->sceneTask, &poll) == 0) {
+            if (taskPollKill(work->sceneTask, &poll) == 0) {
                 break;
             }
             work->sceneTask = taskSpawnFromTable(D_actor_560800_8016EA28, 0, 0, 0);
@@ -1563,7 +1563,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_AWAIT_SECOND_SCENE:
-            if (Task_PollKill(work->sceneTask, &poll) == 0) {
+            if (taskPollKill(work->sceneTask, &poll) == 0) {
                 break;
             }
             gGameSession->unknown_138                                   = 1;
@@ -1572,7 +1572,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_PAUSE:
             work->step++;
             break;

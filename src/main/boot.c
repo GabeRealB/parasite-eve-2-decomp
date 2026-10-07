@@ -271,7 +271,7 @@ void Boot_LoadInitialFile(Task* task)
             break;
 
         case 4:
-            Task_Spawn(0, 0xD, 0, 0);
+            taskSpawn(0, 0xD, 0, 0);
             taskKill(task);
             SetDispMask(1);
             gDisplayState.debugMode = 0;

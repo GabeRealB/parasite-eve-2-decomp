@@ -475,7 +475,7 @@ static void Display_TransitionTask(Task* task)
                     Pad_SetCooldown(0);
                     Gp_SpawnCurView(2);
                     gGameSession->viewReady = 0;
-                    Task_Spawn(0, 0x1E, 2, 0);
+                    taskSpawn(0, 0x1E, 2, 0);
                 } else {
                     tmdResetAuxHeapAndRestoreBuffers();
                     gGameSession->viewReady = 1;

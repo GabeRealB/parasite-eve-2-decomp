@@ -738,7 +738,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             work->playerMtx->t[1] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vy;
             work->playerMtx->t[2] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vz;
             if (work->skipFadeStarted != 0) {
-                if (Task_PollKill(work->skipFadeTask, &killed) != 0) {
+                if (taskPollKill(work->skipFadeTask, &killed) != 0) {
                     place.pos.vx = -0x968;
                     place.pos.vy = -0xBAD;
                     place.pos.vz = -0x6D4;
@@ -843,7 +843,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             work->playerMtx->t[1] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vy;
             work->playerMtx->t[2] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vz + 0xC8;
             if (work->skipFadeStarted != 0) {
-                if (Task_PollKill(work->skipFadeTask, &killed) != 0) {
+                if (taskPollKill(work->skipFadeTask, &killed) != 0) {
                     place.pos.vx = -0x8F8;
                     place.pos.vy = -0xBAD;
                     place.pos.vz = -0x2936;
@@ -900,7 +900,7 @@ void func_acropolis_observatory_8017E0D4(Task* arg0)
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {
-        Task_RequestKill(arg0, 0);
+        taskRequestKill(arg0, 0);
     }
 }
 

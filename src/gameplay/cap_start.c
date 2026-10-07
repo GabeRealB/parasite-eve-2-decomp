@@ -96,7 +96,7 @@ s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2)
     D_80115666 = arg1;
     D_80115660 = 0;
     if (arg1 != 0) {
-        desc       = Task_GetDesc(2, 7);
+        desc       = taskGetDesc(2, 7);
         Gp_CapTask = displayQueueModeTask(desc, 0, 0, STAGE_ENTRY_RELOAD);
         if (D_80115666 != 3) {
             return 0;
@@ -104,7 +104,7 @@ s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2)
         taskSpawnFromTable(D_8010FB4C, 0, 0, 0);
         D_80115666 = 1;
     } else {
-        Gp_CapTask = Task_Spawn(2, 7, 0, 0);
+        Gp_CapTask = taskSpawn(2, 7, 0, 0);
     }
     return 0;
 }

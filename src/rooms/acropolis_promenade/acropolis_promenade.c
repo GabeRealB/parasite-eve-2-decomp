@@ -2068,7 +2068,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             work->playerMtx->t[1] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vy;
             work->playerMtx->t[2] = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
             if (work->skipFadeStarted != 0) {
-                if (Task_PollKill(work->skipFadeTask, &killed) != 0) {
+                if (taskPollKill(work->skipFadeTask, &killed) != 0) {
                     place.pos.vx = 0x282;
                     place.pos.vy = 0x29;
                     place.pos.vz = D_acropolis_promenade_80181184[0x45 - queue->movieFrame].vz - 0xC8;
@@ -2109,7 +2109,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
 
 /// Entry 3 of the room's task table: draws `fadeDrawOverlay` at the grey
 /// level `killCountdown`, which rises by 0x20 a frame; at 0x100 the task asks
-/// to be killed with `Task_RequestKill`, which the streamed-scene task that
+/// to be killed with `taskRequestKill`, which the streamed-scene task that
 /// spawned it polls for.
 void func_acropolis_promenade_8017DF74(Task* arg0)
 {
@@ -2121,7 +2121,7 @@ void func_acropolis_promenade_8017DF74(Task* arg0)
     temp_v0             = (u16)arg0->killCountdown + 0x20;
     arg0->killCountdown = temp_v0;
     if (temp_v0 >= 0x100) {
-        Task_RequestKill(arg0, 0);
+        taskRequestKill(arg0, 0);
     }
 }
 

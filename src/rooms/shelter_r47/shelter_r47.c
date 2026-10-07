@@ -891,7 +891,7 @@ static void func_shelter_r47_80180714(Task* task)
 {
     s32 out;
 
-    if (Task_PollKill(D_shelter_r47_8018A690, &out) != 0) {
+    if (taskPollKill(D_shelter_r47_8018A690, &out) != 0) {
         Gp_MsgPlayer3F3(1);
         Gp_MsgPlayerWeapon(1);
         if (gGameSession->location.loc.variant == 1) {

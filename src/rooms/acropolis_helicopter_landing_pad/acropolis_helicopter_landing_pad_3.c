@@ -751,14 +751,14 @@ static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
-        Task_Spawn(0, 0x11, 0, 0);
+        taskSpawn(0, 0x11, 0, 0);
         taskKill(arg0);
     }
 }
 
 void func_acropolis_helicopter_landing_pad_8017EF60(s32 unused0, s32 unused1)
 {
-    Task_Spawn(2, 0xF, 0, 0);
+    taskSpawn(2, 0xF, 0, 0);
 }
 
 /// Five-state dispatcher of the room's intro task; the handler table is built

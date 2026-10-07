@@ -216,7 +216,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
         case 6:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant = 1;
-            Task_Spawn(0, 0x11, 0, 0);
+            taskSpawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
     }

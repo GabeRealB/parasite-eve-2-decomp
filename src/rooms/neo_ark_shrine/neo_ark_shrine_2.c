@@ -1200,7 +1200,7 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
     /* Without this the scheduler hoists the `spawnArg2` load above the
        `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store, which then fills `taskKill`'s delay slot. */
     taskKill(task->spawnArg2.pointer);
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
 }
 
 /// Same as `func_neo_ark_shrine_8017F320`, but it latches the script's pad
@@ -1335,7 +1335,7 @@ static void func_neo_ark_shrine_8017F274(Task* task)
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xA;
-    Task_RequestKill(task, 0);
+    taskRequestKill(task, 0);
 }
 
 /// Runs the shrine's per-step helper and restarts the work block's `timer`:

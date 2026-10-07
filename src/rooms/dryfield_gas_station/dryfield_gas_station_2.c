@@ -147,16 +147,16 @@ void func_dryfield_gas_station_801802C0(Task* task)
             cutscene       = taskSpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
             work->cutscene = cutscene;
             if (cutscene == NULL) {
-                Task_RequestKill(task, 0);
+                taskRequestKill(task, 0);
                 break;
             }
             task->state = task->state + 1;
             break;
         case 4:
-            if (Task_PollKill(work->cutscene, &killed) == 0) {
+            if (taskPollKill(work->cutscene, &killed) == 0) {
                 break;
             }
-            Task_RequestKill(task, 0);
+            taskRequestKill(task, 0);
             break;
     }
 }

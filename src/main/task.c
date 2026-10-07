@@ -385,27 +385,29 @@ Task* taskSpawnFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, Tas
     return _taskSpawnFromDesc(&table[index], spawnArg1, spawnArg2, _gTaskActiveList);
 }
 
-Task* Task_Spawn(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
+Task* taskSpawn(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
 {
-    TaskDesc* ptr;
+    TaskDesc* desc;
 
-    if (arg0 >= 0) {
-        ptr = gTaskDescBanks[arg0];
-        ptr = &ptr[arg1.value];
+    if (bank >= 0) {
+        desc = gTaskDescBanks[bank];
+        desc = &desc[selector.value];
     } else {
-        ptr = arg1.pointer;
+        desc = selector.pointer;
     }
-    return _taskSpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
+    return _taskSpawnFromDesc(desc, spawnArg1, spawnArg2, _gTaskActiveList);
 }
 
-/// Dispatches exits around a nonempty child ring with parents cleared first.
+/// Dispatches each child's exit with its parent cleared in a nonempty sibling ring.
 ///
-/// `firstChild` heads a closed ring of live tasks with loaded, non-NULL handlers.
-/// Each handler must preserve the child's sibling-link storage until the
-/// post-handler read and keep the remaining traversal intact, even when freeing
-/// the child.
-/// The ring head is a pointer comparison boundary and is not dereferenced again
-/// after its own dispatch. The ring owner's child head is left for the caller.
+/// `firstChild` must be non-NULL and head a closed ring of live tasks with
+/// loaded, non-NULL exit handlers. Clearing the parent before dispatch keeps
+/// default teardown from removing the child from this ring. Each successor is
+/// read after its handler returns; the handler must preserve that link's bytes
+/// without reuse, and the remaining traversal, even when freeing the child.
+/// The head serves only as a comparison boundary after its own dispatch.
+/// Sibling links are not reset, and clearing the owner's child head belongs
+/// to the caller. Resource release follows each child's handler contract.
 static inline void _taskCallChildRingExits(Task* firstChild)
 {
     Task* child;
@@ -578,10 +580,10 @@ void taskExecList(TaskNode* listHead)
     }
 }
 
-TaskDesc* Task_GetDesc(u32 idx1, u32 idx2)
+TaskDesc* taskGetDesc(u32 bank, u32 index)
 {
-    TaskDesc* base = gTaskDescBanks[idx1];
-    return base + idx2;
+    TaskDesc* bankTable = gTaskDescBanks[bank];
+    return bankTable + index;
 }
 
 TaskDesc* taskGetDescAt(TaskDesc* table, u32 index)
@@ -589,42 +591,39 @@ TaskDesc* taskGetDescAt(TaskDesc* table, u32 index)
     return table + index;
 }
 
-void Task_RequestKill(Task* task, s32 arg1)
+void taskRequestKill(Task* task, s32 result)
 {
-    Task* start;
-    Task* cur;
-    Task* temp;
+    Task* firstChild;
+    Task* childHead;
 
+    // Publish the result and suspend updates until the caller polls the request.
     task->status           = TASK_STATUS_STOP_REQUESTED;
-    task->extraState.value = arg1;
+    task->extraState.value = result;
     task->callback         = taskNoopCallback;
 
-    temp = task->firstChild;
-    if (temp != NULL) {
-        start = temp;
-        cur   = start;
-        do {
-            cur->parent = NULL;
-            cur->exitCallback(cur);
-            cur = cur->nextSibling;
-        } while (cur != start);
+    // Exit children now; leave this task's own exit for the polling caller.
+    childHead = task->firstChild;
+    if (childHead != NULL) {
+        firstChild = childHead;
+        _taskCallChildRingExits(firstChild);
     }
     task->firstChild = NULL;
 }
 
-s32 Task_PollKill(Task* task, s32* arg1)
+bool taskPollKill(Task* task, s32* resultOut)
 {
-    s32 result;
+    bool exitDispatched;
 
-    result = 0;
+    exitDispatched = false;
     if (task->status == TASK_STATUS_STOP_REQUESTED) {
-        if (arg1 != NULL) {
-            *arg1 = task->extraState.value;
+        // Copy the result before the exit handler can release its storage.
+        if (resultOut != NULL) {
+            *resultOut = task->extraState.value;
         }
         task->exitCallback(task);
-        result = 1;
+        exitDispatched = true;
     }
-    return result;
+    return exitDispatched;
 }
 
 TaskNode* taskGetActiveList(void)

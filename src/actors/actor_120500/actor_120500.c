@@ -632,7 +632,7 @@ void func_actor_120500_8013241C(Task* arg0)
             return;
         case 1:
             if (gGameSession->eventState == 0) {
-                Task_RequestKill(arg0, 0);
+                taskRequestKill(arg0, 0);
                 return;
             }
             break;

@@ -212,7 +212,7 @@ static void Gp_StepScriptB(Task* task)
 static void Gp_SpawnPadHold(s16 arg0)
 {
     if (arg0 != 0) {
-        Task_Spawn(2, 0xB, (s32)(arg0), 0);
+        taskSpawn(2, 0xB, (s32)(arg0), 0);
     }
 }
 
@@ -226,7 +226,7 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
     if (arg0 != 0) {
         work = memCalloc(sizeof(*work), 0);
         if (work != NULL) {
-            task = Task_Spawn(2, 0xC, 0, 0);
+            task = taskSpawn(2, 0xC, 0, 0);
             if (task == NULL) {
                 memFree(work);
             } else {
@@ -253,7 +253,7 @@ static void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
     if (arg0 != 0) {
         work = memCalloc(sizeof(*work), 0);
         if (work != NULL) {
-            task = Task_Spawn(2, 0xC, 0, 0);
+            task = taskSpawn(2, 0xC, 0, 0);
             if (task == NULL) {
                 memFree(work);
             } else {
@@ -292,7 +292,7 @@ Task* Gp_SpawnScript18(PadScriptCmd* commands, PadScriptVibrationSegment* segmen
 
     mem = memCalloc(sizeof(*mem), 0);
     if (mem != NULL) {
-        task = Task_Spawn(2, 0xD, 0, 0);
+        task = taskSpawn(2, 0xD, 0, 0);
         if (task != NULL) {
             task->work       = mem;
             mem->sourceDepth = 0;
@@ -342,7 +342,7 @@ Task* Gp_SpawnScript18Ex(PadScriptCmd* commands, PadScriptVibrationSegment* segm
 
     mem = memCalloc(sizeof(*mem), 0);
     if (mem != NULL) {
-        task = Task_Spawn(2, 0xD, 0, 0);
+        task = taskSpawn(2, 0xD, 0, 0);
         if (task != NULL) {
             task->work       = mem;
             mem->sourceDepth = arg2;

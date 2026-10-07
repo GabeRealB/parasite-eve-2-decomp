@@ -79,7 +79,7 @@ void roomCutsceneTask(Task* task)
                 sndEvtRequestScriptStop(script->sceneSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(ROOM_CUTSCENE_SOUND_TASK);
                 task->state++;
-            } else if (Task_PollKill(ROOM_CUTSCENE_SOUND_TASK, &poll) != 0) {
+            } else if (taskPollKill(ROOM_CUTSCENE_SOUND_TASK, &poll) != 0) {
                 task->state++;
             }
             break;
