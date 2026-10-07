@@ -530,4 +530,13 @@ void sceneManagerTask(Task* sceneTask);
 /// task's teardown callback, which may release it. Gameplay must stay loaded.
 void displayBlendPreviousFrameTask(Task* task);
 
+/// Sets the draw mode of a placed actor in the current stage and area, if found.
+///
+/// `placeIndex` must fit the placement key's four bits (0..15); stage and area
+/// come from the live session. The scene task and its placed children must be
+/// live. The lookup writes a borrowed Task* synchronously; a missing actor does
+/// nothing. Draw modes 0/1 hide/show; other modes belong to the receiver's
+/// `ACTOR_MESSAGE_SET_MODEL_DRAW` handler. The forwarding result is discarded.
+void sceneSetPlacedActorDrawMode(s32 placeIndex, s32 drawMode);
+
 #endif // GAMEPLAY_SCENE_RUNTIME_H

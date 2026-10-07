@@ -13,7 +13,7 @@ void factoryHatchScene(Task* task)
             task->state         = task->state + 1;
             return;
         case 2:
-            Gp_RunCapCmd1(task->spawnArg1.value);
+            capRunCommandWithTransition(task->spawnArg1.value);
             gameFlagSetNibble(GAME_FLAG_FACTORY_HATCH_OPEN, 0);
             task->killCountdown = 0x1E;
             task->state         = task->state + 1;
@@ -25,8 +25,8 @@ void factoryHatchScene(Task* task)
             }
             return;
         default:
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgAllyWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             return;
     }

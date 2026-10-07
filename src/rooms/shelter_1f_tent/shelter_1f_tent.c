@@ -10,6 +10,9 @@
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
@@ -175,7 +178,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
         gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 0);
         gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_1BA, 2);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, 2);
-        func_800E3FAC(0xA2, 0x36);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x36);
         Gp_FillPlayerHpMp();
         Gp_ApplyAreaRecs(D_shelter_1f_tent_801842D4);
         evsStartScriptWithSkip(D_actor_460200_801362B8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_460200_80137890);
@@ -223,7 +226,7 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_TENT_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_TENT_FIRST_SCENE, 1);
-            Gp_RunCapCmd1(0x18);
+            capRunCommandWithTransition(0x18);
             return 0;
         }
         D_shelter_1f_tent_801843C4.view            = 5;

@@ -11,6 +11,8 @@
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -430,7 +432,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(3);
+            capRunCommandWithTransition(3);
             task->state++;
             return;
         case 1:
@@ -443,7 +445,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             D_80114D08 = 0xA;
             if (capGetVariantKey() == 0xC) {
                 taskKill(task);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
             }
             task->state++;
@@ -463,7 +465,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             work.warp     = 2;
             work.sndEvent = 0;
             work.facing   = 0x800;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             // The destination room depends on game progress: run the departure's
             // selectors through the stage's resolver, request and reply in one record.
             wp            = &work;
@@ -492,7 +494,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(2);
+            capRunCommandWithTransition(2);
             task->state++;
             return;
         case 1:
@@ -505,10 +507,10 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             D_80114D08 = 0xA;
             if (capGetVariantKey() == 0xC) {
                 taskKill(task);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
             }
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             task->state++;
             sndEvtRequestScriptStart(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR, 0, 0);
             return;
@@ -551,8 +553,8 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
             switch (gameFlagGetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED)) {
                 case 0:
                     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                        Gp_SetNibbleIf(src->flagId, 2);
-                        Gp_RunCapCmd1(1);
+                        gameFlagSetNibbleIfPresent(src->flagId, 2);
+                        capRunCommandWithTransition(1);
                     }
                     break;
                 default:
@@ -561,7 +563,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
                         D_neo_ark_eve_access_tunnel_801807A0.warp              = (u8)dst->areaId;
                         D_neo_ark_eve_access_tunnel_801807A0.field_4           = dst->warp;
                         ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1] = dst->room;
-                        Gp_MsgPlayerWeapon(0);
+                        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                         taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 1, 0, 0);
                     }
                     break;
@@ -578,19 +580,19 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 
             case 6:
                 if (gameFlagGetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                        Gp_RunCapCmd1(6);
+                        capRunCommandWithTransition(6);
                     }
                 } else {
-                    Gp_RunCapCmd1(8);
+                    capRunCommandWithTransition(8);
                 }
                 break;
             case 7:
                 if (gameFlagGetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                        Gp_RunCapCmd1(7);
+                        capRunCommandWithTransition(7);
                     }
                 } else {
-                    Gp_RunCapCmd1(9);
+                    capRunCommandWithTransition(9);
                 }
                 break;
         }
@@ -604,10 +606,10 @@ s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* f
 
     if (request->actionId == 0xA) {
         if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
             taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
         } else {
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             // Widen the action byte to the task argument's ABI word.
             taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 0, (s32)request->argument, 0);
         }

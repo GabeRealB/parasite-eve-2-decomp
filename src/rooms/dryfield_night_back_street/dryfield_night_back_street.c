@@ -15,6 +15,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"

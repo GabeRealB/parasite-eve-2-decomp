@@ -9,6 +9,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -223,8 +224,8 @@ s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->flagId, 2);
-    Gp_RunCapCmd1(3);
+    gameFlagSetNibbleIfPresent(in->flagId, 2);
+    capRunCommandWithTransition(3);
     return 0;
 }
 
@@ -293,7 +294,7 @@ void func_mine_gorge_8017D8C8(s32 arg0)
 /// Room task setup state: installs the message table and pointer slot 7, sets
 /// `gSceneCombatState.actor03700Wave` to `0x15` in place 1 once flag nibble `0xC5` is set, and on the
 /// first pass with flag nibble `0xBE == 2` arms nibble `0x166`, clears nibble
-/// `0xB5` and calls `Gp_SpawnIfCapIdle(8, 0)`. Then selects scene music entry 1 and
+/// `0xB5` and calls `capSpawnEventIfIdle(8, 0)`. Then selects scene music entry 1 and
 /// advances state.
 static void func_mine_gorge_8017D8D4(Task* arg0)
 {
@@ -305,7 +306,7 @@ static void func_mine_gorge_8017D8D4(Task* arg0)
     if ((gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) && (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 0)) {
         gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 1);
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
-        Gp_SpawnIfCapIdle(8, 0);
+        capSpawnEventIfIdle(8, CAP_EVENT_NO_FLAGS);
     }
     arg0->state           = arg0->state + 1;
     gStageSceneMusicEntry = 1;

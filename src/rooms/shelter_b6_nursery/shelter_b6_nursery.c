@@ -18,6 +18,9 @@
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -902,7 +905,7 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
                 Gp_SetBit2Flag(0x22, 1, 4);
             }
-            func_800E3FAC(0xA2, 0x31);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x31);
             gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 2);
             D_shelter_b6_nursery_80187980.rec.view      = 6;
             D_shelter_b6_nursery_80187980.rec.capSlot   = 0xB;
@@ -915,7 +918,7 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             return 0;
         }
         if (gameFlagGetNibble(GAME_FLAG_NURSERY_SCENE_SEEN) == 0) {
-            Gp_SpawnIfCapIdle(0x17, 0);
+            capSpawnEventIfIdle(0x17, CAP_EVENT_NO_FLAGS);
             gameFlagSetNibble(GAME_FLAG_NURSERY_SCENE_SEEN, 1);
             return 0;
         }
@@ -989,7 +992,7 @@ s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, RoomEventMsg* src, R
     *dst = *src;
     mapNeoArkResolveRoomVariant(src, dst);
     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-        Gp_RunCapCmd1(0xC);
+        capRunCommandWithTransition(0xC);
     }
     return 0;
 }
@@ -1017,7 +1020,7 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
         gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);
         evsStartScriptWithSkip(D_actor_450800_80139964, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013A33C);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        func_800E3FAC(0xA2, 0x30);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x30);
     } else if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
         evsStartScript(D_actor_450800_8013A84C, EVENT_SCRIPT_HUD_KEEP);
     } else {

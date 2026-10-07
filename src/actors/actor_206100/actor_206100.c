@@ -18,7 +18,7 @@
 #include "gameplay/area_entry.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/effects.h"
@@ -2131,7 +2131,7 @@ static void func_actor_206100_8014CD08(Task* task)
         work->rotation.vy                                          = 0;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
         worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
-        Gp_MsgPlayer3F3(0);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         msg.pos.vx = 0x690;
         msg.pos.vy = 0x1388;
         msg.pos.vz = 0x898;
@@ -2205,8 +2205,8 @@ static void func_actor_206100_8014CE60(Task* task)
         } while (i < 0x20);
     }
     if (work->stateFrames == 0x46) {
-        Gp_MsgPlayerWeapon(1);
-        Gp_MsgPlayer3F3(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
         coord->coord.t[0]                                          = 0;
         coord->coord.t[2]                                          = 0;
@@ -3522,7 +3522,7 @@ static void func_actor_206100_8014F65C(Task* task)
     _Actor206100Work* work = task->work;
 
     func_actor_206100_8014DEAC(task);
-    Gp_MsgPlayerWeapon(0);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     work->stateFrames = 0;
     work->subState    = work->subState + 1;
 }

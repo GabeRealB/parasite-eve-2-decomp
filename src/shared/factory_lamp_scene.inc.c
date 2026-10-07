@@ -9,9 +9,9 @@ void factoryLampScene(Task* task)
 
     switch (state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd(task->spawnArg1.value, 0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             return;
         case 1:
@@ -30,8 +30,8 @@ void factoryLampScene(Task* task)
             if (capGetVariantKey() == state) {
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 2);
             }
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgAllyWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskKill(task);
             break;

@@ -1331,7 +1331,7 @@ static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 ite
 s32 func_dryfield_water_hole_8017D73C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
-        Gp_RunCapCmd1(2);
+        capRunCommandWithTransition(2);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
         sndEvtRequestScriptStart(SOUND_WATER_HOLE_LOCKED, 0, 0);
     }

@@ -17,6 +17,7 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/enemy.h"
@@ -1113,13 +1114,13 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
+            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state = arg0->state + 1;
             return;
         case 1:
             if (capIsBusy() == 0) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
                 break;
             }

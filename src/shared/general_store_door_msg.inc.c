@@ -54,8 +54,8 @@ s32 storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
     if (in->areaId == 1) {
         req.capCmd        = 0xD;
         req.missingCapCmd = 0xD;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_GENERAL_STORE_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_GENERAL_STORE_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_GENERAL_STORE_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_GENERAL_STORE_DOOR_OPEN);
         req.flagId        = GAME_FLAG_GENERAL_STORE_DOOR_UNLOCKED;
         req.collectedBit  = 0;
         return roomEventGate(&req, in);
@@ -71,7 +71,7 @@ s32 storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         gStoreWarp = in->warp;
         gStoreRoom = in->room;
     } else {
-        Gp_RunCapCmd1(0xE);
+        capRunCommandWithTransition(0xE);
     }
     return 2;
 }

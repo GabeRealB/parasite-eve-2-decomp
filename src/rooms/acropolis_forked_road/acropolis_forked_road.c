@@ -5,6 +5,8 @@
 #include "acropolis_forked_road_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -91,7 +93,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
         if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
             if (gameFlagGetNibble(0) < 3) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                    Gp_SetNibbleIf(in->flagId, 2);
+                    gameFlagSetNibbleIfPresent(in->flagId, 2);
                     capStartSequenceSlot(1, 1, 0);
                 }
                 return 0;
@@ -110,8 +112,8 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     if (in->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY) {
         if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(in->flagId, 2);
-                Gp_RunCapCmd1(2);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
+                capRunCommandWithTransition(2);
             }
             return 0;
         }
@@ -123,7 +125,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
         } else if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 3);
             }
@@ -162,7 +164,7 @@ s32 func_acropolis_forked_road_8017D858(Task* arg0, s32 arg1, s32 arg2, s32 arg3
         } else {
             cmd = 4;
         }
-        Gp_RunCapCmd1(cmd);
+        capRunCommandWithTransition(cmd);
     }
     return 0;
 }

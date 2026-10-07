@@ -13,6 +13,10 @@
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -2061,7 +2065,7 @@ s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, 
         return 0;
     }
     gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN, 1);
-    Gp_RunCapCmd1(7);
+    capRunCommandWithTransition(7);
     return 0;
 }
 

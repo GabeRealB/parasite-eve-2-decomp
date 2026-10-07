@@ -14,6 +14,9 @@
 #include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/items.h"
@@ -749,7 +752,7 @@ static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 
 s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
-        Gp_RunCapCmd1(4);
+        capRunCommandWithTransition(4);
     }
     return 0;
 }

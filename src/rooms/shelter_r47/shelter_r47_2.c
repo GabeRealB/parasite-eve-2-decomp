@@ -9,6 +9,8 @@
 #include "gameplay/action_prompt.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
@@ -648,8 +650,8 @@ static void func_shelter_r47_80182348(Task* task)
         gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, done->toggles[2]);
         gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, done->toggles[3]);
         gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, done->toggles[4]);
-        Gp_MsgPlayerWeapon(1);
-        Gp_MsgPlayer3F3(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         Gp_MenuLockDelay = 8;
         D_80114D08       = 0xA;
         displayReleaseMenuHold();
@@ -832,8 +834,8 @@ static void func_shelter_r47_80182E78(Task* task)
     state      = task->work;
     D_80114D08 = 0xA;
     func_shelter_r47_8018337C(task);
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;

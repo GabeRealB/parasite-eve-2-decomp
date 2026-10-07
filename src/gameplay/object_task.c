@@ -3,6 +3,8 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
@@ -115,11 +117,11 @@ void Gp_EvtCapTask(Task* arg0)
         case 0:
             bit0 = flags & 1;
             if (bit0 != 0) {
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 gSceneCombatState.actorControl = flag;
             }
             if (flags & 2) {
-                Gp_MsgPlayer3F3(0);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             }
             if (flags & 4) {
                 mode = 2;
@@ -128,7 +130,7 @@ void Gp_EvtCapTask(Task* arg0)
             } else {
                 mode = 0;
             }
-            Gp_RunCapCmd(arg0->spawnArg2.value, mode);
+            capRunCommand(arg0->spawnArg2.value, mode);
             arg0->state++;
             break;
         case 1:
@@ -138,11 +140,11 @@ void Gp_EvtCapTask(Task* arg0)
             break;
         case 2:
             if (flags & 1) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             }
             if (flags & 2) {
-                Gp_MsgPlayer3F3(1);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             }
             if (D_80115598 != 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, arg0->spawnArg2.value + 0x64, 0);

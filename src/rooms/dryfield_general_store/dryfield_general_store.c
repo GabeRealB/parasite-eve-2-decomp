@@ -11,6 +11,10 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -1671,7 +1675,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E560, ACTOR_COMMAND_MESSAGE_APPLY);
             arg0->killCountdown = 0x5A;
             arg0->state++;
@@ -1681,7 +1685,7 @@ void func_dryfield_general_store_8017E064(Task* arg0)
             arg0->killCountdown = temp_v0;
             if (temp_v0 < 0) {
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E564, ACTOR_COMMAND_MESSAGE_APPLY);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(arg0);
             }
             return;

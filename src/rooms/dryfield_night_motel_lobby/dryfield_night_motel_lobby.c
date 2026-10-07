@@ -11,6 +11,10 @@
 #include "gameplay/action_prompt.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
@@ -185,7 +189,7 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(Task* arg0, s32 arg1, s32 arg2, s32
     if (arg2 == 3) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_FIRST_SCENE, 1);
-            Gp_RunCapCmd1(0xA);
+            capRunCommandWithTransition(0xA);
             return 0;
         }
         D_dryfield_night_motel_lobby_801844E0.view    = 5;
@@ -213,11 +217,11 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, const void* 
 
     if (request->actionId == 1) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN) == 0) {
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             taskSpawnFromTable(D_dryfield_night_motel_lobby_801827FC, 0, 0, 0);
         } else {
-            Gp_RunCapCmd1(8);
+            capRunCommandWithTransition(8);
         }
     }
     return 0;
@@ -226,7 +230,7 @@ s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, const void* 
 s32 func_dryfield_night_motel_lobby_8017FCDC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 0x0A), 0, 0);
+        sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 0x0A), 0, 0);
     }
     return 0;
 }
@@ -262,7 +266,7 @@ static void func_dryfield_night_motel_lobby_8017FDE8(Task* task)
 
     temp_v0 = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY);
     if ((temp_v0 != 0) && (D_dryfield_night_motel_lobby_801844D4 == 0)) {
-        func_800E3FAC(0xA2, 0x14);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x14);
     }
     D_dryfield_night_motel_lobby_801844D4 = temp_v0;
 }

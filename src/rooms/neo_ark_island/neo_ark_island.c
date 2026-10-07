@@ -15,6 +15,7 @@
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/light.h"
@@ -575,7 +576,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_SpawnIfCapIdle(1, 0);
+            capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
             arg0->state++;
             return;
         case 1:
@@ -587,7 +588,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
         case 2:
             if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -626,7 +627,7 @@ s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, RoomEventMsg* src, RoomE
             D_neo_ark_island_80184008.warp              = (u8)dst->areaId;
             D_neo_ark_island_80184008.field_4           = dst->warp;
             ((u8*)&D_neo_ark_island_80184008.areaId)[1] = dst->room;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_neo_ark_island_80181B78, 0, 0, 0);
         }
         return 0;

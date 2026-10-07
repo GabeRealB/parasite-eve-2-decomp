@@ -23,16 +23,16 @@ void factoryWhiteoutScene(Task* task)
                 taskKill(task);
                 return;
             }
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgAllyWeapon(0);
-            Gp_RunCapCmd1(task->spawnArg1.value);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(task->spawnArg1.value);
             task->state = task->state + 1;
             return;
         case 2:
             if (capGetVariantKey() == 1) {
                 task->killCountdown = 0;
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0C), 0, 0);
+                    sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0C), 0, 0);
                 }
                 task->state = task->state + 1;
                 return;
@@ -52,7 +52,7 @@ void factoryWhiteoutScene(Task* task)
             gameFlagSetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED, 1);
             fade = gGameSession->location.loc.stage;
             if (fade == 2) {
-                Gp_EnqueueStageSnd6(SOUND_FACTORY_WHITEOUT, 0, 0);
+                sndEvtRequestStageScriptStart(SOUND_FACTORY_WHITEOUT, 0, 0);
             }
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             task->state = task->state + 1;
@@ -76,8 +76,8 @@ void factoryWhiteoutScene(Task* task)
             fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
             return;
         default:
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgAllyWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             return;
     }

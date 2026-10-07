@@ -5,6 +5,7 @@
 #include "mine_secret_passage_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
@@ -59,7 +60,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            Gp_RunCapCmd(2, 0);
+            capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             break;
         case 1:
@@ -72,7 +73,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
         case 2:
             if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 break;
             }
@@ -136,7 +137,7 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, 
             D_mine_secret_passage_80183448.warp              = (u8)dst->areaId;
             D_mine_secret_passage_80183448.field_4           = dst->warp;
             ((u8*)&D_mine_secret_passage_80183448.areaId)[1] = dst->room;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_mine_secret_passage_80180EBC, 0, 0, 0);
         }
         return 2;
@@ -178,13 +179,13 @@ static void func_mine_secret_passage_8017D8C8(Task* arg0)
 }
 
 /// One-shot state of the room task: the first time through (game flag nibble
-/// 0x172 still clear) it sets the flag and calls `Gp_SpawnIfCapIdle(3, 1)`;
+/// 0x172 still clear) it sets the flag and calls `capSpawnEventIfIdle(3, 1)`;
 /// either way it advances to the idle state.
 static void func_mine_secret_passage_8017D914(Task* arg0)
 {
     if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN) == 0) {
         gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN, 1);
-        Gp_SpawnIfCapIdle(3, 1);
+        capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

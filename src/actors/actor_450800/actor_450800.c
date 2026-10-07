@@ -12,6 +12,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -2695,7 +2696,7 @@ void func_actor_450800_80131E2C(void)
                 } else {
                     evsStartScript(D_actor_450800_8013AB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
-                func_800E3FAC(0xA2, 0x32);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x32);
             } else {
                 evsStartScript(D_actor_450800_8013ACFC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }

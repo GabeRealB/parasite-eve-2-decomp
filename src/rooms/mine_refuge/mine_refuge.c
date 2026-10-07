@@ -12,6 +12,9 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -561,7 +564,7 @@ void func_mine_refuge_8017FA08(Task* task)
         case 0:
             if (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 1) {
                 gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 2);
-                Gp_RunCapCmd1(0xF);
+                capRunCommandWithTransition(0xF);
             }
             task->state = task->state + 1;
             return;
@@ -621,13 +624,13 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED) != 0) {
             func_mine_refuge_8017FE78(0U);
         } else {
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             temp_a3                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6U;
             D_mine_refuge_80182ADC[0]                                  = temp_a3;
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
-            Gp_RunCapCmd(0xD, 0);
+            capRunCommand(0xD, CAP_PLAYBACK_IN_PLACE);
             taskSpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
         }
     }
@@ -643,10 +646,10 @@ s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, const void* firstArg, s32 a
     if (actionId == 1) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != actionId) {
             gameFlagSetNibble(GAME_FLAG_0C4, 0);
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_mine_refuge_801818B4, 0, 0, 0);
         } else {
-            Gp_RunCapCmd1(0xA);
+            capRunCommandWithTransition(0xA);
         }
     }
     return 0;
@@ -683,8 +686,8 @@ void func_mine_refuge_8017FDBC(Task* arg0)
                 return;
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_mine_refuge_80182ADC[0];
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgPlayer3F3(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;
         case 1:
             gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_PROMPT_ACCEPTED, 1);

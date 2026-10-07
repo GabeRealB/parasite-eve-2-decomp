@@ -7,9 +7,9 @@ s32 factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3)
     const DirectionActionRequest* request = firstArg;
 
     if ((request->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_02C) == 0)) {
-        Gp_SpawnIfCapIdle(0xB, 1);
+        capSpawnEventIfIdle(0xB, CAP_EVENT_PAUSE_ACTORS);
         gameFlagSetNibble(GAME_FLAG_02C, 1);
-        func_800E3FAC(0xA2, 0xA);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xA);
         sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0A), 0, 0);
     }
     return 0;

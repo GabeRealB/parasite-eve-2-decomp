@@ -41,8 +41,8 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
     }
     if (msg->areaId == 0x19 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
         if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SetNibbleIf(msg->flagId, 2);
-            Gp_RunCapCmd1(0x13);
+            gameFlagSetNibbleIfPresent(msg->flagId, 2);
+            capRunCommandWithTransition(0x13);
             return 2;
         }
         return 2;
@@ -90,8 +90,8 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
     } else if (msg->areaId == 0xD) {
         req.capCmd        = 0xA;
         req.missingCapCmd = 5;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_MAIN_STREET_MOTEL_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
         req.flagId        = GAME_FLAG_MOTEL_ROOM_3_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
@@ -104,14 +104,14 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             itemSetIdentified(0x113, 1);
         }
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_093) == 0) {
-            Gp_SetNibbleIf(msg->flagId, 0);
+            gameFlagSetNibbleIfPresent(msg->flagId, 0);
         }
         return ret;
     } else if (msg->areaId == 0xE) {
         req.capCmd        = 0xB;
         req.missingCapCmd = 6;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_MAIN_STREET_MOTEL_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
         req.flagId        = GAME_FLAG_MOTEL_ROOM_4_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
@@ -124,7 +124,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
             itemSetIdentified(0x113, 1);
         }
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_094) == 0) {
-            Gp_SetNibbleIf(msg->flagId, 0);
+            gameFlagSetNibbleIfPresent(msg->flagId, 0);
         }
         return ret;
     }

@@ -17,6 +17,10 @@
 #include "gameplay/attachments.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -1852,8 +1856,8 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             view                                      = save->state.location.loc.view;
             save->state.location.loc.view             = 0xC;
             D_dryfield_night_saloon_g_r_80188FA4.view = view;
-            Gp_MsgPlayer3F3(0);
-            Gp_RunCapCmd(0x13, 0);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+            capRunCommand(0x13, CAP_PLAYBACK_IN_PLACE);
             task->state = task->state + 1;
             return;
         case 1:
@@ -1875,8 +1879,8 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             D_80114D08                                                 = 0xA;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.view;
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgPlayer3F3(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;
         default:
             return;
@@ -1956,7 +1960,7 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
 {
     switch (arg2) {
         case 4:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_dryfield_night_saloon_g_r_8017F940, 0, 0, 0);
             break;
         case 8:

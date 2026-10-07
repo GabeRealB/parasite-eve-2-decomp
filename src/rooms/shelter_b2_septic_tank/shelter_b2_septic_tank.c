@@ -18,6 +18,8 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"

@@ -6,6 +6,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -292,7 +293,7 @@ void func_actor_215100_80149F2C(Task* task)
             task->state = 0x1E;
             break;
         case 0x1E:
-            Gp_PlayerWeaponId(&D_actor_215100_8014CF84.source.index);
+            playerActorWriteWeaponAnimationBankIndex(&D_actor_215100_8014CF84.source.index);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014D010, 0);
             task->killCountdown = 0x1B;

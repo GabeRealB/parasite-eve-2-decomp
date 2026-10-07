@@ -19,8 +19,8 @@ s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
     if (msg->areaId == 0x13) {
         req.capCmd        = 0xA;
         req.missingCapCmd = 6;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_WATER_TOWER_KITCHEN_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_WATER_TOWER_KITCHEN_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_WATER_TOWER_KITCHEN_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_WATER_TOWER_KITCHEN_DOOR_OPEN);
         req.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, msg);

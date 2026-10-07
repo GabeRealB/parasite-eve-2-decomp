@@ -16,6 +16,9 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -1093,9 +1096,9 @@ s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3
             gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_017, 1);
             gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_018, 1);
             if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-                func_800E3FAC(0xA2, 0x28);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x28);
             } else {
-                func_800E3FAC(0xA2, 0x29);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x29);
             }
             D_shelter_b2_laboratory_801864BC.rec.view            = 0xD;
             D_shelter_b2_laboratory_801864BC.rec.capSlot         = 4;
@@ -1201,7 +1204,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     mapShelterRoomVariantResolve(in, out);
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
         }
         return 2;
     }
@@ -1229,10 +1232,10 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* first
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) < 2) {
                 taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 0, 0, 0);
             } else {
-                Gp_RunCapCmd1(6);
+                capRunCommandWithTransition(6);
             }
         } else {
-            Gp_RunCapCmd1(0x1E);
+            capRunCommandWithTransition(0x1E);
             gameFlagSetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE, 1);
         }
     }
@@ -1262,7 +1265,7 @@ void func_shelter_b2_laboratory_80180290(Task* task)
                 if (result != 0) {
                     gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 1);
                 } else {
-                    Gp_MsgPlayerWeapon(1);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 }
                 taskKill(task);
             }
@@ -1287,7 +1290,7 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             return;
         case 2:
             if (gGameSession->eventState == 0) {
-                Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_083) != 0 ? 0x24 : 0x23);
+                capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_083) != 0 ? 0x24 : 0x23);
                 taskKill(task);
             }
             return;

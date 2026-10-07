@@ -15,7 +15,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -510,7 +510,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             if (work->playerEffectsSuppressed != 0) {
                 Gp_SpawnWeaponEff();
                 work->playerEffectsSuppressed = 0;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
             weaponId                 = gPlayerStatus.weapon;
             anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -597,7 +597,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             if (sharedWork->playerEffectsSuppressed != 0) {
                 Gp_SpawnWeaponEff();
                 sharedWork->playerEffectsSuppressed = 0;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
             weaponId                     = gPlayerStatus.weapon;
             anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;

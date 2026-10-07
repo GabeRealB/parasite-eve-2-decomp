@@ -11,6 +11,9 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/items.h"
@@ -681,18 +684,18 @@ s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
 s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x10) {
-        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_0FD) != 0 ? 0x16 : 0x10);
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_0FD) != 0 ? 0x16 : 0x10);
     }
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: for warp point 2
-/// outside place 1 it calls `Gp_SpawnIfCapIdle(0x13, 0)`. It returns no
+/// outside place 1 it calls `capSpawnEventIfIdle(0x13, 0)`. It returns no
 /// value.
 s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
 {
     if ((msg->warp == 2) && (gGameSession->location.loc.variant != 1)) {
-        Gp_SpawnIfCapIdle(0x13, 0);
+        capSpawnEventIfIdle(0x13, CAP_EVENT_NO_FLAGS);
     }
 }
 

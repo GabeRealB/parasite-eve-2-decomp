@@ -18,6 +18,8 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -876,7 +878,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
             if (hs->hit != 0) {
-                Gp_RunCapCmd1(3);
+                capRunCommandWithTransition(3);
                 task->state = 5;
                 return;
             }

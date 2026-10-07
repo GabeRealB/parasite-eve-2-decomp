@@ -667,12 +667,12 @@ static s32 _dryfieldNightBreezewayAcceptTransition(Task* task, s32 messageId, co
 }
 
 /// The room's 0x13F0 message handler: when `arg2` is 1, spawns the gameplay
-/// event task (`Gp_SpawnIfCapIdle(1, 1)`) unless the cap interpreter is busy.
+/// event task (`capSpawnEventIfIdle(1, 1)`) unless the cap interpreter is busy.
 /// Always answers 0.
 s32 func_dryfield_night_breezeway_8017D600(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        Gp_SpawnIfCapIdle(1, 1);
+        capSpawnEventIfIdle(1, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }

@@ -5,6 +5,8 @@
 #include "common.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "captions.h"
 #include "gameplay/display.h"
 #include "gameplay/evs.h"
@@ -366,9 +368,9 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 // Resolve the weapon bank in a copy of the borrowed request.
                 rec = *work->command->operand3.animation;
                 if (work->command->operand0.value == 3) {
-                    Gp_PlayerWeaponId(&rec.source.index);
+                    playerActorWriteWeaponAnimationBankIndex(&rec.source.index);
                 } else {
-                    Gp_AllyAnimId(&rec.source.index);
+                    companionWriteAnimationBankIndex(&rec.source.index);
                 }
                 if (slot != NULL) {
                     TASK_MESSAGE_DISPATCH_POINTER(slot, work->command->operand2.value, &rec, work->command->operand4.value);
@@ -452,7 +454,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 arg0->spawnArg1.value = 1;
                 Gp_AbortCap();
-                Gp_MsgPlayer3F3(1);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, 0, 0);
                 if (D_8010FBE0 != NULL) {
                     taskCallExit(D_8010FBE0);
@@ -584,14 +586,14 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (mode == 0 || mode == 2) {
                     D_801156CD = 1;
                     playerActorRemoveEquipment();
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 }
                 if ((u32)(mode - 1) < 2U) {
                     D_801156CE = 1;
                     slot       = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
                     if (slot != NULL) {
                         Gp_EndPlayerActorTask(slot);
-                        Gp_MsgAllyWeapon(0);
+                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     }
                 }
                 break;
@@ -601,7 +603,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_STAGE_SOUND:
-                Gp_EnqueueStageSnd6(work->command->operand0.value, (s8)work->command->operand1.value, (s8)work->command->operand2.value);
+                sndEvtRequestStageScriptStart(work->command->operand0.value, (s8)work->command->operand1.value, (s8)work->command->operand2.value);
                 D_801156E0.attenuation = work->command->operand2.value;
                 break;
 

@@ -24,10 +24,10 @@ void roomCutsceneTask(Task* task)
     switch (task->state) {
         case 0:
             ROOM_CUTSCENE_SOUND_TASK = NULL;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if (save->state.companionType == 1) {
-                Gp_MsgAllyWeapon(0);
+                companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
             if (script->view > 0) {
                 D_80115694                    = save->state.location.loc.view;
@@ -38,8 +38,8 @@ void roomCutsceneTask(Task* task)
             gGameSession->hideHud          = 1;
             gGameSession->eventState       = 1;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAlly3F3(0);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             if (script->startSound != 0) {
                 sndEvtRequestScriptStart(script->startSound, 0, 0);
             }
@@ -106,9 +106,9 @@ void roomCutsceneTask(Task* task)
                 }
             }
             if (script->capSlot == 1) {
-                Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, 0);
+                capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, CAP_PLAYBACK_IN_PLACE);
             } else {
-                Gp_RunCapCmd(script->capSlot, 0);
+                capRunCommand(script->capSlot, CAP_PLAYBACK_IN_PLACE);
             }
             if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 1) {
                 if (gameFlagGetNibble(0) == 2) {
@@ -116,7 +116,7 @@ void roomCutsceneTask(Task* task)
                     gameFlagSetNibble(GAME_FLAG_00E, 4);
                     if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
                         Gp_ApplyAreaRecs(D_acropolis_square_80188888);
-                        func_800E3FAC(0xA2, 5);
+                        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 5);
                     }
                 }
             }
@@ -128,7 +128,7 @@ void roomCutsceneTask(Task* task)
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 1);
                     task->state = 0x14;
                 } else {
-                    Gp_RunCapCmd1(task->spawnArg1.value);
+                    capRunCommandWithTransition(task->spawnArg1.value);
                     task->state++;
                 }
             }
@@ -142,8 +142,8 @@ void roomCutsceneTask(Task* task)
             task->state++;
             break;
         case 11:
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgAlly3F3(1);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_80115694;
             task->state++;
             break;
@@ -153,9 +153,9 @@ void roomCutsceneTask(Task* task)
             break;
         case 14:
             sndEvtRequestScriptStart(script->endSound, 0, 0);
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
-                Gp_MsgAllyWeapon(1);
+                companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             gGameSession->hideHud          = 0;
             gGameSession->eventState       = 0;
@@ -173,7 +173,7 @@ void roomCutsceneTask(Task* task)
         case 19:
             break;
         case 20:
-            Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, 0);
+            capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + 0x10, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 21:
@@ -184,11 +184,11 @@ void roomCutsceneTask(Task* task)
         case 22:
             switch (capGetVariantKey()) {
                 case 11:
-                    Gp_RunCapCmd(0x20, 0);
+                    capRunCommand(0x20, CAP_PLAYBACK_IN_PLACE);
                     task->state++;
                     break;
                 case 12:
-                    Gp_RunCapCmd(0x21, 0);
+                    capRunCommand(0x21, CAP_PLAYBACK_IN_PLACE);
                     task->state++;
                     break;
                 default:

@@ -104,7 +104,7 @@ s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     s32 args[2];
 
     if (arg2 == 3) {
-        Gp_RunCapCmd1(((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) ? 3 : 6);
+        capRunCommandWithTransition(((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) ? 3 : 6);
     }
     if (arg2 == 4) {
         capStartSequenceSlot(4, 1, 0);
@@ -134,7 +134,7 @@ void func_acropolis_fountain_8017D868(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(1);
+            capRunCommandWithTransition(1);
             task->state = task->state + 1;
             break;
 

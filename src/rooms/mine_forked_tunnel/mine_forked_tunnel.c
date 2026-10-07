@@ -15,6 +15,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -1889,7 +1890,7 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if ((arg2 == 2) && (areaGetCurrentObjectState(1) == 1)) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_152) == 0) {
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
         } else {
             taskSpawnFromTable(D_mine_forked_tunnel_80183104, 1, 0, 0);
         }
@@ -1959,7 +1960,7 @@ void func_mine_forked_tunnel_8017E2E0(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            Gp_RunCapCmd1(1);
+            capRunCommandWithTransition(1);
             arg0->state = arg0->state + 1;
             break;
         case 1:
@@ -1982,7 +1983,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capStartSequenceSlot(2, 0, 0);
             arg0->state = arg0->state + 1;
             break;
@@ -1999,7 +2000,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
                     capStartSequenceSlot(2, 0, 1);
                     _mineForkedTunnelSetSpriteBatchesHidden(true);
                 }
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(arg0);
             }
             break;

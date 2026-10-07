@@ -17,6 +17,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -781,7 +782,7 @@ s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, const void
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
         gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 2);
-        func_800E3FAC(0xA2, 2);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 2);
     }
     return 0;
 }
@@ -803,7 +804,7 @@ static void func_acropolis_east_elevator_hall_8017F478(Task* task)
 {
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    Gp_MsgSlot4Chain(0, 1);
+    sceneSetPlacedActorDrawMode(0, 1);
     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_acropolis_east_elevator_hall_80185C8C, 0);
     task->state++;
 }

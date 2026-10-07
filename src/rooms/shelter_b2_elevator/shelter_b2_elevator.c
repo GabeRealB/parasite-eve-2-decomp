@@ -12,6 +12,8 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -404,12 +406,12 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
         if (gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_0CF, 1);
             evsStartScriptWithSkip(D_actor_142900_801378D0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142900_801380F8);
-            func_800E3FAC(0xA2, 0x24);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x24);
         } else {
             gGameSession->hideHud    = 1;
             gGameSession->eventState = 1;
             _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_EXIT, 0);
-            Gp_RunCapCmd(3, 0);
+            capRunCommand(3, CAP_PLAYBACK_IN_PLACE);
         }
     }
     task->state++;
@@ -507,7 +509,7 @@ void func_shelter_b2_elevator_8017D888(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             if (task->killCountdown >= 0x15) {
                 task->state++;
             }

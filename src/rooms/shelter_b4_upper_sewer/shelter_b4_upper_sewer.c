@@ -15,6 +15,8 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -815,7 +817,7 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
             break;
         case 1:
             gGameSession->hideHud = 1;
-            Gp_RunCapCmd(1, 0);
+            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
             D_80115690 = 1;
             D_80115680 = 5;
             task->state++;
@@ -829,10 +831,10 @@ void func_shelter_b4_upper_sewer_8017D660(Task* task)
             if (capGetVariantKey() == 0xC) {
                 taskKill(task);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
-                Gp_MsgPlayerWeapon(1);
-                Gp_MsgPlayer3F3(1);
-                Gp_MsgAllyWeapon(1);
-                Gp_MsgAlly3F3(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+                companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 gGameSession->eventState       = 0;
                 gGameSession->hideHud          = 0;
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -859,8 +861,8 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             break;
         case 1:
@@ -871,7 +873,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
         case 2:
             if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 D_80114D08                     = 0xA;
                 break;
@@ -948,17 +950,17 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, s32 ar
 
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAlly3F3(0);
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgAllyWeapon(0);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
             temp_a1                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
             D_shelter_b4_upper_sewer_80188D2C[0]                       = temp_a1;
             taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
         } else {
-            Gp_RunCapCmd1(6);
+            capRunCommandWithTransition(6);
         }
     }
     return 0;

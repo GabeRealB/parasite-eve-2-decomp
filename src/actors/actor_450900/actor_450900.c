@@ -7,6 +7,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -741,12 +742,12 @@ void func_actor_450900_80131E38(Task* task)
                     } else {
                         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_2, pan, depth);
                     }
-                    Gp_AllyAnimId(&Actor450900AllyAnim.source.index);
+                    companionWriteAnimationBankIndex(&Actor450900AllyAnim.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.companionCopy, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
                     taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, 0x40010, 0);
                 } else if (t % 210 == 0x3C) {
-                    Gp_AllyAnimId(&D_actor_450900_801360B4.source.index);
+                    companionWriteAnimationBankIndex(&D_actor_450900_801360B4.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
                 }
             }
@@ -781,7 +782,7 @@ void func_actor_450900_8013207C(Task* task)
                         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_2, pan, depth);
                     }
                     TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.playerCopy, 0);
-                    Gp_PlayerWeaponId(&D_actor_450900_80135FEC.source.index);
+                    playerActorWriteWeaponAnimationBankIndex(&D_actor_450900_80135FEC.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
                 } else if ((D_map_neo_ark_8017A99C - 0x456) % 210 == 0x46) {
                     /* The image has the counter's lw/addiu/sw alone in a block: the load's
@@ -810,7 +811,7 @@ void func_actor_450900_8013223C(Task* task)
     switch (task->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_RunCapCmd(1, 0);
+            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
             task->state = task->state + 1;
             break;
         case 1:
@@ -820,20 +821,20 @@ void func_actor_450900_8013223C(Task* task)
             break;
         case 2:
             if (capGetVariantKey() != 0xB) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
                 break;
             }
             gameFlagSetNibble(GAME_FLAG_0D8, 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_RunCapCmd(2, 0);
+            capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
             evsStartScript(D_actor_450900_80136B00, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state = task->state + 1;
             break;
         case 3:
             if (gGameSession->eventState == 0) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
@@ -856,7 +857,7 @@ void func_actor_450900_8013235C(Task* task)
         case 2:
             if (capGetVariantKey() != 0xB) {
                 taskKill(task);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             } else {
                 evsStartScript(D_actor_450900_80136BD8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 task->state = task->state + 1;
@@ -1012,7 +1013,7 @@ void func_actor_450900_801327A8(void)
             D_actor_450900_80135E74 = 1;
             evsStartScript(D_actor_450900_80136890, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         } else {
-            Gp_SpawnIfCapIdle(0xC, 1);
+            capSpawnEventIfIdle(0xC, CAP_EVENT_PAUSE_ACTORS);
         }
     } else if (D_map_neo_ark_8017A99C < 0x30C) {
         evsStartScript(D_actor_450900_80136470, EVENT_SCRIPT_HUD_HIDE_RESTORE);

@@ -15,6 +15,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -1882,8 +1883,8 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     if (msgId == 0xE) {
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SpawnIfCapIdle(2, 1);
-                Gp_SetNibbleIf(in->flagId, 2);
+                capSpawnEventIfIdle(2, CAP_EVENT_PAUSE_ACTORS);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
             }
             return 0;
         }
@@ -1916,7 +1917,7 @@ s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (areaGetCurrentObjectState(0x15) != 2) {
             capStartSequenceSlot(5, 1, 0);
         } else {
-            Gp_RunCapCmd1(9);
+            capRunCommandWithTransition(9);
         }
     }
     return 0;

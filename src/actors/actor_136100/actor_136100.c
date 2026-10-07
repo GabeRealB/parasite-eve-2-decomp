@@ -12,7 +12,8 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -2394,7 +2395,7 @@ void func_actor_136100_80133BC8(Task* arg0)
             break;
         case 1:
             if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
-                func_800E3FAC(0xA2, 0x19);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x19);
                 taskMessageDispatch(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
@@ -2406,7 +2407,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 _actor136100ResetBodyTracks(arg0, 1);
                 ACTOR_136100_RESET_LINKED_ANIMATION(arg0, 1, message.animation);
             } else {
-                func_800E3FAC(0xA2, 0x1A);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1A);
                 taskMessageDispatch(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
@@ -2708,7 +2709,7 @@ void func_actor_136100_80134964(void)
     if (work->playerEquipmentRemoved != 0) {
         Gp_SpawnWeaponEff();
         work->playerEquipmentRemoved = 0;
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
 }
 

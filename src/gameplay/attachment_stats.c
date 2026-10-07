@@ -11,6 +11,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "hud.h"
 #include "hud_sprites.h"
 #include "item_menu.h"
@@ -1609,7 +1610,7 @@ void Gp_HudTask(HudState* hud)
                             work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                             func_80106350(work, gPlayerStatus.weapon, 0);
                             if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
-                                Gp_MsgPlayerWeapon(0);
+                                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                             }
                             hud->battleStep = hud->battleStep + 2;
                         }

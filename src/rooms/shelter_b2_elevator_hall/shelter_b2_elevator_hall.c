@@ -16,6 +16,8 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -537,13 +539,13 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
     if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(in->flagId, 2);
-                Gp_RunCapCmd1(4);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
+                capRunCommandWithTransition(4);
             }
             return 0;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd(5, 0);
+            capRunCommand(5, CAP_PLAYBACK_IN_PLACE);
             taskSpawnFromTable(&D_shelter_b2_elevator_hall_8018379C, 0, 0x541B0001, 0);
         }
         return 0;

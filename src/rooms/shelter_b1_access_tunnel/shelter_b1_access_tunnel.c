@@ -15,6 +15,9 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -559,7 +562,7 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
 /// and 3 and this is not a dry run, apply the room's area records and set the
 /// nibble to 4. Message 0x15, while nibble 0xE5 is clear, answers 0 and -
 /// unless `in->queryOnly` asks for a dry run - passes `in->flagId` to
-/// `Gp_SetNibbleIf` and runs cap command 1. Otherwise message 0x12 goes through
+/// `gameFlagSetNibbleIfPresent` and runs cap command 1. Otherwise message 0x12 goes through
 /// the rooms' event gate on flag 0xAD, message 0x14 starts the room event on
 /// flag 0x13F, and any other message answers 1.
 s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -577,8 +580,8 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 && gameFlagGetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SetNibbleIf(in->flagId, 2);
-            Gp_RunCapCmd1(1);
+            gameFlagSetNibbleIfPresent(in->flagId, 2);
+            capRunCommandWithTransition(1);
         }
         return 0;
     }

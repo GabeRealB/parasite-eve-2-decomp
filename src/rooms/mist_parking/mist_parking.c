@@ -11,6 +11,9 @@
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/enemy.h"
@@ -978,19 +981,19 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             temp = gGameSession->location.loc.variant;
             if (temp == 2) {
                 if (gameFlagGetNibble(GAME_FLAG_0F1) == 1) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     evsStartScript(D_mist_parking_8018F0A4, EVENT_SCRIPT_HUD_KEEP);
                     gameFlagSetNibble(GAME_FLAG_0F1, 2);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == temp) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     evsStartScript(D_mist_parking_8018F194, EVENT_SCRIPT_HUD_KEEP);
                     gameFlagSetNibble(GAME_FLAG_0F1, 3);
                 } else if (gameFlagGetNibble(GAME_FLAG_0F1) == 3) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     taskSpawnFromTable(D_mist_parking_8018D75C, 8, 0, 0);
                 }
             } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 1) {
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(D_mist_parking_80190824, 4, 0, 0);
             }
             break;
@@ -1009,7 +1012,7 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             session->location.loc.warp                                 = 2;
             break;
         case 18:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             if (gGameSession->location.loc.variant == 1) {
                 taskSpawnFromTable(D_mist_parking_80190824, 3, 0, 0);
             } else {
@@ -1073,7 +1076,7 @@ void func_mist_parking_80182750(s32 arg0)
 
 void func_mist_parking_801827A0(s32 arg0)
 {
-    Gp_SpawnIfCapIdle(arg0, 0);
+    capSpawnEventIfIdle(arg0, CAP_EVENT_NO_FLAGS);
 }
 
 static void func_mist_parking_801827C0(Task* arg0)
@@ -1082,7 +1085,7 @@ static void func_mist_parking_801827C0(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_0F1) == 0)) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
-            func_800E3FAC(0xA2, 0x3C);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3C);
             func_mist_parking_801837A4(0);
             evsStartScriptWithSkip(D_mist_parking_8018DF34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_parking_8018EDBC);
         } else {

@@ -18,6 +18,8 @@
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -1053,7 +1055,7 @@ static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 /// announces itself to it with message 0x7DB, carrying the payload record
 /// `gGameSession::location.loc.warp` selects. On sub-id 0xA, with pointer slot 0xA
 /// filled and nibble 0xCF still clear, it latches 0xCF, arms
-/// `func_800E3FAC(0xA2, 0x25)` and spawns the ending task. Then advances state.
+/// `gameFlagSetPackedByte(0xA2, 0x25)` and spawns the ending task. Then advances state.
 static void func_dryfield_night_water_hole_8017D958(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_water_hole_801805F8;
@@ -1072,7 +1074,7 @@ static void func_dryfield_night_water_hole_8017D958(Task* arg0)
     }
     if (gGameSession->location.loc.variant == 0xA && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
         gameFlagSetNibble(GAME_FLAG_0CF, 2);
-        func_800E3FAC(0xA2, 0x25);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x25);
         taskSpawnFromTable(&D_actor_146000_801351FC, 1, 0, 0);
     }
     arg0->state = arg0->state + 1;
@@ -1127,7 +1129,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
             work.warp     = 3;
             work.sndEvent = 0x53200007;
             work.facing   = 0xC00;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             wp = &work;
             // Let the stage's resolver replace the staged room with the variant game progress selects.
             msg.areaId    = wp->area;
@@ -1141,7 +1143,7 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
             gRoomDeparture = work;
             taskSpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
         } else {
-            Gp_RunCapCmd1(2);
+            capRunCommandWithTransition(2);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
             sndEvtRequestScriptStart(SOUND_NIGHT_WATER_HOLE_LOCKED, 0, 0);
         }

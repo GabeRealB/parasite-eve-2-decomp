@@ -4481,7 +4481,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             if (cdCmdIsIdle() != 0) {
                 ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
                 taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
-                Gp_RunCapCmd1((s8)((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->eventKind);
+                capRunCommandWithTransition((s8)((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->eventKind);
                 task->state = task->state + 1;
             }
             break;

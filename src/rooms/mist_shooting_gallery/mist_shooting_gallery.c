@@ -12,6 +12,9 @@
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -1806,7 +1809,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     func_actor_215100_8014C5E0(0x340, 0, 2);
     if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
-        Gp_MsgSlot4Chain(1, 0);
+        sceneSetPlacedActorDrawMode(1, 0);
         var_a0 = 1;
     } else {
         var_a0 = 0;
@@ -1818,7 +1821,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
         taskSpawnFromTable(D_actor_215100_8014E13C, 0, 0, 0);
     }
     if ((gGameSession->location.loc.warp == 6) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
-        Gp_RunCapCmd1(0x16);
+        capRunCommandWithTransition(0x16);
     }
     gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
     arg0->state             = arg0->state + 1;
@@ -1831,9 +1834,9 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
     if ((gGameSession->location.loc.variant == 1) && (gGameSession->eventState == 0)) {
         temp_v1 = gGameSession->location.loc.view;
         if ((temp_v1 == 3) || (temp_v1 == 9) || (temp_v1 == 0x12)) {
-            Gp_MsgSlot4Chain(1, 0);
+            sceneSetPlacedActorDrawMode(1, 0);
         } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
-            Gp_MsgSlot4Chain(1, 1);
+            sceneSetPlacedActorDrawMode(1, 1);
         }
     }
     func_actor_215100_8014A398();
@@ -1854,7 +1857,7 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
                 texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_LOW_COMMANDS;
             }
             capSetTexturePage(texturePageX, 0);
-            Gp_RunCapCmd(task->spawnArg1.value, 0);
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state += 1;
             return;
         case 1:
@@ -1864,7 +1867,7 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
             task->state += 1;
             return;
         case 2:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
             break;
@@ -1930,12 +1933,12 @@ s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, s32 arg3
         if (arg2 >= 9) {
             if (arg2 < 0x23) {
                 if (arg2 >= 0x21) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
                 }
             }
         } else {
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_mist_shooting_gallery_801850DC, 0, arg2, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
         }
     }
@@ -1947,7 +1950,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
     const DirectionActionRequest* request = firstArg;
 
     if ((request->actionId == 1) && (D_actor_215100_8014D038 == 0)) {
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(D_actor_215100_8014E13C, 1, 1, 0);
         D_80114D08 = 0xA;
     }
@@ -1958,7 +1961,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
         func_actor_215100_8014AB6C();
     }
     if ((request->actionId == 4) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
-        func_800E3FAC(0xA2, 0x3B);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3B);
         gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
         evsStartScriptWithSkip(D_actor_215100_80153274, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_215100_80153D6C);
     }

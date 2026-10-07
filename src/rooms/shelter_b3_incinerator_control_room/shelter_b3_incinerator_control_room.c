@@ -10,6 +10,9 @@
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
@@ -172,8 +175,8 @@ s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, Room
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->flagId, 2);
-    Gp_RunCapCmd1(3);
+    gameFlagSetNibbleIfPresent(in->flagId, 2);
+    capRunCommandWithTransition(3);
     return 0;
 }
 
@@ -193,7 +196,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FB20(Task* arg0, s32 arg1, s32 
             taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 7, &D_shelter_b3_incinerator_control_room_80182A58);
         } else {
             gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_FIRST_USE, 1);
-            Gp_SpawnIfCapIdle(6, 1);
+            capSpawnEventIfIdle(6, CAP_EVENT_PAUSE_ACTORS);
         }
     }
     return 0;
@@ -218,7 +221,7 @@ static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     if (gGameSession->location.loc.warp == 4) {
-        func_800E3FAC(0xA2, 0x23);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x23);
         Gp_ApplyAreaRecs(D_shelter_b3_incinerator_control_room_80182A40);
         Gp_FillAllyHp();
         evsStartScriptWithSkip(D_actor_142600_801360E4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142600_80136804);

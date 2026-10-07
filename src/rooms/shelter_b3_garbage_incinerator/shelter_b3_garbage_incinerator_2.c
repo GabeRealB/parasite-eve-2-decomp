@@ -17,6 +17,7 @@
 #include "gameplay/attachments.h"
 #include "gameplay/cap.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
@@ -1071,7 +1072,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             msg.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
             msg.wordCount   = n & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_shelter_b3_garbage_incinerator_80186FB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);

@@ -17,6 +17,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -1220,7 +1221,7 @@ s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, s32 arg3
 {
     if (arg2 == 2) {
         if ((areaGetCurrentObjectState(0x13) == 0) || (areaGetCurrentObjectState(0x13) == 1)) {
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
         } else {
             capStartSequenceSlot(2, 1, 0);
         }
@@ -1231,8 +1232,8 @@ s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, s32 arg3
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-        Gp_RunCapCmd(4, 0);
-        func_800E3FAC(0xA2, 7);
+        capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 7);
     }
     return 0;
 }

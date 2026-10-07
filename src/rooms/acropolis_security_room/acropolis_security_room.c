@@ -20,6 +20,8 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -2187,14 +2189,14 @@ void func_acropolis_security_room_8017D77C(Task* arg0)
         case 0:
             printf("monitor\n");
             D_acropolis_security_room_801855A8 = taskSpawn(2, 9, 0, 0);
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             arg0->state = arg0->state + 1;
             return;
         case 1:
             if (taskPollKill(D_acropolis_security_room_801855A8, &sp10) != 0) {
-                Gp_MsgPlayerWeapon(1);
-                Gp_MsgPlayer3F3(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 taskKill(arg0);
             }
             return;
@@ -2216,16 +2218,16 @@ void func_acropolis_security_room_8017D834(Task* arg0)
         case 0:
             printf(PowerSupplyMsg);
             D_acropolis_security_room_801855AC = taskSpawn(2, 0xA, 0, 0);
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(2);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE);
             arg0->state = arg0->state + 1;
             return;
         case 1:
             if (taskPollKill(D_acropolis_security_room_801855AC, &sp10) != 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                Gp_MsgPlayerWeapon(1);
-                Gp_MsgPlayer3F3(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 D_acropolis_security_room_801855AC = NULL;
                 taskKill(arg0);
             }
@@ -2686,7 +2688,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
                 if (hotspot->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    Gp_RunCapCmd(0xE, 0);
+                    capRunCommand(0xE, CAP_PLAYBACK_IN_PLACE);
                     return;
                 }
             }
@@ -2983,7 +2985,7 @@ static void func_acropolis_security_room_8017FBA4(Task* task)
 static void func_acropolis_security_room_8017FC30(Task* task)
 {
     D_80114D08 = 0xA;
-    Gp_MsgPlayer3F3(1);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
@@ -3111,8 +3113,8 @@ static void func_acropolis_security_room_8017FF84(Task* task)
 
 static void func_acropolis_security_room_8017FFD0(Task* arg0)
 {
-    Gp_MsgPlayer3F3(1);
-    Gp_MsgPlayer3F3(0);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     arg0->state = (s32)(arg0->state + 1);
 }
 
@@ -3129,7 +3131,7 @@ static void _acropolisSecurityRoomPowerSupplyRestoreRoomView(Task* task)
 static void func_acropolis_security_room_80180030(Task* task)
 {
     D_80114D08 = 0xA;
-    Gp_MsgPlayer3F3(1);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
@@ -3177,7 +3179,7 @@ static void func_acropolis_security_room_801801C4(Task* task)
     s32                                    killArg;
 
     if (taskPollKill(work->sceneTask, &killArg) != 0) {
-        Gp_MsgPlayer3F3(1);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         task->state = task->state + 1;
     }
 }

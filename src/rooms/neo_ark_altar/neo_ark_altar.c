@@ -10,6 +10,8 @@
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
@@ -71,15 +73,15 @@ void func_neo_ark_altar_8017D668(Task* task)
             gGameSession->hideHud                                      = 1;
             gGameSession->eventState                                   = 1;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             task->state++;
             break;
         case 1:
             task->state++;
             break;
         case 2:
-            Gp_RunCapCmd(2, 0);
+            capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 3:
@@ -135,8 +137,8 @@ void func_neo_ark_altar_8017D668(Task* task)
             gGameSession->hideHud                                      = 0;
             gGameSession->eventState                                   = 0;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgPlayer3F3(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             taskKill(task);
             break;
     }
@@ -173,7 +175,7 @@ s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEven
 {
     if (in->warp == 1) {
         if (gGameSession->location.loc.room == in->warp) {
-            Gp_RunCapCmd1(3);
+            capRunCommandWithTransition(3);
         } else {
             taskSpawnFromTable(&D_neo_ark_altar_8017EF8C, 0, 0, 0);
         }

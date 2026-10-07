@@ -23,6 +23,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/direction.h"
@@ -2949,8 +2950,8 @@ static void func_acropolis_bridge_8017DBA0(Task* arg0)
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_IS_BUSY, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         gGameSession->hideHud                                      = 1;
-        Gp_MsgPlayer3F3(0);
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         arg0->state = (s32)(arg0->state + 1);
     }
 }
@@ -2984,12 +2985,12 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
 static void func_acropolis_bridge_8017DD24(Task* arg0)
 {
     if (D_acropolis_bridge_801917A0 == 0) {
-        Gp_MsgPlayerWeapon(1);
-        Gp_MsgPlayer3F3(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         taskKill(arg0);
         return;
     }
-    Gp_MsgPlayer3F3(1);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     arg0->state += 1;
 }
 
@@ -3022,7 +3023,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
         gGameSession->location.loc.room                            = 2;
         gGameSession->roomObjsDirty                                = 1;
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 3);
-        Gp_MsgPlayerWeapon(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         arg0->state = arg0->state + 1;
     }
 }
@@ -3108,7 +3109,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 1;
     gGameSession->cutsceneHold           = 1;
-    Gp_MsgPlayer3F3(0);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     displayAcquireMenuHold();
     gGameSession->eventState = 1;
     gGameSession->hideHud    = 1;

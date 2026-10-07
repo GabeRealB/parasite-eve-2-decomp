@@ -18,6 +18,9 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -1638,23 +1641,23 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_SetNibbleIf(in->flagId, 2);
-        Gp_RunCapCmd1(1);
+        gameFlagSetNibbleIfPresent(in->flagId, 2);
+        capRunCommandWithTransition(1);
         return 0;
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY && gameFlagGetNibble(GAME_FLAG_B2_LABORATORY_DOOR_UNLOCKED) == 0) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_SetNibbleIf(in->flagId, 2);
-        Gp_RunCapCmd1(2);
+        gameFlagSetNibbleIfPresent(in->flagId, 2);
+        capRunCommandWithTransition(2);
         return 0;
     }
     if ((in->areaId == GAME_AREA_SHELTER_B2_LABORATORY || in->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM || in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL) && gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 2;
         }
-        Gp_RunCapCmd1(4);
+        capRunCommandWithTransition(4);
         return 2;
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
@@ -1723,20 +1726,20 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* fir
                 D_shelter_b2_main_corridor_80189684.warp     = 1;
                 D_shelter_b2_main_corridor_80189684.sndEvent = 0;
                 D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, 6, 0);
             } else {
-                Gp_RunCapCmd1(3);
+                capRunCommandWithTransition(3);
                 taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1C4, 0);
             }
         }
         if (((const DirectionActionRequest*)firstArg)->argument == 8) {
             if (gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
-                Gp_RunCapCmd1(4);
+                capRunCommandWithTransition(4);
                 return 0;
             }
             if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
-                Gp_RunCapCmd1(8);
+                capRunCommandWithTransition(8);
                 taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 1, 0x1AF, 0);
                 return 0;
             }
@@ -1751,7 +1754,7 @@ s32 func_shelter_b2_main_corridor_8017DC88(Task* arg0, s32 arg1, const void* fir
             D_shelter_b2_main_corridor_80189684.warp     = 1;
             D_shelter_b2_main_corridor_80189684.sndEvent = 0;
             D_shelter_b2_main_corridor_80189684.facing   = ROOM_DEPARTURE_SKIP_FACING;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_b2_main_corridor_80182C44, 0, id, 0);
         }
     }
@@ -1779,7 +1782,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_RunCapCmd1(arg0->spawnArg1.value);
+            capRunCommandWithTransition(arg0->spawnArg1.value);
             D_80115690 = 1;
             arg0->state++;
             break;
@@ -1793,7 +1796,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             if (capGetVariantKey() == 0xC) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 break;
             }
             arg0->state++;
@@ -1820,7 +1823,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
                 }
             }
             resolve = _roomVariantResolveNeoArk;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             param.areaId    = D_shelter_b2_main_corridor_80189684.area;
             param.warp      = D_shelter_b2_main_corridor_80189684.warp;
             param.room      = D_shelter_b2_main_corridor_80189684.room;

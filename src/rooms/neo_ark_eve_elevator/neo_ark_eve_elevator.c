@@ -188,7 +188,7 @@ static s32 _neoArkEveElevatorRejectKeyItemUse(Task* unusedTask, s32 unusedMessag
 /// The room's handler for message 0x13EE: copies the incoming record onto the
 /// outgoing one and passes both to `mapNeoArkResolveRoomVariant`. It returns 1 unless the
 /// record's `msgId` is 0x18 and `cdCmdIsIdle` returns 0; in that case it
-/// returns 0, first starting cap event 1 through `Gp_SpawnIfCapIdle` when the
+/// returns 0, first starting cap event 1 through `capSpawnEventIfIdle` when the
 /// record's `queryOnly` is 0.
 s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -203,7 +203,7 @@ s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, R
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SpawnIfCapIdle(1, 1);
+    capSpawnEventIfIdle(1, CAP_EVENT_PAUSE_ACTORS);
     return 0;
 }
 

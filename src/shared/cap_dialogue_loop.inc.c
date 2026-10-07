@@ -1,14 +1,14 @@
 /* Part of the cap dialogue library; see cap_dialogue.h. */
 
 /// Runs cap command `spawnArg1` and waits for it to finish. When the cap
-/// reports event key 0xF it sends `Gp_MsgPlayerWeapon(1)`, undoing the
-/// `Gp_MsgPlayerWeapon(0)` its spawner sent, and kills itself; any other key
+/// reports event key 0xF it sends `playerActorSetScriptedControl(1)`, undoing the
+/// `playerActorSetScriptedControl(0)` its spawner sent, and kills itself; any other key
 /// runs the command again.
 void capDialogueLoopTask(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(task->spawnArg1.value);
+            capRunCommandWithTransition(task->spawnArg1.value);
             task->state += 1;
             break;
         case 1:
@@ -19,7 +19,7 @@ void capDialogueLoopTask(Task* task)
             break;
         case 2:
             if (capGetVariantKey() == 0xF) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             } else {
                 task->state = 0;

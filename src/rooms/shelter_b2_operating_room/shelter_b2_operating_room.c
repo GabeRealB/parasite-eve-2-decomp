@@ -15,6 +15,9 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -951,7 +954,7 @@ static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* dest
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `mapShelterRoomVariantResolve`. Message 0x1E goes through the exit gate
 /// `roomEventGate` on flag 0xA8. Message 0x1C, while nibble 0xAA is clear, answers 0 and - unless
-/// `in->queryOnly` asks for a dry run - passes `in->flagId` to `Gp_SetNibbleIf`
+/// `in->queryOnly` asks for a dry run - passes `in->flagId` to `gameFlagSetNibbleIfPresent`
 /// and runs cap command 3; once the nibble is set it starts the room event on
 /// flag 0x13A instead. Message 0x1F starts the event on flag 0x13B; any other
 /// message answers 1.
@@ -973,8 +976,8 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY && gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SetNibbleIf(in->flagId, 2);
-            Gp_RunCapCmd1(3);
+            gameFlagSetNibbleIfPresent(in->flagId, 2);
+            capRunCommandWithTransition(3);
         }
         return 0;
     }
@@ -1010,10 +1013,10 @@ s32 func_shelter_b2_operating_room_8017DCA4(Task* arg0, s32 arg1, s32 arg2, s32 
 {
     switch (arg2) {
         case 4:
-            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0 ? 4 : 0x10, 0);
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0 ? 4 : 0x10, CAP_EVENT_NO_FLAGS);
             break;
         case 5:
-            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xF : 5, 0);
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xF : 5, CAP_EVENT_NO_FLAGS);
             break;
     }
     return 0;

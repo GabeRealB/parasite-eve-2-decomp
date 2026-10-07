@@ -13,6 +13,7 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -699,10 +700,10 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
         temp_v1 = gGameSession->location.loc.variant;
         if ((u32)(temp_v1 - 0xA) < 2U) {
             if ((temp_v1 != 0xA) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= 2)) {
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(&D_actor_146300_8013788C, 0, 0, 0);
             } else {
-                Gp_RunCapCmd1(0x17);
+                capRunCommandWithTransition(0x17);
             }
         }
     }

@@ -9,6 +9,9 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -163,7 +166,7 @@ static UiObjectDesc      Shop_Data_80181C10;
 /// publishes in `Task::msgTable`. It terminates with id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_dryfield_night_garage_80181C38[];
 
-/// Ally animation descriptor handed to `Gp_AllyAnimId`, then forwarded as the
+/// Ally animation descriptor handed to `companionWriteAnimationBankIndex`, then forwarded as the
 /// payload of the 0x3E8 message.
 extern AnimationPlayRequest D_dryfield_night_garage_80181C68;
 
@@ -371,7 +374,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     player                                         = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (gGameSession->location.loc.variant == 3 && player != NULL) {
         TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &D_actor_136300_8013B570, 0);
-        Gp_AllyAnimId(&D_dryfield_night_garage_80181C68.source.index);
+        companionWriteAnimationBankIndex(&D_dryfield_night_garage_80181C68.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
         Gp_EndPlayerActorTask(player);
@@ -406,13 +409,13 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
         if (gGameSession->location.loc.variant == 2) {
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
                 if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY) == 0) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 6, 0);
                 } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) == 0 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 7, 0);
                 } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
                 } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
                     base         = (D_dryfield_night_garage_80186D7C + 3);
@@ -422,12 +425,12 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
                     evsStartScriptWithSkip(D_dryfield_night_garage_80182DF8, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                            D_dryfield_night_garage_801831B8);
                     gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, 1);
-                    func_800E3FAC(0xA2, 0x17);
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x17);
                     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
                 }
             } else {
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 1) {
                     taskSpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0xA, 0);
                 } else {
@@ -440,7 +443,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
         if (gameFlagGetNibble(GAME_FLAG_097) != 0) {
             capStartSequenceSlot(0x14, 1, 0);
         } else {
-            Gp_SpawnIfCapIdle(0x36, 0);
+            capSpawnEventIfIdle(0x36, CAP_EVENT_NO_FLAGS);
         }
     }
     if (msg->actionId == 2 && gGameSession->location.loc.variant == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
@@ -606,7 +609,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             if (capIsBusy() != 0) {
                 break;
             }
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
         default:
             taskKill(arg0);

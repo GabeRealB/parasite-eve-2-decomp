@@ -48,6 +48,8 @@ u8 D_801156A4;
 s32 D_801156A8;
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
@@ -712,8 +714,8 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                         D_801155BC = 2;
                     } else {
                         if (attr & 0x4000) {
-                            Gp_MsgPlayer3F3(0);
-                            Gp_MsgAlly3F3(0);
+                            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                         }
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = sel;
                         gGameSession->hideHud                                      = 1;
@@ -900,8 +902,8 @@ void Gp_CapExit(Task* arg0)
         if (gGameSession->eventState == 0) {
             gGameSession->hideHud                                      = 0;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566C;
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgAlly3F3(1);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             if (gDisplayState.debugMode != 0) {
                 func_8072455C(D_8011564A, D_8011566C);
             }

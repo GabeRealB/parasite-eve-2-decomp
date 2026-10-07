@@ -18,6 +18,9 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -1661,7 +1664,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
                 desc.sndEvent = 0x55070005;
                 desc.facing   = 0x400;
                 resolve       = _roomVariantResolveShelter;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 _neoArkObservatoryStageMarker(&desc, resolve);
                 gRoomDeparture = desc;
                 taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
@@ -1675,7 +1678,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
         desc.sndEvent = 0x55070005;
         desc.facing   = 0x400;
         resolve       = _roomVariantResolveShelter;
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         _neoArkObservatoryStageMarker(&desc, resolve);
         gRoomDeparture = desc;
         taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
@@ -1683,10 +1686,10 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
     if (request->actionId == 1 && gameFlagGetNibble(GAME_FLAG_0D7) == 0) {
         gameFlagSetNibble(GAME_FLAG_0D7, 1);
         if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-            func_800E3FAC(0xA2, 0x2C);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2C);
             evsStartScriptWithSkip(D_actor_450200_8013C72C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_8013CAEC);
         } else {
-            func_800E3FAC(0xA2, 0x2D);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2D);
             gameFlagSetNibble(GAME_FLAG_0D1, 3);
             evsStartScriptWithSkip(D_actor_450200_80137EE4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_80138694);
         }
@@ -1739,7 +1742,7 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x300, 0);
-            Gp_SpawnIfCapIdle(task->spawnArg1.value, 0);
+            capSpawnEventIfIdle(task->spawnArg1.value, CAP_EVENT_NO_FLAGS);
             task->state++;
             break;
         case 1:
@@ -1749,7 +1752,7 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
             task->state++;
             break;
         case 2:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
             break;
@@ -1785,7 +1788,7 @@ s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 s32 func_neo_ark_observatory_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(&D_neo_ark_observatory_801811AC, 0, 1, 0);
     }
     return 0;
@@ -1813,19 +1816,19 @@ static void func_neo_ark_observatory_8017FCE0(Task* arg0)
 /// view 3 and 1 in any other view.
 static void func_neo_ark_observatory_8017FD7C(Task* task)
 {
-    s32 var_a0;
+    s32 drawMode;
 
     if (gGameSession->eventState == 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 2) {
-            Gp_MsgAlly3F3(2);
+            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE);
             return;
         }
     }
-    var_a0 = 1;
+    drawMode = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) {
-        var_a0 = 2;
+        drawMode = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE;
     }
-    Gp_MsgAlly3F3(var_a0);
+    companionSetDrawMode(drawMode);
 }
 
 /// State handlers of the room entry task `func_neo_ark_observatory_8017FDDC`,

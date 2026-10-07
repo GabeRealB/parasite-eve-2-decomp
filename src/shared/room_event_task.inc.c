@@ -10,8 +10,8 @@ void roomEventTask(Task* task)
     switch (task->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(ROOM_EVENT_REQ.capCmd);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(ROOM_EVENT_REQ.capCmd);
             if (ROOM_EVENT_REQ.firstSnd != 0) {
                 sndEvtRequestScriptStart(ROOM_EVENT_REQ.firstSnd, 0, 0);
                 task->state++;

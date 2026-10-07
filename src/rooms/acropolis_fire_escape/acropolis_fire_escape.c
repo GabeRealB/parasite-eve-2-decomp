@@ -17,6 +17,9 @@
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -637,7 +640,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
     if (event == 4) {
         if (gameFlagGetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE, 1);
-            Gp_RunCapCmd1(0xB);
+            capRunCommandWithTransition(0xB);
             return 0;
         }
         D_acropolis_fire_escape_80183048.view            = 9;
@@ -655,8 +658,8 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
         }
-        Gp_SpawnIfCapIdle(3, 1);
-        func_800E3FAC(0xA2, 7);
+        capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 7);
     }
     if (event == 1) {
         slot = sceneFindPlacedActor(0);
@@ -668,7 +671,7 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
                 cap = 1;
             }
         }
-        Gp_SpawnIfCapIdle(cap, 1);
+        capSpawnEventIfIdle(cap, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }

@@ -25,6 +25,10 @@ Task* D_dryfield_water_tank_80188D4C;
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -954,8 +958,8 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
             }
             gGameSession->eventState       = 1;
             D_dryfield_water_tank_80188D48 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capStartSequenceSlot(0xE, 0, 0);
             arg0->state = task->state + 1;
             return;
@@ -977,8 +981,8 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 gGameSession->hideHud                                      = 0;
                 gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_dryfield_water_tank_80188D48;
-                Gp_MsgPlayerWeapon(1);
-                Gp_MsgPlayer3F3(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             }
             break;
         default:
@@ -1015,11 +1019,11 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstAr
     }
     if ((request->actionId == 2) && (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN, 1);
-        func_800E3FAC(0xA2, 0xE);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xE);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
         Gp_ApplyAreaRecs(D_dryfield_water_tank_80188D1C);
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         evsStartScriptWithSkip(D_dryfield_water_tank_80184E0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tank_801859DC);
     }
     if (request->actionId == 3) {
@@ -1086,15 +1090,15 @@ static void func_dryfield_water_tank_8017DA4C(Task* task)
 {
     if (gGameSession->viewReady != 0) {
         if (gGameSession->location.loc.view == 4) {
-            Gp_EnqueueStageSnd6(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0, 0);
+            sndEvtRequestStageScriptStart(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0, 0);
         } else {
-            Gp_EnqueueStageSnd7(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0x2D);
+            sndEvtRequestStageScriptStop(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0x2D);
         }
         if (gGameSession->location.loc.view == 0xA) {
-            Gp_EnqueueStageSnd6(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0, 0);
+            sndEvtRequestStageScriptStart(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0, 0);
             return;
         }
-        Gp_EnqueueStageSnd7(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0x3C);
+        sndEvtRequestStageScriptStop(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0x3C);
     }
 }
 

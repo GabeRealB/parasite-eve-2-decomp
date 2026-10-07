@@ -5,7 +5,7 @@
 void factoryCapScene(Task* arg0)
 {
     if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
-        Gp_RunCapCmd1(arg0->spawnArg1.value);
+        capRunCommandWithTransition(arg0->spawnArg1.value);
     }
     taskKill(arg0);
 }

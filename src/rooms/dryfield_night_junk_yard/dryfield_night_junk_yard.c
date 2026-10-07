@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -120,8 +121,8 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* i
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_RunCapCmd1(4);
-        Gp_SetNibbleIf(in->flagId, 2);
+        capRunCommandWithTransition(4);
+        gameFlagSetNibbleIfPresent(in->flagId, 2);
         return 0;
     }
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_FIRST_ENTRY) == 0 && in->queryOnly == ROOM_EVENT_EXECUTE) {

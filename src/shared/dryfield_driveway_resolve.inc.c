@@ -26,8 +26,8 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
     }
     if (in->areaId == 2 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(6);
-            Gp_SetNibbleIf(in->flagId, 2);
+            capRunCommandWithTransition(6);
+            gameFlagSetNibbleIfPresent(in->flagId, 2);
         }
         return 2;
     }
@@ -45,7 +45,7 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
                 if (gGameSession->location.loc.variant == 1 && gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.loc.variant) {
                     return 0;
                 }
-                Gp_RunCapCmd1(1);
+                capRunCommandWithTransition(1);
                 return 0;
             }
             return 0;
@@ -57,8 +57,8 @@ s32 drivewayResolveEvent(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
     if (in->areaId == 0x17) {
         if (gameFlagGetNibble(GAME_FLAG_030) == 1) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(in->flagId, 2);
-                Gp_RunCapCmd1(2);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
+                capRunCommandWithTransition(2);
                 return 2;
             }
             return 2;

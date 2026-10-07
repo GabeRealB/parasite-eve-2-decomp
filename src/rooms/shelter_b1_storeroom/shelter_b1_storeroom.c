@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
@@ -56,8 +57,8 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;
         }
-        Gp_SetNibbleIf(in->flagId, 2);
-        Gp_RunCapCmd1(1);
+        gameFlagSetNibbleIfPresent(in->flagId, 2);
+        capRunCommandWithTransition(1);
         return 0;
     }
     if (in->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY && in->areaId != GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY) {
@@ -69,7 +70,7 @@ s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, R
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_RunCapCmd1(0xE);
+    capRunCommandWithTransition(0xE);
     return 0;
 }
 

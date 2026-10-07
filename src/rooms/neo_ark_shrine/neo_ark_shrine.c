@@ -11,6 +11,9 @@
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
@@ -283,8 +286,8 @@ s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->flagId, 2);
-    Gp_RunCapCmd1(4);
+    gameFlagSetNibbleIfPresent(in->flagId, 2);
+    capRunCommandWithTransition(4);
     return 0;
 }
 
@@ -304,7 +307,7 @@ s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     }
     if (arg2 == 5) {
-        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0 ? 5 : 0xC);
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0 ? 5 : 0xC);
     }
     return 0;
 }
@@ -317,7 +320,7 @@ s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s3
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
             taskSpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
         } else {
-            Gp_RunCapCmd1(9);
+            capRunCommandWithTransition(9);
         }
     }
     return 0;
@@ -329,8 +332,8 @@ void func_neo_ark_shrine_8017D84C(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             D_neo_ark_shrine_80186864 = taskSpawnFromTable(D_neo_ark_shrine_80182508, 0, 0, 0);
             task->state++;
             return;

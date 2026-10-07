@@ -13,7 +13,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "cdcmd.h"
 #include "direction_input.h"
 #include "gameplay/hud_sprites.h"
@@ -1092,7 +1092,7 @@ void Gp_MapTaskState2(Task* arg0)
             }
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
-            D_8010F13D = func_800E3FCC(0xA2);
+            D_8010F13D = gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiSpawnObject(&D_8010F15C, 0, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -1468,7 +1468,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             break;
         }
         if (icons[i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
-            if (icons[i].condition != func_800E3FCC(0xA2)) {
+            if (icons[i].condition != gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE)) {
                 i++;
                 continue;
             }

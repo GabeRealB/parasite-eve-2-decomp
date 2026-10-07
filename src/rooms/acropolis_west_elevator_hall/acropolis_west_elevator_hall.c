@@ -13,7 +13,7 @@
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
-#include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -1236,7 +1236,7 @@ static void func_acropolis_west_elevator_hall_8017F354(Task* task)
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
             gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 1);
-            func_800E3FAC(0xA2, 1);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 1);
         }
     }
     if (D_acropolis_west_elevator_hall_801849C8 == 1 && gGameSession->eventState == 0) {

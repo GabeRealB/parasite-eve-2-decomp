@@ -8,6 +8,8 @@
 #include "shelter_b1_north_maintenance_walkway_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/loading.h"
@@ -214,7 +216,7 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
         case 2:
             if (arg0->killCountdown == 0) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                    Gp_SpawnIfCapIdle(1, 0);
+                    capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
                     taskKill(arg0);
                 }
             } else {
@@ -250,7 +252,7 @@ static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
         taskSpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
         if (gameFlagGetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, 1);
-            Gp_SpawnIfCapIdle(4, 0);
+            capSpawnEventIfIdle(4, CAP_EVENT_NO_FLAGS);
         }
     }
     _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN));

@@ -22,7 +22,8 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -1800,7 +1801,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
-        func_800E3FAC(0xA2, 6);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 6);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
     }
@@ -1904,15 +1905,15 @@ static void _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection)
 }
 
 /// Republishes the player's weapon to slot 3: picks the room's 0x3E8 record by
-/// the equipped-weapon index in `gPlayerStatus.weapon`, has `Gp_PlayerWeaponId` stamp the
-/// current weapon model id into its `field_0`, then sends it.
+/// the equipped-weapon index in `gPlayerStatus.weapon`, has `playerActorWriteWeaponAnimationBankIndex` stamp the
+/// current animation-bank table index into `source.index`, then sends it.
 void func_acropolis_sanctuary_8017D8CC(void)
 {
     if (gPlayerStatus.weapon == 2) {
-        Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.source.index);
+        playerActorWriteWeaponAnimationBankIndex(&D_acropolis_sanctuary_801809F8.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
     } else {
-        Gp_PlayerWeaponId(&D_acropolis_sanctuary_80180A0C.source.index);
+        playerActorWriteWeaponAnimationBankIndex(&D_acropolis_sanctuary_80180A0C.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_80180A0C, 0);
     }
 }
@@ -1931,7 +1932,7 @@ static void func_acropolis_sanctuary_8017D930(Task* arg0)
     arg0->state = arg0->state + 1;
     if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != 1) {
         slot = sceneFindPlacedActor(1);
-        Gp_MsgSlot4Chain(1, 1);
+        sceneSetPlacedActorDrawMode(1, 1);
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && slot != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
             TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_acropolis_sanctuary_801808BC, 0);

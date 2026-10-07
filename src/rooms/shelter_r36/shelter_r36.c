@@ -13,6 +13,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -667,12 +668,12 @@ void func_shelter_r36_8017D7B4(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_r36_8017E9A4, 0, 0, 0);
             task->state++;
             break;
         case 1:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             task->state++;
             break;
         case 2:

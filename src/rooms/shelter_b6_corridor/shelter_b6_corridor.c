@@ -18,6 +18,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -556,7 +557,7 @@ s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     k  = 0x19;
     if (id == 9) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(1);
+            capRunCommandWithTransition(1);
         }
         return 0;
     }
@@ -571,29 +572,29 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     switch (arg2) {
         case 2:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_0_DOWN) != 0) {
-                Gp_RunCapCmd1(5);
+                capRunCommandWithTransition(5);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_RunCapCmd1(2);
+                capRunCommandWithTransition(2);
             } else {
-                Gp_RunCapCmd1(8);
+                capRunCommandWithTransition(8);
             }
             break;
         case 3:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_1_DOWN) != 0) {
-                Gp_RunCapCmd1(6);
+                capRunCommandWithTransition(6);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_RunCapCmd1(3);
+                capRunCommandWithTransition(3);
             } else {
-                Gp_RunCapCmd1(9);
+                capRunCommandWithTransition(9);
             }
             break;
         case 4:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
-                Gp_RunCapCmd1(7);
+                capRunCommandWithTransition(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_RunCapCmd1(0xA);
+                capRunCommandWithTransition(0xA);
             } else {
-                Gp_RunCapCmd1(4);
+                capRunCommandWithTransition(4);
             }
             break;
     }
@@ -612,7 +613,7 @@ static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessag
 s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     evsStartScriptWithSkip(D_shelter_b6_corridor_8017F354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b6_corridor_8017F684);
-    func_800E3FAC(0xA2, 0x2F);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2F);
     return 0;
 }
 

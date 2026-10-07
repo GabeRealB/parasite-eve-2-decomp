@@ -7,6 +7,9 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -73,7 +76,7 @@ s32 func_dryfield_night_parking_lot_8017DB04(Task* task, s32 msgId, s32 arg2, s3
 s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
-        Gp_RunCapCmd1(4);
+        capRunCommandWithTransition(4);
     }
     return 0;
 }
@@ -88,7 +91,7 @@ s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* 
 
     if ((request->actionId == 1) && (gGameSession->location.loc.variant == 3) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN, 1);
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         evsStartScript(D_dryfield_night_parking_lot_8017ECB4, EVENT_SCRIPT_HUD_KEEP);
     }
     return 0;

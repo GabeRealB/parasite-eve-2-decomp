@@ -16,6 +16,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -776,8 +777,8 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             break;
         case 1:
@@ -788,7 +789,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
         case 2:
             if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 D_80114D08                     = 0xA;
                 break;
@@ -875,12 +876,12 @@ s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, const void* fir
                     func_shelter_b4_water_supply_8017DB18();
                 } else {
                     gameFlagSetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE, 1);
-                    Gp_MsgPlayerWeapon(0);
-                    Gp_RunCapCmd1(3);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                    capRunCommandWithTransition(3);
                     taskSpawnFromTable(D_shelter_b4_water_supply_80182620, 0, 0, 0);
                 }
             } else {
-                Gp_RunCapCmd1(1);
+                capRunCommandWithTransition(1);
                 gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
             }
         }
@@ -914,7 +915,7 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     work.room     = 1;
     work.sndEvent = 0x542E0003;
     work.facing   = 0x400;
-    Gp_MsgPlayerWeapon(0);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     wp              = &work;
     param.areaId    = wp->area;
     param.warp      = wp->warp;
@@ -945,7 +946,7 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
         work.room     = 1;
         work.sndEvent = 0x542E0003;
         work.facing   = 0x400;
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         param.areaId    = work.area;
         param.warp      = work.warp;
         param.room      = work.room;

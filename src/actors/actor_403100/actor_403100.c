@@ -15,7 +15,7 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/effects.h"
@@ -7152,7 +7152,7 @@ static void func_actor_403100_8013B128(Task* arg0)
     D_actor_403100_80155808->rotation.vy                       = 0xA00;
     D_actor_403100_80155808->rotation.vz                       = 0;
     gGameSession->hideHud                                      = 1;
-    Gp_MsgPlayerWeapon(0);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000B;
     pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
     depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);

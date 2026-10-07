@@ -10,6 +10,10 @@
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
@@ -176,7 +180,7 @@ s32 func_dryfield_gas_station_8017FD54(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE, 1);
-            Gp_RunCapCmd1(0xB);
+            capRunCommandWithTransition(0xB);
             return 0;
         }
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == arg2) {

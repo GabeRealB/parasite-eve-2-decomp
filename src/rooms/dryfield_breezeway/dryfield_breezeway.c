@@ -12,6 +12,9 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/gpu_image_upload.h"
@@ -547,7 +550,7 @@ s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
             ret               = roomEventGate(&req, out);
             if (gRoomEventActive != 0) {
                 gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 4);
-                func_800E3FAC(0xA2, 0x38);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x38);
             }
             return ret;
         }
@@ -560,7 +563,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
     switch (arg2) {
         case 1:
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_RunCapCmd1(5);
+                capRunCommandWithTransition(5);
             } else {
                 if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != 4) {
                     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_FACTORY_KEY) != 0) {
@@ -575,7 +578,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
                         }
                     }
                 }
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(D_dryfield_breezeway_80181E10, 1, arg2, 0);
             }
             break;
@@ -587,7 +590,7 @@ s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
                         gameFlagSetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE, 1);
                     }
                 } else {
-                    Gp_RunCapCmd1(5);
+                    capRunCommandWithTransition(5);
                 }
             }
             break;
@@ -629,8 +632,8 @@ void func_dryfield_breezeway_8017DC3C(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             D_dryfield_breezeway_801843A8 = taskSpawnFromTable(&D_dryfield_breezeway_80182E18, 0, 0, 0);
             arg0->state                  += 1;
             return;
@@ -647,7 +650,7 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd(task->spawnArg1.value, 0);
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 1:
@@ -660,7 +663,7 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
                         gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 6);
                     }
                 }
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
             break;

@@ -21,6 +21,8 @@ s32 D_actor_143000_80135C1C;
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -254,7 +256,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             // The keypad left the screen faded out; fade back in on the scene set up below.
             fade->phase = SCREEN_FADE_RETURN;
             srand(gDisplayState.gameTick);
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x340, 0);
@@ -271,9 +273,9 @@ void func_actor_143000_80133EE4(Task* arg0)
             return;
         case 2:
             if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BOWMANS_CARD) != 0) {
-                Gp_RunCapCmd(1, 0);
+                capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
             } else {
-                Gp_RunCapCmd(2, 0);
+                capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
             }
             arg0->state++;
             return;
@@ -288,11 +290,11 @@ void func_actor_143000_80133EE4(Task* arg0)
                     arg0->state = 0x14;
                     return;
                 case 0x63:
-                    Gp_RunCapCmd(0x20, 0);
+                    capRunCommand(0x20, CAP_PLAYBACK_IN_PLACE);
                     arg0->state++;
                     return;
                 default:
-                    Gp_RunCapCmd(3, 0);
+                    capRunCommand(3, CAP_PLAYBACK_IN_PLACE);
                     arg0->state = 6;
                     return;
             }
@@ -324,7 +326,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             } while (i >= 0);
             D_actor_143000_80135C18 = 0;
             D_actor_143000_80135C1C = 0;
-            Gp_RunCapCmd(4, 0);
+            capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             return;
         case 21:
@@ -341,7 +343,7 @@ void func_actor_143000_80133EE4(Task* arg0)
                     break;
                 }
             }
-            Gp_RunCapCmd(D_actor_143000_80135C14 + 5, 0);
+            capRunCommand(D_actor_143000_80135C14 + 5, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             return;
         case 23:
@@ -375,13 +377,13 @@ void func_actor_143000_80133EE4(Task* arg0)
             }
             return;
         case 40:
-            Gp_RunCapCmd(0x22, 0);
+            capRunCommand(0x22, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             return;
         case 41:
             if (capIsBusy() == 0) {
                 capReset();
-                func_800E3FAC(0xA2, 0x27);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x27);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
                 Gp_ApplyAreaRecs(D_shelter_b2_laboratory_80186488);
@@ -404,13 +406,13 @@ void func_actor_143000_801342F8(s32 x, s32 y, const u16* codes, s32 index, s32 a
     if (y < 0x59) {
         if (active != 0) {
             if ((codes[index] & 0xF000) == 0x3000) {
-                Gp_PlayerWeaponId(&D_actor_143000_801350D4.data.playRequests[3].source.index);
+                playerActorWriteWeaponAnimationBankIndex(&D_actor_143000_801350D4.data.playRequests[3].source.index);
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_143000_801350D4.data.playRequests[3], 0);
                 D_actor_143000_801351AC = 1;
             }
             if (codes[index] == 0xFFFE && D_actor_143000_801351AC == 1) {
                 D_actor_143000_801351AC = 0;
-                Gp_PlayerWeaponId(&D_actor_143000_801350D4.data.playRequests[5].source.index);
+                playerActorWriteWeaponAnimationBankIndex(&D_actor_143000_801350D4.data.playRequests[5].source.index);
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_143000_801350D4.data.playRequests[5], 0);
             }
         }

@@ -12,6 +12,7 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -1699,7 +1700,7 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_junk_yard_8017DE00, 0);
-            Gp_AllyAnimId(&D_dryfield_junk_yard_8017DD88.source.index);
+            companionWriteAnimationBankIndex(&D_dryfield_junk_yard_8017DD88.source.index);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
         }
         if ((gameFlagGetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN) == 0) && (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= 2)) {

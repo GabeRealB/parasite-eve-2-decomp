@@ -22,6 +22,8 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/companion_load.h"
 #include "gameplay/direction.h"
@@ -1018,7 +1020,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
             return 1;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SetNibbleIf(in->flagId, 2);
+            gameFlagSetNibbleIfPresent(in->flagId, 2);
             capStartSequenceSlot(5, 1, 0);
         }
         return 0;
@@ -1136,7 +1138,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 18:
             if (taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 task->state += 1;
             }
             break;
@@ -1162,8 +1164,8 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 27:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                func_800E3FAC(0xA2, 3);
-                Gp_MsgPlayerWeapon(1);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 3);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
             break;
@@ -1199,7 +1201,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 
         case 1:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                Gp_RunCapCmd1(3);
+                capRunCommandWithTransition(3);
                 task->state = task->state + 1;
             }
             break;
@@ -1217,7 +1219,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 
         case 3:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
             break;
@@ -1240,7 +1242,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             gameFlagSetNibble(GAME_FLAG_00E, 1);
             Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
-            func_800E3FAC(0xA2, 4);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 4);
             func_800ABFF8();
             func_800AC000();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
@@ -1321,7 +1323,7 @@ s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstAr
         }
     }
     if (request->actionId == 2) {
-        Gp_RunCapCmd1(9);
+        capRunCommandWithTransition(9);
     } else if (request->actionId == 3) {
         if (D_acropolis_cafeteria_80184164 == 0 && gameFlagGetNibble(0) == 1) {
             D_acropolis_cafeteria_80184164 = 1;
@@ -1369,12 +1371,12 @@ static void func_acropolis_cafeteria_8017E348(Task* task)
     task->msgTable = D_acropolis_cafeteria_80182AA8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(0) == 1) {
-        Gp_MsgSlot4Chain(0, 0);
-        Gp_MsgSlot4Chain(1, 1);
+        sceneSetPlacedActorDrawMode(0, 0);
+        sceneSetPlacedActorDrawMode(1, 1);
     } else if (gameFlagGetNibble(0) == 2) {
-        Gp_MsgSlot4Chain(0, 1);
-        Gp_MsgSlot4Chain(1, 2);
-        Gp_MsgSlot4Chain(2, 1);
+        sceneSetPlacedActorDrawMode(0, 1);
+        sceneSetPlacedActorDrawMode(1, 2);
+        sceneSetPlacedActorDrawMode(2, 1);
         (D_acropolis_cafeteria_801891E4 + 9)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
     }

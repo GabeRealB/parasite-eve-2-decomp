@@ -6,6 +6,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/direction.h"
 #include "gameplay/enemy.h"
 #include "gameplay/items.h"
@@ -111,18 +112,18 @@ s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMs
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_RunCapCmd1(0xE);
+    capRunCommandWithTransition(0xE);
     return 0;
 }
 
 s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 8) {
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(&D_shelter_b1_sleeping_quarters_80180540, 0, 8, 0);
     }
     if (arg2 == 3) {
-        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_SLEEPING_QUARTERS_16F) == 0 ? 3 : 0xF, 0);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_SLEEPING_QUARTERS_16F) == 0 ? 3 : 0xF, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -139,7 +140,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x2C0, 0);
-            Gp_RunCapCmd(task->spawnArg1.value, 1);
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_DISPLAY_TRANSITION);
             task->state++;
             break;
         case 1:
@@ -148,7 +149,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
             }
             break;
         case 2:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
             break;

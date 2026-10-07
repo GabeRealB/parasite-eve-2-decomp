@@ -2,11 +2,13 @@
 
 #include "types.h"
 
+#include "gameplay/actor_presentation.h"
 #include "gameplay/cap.h"
 #include "cap.h"
 #include "captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/enemy.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
@@ -14,6 +16,8 @@
 #include "gameplay/player_actor.h"
 #include "player_actor.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sound.h"
 
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -32,6 +36,25 @@ extern AnimationPlayRequest D_8010FB10;
 extern AnimationPlayRequest D_8010FB24;
 
 extern AnimationPlayRequest Gp_WeaponMsgRec;
+
+/// Stage nibble position in a packed sound-bank id; zero selects an absolute id.
+enum {
+    SOUND_STAGE_NIBBLE_MASK  = 0x0F000000,
+    SOUND_STAGE_NIBBLE_SHIFT = 24
+};
+/// Resolves a nonzero sound-id stage nibble using the live current session.
+///
+/// `soundId` must be a writable s32 lvalue with no evaluation side effects:
+/// it is evaluated repeatedly. A zero stage nibble leaves the value unchanged.
+/// Other bits are retained; substitution requires a live `gGameSession` and
+/// a stage that fits four bits. Use as a standalone compound statement.
+#define SOUND_RESOLVE_CURRENT_STAGE(soundId)                                           \
+    {                                                                                  \
+        if ((soundId) & SOUND_STAGE_NIBBLE_MASK) {                                     \
+            (soundId) &= ~SOUND_STAGE_NIBBLE_MASK;                                     \
+            (soundId) |= gGameSession->location.loc.stage << SOUND_STAGE_NIBBLE_SHIFT; \
+        }                                                                              \
+    }
 
 static const TaskFuncTable3 D_800974C8;
 
@@ -78,72 +101,87 @@ static const TaskFuncTable3 D_800974C8 = { {
     taskKill,
 } };
 
-void Gp_RunCapCmd(s32 arg0, s16 arg1)
+void capRunCommand(s32 commandIndex, s16 playbackMode)
 {
+    /// Advances and stores a CAP counter after the playback attempt.
+    ///
+    /// `command` must be a side-effect-free pointer expression and `variantKey`
+    /// a writable s32 lvalue: both are evaluated repeatedly. `flagId` is evaluated
+    /// once only for a persisted counter. Byte/nibble stores retain truncation.
+    /// Use as a standalone compound statement; the macro is undefined after this function.
+#define CAP_ADVANCE_COMMAND_COUNTER(command, flagId, variantKey)                                   \
+    {                                                                                              \
+        if (((variantKey) < (command)->counterLimit) || ((command)->flags & CAP_COMMAND_BRANCH)) { \
+            (variantKey)++;                                                                        \
+        } else if ((command)->flags & CAP_COMMAND_WRAP) {                                          \
+            (variantKey) = 0;                                                                      \
+        }                                                                                          \
+        if ((command)->flags & CAP_COMMAND_PERSIST) {                                              \
+            gameFlagSetNibble((flagId), (variantKey));                                             \
+        } else {                                                                                   \
+            (command)->counter = (variantKey);                                                     \
+        }                                                                                          \
+    }
+
+    enum { CAP_COMMAND_DEFAULT_VARIANT = 0 };
+
     CapCommand* command;
     s32         flagId;
-    s32         val;
-    s32         i;
+    s32         variantKey;
+    s32         objectOffset;
 
     for (;;) {
-        command = Gp_CapCmds[arg0].command;
+        command = Gp_CapCmds[commandIndex].command;
         flagId  = command->flagIndexLo | (command->flagIndexHi << 8);
         switch (command->opcode) {
             case CAP_COMMAND_PLAIN:
-                capStartSequenceSlot(arg0, arg1, 0);
+                capStartSequenceSlot(commandIndex, playbackMode, CAP_COMMAND_DEFAULT_VARIANT);
                 return;
             case CAP_COMMAND_COUNTER:
-                // Persist keeps the counter in a game flag. Otherwise it is this command's byte.
+                // Select the variant from a live flag or the loaded command's counter.
                 if (command->flags & CAP_COMMAND_PERSIST) {
-                    val = gameFlagGetNibble(flagId);
+                    variantKey = gameFlagGetNibble(flagId);
                 } else {
-                    val = command->counter;
+                    variantKey = command->counter;
                 }
-                // Above the limit, BRANCH continues at nextIndex without playing or advancing.
-                if ((command->flags & CAP_COMMAND_BRANCH) && command->counterLimit < val) {
-                    arg0 = command->nextIndex;
+                // An overflow branch skips both playback and counter advancement.
+                if ((command->flags & CAP_COMMAND_BRANCH) && command->counterLimit < variantKey) {
+                    commandIndex = command->nextIndex;
                     continue;
                 }
-                capStartSequenceSlot(arg0, arg1, val);
-                if ((val < command->counterLimit) || (command->flags & CAP_COMMAND_BRANCH)) {
-                    val++;
-                } else if (command->flags & CAP_COMMAND_WRAP) {
-                    val = 0;
-                }
-                if (command->flags & CAP_COMMAND_PERSIST) {
-                    gameFlagSetNibble(flagId, val);
-                } else {
-                    command->counter = val;
-                }
+                capStartSequenceSlot(commandIndex, playbackMode, variantKey);
+                CAP_ADVANCE_COMMAND_COUNTER(command, flagId, variantKey);
                 return;
             case CAP_COMMAND_FLAG:
-                val = gameFlagGetNibble(flagId);
-                capStartSequenceSlot(arg0, arg1, val);
+                variantKey = gameFlagGetNibble(flagId);
+                capStartSequenceSlot(commandIndex, playbackMode, variantKey);
                 return;
             case CAP_COMMAND_ROOM:
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, arg0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, commandIndex, 0);
                 return;
             case CAP_COMMAND_TALLY:
-                // Count two-bit flags whose value is 0, 1 or 3.
-                val = 0;
-                for (i = 0; i < command->bitFlagCount; i++) {
-                    if (areaGetCurrentObjectState(command->bitFlagIndex + i) == 0 ||
-                        areaGetCurrentObjectState(command->bitFlagIndex + i) == 1 ||
-                        areaGetCurrentObjectState(command->bitFlagIndex + i) == 3) {
-                        val++;
+                // Count the requested run of two-bit object states equal to 0, 1 or 3.
+                variantKey = 0;
+                for (objectOffset = 0; objectOffset < command->bitFlagCount; objectOffset++) {
+                    if (areaGetCurrentObjectState(command->bitFlagIndex + objectOffset) == 0 ||
+                        areaGetCurrentObjectState(command->bitFlagIndex + objectOffset) == 1 ||
+                        areaGetCurrentObjectState(command->bitFlagIndex + objectOffset) == 3) {
+                        variantKey++;
                     }
                 }
-                if ((command->flags & CAP_COMMAND_BRANCH) && val == 0) {
-                    arg0 = command->nextIndex;
+                if ((command->flags & CAP_COMMAND_BRANCH) && variantKey == 0) {
+                    commandIndex = command->nextIndex;
                     continue;
                 }
-                capStartSequenceSlot(arg0, arg1, val);
+                capStartSequenceSlot(commandIndex, playbackMode, variantKey);
                 return;
             default:
                 return;
         }
     }
 }
+
+#undef CAP_ADVANCE_COMMAND_COUNTER
 
 void Gp_EvtCapWeaponTask(Task* arg0)
 {
@@ -195,7 +233,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             if (flags == 0xFF) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, arg0->spawnArg1.value, mode);
             } else {
-                Gp_RunCapCmd(arg0->spawnArg1.value, mode);
+                capRunCommand(arg0->spawnArg1.value, mode);
             }
             arg0->state++;
             break;
@@ -244,55 +282,56 @@ const TaskFuncTable3 Gp_CapTaskStates = { {
     taskKill,
 } };
 
-void Gp_SetNibbleIf(s32 arg0, s32 arg1)
+void gameFlagSetNibbleIfPresent(s32 optionalFlagId, s32 value)
 {
-    if (arg0 != 0) {
-        gameFlagSetNibble(arg0, arg1);
+    if (optionalFlagId != GAME_FLAG_OPTIONAL_NONE) {
+        gameFlagSetNibble(optionalFlagId, value);
     }
 }
 
-void Gp_RunCapCmd1(s32 arg0)
+void capRunCommandWithTransition(s32 commandIndex)
 {
-    Gp_RunCapCmd(arg0, 1);
+    capRunCommand(commandIndex, CAP_PLAYBACK_DISPLAY_TRANSITION);
 }
 
-void Gp_MsgPlayer3F3(s32 arg0)
+void playerActorSetDrawMode(s32 drawMode)
 {
-    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-void Gp_MsgPlayerWeapon(s32 arg0)
+void playerActorSetScriptedControl(s32 resume)
 {
-    AnimationPlayRequest sp;
+    AnimationPlayRequest request;
 
-    if (arg0 == 0) {
-        sp              = Gp_WeaponMsgRec;
-        sp.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &sp, 0);
+    if (resume == GAME_ACTOR_SCRIPTED_CONTROL_HOLD) {
+        request              = Gp_WeaponMsgRec;
+        request.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
     } else {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
     }
 }
 
-void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
+void sceneSetPlacedActorDrawMode(s32 placeIndex, s32 drawMode)
 {
-    Task* out;
+    Task* actorTask;
+    s32   placeKey;
 
-    arg0 = (arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
-    TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_PLACED_ACTOR, arg0, &out);
-    if (out != 0) {
-        taskMessageDispatch(out, ACTOR_MESSAGE_SET_MODEL_DRAW, arg1, 0);
+    placeKey = (placeIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
+    TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_PLACED_ACTOR, placeKey, &actorTask);
+    if (actorTask != NULL) {
+        taskMessageDispatch(actorTask, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
     }
 }
 
-void Gp_PlayerWeaponId(s32* arg0)
+void playerActorWriteWeaponAnimationBankIndex(s32* bankIndexOut)
 {
-    *arg0 = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    *bankIndexOut = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
 }
 
-void Gp_AllyAnimId(s32* arg0)
+void companionWriteAnimationBankIndex(s32* bankIndexOut)
 {
-    *arg0 = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    *bankIndexOut = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
 }
 
 void Gp_FillPlayerHpMp(void)
@@ -309,75 +348,70 @@ void Gp_FillAllyHp(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax;
 }
 
-void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1)
+void capSpawnEventIfIdle(s32 commandIndex, s32 eventFlags)
 {
+    enum { CAP_EVENT_TASK_NORMAL = 0 };
+
     if (capIsBusy() == 0) {
-        taskSpawnFromTable(Gp_EvtSpawnTable, 0, arg1, arg0);
+        taskSpawnFromTable(Gp_EvtSpawnTable, CAP_EVENT_TASK_NORMAL, eventFlags, commandIndex);
     }
 }
 
-void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2)
+void sndEvtRequestStageScriptStart(s32 soundId, s32 panOffset, s32 attenuation)
 {
-    if (arg0 & 0xF000000) {
-        arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->location.loc.stage << 24;
-    }
-    sndEvtRequestScriptStart(arg0, (s8)arg1, (s8)arg2);
+    SOUND_RESOLVE_CURRENT_STAGE(soundId);
+    sndEvtRequestScriptStart(soundId, (s8)panOffset, (s8)attenuation);
 }
 
-s32 Gp_PackStageSndId(s32 arg0)
+s32 sndScriptResolveStageId(s32 soundId)
 {
-    if (arg0 & 0xF000000) {
-        arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->location.loc.stage << 24;
-    }
-    return arg0;
+    SOUND_RESOLVE_CURRENT_STAGE(soundId);
+    return soundId;
 }
 
-void Gp_EnqueueStageSnd7(s32 arg0, s32 arg1)
+void sndEvtRequestStageScriptStop(s32 soundSelector, s32 stopControl)
 {
-    if (arg0 & 0xF000000) {
-        arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->location.loc.stage << 24;
-    }
-    sndEvtRequestScriptStop(arg0, arg1);
+    SOUND_RESOLVE_CURRENT_STAGE(soundSelector);
+    sndEvtRequestScriptStop(soundSelector, stopControl);
 }
 
-void Gp_MsgAlly3F3(s32 arg0)
-{
-    Task* slot;
+#undef SOUND_RESOLVE_CURRENT_STAGE
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    if (slot != NULL) {
-        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+void companionSetDrawMode(s32 drawMode)
+{
+    Task* companionTask;
+
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    if (companionTask != NULL) {
+        taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
     }
 }
 
-void Gp_MsgAllyWeapon(s32 arg0)
+void companionSetScriptedControl(s32 resume)
 {
-    Task*                slot;
-    AnimationPlayRequest sp;
+    Task*                companionTask;
+    AnimationPlayRequest request;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    if (slot != NULL) {
-        if (arg0 == 0) {
-            sp              = Gp_WeaponMsgRec;
-            sp.source.index = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-            TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &sp, 0);
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    if (companionTask != NULL) {
+        if (resume == GAME_ACTOR_SCRIPTED_CONTROL_HOLD) {
+            request              = Gp_WeaponMsgRec;
+            request.source.index = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+            TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &request, 0);
         } else {
-            taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+            taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         }
     }
 }
 
-void func_800E3FAC(s32 arg0, s32 arg1)
+void gameFlagSetPackedByte(s32 nibbleIndex, s32 packedValue)
 {
-    gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[arg0 / 2] = arg1;
+    gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[nibbleIndex / 2] = packedValue;
 }
 
-s32 func_800E3FCC(s32 arg0)
+s32 gameFlagGetPackedByte(s32 nibbleIndex)
 {
-    return gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[arg0 / 2];
+    return gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[nibbleIndex / 2];
 }
 
 /// Location-message fallback of `D_8010FAD4`, the table installed on pointer

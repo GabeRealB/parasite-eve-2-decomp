@@ -14,6 +14,10 @@ Task* D_dryfield_water_tower_801876A4;
 #include "dryfield_water_tower_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
@@ -81,9 +85,9 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
         case 0:
             if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) < 2) {
                 func_dryfield_water_tower_8017DCB4();
-                Gp_MsgPlayer3F3(0);
-                Gp_MsgPlayerWeapon(0);
-                Gp_RunCapCmd(7, 0);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
                 gGameSession->eventState = 1;
                 {
                     u32 view                             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
@@ -93,7 +97,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 }
                 return;
             }
-            Gp_RunCapCmd1(7);
+            capRunCommandWithTransition(7);
             break;
         case 1:
             if (capIsBusy() == 0) {
@@ -114,8 +118,8 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 gGameSession->hideHud                                      = 0;
                 gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.view;
-                Gp_MsgPlayerWeapon(1);
-                Gp_MsgPlayer3F3(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             }
             break;
         default:

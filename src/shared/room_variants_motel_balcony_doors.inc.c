@@ -26,8 +26,8 @@ s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, Ro
     if (msg->areaId == 0x1C) {
         req.capCmd        = 7;
         req.missingCapCmd = 4;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_MOTEL_BALCONY_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_MOTEL_BALCONY_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_MOTEL_BALCONY_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_MOTEL_BALCONY_DOOR_OPEN);
         req.flagId        = GAME_FLAG_MOTEL_ROOM_5_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
@@ -39,8 +39,8 @@ s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, Ro
     } else if (msg->areaId == 0x1F) {
         req.capCmd        = 5;
         req.missingCapCmd = 2;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_MOTEL_BALCONY_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_MOTEL_BALCONY_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_MOTEL_BALCONY_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_MOTEL_BALCONY_DOOR_OPEN);
         req.flagId        = GAME_FLAG_MOTEL_LOFT_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
@@ -52,15 +52,15 @@ s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, Ro
     } else if (msg->areaId == 0x1E) {
         req.capCmd        = 6;
         req.missingCapCmd = 3;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_MOTEL_BALCONY_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_MOTEL_BALCONY_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_MOTEL_BALCONY_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_MOTEL_BALCONY_DOOR_OPEN);
         req.flagId        = GAME_FLAG_MOTEL_ROOM_6_DOOR_UNLOCKED;
         req.collectedBit  = 0xF;
         ret               = roomEventGate(&req, out);
         if (ROOM_EVENT_ACTIVE != 0) {
             gameFlagSetNibble(GAME_FLAG_030, 1);
             gMcSaveData[0].state.sceneEvent = 3;
-            func_800E3FAC(0xA2, 0xC);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xC);
         }
     } else {
         return 1;

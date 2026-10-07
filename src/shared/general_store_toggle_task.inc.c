@@ -12,7 +12,7 @@ void storeToggleTask(Task* task)
     cmd  = task->spawnArg2.value;
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(cmd);
+            capRunCommandWithTransition(cmd);
             task->state = task->state + 1;
             break;
         case 1:

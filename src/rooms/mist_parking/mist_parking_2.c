@@ -6,6 +6,7 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/inventory.h"
@@ -763,7 +764,7 @@ void func_mist_parking_80182A44(Task* task)
         case 0:
             memFillBytes(announcement, 0, sizeof(*announcement));
             evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
-            Gp_RunCapCmd(2, 0);
+            capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 1:
@@ -784,7 +785,7 @@ void func_mist_parking_80182A44(Task* task)
         case 2:
             func_mist_parking_80183708(2);
             evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
-            Gp_RunCapCmd(6, 0);
+            capRunCommand(6, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 3:
@@ -797,7 +798,7 @@ void func_mist_parking_80182A44(Task* task)
             switch (capGetVariantKey()) {
                 case 1:
                     announcement->prizeTimer = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;
-                    Gp_RunCapCmd(7, 0);
+                    capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
                     task->state = 4;
                     break;
                 case 4:
@@ -808,7 +809,7 @@ void func_mist_parking_80182A44(Task* task)
                         }
                     }
                     evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
-                    Gp_RunCapCmd(8, 0);
+                    capRunCommand(8, CAP_PLAYBACK_IN_PLACE);
                     task->state = 6;
                     break;
                 case 3:
@@ -826,7 +827,7 @@ void func_mist_parking_80182A44(Task* task)
                         }
                     }
                     evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
-                    Gp_RunCapCmd(4, 0);
+                    capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
                     task->state = 6;
                     break;
             }
@@ -865,7 +866,7 @@ void func_mist_parking_80182A44(Task* task)
             }
             if (capIsBusy() == 0) {
                 evsStartScript(D_mist_parking_8018F9A4, EVENT_SCRIPT_HUD_KEEP);
-                Gp_RunCapCmd(2, 0);
+                capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
                 task->state++;
             }
             /* fallthrough */
@@ -882,7 +883,7 @@ void func_mist_parking_80182A44(Task* task)
             task->killCountdown++;
             if (task->killCountdown >= 0xB) {
                 func_mist_parking_80183708(0);
-                Gp_RunCapCmd(4, 0);
+                capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
                 task->killCountdown = 0;
                 task->state++;
             }
@@ -901,7 +902,7 @@ void func_mist_parking_80182A44(Task* task)
         case 9:
             task->killCountdown++;
             if (task->killCountdown == 0xA) {
-                Gp_RunCapCmd(3, 0);
+                capRunCommand(3, CAP_PLAYBACK_IN_PLACE);
             }
             if (gGameSession->eventState != 0) {
                 return;
@@ -909,7 +910,7 @@ void func_mist_parking_80182A44(Task* task)
             task->state++;
             break;
         case 10:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             break;
     }
@@ -949,7 +950,7 @@ void func_mist_parking_80182F60(Task* task)
             break;
         case 4:
             if (task->spawnArg1.value == 4) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             taskKill(task);
             break;

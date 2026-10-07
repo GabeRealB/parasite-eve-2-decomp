@@ -12,6 +12,8 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -423,7 +425,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 task->state++;
             } else {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
             break;
@@ -439,7 +441,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 rec.warp     = 2;
                 rec.sndEvent = 0x55010004;
                 rec.facing   = ROOM_DEPARTURE_SKIP_FACING;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 p             = &rec;
                 msg.areaId    = p->area;
                 msg.warp      = p->warp;
@@ -499,8 +501,8 @@ s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, const void* f
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0xA) {
-        Gp_MsgPlayerWeapon(0);
-        Gp_RunCapCmd1(2);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+        capRunCommandWithTransition(2);
         taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BE0, 0, 0, 0);
     }
     return 0;
@@ -511,7 +513,7 @@ static void func_shelter_1f_parking_garage_8017DE9C(Task* task)
     task->msgTable = D_shelter_1f_parking_garage_80180BB8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.warp == 1) {
-        Gp_RunCapCmd1(5);
+        capRunCommandWithTransition(5);
     }
     task->state = task->state + 1;
 }

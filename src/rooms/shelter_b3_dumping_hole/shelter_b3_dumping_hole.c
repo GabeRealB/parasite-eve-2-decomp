@@ -11,6 +11,7 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -229,7 +230,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(Task* arg0, s32 arg1, RoomEventMsg* in
     if (in->areaId == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
         if (func_shelter_b3_dumping_hole_8017FB70() != 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(0x16);
+                capRunCommandWithTransition(0x16);
             }
             return 0;
         }
@@ -244,7 +245,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(Task* arg0, s32 arg1, RoomEventMsg* in
 s32 func_shelter_b3_dumping_hole_8017D82C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x12) {
-        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_11D) != 0 ? 0x12 : 0x17, 1);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_11D) != 0 ? 0x12 : 0x17, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }
@@ -272,7 +273,7 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
                 evsStartScriptWithSkip(D_shelter_b3_dumping_hole_8018B080, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_shelter_b3_dumping_hole_8018B428);
             }
-            func_800E3FAC(0xA2, 0x21);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x21);
             gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, 1);
         }
     }

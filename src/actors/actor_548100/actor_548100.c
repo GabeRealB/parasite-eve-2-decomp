@@ -7,6 +7,8 @@
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
@@ -945,8 +947,8 @@ static void func_actor_548100_80132420(Task* task)
     func_actor_548100_80134400(start);
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
-    Gp_MsgPlayerWeapon(0);
-    Gp_MsgPlayer3F3(0);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
 }
 
 static void func_actor_548100_80132550(Task* task)
@@ -1018,20 +1020,20 @@ static void func_actor_548100_80132684(Task* task)
                 }
                 break;
             case 5:
-                Gp_RunCapCmd(5, 0);
+                capRunCommand(5, CAP_PLAYBACK_IN_PLACE);
                 task->state = 8;
                 return;
             case 6:
-                Gp_RunCapCmd(4, 0);
+                capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
                 break;
             case 7:
-                Gp_RunCapCmd(7, 0);
+                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
                 break;
             case 8:
-                Gp_RunCapCmd(9, 0);
+                capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
                 break;
             case 9:
-                Gp_RunCapCmd(8, 0);
+                capRunCommand(8, CAP_PLAYBACK_IN_PLACE);
                 break;
         }
         task->state = 2;
@@ -2263,8 +2265,8 @@ static void func_actor_548100_80134DBC(Task* task)
 
 static void func_actor_548100_80134E0C(Task* arg0)
 {
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     D_80114D08 = 0xA;
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
@@ -2330,7 +2332,7 @@ static void func_actor_548100_80134FEC(Task* arg0)
             sndEvtRequestScriptStop(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             if (D_actor_548100_80135B4C->powersDoor != 0) {
                 sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
-                Gp_RunCapCmd(0xC, 0);
+                capRunCommand(0xC, CAP_PLAYBACK_IN_PLACE);
                 arg0->state = 0xA;
             } else {
                 arg0->state = 2;

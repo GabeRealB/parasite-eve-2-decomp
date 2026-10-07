@@ -315,7 +315,7 @@ in a row identify different responsibilities in the same source group.
 | `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/main/sound.h`, `src/main/sound.h` |
 | `stream`, `mdec` | Stream slots and MDEC movie/image decoding; scene/audio selection, payload-sector intake, completion and stream halt requests | `stream.c`, `stage.c` (image decoding), gameplay `scene_runtime.c` (scene stream coordination) | `include/main/stream.h`, `include/main/stream_types.h`, `src/main/stream.h`, `include/gameplay/scene_runtime.h` (scene stream coordination) |
 | `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/main/tmd.h`, `include/main/tmd_types.h`, `src/main/tmd.h` |
-| `gameFlag` | Packed game flags | `gameflag.c` | `include/main/gameflag.h`, `include/main/gameflag_types.h` |
+| `gameFlag` | Packed game flags | `gameflag.c`, gameplay `cap_commands.c` (optional nibble and whole-byte access) | `include/main/gameflag.h`, `include/main/gameflag_types.h`, `include/gameplay/gameflag.h` (gameplay exports) |
 | `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/main/session.h`, `include/main/session_types.h`, `include/main/wipsys.h`, `include/main/wipsys_types.h` |
 | `random` | Shared 32-bit pseudo-random sequence for gameplay and loaded overlays; consumers advance the recurrence directly, independently of SDK `rand()` | `gamemain.c` (resident state), gameplay and overlay consumers | `include/main/random.h` |
 
@@ -372,6 +372,12 @@ inventory state, effects and player state are different owners even when their
 implementations occur in one TU. Check each item's references before selecting
 its prefix. Uncertain state blocks in otherwise understood files remain subject
 to analysis.
+
+`include/gameplay/actor_presentation.h` groups the current player and companion's
+presentation messages and animation-bank index writers under `playerActor` and
+`companion`. `include/gameplay/sound.h` declares `sndEvt` stage-relative script
+requests and the `sndScript` stage-id resolver. These interfaces are gameplay
+exports even though their saved state and sound queue are resident.
 
 ### Packages and included shared implementations
 

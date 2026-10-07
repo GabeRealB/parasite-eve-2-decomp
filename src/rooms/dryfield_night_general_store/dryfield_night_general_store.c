@@ -5,6 +5,10 @@
 #include "dryfield_night_general_store_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/items.h"

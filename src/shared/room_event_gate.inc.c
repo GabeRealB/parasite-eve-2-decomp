@@ -50,8 +50,8 @@ s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
         }
         ret = 0;
         if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->missingCapCmd);
-            Gp_SetNibbleIf(msg->flagId, 2);
+            capRunCommandWithTransition(req->missingCapCmd);
+            gameFlagSetNibbleIfPresent(msg->flagId, 2);
             ret = 0;
         }
         return ret;

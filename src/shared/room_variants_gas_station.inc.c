@@ -26,14 +26,14 @@ s32 roomVariantGasStationMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
         if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
             (gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.loc.variant)) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(0x15);
+                capRunCommandWithTransition(0x15);
             }
             return 2;
         }
         if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(7);
-                Gp_SetNibbleIf(in->flagId, 2);
+                capRunCommandWithTransition(7);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
             }
             return 0;
         }
@@ -41,7 +41,7 @@ s32 roomVariantGasStationMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
     if (in->areaId == 2) {
         if (gameFlagGetNibble(GAME_FLAG_GAS_STATION_MAIN_STREET_BLOCKED) == 1) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(8);
+                capRunCommandWithTransition(8);
             }
             return 0;
         }

@@ -21,6 +21,9 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -2548,13 +2551,13 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) >= 2) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_night_gas_station_80188B0C, 0);
-        Gp_AllyAnimId(&D_dryfield_night_gas_station_80184098.source.index);
+        companionWriteAnimationBankIndex(&D_dryfield_night_gas_station_80184098.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_gas_station_80184098, 0);
         func_dryfield_night_gas_station_8017FBD4(0);
     }
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT) == 0) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT, 1);
-        func_800E3FAC(0xA2, 0x12);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x12);
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 2);
         func_dryfield_night_gas_station_80180C20();
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
@@ -2605,7 +2608,7 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
     s16 var_a2;
 
     if (arg2 == 1) {
-        Gp_RunCapCmd1(0x11);
+        capRunCommandWithTransition(0x11);
     }
     if (arg2 == 5) {
         if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
@@ -2624,7 +2627,7 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
                 gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, 2);
             }
         }
-        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) != 0 ? (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 1 ? 0x20 : 0x1F) : arg2, 0);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) != 0 ? (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == 1 ? 0x20 : 0x1F) : arg2, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -2670,7 +2673,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task* arg0)
     SetDispMask(0);
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
     evsStartScriptWithSkip(D_dryfield_night_gas_station_801840AC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_gas_station_801841FC);
-    func_800E3FAC(0xA2, 0x16);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x16);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
     taskKill(arg0);
 }

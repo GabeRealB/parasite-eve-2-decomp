@@ -15,6 +15,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/companion_load.h"
 #include "gameplay/direction.h"
@@ -1210,7 +1211,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
     switch (task->state) {
         case 0:
             task->spawnArg1.value = 0;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             task->state += 1;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
                 taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
@@ -1662,7 +1663,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capStartSequenceSlot(4, 1, 0);
         case 2:
         case 3:
@@ -1671,7 +1672,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
         case 1:
             if (capIsBusy() == 0) {
                 if (D_801156A8 == 1) {
-                    Gp_MsgPlayerWeapon(1);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                     taskKill(task);
                     break;
                 }

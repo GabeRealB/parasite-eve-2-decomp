@@ -15,6 +15,8 @@
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/items.h"
@@ -172,7 +174,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             break;
@@ -183,11 +185,11 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             break;
         case 2:
             if (gameFlagGetNibble(GAME_FLAG_0CF) != 0) {
-                Gp_RunCapCmd(4, 0);
+                capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
                 taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
                 taskKill(task);
             } else {
-                Gp_RunCapCmd1(3);
+                capRunCommandWithTransition(3);
             }
             task->state++;
             break;
@@ -202,7 +204,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             } else {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
@@ -248,7 +250,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
-            Gp_RunCapCmd1(2);
+            capRunCommandWithTransition(2);
             gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 1);
         }
         taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A68, 0, 0x542A0001, 0);

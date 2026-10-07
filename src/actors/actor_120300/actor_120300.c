@@ -12,7 +12,8 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -2138,7 +2139,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.rec, 0);
                     gameFlagSetNibble(GAME_FLAG_02C, 1);
                     gameFlagSetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN, 1);
-                    func_800E3FAC(0xA2, 0xB);
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xB);
                     evsStartScriptWithSkip(D_actor_120300_80140B94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120300_80141524);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                     arg0->state                                        += 1;
@@ -2326,7 +2327,7 @@ void func_actor_120300_80133E94(void)
     if (work->playerEquipmentRemoved != 0) {
         Gp_SpawnWeaponEff();
         work->playerEquipmentRemoved = 0;
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
 }
 

@@ -15,6 +15,9 @@
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -761,7 +764,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
     if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(5);
+                capRunCommandWithTransition(5);
             }
             return 0;
         }
@@ -776,8 +779,8 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
     if (in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (gameFlagGetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(in->flagId, 2);
-                Gp_RunCapCmd1(1);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
+                capRunCommandWithTransition(1);
             }
             return 2;
         }

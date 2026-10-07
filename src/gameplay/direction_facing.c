@@ -161,7 +161,7 @@ void Gp_PostDirIfCapIdle(void)
             if (Gp_DirNibble == WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, Gp_DirByte, 0);
             } else {
-                Gp_SpawnIfCapIdle(Gp_DirByte, Gp_DirNibble);
+                capSpawnEventIfIdle(Gp_DirByte, Gp_DirNibble);
             }
         }
     }

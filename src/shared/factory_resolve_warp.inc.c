@@ -40,7 +40,7 @@ s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
                     return 0;
                 }
                 capStartSequenceSlot(4, 1, 0);
-                Gp_SetNibbleIf(in->flagId, 2);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
                 return 0;
             }
         }
@@ -50,8 +50,8 @@ s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
             if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 0;
             }
-            Gp_SetNibbleIf(in->flagId, 2);
-            Gp_RunCapCmd1(0xD);
+            gameFlagSetNibbleIfPresent(in->flagId, 2);
+            capRunCommandWithTransition(0xD);
             return 0;
         }
     }

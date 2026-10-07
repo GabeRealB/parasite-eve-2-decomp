@@ -157,7 +157,7 @@ s32 func_neo_ark_power_plant_1_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in, 
 }
 
 /// Handler the room's message table gives message 0x13F0: for `arg2` 2, 3, 9
-/// or 12 runs `Gp_RunCapCmd1` with a command picked from that value and the
+/// or 12 runs `capRunCommandWithTransition` with a command picked from that value and the
 /// plant's flags; other values do nothing. Always returns 0.
 s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -170,7 +170,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             } else {
                 cmd = 5;
             }
-            Gp_RunCapCmd1(cmd);
+            capRunCommandWithTransition(cmd);
             break;
         case 3:
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
@@ -180,7 +180,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             } else {
                 cmd = 3;
             }
-            Gp_RunCapCmd1(cmd);
+            capRunCommandWithTransition(cmd);
             break;
         case 9:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
@@ -188,7 +188,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             } else {
                 cmd = 0xB;
             }
-            Gp_RunCapCmd1(cmd);
+            capRunCommandWithTransition(cmd);
             break;
         case 12:
             if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0) {
@@ -196,7 +196,7 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
             } else {
                 cmd = 0xC;
             }
-            Gp_RunCapCmd1(cmd);
+            capRunCommandWithTransition(cmd);
             break;
     }
     return 0;

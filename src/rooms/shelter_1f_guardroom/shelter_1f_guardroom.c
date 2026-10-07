@@ -7,6 +7,7 @@
 
 #include "gameplay/cap.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/light.h"
@@ -220,7 +221,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(2);
+            capRunCommandWithTransition(2);
             task->state++;
             break;
         case 1:
@@ -232,7 +233,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
             Gp_CapCmds[2].command->counter = 1;
             if (capGetVariantKey() != 0xB) {
                 taskKill(task);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 break;
             }
             gGameSession->hideHud           = 1;
@@ -249,7 +250,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
             gGameSession->hideHud = 0;
             _shelter1fGuardroomSetUnlockOverlayVisible(1);
             gameFlagSetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED, 1);
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             break;
     }
@@ -283,10 +284,10 @@ s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 2) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 0) {
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_shelter_1f_guardroom_8017DA60, 0, 0, 0);
         } else {
-            Gp_RunCapCmd1(3);
+            capRunCommandWithTransition(3);
         }
     }
     return 0;

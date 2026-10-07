@@ -6,6 +6,9 @@
 
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/inventory.h"
@@ -226,7 +229,7 @@ void func_shelter_b1_armory_80180214(Task* task)
         case 3:
             displayReleaseMenuHold();
             D_80115768 = 0;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             if ((u16)task->spawnArg1.value == 1) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 8), 0, 0);
             }
@@ -245,7 +248,7 @@ void func_shelter_b1_armory_80180214(Task* task)
                 if ((u16)task->spawnArg1.value == 2) {
                     itemSetIdentified(0x105, 1);
                 }
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gGameSession->eventState = 0;
                 taskKill(task);
             }
@@ -266,8 +269,8 @@ void func_shelter_b1_armory_8018034C(Task* task)
             view                              = save->state.location.loc.view;
             save->state.location.loc.view     = 0xD;
             D_shelter_b1_armory_8018557C.view = view;
-            Gp_MsgPlayer3F3(0);
-            Gp_RunCapCmd(0x16, 0);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+            capRunCommand(0x16, CAP_PLAYBACK_IN_PLACE);
             task->state = task->state + 1;
             break;
         case 1:
@@ -282,8 +285,8 @@ void func_shelter_b1_armory_8018034C(Task* task)
         case 3:
             gGameSession->eventState = 0;
             gGameSession->hideHud    = 0;
-            Gp_MsgPlayer3F3(1);
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_armory_8018557C.view;
             task->state                                                = task->state + 1;
             break;
@@ -354,8 +357,8 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
         return 1;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        Gp_SetNibbleIf(in->flagId, 2);
-        Gp_RunCapCmd1(0xD);
+        gameFlagSetNibbleIfPresent(in->flagId, 2);
+        capRunCommandWithTransition(0xD);
     }
     return 0;
 }
@@ -364,10 +367,10 @@ s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     switch (arg2) {
         case 12:
-            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) == 0 ? 0xC : 0x17, 1);
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) == 0 ? 0xC : 0x17, CAP_EVENT_PAUSE_ACTORS);
             break;
         case 10:
-            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0 ? 0x10 : 0xA, 1);
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) != 0 ? 0x10 : 0xA, CAP_EVENT_PAUSE_ACTORS);
             break;
     }
     return 0;
@@ -380,7 +383,7 @@ s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, const void* firstArg,
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(D_shelter_b1_armory_801824E8, 1, 0, 0);
     }
     return 0;

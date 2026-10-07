@@ -14,6 +14,8 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -229,7 +231,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
 
     temp_s0 = arg2->warp;
     if ((temp_s0 == 1) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == temp_s0) && (gGameSession->location.loc.variant == 3)) {
-        func_800E3FAC(0xA2, 0x35);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x35);
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, 2);
         gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 1);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1A;
@@ -251,12 +253,12 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
     if ((arg2->warp == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
         temp_s0_4 = gGameSession->location.loc.warp;
         if (temp_s0_4 == 1) {
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_4;
         }
     }
     if ((arg2->warp == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2)) {
-        Gp_MsgPlayerWeapon(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
     return 0;
@@ -278,13 +280,13 @@ s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, RoomEventMsg* i
 }
 
 /// Message 0x13F0 handler: for an `arg2` of 4 or 5, and only while the
-/// session's place is 1, passes it to `Gp_SpawnIfCapIdle`. Answers 0.
+/// session's place is 1, passes it to `capSpawnEventIfIdle`. Answers 0.
 s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 < 6) {
         if (arg2 >= 4) {
             if (gGameSession->location.loc.variant == 1) {
-                Gp_SpawnIfCapIdle(arg2, 0);
+                capSpawnEventIfIdle(arg2, CAP_EVENT_NO_FLAGS);
             }
         }
     }

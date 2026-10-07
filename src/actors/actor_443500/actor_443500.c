@@ -11,6 +11,8 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
@@ -2437,14 +2439,14 @@ void func_actor_443500_80131E84(s32 arg0)
 
 void func_actor_443500_80131EE4(void)
 {
-    Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0 ? 6 : 9, 0);
+    capRunCommand(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0 ? 6 : 9, CAP_PLAYBACK_IN_PLACE);
 }
 
 void func_actor_443500_80131F18(void)
 {
     taskSpawnFromTable(&D_shelter_r47_80187618, 0, 1, 0);
-    Gp_MsgPlayer3F3(0);
-    Gp_MsgPlayerWeapon(0);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
 }
 
 void func_actor_443500_80131F58(void)

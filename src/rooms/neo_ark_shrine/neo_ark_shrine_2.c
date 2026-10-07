@@ -18,6 +18,8 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -1190,8 +1192,8 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
 static void func_neo_ark_shrine_8017EED4(Task* task)
 {
     D_80114D08 = 0xA;
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
@@ -1328,8 +1330,8 @@ static void func_neo_ark_shrine_8017F274(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
     gGameSession->location.loc.room                            = 6;
     gGameSession->roomObjsDirty                                = 1;
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;

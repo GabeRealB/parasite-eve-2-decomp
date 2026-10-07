@@ -8,7 +8,7 @@ described in §6; the sections below describe the CAP payload itself.
 A CAP file is not a dialogue blob. It is a **small state machine that chooses
 which line plays**, over counters that persist in save flags, plus the text those
 lines point at. That is why a room does nothing more than
-`Gp_RunCapCmd1(0xC)` and lets the file decide "first time say A, then B, then B
+`capRunCommandWithTransition(0xC)` and lets the file decide "first time say A, then B, then B
 forever".
 
 Everything below is read off the matched interpreter in
@@ -157,7 +157,7 @@ The record is one sequence slot wide, the same 12 bytes as a
 `CapSequenceRecord`. Bytes 9..11 have no command reader. The game-flag nibble
 index is `flagIndexLo | (flagIndexHi << 8)`.
 
-`Gp_RunCapCmd(index, mode)` walks the command table in a loop. `nextIndex`
+`capRunCommand(index, mode)` walks the command table in a loop. `nextIndex`
 replaces the index, so a branch chains without recursion.
 
 ## 5. Opcodes
@@ -289,7 +289,7 @@ index 6 is zero, and the other entries are file-relative offsets `0xB34`,
 (`0xB64-0xB34 = 4 records`, `0xB88-0xB64 = 3`, `0xBA0-0xB88 = 2`).
 
 Each sequence starts with a **command header in slot zero**, followed by
-`CapSequenceRecord` playback records from slot one. `Gp_RunCapCmd` reads the
+`CapSequenceRecord` playback records from slot one. `capRunCommand` reads the
 header as `CapCommand`; `capStartSequence` stores the same base pointer as
 `Gp_CapTable` but initializes its record index to one. The command and playback
 records have different meanings. Relocation starts at `sequences + 0x10`

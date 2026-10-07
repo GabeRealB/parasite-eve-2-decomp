@@ -8,7 +8,7 @@
 #include "dryfield_toilet_private.h"
 
 #include "gameplay/animation.h"
-#include "gameplay/captions.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"

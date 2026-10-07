@@ -11,7 +11,7 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
-#include "gameplay/captions.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/light.h"

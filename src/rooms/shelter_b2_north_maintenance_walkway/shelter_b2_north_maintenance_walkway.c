@@ -14,6 +14,9 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -776,7 +779,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC4C(Task* task, s32 msgId, s3
 
 /// Room message handler. On the visit whose sub-id (`warp`) is 1, agrees with
 /// the session's own sub-id and has not yet latched nibble 0x84, it starts the
-/// cutscene pair, runs `func_800E3FAC(0xA2, 0x20)`, latches the nibble and
+/// cutscene pair, runs `gameFlagSetPackedByte(0xA2, 0x20)`, latches the nibble and
 /// applies the room's area records. The outgoing record is never written.
 s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -784,7 +787,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
 
     if (subId == 1 && gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
         evsStartScriptWithSkip(D_actor_341300_80165354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_341300_80165834);
-        func_800E3FAC(0xA2, 0x20);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x20);
         gameFlagSetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, 1);
         Gp_ApplyAreaRecs(D_shelter_b2_north_maintenance_walkway_80186380);
     }

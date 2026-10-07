@@ -15,6 +15,8 @@
 #include "gameplay/attachments.h"
 #include "gameplay/cap.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -1833,17 +1835,17 @@ void func_actor_215100_8014A398(void)
                         facing = (u16)actor->rotation.vy & 0xFFF;
                         if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
                             if ((u32)(facing - 0xA01) < 0x3FFU) {
-                                Gp_MsgPlayerWeapon(0);
+                                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-                                Gp_RunCapCmd(0x14, 0);
+                                capRunCommand(0x14, CAP_PLAYBACK_IN_PLACE);
                                 D_80115690 = 1;
                                 taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
                             }
                         }
                         if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
-                            Gp_MsgPlayerWeapon(0);
+                            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-                            Gp_RunCapCmd(0x14, 0);
+                            capRunCommand(0x14, CAP_PLAYBACK_IN_PLACE);
                             D_80115690 = 1;
                             taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
                         }
@@ -1884,14 +1886,14 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 break;
             }
             if (capGetVariantKey() == 1) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(arg0);
                 break;
             }
             if (arg0->spawnArg1.value != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
-                    Gp_RunCapCmd1(0x17);
+                    capRunCommandWithTransition(0x17);
                 }
                 gGameSession->battleResetPending = 1;
                 arg0->state                     += 1;
@@ -1907,7 +1909,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             sndEvtRequestMidiStop(0, 0x1E);
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             taskKill(arg0);
             break;
@@ -1954,7 +1956,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             }
             break;
         case 1:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
             func_mist_shooting_gallery_801811C0(0);
             arg0->state++;
@@ -1965,7 +1967,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             sndEvtRequestMidiStop(0, 0x1E);
             actor->movementInputDisabled = 0;
             D_actor_215100_8014D038      = 0;
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             if (gDisplayState.holdCount != 0) {
                 displayReleaseMenuHold();
@@ -2002,7 +2004,7 @@ void func_actor_215100_8014A9A0(void)
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }
     if (D_actor_215100_8015E670 < 3) {
-        Gp_RunCapCmd(0x1D, 3);
+        capRunCommand(0x1D, CAP_PLAYBACK_CLEAR_IF_UNSTARTED);
         taskSpawnFromTable(D_actor_215100_8014CF6C, 1, 0, 0);
     }
 }
@@ -2023,9 +2025,9 @@ s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
             return 2;
         }
         D_actor_215100_8015E678 = *arg0;
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-        Gp_RunCapCmd(0x14, 0);
+        capRunCommand(0x14, CAP_PLAYBACK_IN_PLACE);
         D_80115690 = 1;
         taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 1, 0);
     } else {
@@ -2037,8 +2039,8 @@ s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
                 break;
             }
             D_actor_215100_8015E678 = *arg0;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(0x17);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(0x17);
             taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 2, 0);
         } while (0);
     }
@@ -2051,7 +2053,7 @@ void func_actor_215100_8014AB6C(void)
         func_mist_shooting_gallery_80184954();
         return;
     }
-    Gp_SpawnIfCapIdle(0x11, 1);
+    capSpawnEventIfIdle(0x11, CAP_EVENT_PAUSE_ACTORS);
 }
 
 void func_actor_215100_8014ABAC(Task* arg0)
@@ -2061,7 +2063,7 @@ void func_actor_215100_8014ABAC(Task* arg0)
             gGameSession->hideHud = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
                 gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
-                func_800E3FAC(0xA2, 0x3A);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3A);
                 evsStartScriptWithSkip(D_actor_215100_8014E370, EVENT_SCRIPT_HUD_KEEP, D_actor_215100_8014E8F8);
                 arg0->state++;
             } else {

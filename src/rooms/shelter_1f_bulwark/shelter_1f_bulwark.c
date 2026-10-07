@@ -14,6 +14,8 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -338,13 +340,13 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
     mapNeoArkResolveRoomVariant(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_1F_HELIPORT) {
         if (gameFlagGetNibble(GAME_FLAG_BULWARK_HELIPORT_UNBLOCKED) == 0) {
-            Gp_SpawnIfCapIdle(1, 0);
+            capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
             return 2;
         }
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 6);
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(&D_shelter_1f_bulwark_80180354, 0, 0, 0);
             }
             return 0;
@@ -379,8 +381,8 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(1, 0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
             D_80115690 = 1;
             arg0->state++;
             break;

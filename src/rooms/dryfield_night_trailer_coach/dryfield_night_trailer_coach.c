@@ -11,6 +11,10 @@
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -896,8 +900,8 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task)
         evsStartScriptWithSkip(D_dryfield_night_trailer_coach_80189080, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_trailer_coach_801892C0);
         areaSetCurrentObjectState(0x22, 1);
     }
-    if (func_800E3FCC(0xA2) == 0x25) {
-        func_800E3FAC(0xA2, 0x26);
+    if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == 0x25) {
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x26);
     }
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;
     /* Through a pointer rather than as `task->state`: a member access is
@@ -911,7 +915,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
                 evsStartScript(D_dryfield_night_trailer_coach_801880A8, EVENT_SCRIPT_HUD_KEEP);
                 task->state++;
@@ -937,7 +941,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                     Gp_ApplyAreaRecs(D_dryfield_night_trailer_coach_8018C208);
                     evsStartScriptWithSkip(D_dryfield_night_trailer_coach_801889A8, EVENT_SCRIPT_HUD_KEEP,
                                            D_dryfield_night_trailer_coach_80188F00);
-                    func_800E3FAC(0xA2, 0x13);
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x13);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                 } else {
                     evsStartScript(D_dryfield_night_trailer_coach_80188858, EVENT_SCRIPT_HUD_KEEP);
@@ -997,7 +1001,7 @@ s32 func_dryfield_night_trailer_coach_801826EC(Task* arg0, s32 arg1, s32 arg2, s
         taskSpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);
     }
     if (arg2 == 0x17) {
-        Gp_RunCapCmd1(0x17);
+        capRunCommandWithTransition(0x17);
     }
     return 0;
 }
@@ -1010,7 +1014,7 @@ s32 func_dryfield_night_trailer_coach_80182800(Task* task, s32 messageId, s32 fi
 s32 func_dryfield_night_trailer_coach_80182808(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0x63) {
-        Gp_EnqueueStageSnd6(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 0x0D), 0, 0);
+        sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 0x0D), 0, 0);
     }
     return 0;
 }

@@ -9,7 +9,7 @@ void drivewayBlackoutTask(Task* arg0)
         gGameSession->hideHud = 1;
         D_80115768            = 1;
         SetDispMask(0);
-        func_800E3FAC(0xA2, 0x10);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x10);
         evsStartScriptWithSkip(gDrivewayBlackoutScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gDrivewayBlackoutTail);
     } else {
         taskKill(arg0);

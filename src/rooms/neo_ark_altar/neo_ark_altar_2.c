@@ -14,6 +14,8 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/hud_sprites.h"
@@ -764,7 +766,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_ALTAR, 0);
             sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 3), SOUND_SCRIPT_STOP_NO_FADE);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 0, 0);
-            Gp_RunCapCmd1(1);
+            capRunCommandWithTransition(1);
             Gp_ApplyAreaRecs(D_neo_ark_altar_8018007C);
             break;
         case 2:
@@ -1201,7 +1203,7 @@ static void _neoArkAltarWaitForTileSequence(Task* task)
 
 static void func_neo_ark_altar_8017EDF8(Task* arg0)
 {
-    Gp_MsgPlayerWeapon(0);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     arg0->killCountdown = 0;
     arg0->state         = (s32)(arg0->state + 1);
 }
@@ -1233,7 +1235,7 @@ static void func_neo_ark_altar_8017EE90(Task* arg0)
     _NeoArkAltarTileSequenceWork* work;
 
     work = arg0->work;
-    Gp_MsgPlayer3F3(0);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     gGameSession->hideHud = 1;
     work->movieLauncher   = taskSpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 2, 0);
     arg0->state           = (s32)(arg0->state + 1);
@@ -1260,8 +1262,8 @@ static void _neoArkAltarSelectPostSequenceRoom(Task* task)
 static void func_neo_ark_altar_8017EF34(Task* arg0)
 {
     SetDispMask(1);
-    Gp_MsgPlayer3F3(1);
-    Gp_MsgPlayerWeapon(1);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     gGameSession->hideHud = 0;
     arg0->state           = 2;
 }

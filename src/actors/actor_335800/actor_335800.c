@@ -14,7 +14,8 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -1192,7 +1193,7 @@ void func_actor_335800_80162434(s32 arg0)
 
 void func_actor_335800_80162460(void)
 {
-    func_800E3FAC(0xA2, 0x18);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x18);
 }
 
 void func_actor_335800_80162484(void)
@@ -1216,7 +1217,7 @@ void func_actor_335800_801624DC(Task* arg0)
 
     if (gGameSession->battleResetPending != 0) {
         slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        Gp_PlayerWeaponId(&D_actor_335800_80164E7C.source.index);
+        playerActorWriteWeaponAnimationBankIndex(&D_actor_335800_80164E7C.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
         taskKill(arg0);
     }

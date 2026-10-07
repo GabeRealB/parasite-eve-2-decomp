@@ -14,6 +14,9 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -383,8 +386,8 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
     if (in->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED) == 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(in->flagId, 2);
-                Gp_RunCapCmd1(2);
+                gameFlagSetNibbleIfPresent(in->flagId, 2);
+                capRunCommandWithTransition(2);
             }
             return 0;
         }
@@ -419,7 +422,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, s
         if (areaGetCurrentObjectState(6) == 2 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
             arg2 = 5;
         }
-        Gp_SpawnIfCapIdle(arg2, 0);
+        capSpawnEventIfIdle(arg2, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }

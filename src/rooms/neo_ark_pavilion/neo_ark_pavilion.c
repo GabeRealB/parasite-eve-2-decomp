@@ -15,6 +15,8 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -1141,7 +1143,7 @@ s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
 s32 func_neo_ark_pavilion_8017EB3C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 1) {
-        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 5 : 1, 1);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 5 : 1, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }

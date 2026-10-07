@@ -20,6 +20,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -808,14 +809,14 @@ s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, s32 arg3
             } else {
                 cmd = 5;
             }
-            Gp_RunCapCmd1(cmd);
+            capRunCommandWithTransition(cmd);
             break;
         case 3:
             cmd = 7;
             if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED) {
                 cmd = gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0 ? 6 : 3;
             }
-            Gp_RunCapCmd1(cmd);
+            capRunCommandWithTransition(cmd);
             break;
     }
     return 0;
@@ -869,7 +870,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
                 Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F94);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x17;
-            func_800E3FAC(0xA2, 0x2E);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2E);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
             evsStartScriptWithSkip(D_neo_ark_power_plant_2_801802A8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_2_80180560);

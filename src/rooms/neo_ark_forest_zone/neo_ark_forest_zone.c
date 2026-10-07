@@ -13,6 +13,8 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"

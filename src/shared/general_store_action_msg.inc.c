@@ -14,7 +14,7 @@ s32 storeActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (companionTask != 0) {
             arg = 0x18;
         }
-        Gp_SpawnIfCapIdle(arg, 0);
+        capSpawnEventIfIdle(arg, CAP_EVENT_NO_FLAGS);
     }
     if (arg2 == 9) {
         taskSpawnFromTable(gStoreTaskDescs, 0, 0x53, 9);

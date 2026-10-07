@@ -19,6 +19,10 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -1003,7 +1007,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             task->state++;
             break;
         case 1:
-            Gp_RunCapCmd(3, 0);
+            capRunCommand(3, CAP_PLAYBACK_IN_PLACE);
             D_80115690 = 1;
             D_80115680 = 5;
             task->state++;
@@ -1018,16 +1022,16 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             if (capGetVariantKey() == 0xC) {
                 taskKill(task);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
-                Gp_MsgPlayerWeapon(1);
-                Gp_MsgPlayer3F3(1);
-                Gp_MsgAllyWeapon(1);
-                Gp_MsgAlly3F3(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+                companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+                companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 gGameSession->eventState = 0;
                 gGameSession->hideHud    = 0;
                 D_80114D08               = 0xA;
                 break;
             }
-            Gp_MsgSlot4Chain(0, 0);
+            sceneSetPlacedActorDrawMode(0, 0);
             evsStartScriptWithSkip(D_shelter_b4_reservoir_80184948, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b4_reservoir_80184DC8);
             task->state++;
             break;
@@ -1059,8 +1063,8 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(arg0->spawnArg1.value, 0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             break;
         case 1:
@@ -1071,7 +1075,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
         case 2:
             if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 D_80114D08                     = 0xA;
                 break;
@@ -1122,8 +1126,8 @@ s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src,
     if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(src->flagId, 2);
-                Gp_RunCapCmd1(2);
+                gameFlagSetNibbleIfPresent(src->flagId, 2);
+                capRunCommandWithTransition(2);
             }
         } else {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -1141,10 +1145,10 @@ s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src,
 s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        Gp_MsgPlayer3F3(0);
-        Gp_MsgAlly3F3(0);
-        Gp_MsgPlayerWeapon(0);
-        Gp_MsgAllyWeapon(0);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
         taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, 0, 0, 0);

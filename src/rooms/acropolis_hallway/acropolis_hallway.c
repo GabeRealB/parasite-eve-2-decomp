@@ -398,7 +398,7 @@ s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     }
     if (in->areaId == GAME_AREA_ACROPOLIS_CAFETERIA && in->warp == 3 && gameFlagGetNibble(0) < 3) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(1);
+            capRunCommandWithTransition(1);
         }
         return 0;
     }

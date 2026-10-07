@@ -8,6 +8,9 @@
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -343,7 +346,7 @@ s32 func_dryfield_night_motel_loft_8017D5F8(Task* task, s32 msgId, s32 arg2, s32
 s32 func_dryfield_night_motel_loft_8017D67C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(D_dryfield_night_motel_loft_8017EB4C, 0, 0, 0);
     }
     return 0;
@@ -360,7 +363,7 @@ s32 func_dryfield_night_motel_loft_8017D6BC(Task* task, s32 msgId, s32 arg2, s32
 s32 func_dryfield_night_motel_loft_8017D6C4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 5) {
-        Gp_EnqueueStageSnd6(0x531F0000 | 5, 0, 0);
+        sndEvtRequestStageScriptStart(0x531F0000 | 5, 0, 0);
     }
     return 0;
 }
@@ -374,7 +377,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE) != 0 ? 0x12 : 3, 0);
+            capRunCommand(gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE) != 0 ? 0x12 : 3, CAP_PLAYBACK_IN_PLACE);
             D_80115680  = 5;
             arg0->state = arg0->state + 1;
             return;
@@ -389,7 +392,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_SCENE_DONE, 1);
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(arg0);
             break;
     }
@@ -434,7 +437,7 @@ static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && sceneFindPlacedActor(0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN, 1);
         evsStartScript(D_dryfield_night_motel_loft_8017EB78, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        func_800E3FAC(0xA2, 0x15);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x15);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
     }
 }

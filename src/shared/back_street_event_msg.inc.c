@@ -34,8 +34,8 @@ s32 backStreetEventMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                 cmd = 2;
             }
-            Gp_RunCapCmd1(cmd);
-            Gp_SetNibbleIf(in->flagId, 2);
+            capRunCommandWithTransition(cmd);
+            gameFlagSetNibbleIfPresent(in->flagId, 2);
         }
         return 0;
     }

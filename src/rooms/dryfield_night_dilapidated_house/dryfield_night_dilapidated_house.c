@@ -8,6 +8,8 @@
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -214,7 +216,7 @@ s32 func_dryfield_night_dilapidated_house_8017D968(Task* task, s32 msgId, s32 ar
 /// in pointer slot 7 and advances. On the first visit (flag nibble 0x92 still
 /// clear) it starts the cutscene script pair when pointer slot 0xA is filled,
 /// then sets nibble 0x92 to 1 and nibble 0x7A to 3 and calls
-/// `func_800E3FAC(0xA2, 0x11)`.
+/// `gameFlagSetPackedByte(0xA2, 0x11)`.
 static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_dilapidated_house_8017E700;
@@ -227,7 +229,7 @@ static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
         }
         gameFlagSetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 3);
-        func_800E3FAC(0xA2, 0x11);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x11);
     }
 }
 

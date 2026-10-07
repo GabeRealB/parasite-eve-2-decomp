@@ -370,29 +370,29 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 a
     switch (arg2) {
         case 5:
             if (gameFlagGetNibble(GAME_FLAG_153) != 0) {
-                Gp_RunCapCmd1(7);
+                capRunCommandWithTransition(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_RunCapCmd1(5);
+                capRunCommandWithTransition(5);
             } else {
-                Gp_RunCapCmd1(7);
+                capRunCommandWithTransition(7);
             }
             break;
         case 6:
             if (gameFlagGetNibble(GAME_FLAG_154) != 0) {
-                Gp_RunCapCmd1(8);
+                capRunCommandWithTransition(8);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_RunCapCmd1(6);
+                capRunCommandWithTransition(6);
             } else {
-                Gp_RunCapCmd1(8);
+                capRunCommandWithTransition(8);
             }
             break;
         case 4:
             if (gameFlagGetNibble(GAME_FLAG_B6_CORRIDOR_EVE_PART_2_DOWN) != 0) {
-                Gp_RunCapCmd1(7);
+                capRunCommandWithTransition(7);
             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_RunCapCmd1(0xA);
+                capRunCommandWithTransition(0xA);
             } else {
-                Gp_RunCapCmd1(4);
+                capRunCommandWithTransition(4);
             }
             break;
     }

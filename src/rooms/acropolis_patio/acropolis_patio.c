@@ -16,6 +16,8 @@
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -1774,9 +1776,9 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
         if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < 2) {
             var_v0 = 0;
             if (arg2->queryOnly == 0) {
-                Gp_RunCapCmd1(3);
+                capRunCommandWithTransition(3);
                 gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 1);
-                Gp_SetNibbleIf(arg2->flagId, 2);
+                gameFlagSetNibbleIfPresent(arg2->flagId, 2);
                 return 0;
             }
             return var_v0;
@@ -1789,7 +1791,7 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
                     gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, 1);
                     return 2;
                 }
-                Gp_RunCapCmd1(8);
+                capRunCommandWithTransition(8);
                 return 2;
             }
             return var_v0;
@@ -1809,8 +1811,8 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
     if ((arg2->areaId == 8) && (gameFlagGetNibble(0) < 5)) {
         var_v0 = 0;
         if (arg2->queryOnly == 0) {
-            Gp_SetNibbleIf(arg2->flagId, 2);
-            Gp_RunCapCmd1(4);
+            gameFlagSetNibbleIfPresent(arg2->flagId, 2);
+            capRunCommandWithTransition(4);
             return 0;
         }
         return var_v0;
@@ -1843,8 +1845,8 @@ void func_acropolis_patio_8017DA5C(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(3);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(3);
             task->state = task->state + 1;
             return;
         case 1:
@@ -1857,7 +1859,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
                 task->state = task->state + 1;
                 return;
             }
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             return;
         case 3:
@@ -1903,13 +1905,13 @@ s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32 var_v0;
 
     if (arg2 == 1) {
-        Gp_SpawnIfCapIdle(1, 0);
+        capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
     }
     var_v0 = 2;
     if (arg2 == 2) {
         var_v0 = gameFlagGetNibble(0) < 2;
         if (var_v0 != 0) {
-            Gp_SpawnIfCapIdle(2, 0);
+            capSpawnEventIfIdle(2, CAP_EVENT_NO_FLAGS);
             var_v0 = 0;
         }
     }
@@ -1945,7 +1947,7 @@ void func_acropolis_patio_8017DD80(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            Gp_RunCapCmd1(6);
+            capRunCommandWithTransition(6);
             task->state = task->state + 1;
             return;
         case 1:

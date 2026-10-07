@@ -11,7 +11,7 @@
 
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -325,7 +325,7 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
                 D_acropolis_helicopter_landing_pad_80184D9C = 2;
                 evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_80184124, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_acropolis_helicopter_landing_pad_801844B4);
-                func_800E3FAC(0xA2, 8);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 8);
             }
         }
     }

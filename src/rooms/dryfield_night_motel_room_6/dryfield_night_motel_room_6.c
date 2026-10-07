@@ -14,6 +14,10 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -909,8 +913,8 @@ void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(0x10);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(0x10);
             arg0->state++;
             break;
         case 1:
@@ -919,7 +923,7 @@ void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
         case 2:
             if (capGetVariantKey() == 0xB) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             arg0->state++;
             break;
@@ -962,25 +966,25 @@ s32 motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 6) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
-            Gp_RunCapCmd1(0x14);
+            capRunCommandWithTransition(0x14);
         } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN) < 2) {
             taskSpawnFromTable(&D_dryfield_night_motel_room_6_80182EE0, 0, 0x11, 0);
         } else {
-            Gp_RunCapCmd1(arg2);
+            capRunCommandWithTransition(arg2);
         }
     }
     if (arg2 == 0xD) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
-            Gp_RunCapCmd1(0x13);
+            capRunCommandWithTransition(0x13);
         } else {
-            Gp_RunCapCmd1(0xD);
+            capRunCommandWithTransition(0xD);
         }
     }
     if (arg2 == 0xB) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
-            Gp_RunCapCmd1(0x15);
+            capRunCommandWithTransition(0x15);
         } else {
-            Gp_RunCapCmd1(0xB);
+            capRunCommandWithTransition(0xB);
         }
     }
     return 0;

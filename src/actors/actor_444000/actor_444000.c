@@ -19,7 +19,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/display.h"
@@ -2899,7 +2899,7 @@ void func_actor_444000_80132358(Task* task)
             if (task->spawnArg1.value != 0) {
                 work            = task->work;
                 work->savedView = gGameSession->location.loc.view;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 evsStartScriptWithSkip(D_actor_444000_80144634, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_444000_8014488C);
                 task->state = 3;
             } else {
@@ -2910,7 +2910,7 @@ void func_actor_444000_80132358(Task* task)
             timer               = (u16)task->killCountdown + 1;
             task->killCountdown = timer;
             if (timer >= 0x2BD) {
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 published = D_actor_444000_80161860->work;
                 if (published->combatReset == 0) {
                     gSceneCombatState.battleRefs                        = 0;

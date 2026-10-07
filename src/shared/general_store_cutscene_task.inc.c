@@ -27,8 +27,8 @@ void storeCutsceneTask(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             gStoreSavedView                                            = gMcSaveData[0].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x10;
             arg0->state                                               += 1;
@@ -38,9 +38,9 @@ void storeCutsceneTask(Task* arg0)
             arg0->state += 1;
             return;
         case 2:
-            Gp_EnqueueStageSnd6(SOUND_GENERAL_STORE_UNDERPASS_PROMPT, 0, 0);
+            sndEvtRequestStageScriptStart(SOUND_GENERAL_STORE_UNDERPASS_PROMPT, 0, 0);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_RunCapCmd1(0xF);
+            capRunCommandWithTransition(0xF);
             D_80115690   = 1;
             arg0->state += 1;
             return;
@@ -54,10 +54,10 @@ void storeCutsceneTask(Task* arg0)
                 return;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_EnqueueStageSnd6(SOUND_GENERAL_STORE_UNDERPASS_CANCEL, 0, 0);
+            sndEvtRequestStageScriptStart(SOUND_GENERAL_STORE_UNDERPASS_CANCEL, 0, 0);
             gMcSaveData[0].state.location.loc.view = gStoreSavedView;
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgPlayer3F3(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;
         case 5:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);

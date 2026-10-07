@@ -583,7 +583,7 @@ s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 3) {
-        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0 ? 3 : 5);
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) != 0 ? 3 : 5);
     }
     return 0;
 }

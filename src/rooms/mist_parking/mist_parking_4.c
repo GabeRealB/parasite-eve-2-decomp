@@ -9,6 +9,7 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -435,7 +436,7 @@ void func_mist_parking_80183EAC(Task* task)
             memFillBytes(talk, 0, sizeof(*talk));
             func_mist_parking_801846A4(1);
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
-            Gp_RunCapCmd(6, 0);
+            capRunCommand(6, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 1:
@@ -456,7 +457,7 @@ void func_mist_parking_80183EAC(Task* task)
         case 2:
             func_mist_parking_801846A4(2);
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
-            Gp_RunCapCmd(1, 0);
+            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
             talk->businessDone = 1;
             task->state++;
             break;
@@ -468,7 +469,7 @@ void func_mist_parking_80183EAC(Task* task)
                 return;
             }
             if (capGetVariantKey() == 1) {
-                Gp_RunCapCmd(7, 0);
+                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
                 talk->prizeTimer          = 10;
                 talk->prizeClosingCommand = 2;
                 task->state               = 4;
@@ -506,7 +507,7 @@ void func_mist_parking_80183EAC(Task* task)
             break;
         case 5:
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
-            Gp_RunCapCmd(talk->prizeClosingCommand, 0);
+            capRunCommand(talk->prizeClosingCommand, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 6:
@@ -520,7 +521,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->killCountdown = tick;
             if ((s16)tick == 0xA) {
                 func_mist_parking_801846A4(1);
-                Gp_RunCapCmd(9, 0);
+                capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
                 task->killCountdown = 0;
                 task->state++;
             }
@@ -550,16 +551,16 @@ void func_mist_parking_80183EAC(Task* task)
             if ((s16)tick2 == 0xA) {
                 switch (task->spawnArg1.value) {
                     case 6:
-                        Gp_RunCapCmd(7, 0);
+                        capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
                         break;
                     case 7:
-                        Gp_RunCapCmd(8, 0);
+                        capRunCommand(8, CAP_PLAYBACK_IN_PLACE);
                         break;
                     case 8:
                         if (talk->businessDone != 0) {
-                            Gp_RunCapCmd(7, 0);
+                            capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
                         } else {
-                            Gp_RunCapCmd(0xA, 0);
+                            capRunCommand(0xA, CAP_PLAYBACK_IN_PLACE);
                         }
                         break;
                 }
@@ -578,7 +579,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state = cmd;
             break;
         case 10:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             func_mist_parking_801846A4(0);
             taskKill(task);
             break;
@@ -620,7 +621,7 @@ void func_mist_parking_801842DC(Task* task)
             break;
         case 4:
             if (task->spawnArg1.value == 1) {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             func_mist_parking_801846A4(0);
             taskKill(task);
@@ -630,7 +631,7 @@ void func_mist_parking_801842DC(Task* task)
 
 void func_mist_parking_80184408(s32 arg0)
 {
-    Gp_RunCapCmd(arg0, 0);
+    capRunCommand(arg0, CAP_PLAYBACK_IN_PLACE);
 }
 
 void func_mist_parking_80184428(s32 arg0)

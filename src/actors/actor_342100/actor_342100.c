@@ -12,6 +12,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -582,7 +583,7 @@ void func_actor_342100_80162C88(void)
 ///
 /// State 0 counts the live entries of the overlay's message-table list and
 /// hands slot 3 that list with message 0x3F7, lets the player's weapon into
-/// the message stream (`Gp_MsgPlayerWeapon`), raises the `Gp_StateC08` flag
+/// the message stream (`playerActorSetScriptedControl`), raises the `Gp_StateC08` flag
 /// `attachmentQueueIndex` gates on, installs the model set and hands slot 6 the
 /// 0xFA4 that starts the encounter, then starts spawn entry 2 with the task
 /// itself and steps to state 1. State 1 ticks the child and reports 1 to keep
@@ -604,7 +605,7 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             msg.source.sets = &D_actor_342100_80164900[0];
             msg.wordCount   = n & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_actor_342100_801649C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);

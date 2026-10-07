@@ -23,7 +23,7 @@ void underpassSwitchTask(Task* task)
     arg   = task->spawnArg2.value;
     switch (state) {
         case 0:
-            Gp_RunCapCmd1(arg);
+            capRunCommandWithTransition(arg);
             task->state = task->state + 1;
             return;
         case 1:

@@ -12,8 +12,8 @@ void drivewayCutsceneTask(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(1);
             arg0->state += 1;
             return;
         case 1:

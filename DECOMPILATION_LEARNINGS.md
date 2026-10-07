@@ -10624,7 +10624,7 @@ if (cmd != one) {
 }
 cmd = gameFlagGetNibble(0x155) + 0x10;
 run:
-Gp_RunCapCmd(cmd, 0);
+capRunCommand(cmd, 0);
 if (gameFlagGetNibble(0x7A) != 1) {
 ```
 
@@ -13611,7 +13611,7 @@ bne    v1, v0, L_join
  li    a0, 9               # the default, in the bne's delay slot
 move   a0, v0              # a0 = 2
 L_join:
-jal    Gp_RunCapCmd1
+jal    capRunCommandWithTransition
 ```
 
 Written at the top of the enclosing block -- `s32 cmd = 9;` ahead of
@@ -24289,7 +24289,7 @@ arg0 &= 0xF0FFFFFF;
 arg0 |= gGameSession->location.loc.stage << 24;
 ```
 
-`Gp_PackStageSndId` is the pure example — otherwise a 99% body with only those two
+`sndScriptResolveStageId` is the pure example — otherwise a 99% body with only those two
 ops wrong.
 
 ## Assign `&global` before an earlier call so `%hi` lands in `$s0`
@@ -31552,7 +31552,7 @@ register CapCommand* rec asm("s2");
 Do not also pin `flagId` / `val`: that rewrites the `lbu` temps
 (`flagIndexHi` into `$s0` instead of `$v0`) and drops the `sra` from the
 `bnez count` delay slot. Reuse `val` as the case-4 tally (`i = 0; val = i`)
-so the copy fills that `beqz bitFlagCount` delay slot. `Gp_RunCapCmd` is the
+so the copy fills that `beqz bitFlagCount` delay slot. `capRunCommand` is the
 example.
 
 ## Force `i = 0` before an independent load so the delay slot stays `nop`
@@ -37235,7 +37235,7 @@ body's last store in the `j` delay slot:
 
 ```c
 if (icons[(u8)i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
-    if (icons[(u8)i].condition == func_800E3FCC(0xA2)) {
+    if (icons[(u8)i].condition == gameFlagGetPackedByte(0xA2)) {
         goto draw;
     }
 next:
@@ -42627,7 +42627,7 @@ li    s0, D
 jal   gameFlagGetNibble
 bnez  v0, L
 li    s0, O
-L:  jal   Gp_RunCapCmd1
+L:  jal   capRunCommandWithTransition
 move  a0, s0
 ```
 
@@ -42642,7 +42642,7 @@ cmd  = 8;
 if (flag == 0) {
     cmd = 7;
 }
-Gp_RunCapCmd1(cmd);
+capRunCommandWithTransition(cmd);
 ```
 
 ```
@@ -42651,7 +42651,7 @@ li    a0, 0x77
 bnez  v0, L
 li    a0, 8
 li    a0, 7
-L:  jal   Gp_RunCapCmd1
+L:  jal   capRunCommandWithTransition
 ```
 
 The same rewrite removes the `j` that an if/else (or two calls merged by
@@ -42777,7 +42777,7 @@ bnez  v0, .Ltail
 j     .Ltail
  li   a0, 3
 .Ltail:
-jal   Gp_RunCapCmd1
+jal   capRunCommandWithTransition
 ```
 
 m2c reconstructs the shared `jal` literally, as a local assigned in both arms
@@ -42822,12 +42822,12 @@ Same family as "Fully duplicate the tail into every arm to reproduce
 identical-but-unmerged blocks": prefer the redundant-looking C and let
 cross-jumping do the factoring, rather than factoring by hand.
 
-## Two `Gp_RunCapCmd1` tails: assign `cmd` after each nibble, then `goto`
+## Two `capRunCommandWithTransition` tails: assign `cmd` after each nibble, then `goto`
 
-When some arms are `Gp_RunCapCmd1(cmd)` and others are that call plus
+When some arms are `capRunCommandWithTransition(cmd)` and others are that call plus
 `taskSpawnFromTable`, writing the call in every arm (the one-tail advice
 above) does **not** cross-jump into that two-block shape. GCC inlines
-`jal Gp_RunCapCmd1` / `j rest` on the cap-only arms and only merges the
+`jal capRunCommandWithTransition` / `j rest` on the cap-only arms and only merges the
 spawn arms, leaving extra `li a0` / `bne` instead of `beq` + delay-slot
 `li a0` into a shared cap-only block.
 
@@ -42852,11 +42852,11 @@ if (flag == 2) {
     goto cap_only;
 }
 spawn:
-    Gp_RunCapCmd1(cmd);
+    capRunCommandWithTransition(cmd);
     taskSpawnFromTable(table, 0, 0, 0);
     goto rest;
 cap_only:
-    Gp_RunCapCmd1(cmd);
+    capRunCommandWithTransition(cmd);
 rest:
 ```
 
@@ -43565,7 +43565,7 @@ var_a0 = 4;
 if (gameFlagGetNibble(0x141) != 0) {
     var_a0 = 6;
 }
-Gp_RunCapCmd1(var_a0);
+capRunCommandWithTransition(var_a0);
 ```
 
 That local is live across `gameFlagGetNibble`, so GCC gives it a
@@ -43579,7 +43579,7 @@ beqz v0, .L
  nop
 li   s0, 6
 .L:
-jal  Gp_RunCapCmd1
+jal  capRunCommandWithTransition
  move a0, s0
 ```
 
@@ -43593,14 +43593,14 @@ beqz v0, .L
  li  a0, 4
 li   a0, 6
 .L:
-jal  Gp_RunCapCmd1
+jal  capRunCommandWithTransition
  nop
 ```
 
 Folding the choice into the argument reproduces it exactly:
 
 ```c
-Gp_RunCapCmd1(gameFlagGetNibble(0x141) != 0 ? 6 : 4);
+capRunCommandWithTransition(gameFlagGetNibble(0x141) != 0 ? 6 : 4);
 ```
 
 Note this is the mirror of "if/else on the same field keeps the phi in `$v0`;
@@ -43617,8 +43617,8 @@ decides which constant goes where, and the two equivalent spellings are not
 interchangeable:
 
 ```c
-Gp_RunCapCmd1(gameFlagGetNibble(0x141) != 0 ? 6 : 4);   /* beqz v0, .L; li a0,4; li a0,6  */
-Gp_RunCapCmd1(gameFlagGetNibble(0x141) == 0 ? 4 : 6);   /* bnez v0, .L; li a0,6; li a0,4  */
+capRunCommandWithTransition(gameFlagGetNibble(0x141) != 0 ? 6 : 4);   /* beqz v0, .L; li a0,4; li a0,6  */
+capRunCommandWithTransition(gameFlagGetNibble(0x141) == 0 ? 4 : 6);   /* bnez v0, .L; li a0,6; li a0,4  */
 ```
 
 Both compute the same value. In both, the emitted branch tests the **negation**
@@ -43877,7 +43877,7 @@ constant reaches a call that the target makes with the *register*
 (`move a0, s0` vs `li a0, 6`) while sibling arms in the same block do use
 literals. `SOFT_TOUCH_REG(arg2)` as the first statement of the guarded block
 fixes it there too: `func_dryfield_night_motel_room_6_80181A9C` calls
-`Gp_RunCapCmd1(arg2)` on two of the four paths under `if (arg2 == 6)`.
+`capRunCommandWithTransition(arg2)` on two of the four paths under `if (arg2 == 6)`.
 
 ## Two-case `switch` plus a post-`break` `goto` tail
 
@@ -43889,8 +43889,8 @@ and keeps that later `(s16)` conversion.
 `nibble > 0 ? 6 : 0xC` is `blez` + delay `li 0xC`. The target `bgtz` + delay
 `li 6` / `j` + delay `li 0xC` is `nibble <= 0 ? 0xC : 6`.
 
-Several `Gp_RunCapCmd1(cmd)` sites join *after* `capStartSequenceSlot`. An `if
-(flag != 1) { Gp_RunCapCmd1(9); } else { ... }` inverts to `beq` and emits the
+Several `capRunCommandWithTransition(cmd)` sites join *after* `capStartSequenceSlot`. An `if
+(flag != 1) { capRunCommandWithTransition(9); } else { ... }` inverts to `beq` and emits the
 call before the then-block. `goto` a label after the StartCapSlot `break`:
 
 ```c
@@ -43910,7 +43910,7 @@ case 8:
     capStartSequenceSlot(arg2, 1, 0);
     break;
 run_cap:
-    Gp_RunCapCmd1(cmd);
+    capRunCommandWithTransition(cmd);
     break;
 }
 ```
@@ -44117,7 +44117,7 @@ independently hands the `high` pseudo `$v0`. Repeating the whole tail in each
 arm keeps the address pseudo block-local, local alloc ties it to its `high`, and
 `jump2` cross-jumps the duplicated `jal`s back together so the instruction count
 is unchanged. `func_acropolis_sanctuary_8017D8CC` went 99.20% → 100% by moving
-both `Gp_PlayerWeaponId(...)` and `taskMessageDispatch(...)` inside the `if`/`else`.
+both `playerActorWriteWeaponAnimationBankIndex(...)` and `taskMessageDispatch(...)` inside the `if`/`else`.
 
 ## A shared body may reference overlay-local data — give the datum one name in every sym map
 
@@ -44216,7 +44216,7 @@ case 2:
 case 3:
     if (gGameSession->eventState == 0) {
     kill:
-        Gp_MsgPlayerWeapon(1);
+        playerActorSetScriptedControl(1);
         D_801153F4 = 0;
         taskKill(task);
     }
@@ -44696,19 +44696,19 @@ the whole thing.
 ## Invert the `if`/`else` in the switch case that falls into the cross-jumped tail
 
 `func_shelter_b6_corridor_8017DF48` is `switch (arg2)` over cases 2/3/4, each
-doing `gameFlagGetNibble(...)` and then one of three `Gp_RunCapCmd1(N)` calls.
+doing `gameFlagGetNibble(...)` and then one of three `capRunCommandWithTransition(N)` calls.
 Writing it with a `cmd` local and one call after the switch puts `cmd` in `$s0`
 (live across the `jal`) and fills the final `jal`'s delay slot — the ROM instead
 has `li a0, N` scattered into branch delay slots and a bare `nop` after
-`jal Gp_RunCapCmd1`, the signature of cross-jumping merging three separate call
+`jal capRunCommandWithTransition`, the signature of cross-jumping merging three separate call
 sites. Duplicating the call in every arm got 96.1%.
 
 The last 4 instructions came from the *last* case only. In cases 2 and 3 both
 arms end in a `j` to the merged tail, so
 
 ```c
-} else if (gSceneCombatState.signals.bytes.battlePhase == 1) { Gp_RunCapCmd1(3); }
-else                                { Gp_RunCapCmd1(9); }
+} else if (gSceneCombatState.signals.bytes.battlePhase == 1) { capRunCommandWithTransition(3); }
+else                                { capRunCommandWithTransition(9); }
 ```
 
 emits `beq ... / li a0,3` with the `9` arm as the jumping block. In case 4 the
@@ -44717,8 +44717,8 @@ the opposite fall-through, so that case has to be written with the condition
 negated and the arms swapped to produce the same `beq`:
 
 ```c
-} else if (gSceneCombatState.signals.bytes.battlePhase != 1) { Gp_RunCapCmd1(0xA); }
-else                                { Gp_RunCapCmd1(4); }
+} else if (gSceneCombatState.signals.bytes.battlePhase != 1) { capRunCommandWithTransition(0xA); }
+else                                { capRunCommandWithTransition(4); }
 ```
 
 96.1% -> 100%. The asymmetry is not a source-level asymmetry to be avoided: when
@@ -44995,7 +44995,7 @@ recipes above, no qualifier is needed — the pointer local alone is the barrier
 ## `default: goto done` so `lui` fills the last-case `beq` delay
 
 A two-case irregular switch that shares one call after the cases
-(`cmd = …; break;` / `Gp_RunCapCmd1(cmd); return 0`) looks like it wants
+(`cmd = …; break;` / `capRunCommandWithTransition(cmd); return 0`) looks like it wants
 `default: return 0`. That hoists `move v0, zero` into the last case's
 `beq` delay, and the case then re-emits its `lui %hi(global)`:
 
@@ -45033,7 +45033,7 @@ case 3:
 default:
     goto done;
 }
-Gp_RunCapCmd1(cmd);
+capRunCommandWithTransition(cmd);
 done:
 return 0;
 ```
@@ -49923,7 +49923,7 @@ machine, `state++` shared by cases 0 and 1), m2c's shape
 
 ```c
 case 0:
-    Gp_RunCapCmd(arg0->spawnArg1, 0);
+    capRunCommand(arg0->spawnArg1, 0);
 block_11:
     arg0->state += 1;
     return;
@@ -49940,7 +49940,7 @@ the target's `j` out of case 0 lands past `jal capIsBusy`, and case 1's
 
 ```c
 case 0:
-    Gp_RunCapCmd(arg0->spawnArg1, 0);
+    capRunCommand(arg0->spawnArg1, 0);
     goto block_inc;
 case 1:
     if (capIsBusy() != 0) { return; }
@@ -53090,7 +53090,7 @@ fall-through path:
      addiu $a0, $zero, 0x3      /* B: the else arm */
     addiu $a0, $zero, 0x6       /* A: the then arm */
   .Lcall:
-    jal  Gp_RunCapCmd1
+    jal  capRunCommandWithTransition
 
 So the constant you see in the ROM's delay slot is the ternary's *second* arm,
 and the branch condition is the ternary's condition unnegated. If your attempt
@@ -54719,14 +54719,14 @@ splitting the store all leave 3 refs / 10 insns exactly.
 **Fix.** The lever is the *other* allocno's `live_length`, and any construct
 that adds RTL notes to a block inside its range moves it. Wrapping the body of
 a block the source duplicates (here the two identical
-`Gp_SetNibbleIf(); Gp_RunCapCmd1();` tails that `jump2` cross-jumps back
+`gameFlagSetNibbleIfPresent(); capRunCommandWithTransition();` tails that `jump2` cross-jumps back
 together after register allocation) in `do { … } while (0)` was enough:
 
 ```c
 if (arg2->queryOnly == 0) {
     do {
-        Gp_SetNibbleIf(arg2->flagId, 2);
-        Gp_RunCapCmd1(1);
+        gameFlagSetNibbleIfPresent(arg2->flagId, 2);
+        capRunCommandWithTransition(1);
     } while (0);
 }
 ```
@@ -54834,8 +54834,8 @@ identical, it deletes the earlier block and repoints the table entry at the
 later one. `func_acropolis_square_80182148` has
 
 ```
-.L80182188:  jal Gp_RunCapCmd1 ; li a0,5 ; j .L801821C8 ; nop   <- case 0
-.L801821A4:  jal Gp_RunCapCmd1 ; li a0,5 ; j .L801821C8 ; nop   <- case 3
+.L80182188:  jal capRunCommandWithTransition ; li a0,5 ; j .L801821C8 ; nop   <- case 0
+.L801821A4:  jal capRunCommandWithTransition ; li a0,5 ; j .L801821C8 ; nop   <- case 3
 ```
 
 and every source shape that writes both arms honestly collapses them to one
@@ -54846,12 +54846,12 @@ so the assembly is otherwise unchanged.
 
 ```c
 case 0:
-    Gp_RunCapCmd1(5);
+    capRunCommandWithTransition(5);
     SOFT_BARRIER();
     goto advance;
 ...
 case 3:
-    Gp_RunCapCmd1(5);
+    capRunCommandWithTransition(5);
     goto advance;
 ```
 
@@ -54872,7 +54872,7 @@ follows `case 6` — not after the closing brace:
 
 ```c
 case 6:
-    Gp_RunCapCmd1(5);
+    capRunCommandWithTransition(5);
     D_8007216C = 8;
     /* fallthrough */
 case 4:
@@ -54968,7 +54968,7 @@ that tail sits *physically* between case 4's last instruction and case 5:
 ```
 case 0 body … j tail
 case 3 body … j tail
-case 4 body … jal Gp_MsgPlayerWeapon(1)   # falls through
+case 4 body … jal playerActorSetScriptedControl(1)   # falls through
 tail:  lw v0,0x30(s1); addiu v0,v0,1; j end; sw v0,0x30(s1)
 case 5 body
 ```
@@ -54982,7 +54982,7 @@ case 2:` labels to where the block belongs and reach them with a `goto`:
 ```c
 case 4:
     …
-    Gp_MsgPlayerWeapon(1);
+    playerActorSetScriptedControl(1);
     /* fallthrough */
 case 1:
 case 2:
@@ -84535,13 +84535,13 @@ reads like this in the m2c seed:
 
 ```c
 extern s32 D_actor_335800_80164E7C;                    /* wrong width */
-Gp_PlayerWeaponId(&D_actor_335800_80164E7C);
+playerActorWriteWeaponAnimationBankIndex(&D_actor_335800_80164E7C);
 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &D_actor_335800_80164E7C, 0);
 ```
 
 The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
-(`include/gameplay/message.h`, size 0x14) — `source.index` receives the weapon model id
-from `Gp_PlayerWeaponId`, `animationId` is the animation id the handler plays, and
+(`include/gameplay/message.h`, size 0x14) — `source.index` receives the animation-bank table index
+from `playerActorWriteWeaponAnimationBankIndex`, `animationId` is the animation id the handler plays, and
 `blend`/`blendFrames`/`enableWorldCollision` are zero. `src/rooms/acropolis_sanctuary/
 acropolis_sanctuary_2.c` carries the identical pattern already matched as
 `extern AnimationPlayRequest D_acropolis_sanctuary_801809F8;`, and the splat data extent
@@ -84560,9 +84560,9 @@ Two things the seed gets wrong beyond the type:
 * The call order is **source order**, and it varies between neighbours. The
   gameplay siblings (`src/gameplay/3CD8.c`, `3688.c`) inline the slot call —
   `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&rec, 0)` — so it evaluates
-  after `Gp_PlayerWeaponId`. `func_actor_335800_801624DC` instead binds it first
+  after `playerActorWriteWeaponAnimationBankIndex`. `func_actor_335800_801624DC` instead binds it first
   (`slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);`), which is why `$s1` holds the slot across the
-  `Gp_PlayerWeaponId` call. Both spellings match their own target; pick from the
+  `playerActorWriteWeaponAnimationBankIndex` call. Both spellings match their own target; pick from the
   register that survives the call, not from the sibling.
 
 ## `find` reports no copies for a byte-identical body when splat emits an `alabel`
@@ -87868,7 +87868,7 @@ bnez  v0, .L8c
 li    a0,0xc          # delay slot: the *else* value
 li    a0,5            # the *then* value, fallthrough
 .L8c:
-jal   Gp_RunCapCmd1
+jal   capRunCommandWithTransition
 nop
 ```
 
@@ -87877,7 +87877,7 @@ expression whose condition is evaluated first, so the result is materialised
 straight into the call's `$a0`:
 
 ```c
-Gp_RunCapCmd1(gameFlagGetNibble(0xDE) == 0 ? 5 : 0xC);
+capRunCommandWithTransition(gameFlagGetNibble(0xDE) == 0 ? 5 : 0xC);
 ```
 
 m2c's `if` spelling instead writes the default and overrides it:
@@ -87885,7 +87885,7 @@ m2c's `if` spelling instead writes the default and overrides it:
 ```c
 s32 v = 0xC;
 if (gameFlagGetNibble(0xDE) == 0) v = 5;
-Gp_RunCapCmd1(v);
+capRunCommandWithTransition(v);
 ```
 
 That is semantically identical and scored 89.432% (`regs=1 reorder=1 insert=2
@@ -87901,7 +87901,7 @@ branch, the source is a `? :`, and which register the value lands in is decided
 by evaluation order: a definition placed before a call in the RTL cannot become
 an argument register. The same shape is already in the matched
 `func_shelter_b6_growth_room_8017D634` -
-`Gp_SpawnIfCapIdle(gameFlagGetNibble(0xD8) == 0 ? 0x10 : 0x11, 0)` - which is
+`capSpawnEventIfIdle(gameFlagGetNibble(0xD8) == 0 ? 0x10 : 0x11, 0)` - which is
 where the pattern was read off before the first rebuild.
 
 Inputs: `base.i` `79b53b4e9ea881de336c2b7fa0c0dfdca62ee1ec42199a344c482b6fcb8c659b`,
@@ -87951,7 +87951,7 @@ s32 var_v0;
     var_v0 = 1;
     if (gameFlagGetNibble(0x3C) == 0) {
         var_v0 = 0;
-        if (in->field_5 == 0) { Gp_RunCapCmd1(3); ...; return 0; }
+        if (in->field_5 == 0) { capRunCommandWithTransition(3); ...; return 0; }
     }
     return var_v0;                  /* read after the calls above */
 ```
@@ -87983,8 +87983,8 @@ matched family members already do (`func_neo_ark_shrine_8017D6AC`,
             return 1;
         }
         if (in->field_5 == 0) {
-            Gp_RunCapCmd1(3);
-            Gp_SetNibbleIf(in->field_6, 2);
+            capRunCommandWithTransition(3);
+            gameFlagSetNibbleIfPresent(in->field_6, 2);
         }
         return 0;
     }
@@ -87999,7 +87999,7 @@ returns to 0x18, and each constant lands in `$v0` - on the branch-to-epilogue
 paths in the branch delay slot, as `addu v0,zero,zero` for 0 and
 `addiu v0,zero,1` for 1. 100%, all penalties zero, on the first build.
 
-This is the same root cause as `Gp_RunCapCmd1(x ? 5 : 0xC)` above and as
+This is the same root cause as `capRunCommandWithTransition(x ? 5 : 0xC)` above and as
 "Shared `var_v0` + epilogue flips global pointer store register order": a value
 defined before a call cannot be born in an argument register. What is new here
 is the *shape* of the symptom - `regs` penalties plus a frame one word too
@@ -88830,7 +88830,7 @@ sibling `func_shelter_b3_dumping_hole_8017D82C` spells out.
 ```c
 var_a0 = 0xC;
 if (gameFlagGetNibble(0x11A) >= 2) var_a0 = 0xD;   /* call in the condition */
-Gp_RunCapCmd1(var_a0);
+capRunCommandWithTransition(var_a0);
 ```
 
 makes `var_a0` live across the `gameFlagGetNibble` call, so global allocation
@@ -88842,14 +88842,14 @@ $a0, 0xD` in the fall-through), which is a ternary argument, not a variable:
 s32 func_mine_mesa_8017DA7C(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg2 == 0xD) {
-        Gp_RunCapCmd1(gameFlagGetNibble(0x11A) >= 2 ? 0xD : 0xC);
+        capRunCommandWithTransition(gameFlagGetNibble(0x11A) >= 2 ? 0xD : 0xC);
     }
     return 0;
 }
 ```
 
 100%, all penalties zero, first build. In the sibling the same idiom appears as
-`Gp_SpawnIfCapIdle(gameFlagGetNibble(0x11D) != 0 ? 0x12 : 0x17, 1)` - a
+`capSpawnEventIfIdle(gameFlagGetNibble(0x11D) != 0 ? 0x12 : 0x17, 1)` - a
 condition, two constants and one call is this family's signature, and the
 "chooser" never earns a name. The handlers are reached from a room data table of
 `{ u32 msgId, handler }` pairs, so an unmatched one is cheap to locate: the id
@@ -89046,7 +89046,7 @@ constant gets its own birth. That is necessary but not always sufficient, and
 the failure mode looks identical, so it is worth knowing the second half.
 
 `func_neo_ark_observatory_8017FD7C` (24 insns) tests `gGameSession->eventState`,
-then `D_8007216C == 2`, then `D_8007216C == 3`, and calls `Gp_MsgAlly3F3` with
+then `D_8007216C == 2`, then `D_8007216C == 3`, and calls `companionSetDrawMode` with
 2/1/2. The target opens the middle test with
 
 ```
@@ -89081,7 +89081,7 @@ avoiding. The fix is to give that arm a tail the exchange rejects: a `call` +
 ```c
 if (gGameSession->eventState == 0) {
     if (D_8007216C != 2) {
-        Gp_MsgAlly3F3(2);
+        companionSetDrawMode(2);
         return;
     }
 }
@@ -89089,7 +89089,7 @@ var_a0 = 1;
 if (D_8007216C == 3) {
     var_a0 = 2;
 }
-Gp_MsgAlly3F3(var_a0);
+companionSetDrawMode(var_a0);
 ```
 
 100%, all penalties zero, on the first build. The duplicated call is what the
@@ -90614,10 +90614,10 @@ every other one in the family:
 ```c
     if (arg2->field_2 == 0xA) {
         if (gameFlagGetNibble(0xF8) != 0) {
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
             taskSpawnFromTable(&D_..., 2, 0x1AF, 0);
         } else {
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(0);
             taskSpawnFromTable(&D_..., 0, arg2->field_3, 0);
         }
     }
@@ -90690,8 +90690,8 @@ suppressing the side effects. Written as an if/else chain:
     }
     if (gameFlagGetNibble(0xB9) == 0) {
         if (src->field_5 == 0) {
-            Gp_SetNibbleIf(src->field_6, 2);
-            Gp_RunCapCmd1(1);
+            gameFlagSetNibbleIfPresent(src->field_6, 2);
+            capRunCommandWithTransition(1);
         }
     } else if (src->field_5 == 0) {
         ...
@@ -90719,7 +90719,7 @@ Writing the same logic as a `switch` scores 100.000%:
         case 9:
             switch (gameFlagGetNibble(0xB9)) {
                 case 0:
-                    if (src->field_5 == 0) { Gp_SetNibbleIf(src->field_6, 2); Gp_RunCapCmd1(1); }
+                    if (src->field_5 == 0) { gameFlagSetNibbleIfPresent(src->field_6, 2); capRunCommandWithTransition(1); }
                     break;
                 default:
                     if (src->field_5 == 0) { ... }
@@ -91600,7 +91600,7 @@ struct carrying `STATIC_ASSERT_SIZEOF`) produces exactly those eight
 instructions, and the rest of the function then follows the sibling
 `func_neo_ark_eve_access_tunnel_8017DC6C` field for field: `mapNeoArkResolveRoomVariant(src,
 dst)`, a dispatch on `src->areaId`, the same three `(u8)dst->areaId`, `dst->warp`, and `dst->room` stores into
-the overlay's staging `RoomEventMsg`, `Gp_MsgPlayerWeapon(0)`, then
+the overlay's staging `RoomEventMsg`, `playerActorSetScriptedControl(0)`, then
 `taskSpawnFromTable`. That port scored 100.00% with every penalty zero on the
 first build.
 
@@ -91937,7 +91937,7 @@ value selection depends on:
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         var_a0 = 0x18;
     }
-    Gp_SpawnIfCapIdle(var_a0, 0);
+    capSpawnEventIfIdle(var_a0, 0);
 ```
 
 Name the call's result in a local of its own and the constant is born after
@@ -91949,7 +91949,7 @@ it. Nothing else changes - same blocks, same predicates, same constants:
     if (slot != 0) {
         arg = 0x18;
     }
-    Gp_SpawnIfCapIdle(arg, 0);
+    capSpawnEventIfIdle(arg, 0);
 ```
 
 `func_dryfield_general_store_8017DD58` is the example: 77.567% with `regs=14
@@ -92191,7 +92191,7 @@ handed its answer.
 `func_mine_gorge_8017D6E8` is `1.00 shape` / `1.00 fields` / `1.00 calls`
 against `func_shelter_b3_incinerator_control_room_8017FA8C` - a different
 overlay, a different link address, sharing no data symbol. Only two constants
-differ (`msgId != 2` vs `!= 0x2A`, nibble `0xB5` vs `0xA7`); `Gp_RunCapCmd1(3)`
+differ (`msgId != 2` vs `!= 0x2A`, nibble `0xB5` vs `0xA7`); `capRunCommandWithTransition(3)`
 is identical in both. The `.s` diff that made `func_dryfield_water_tank_8017ED30`
 provable does not transfer, because two overlays' disassembly texts differ in
 every address; what transfers is the sibling's *C source shape*. Porting it
@@ -92230,7 +92230,7 @@ sw    v1,0x30(s0)      ...                          (target)
 against a build that put the counter in `$v0`, the symbol's `high` in `$v1` and
 the constant back in `$v0`. Nothing about statement order moved it - and it did
 not need to. Rewriting the seed against the real headers (`Task*`, the real
-`Gp_SpawnIfCapIdle`/`gameFlagSetNibble`/`gameSetTaskSlot` prototypes, the real
+`capSpawnEventIfIdle`/`gameFlagSetNibble`/`gameSetTaskSlot` prototypes, the real
 `gGameSession->location.loc.variant`) was 100.000% on the first build, with the source order
 unchanged.
 
@@ -92471,14 +92471,14 @@ s32 func_dryfield_motel_room_6_80181920(s32 arg0, s32 arg1, RoomEventMsg* in, Ro
         return 0;
     }
     gameFlagSetNibble(0x54, 1);
-    Gp_RunCapCmd1(7);
+    capRunCommandWithTransition(7);
     return 0;
 }
 ```
 
 `func_neo_ark_shrine_8017D6AC`, `func_shelter_b3_incinerator_control_room_8017FA8C`
 and this one differ only in `msgId`, the nibble index and the cap command (and, in
-the shrine and incinerator, a `Gp_SetNibbleIf(in->flagId, 2)` where this one has a
+the shrine and incinerator, a `gameFlagSetNibbleIfPresent(in->flagId, 2)` where this one has a
 plain `gameFlagSetNibble`). Two of the three carry the required duplicated
 `return 0;` already - both the `queryOnly` early return and a trailing one - which is
 what the entry above ("A duplicated `return 0;`...") shows the third delay slot
@@ -92487,7 +92487,7 @@ needs. Transplant the sibling, change the constants, done.
 The gate itself varies too, so read the family as the `*out = *in` plus
 `RoomEventMsg` skeleton rather than the nibble specifically:
 `func_neo_ark_eve_elevator_8017D5D8` keeps the `msgId` and `queryOnly` tests but
-gates on `cdCmdIsIdle()` and answers with `Gp_SpawnIfCapIdle(1, 1)`, where the
+gates on `cdCmdIsIdle()` and answers with `capSpawnEventIfIdle(1, 1)`, where the
 siblings latch a nibble and run a cap command. `mapNeoArkResolveRoomVariant` is the shared
 room-variant resolver the shrine, garden, observatory and elevator forms all call with
 `(in, out)` right after the copy - `func_80179A04` plays that role in mine_gorge -
@@ -92796,7 +92796,7 @@ three places already produces:
 
 ```c
 if (arg2 == 1) {
-    Gp_SpawnIfCapIdle(1, 1);
+    capSpawnEventIfIdle(1, 1);
 }
 ```
 
@@ -92990,7 +92990,7 @@ Inputs: `base_1.c` (100%). Compiler SHA256
 ## A conditional constant handed to a call is a ternary, not an if/else (func_dryfield_garage_8017DA18, 2026-09-16)
 
 The room opcode callbacks that pick between two command ids passed to
-`Gp_RunCapCmd1` are a recurring family: `func_dryfield_garage_8017DA18`
+`capRunCommandWithTransition` are a recurring family: `func_dryfield_garage_8017DA18`
 (`gameFlagGetNibble(0xFD) != 0 ? 0x16 : 0x10`), `func_mine_mesa_8017DA7C`
 (`>= 2 ? 0xD : 0xC`), `func_shelter_b3_dumping_hole_8017D82C` (`!= 0 ? 0x12 :
 0x17`). Written as the ternary **in the call argument**, GCC 2.8.1 materialises
@@ -93004,7 +93004,7 @@ beqz $2,$L
  li  $4,16         # the else value, in the delay slot
 li  $4,22          # 0x16, the then value
 $L:
-jal  Gp_RunCapCmd1
+jal  capRunCommandWithTransition
 ```
 
 m2c renders the same source as a two-arm `if` over a temporary
@@ -93034,7 +93034,7 @@ A room handler whose body never returns anything:
 s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
 {
     if ((msg->warp == 2) && (gGameSession->location.loc.variant != 1)) {
-        Gp_SpawnIfCapIdle(0x13, 0);
+        capSpawnEventIfIdle(0x13, 0);
     }
 }
 ```
@@ -94978,7 +94978,7 @@ s32 func_<room>_<addr>(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* d
             ((u8*)&D_<room>_<addr2>.areaId)[1] = dst->room;
             taskSpawnFromTable(&D_<room>_<addr3>, 0, 0, 0);
         }
-        return 0;                     /* or 1 / 2, and optional Gp_MsgPlayerWeapon(0) */
+        return 0;                     /* or 1 / 2, and optional playerActorSetScriptedControl(0) */
     }
     return 1;
 }
@@ -100123,13 +100123,13 @@ leaves its `%hi` base register live across the whole block — `lui $a1,
 %hi(gGameSession)` stays in `$a1` because the *same* symbol is read again after
 the call — and if a `jal` lands while it is live, m2c types that register as an
 argument. In `func_actor_143000_80133800` the real call is one-argument
-`Gp_MsgPlayer3F3(1)` (every matched caller in `src/gameplay/` passes one), but the
+`playerActorSetDrawMode(1)` (every matched caller in `src/gameplay/` passes one), but the
 seed emitted
 
 ```c
-M2C_UNK Gp_MsgPlayer3F3(M2C_UNK, void **);   /* extern, invented */
+M2C_UNK playerActorSetDrawMode(M2C_UNK, void **);   /* extern, invented */
 ...
-Gp_MsgPlayer3F3(1, &gGameSession);
+playerActorSetDrawMode(1, &gGameSession);
 ```
 
 The two instructions that costs are the familiar `addiu $a3,$a2,%lo(gGameSession)`
@@ -100142,7 +100142,7 @@ so it lands late in the arm. Passing the one real argument fixes the base to
 ```c
 displayReleaseMenuHold();
 gGameSession->cutsceneHold = 0;
-if (work->field_C == 0) { ...; Gp_MsgPlayer3F3(1); }
+if (work->field_C == 0) { ...; playerActorSetDrawMode(1); }
 ```
 
 The tell is a `lui $reg,%hi(SYM)` that is *also* the base of a `%lo(SYM)($reg)`
@@ -119510,7 +119510,7 @@ beqz   $v0, .L8017DAE0
 jal    Gp_SpawnWeaponEff
   nop
 sh     $zero, 0xC($s0)
-jal    Gp_MsgPlayerWeapon
+jal    playerActorSetScriptedControl
   addu   $a0, $zero, $zero
 lui    $a0, %hi(D_80073BA9)     /* the fallthrough copy */
 .L8017DAE0:
@@ -119737,7 +119737,7 @@ exit's delay slot. Real `return 1;` statements reproduce the target (see the
 Read the two matched templates before the seed: `Room_Util02`
 (`src/rooms/lib/room_util02.c`) is the bare copy-and-forward, `func_mine_gorge_8017D6E8`
 (`src/rooms/mine_gorge/mine_gorge.c`) is the "check `msgId`, act, `return 1`/`0`" tail
-with the same `Gp_SetNibbleIf(in->flagId, 2)` / `Gp_RunCapCmd1` shape. Between them the
+with the same `gameFlagSetNibbleIfPresent(in->flagId, 2)` / `capRunCommandWithTransition` shape. Between them the
 whole prologue and the tail's constant materialisation are pinned. Here the m2c seed
 already had the block topology right (score 81.049%, `branch=13 insert=6 delete=13`),
 and the single rewrite that fixed the copy and the returns scored 100.000% with all
@@ -120013,7 +120013,7 @@ static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVa
 }
 ```
 
-with `resolve = func_...; Gp_MsgPlayerWeapon(0); _neoArkObservatoryStageMarker(&desc, resolve);`
+with `resolve = func_...; playerActorSetScriptedControl(0); _neoArkObservatoryStageMarker(&desc, resolve);`
 in each arm. CSE folds the value back into a direct `jal` if the assignment and
 the helper call are adjacent in the same block (`cse`'s table does not survive
 the intervening call), so the separating call is what keeps the call indirect —
@@ -120927,7 +120927,7 @@ out of a pass.
 
 m2c renders a shared tail at its **first** user. Here three arms increment the
 same `task->state`, and two of them test a shared result, so base.c came out
-`case 0: Gp_RunCapCmd1(2); block_9: state++; return; case 1: v = capIsBusy();
+`case 0: capRunCommandWithTransition(2); block_9: state++; return; case 1: v = capIsBusy();
 block_8: if (v == 0) goto block_9; ...` — 86.07%, `branch=1 reorder=5
 insert=4 delete=4`, with the increment emitted inside case 0's block and case 1
 branching *backwards* to it. The target has both shared blocks after the last
@@ -120936,7 +120936,7 @@ which is exactly where moving the two labels puts them:
 
 ```c
     case 0:
-        Gp_RunCapCmd1(2);
+        capRunCommandWithTransition(2);
         goto L_advance;          /* was block_9, written after case 0 */
     case 1:
         var_v0 = capIsBusy();
@@ -122365,8 +122365,8 @@ D_801153F4[0] = 2;         /* mem/s:QI, symbol still D_801153F4 */
 
 Scores, all with the same host file otherwise: m2c baseline 86.094%; the rewrite
 to a natural `switch` (dropping m2c's gotos and the phantom second argument to
-`Gp_MsgPlayerWeapon`, which is `void Gp_MsgPlayerWeapon(s32)` - see
-`include/gameplay/3CD8.h:442`) 97.760%; `gSceneCombatState.actorControl = 2;` 99.920%;
+`playerActorSetScriptedControl`, which is `void playerActorSetScriptedControl(s32)` - see
+`include/gameplay/actor_presentation.h`) 97.760%; `gSceneCombatState.actorControl = 2;` 99.920%;
 `D_801153F4[0] = 2;` 100.000%. Contrast this with the store-side entries above
 (`_neoArkAltarSelectPostSequenceRoom`, `actor_107600`): those match a *store* against a
 later *load*; here the missing edge is what lets a load hoist, and the observable
@@ -123130,8 +123130,8 @@ How many such tails exist depends on how each arm is spelled. An arm written
 
 ```c
         if (in->field_5 == 0) {
-            Gp_RunCapCmd1(6);
-            Gp_SetNibbleIf(in->field_6, 2);
+            capRunCommandWithTransition(6);
+            gameFlagSetNibbleIfPresent(in->field_6, 2);
             return 2;      /* tail A */
         }
         return 2;          /* tail B */
@@ -123145,8 +123145,8 @@ that first survivor (`.text+114`, wrong). Sharing one return instead -
 
 ```c
         if (in->field_5 == 0) {
-            Gp_RunCapCmd1(6);
-            Gp_SetNibbleIf(in->field_6, 2);
+            capRunCommandWithTransition(6);
+            gameFlagSetNibbleIfPresent(in->field_6, 2);
         }
         return 2;
 ```
@@ -123462,7 +123462,7 @@ case 4:
     gameFlagSetNibble(0x47, 1);
     fade = gGameSession->location.loc.stage;   /* the cross-block reference */
     if (fade == 2) {
-        Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
+        sndEvtRequestStageScriptStart(0x5217000B, 0, 0);
     }
     fadeDrawOverlay(0xFF, 0xFF, 0xFF, 2);
     goto advance;
@@ -141595,7 +141595,7 @@ if (arg2 == 3) {
     if (areaGetCurrentObjectState(6) == 2 && gameFlagGetNibble(0x7A) >= 6) {
         arg2 = 5;
     }
-    Gp_SpawnIfCapIdle(arg2, 0);
+    capSpawnEventIfIdle(arg2, 0);
 }
 ```
 
@@ -146367,7 +146367,7 @@ explicit `t = i * sizeof(face)` ahead of it. Separately, an `andi 0xFFFF`
 on a value already loaded with `lhu` is a `u16` local compared with a
 constant, not an `s32` kept alive by `SOFT_USE_REG`.
 
-## A pointer and a counter swapped between `$s1`/`$s2` can hinge on one case passing a call result straight through (Gp_RunCapCmd, 2026-09-27)
+## A pointer and a counter swapped between `$s1`/`$s2` can hinge on one case passing a call result straight through (capRunCommand, 2026-09-27)
 
 **Shape.** A `for (;;) { rec = table[idx]; switch (rec->op) {...} }` command
 runner keeps `rec` and a function-level counter `val` in callee-saved
@@ -147072,7 +147072,7 @@ instead, so it is not an interchangeable spelling here. Input SHA256:
 
 ### A short-circuit fallback join prevents branch-constant substitution (dryfield motel 80181A9C, 2026-09-27)
 
-Inside `if (event == 6)`, two separate fallback calls to `Gp_RunCapCmd1(event)`
+Inside `if (event == 6)`, two separate fallback calls to `capRunCommandWithTransition(event)`
 became literal-6 calls in CSE when `SOFT_TOUCH_REG(event)` was removed (92.593%).
 Write the successful story path as `flag6c > 0 && flag70 < 2`, followed by one
 fallback `else` call. Both failed checks then reach a shared label: CSE starts

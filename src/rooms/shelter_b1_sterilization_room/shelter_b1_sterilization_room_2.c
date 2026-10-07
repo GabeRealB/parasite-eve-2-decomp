@@ -18,6 +18,7 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -927,8 +928,8 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(8);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(8);
             gGameSession->eventState = 1;
             arg0->state              = arg0->state + 1;
             return;
@@ -942,7 +943,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
                 gGameSession->restartMode = GAME_SESSION_RESTART_NORMAL;
             } else {
                 gGameSession->eventState = 0;
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             taskKill(arg0);
             return;
@@ -990,12 +991,12 @@ void shelterB1SterilizationRoomSwitchRoomTask(Task* task)
 void func_shelter_b1_sterilization_room_80181588(Task* arg0)
 {
     if (arg0->state == 0) {
-        Gp_MsgPlayerWeapon(0);
-        Gp_RunCapCmd1(9);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+        capRunCommandWithTransition(9);
         arg0->state += 1;
         return;
     }
-    Gp_MsgPlayerWeapon(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     taskKill(arg0);
 }
 
@@ -1046,7 +1047,7 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
                 if (flag == 0) {
                     cmd = 7;
                 }
-                Gp_RunCapCmd1(cmd);
+                capRunCommandWithTransition(cmd);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149, 1);
             } else {
                 flag = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
@@ -1056,7 +1057,7 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
                     gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 1);
                     cmd = 9;
                 }
-                Gp_RunCapCmd1(cmd);
+                capRunCommandWithTransition(cmd);
             }
             task->state++;
             return;
@@ -1077,7 +1078,7 @@ void func_shelter_b1_sterilization_room_801817EC(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x2C0, 0x100);
-            Gp_RunCapCmd1(task->spawnArg1.value);
+            capRunCommandWithTransition(task->spawnArg1.value);
             task->state = task->state + 1;
             /* fallthrough */
         case 1:

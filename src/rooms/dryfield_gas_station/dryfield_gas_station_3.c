@@ -30,7 +30,8 @@ Task* D_dryfield_gas_station_80184BD4;
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -727,7 +728,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             if (sharedWork->playerEffectsSuppressed != 0) {
                 Gp_SpawnWeaponEff();
                 sharedWork->playerEffectsSuppressed = 0;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
             TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E74, 0);
             cur = shared->work;
@@ -794,7 +795,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                     TASK_MESSAGE_DISPATCH_POINTER(work2->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
                 }
-                func_800E3FAC(0xA2, 9);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 9);
                 evsStartScriptWithSkip(D_dryfield_gas_station_80182E8C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_dryfield_gas_station_8018303C);
                 task->state = task->state + 1;
@@ -847,7 +848,7 @@ void func_dryfield_gas_station_80180A60(void)
     if (work->playerEffectsSuppressed != 0) {
         Gp_SpawnWeaponEff();
         work->playerEffectsSuppressed = 0;
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E74, 0);
     work2 = task->work;

@@ -14,6 +14,8 @@
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/loading.h"
@@ -1939,9 +1941,9 @@ static void func_shelter_r47_80185098(Task* task)
     if ((s16)fade >= 0x100) {
         state->fade = 0xFF;
         if (task->spawnArg1.value != SHELTER_R47_MAP_MODE_TIMED) {
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         }
-        Gp_MsgPlayer3F3(1);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         displayReleaseMenuHold();
         if (state->openMode != SHELTER_R47_MAP_MODE_TIMED) {
             gGameSession->eventState = 0;
@@ -2047,8 +2049,8 @@ static void func_shelter_r47_80185510(Task* task)
 
     state      = (ShelterR47MapTerminalWork*)task->work;
     D_80114D08 = 0xA;
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     displayReleaseMenuHold();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->savedView;

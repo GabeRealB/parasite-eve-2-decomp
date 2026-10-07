@@ -16,6 +16,7 @@ s32 D_dryfield_warehouse_801821B8;
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -256,8 +257,8 @@ s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
             return 1;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(3);
-            Gp_SetNibbleIf(in->flagId, 2);
+            capRunCommandWithTransition(3);
+            gameFlagSetNibbleIfPresent(in->flagId, 2);
         }
         return 0;
     }

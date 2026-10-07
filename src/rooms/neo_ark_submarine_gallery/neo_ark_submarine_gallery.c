@@ -15,6 +15,7 @@
 #include "gameplay/area_entry.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
@@ -97,8 +98,8 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(9, 0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
             D_80115690 = 1;
             arg0->state++;
             break;
@@ -110,7 +111,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
         case 2:
             if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 break;
             }
@@ -172,18 +173,18 @@ s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, s32 
     switch (arg2) {
         case 2:
             if (D_neo_ark_submarine_gallery_801818B8 == 1) {
-                Gp_SpawnIfCapIdle(2, 0);
+                capSpawnEventIfIdle(2, CAP_EVENT_NO_FLAGS);
             } else {
-                Gp_SpawnIfCapIdle(4, 0);
+                capSpawnEventIfIdle(4, CAP_EVENT_NO_FLAGS);
             }
             break;
         case 3:
             if (gGameSession->location.loc.variant == 4) {
-                Gp_SpawnIfCapIdle(5, 0);
+                capSpawnEventIfIdle(5, CAP_EVENT_NO_FLAGS);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_SpawnIfCapIdle(3, 0);
+                capSpawnEventIfIdle(3, CAP_EVENT_NO_FLAGS);
             } else {
-                Gp_SpawnIfCapIdle(6, 0);
+                capSpawnEventIfIdle(6, CAP_EVENT_NO_FLAGS);
             }
             break;
     }

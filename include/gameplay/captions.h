@@ -5,7 +5,6 @@
 
 #include "gameplay/cap.h"
 
-#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/text.h"
 
@@ -35,48 +34,62 @@ enum {
 
 extern TextGlyphCell D_8010FB70[4];
 
-void Gp_RunCapCmd(s32 arg0, s16 arg1);
+/// CAP sequence presentation modes accepted by the command API.
+enum {
+    CAP_PLAYBACK_IN_PLACE           = 0,
+    CAP_PLAYBACK_DISPLAY_TRANSITION = 1,
+    CAP_PLAYBACK_ACTION_CAPTURE     = 2,
+    CAP_PLAYBACK_CLEAR_IF_UNSTARTED = 3
+};
 
-void Gp_MsgPlayer3F3(s32 arg0);
+/// Bits copied to the normal CAP event task's first spawn argument.
+enum {
+    CAP_EVENT_NO_FLAGS       = 0,
+    CAP_EVENT_PAUSE_ACTORS   = 1, // Hold the player in scripted idle and pause other actors until completion.
+    CAP_EVENT_HIDE_PLAYER    = 2, // Hide the player while the event runs, then show it.
+    CAP_EVENT_ACTION_CAPTURE = 4  // Use action-capture playback; otherwise paused events use mode 0, others mode 3.
+};
 
-void Gp_MsgPlayerWeapon(s32 arg0);
+/// Interprets a loaded CAP command and starts its selected playback variant.
+///
+/// `commandIndex` must be in 0..32767 and below the selected command table's
+/// count. It and every followed branch must name a non-null command in a live,
+/// relocated writable CAP file. Branch chains must terminate; no bounds, null
+/// or cycle checks occur. Referenced nibble ids must be 0..503 and tally object
+/// ids 0..63 in the current stage. Playback resources and text must satisfy
+/// `capStartSequenceSlot`'s contract and remain loaded through playback.
+///
+/// Opcodes select variant zero, a counter, a flag nibble, or the count of
+/// two-bit object states equal to 0, 1 or 3; the room opcode instead sends
+/// the index to the room without starting CAP playback. Counter commands
+/// advance/store their counter after the start attempt even when CAP is busy
+/// or playback fails. Unknown opcodes do nothing. `playbackMode` uses the
+/// `CAP_PLAYBACK_*` modes and is forwarded as a signed halfword.
+void capRunCommand(s32 commandIndex, s16 playbackMode);
 
-void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1);
+/// Spawns a CAP event task only while no CAP sequence is selected.
+///
+/// `commandIndex` is copied to spawnArg2 and `eventFlags` to spawnArg1 of the
+/// normal event task. `CAP_EVENT_*` bits hold/pause actors, hide the player and
+/// select action capture; unassigned bits have no effect in that task.
+/// The command and its resources must satisfy `capRunCommand` when the task
+/// runs and remain loaded through playback. Busy playback and allocation
+/// failure silently do nothing. An idle check does not reserve playback, so
+/// several calls before the tasks tick can queue several event tasks.
+void capSpawnEventIfIdle(s32 commandIndex, s32 eventFlags);
 
-/// Enqueues a type-6 sound event, substituting the current stage number into
-/// the packed id when its stage nibble is set. `arg1` / `arg2` are the pan and
-/// volume bytes.
-void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2);
-
-void Gp_MsgAllyWeapon(s32 arg0);
-
-void Gp_RunCapCmd1(s32 arg0);
-
-void Gp_MsgAlly3F3(s32 arg0);
-
-/// Dispatches 0x7D0 to the slot-4 task to resolve a chained task for the
-/// current stage/room, then forwards 0x7D5 with `arg1` to it.
-void Gp_MsgSlot4Chain(s32 arg0, s32 arg1);
-
-void func_800E3FAC(s32 arg0, s32 arg1);
-
-void Gp_AllyAnimId(s32* arg0);
+/// Runs a loaded CAP command using the queued display-transition playback mode.
+///
+/// Command bounds, branch termination, counter side effects and borrowed-resource
+/// lifetime follow `capRunCommand`. This fixes playbackMode to
+/// `CAP_PLAYBACK_DISPLAY_TRANSITION`; it does not wait for playback or report success.
+void capRunCommandWithTransition(s32 commandIndex);
 
 void Gp_FillAllyHp(void);
 
 void Gp_FillPlayerHpMp(void);
 
-void Gp_SetNibbleIf(s32 arg0, s32 arg1);
-
-s32 Gp_PackStageSndId(s32 arg0);
-
-void Gp_EnqueueStageSnd7(s32 arg0, s32 arg1);
-
-void Gp_PlayerWeaponId(s32* arg0);
-
 void func_800E4028(Task* arg0);
-
-s32 func_800E3FCC(s32 arg0);
 
 void func_800E7570(Task* arg0);
 

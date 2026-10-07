@@ -2207,11 +2207,11 @@ void func_actor_460200_80132210(void)
         TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_8013607C, 0);
     }
     if (sceneFindPlacedActor(1) != 0) {
-        Gp_MsgSlot4Chain(1, 2);
+        sceneSetPlacedActorDrawMode(1, 2);
     }
     slot = sceneFindPlacedActor(2);
     if (slot != NULL) {
-        Gp_MsgSlot4Chain(2, 1);
+        sceneSetPlacedActorDrawMode(2, 1);
         TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_actor_460200_80135F14, 0);
     }
 }

@@ -12,6 +12,9 @@
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -652,7 +655,7 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
     if (src->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
         if (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS) == 0 && gGameSession->location.loc.variant == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(0x2B);
+                capRunCommandWithTransition(0x2B);
             }
             return 2;
         }
@@ -721,7 +724,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
     switch (arg2) {
         case 0x21:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_shelter_1f_heliport_801811C8, 0, 0x21, 0);
             break;
         case 0x22:
@@ -729,7 +732,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             if (gGameSession->location.loc.variant == 1) {
                 need = 2;
             }
-            Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B) >= need ? 0x22 : 0x25, 0);
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B) >= need ? 0x22 : 0x25, CAP_EVENT_NO_FLAGS);
             break;
     }
     return 0;
@@ -809,7 +812,7 @@ static void func_shelter_1f_heliport_801807C0(void)
     if (gGameSession->location.loc.variant < 3 && idx < 12) {
         if (D_shelter_1f_heliport_801811D4[idx][0] != 0) {
             for (i = 0; i < 4; i++) {
-                Gp_MsgSlot4Chain(i, D_shelter_1f_heliport_801811D4[idx][i]);
+                sceneSetPlacedActorDrawMode(i, D_shelter_1f_heliport_801811D4[idx][i]);
             }
         }
     }

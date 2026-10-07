@@ -12,6 +12,8 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 #include "shelter_b3_garbage_incinerator_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/sound.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
@@ -72,9 +74,9 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_RunCapCmd(0x12, 0);
+            capRunCommand(0x12, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             break;
         case 1:
@@ -85,10 +87,10 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
         case 2:
             if (capGetVariantKey() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(arg0);
             } else {
-                Gp_EnqueueStageSnd6(SOUND_SHELTER_B3_INCINERATOR_EXIT_TRANSIT, 0, 0);
+                sndEvtRequestStageScriptStart(SOUND_SHELTER_B3_INCINERATOR_EXIT_TRANSIT, 0, 0);
                 arg0->state++;
             }
             break;
@@ -124,7 +126,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         if (gGameSession->location.loc.room < 4) {
-            Gp_SpawnIfCapIdle(3, 1);
+            capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
             return 0;
         }
         if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {

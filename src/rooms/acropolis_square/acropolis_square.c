@@ -19,6 +19,9 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -1426,8 +1429,8 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
         if ((gameFlagGetNibble(0) == 2) || (gameFlagGetNibble(0) >= 3)) {
             if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
                 do {
-                    Gp_SetNibbleIf(arg2->flagId, 2);
-                    Gp_RunCapCmd1(1);
+                    gameFlagSetNibbleIfPresent(arg2->flagId, 2);
+                    capRunCommandWithTransition(1);
                 } while (0);
             }
             return 0;
@@ -1440,8 +1443,8 @@ s32 func_acropolis_square_80181794(Task* task, s32 msgId, RoomEventMsg* arg2, Ro
         if ((gameFlagGetNibble(0) == 2) || (gameFlagGetNibble(0) >= 3)) {
             if (arg2->queryOnly == ROOM_EVENT_EXECUTE) {
                 do {
-                    Gp_SetNibbleIf(arg2->flagId, 2);
-                    Gp_RunCapCmd1(1);
+                    gameFlagSetNibbleIfPresent(arg2->flagId, 2);
+                    capRunCommandWithTransition(1);
                 } while (0);
             }
             return 0;
@@ -1484,7 +1487,7 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     }
     if ((arg2 == 0xE) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN, 1);
-        Gp_SpawnIfCapIdle(0xE, 1);
+        capSpawnEventIfIdle(0xE, CAP_EVENT_PAUSE_ACTORS);
     }
     if ((arg2 == 0x10) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT, 1);
@@ -1492,7 +1495,7 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
             var_a0 = 0x10;
         }
-        Gp_SpawnIfCapIdle(var_a0, 1);
+        capSpawnEventIfIdle(var_a0, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }
@@ -1512,7 +1515,7 @@ void func_acropolis_square_80181AEC(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             D_acropolis_square_8018382C = 1;
             D_acropolis_square_80188898 = 0;
             evsStartScriptWithSkip(D_acropolis_square_80183834, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_square_801838DC);
@@ -1548,7 +1551,7 @@ void func_acropolis_square_80181AEC(Task* task)
             if (gGameSession->eventState != 0) {
                 return;
             }
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             /* fallthrough */
 
         case 1:
@@ -1676,7 +1679,7 @@ s32 func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, 
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 0) {
-        Gp_SpawnIfCapIdle(5, 0);
+        capSpawnEventIfIdle(5, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -1700,7 +1703,7 @@ void func_acropolis_square_80182148(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
             task->state++;
             return;
         case 1:
@@ -1708,7 +1711,7 @@ void func_acropolis_square_80182148(Task* task)
             task->state++;
             return;
         case 3:
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
             task->state++;
             return;
         case 4:
@@ -1716,7 +1719,7 @@ void func_acropolis_square_80182148(Task* task)
             task->state++;
             return;
         case 6:
-            Gp_RunCapCmd1(5);
+            capRunCommandWithTransition(5);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
             task->state++;
             return;

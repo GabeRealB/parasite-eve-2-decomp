@@ -12,10 +12,10 @@ s32 mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
                 areaSetCurrentObjectState(0x1B, 1);
             }
-            Gp_SpawnIfCapIdle(1, 1);
+            capSpawnEventIfIdle(1, CAP_EVENT_PAUSE_ACTORS);
             taskSpawnFromTable(&gMainStreetPlayTimeTaskDesc, 0, 0, 0);
         } else {
-            Gp_SpawnIfCapIdle(0x14, 1);
+            capSpawnEventIfIdle(0x14, CAP_EVENT_PAUSE_ACTORS);
         }
     }
     return 0;

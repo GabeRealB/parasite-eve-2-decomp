@@ -12,6 +12,8 @@
 #include "gameplay/action_prompt.h"
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/item_menu.h"
@@ -300,8 +302,8 @@ static void func_actor_143000_801324C8(Task* arg0)
     work->field_1A             = 0;
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
-    Gp_MsgPlayerWeapon(0);
-    Gp_MsgPlayer3F3(0);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
 }
 
 static void func_actor_143000_801325F0(Task* arg0)
@@ -731,13 +733,13 @@ static void func_actor_143000_801336E8(Task* arg0)
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         switch ((s16)(work->selectedHotspot - 1)) {
             case 0:
-                Gp_RunCapCmd(8, 0);
+                capRunCommand(8, CAP_PLAYBACK_IN_PLACE);
                 break;
             case 1:
-                Gp_RunCapCmd(7, 0);
+                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
                 break;
             case 3:
-                Gp_RunCapCmd(9, 0);
+                capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
                 break;
             case 2:
                 sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_ENTER, 0, 0);
@@ -746,7 +748,7 @@ static void func_actor_143000_801336E8(Task* arg0)
                 return;
             case 4:
                 work->keypadExamined = 1;
-                Gp_RunCapCmd(0xA, 0);
+                capRunCommand(0xA, CAP_PLAYBACK_IN_PLACE);
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 1) {
                     arg0->killCountdown = 0xA;
                     arg0->state         = 9;
@@ -776,7 +778,7 @@ static void func_actor_143000_80133800(Task* arg0)
         gGameSession->hideHud                                      = 0;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_143000_80135C0C_value;
-        Gp_MsgPlayer3F3(1);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     } else {
         taskSpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
     }

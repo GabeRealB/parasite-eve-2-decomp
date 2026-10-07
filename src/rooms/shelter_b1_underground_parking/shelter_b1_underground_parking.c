@@ -17,6 +17,10 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -1738,13 +1742,13 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
                 facing = (u16)actor->rotation.vy & 0xFFF;
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
                     if ((u32)(facing - 0xA01) < 0x3FFU) {
-                        Gp_MsgPlayerWeapon(0);
+                        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                         capStartSequenceSlot(0xA, 0, 1);
                         taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
                     }
                 }
                 if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     capStartSequenceSlot(0xA, 0, 1);
                     taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
                 }
@@ -1781,23 +1785,23 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
     if (msg->warp == 0xB) {
         switch (gGameSession->location.loc.room) {
             case 2:
-                Gp_RunCapCmd1(8);
+                capRunCommandWithTransition(8);
                 break;
             case 3:
-                Gp_RunCapCmd1(0xF);
+                capRunCommandWithTransition(0xF);
                 break;
             case 4:
-                Gp_RunCapCmd1(9);
+                capRunCommandWithTransition(9);
                 break;
             case 5:
-                Gp_MsgPlayerWeapon(0);
-                Gp_RunCapCmd1(0xC);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                capRunCommandWithTransition(0xC);
                 taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 1, 0, 0);
                 break;
             case 6:
             case 7:
             case 8:
-                Gp_RunCapCmd1(0xE);
+                capRunCommandWithTransition(0xE);
                 break;
         }
     }
@@ -1808,9 +1812,9 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
                 break;
             case 7:
                 if (D_shelter_b1_underground_parking_8018D758 != 0) {
-                    Gp_RunCapCmd1(0x1E);
+                    capRunCommandWithTransition(0x1E);
                 } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     capStartSequenceSlot(0xB, 1, 1);
                     taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 3, 0, 0);
                 } else {
@@ -1833,42 +1837,42 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
         case 1:
             if (gGameSession->location.loc.room < 6) {
                 if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
-                    Gp_RunCapCmd1(1);
+                    capRunCommandWithTransition(1);
                 } else if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0) {
                     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E8) == 0) {
-                        Gp_RunCapCmd1(2);
+                        capRunCommandWithTransition(2);
                     } else {
-                        Gp_MsgPlayerWeapon(0);
-                        Gp_MsgPlayer3F3(0);
+                        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                         taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
                     }
                 } else {
-                    Gp_MsgPlayerWeapon(0);
-                    Gp_MsgPlayer3F3(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                     taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
                 }
             } else {
-                Gp_RunCapCmd1(0x10);
+                capRunCommandWithTransition(0x10);
             }
             break;
         case 7:
             switch (gGameSession->location.loc.room) {
                 case 1:
-                    Gp_RunCapCmd1(7);
+                    capRunCommandWithTransition(7);
                     break;
                 case 2:
-                    Gp_RunCapCmd1(8);
+                    capRunCommandWithTransition(8);
                     break;
                 case 3:
-                    Gp_RunCapCmd1(0xF);
+                    capRunCommandWithTransition(0xF);
                     break;
                 case 4:
-                    Gp_RunCapCmd1(9);
+                    capRunCommandWithTransition(9);
                     break;
                 case 6:
                 case 7:
                 case 8:
-                    Gp_RunCapCmd1(0xE);
+                    capRunCommandWithTransition(0xE);
                     break;
             }
             break;
@@ -1879,23 +1883,23 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
                 case 3:
                 case 4:
                 case 5:
-                    Gp_RunCapCmd1(4);
+                    capRunCommandWithTransition(4);
                     break;
                 case 6:
-                    Gp_RunCapCmd1(5);
+                    capRunCommandWithTransition(5);
                     break;
                 case 7:
-                    Gp_RunCapCmd1(6);
+                    capRunCommandWithTransition(6);
                     break;
                 case 8:
-                    Gp_RunCapCmd1(0x10);
+                    capRunCommandWithTransition(0x10);
                     break;
             }
             break;
         case 2:
         case 3:
         case 5:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, arg2, 0);
             break;
         case 13:
@@ -1907,7 +1911,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             st->view            = 0x14;
             if (D_shelter_b1_underground_parking_8018D758 == 0) {
                 if (gameFlagGetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE) == 0) {
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE, 1);
                     taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 1, 0);
                 } else {
@@ -1925,11 +1929,11 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             }
             break;
         case 22:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_b1_underground_parking_80187260, 0, arg2, 0);
             break;
         case 48:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 4, 0);
             break;
     }
@@ -1963,7 +1967,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 task->killCountdown = 0x1E;
                 task->state++;
             } else {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
             break;
@@ -1983,7 +1987,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 rec.warp     = 1;
                 rec.sndEvent = 0x54140008;
                 rec.facing   = ROOM_DEPARTURE_SKIP_FACING;
-                Gp_MsgPlayerWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 p             = &rec;
                 msg.areaId    = p->area;
                 msg.warp      = p->warp;
@@ -2144,7 +2148,7 @@ s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEvent
         return 1;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        Gp_RunCapCmd1(0x1E);
+        capRunCommandWithTransition(0x1E);
     }
     return 2;
 }
@@ -2206,7 +2210,7 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
                 gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 1);
                 itemSetIdentified(0x123, 1);
             } else {
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             taskKill(arg0);
             break;
@@ -2231,7 +2235,7 @@ void func_shelter_b1_underground_parking_8018363C(Task* arg0)
 void func_shelter_b1_underground_parking_801836D8(Task* arg0)
 {
     if (capIsBusy() == 0) {
-        Gp_MsgPlayerWeapon(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         taskKill(arg0);
     }
 }
@@ -2243,7 +2247,7 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(2);
             capSetTexturePage(0x300, 0);
-            Gp_RunCapCmd(task->spawnArg1.value, 0);
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 1:
@@ -2252,7 +2256,7 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
             }
             break;
         case 2:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
             break;
@@ -2286,7 +2290,7 @@ static void func_shelter_b1_underground_parking_80183810(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     _shelterB1UndergroundParkingPanelResetSelection();
     if (gGameSession->location.loc.variant == 0x15) {
-        Gp_MsgSlot4Chain(0, 1);
+        sceneSetPlacedActorDrawMode(0, 1);
     }
     if ((gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) && (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123) == 0)) {
         gameFlagSetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123, 1);
@@ -2427,7 +2431,7 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
-    Gp_RunCapCmd(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? 2 : 3, 0);
+    capRunCommand(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? 2 : 3, CAP_PLAYBACK_IN_PLACE);
     task->state++;
 }
 
@@ -2512,8 +2516,8 @@ static void func_shelter_b1_underground_parking_801845F8(Task* task)
 static void func_shelter_b1_underground_parking_801846EC(Task* arg0)
 {
     D_80114D08 = 0xA;
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
@@ -2552,8 +2556,8 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task)
     fadeDrawOverlay(work->fadeLevel, work->fadeLevel, work->fadeLevel, GPU_BLEND_SUBTRACT);
     if (work->fadeLevel == 0xFF) {
         D_80114D08 = 0xA;
-        Gp_MsgPlayerWeapon(1);
-        Gp_MsgPlayer3F3(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         displayReleaseMenuHold();
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;

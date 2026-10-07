@@ -7,7 +7,7 @@
 #include "types.h"
 
 #include "attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/display.h"
 #include "hud_sprites.h"
 #include "item_menu.h"
@@ -587,7 +587,7 @@ void Gp_MenuRootTask(Task* arg0)
                     playerActorEnterAim(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 5);
                 }
                 if (arg0->spawnArg1.value == 0x44) {
-                    Gp_PlayerWeaponId(&D_8010E7F4.source.index);
+                    playerActorWriteWeaponAnimationBankIndex(&D_8010E7F4.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
                 gTaskDeferModelBufferAllocation = false;

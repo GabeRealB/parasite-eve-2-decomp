@@ -21,6 +21,9 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
@@ -1598,7 +1601,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             evsStartScript(D_dryfield_trailer_coach_80185AFC, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
@@ -1616,7 +1619,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                 gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 1);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 1);
-                func_800E3FAC(0xA2, 0xF);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xF);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
                 Gp_ApplyAreaRecs(D_dryfield_trailer_coach_80189C50);
             } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_MONKEY_WRENCH) == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_TRAILER_COACH_04F) != 0) {
@@ -1685,7 +1688,7 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, s32 arg
         }
         if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_FIRST_SCENE, 1);
-            Gp_RunCapCmd1(0x1D);
+            capRunCommandWithTransition(0x1D);
             return 0;
         }
         D_dryfield_trailer_coach_80189C9C.view            = 0xA;

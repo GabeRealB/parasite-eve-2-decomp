@@ -36,6 +36,8 @@ u8 D_dryfield_night_motel_lobby_801844D8[7];
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -961,7 +963,7 @@ static void func_dryfield_night_motel_lobby_8018119C(Task* arg0)
 
 static void func_dryfield_night_motel_lobby_801811E0(Task* arg0)
 {
-    Gp_RunCapCmd1(8);
+    capRunCommandWithTransition(8);
     arg0->state = (s32)(arg0->state + 1);
 }
 
@@ -976,8 +978,8 @@ static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task)
 
 static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
 {
-    Gp_MsgPlayerWeapon(1);
-    Gp_MsgPlayer3F3(1);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;

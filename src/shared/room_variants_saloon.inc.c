@@ -20,8 +20,8 @@ s32 roomVariantSaloonMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* o
         if (in->areaId == msgId) {
             req.capCmd        = 2;
             req.missingCapCmd = 2;
-            req.firstSnd      = Gp_PackStageSndId(SOUND_SALOON_G_R_DOOR_UNLOCK);
-            req.secondSnd     = Gp_PackStageSndId(SOUND_SALOON_G_R_DOOR_OPEN);
+            req.firstSnd      = sndScriptResolveStageId(SOUND_SALOON_G_R_DOOR_UNLOCK);
+            req.secondSnd     = sndScriptResolveStageId(SOUND_SALOON_G_R_DOOR_OPEN);
             req.flagId        = GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED;
             req.collectedBit  = 0;
             return roomEventGate(&req, in);

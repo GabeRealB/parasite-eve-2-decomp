@@ -43,8 +43,8 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
     if (msg->areaId == 0x11) {
         req.capCmd        = 6;
         req.missingCapCmd = 1;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_PARKING_LOT_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_PARKING_LOT_DOOR_OPEN);
         req.flagId        = GAME_FLAG_PARKING_LOT_LOBBY_DOOR_UNLOCKED;
         req.collectedBit  = 0x12;
         ret               = roomEventGate(&req, out);
@@ -59,8 +59,8 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
     } else if (msg->areaId == 0x12) {
         req.capCmd        = 3;
         req.missingCapCmd = 2;
-        req.firstSnd      = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_UNLOCK);
-        req.secondSnd     = Gp_PackStageSndId(SOUND_PARKING_LOT_DOOR_OPEN);
+        req.firstSnd      = sndScriptResolveStageId(SOUND_PARKING_LOT_DOOR_UNLOCK);
+        req.secondSnd     = sndScriptResolveStageId(SOUND_PARKING_LOT_DOOR_OPEN);
         req.flagId        = GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED;
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, out);

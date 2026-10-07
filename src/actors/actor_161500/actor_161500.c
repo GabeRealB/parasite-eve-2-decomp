@@ -1480,7 +1480,7 @@ void func_actor_161500_801320B4(void)
 
 void func_actor_161500_801320F0(s32 arg0)
 {
-    Gp_RunCapCmd(arg0, 0);
+    capRunCommand(arg0, CAP_PLAYBACK_IN_PLACE);
 }
 
 void func_actor_161500_80132110(void)

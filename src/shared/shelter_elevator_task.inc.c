@@ -12,7 +12,7 @@ void shelterElevatorTask(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             break;
@@ -39,7 +39,7 @@ void shelterElevatorTask(Task* task)
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
                 default:
-                    Gp_MsgPlayerWeapon(1);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                     taskKill(task);
                     break;

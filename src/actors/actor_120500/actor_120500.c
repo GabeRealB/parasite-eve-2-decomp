@@ -11,7 +11,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
@@ -624,7 +624,7 @@ void func_actor_120500_8013241C(Task* arg0)
                 request.blendFrames          = 10;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
-                func_800E3FAC(0xA2, 0xD);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xD);
                 evsStartScriptWithSkip(D_actor_120500_801380D8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120500_80138318);
                 arg0->state += 1;
                 break;

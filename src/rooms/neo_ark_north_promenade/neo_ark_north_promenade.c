@@ -15,6 +15,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effect_tasks.h"
@@ -420,8 +421,8 @@ s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->flagId, 2);
-    Gp_RunCapCmd1(1);
+    gameFlagSetNibbleIfPresent(in->flagId, 2);
+    capRunCommandWithTransition(1);
     return 0;
 }
 

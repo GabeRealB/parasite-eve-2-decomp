@@ -19,6 +19,9 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
@@ -2586,7 +2589,7 @@ static void func_mine_mesa_8017D808(Task* task)
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 evsStartScriptWithSkip(D_mine_mesa_8018578C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_mesa_801861DC);
             }
-            func_800E3FAC(0xA2, 0x1B);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1B);
             gameFlagSetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN, 1);
             return;
         }
@@ -2657,7 +2660,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
 s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xD) {
-        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 0xD : 0xC);
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 0xD : 0xC);
     }
     return 0;
 }
@@ -2672,7 +2675,7 @@ s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, const void* firstArg, s32 arg
                 if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                     evsStartScript(D_mine_mesa_801850E4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
-                func_800E3FAC(0xA2, 0x1C);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1C);
                 gameFlagSetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN, 1);
                 func_mine_mesa_8017DD44();
             }

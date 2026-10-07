@@ -28,16 +28,16 @@ s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
             taskSpawnFromTable(gFactorySpawnTable, 0, cmd, 0);
             break;
         case 6:
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
-            Gp_MsgAllyWeapon(0);
-            Gp_MsgAlly3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             taskSpawnFromTable(gFactoryPanelSessionDesc, 0, 0, 0);
             break;
         case 12:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == 1) {
-                Gp_MsgPlayerWeapon(0);
-                Gp_MsgAllyWeapon(0);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(gFactorySpawnTable, 6, cmd, 0);
             }
             break;

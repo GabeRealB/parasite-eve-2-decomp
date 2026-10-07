@@ -2247,10 +2247,10 @@ s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, s32 arg3)
     if (in->warp == 1) {
         switch (gameFlagGetNibble(GAME_FLAG_100)) {
             case 0:
-                Gp_RunCapCmd1(6);
+                capRunCommandWithTransition(6);
                 break;
             case 1:
-                Gp_RunCapCmd1(7);
+                capRunCommandWithTransition(7);
                 break;
         }
     }

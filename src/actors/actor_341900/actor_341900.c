@@ -10,7 +10,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
-#include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -1046,7 +1046,7 @@ void func_actor_341900_80163438(void)
     if (work->playerEquipmentRemoved != 0) {
         Gp_SpawnWeaponEff();
         work->playerEquipmentRemoved = 0;
-        Gp_MsgPlayerWeapon(0);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
 }
 

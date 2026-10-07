@@ -2778,13 +2778,13 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
     }
     if ((in->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) && (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SpawnIfCapIdle(0x14, 0);
+            capSpawnEventIfIdle(0x14, CAP_EVENT_NO_FLAGS);
         }
         return 0;
     }
     if (in->areaId == GAME_AREA_DRYFIELD_BACK_STREET) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SpawnIfCapIdle(0x13, 0);
+            capSpawnEventIfIdle(0x13, CAP_EVENT_NO_FLAGS);
         }
         return 0;
     }

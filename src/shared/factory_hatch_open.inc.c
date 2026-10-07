@@ -14,11 +14,11 @@ s32 factoryHatchOpen(Task* task)
         case 0:
             work->angularVelocity = 0;
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                Gp_EnqueueStageSnd6(SOUND_FACTORY_HATCH_OPEN, (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(SOUND_FACTORY_HATCH_OPEN, (s8)worldCoordGetOriginAudioPan(coord),
+                                              (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_HATCH_OPEN, (s8)worldCoordGetOriginAudioPan(coord),
-                                    (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_HATCH_OPEN, (s8)worldCoordGetOriginAudioPan(coord),
+                                              (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->step++;
             break;

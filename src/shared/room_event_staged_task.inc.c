@@ -10,8 +10,8 @@ void roomEventStagedTask(Task* arg0)
     switch (arg0->state) {
         case 0:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(ROOM_EVENT_LATCHED.capCmd, 0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommand(ROOM_EVENT_LATCHED.capCmd, CAP_PLAYBACK_IN_PLACE);
             D_80115690 = 1;
             arg0->state++;
             break;
@@ -28,14 +28,14 @@ void roomEventStagedTask(Task* arg0)
             break;
         case 2:
             if (ROOM_EVENT_LATCHED.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(ROOM_EVENT_LATCHED.stageSnd, 0, 0);
+                sndEvtRequestStageScriptStart(ROOM_EVENT_LATCHED.stageSnd, 0, 0);
                 arg0->state++;
             } else {
                 arg0->state = 4;
             }
             break;
         case 3:
-            if (sndScriptHasActiveId(Gp_PackStageSndId(ROOM_EVENT_LATCHED.stageSnd)) == 0) {
+            if (sndScriptHasActiveId(sndScriptResolveStageId(ROOM_EVENT_LATCHED.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;

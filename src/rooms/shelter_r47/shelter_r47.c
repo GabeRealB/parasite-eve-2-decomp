@@ -18,6 +18,10 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -544,7 +548,7 @@ static void func_shelter_r47_8017FB94(Task* task)
     player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (player != NULL && gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0 && gameFlagGetNibble(GAME_FLAG_0D1) == 1) {
         taskMessageDispatch(player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-        Gp_AllyAnimId(&D_shelter_r47_80186F5C.source.index);
+        companionWriteAnimationBankIndex(&D_shelter_r47_80186F5C.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }
     D_shelter_r47_8018A690 = NULL;
@@ -572,9 +576,9 @@ static void func_shelter_r47_8017FCC0(Task* task)
         case 1:
             if (gGameSession->eventState == 0) {
                 D_shelter_r47_8018A690 = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 1, 0);
-                Gp_MsgPlayer3F3(0);
-                Gp_MsgPlayerWeapon(0);
-                Gp_MsgSlot4Chain(0, 0);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                sceneSetPlacedActorDrawMode(0, 0);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 2);
             }
             break;
@@ -587,9 +591,9 @@ static void func_shelter_r47_8017FCC0(Task* task)
         case 3:
             if (gGameSession->eventState == 0) {
                 D_shelter_r47_8018A690 = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 2, 0);
-                Gp_MsgPlayer3F3(0);
-                Gp_MsgPlayerWeapon(0);
-                Gp_MsgSlot4Chain(0, 0);
+                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                sceneSetPlacedActorDrawMode(0, 0);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 4);
             }
             break;
@@ -634,7 +638,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 break;
             case 3:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) == 0)) {
-                    func_800E3FAC(0xA2, 0x2B);
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2B);
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
                     evsStartScriptWithSkip(D_actor_443500_8014152C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_80141C1C);
@@ -654,9 +658,9 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 spawned_p              = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_p;
                 if (spawned_p != NULL) {
-                    Gp_MsgPlayer3F3(0);
-                    Gp_MsgPlayerWeapon(0);
-                    Gp_MsgSlot4Chain(0, 0);
+                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                    sceneSetPlacedActorDrawMode(0, 0);
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
                 break;
@@ -664,9 +668,9 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 spawned_p6             = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_p6;
                 if (spawned_p6 != NULL) {
-                    Gp_MsgPlayer3F3(0);
-                    Gp_MsgPlayerWeapon(0);
-                    Gp_MsgSlot4Chain(0, 0);
+                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+                    sceneSetPlacedActorDrawMode(0, 0);
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
                 break;
@@ -678,7 +682,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         evsStartScriptWithSkip(D_actor_143400_801350BC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143400_801359D4);
                     }
-                    func_800E3FAC(0xA2, 0x2A);
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2A);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_080, 1);
                     gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 8);
                     gameFlagSetNibble(GAME_FLAG_0D1, 2);
@@ -693,11 +697,11 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 spawned_a0             = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_a0;
                 if (spawned_a0 != NULL) {
-                    Gp_MsgPlayer3F3(0);
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        Gp_MsgAlly3F3(0);
-                        Gp_MsgAllyWeapon(0);
+                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     }
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
@@ -706,11 +710,11 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 spawned_a2             = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_a2;
                 if (spawned_a2 != NULL) {
-                    Gp_MsgPlayer3F3(0);
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        Gp_MsgAlly3F3(0);
-                        Gp_MsgAllyWeapon(0);
+                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     }
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
@@ -723,11 +727,11 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 spawned_a1             = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_a1;
                 if (spawned_a1 != NULL) {
-                    Gp_MsgPlayer3F3(0);
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        Gp_MsgAlly3F3(0);
-                        Gp_MsgAllyWeapon(0);
+                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     }
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
@@ -736,11 +740,11 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                 spawned_a              = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
                 D_shelter_r47_8018A690 = spawned_a;
                 if (spawned_a != NULL) {
-                    Gp_MsgPlayer3F3(0);
-                    Gp_MsgPlayerWeapon(0);
+                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        Gp_MsgAlly3F3(0);
-                        Gp_MsgAllyWeapon(0);
+                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     }
                     taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
                 }
@@ -760,7 +764,7 @@ static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE) != 0) {
             if (areaGetCurrentObjectState(0x22) == arg2) {
-                Gp_RunCapCmd1(0x2A);
+                capRunCommandWithTransition(0x2A);
                 return 0;
             }
             D_shelter_r47_8018A698.view            = 0x2C;
@@ -774,15 +778,15 @@ static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
             taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA, &D_shelter_r47_8018A698);
         } else {
             gameFlagSetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE, 1);
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_r47_80186F70, 2, 1, 0);
         }
     } else if (arg2 == 8) {
         if (gameFlagGetNibble(GAME_FLAG_083) > 0) {
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_r47_80186F94, 0, 0, 0);
         } else if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) > 0) {
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_r47_80186F94, 1, 0, 0);
         }
     }
@@ -870,7 +874,7 @@ static void func_shelter_r47_80180650(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x240, 0x100);
-            Gp_RunCapCmd1(task->spawnArg1.value);
+            capRunCommandWithTransition(task->spawnArg1.value);
             task->state++;
             break;
         case 1:
@@ -880,7 +884,7 @@ static void func_shelter_r47_80180650(Task* task)
             task->state++;
             break;
         case 2:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
             break;
@@ -892,14 +896,14 @@ static void func_shelter_r47_80180714(Task* task)
     s32 out;
 
     if (taskPollKill(D_shelter_r47_8018A690, &out) != 0) {
-        Gp_MsgPlayer3F3(1);
-        Gp_MsgPlayerWeapon(1);
+        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         if (gGameSession->location.loc.variant == 1) {
-            Gp_MsgSlot4Chain(0, 1);
+            sceneSetPlacedActorDrawMode(0, 1);
         }
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-            Gp_MsgAlly3F3(1);
-            Gp_MsgAllyWeapon(1);
+            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+            companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         }
         D_shelter_r47_8018A690 = NULL;
         taskKill(task);
@@ -924,7 +928,7 @@ static void func_shelter_r47_8018080C(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x240, 0x100);
-            Gp_RunCapCmd1(8);
+            capRunCommandWithTransition(8);
             task->state++;
             break;
         case 1:
@@ -932,7 +936,7 @@ static void func_shelter_r47_8018080C(Task* task)
                 break;
             }
             capReset();
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             nibble = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165);
             if (nibble < 3) {
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_165, nibble + 1);
@@ -951,7 +955,7 @@ static void func_shelter_r47_801808D4(Task* task)
             Gp_CapFile = 0;
             capSelectLoadedFile(2);
             capSetTexturePage(0x140, 0x100);
-            Gp_RunCapCmd1(7);
+            capRunCommandWithTransition(7);
             task->state++;
             break;
         case 1:
@@ -959,7 +963,7 @@ static void func_shelter_r47_801808D4(Task* task)
                 break;
             }
             capReset();
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         default:
             taskKill(task);
             break;

@@ -17,6 +17,7 @@
 #include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -147,25 +148,25 @@ s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     if (in->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    Gp_SetNibbleIf(in->flagId, 2);
-    Gp_RunCapCmd1(1);
+    gameFlagSetNibbleIfPresent(in->flagId, 2);
+    capRunCommandWithTransition(1);
     return 0;
 }
 
 s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 4) {
-        Gp_RunCapCmd1(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 6 : 4);
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 6 : 4);
         if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0)) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA, 1);
             Gp_ApplyAreaRecs(D_neo_ark_garden_80182BF8);
         }
     }
     if (arg2 == 7) {
-        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 9 : 7, 0);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 9 : 7, CAP_EVENT_NO_FLAGS);
     }
     if (arg2 == 5) {
-        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xA : 5, 0);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xA : 5, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -182,7 +183,7 @@ static void func_neo_ark_garden_8017E9B4(Task* arg0)
     // Match arrival warp 3 and placement variant 2 as one halfword.
     if (*(u16*)&gGameSession->location.loc.warp == ((2 << 8) | 3)) {
         evsStartScriptWithSkip(D_actor_151000_801334EC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_151000_80133954);
-        func_800E3FAC(0xA2, 0x34);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x34);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

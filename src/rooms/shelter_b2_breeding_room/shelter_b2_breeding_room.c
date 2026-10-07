@@ -6,6 +6,8 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/enemy.h"
 #include "gameplay/items.h"
@@ -109,17 +111,17 @@ s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 
 {
     if (arg2 == 0x16) {
         if (gameFlagGetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN) != 0) {
-            Gp_RunCapCmd1(0x16);
+            capRunCommandWithTransition(0x16);
         } else {
             gameFlagSetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN, 1);
-            if (func_800E3FCC(0xA2) == 0x1E) {
-                func_800E3FAC(0xA2, 0x1F);
+            if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == 0x1E) {
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1F);
             }
             Gp_CapFile = 0;
             capSelectLoadedFile(1);
             capSetTexturePage(0x140, 0x100);
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            capRunCommandWithTransition(1);
             taskSpawnFromTable(D_shelter_b2_breeding_room_80180444, 0, 0, 0);
         }
     }
@@ -148,7 +150,7 @@ void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
 {
     if (capIsBusy() == 0) {
         capReset();
-        Gp_MsgPlayerWeapon(1);
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         taskKill(arg0);
     }
 }

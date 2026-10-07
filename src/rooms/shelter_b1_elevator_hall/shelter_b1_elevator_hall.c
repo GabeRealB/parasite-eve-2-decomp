@@ -5,6 +5,8 @@
 #include "shelter_b1_elevator_hall_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
@@ -41,20 +43,20 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
     mapShelterRoomVariantResolve(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && gameFlagGetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SetNibbleIf(src->flagId, 2);
-            Gp_RunCapCmd1(2);
+            gameFlagSetNibbleIfPresent(src->flagId, 2);
+            capRunCommandWithTransition(2);
         }
         return 0;
     }
     if (src->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(src->flagId, 2);
-                Gp_RunCapCmd1(1);
+                gameFlagSetNibbleIfPresent(src->flagId, 2);
+                capRunCommandWithTransition(1);
             }
         } else {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd(4, 0);
+                capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
                 taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CAC, 0, 0x54090008, 0);
             }
         }
@@ -65,7 +67,7 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* 
             D_shelter_b1_elevator_hall_801849F8.warp              = (u8)dst->areaId;
             D_shelter_b1_elevator_hall_801849F8.field_4           = dst->warp;
             ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1] = dst->room;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CE8, 0, 0, 0);
         }
         return 2;
@@ -89,7 +91,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
 
     switch (arg0->state) {
         case 0:
-            Gp_RunCapCmd(5, 0);
+            capRunCommand(5, CAP_PLAYBACK_IN_PLACE);
             arg0->state++;
             break;
         case 1:
@@ -102,7 +104,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
         case 2:
             if (capGetVariantKey() != 0xA) {
                 taskKill(arg0);
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 break;
             }
@@ -178,7 +180,7 @@ static void func_shelter_b1_elevator_hall_8017DBB8(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == 0) {
         gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, 1);
-        func_800E3FAC(0xA2, 0x1D);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1D);
     }
     arg0->state++;
 }

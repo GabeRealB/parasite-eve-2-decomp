@@ -101,7 +101,7 @@ segments:
       - [0x3C84, .rodata, world_collision]
       - [0x3CB0, pad] # alignment before the grid-list jump table
       - [0x3CB4, .rodata, object_lists]
-      - [0x3CC8, .rodata, cap_commands] # D_800974C8, the jtbls from Gp_RunCapCmd and Gp_EvtCapWeaponTask, then the cap strings and tables
+      - [0x3CC8, .rodata, cap_commands] # D_800974C8, the jtbls from capRunCommand and Gp_EvtCapWeaponTask, then the cap strings and tables
       - [0x3D38, .rodata, evs_scripts] # Gp_ScriptTaskStates and the demo labels, the jtbl from Gp_ScriptTaskState1, then the script state tables
       - [0x3E2C, .rodata, pad_scripts] # script dispatch tables
       - [0x3E60, .rodata, pad_input] # jtbl from func_800E9BDC
@@ -160,7 +160,7 @@ segments:
       - [0x4E7EC, c, damage] # Gp_ComputeDamage
       - [0x4F4D4, c, object_fields] # damageGetHazardDamage
       - [0x4F9E8, c, object_task] # func_800E31E8
-      - [0x4FCD8, c, cap_commands] # Gp_RunCapCmd and gameplay caption commands
+      - [0x4FCD8, c, cap_commands] # capRunCommand and gameplay caption commands
       - [0x508EC, c, cap_reloc] # capRelocateFile
       - [0x509F4, c, cap_start] # capStartSequence
       - [0x50CA0, c, captions] # caption interpreter, layout, events and file loading

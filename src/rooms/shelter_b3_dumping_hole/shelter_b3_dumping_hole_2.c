@@ -23,6 +23,7 @@
 #include "gameplay/attachments.h"
 #include "gameplay/cap.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -3729,7 +3730,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             }
             D_shelter_b3_dumping_hole_8018F4D8                               = 0;
             ((_ShelterB3DumpingHoleCollapseEventWork*)task->work)->savedView = gGameSession->location.loc.view;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             desc[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             desc[1] = 9;
             desc[2] = 1;

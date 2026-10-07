@@ -15,6 +15,8 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -511,7 +513,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             task->state++;
             break;
         case 1:
-            Gp_RunCapCmd(1, 0);
+            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case 2:
@@ -537,7 +539,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
                 func_neo_ark_pyramid_8017DAC0(0);
                 if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) >= 4) {
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE_DONE, 0, 0);
-                    Gp_RunCapCmd(2, 0);
+                    capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
                     task->state++;
                 } else {
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE_STOP, 0, 0);
@@ -558,8 +560,8 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             gGameSession->hideHud                                      = 0;
             gGameSession->eventState                                   = 0;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgPlayer3F3(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             taskKill(task);
             break;
     }
@@ -667,10 +669,10 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s
     if (request->actionId == 1) {
         func_neo_ark_pyramid_8017DAC0(0);
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) == 4) {
-            Gp_SpawnIfCapIdle(3, 1);
+            capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
         } else {
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             taskSpawnFromTable(&D_neo_ark_pyramid_8017FC0C, 0, 0, 0);
         }
     }

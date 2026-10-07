@@ -6,6 +6,8 @@
 
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -62,14 +64,14 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, s32 arg
 {
     if (arg2 == 1) {
         if (gameFlagGetNibble(GAME_FLAG_0D8) == 0) {
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_actor_450900_80135E78, 3, 0, 0);
         } else {
-            Gp_RunCapCmd1(1);
+            capRunCommandWithTransition(1);
         }
     }
     if (arg2 == 0x10) {
-        Gp_SpawnIfCapIdle(gameFlagGetNibble(GAME_FLAG_0D8) == 0 ? 0x10 : 0x11, 0);
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_0D8) == 0 ? 0x10 : 0x11, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -94,7 +96,7 @@ static void func_shelter_b6_growth_room_8017D71C(Task* arg0)
     evsStartScriptWithSkip(D_actor_450900_80136110, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450900_80136308);
     taskSpawnFromTable(D_actor_450900_80135E78, 1, 0, 0);
     taskSpawnFromTable(D_actor_450900_80135E78, 2, 0, 0);
-    func_800E3FAC(0xA2, 0x33);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x33);
     arg0->state = (s32)(arg0->state + 1);
 }
 

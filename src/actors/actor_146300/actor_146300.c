@@ -10,6 +10,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -1357,7 +1358,7 @@ void func_actor_146300_80131ECC(Task* task)
             switch (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
                 case 2:
                     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
-                        Gp_RunCapCmd1(0x12);
+                        capRunCommandWithTransition(0x12);
                         task->state++;
                     } else {
                         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
@@ -1373,7 +1374,7 @@ void func_actor_146300_80131ECC(Task* task)
                             D_actor_146300_80142824 = 0x13;
                             task->state             = 0x14;
                         } else {
-                            Gp_RunCapCmd1(0x12);
+                            capRunCommandWithTransition(0x12);
                             task->state++;
                         }
                     } else {
@@ -1390,7 +1391,7 @@ void func_actor_146300_80131ECC(Task* task)
                             D_actor_146300_80142824 = 0x14;
                             task->state             = 0x14;
                         } else {
-                            Gp_RunCapCmd1(0x12);
+                            capRunCommandWithTransition(0x12);
                             task->state++;
                         }
                     } else {
@@ -1414,7 +1415,7 @@ void func_actor_146300_80131ECC(Task* task)
             }
             break;
         case 1:
-            Gp_MsgPlayerWeapon(1);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             break;
         case 10:

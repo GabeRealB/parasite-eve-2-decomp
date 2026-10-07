@@ -5,6 +5,9 @@
 #include "dryfield_night_water_tower_private.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
+#include "gameplay/gameflag.h"
+#include "gameplay/sound.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"

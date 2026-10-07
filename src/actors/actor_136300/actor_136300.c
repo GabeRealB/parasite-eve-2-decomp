@@ -8,6 +8,7 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/ending.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -1438,7 +1439,7 @@ void func_actor_136300_8013267C(Task* arg0)
     switch (arg0->state) {
         case 0:
             gGameSession->hideHud = 1;
-            Gp_MsgPlayerWeapon(0);
+            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             evsStartScript(D_actor_136300_8013C5C8, EVENT_SCRIPT_HUD_KEEP);
             arg0->state += 1;
             return;
@@ -1450,7 +1451,7 @@ void func_actor_136300_8013267C(Task* arg0)
         case 2:
             if (capGetVariantKey() == 2) {
                 gGameSession->hideHud = 0;
-                Gp_MsgPlayerWeapon(1);
+                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(arg0);
                 return;
             }
@@ -1577,7 +1578,7 @@ void func_actor_136300_801329EC(void)
     } else {
         var_s0 = &D_actor_136300_8013B230;
     }
-    Gp_AllyAnimId(&var_s0->source.index);
+    companionWriteAnimationBankIndex(&var_s0->source.index);
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, var_s0, 0);
 }
 
