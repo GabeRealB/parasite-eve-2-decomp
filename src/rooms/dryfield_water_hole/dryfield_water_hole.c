@@ -54,10 +54,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_hole.h"
 
-#define D_dryfield_water_hole_8017FCC4 (D_dryfield_water_hole_8017FCBC + 1)
-#define D_dryfield_water_hole_8017FCDC (D_dryfield_water_hole_8017FCBC + 4)
-#define D_dryfield_water_hole_8017FD04 (D_dryfield_water_hole_8017FCBC + 9)
-
 /// The water-hole room's single cone light and adjacent uninterpreted image bytes.
 ///
 /// The light stays writable for coordinate composition and attenuation queries;
@@ -1478,16 +1474,16 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 1) {
                 if (mask & 0x18) {
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[0], &D_dryfield_water_hole_8017FCC4[-1], 0x100);
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCC4[2], &D_dryfield_water_hole_8017FCC4[1], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[1], &D_dryfield_water_hole_8017FCBC[0], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[3], &D_dryfield_water_hole_8017FCBC[2], 0x100);
                 }
                 if (mask & 0x50) {
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCDC[0], &D_dryfield_water_hole_8017FCDC[1], 0x100);
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCDC[2], &D_dryfield_water_hole_8017FCDC[3], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[4], &D_dryfield_water_hole_8017FCBC[5], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[6], &D_dryfield_water_hole_8017FCBC[7], 0x100);
                 }
                 if (mask & 0x80) {
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FD04[0], &D_dryfield_water_hole_8017FD04[-1], 0x100);
-                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FD04[2], &D_dryfield_water_hole_8017FD04[1], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[9], &D_dryfield_water_hole_8017FCBC[8], 0x100);
+                    _glowDrawTaperedBeam(coord, &D_dryfield_water_hole_8017FCBC[11], &D_dryfield_water_hole_8017FCBC[10], 0x100);
                 }
             }
             break;
