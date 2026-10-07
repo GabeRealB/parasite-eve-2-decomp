@@ -47919,7 +47919,7 @@ So check the neighbouring spans before budgeting a promotion: `end` of an
 existing span equal to your `start` means the cheap path.
 
 **The span is the object, so copies at a different work-block offset cannot
-join.** `func_actor_213100_8014A23C` and `func_actor_503500_801324EC` are the
+join.** `_actor213100InitBodyLighting` and `func_actor_503500_801324EC` are the
 same three-statement body over blocks whose matrices sit at 0x440/0x460 and
 0x00/0x20, so their `addiu` immediates differ and they stay in their own `.c`.
 The dup index already tells you this — it only grouped the six that are
@@ -64796,7 +64796,7 @@ The manifest `rodata` cut documented elsewhere is the fix when the *whole run*
 below a point belongs to the tail unit. It is not the fix here, because the
 un-migrated symbols interleave with ones still migrated into functions that
 stayed put: `actor_213100` needs `D_…E20` (standalone), `D_…E24` (still inside
-`func_actor_213100_80149FE4.s`), `D_…E30` (standalone) in that order.
+`_actor213100HeldModelTask.s`), `D_…E30` (standalone) in that order.
 
 An object's `.rodata` is emitted in file order, so add the standalone lines to
 the owning unit's `.c` interleaved with the `INCLUDE_ASM` lines such that the
@@ -128978,7 +128978,7 @@ Selected dumps and the preprocessed inputs are archived under
 permuter search found no output, so this is a manual controlled result.
 
 
-## m2c's phi-merged `var_vN` countdown keeps the loaded value in `$v1`; the compound statement puts it in `$v0` (func_actor_213100_80149E3C, 2026-09-17)
+## m2c's phi-merged `var_vN` countdown keeps the loaded value in `$v1`; the compound statement puts it in `$v0` (_actor213100UpdateBody, 2026-09-17)
 
 `m2c` lowers a "count down, free at zero" tail into an explicit phi variable so
 the recomputation after the call has a home:
@@ -128988,7 +128988,7 @@ the recomputation after the call has a home:
     if (temp_v0 >= 0) {
         var_v0_2 = temp_v0 - 1;
         if (temp_v0 == 0) {
-            tmdFreePrimitiveBuffer(extra);
+            tmdFreePrimitiveBuffer(model);
             var_v0_2 = work->freeCountdown - 1;
         }
         work->freeCountdown = var_v0_2;
@@ -129005,7 +129005,7 @@ spelling out:
 ```c
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(extra);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
@@ -129020,7 +129020,7 @@ it is cheap: that one statement was the last 0.19% (`base_6` 99.811% ->
 `base_5` 100.000%). The other 8 bytes of this function's frame were the
 `M2C_UNK` cold-slot size above — `M2C_UNK sp10` is a 4-byte address-taken scalar
 (one 8-byte slot) against the real 12-byte `VECTOR3`, which cost the prologue,
-the epilogue, every `$sp` displacement *and* the materialization of `&pos`.
+the epilogue, every `$sp` displacement *and* the materialization of `&groundPosition`.
 
 Inputs: `base_6.i`
 `eb4df25afd253d5a45efa2192a4d341fa9ce7e9820495e753c4a5a85ca6fdaf0` (99.811%),

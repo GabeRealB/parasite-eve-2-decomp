@@ -50,13 +50,13 @@ extern AnimationSet*  D_actor_213100_8015217C[10];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// Spawn table the spawn state takes its child from; entry 1 is the child,
-/// whose body is `func_actor_213100_80149FE4`.
+/// whose body is `_actor213100HeldModelTask`.
 extern TaskDesc D_actor_213100_801521A8[];
 
 /// Message table the spawn state installs at `Task::msgTable`: 0x7D3 is the
 /// animation handler `_actorMotionPlayAnim19`, 0x7D4 the placement
 /// handler `actorMsgPlaceEuler` and 0x7D5 the display handler
-/// `func_actor_213100_8014A40C`.
+/// `_actor213100SetModelDraw`.
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_213100_801521C0[4];
@@ -66,16 +66,17 @@ extern TaskMessageEntry D_actor_213100_801521C0[4];
 extern s8 D_actor_213100_801521E0[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
-static void func_actor_213100_8014A0B8(Task* task);
-static void func_actor_213100_8014A118(Task* arg0);
-static void func_actor_213100_8014A21C(Task* arg0);
-static void func_actor_213100_8014A23C(Task* arg0);
+static void _actor213100UpdateBody(Task* actorTask);
+static void _actor213100HeldModelIdle(Task* unusedTask);
+static void _actor213100InitBody(Task* actorTask);
+static void _actor213100ExitBody(Task* actorTask);
+static void _actor213100InitBodyLighting(Task* actorTask);
 
 static TmdSource _gActor213100JodieBouquetBody1;
 static TmdSource _gActor213100Actor213000Prop;
-s32              func_actor_213100_8014A40C(Task*, s32, s32, s32);
-void             func_actor_213100_80149FE4(Task*);
-void             func_actor_213100_8014A0C0(Task*);
+static s32       _actor213100SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s32 unusedSecondArg);
+static void      _actor213100HeldModelTask(Task* heldModelTask);
+static void      _actor213100BodyTask(Task* actorTask);
 
 static TmdBone _gActor213100JodieBouquetBody1Skeleton[19] = {
 #include "assets/jodie_bouquet_body_1_skeleton.inc"
@@ -353,14 +354,14 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 };
 
 TaskDesc D_actor_213100_801521A8[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_213100_8014A0C0, { .model = &_gActor213100JodieBouquetBody1 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_213100_80149FE4, { .model = &_gActor213100Actor213000Prop } },
+    { { { TASK_BODY_TMD, 192 } }, _actor213100BodyTask, { .model = &_gActor213100JodieBouquetBody1 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor213100HeldModelTask, { .model = &_gActor213100Actor213000Prop } },
 };
 
 TaskMessageEntry D_actor_213100_801521C0[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_213100_8014A40C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor213100SetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -391,51 +392,68 @@ s8 D_actor_213100_801521E0[24] = {
     0,
 };
 
-static void func_actor_213100_80149E3C(Task* task);
-
-/// Per-frame tick: ticks the work block's animation slots once they have been
-/// started, and while the model is shown samples the child part's
-/// translation through `worldCollisionProjectGroundPoint` and draws the ground shadow where it
-/// hits. Once the view is ready, rebuilds that part's world matrix, hands its
-/// translation to `worldCoordSetModelLighting`, and shows or hides this model and the
-/// child's together from the per-view table. `freeCountdown` then frees the
-/// model's buffers as it reaches zero.
-static void func_actor_213100_80149E3C(Task* task)
+/// Advances the body's eighteen child animation slots, leaving the root unchanged.
+///
+/// Requires an initialized nineteen-part rig and its borrowed animation bank.
+static inline void _actor213100TickBodyAnimation(ActorAnimRig19* rig)
 {
-    _Actor213100JodieBouquetWork* work;
-    TmdObject*                    extra;
-    TmdObject*                    child;
-    VECTOR3                       pos;
-    s32                           i;
+    enum { ACTOR_213100_FIRST_ANIMATED_PART = 1 };
+    s32 slotIndex;
 
-    work  = task->work;
-    extra = task->extra.tmd;
-    if (work->model.ticking != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
-        }
+    for (slotIndex = ACTOR_213100_FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(rig->slots); slotIndex++) {
+        animationTickSlot(&rig->anim, slotIndex);
     }
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
+}
+
+/// Updates Jodie's animation, ground shadow, lighting and paired model visibility.
+///
+/// Requires initialized body work, live body and held-model tasks, and a valid
+/// room view index into `D_actor_213100_801521E0` (1..20 in M.I.S.T. parking).
+/// The shadow uses body part 1's cached world position before the ready-view
+/// lighting/visibility update. Its half-side is 768 world-coordinate units.
+/// A pending buffer release advances even when hidden or the view is not ready;
+/// the update observing zero frees only the body's primitive buffers.
+static void _actor213100UpdateBody(Task* actorTask)
+{
+    enum {
+        ACTOR_213100_LIGHTING_PART           = 1,
+        ACTOR_213100_GROUND_SHADOW_HALF_SIZE = 0x300,
+        ACTOR_213100_LIGHT_COUNT             = 3,
+    };
+
+    _Actor213100JodieBouquetWork* work;
+    TmdObject*                    model;
+    TmdObject*                    heldModel;
+    VECTOR3                       groundPosition;
+
+    work  = actorTask->work;
+    model = actorTask->extra.tmd;
+    if (work->model.ticking != 0) {
+        _actor213100TickBodyAnimation(&work->rig);
+    }
+    // Sample the cached body transform before refreshing it for this view.
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART].workm), &groundPosition) != 0) {
+            effectDrawGroundShadow(&groundPosition, ACTOR_213100_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {
-        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(extra, task->extra.tmd->coords[1].workm.t, 0, 3);
-        child = work->heldModelTask->extra.tmd;
+        actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART]);
+        worldCoordSetModelLighting(model, actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART].workm.t, 0, ACTOR_213100_LIGHT_COUNT);
+        heldModel = work->heldModelTask->extra.tmd;
         if (D_actor_213100_801521E0[gGameSession->location.loc.view] != 0) {
-            extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            child->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags     &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            heldModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
-            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            child->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            heldModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
+    // Zero is acted on before decrementing, then -1 disables further release.
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(extra);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
@@ -446,158 +464,193 @@ static void func_actor_213100_80149E3C(Task* task)
 static const TaskFuncTable3 D_actor_213100_80149E24 = {
     {
         _modelPlacementAttachPartTask,
-        func_actor_213100_8014A0B8,
+        _actor213100HeldModelIdle,
         taskKill,
     },
 };
 
-/// Body of the child task: dispatches on its state through
-/// `D_actor_213100_80149E24`.
-void func_actor_213100_80149FE4(Task* task)
+/// Dispatches the held model's attachment, idle and teardown states.
+///
+/// Requires a live TMD task with state 0..2. State 0 borrows the parent TMD
+/// task from `spawnArg2.pointer` and its part index from `spawnArg1.value`;
+/// the coordinate and lighting matrices remain borrowed through teardown.
+static void _actor213100HeldModelTask(Task* heldModelTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateCallbacks;
 
-    sp = D_actor_213100_80149E24;
-    sp.funcs[task->state](task);
+    stateCallbacks = D_actor_213100_80149E24;
+    stateCallbacks.funcs[heldModelTask->state](heldModelTask);
 }
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// The child's idle state: does nothing.
-static void func_actor_213100_8014A0B8(Task* task)
+/// Leaves the attached held model under its parent's transform and lighting.
+///
+/// The task argument is ignored; attachment and resource lifetime are unchanged.
+static void _actor213100HeldModelIdle(Task* unusedTask)
 {
 }
 
 /// The actor's three states: spawn, per-frame tick and teardown.
 static const TaskFuncTable3 D_actor_213100_80149E30 = {
     {
-        func_actor_213100_8014A118,
-        func_actor_213100_80149E3C,
-        func_actor_213100_8014A21C,
+        _actor213100InitBody,
+        _actor213100UpdateBody,
+        _actor213100ExitBody,
     },
 };
 
-/// Body of the actor's task: dispatches on its state through
-/// `D_actor_213100_80149E30`.
-void func_actor_213100_8014A0C0(Task* task)
+/// Dispatches Jodie's body initialization, frame update and teardown states.
+///
+/// Requires a live TMD task with state 0..2 and a live owned `Enemy` in
+/// `spawnArg2.pointer`. Initialization failure tears down that enemy and task;
+/// frame updates require successfully initialized body work and held model.
+static void _actor213100BodyTask(Task* actorTask)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateCallbacks;
 
-    sp = D_actor_213100_80149E30;
-    sp.funcs[task->state](task);
+    stateCallbacks = D_actor_213100_80149E30;
+    stateCallbacks.funcs[actorTask->state](actorTask);
 }
 
-/// Spawn state: allocates the work block into `Task::work`, seeds its clip
-/// and bank to `ACTOR_MODEL_STATE_NONE` and `freeCountdown` to -1, then spawns
-/// the child from entry 1 of the spawn table, attached to part 8 of this
-/// actor's skeleton and kept in `heldModelTask`. Either allocation failing
-/// exits the task instead. Both models start hidden and
-/// take the work block's matrices; the actor starts its animation by calling
-/// the 0x7D3 handler directly with the preset `{ 0, 5, 0, 0, 0 }`, then
-/// installs its message table and exit callback and advances to the tick.
-static void func_actor_213100_8014A118(Task* arg0)
+/// Initializes Jodie's body playback and spawns the model held on part 8.
+///
+/// Requires the fresh state-0 nineteen-part TMD task and its owned `Enemy` in
+/// `spawnArg2.pointer`. Allocates primary-heap work owned by the task, lends
+/// its lighting matrices to the body and starts bank 0, clip 5 without blending.
+/// Both models begin hidden; the held task attaches on its first update.
+/// Allocation failure exits the actor. Success installs its message/exit
+/// callbacks and advances to the frame-update state.
+static void _actor213100InitBody(Task* actorTask)
 {
-    _Actor213100JodieBouquetWork* work;
-    AnimationPlayRequest          preset;
-    TmdObject*                    ext;
-    Task*                         child;
+    enum {
+        ACTOR_213100_BUFFER_FREE_NONE       = -1,
+        ACTOR_213100_HELD_MODEL_DESCRIPTOR  = 1,
+        ACTOR_213100_HELD_MODEL_PART        = 8,
+        ACTOR_213100_INITIAL_ANIMATION_BANK = 0,
+        ACTOR_213100_INITIAL_ANIMATION_ID   = 5,
+    };
 
-    work = memCalloc(sizeof(_Actor213100JodieBouquetWork), false);
+    _Actor213100JodieBouquetWork* work;
+    AnimationPlayRequest          initialAnimation;
+    TmdObject*                    model;
+    TmdObject*                    heldModel;
+    Task*                         heldModelTask;
+
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(actorTask);
         return;
     }
-    arg0->work          = work;
+    actorTask->work     = work;
     work->model.animId  = ACTOR_MODEL_STATE_NONE;
     work->model.bank    = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown = -1;
-    child               = taskSpawnFromTable(D_actor_213100_801521A8, 1, 8, arg0);
-    work->heldModelTask = child;
-    if (child == NULL) {
-        enemyTaskExit(arg0);
+    work->freeCountdown = ACTOR_213100_BUFFER_FREE_NONE;
+    heldModelTask       = taskSpawnFromTable(D_actor_213100_801521A8, ACTOR_213100_HELD_MODEL_DESCRIPTOR, ACTOR_213100_HELD_MODEL_PART, actorTask);
+    work->heldModelTask = heldModelTask;
+    if (heldModelTask == NULL) {
+        enemyTaskExit(actorTask);
         return;
     }
-    func_actor_213100_8014A23C(arg0);
-    ext                         = arg0->extra.tmd;
-    ext->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    ext                         = work->heldModelTask->extra.tmd;
-    ext->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    preset.source.index         = 0;
-    preset.animationId          = 5;
-    preset.blend                = ANIMATION_BLEND_RESET;
-    preset.blendFrames          = 0;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    _actorMotionPlayAnim19(arg0, 0, &preset, 0);
-    arg0->msgTable     = D_actor_213100_801521C0;
-    arg0->exitCallback = func_actor_213100_8014A21C;
-    arg0->state++;
+    // The held task will borrow these matrices when it attaches to the body.
+    _actor213100InitBodyLighting(actorTask);
+    model                                 = actorTask->extra.tmd;
+    model->flags                         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    heldModel                             = work->heldModelTask->extra.tmd;
+    heldModel->flags                     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    initialAnimation.source.index         = ACTOR_213100_INITIAL_ANIMATION_BANK;
+    initialAnimation.animationId          = ACTOR_213100_INITIAL_ANIMATION_ID;
+    initialAnimation.blend                = ANIMATION_BLEND_RESET;
+    initialAnimation.blendFrames          = 0;
+    initialAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    _actorMotionPlayAnim19(actorTask, 0, &initialAnimation, 0);
+    actorTask->msgTable     = D_actor_213100_801521C0;
+    actorTask->exitCallback = _actor213100ExitBody;
+    actorTask->state++;
 }
 
-/// The actor's teardown state and its `Task::exitCallback`: hands the task to
-/// `enemyTaskExit`.
-static void func_actor_213100_8014A21C(Task* arg0)
+/// Releases the actor's enemy object and tears down its body and attached model.
+///
+/// Used for state 2 and as the exit callback. Requires the live owned `Enemy`
+/// in `spawnArg2.pointer`; task teardown releases body work and dispatches
+/// attached children before releasing model resources. Do not use the work
+/// or enemy after this call.
+static void _actor213100ExitBody(Task* actorTask)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(actorTask);
 }
 
-/// Points the model's light and colour matrices at the work block's own pair.
-static void func_actor_213100_8014A23C(Task* arg0)
+/// Lends the body's work-owned light-direction and light-colour matrices to its model.
+///
+/// Requires live body work and a TMD model. Replaces both matrix pointers
+/// without initializing their values; the work must outlive every model use.
+static void _actor213100InitBodyLighting(Task* actorTask)
 {
-    TmdObject*                    ext;
+    TmdObject*                    model;
     _Actor213100JodieBouquetWork* work;
 
-    ext           = arg0->extra.tmd;
-    work          = arg0->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    model           = actorTask->extra.tmd;
+    work            = actorTask->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
 }
 
 #include "../../shared/actor_motion_play19.inc.c"
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// Message-0x7D5 display handler: switches on the message's mode word, then
-/// copies the model's flags onto the child's model. Mode 0 hides the model
-/// and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, reallocates its buffers through
-/// `tmdAllocPrimitiveBuffer` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts
-/// `freeCountdown` at two ticks, after which the tick frees the buffers; 3
-/// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
-/// nothing on this model and returns 1.
-s32 func_actor_213100_8014A40C(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Sets body drawing and buffer policy, then mirrors every flag to the held model.
+///
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` after successful initialization.
+/// Modes: 0 hides and permits automatic buffer recovery; 1 shows, attempts
+/// body-buffer allocation and permits recovery; 2 hides, suppresses recovery
+/// and schedules body-buffer release; 3 shows and suppresses recovery without
+/// allocation. Mode 2 frees on the third body update, after two decrements.
+/// Other modes retain body flags but still copy them to the held model.
+///
+/// Modes 0/1/3 retain a pending release. A ready-view body update may replace
+/// either model's active-draw flag with the room's visibility policy. Returns
+/// 0 for modes 0..3, including allocation failure, and 1 otherwise.
+/// The message ID and second payload are ignored; no payload is retained.
+static s32 _actor213100SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s32 unusedSecondArg)
 {
-    TmdObject*                    obj;
-    TmdObject*                    other;
-    _Actor213100JodieBouquetWork* work;
-    s32                           ret;
+    enum {
+        ACTOR_213100_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+        ACTOR_213100_BUFFER_FREE_DELAY_TICKS    = 2,
+    };
 
-    obj   = task->extra.tmd;
-    work  = task->work;
-    other = work->heldModelTask->extra.tmd;
-    ret   = 0;
+    TmdObject*                    model;
+    TmdObject*                    heldModel;
+    _Actor213100JodieBouquetWork* work;
+    s32                           result;
+
+    model     = actorTask->extra.tmd;
+    work      = actorTask->work;
+    heldModel = work->heldModelTask->extra.tmd;
+    result    = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = ACTOR_213100_BUFFER_FREE_DELAY_TICKS;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_213100_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    other->flags = obj->flags;
-    return ret;
+    heldModel->flags = model->flags;
+    return result;
 }
