@@ -1670,7 +1670,7 @@ static void func_actor_800300_80162064(Task* arg0)
         coord->coord.t[2] = actor->previousPosition.vz;
     } else {
         if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = func_801011D0(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
             if ((s8)actor->gridResponse == 2) {
                 coord->coord.t[0] = actor->previousPosition.vx;
                 coord->coord.t[1] = actor->previousPosition.vy;
@@ -1899,7 +1899,7 @@ static void func_actor_800300_80162658(Task* arg0)
                 actor->turnRateIndex    = 0;
                 actor->statePhase       = 0;
                 actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-                Gp_PlayObjSfx(obj, (rand() & 1) + 0x55170005, 0);
+                worldCoordPlaySound(obj, (rand() & 1) + 0x55170005, 0);
                 if (Gp_HurtAlly(arg0, 0, 0x40010, 0) != 0) {
                     return;
                 }
@@ -1927,8 +1927,8 @@ static void func_actor_800300_80162658(Task* arg0)
     }
     Gp_TickActorAnimState(arg0);
     playerActorTickChildSlots(arg0);
-    Gp_TurnPlayer(arg0);
-    Gp_StepPlayerMove(arg0);
+    playerActorUpdateFacing(arg0);
+    playerActorStepMovement(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
@@ -2169,8 +2169,8 @@ static void func_actor_800300_80162F24(Task* arg0)
             coord->coord.t[1] += 0xC0;
         case 1:
             playerActorTickChildSlots(arg0);
-            Gp_TurnPlayer(arg0);
-            Gp_StepPlayerMove(arg0);
+            playerActorUpdateFacing(arg0);
+            playerActorStepMovement(arg0);
             break;
     }
 }
@@ -2195,7 +2195,7 @@ static void func_actor_800300_80162F98(Task* arg0)
     sp    = D_actor_800300_80161E64;
     actor = arg0->work;
     sp.funcs[(u16)actor->state](arg0);
-    Gp_TurnPlayer(arg0);
+    playerActorUpdateFacing(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }

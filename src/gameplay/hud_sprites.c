@@ -66,6 +66,7 @@
     }
 
 #include "gameplay/damage.h"
+#include "gameplay/room_effects.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/random.h"
@@ -983,7 +984,7 @@ void Gp_TriggerPeIfArmed(void)
     if ((state == 1) || (state == 3)) {
         if (gGameSession->battleResetPending == 0) {
             Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
-            Gp_PulseState1C80();
+            roomEffectRequestCancelPe();
             gDisplayState.suppressDisconnectPause = 0;
             displayQueueModeTask(&D_8010CABC, 1, 0, STAGE_ENTRY_RELOAD_FORCED);
         }

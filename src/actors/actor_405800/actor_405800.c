@@ -2847,8 +2847,8 @@ static void func_actor_405800_80136388(Task* arg0)
                 if (enemy->hp < 0) {
                     enemy->hp = 0;
                 }
-                func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
-                              &arg0->extra.tmd->coords[4], NULL, &work->effectArg);
+                effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
+                               &arg0->extra.tmd->coords[4], NULL, &work->effectArg);
                 if (amount >= 0xB4) {
                     work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_HEAVY;
                 } else if (amount >= 0x78) {
@@ -2890,7 +2890,7 @@ static void func_actor_405800_80136388(Task* arg0)
                         break;
                 }
             } else if ((damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value)) == 0xD) {
-                func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
             }
         }
     }

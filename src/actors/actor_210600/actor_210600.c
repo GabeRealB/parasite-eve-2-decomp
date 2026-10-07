@@ -23,6 +23,7 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
+#include "gameplay/room_effects.h"
 
 #include "main/coord.h"
 #include "main/gfx.h"
@@ -487,7 +488,7 @@ static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
             eff.coord      = task->extra.tmd->coords;
             eff.spawnArgLo = 0x100;
             eff.spawnArgHi = 2;
-            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), task->extra.tmd->coords + 1, &vec, &eff);
+            effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), task->extra.tmd->coords + 1, &vec, &eff);
         }
         work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }

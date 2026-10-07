@@ -671,7 +671,7 @@ static void func_actor_521100_80136290(Enemy* arg0, Task* task)
 /// vertical jitter of `(LCG top half - 0x8000) * 200 / 0x10000` (so within
 /// +/-100); with 1 the player's (slot 3) first coordinate, moved by a fixed
 /// (0x2BC, -0x384). The anchor is then cleared, updated and handed to the
-/// effect spawner `func_800FDB18` through the `EffectSpawnArg` record beside it.
+/// effect spawner `effectSpawnHit` through the `EffectSpawnArg` record beside it.
 ///
 /// `Task::state` is the frame counter as well as the run gate - it advances
 /// every frame and the body stops re-anchoring once it reaches 0x83, killing
@@ -700,7 +700,7 @@ void func_actor_521100_80136404(Task* task)
         D_actor_521100_8016A3E8.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&D_actor_521100_8016A3E8);
         D_actor_521100_8016A3CC.coord = &D_actor_521100_8016A3E8;
-        func_800FDB18(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
+        effectSpawnHit(D_actor_521100_8016A3D4, &D_actor_521100_8016A3E8, NULL, &D_actor_521100_8016A3CC);
     }
     if (task->state >= 0x83) {
         taskKill(task);

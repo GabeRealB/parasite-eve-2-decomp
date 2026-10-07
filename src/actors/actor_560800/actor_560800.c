@@ -6111,7 +6111,7 @@ void func_actor_560800_80136818(void)
     PlayerStatus*             cfg  = &gPlayerStatus;
     s16                       hp;
 
-    Gp_KillPlayerEffs();
+    playerActorRemoveEquipment();
 
     if (cfg->hp < 0x33) {
         hp = 1;
@@ -6141,7 +6141,7 @@ void func_actor_560800_80136878(void)
         PlayerStatus*             cfg   = &gPlayerStatus;
         _Actor560800CutsceneWork* work2 = D_actor_560800_8017578C->work;
 
-        Gp_KillPlayerEffs();
+        playerActorRemoveEquipment();
         if (cfg->hp < 0x33) {
             hp = 1;
         } else {

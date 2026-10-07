@@ -503,8 +503,8 @@ static void func_actor_205200_8014BD4C(Task* arg0)
                 work->actionStep = ACTOR_205200_HIT_REACTION_BEGIN;
                 if (last != work->hitContacts[i].key.value) {
                     last = work->hitContacts[i].key.value;
-                    func_800FDB18(damageGetPlayerAttackEffectId(last), &arg0->extra.tmd->coords[3], NULL,
-                                  &work->hitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(last), &arg0->extra.tmd->coords[3], NULL,
+                                   &work->hitEffectArg);
                 }
                 if ((n = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value)) > 0) {
                     work->hitCooldown = n;

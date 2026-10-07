@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Per-frame contact handling for the overlay's enemy. Walks the eight
@@ -66,8 +68,8 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     if (enemy->hp < 0) {
                         enemy->hp = 0;
                     }
-                    func_800FDB18(damageGetPlayerAttackEffectId(work->contacts[i].key.value),
-                                  &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->contacts[i].key.value),
+                                   &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                     if (amount >= 0x28) {
                         work->hitReaction = MAD_CHASER_HIT_REACTION_HEAVY;
                     } else {
@@ -105,7 +107,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                             break;
                     }
                 } else if ((damageGetPlayerAttackEffectId(work->contacts[i].key.value)) == 0xD) {
-                    func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+                    effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                 }
                 break;
         }

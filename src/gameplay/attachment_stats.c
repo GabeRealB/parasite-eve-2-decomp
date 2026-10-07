@@ -1601,7 +1601,7 @@ void Gp_HudTask(HudState* hud)
                         combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
                         attachment->previewSound = 0;
                         attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
-                        Gp_PulseState1C80();
+                        roomEffectRequestCancelPe();
                         worldTargetClearActorTargetMarks();
                         if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
                             hud->battleStep = hud->battleStep + 1;
@@ -1755,7 +1755,7 @@ void Gp_HudTask(HudState* hud)
         }
     }
     if (gDisplayState.pendingMode == DISPLAY_MODE_MAP) {
-        Gp_PulseState1C80();
+        roomEffectRequestCancelPe();
     }
 }
 

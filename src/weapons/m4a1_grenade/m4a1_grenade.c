@@ -21,6 +21,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/gfx.h"
@@ -122,14 +123,14 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                 actor->stateTimer        = 0;
                 actor->attackCancelTicks = 9;
                 actor->actionValue       = 3;
-                func_80106238(arg0, 0, 1);
+                playerActorSetWeaponAttackFlags(arg0, 0, 1);
             } else if (actor->attackButton & 2) {
                 actor->statePhase                  = 4;
                 actor->attackControl.cooldownTicks = 0x28;
                 actor->attackCancelTicks           = 0x22;
                 Gp_ConsumeSlotQty(0x9A, 0x101);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                              ((sfx - 0xA) << 24) | 0x201B0006, 1);
+                worldCoordPlaySound(arg0->extra.tmd->coords,
+                                    ((sfx - 0xA) << 24) | 0x201B0006, 1);
                 effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x1B,
                             NULL);
@@ -150,8 +151,8 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                                  ((sfx - 0xA) << 24) | 0x201B0004, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords,
+                                        ((sfx - 0xA) << 24) | 0x201B0004, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1B, NULL);
@@ -160,8 +161,8 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                     actor->stateTimer = delay - 1;
                     if (delay - 1 == 2) {
                         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                        if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                            Gp_PlayObjSfx(spot, 0x17, 1);
+                        if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                            worldCoordPlaySound(spot, 0x17, 1);
                         }
                     }
                 }
@@ -172,8 +173,8 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
             actor->statePhase                                     = 5;
             actor->actionValue                                    = 0;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_PlayObjSfx(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                worldCoordPlaySound(spot, 0x17, 1);
             }
             /* fallthrough */
         case 5:
@@ -181,8 +182,8 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
             if (rec != NULL && rec != actor->lastCueRecord) {
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                                  (actor->actionValue + 0x201B0008) | ((sfx - 0xA) << 24), 0);
+                    worldCoordPlaySound(arg0->extra.tmd->coords,
+                                        (actor->actionValue + 0x201B0008) | ((sfx - 0xA) << 24), 0);
                     actor->actionValue++;
                 }
             }
@@ -326,7 +327,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
         effectSpawn(EFFECT_GRENADE_EXPLOSION, coord, scratch->ammunitionIndex, NULL);
         sfxbase = gPlayerStatus.weapon << 16;
         sfxarg  = ((scratch->ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | 0x20000007;
-        Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
+        worldCoordPlaySound(coord, sfxbase | sfxarg, 1);
         clip = 8;
         if (scratch->ammunitionIndex == GRENADE_ROUND_AIRBURST) {
             clip = 1;

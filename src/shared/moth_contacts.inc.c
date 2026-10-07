@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Moth library; see moth.h. */
 
 /// Loads the frame's movement record off the scratchpad, folds it into the
@@ -71,8 +73,8 @@ void mothContacts(Task* arg0)
             worldTargetAddReadoutAmount(&((Enemy*)arg0->spawnArg2.pointer)->node, amount, 0);
             damageAccumulateLifeDrainHp(arg0->spawnArg2.pointer, work->hitContacts[0].key.value, damage, 0);
             ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
-            func_800FDB18(damageGetPlayerAttackEffectId((s32)work->hitContacts[0].key.value), arg0->extra.tmd->coords, 0,
-                          &work->hitEffectArg);
+            effectSpawnHit(damageGetPlayerAttackEffectId((s32)work->hitContacts[0].key.value), arg0->extra.tmd->coords, 0,
+                           &work->hitEffectArg);
             break;
     }
     worldCollisionClearContacts(work->hitContacts);

@@ -1035,7 +1035,7 @@ void func_actor_341900_801633F8(void)
 
     if (work->playerEquipmentRemoved == 0) {
         work->playerEquipmentRemoved = 1;
-        Gp_KillPlayerEffs();
+        playerActorRemoveEquipment();
     }
 }
 

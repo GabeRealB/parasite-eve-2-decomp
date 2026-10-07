@@ -589,7 +589,7 @@ static void Actor02400_Fn00C08(Task* task)
                         param                    = damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value);
                         if (Actor02400_D0463C[param] == 0 && lastId != work->bodyContacts[i].key.value) {
                             lastId = work->bodyContacts[i].key.value;
-                            func_800FDB18(param, coord, NULL, &work->effectArg);
+                            effectSpawnHit(param, coord, NULL, &work->effectArg);
                         }
                         break;
                     case 2:

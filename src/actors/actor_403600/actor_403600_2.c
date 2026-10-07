@@ -2671,7 +2671,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
         }
         work->damageTaken += damage;
         if ((enemy->hp > 0) && (arg0 == D_actor_403600_801606A8)) {
-            func_800FDB18(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value), &work->worldCoord, &work->hitEffectOffset, &work->hitEffectArg);
+            effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value), &work->worldCoord, &work->hitEffectOffset, &work->hitEffectArg);
         }
         stun = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
         if (stun > 0) {
@@ -2761,7 +2761,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
             ((Actor403600Work*)temp_v0_2->work)->step = 1;
         }
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        Gp_PulseState1C80();
+        roomEffectRequestCancelPe();
         gGameSession->eventState            = 1;
         D_actor_403600_80160568.animationId = 0;
         taskMessageDispatch(*gPlayerActorTasks, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);

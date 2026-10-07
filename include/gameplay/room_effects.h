@@ -143,6 +143,49 @@ void roomEffectRecordAnimationSoundCue(s32 cueIndex);
 /// teardown; callbacks with additional resources must release those themselves.
 EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnArg, SVECTOR* offset);
 
+/// Hit-effect recipes selected by attack-property tables, separate from packed effect-task ids.
+///
+/// SPLATTER and SPLATTER_ALT run the same recipe. CONTROL_E3 selects the
+/// bank-6 E3 handler; its further visual role is unproven. Kind 0, 14 and
+/// other unlisted values perform no spawn.
+enum {
+    EFFECT_HIT_KIND_WEAPON_PUFF      = 1,
+    EFFECT_HIT_KIND_TINTED_PUFF      = 2,
+    EFFECT_HIT_KIND_BLAST            = 3,
+    EFFECT_HIT_KIND_PARTICLE_EMITTER = 4,
+    EFFECT_HIT_KIND_SPLATTER         = 5,
+    EFFECT_HIT_KIND_SPARK_AND_PUFFS  = 6,
+    EFFECT_HIT_KIND_SPARK_BURST      = 7,
+    EFFECT_HIT_KIND_DENSE_PUFFS      = 8,
+    EFFECT_HIT_KIND_SPLATTER_ALT     = 9,
+    EFFECT_HIT_KIND_CONTROL_E3       = 10,
+    EFFECT_HIT_KIND_BLAST_WITH_SOUND = 11,
+    EFFECT_HIT_KIND_APOBIOSIS_SHARD  = 12,
+    EFFECT_HIT_KIND_LIFE_DRAIN_MOTES = 13,
+    EFFECT_HIT_KIND_HAMMER_FLASH     = 15,
+    EFFECT_HIT_KIND_WEAPON_BLAST     = 16,
+};
+
+/// Dispatches a damage-hit effect recipe using call placement and an optional spawn record.
+///
+/// `effectKind` narrows to 16 bits before dispatch. Requires a live player
+/// task/work and effect controller even for a recipe that spawns nothing.
+/// `localOffset` is an optional signed XYZ offset in the chosen coordinate's
+/// space; placement and borrowed-pointer lifetimes follow `effectSpawn`.
+///
+/// A NULL record selects the shared default {coord, 512, 1}, replacing its
+/// coordinate on every call. An explicit record with NULL coord is filled from
+/// the call or the view node; a NULL call coordinate reuses that record's node.
+/// With both present they stay distinct: some recipes use the record node,
+/// others the call node. The record is mutated but its address is not retained.
+///
+/// Recipes 3..5, 7, 9, 11 and 15 pack the signed record halves into a spawn word;
+/// 10 forces its high half to 1; 16 does so only for alternate fire. Puff/mote
+/// recipes use the high half as a count (8 triples it); 12 reads neither half.
+/// Recipe 11 ignores the offset and requires attachment id's decimal suffix
+/// in 1..3 for its sound table. Return is void; individual spawn failures are ignored.
+void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, EffectSpawnArg* spawnRecord);
+
 /// Draws a semitransparent full-screen colour tint over the current frame.
 ///
 /// `rgb` supplies three readable bytes; `blendMode`'s low two bits select
@@ -267,6 +310,13 @@ void effectKillTask(void* effectWork, Task* task);
 /// update and clears the pending flags. Each effect applies its own teardown
 /// policy when it observes the published control value.
 void roomEffectRequestCancelAll(void);
+
+/// Requests parasite-energy effect cancellation on the next room-effect update.
+///
+/// Requires a live `gRoomEffectState`. Pending requests coalesce; the
+/// controller publishes PE cancellation for one update and clears the request.
+/// Each affected effect applies its own teardown policy.
+void roomEffectRequestCancelPe(void);
 
 /// Enables semitransparency and queues the blend mode for an untextured primitive.
 ///

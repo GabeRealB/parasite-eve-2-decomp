@@ -1167,7 +1167,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                     hitId = work->hitContacts[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
-                        func_800FDB18(damageGetPlayerAttackEffectId(lastId), arg0->extra.tmd->coords + 3, NULL, &work->hitEffectArg);
+                        effectSpawnHit(damageGetPlayerAttackEffectId(lastId), arg0->extra.tmd->coords + 3, NULL, &work->hitEffectArg);
                     }
                     result = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                     if (result > 0) {

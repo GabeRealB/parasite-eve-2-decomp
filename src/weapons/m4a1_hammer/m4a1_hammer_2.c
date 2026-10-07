@@ -10,6 +10,7 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/mc.h"
@@ -87,7 +88,7 @@ void func_m4a1_hammer_8011E710(Task* arg0)
                 rec->end1Radius                                       = 0x100;
                 rec->ends[0].vz                                       = rec->ends[1].vz + D_80112F60[0x19];
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
-                func_80106238(arg0, 0, 1);
+                playerActorSetWeaponAttackFlags(arg0, 0, 1);
             } else if (actor->attackButton & 2) {
                 actor->statePhase                                     = 5;
                 actor->turnRateIndex                                  = 2;
@@ -99,13 +100,13 @@ void func_m4a1_hammer_8011E710(Task* arg0)
                 rec->end1Radius                                       = 0x400;
                 rec->ends[0].vz                                       = rec->ends[1].vz + 0xA00;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                func_80106238(arg0, 0, 0);
+                playerActorSetWeaponAttackFlags(arg0, 0, 0);
                 hammer = actor->weaponEffectTask;
                 if (hammer != NULL) {
                     hammer->spawnArg1.value = M4A1_HAMMER_GLOW_CHARGED;
                 }
                 Gp_ConsumeSlotQty(0x98, 0x101);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20190005, 1);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20190005, 1);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
                 break;
             }
@@ -122,7 +123,7 @@ void func_m4a1_hammer_8011E710(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20190004, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20190004, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x19, NULL);
@@ -132,8 +133,8 @@ void func_m4a1_hammer_8011E710(Task* arg0)
                 actor->stateTimer = delay - 1;
                 if (delay - 1 == 2) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                        Gp_PlayObjSfx(spot, 0x17, 1);
+                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                        worldCoordPlaySound(spot, 0x17, 1);
                     }
                 }
                 break;
@@ -142,8 +143,8 @@ void func_m4a1_hammer_8011E710(Task* arg0)
         case 4:
             actor->statePhase                                     = 6;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_PlayObjSfx(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                worldCoordPlaySound(spot, 0x17, 1);
             }
             break;
         case 5:

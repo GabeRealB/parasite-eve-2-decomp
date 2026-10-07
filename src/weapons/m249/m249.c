@@ -5,6 +5,7 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/mc.h"
@@ -75,14 +76,14 @@ void func_m249_8011D1DC(Task* arg0)
             actor->attackControl.cooldownTicks = 0;
             actor->rumblePosted                = 0;
             actor->stateTimer                  = 2;
-            func_80106238(arg0, 0, actor->attackButton != 1);
+            playerActorSetWeaponAttackFlags(arg0, 0, actor->attackButton != 1);
             /* fallthrough */
         case 3:
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_ConsumeSlotQty(0x90, 1);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20110004, 1);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20110004, 1);
                 effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x11,
                             NULL);
@@ -94,8 +95,8 @@ void func_m249_8011D1DC(Task* arg0)
             actor->movementSign = 0;
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_PlayObjSfx(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                worldCoordPlaySound(spot, 0x17, 1);
             }
             /* fallthrough */
         case 5:

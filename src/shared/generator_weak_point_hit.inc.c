@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Generator library; see generator.h. */
 
 /// Per-frame hit handling of the weak point: distance-scaled damage with
@@ -60,9 +62,9 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             } else if (damage > 0) {
                 if (part->hitEffectCooldown == 0) {
                     if ((damageGetPlayerAttackReaction(part->contacts[0].key.value) & 0xFFFF) == DAMAGE_PLAYER_REACTION_INCENDIARY) {
-                        func_800FDB18(3, coord, NULL, &part->effectArg);
+                        effectSpawnHit(EFFECT_HIT_KIND_BLAST, coord, NULL, &part->effectArg);
                     }
-                    func_800FDB18(7, coord, NULL, &part->effectArg);
+                    effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, NULL, &part->effectArg);
                     part->hitEffectCooldown = 10;
                 }
                 hitTime = damageGetPlayerAttackHitCooldown(part->contacts[0].key.value);

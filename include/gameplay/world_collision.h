@@ -124,6 +124,24 @@ s32 worldCollisionResolvePushback(const WorldCollisionContact* contacts, WorldCo
 /// Releases scratch storage before return and retains no pointers.
 s32 worldCollisionResolveResponsePushback(const WorldCollisionContact* contacts, WorldCollisionDelta* delta, s32 contactCount, s32* surfaceMaskOut);
 
+/// Applies response-dispatched grid correction to a coordinate's local translation.
+///
+/// Reads `contactCount` contacts in 0..32, with the contracts of
+/// `worldCollisionResolveResponsePushback`; current callers pass six. Steps
+/// each fractional 16.16 component one whole unit away from zero, then adds
+/// its signed integer half to XYZ. Negative fractions therefore take one
+/// further negative unit beyond the integer half's flooring. Translation and correction must share a coordinate
+/// frame; fixed-value rounding and resulting coordinates must fit their storage.
+/// Does not invalidate or compose the node.
+///
+/// Returns NO_GRID_HIT when no grid hit occurs or the resolved XZ correction
+/// is zero, otherwise GRID_HIT or OPPOSED; vertical correction still applies
+/// when the return is zero. On a grid hit, non-NULL `surfaceClassOut` receives
+/// the class selected from the collected surface mask. With no grid hit it is
+/// left untouched. Inputs, coordinate and optional output must be live and
+/// disjoint from the initialized scratch stack; no pointers are retained.
+s32 worldCollisionApplyResponsePushback(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s32* surfaceClassOut);
+
 /// Collision groups selected when linking a body; group membership determines pair-test partners.
 ///
 /// Enemy-body lists also carry shootable scenery and movement probes; enemy

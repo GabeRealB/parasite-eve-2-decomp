@@ -1,5 +1,7 @@
 #include "main/random.h"
 
+#include "gameplay/room_effects.h"
+
 /* Part of the incinerator blaze library; see incinerator_blaze.h. */
 
 /// Spawn task of the overlay's spawn table (`_blazeFadeTask`'s
@@ -35,7 +37,7 @@ void blazeBodyFireTask(Task* arg0)
             idx                       &= 3;
             gBlazeFireSpawn.spawnArgLo = 0x100;
             gBlazeFireSpawn.coord      = &slot->extra.tmd->coords[gBlazePlayerParts[idx]];
-            func_800FDB18(3, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
             arg0->state++;
             return;
         case 1:
@@ -46,7 +48,7 @@ void blazeBodyFireTask(Task* arg0)
                 idx                       &= 3;
                 gBlazeFireSpawn.spawnArgLo = 0x10;
                 gBlazeFireSpawn.coord      = &slot->extra.tmd->coords[gBlazePlayerParts[idx]];
-                func_800FDB18(3, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
+                effectSpawnHit(EFFECT_HIT_KIND_BLAST, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
                 return;
             }
             if (gDisplayState.animFrame & 7) {
@@ -55,7 +57,7 @@ void blazeBodyFireTask(Task* arg0)
             idx                       &= 0xF;
             gBlazeFireSpawn.spawnArgLo = 0x100;
             gBlazeFireSpawn.coord      = &slot->extra.tmd->coords[gBlazePlayerParts[idx]];
-            func_800FDB18(3, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, slot->extra.tmd->coords, NULL, &gBlazeFireSpawn);
             return;
     }
 }

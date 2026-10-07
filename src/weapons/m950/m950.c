@@ -5,6 +5,7 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/mc.h"
@@ -35,7 +36,7 @@ void func_m950_8011D1DC(Task* arg0)
             actor->animationState                                 = 0;
             actor->statePhase                                    += 1;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC00;
-            func_80106238(arg0, 0, 1);
+            playerActorSetWeaponAttackFlags(arg0, 0, 1);
             anim = 1;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 anim = 5;
@@ -61,7 +62,7 @@ void func_m950_8011D1DC(Task* arg0)
                 actor->statePhase++;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_ConsumeSlotQty(0x82, 1);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20030004, 1);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20030004, 1);
                 effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 3, NULL);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
             }
@@ -70,8 +71,8 @@ void func_m950_8011D1DC(Task* arg0)
             actor->attackCancelTicks = 9;
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_PlayObjSfx(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                worldCoordPlaySound(spot, 0x17, 1);
             }
             /* fallthrough */
         case 5:

@@ -3998,7 +3998,7 @@ static void func_actor_403100_8013335C(Task* arg0)
                 if ((s16)hp < 0) {
                     D_actor_403100_8015580C->hp = 0U;
                 }
-                func_800FDB18(damageGetPlayerAttackEffectId(D_actor_403100_80155808->hitContacts[i].key.value), &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
+                effectSpawnHit(damageGetPlayerAttackEffectId(D_actor_403100_80155808->hitContacts[i].key.value), &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
                 D_actor_403100_80155808->hitReaction = 1;
                 switch (damageGetPlayerAttackReaction(D_actor_403100_80155808->hitContacts[i].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_NONE:
@@ -4037,7 +4037,7 @@ static void func_actor_403100_8013335C(Task* arg0)
                     worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
                 }
             } else if ((damageGetPlayerAttackEffectId(hitId)) == 0xD) {
-                func_800FDB18(0xD, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
+                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[4], 0, &D_actor_403100_80155630);
             }
         }
         if (D_actor_403100_80155808->hitTaken != 0)

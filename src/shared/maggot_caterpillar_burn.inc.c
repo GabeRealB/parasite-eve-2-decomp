@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
 /// Status-effect step, run every frame while `burning` is set. `burnFrame`
@@ -20,10 +22,10 @@ void maggotCaterpillarBurnStep(Task* arg0)
     if (++work->burnEffectTimer == 0xC) {
         work->burnEffectTimer = 0;
         if (work->burnEffectSide == 0) {
-            func_800FDB18(3, arg0->extra.tmd->coords + 3, NULL, &work->effectArg);
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, arg0->extra.tmd->coords + 3, NULL, &work->effectArg);
             work->burnEffectSide = 1;
         } else {
-            func_800FDB18(3, arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
             work->burnEffectSide = 0;
         }
     }

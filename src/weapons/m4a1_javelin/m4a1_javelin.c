@@ -788,7 +788,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                 actor->actionValue                                    = 3;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | 0x21D00;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
-                func_80106238(arg0, 0, 1);
+                playerActorSetWeaponAttackFlags(arg0, 0, 1);
             } else if (actor->attackButton & 2) {
                 actor->statePhase                                     = 5;
                 actor->turnRateIndex                                  = 2;
@@ -796,7 +796,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                 actor->stateTimer                                     = 6;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x21D1F;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                func_80106238(arg0, 0, 0);
+                playerActorSetWeaponAttackFlags(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x9C, 0x101);
                 eff = effectSpawn(EFFECT_JAVELIN_GUIDE_BEAM,
                                   actor->equipmentTasks[1]->extra.tmd->coords,
@@ -804,7 +804,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                 if (eff != NULL) {
                     taskReparent(actor->equipmentTasks[1], eff->task);
                 }
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201D0005, 1);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x201D0005, 1);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
                 break;
             }
@@ -822,7 +822,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201D0004, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x201D0004, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1D, NULL);
@@ -832,9 +832,9 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                     actor->stateTimer = delay;
                     if (delay == 2) {
                         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                        if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
+                        if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
                             effectSpawn(EFFECT_IMPACT_SPARK, spot, 0, NULL);
-                            Gp_PlayObjSfx(spot, 0x17, 1);
+                            worldCoordPlaySound(spot, 0x17, 1);
                         }
                     }
                 }
@@ -844,9 +844,9 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
         case 4:
             actor->statePhase                                     = 7;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
                 effectSpawn(EFFECT_IMPACT_SPARK, spot, 0, NULL);
-                Gp_PlayObjSfx(spot, 0x17, 1);
+                worldCoordPlaySound(spot, 0x17, 1);
             }
             break;
         case 5:
@@ -863,7 +863,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 }
             }
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
                 _m4a1JavelinSetTrackedImpactPoint(spot->workm.t);
                 eff = effectSpawn(EFFECT_M4A1_JAVELIN_CONTACT_FLASH, spot, 0, NULL);
                 if (eff != NULL) {

@@ -871,7 +871,7 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500
     pos.vx += D_actor_503500_8016F0F0[work->side].vx;
     pos.vy += D_actor_503500_8016F0F0[work->side].vy;
     pos.vz += D_actor_503500_8016F0F0[work->side].vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
@@ -1377,7 +1377,7 @@ static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPar
     pos.vx += D_actor_503500_8016F1B0.vx;
     pos.vy += D_actor_503500_8016F1B0.vy;
     pos.vz += D_actor_503500_8016F1B0.vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
@@ -1745,7 +1745,7 @@ static inline void _actor503500ChainBaseHandleHit(Task* arg0, _Actor503500ChainB
         SVECTOR* offset = &D_actor_503500_8016F248[arg0->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
         pos.vz         += offset->vz;
     }
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
@@ -2290,7 +2290,7 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500
     pos.vx += D_actor_503500_8016F2D8.vx;
     pos.vy += D_actor_503500_8016F2D8.vy;
     pos.vz += D_actor_503500_8016F2D8.vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
@@ -2747,7 +2747,7 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503
     pos.vx += D_actor_503500_8016F36C.vx;
     pos.vy += D_actor_503500_8016F36C.vy;
     pos.vz += D_actor_503500_8016F36C.vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
@@ -3613,7 +3613,7 @@ static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500Lun
     pos.vx += D_actor_503500_8016F3EC.vx;
     pos.vy += D_actor_503500_8016F3EC.vy;
     pos.vz += D_actor_503500_8016F3EC.vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
@@ -4617,7 +4617,7 @@ static inline void _actor503500ArmHandleHit(Task* arg0, _Actor503500ArmWork* wor
     pos.vx += D_actor_503500_80171480[work->side].vx;
     pos.vy += D_actor_503500_80171480[work->side].vy;
     pos.vz += D_actor_503500_80171480[work->side].vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, (crit == 2) * 2, &pos);
     }

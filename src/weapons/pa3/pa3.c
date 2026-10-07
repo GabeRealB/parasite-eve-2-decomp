@@ -9,6 +9,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/mc.h"
@@ -66,7 +67,7 @@ void func_pa3_8011D1DC(Task* arg0)
             actor->animationState    = 0;
             actor->rumblePosted      = 0;
             actor->stateTimer        = 0x1F;
-            func_80106238(arg0, 0, 0);
+            playerActorSetWeaponAttackFlags(arg0, 0, 0);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
             if (gPlayerStatus.weaponSlotItem == 0xE) {
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
@@ -90,8 +91,8 @@ void func_pa3_8011D1DC(Task* arg0)
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
-            Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                          ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
+            worldCoordPlaySound(arg0->extra.tmd->coords,
+                                ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
@@ -101,25 +102,25 @@ void func_pa3_8011D1DC(Task* arg0)
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = Gp_PickNearestRec18(actor->weaponContacts, coord, spot);
+                hit = playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
                     if (hit != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                         spot->workm.t[0] = actor->weaponContacts[0].point.vx;
                         spot->workm.t[1] = actor->weaponContacts[0].point.vy;
                         spot->workm.t[2] = actor->weaponContacts[0].point.vz;
-                        Gp_PlayObjSfx(spot,
-                                      ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000004 | (WEAPON_ID << 16), 1);
+                        worldCoordPlaySound(spot,
+                                            ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000004 | (WEAPON_ID << 16), 1);
                     }
                 } else if (hit != 0) {
-                    Gp_PlayObjSfx(spot, 0x17, 1);
+                    worldCoordPlaySound(spot, 0x17, 1);
                 }
             }
             /* fallthrough */
         case 4:
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
-                Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                              ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords,
+                                    ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
             }
             /* fallthrough */
         case 5:

@@ -1244,7 +1244,7 @@ static void func_actor_800100_80163214(Task* arg0)
         if (task != NULL) {
             companion = actor->companionWork;
             idx       = D_actor_800100_80167218[save->state.companionVariant];
-            Gp_AttachActorObj(arg0, idx, D_actor_800100_80167224[save->state.companionVariant]);
+            playerActorInitWeaponCollision(arg0, idx, D_actor_800100_80167224[save->state.companionVariant]);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
             companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4) {
@@ -1302,7 +1302,7 @@ static void func_actor_800100_801635F4(Task* arg0)
         actor->previousPosition.vy = coord->coord.t[1];
         actor->previousPosition.vz = coord->coord.t[2];
         if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = func_801011D0(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
         } else {
             actor->gridResponse = 0;
         }
@@ -1634,8 +1634,8 @@ static void func_actor_800100_80163F04(Task* arg0)
     }
     Gp_TickActorAnimState(arg0);
     playerActorTickChildSlots(arg0);
-    Gp_TurnPlayer(arg0);
-    Gp_StepPlayerMove(arg0);
+    playerActorUpdateFacing(arg0);
+    playerActorStepMovement(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
@@ -2245,7 +2245,7 @@ static void func_actor_800100_80165010(Task* arg0)
                 actor->statePhase        = flag;
                 angle                    = (companion->targetHeading + actor->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
                 companion->targetHeading = angle;
-                turn                     = func_80103E7C(actor->rotation.vy, angle);
+                turn                     = playerActorShortestTurn(actor->rotation.vy, angle);
                 arg                      = 5;
                 if (turn > 0) {
                     arg                = 6;
@@ -2325,7 +2325,7 @@ static void func_actor_800100_801652B0(Task* arg0)
             actor->statePhase        = flag;
             ang                      = (actor->rotation.vy + (rand() & ACTOR_TRANSFORM_ANGLE_MASK)) & ACTOR_TRANSFORM_ANGLE_MASK;
             companion->targetHeading = ang;
-            turn                     = func_80103E7C(actor->rotation.vy, ang);
+            turn                     = playerActorShortestTurn(actor->rotation.vy, ang);
             arg                      = 5;
             if (turn << 16 > 0) {
                 arg                = 6;
@@ -2594,8 +2594,8 @@ static void func_actor_800100_80165850(Task* arg0)
     Gp_TickActorAnimState(arg0);
     playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
-    Gp_TurnPlayer(arg0);
-    Gp_StepPlayerMove(arg0);
+    playerActorUpdateFacing(arg0);
+    playerActorStepMovement(arg0);
 }
 
 static void func_actor_800100_801658E8(Task* arg0)
@@ -2641,7 +2641,7 @@ static void func_actor_800100_80165930(Task* arg0)
     sp    = D_actor_800100_80161E98;
     actor = arg0->work;
     sp.funcs[(u16)actor->state](arg0);
-    Gp_TurnPlayer(arg0);
+    playerActorUpdateFacing(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
         func_8010BFCC(arg0);
         Gp_StopPlayerAnim(arg0, 0);
@@ -2761,9 +2761,9 @@ static void func_actor_800100_80165C38(Task* arg0)
             actor->stateAux                              = 1;
             companion->activity.combat.attacksRemaining -= 1;
             playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
-            func_80106238(arg0, 0, 0);
+            playerActorSetWeaponAttackFlags(arg0, 0, 0);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40650001, 1);
+            worldCoordPlaySound(arg0->extra.tmd->coords, 0x40650001, 1);
             effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, NULL);
             break;
 
@@ -2771,7 +2771,7 @@ static void func_actor_800100_80165C38(Task* arg0)
             actor->stateAux                                       = 2;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
-                Gp_PlayObjSfx(place, 0x17, 1);
+                worldCoordPlaySound(place, 0x17, 1);
             }
             /* fallthrough */
 
@@ -2809,7 +2809,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
             actor->stateAux                              = 2;
             companion->activity.combat.attacksRemaining -= 1;
             playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
-            Gp_PlayObjSfx(coord, 0x40660001, 1);
+            worldCoordPlaySound(coord, 0x40660001, 1);
             if (coord != NULL) {
                 actor->attackControl.cooldownTicks = 0x28;
                 effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
@@ -2871,7 +2871,7 @@ static void func_actor_800100_80165F50(Task* arg0)
             actor->stateAux                    = 2;
             actor->attackControl.cooldownTicks = 0;
             actor->stateTimer                  = 3;
-            func_80106238(arg0, 0, 0);
+            playerActorSetWeaponAttackFlags(arg0, 0, 0);
             /* fallthrough */
 
         case 2:
@@ -2880,7 +2880,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                 actor->stateAux                                      += 1;
                 companion->activity.combat.attacksRemaining          -= 1;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x40670001, 1);
                 effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
             }
@@ -2890,7 +2890,7 @@ static void func_actor_800100_80165F50(Task* arg0)
             actor->stateAux                                      += 1;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
-                Gp_PlayObjSfx(place, 0x17, 1);
+                worldCoordPlaySound(place, 0x17, 1);
             }
             /* fallthrough */
 
@@ -2953,7 +2953,7 @@ static void func_actor_800100_80166190(Task* arg0)
                 actor->attackControl.cooldownTicks = 0x28;
                 actor->attackCancelTicks           = 0x1C;
                 actor->actionValue                 = 0x14;
-                Gp_PlayObjSfx(coord, 0x40680002, 1);
+                worldCoordPlaySound(coord, 0x40680002, 1);
                 if (actor->weaponEffectTask != NULL) {
                     actor->weaponEffectTask->spawnArg1.value = 2;
                 }
@@ -2964,7 +2964,7 @@ static void func_actor_800100_80166190(Task* arg0)
             actor->stateTimer        = 0;
             actor->attackCancelTicks = 9;
             actor->actionValue       = 3;
-            func_80106238(arg0, 0, 1);
+            playerActorSetWeaponAttackFlags(arg0, 0, 1);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
             /* fallthrough */
 
@@ -2978,7 +2978,7 @@ static void func_actor_800100_80166190(Task* arg0)
                     if ((s8)companion->activity.combat.attacksRemaining == 0) {
                         actor->actionValue = 0;
                     }
-                    Gp_PlayObjSfx(coord, 0x40680001, 1);
+                    worldCoordPlaySound(coord, 0x40680001, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                     playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
                     break;
@@ -2990,7 +2990,7 @@ static void func_actor_800100_80166190(Task* arg0)
                 }
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
-                    Gp_PlayObjSfx(place, 0x17, 1);
+                    worldCoordPlaySound(place, 0x17, 1);
                 }
                 break;
             }
@@ -3000,7 +3000,7 @@ static void func_actor_800100_80166190(Task* arg0)
             actor->stateAux                                       = 6;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
-                Gp_PlayObjSfx(place, 0x17, 1);
+                worldCoordPlaySound(place, 0x17, 1);
             }
             break;
 

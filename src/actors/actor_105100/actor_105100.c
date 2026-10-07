@@ -1086,7 +1086,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
 /// `worldTargetAddReadoutAmount`, and reduces HP; at 0 the actor goes to
 /// `ACTION_DEFEATED`, and `staggerDamage` reaching 0x1A4 (or the stagger
 /// request) sends it to `ACTION_STAGGER`, breaking a charge in progress.
-/// Either ends `ringEffect`. A new id sparks `func_800FDB18` once, and
+/// Either ends `ringEffect`. A new id sparks `effectSpawnHit` once, and
 /// `damageGetPlayerAttackHitCooldown` arms the cooldown. The tail releases the hit table, steps
 /// `staggerTimer`, and starts the knockback when `touchContacts` holds a
 /// player character's body.
@@ -1203,8 +1203,8 @@ static void func_actor_105100_80132C2C(Task* arg0)
                 work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (lastId != work->hitContacts[i].key.value) {
                     lastId = work->hitContacts[i].key.value;
-                    func_800FDB18(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL,
-                                  &work->hitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL,
+                                   &work->hitEffectArg);
                 }
                 wait = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                 if (wait > 0) {

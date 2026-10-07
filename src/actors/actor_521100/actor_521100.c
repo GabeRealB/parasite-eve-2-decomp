@@ -1953,7 +1953,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         enemy->hp = (u16)enemy->hp - damage;
         if (lastId != work->bodyContacts[i].key.value) {
             lastId = work->bodyContacts[i].key.value;
-            func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+            effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
         }
         wait = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
         if (wait > 0) {
@@ -2799,8 +2799,8 @@ static void func_actor_521100_801339B0(Task* arg0)
                 scratch->localOffset.vx           = 0;
                 scratch->localOffset.vy           = -0x96;
                 scratch->localOffset.vz           = 0xC8;
-                func_800FDB18(1, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &scratch->localOffset,
-                              &D_actor_521100_8015F804);
+                effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &scratch->localOffset,
+                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 taskMessageDispatch(player, 0x400, 0, 0);
                 gPlayerStatus.hp = 0;
@@ -3215,12 +3215,12 @@ static void func_actor_521100_80135230(Task* arg0)
     work->stateCounter = timer;
     if ((s16)timer >= D_actor_521100_8015F8CC[work->eventBurnStage]) {
         work->stateCounter = 0U;
-        func_800FDB18(3, &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+        effectSpawnHit(EFFECT_HIT_KIND_BLAST, &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
         if (work->eventBurnStage == 1) {
             tbl             = D_actor_521100_8015F8BC;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             part            = tbl[(gRandomLcgState >> 16) & 7];
-            func_800FDB18(3, &arg0->extra.tmd->coords[part], NULL, &work->hitEffectArg);
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, &arg0->extra.tmd->coords[part], NULL, &work->hitEffectArg);
         }
     }
     timer              = work->stateElapsed + 1;

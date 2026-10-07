@@ -555,7 +555,7 @@ void Gp_MenuRootTask(Task* arg0)
             disp                    = &gDisplayState;
             disp->immediateTaskFree = 1;
             cfg->weapon             = old;
-            Gp_KillPlayerEffs();
+            playerActorRemoveEquipment();
             taskCallExitForPriority(list, 0x52);
             disp->immediateTaskFree = 0;
             cfg->weapon             = saved;

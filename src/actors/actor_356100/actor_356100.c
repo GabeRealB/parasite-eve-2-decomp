@@ -632,7 +632,7 @@ extern u16 D_actor_356100_80173290;
 /// applied, rounded away from zero when the step had a fraction.
 static SVECTOR ActorContact_ScratchPosition;
 
-/// Effect record `func_actor_356100_80167818` fills for `func_800FDB18`:
+/// Effect record `func_actor_356100_80167818` fills for `effectSpawnHit`:
 /// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
 /// roles as `_Actor401300Work.effectArg`.
 extern EffectSpawnArg D_actor_356100_801732A8;
@@ -2195,8 +2195,8 @@ static void func_actor_356100_80167818(Task* arg0)
         D_actor_356100_801732A8.coord      = arg0->extra.tmd->coords;
         D_actor_356100_801732A8.spawnArgLo = 0x100;
         D_actor_356100_801732A8.spawnArgHi = 2;
-        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL,
-                      &D_actor_356100_801732A8);
+        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL,
+                       &D_actor_356100_801732A8);
     }
     work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord              = arg0->extra.tmd->coords;

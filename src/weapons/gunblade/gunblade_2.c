@@ -12,6 +12,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/gfx.h"
@@ -118,7 +119,7 @@ void func_gunblade_8011E040(Task* arg0)
             actor->state          = 4;
             actor->turnRateIndex  = 0;
             actor->animationState = 0;
-            func_80106238(arg0, 0, 0);
+            playerActorSetWeaponAttackFlags(arg0, 0, 0);
             anim                                                  = 1;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
             actor->statePhase                                    += anim;
@@ -170,7 +171,7 @@ void func_gunblade_8011E040(Task* arg0)
             }
             Gp_ConsumeSlotQty(0x96, 1);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
+            worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 16) | 0x17, NULL);
             playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
@@ -184,7 +185,7 @@ void func_gunblade_8011E040(Task* arg0)
                     actor->statePhase                                     = 4;
                     actor->stateTimer                                     = 8;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170006, 0);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170006, 0);
                     eff = effectSpawn(EFFECT_GUNBLADE_TRAIL,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x17, NULL);
@@ -205,15 +206,15 @@ void func_gunblade_8011E040(Task* arg0)
                     }
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = lvl | 0x21700;
                     Gp_ConsumeSlotQty(0x96, 1);
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
                     func_gunblade_8011E008(gPlayerStatus.weaponSlotItem);
                 } else {
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
                 }
             }
             if (actor->actionValue != 1 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 1;
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170007, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170007, 0);
             }
             if (actor->gunbladeSpinTicks != 0) {
                 shake                     = 1;
@@ -224,16 +225,16 @@ void func_gunblade_8011E040(Task* arg0)
         case 6:
             actor->statePhase++;
             if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = Gp_PickNearestRec18(actor->weaponContacts, coord, &scratch->impactCoord);
+                hit = playerActorSpawnWeaponImpact(actor->weaponContacts, coord, &scratch->impactCoord);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
                     if (hit != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                         scratch->impactCoord.workm.t[0] = actor->weaponContacts[0].point.vx;
                         scratch->impactCoord.workm.t[1] = actor->weaponContacts[0].point.vy;
                         scratch->impactCoord.workm.t[2] = actor->weaponContacts[0].point.vz;
-                        Gp_PlayObjSfx(&scratch->impactCoord, sfx | 0x20170004, 1);
+                        worldCoordPlaySound(&scratch->impactCoord, sfx | 0x20170004, 1);
                     }
                 } else if (hit != 0) {
-                    Gp_PlayObjSfx(&scratch->impactCoord, 0x17, 1);
+                    worldCoordPlaySound(&scratch->impactCoord, 0x17, 1);
                 }
             }
             /* fallthrough */

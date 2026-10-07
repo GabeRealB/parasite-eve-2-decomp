@@ -468,7 +468,7 @@ static inline void _actor311500BlendAnim(Task* task)
     } while ((u32)(i & 0xFFFF) < 0x13U);
 }
 
-/// Spawns the actor's `func_800FDB18` effect on model coord 2, offset by
+/// Spawns the actor's `effectSpawnHit` effect on model coord 2, offset by
 /// (0x3C, -0xC, 0x1E), for id parameter 1 of `lastHitKey`.
 static inline void _actor311500SpawnEffect(Task* task)
 {
@@ -482,7 +482,7 @@ static inline void _actor311500SpawnEffect(Task* task)
     pos.vx         = 0x3C;
     pos.vy         = -0xC;
     pos.vz         = 0x1E;
-    func_800FDB18(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[2], &pos, &eff);
+    effectSpawnHit(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[2], &pos, &eff);
 }
 
 static s32 func_actor_311500_80162F28(Task* arg0)

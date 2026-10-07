@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Generator library; see generator.h. */
 
 /// Scratch-stack block of the body's hit handler, reserved for the length of
@@ -86,7 +88,7 @@ void generatorBodyHit(Task* arg0)
                 if (val == 3) {
                     effectSpawn(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->effectOffset);
                 } else {
-                    func_800FDB18((u16)val, coord, &scr->effectOffset, &work->effectArg);
+                    effectSpawnHit((u16)val, coord, &scr->effectOffset, &work->effectArg);
                 }
             }
             val = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);

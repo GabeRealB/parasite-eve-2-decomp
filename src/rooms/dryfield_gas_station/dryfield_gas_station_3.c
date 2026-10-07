@@ -819,7 +819,7 @@ void func_dryfield_gas_station_80180944(void)
     _DryfieldGasStationCutsceneWork* work = D_dryfield_gas_station_80184BD4->work;
     if (work->playerEffectsSuppressed == 0) {
         work->playerEffectsSuppressed = 1;
-        Gp_KillPlayerEffs();
+        playerActorRemoveEquipment();
     }
 }
 

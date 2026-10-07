@@ -119,6 +119,15 @@ s32 worldCoordGetOriginAudioDepth(const GfxCoord* coord);
 /// projection results; it does not change the node or update its matrix.
 s32 worldCoordGetOriginAudioPan(const GfxCoord* coord);
 
+/// Requests a sound event at a coordinate's composed origin, with spatial pan and depth.
+///
+/// `soundEvent` is the packed sound-script event id. `coord` must be live and
+/// already composed; projection/scratch requirements follow the origin-audio
+/// queries. A `signalNoise` value exactly equal to 1 also latches the scene's
+/// combat noise signal; other values do not. Reads the coordinate only during
+/// the request, changes GTE state and retains no pointer.
+void worldCoordPlaySound(const GfxCoord* coord, s32 soundEvent, s32 signalNoise);
+
 /// Copies an ambient RGB override for subsequent model-light queries, or disables it.
 ///
 /// `ambientColor` is a readable complete SVECTOR; vx/vy/vz are signed ambient

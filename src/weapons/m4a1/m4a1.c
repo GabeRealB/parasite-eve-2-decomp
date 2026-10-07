@@ -5,6 +5,7 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/mc.h"
@@ -56,7 +57,7 @@ void func_m4a1_8011D1C4(Task* arg0)
                 shots = 3;
             }
             actor->actionValue = shots;
-            func_80106238(arg0, 0, actor->attackButton == 1);
+            playerActorSetWeaponAttackFlags(arg0, 0, actor->attackButton == 1);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC00;
             anim                                                  = 1;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
@@ -83,7 +84,7 @@ void func_m4a1_8011D1C4(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_ID, NULL);
@@ -93,8 +94,8 @@ void func_m4a1_8011D1C4(Task* arg0)
                 actor->stateTimer = delay - 1;
                 if (delay - 1 == 2) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                        Gp_PlayObjSfx(spot, 0x17, 1);
+                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                        worldCoordPlaySound(spot, 0x17, 1);
                     }
                 }
             } else {
@@ -103,8 +104,8 @@ void func_m4a1_8011D1C4(Task* arg0)
                    load into the tail and drops two instructions. */
                 actor->statePhase                                     = 3;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                    Gp_PlayObjSfx(spot, 0x17, 1);
+                if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                    worldCoordPlaySound(spot, 0x17, 1);
                 }
             }
             break;

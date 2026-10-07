@@ -10,6 +10,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/mc.h"
@@ -86,7 +87,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                 actor->actionValue                                    = 3;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | 0x21A00;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
-                func_80106238(arg0, 0, 1);
+                playerActorSetWeaponAttackFlags(arg0, 0, 1);
             } else if (actor->attackButton & 2) {
                 actor->statePhase        = 5;
                 actor->attackCancelTicks = 0xA;
@@ -96,7 +97,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                 rec->ends[0].vz                                       = rec->ends[1].vz + 0x340;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x21A1D;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                func_80106238(arg0, 0, 0);
+                playerActorSetWeaponAttackFlags(arg0, 0, 0);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 1, 3);
                 break;
             }
@@ -114,7 +115,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0004, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x201A0004, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1A, NULL);
@@ -124,8 +125,8 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                 actor->stateTimer = delay - 1;
                 if (delay - 1 == 2) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                        Gp_PlayObjSfx(spot, 0x17, 1);
+                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                        worldCoordPlaySound(spot, 0x17, 1);
                     }
                 }
                 break;
@@ -134,8 +135,8 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
         case 4:
             actor->statePhase                                     = 7;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_PlayObjSfx(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                worldCoordPlaySound(spot, 0x17, 1);
             }
             break;
         case 5:
@@ -147,7 +148,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                     actor->statePhase++;
                     actor->actionValue                                    = 0xA;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0006, 0);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x201A0006, 0);
                     eff = effectSpawn(EFFECT_M4A1_BAYONET_TRAIL,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x1A, NULL);
@@ -160,7 +161,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                 }
             }
             if (worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0005, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x201A0005, 0);
             }
             break;
         case 7:

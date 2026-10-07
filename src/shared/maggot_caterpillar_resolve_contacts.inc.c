@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
 /// Per-frame collision pass: pushes the model out of what it touches, turns
@@ -162,7 +164,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                     scratch->shortVector.vx = 0;
                     scratch->shortVector.vy = -0xC8;
                     scratch->shortVector.vz = 0;
-                    func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value), arg0->extra.tmd->coords + 1, &scratch->shortVector, &work->effectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value), arg0->extra.tmd->coords + 1, &scratch->shortVector, &work->effectArg);
                 }
                 result = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (result > 0) {

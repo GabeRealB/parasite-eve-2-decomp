@@ -974,8 +974,8 @@ void func_hypervelocity_8011F724(Task* arg0)
             actor->weaponEffectTask->spawnArg1.value = 1;
             actor->stateTimer                        = 0;
             eff->spawnArg1.value                    |= 0x10;
-            Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160003, 0);
-            Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160005, 0);
+            worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160003, 0);
+            worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160005, 0);
             playerActorPlayChildSlotsWithBlend(arg0, 0xE, 0, 3);
             /* fallthrough */
         case 1:
@@ -989,12 +989,12 @@ void func_hypervelocity_8011F724(Task* arg0)
                     actor->stateTimer    = 0x15;
                     Gp_ConsumeSlotQty(0x95, 1);
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160007, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160007, 1);
                     playerActorResetChildSlots(arg0, 0xB);
                 } else if (count == 0x3C) {
                     eff->spawnArg1.value |= 0x20;
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160002, 0);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160002, 0);
                 }
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             } else {
@@ -1003,7 +1003,7 @@ void func_hypervelocity_8011F724(Task* arg0)
                 eff->spawnArg1.value                     = 0;
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20160004, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160004, 0);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xF, 0, 3);
             }
             break;

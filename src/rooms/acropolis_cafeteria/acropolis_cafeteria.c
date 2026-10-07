@@ -1349,7 +1349,7 @@ void func_acropolis_cafeteria_8017E27C(s32 arg0)
 
 void func_acropolis_cafeteria_8017E2B0(void)
 {
-    Gp_PulseState1C80();
+    roomEffectRequestCancelPe();
 }
 
 void func_acropolis_cafeteria_8017E2D0(void)

@@ -9,6 +9,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/mc.h"
@@ -75,14 +76,14 @@ void func_as12_8011D1DC(Task* arg0)
             actor->statePhase                  = 3;
             actor->attackControl.cooldownTicks = 0x21;
             actor->rumblePosted                = 0;
-            func_80106238(arg0, 0, actor->attackButton != 1);
+            playerActorSetWeaponAttackFlags(arg0, 0, actor->attackButton != 1);
             /* fallthrough */
         case 3:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_ConsumeSlotQty(0x8E, 1);
-            Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                          ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
+            worldCoordPlaySound(arg0->extra.tmd->coords,
+                                ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 0x10) | 0xF, NULL);
@@ -93,17 +94,17 @@ void func_as12_8011D1DC(Task* arg0)
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = Gp_PickNearestRec18(actor->weaponContacts, coord, spot);
+                hit = playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot);
                 if (gPlayerStatus.weaponSlotItem == 0xE) {
                     if (hit != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                         spot->workm.t[0] = actor->weaponContacts[0].point.vx;
                         spot->workm.t[1] = actor->weaponContacts[0].point.vy;
                         spot->workm.t[2] = actor->weaponContacts[0].point.vz;
-                        Gp_PlayObjSfx(spot,
-                                      ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0004, 1);
+                        worldCoordPlaySound(spot,
+                                            ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0004, 1);
                     }
                 } else if (hit != 0) {
-                    Gp_PlayObjSfx(spot, 0x17, 1);
+                    worldCoordPlaySound(spot, 0x17, 1);
                 }
             }
             /* fallthrough */

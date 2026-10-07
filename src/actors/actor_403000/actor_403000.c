@@ -2691,11 +2691,11 @@ static void func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2)
     work->hitEffectArg.spawnArgLo = 0x500;
     work->hitEffectArg.spawnArgHi = 3;
     eff                           = &work->hitEffectArg;
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[scratch[0].pad], &scratch[0], eff);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[scratch[0].pad], &scratch[0], eff);
     work->hitEffectArg.coord      = &arg0->extra.tmd->coords[scratch[1].pad];
     work->hitEffectArg.spawnArgLo = 0x400;
     work->hitEffectArg.spawnArgHi = 2;
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[scratch[1].pad], &scratch[1], eff);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[scratch[1].pad], &scratch[1], eff);
     SCRATCH_STACK_CURSOR(SVECTOR) += 2;
 }
 
@@ -3978,7 +3978,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         work->hitEffectArg.coord      = &player->extra.tmd->coords[3];
         work->hitEffectArg.spawnArgLo = 0x500;
         work->hitEffectArg.spawnArgHi = 3;
-        func_800FDB18(damageGetPlayerAttackEffectId(0x100F), &player->extra.tmd->coords[3], 0, &work->hitEffectArg);
+        effectSpawnHit(damageGetPlayerAttackEffectId(0x100F), &player->extra.tmd->coords[3], 0, &work->hitEffectArg);
     }
     if (work->stateFrame < 10) {
         coord = arg0->extra.tmd->coords;

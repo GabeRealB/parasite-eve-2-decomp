@@ -184,7 +184,7 @@ extern s16 D_shelter_b3_garbage_incinerator_80186F88[];
 /// Event script started with `evsStartScript` on arming.
 extern EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[];
 
-/// Effect record handed to `func_800FDB18`: `coord` is the chosen part of the
+/// Effect record handed to `effectSpawnHit`: `coord` is the chosen part of the
 /// model and `spawnArgLo` the scale that goes with it.
 extern EffectSpawnArg gBlazeFireSpawn;
 

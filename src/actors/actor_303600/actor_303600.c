@@ -17,6 +17,7 @@
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/room_effects.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -1949,7 +1950,7 @@ void func_actor_303600_80162600(s16 arg0)
 
 void func_actor_303600_80162620(void)
 {
-    Gp_PulseState1C80();
+    roomEffectRequestCancelPe();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 

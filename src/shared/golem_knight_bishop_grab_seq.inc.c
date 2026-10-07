@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
 /// Scratch-stack block of the grab sequence.
@@ -251,7 +253,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->operand.vy                    = -0x96;
                 sc->operand.vx                    = 0;
                 sc->operand.vz                    = 0xC8;
-                func_800FDB18(1, &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4], &sc->operand, &gGolemKnightBishopGrabEffect);
+                effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4], &sc->operand, &gGolemKnightBishopGrabEffect);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 taskMessageDispatch(player, 0x400, 0, 0);
                 gPlayerStatus.hp = 0;

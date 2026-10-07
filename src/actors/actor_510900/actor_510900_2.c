@@ -390,7 +390,7 @@ extern _Actor510900LapCorner D_actor_510900_80167B84[4];
 /// The direction of each of its four sides, indexed the same way.
 extern _Actor510900LapDirection D_actor_510900_80167B94[4];
 
-/// `func_800FDB18` argument record the state-3 handler refreshes every sixth
+/// `effectSpawnHit` argument record the state-3 handler refreshes every sixth
 /// frame from the player's model coordinates.
 extern EffectSpawnArg D_actor_510900_80167B7C;
 
@@ -1133,7 +1133,7 @@ static void func_actor_510900_80135744(Task* arg0)
                 }
                 if (lastId != work->bodyContacts[i].key.value) {
                     lastId = work->bodyContacts[i].key.value;
-                    func_800FDB18(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
                 }
                 wait = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (wait > 0) {
@@ -2023,7 +2023,7 @@ static void func_actor_510900_80137868(Task* arg0)
                     work->attackLanded       = 0;
                     work->deathSoundLoadStep = 1;
                     gPlayerStatus.hp         = 0;
-                    Gp_PulseState1C80();
+                    roomEffectRequestCancelPe();
                 }
             } else {
                 work->attackLanded = 0;
@@ -2055,8 +2055,8 @@ static void func_actor_510900_80137868(Task* arg0)
             if (work->stateCounter >= 6) {
                 work->stateCounter            = 0;
                 D_actor_510900_80167B7C.coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-                func_800FDB18(5, &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4], NULL,
-                              &D_actor_510900_80167B7C);
+                effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4], NULL,
+                               &D_actor_510900_80167B7C);
             }
             switch (work->deathSoundLoadStep) {
                 case 0:

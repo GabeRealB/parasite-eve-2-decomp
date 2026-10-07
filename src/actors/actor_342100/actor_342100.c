@@ -166,7 +166,7 @@ extern SVECTOR D_actor_342100_80164980[];
 /// `evsStartScript` on the same arm; a byte address is all the installer sees.
 extern EvsCommand D_actor_342100_801649C8[];
 
-/// Effect record `blazeBodyFireTask` hands `func_800FDB18` together
+/// Effect record `blazeBodyFireTask` hands `effectSpawnHit` together
 /// with one part of the player's model: `field_0` is that part's coordinate
 /// and `field_4` the scale that goes with it (0x100 for the wide pick, 0x10
 /// for the narrow one). Ships as `{ NULL, 0, 1 }` in the data blob, directly
@@ -508,7 +508,7 @@ void func_actor_342100_80162AB0(Task* arg0)
                 vz = -vz;
             }
             vec.vz = vz;
-            func_800FDB18(3, coord, &vec, eff);
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, coord, &vec, eff);
             return;
     }
 }

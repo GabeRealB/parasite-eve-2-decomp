@@ -1387,7 +1387,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
 /// Spawns the hit-reaction effect for a blow arriving at `yaw`: carves one
 /// `SVECTOR` off the scratch head, fills it with one of the twelve presets in
 /// `Actor01900_D1722C` picked from the magnitude and sign of `yaw` plus a
-/// random draw, hands it to `func_800FDB18` together with the parameter of
+/// random draw, hands it to `effectSpawnHit` together with the parameter of
 /// `id`, and releases the scratch again.
 static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
 {
@@ -1448,7 +1448,7 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     work->effectArg.coord      = &arg0->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
     work->effectArg.spawnArgHi = 2;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), &arg0->extra.tmd->coords[dir->pad], dir, &work->effectArg);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), &arg0->extra.tmd->coords[dir->pad], dir, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -2686,7 +2686,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->effectArg.spawnArgLo = 0x200;
         work->effectArg.spawnArgHi = 2;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 3, 0, 0) || (u8)viewGetMappedIndex() != 0x10) {
-            func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+            effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
         }
     }
     work->dormantAnimFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;

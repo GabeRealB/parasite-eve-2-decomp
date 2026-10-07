@@ -241,7 +241,7 @@ enum {
     /// footsteps/landings, Dryfield rooms and many actors.
     EFFECT_DUST_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x054),
     /// Rising impact puff sprite (tpage 9, two palettes by bit 28, random drift); the
-    /// general hit effect for bullet impacts (func_800FDB18 kinds 1/2/6/8), damage-
+    /// general hit effect for bullet impacts (effectSpawnHit kinds 1/2/6/8), damage-
     /// over-time ticks and many enemy hits.
     EFFECT_HIT_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x055),
     /// Screen-space drip: a DR_MOVE that smears a one-pixel strip of the frame buffer
@@ -375,7 +375,7 @@ enum {
     /// event.
     EFFECT_NIGHT_MOTEL_BALCONY_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x07E),
     /// Hit-blast controller: for a few ticks sprays 0x60080 / 0x6008D bursts then
-    /// 0x60070 smoke from random offsets; spawned by func_800FDB18 hit kinds 3/11/16,
+    /// 0x60070 smoke from random offsets; spawned by effectSpawnHit hit kinds 3/11/16,
     /// generator body hits and actor_02100.
     EFFECT_HIT_BLAST = EFFECT_ID(EFFECT_TASK_BANK, 0x07F),
     /// Additive animated billboard (6-frame strip on tpage 0x29) that grows over 12
@@ -413,7 +413,7 @@ enum {
     /// 0xE), by Gp_EffCtlTask7F and by the night gas-station explosion.
     EFFECT_FIRE_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x08D),
     /// Hit spark burst: draws the E2 sprite and sprays 0x600E0 then 0x600E1 sparks from
-    /// random offsets; spawned by func_800FDB18 hit kinds 7 and 15.
+    /// random offsets; spawned by effectSpawnHit hit kinds 7 and 15.
     EFFECT_HIT_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x08E),
     /// Fountain mist mote: a shimmering grey 1x1 tile that random-walks or gathers back
     /// toward its jet anchor; spawned per jet by the patio task.
@@ -462,7 +462,7 @@ enum {
     EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x099),
     /// Emitter that for a set time spawns 0x60055 particles at random offsets within a
     /// cube around a hit point; spawned by the weapon hit-effect dispatcher
-    /// func_800FDB18 (kind 4).
+    /// effectSpawnHit (kind 4).
     EFFECT_HIT_PARTICLE_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x09A),
     /// Emitter that, for a period set by the spawn argument, spawns 0x60055 falling
     /// splatter sprites along a (given or random) direction with shrinking speed; used
@@ -529,7 +529,7 @@ enum {
     /// Rising spark sprite (`_risingSparkTask`) emitted by the Life Drain PE effect.
     EFFECT_LIFEDRAIN_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x0AD),
     /// Life Drain mote: drifts from the hit enemy, sheds sparks, then homes on the
-    /// player; spawned per hit by func_800FDB18 kind 13.
+    /// player; spawned per hit by effectSpawnHit kind 13.
     EFFECT_LIFE_DRAIN_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0AF),
     /// One-frame twinkling star glow with an animated core and rotating random-grey
     /// flare, respawned at the bridge lights.
@@ -590,7 +590,7 @@ enum {
     EFFECT_SPARK_FADE = EFFECT_ID(EFFECT_TASK_BANK, 0x0E1),
     /// Unidentified. Short-lived emitter that spawns one 0x60070 particle per frame for
     /// (spawnArg high * 4) frames at an offset from its parent; spawned by the hit-
-    /// effect dispatcher func_800FDB18 (case 10).
+    /// effect dispatcher effectSpawnHit (case 10).
     EFFECT_0E3 = EFFECT_ID(EFFECT_TASK_BANK, 0x0E3),
     /// dryfield_night_back_street's copy of the RoomFx spark burst: spawns a flash,
     /// then sprays jittered sparks or draws widening rings for seven ticks; the room

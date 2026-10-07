@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Rat library; see rat.h. */
 
 /// Per-frame collision pass: applies the pending move to the root coordinate,
@@ -107,7 +109,7 @@ void ratContacts(Task* actor)
                     hitId = work->hitContacts[i].key.value;
                     if (lastId != hitId) {
                         lastId = hitId;
-                        func_800FDB18(damageGetPlayerAttackEffectId(hitId), coord, NULL, &work->hitEffectArg);
+                        effectSpawnHit(damageGetPlayerAttackEffectId(hitId), coord, NULL, &work->hitEffectArg);
                     }
                     cooldownParam = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                     if (cooldownParam > 0) {

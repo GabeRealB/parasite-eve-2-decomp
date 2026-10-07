@@ -1540,7 +1540,7 @@ static void Actor07000_Fn03E08(Task* arg0)
                             break;
                     }
                     work->alert = 1;
-                    func_800FDB18(damageGetPlayerAttackEffectId(work->contacts[i].key.value), (arg0->extra.tmd->coords + 1), &Actor07000_D0D7B0, &work->hitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->contacts[i].key.value), (arg0->extra.tmd->coords + 1), &Actor07000_D0D7B0, &work->hitEffectArg);
                     cooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                     if ((cooldown << 0x10) > 0) {
                         work->hitCooldown = cooldown;

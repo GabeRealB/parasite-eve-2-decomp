@@ -5891,8 +5891,8 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->effectArg.coord      = &task->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0xA0;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &task->extra.tmd->coords[1], NULL,
-                      &work->effectArg);
+        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &task->extra.tmd->coords[1], NULL,
+                       &work->effectArg);
         worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[1], 1, NULL);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -5938,8 +5938,8 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
         work->effectArg.coord      = &task->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x80;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(damageGetPlayerAttackEffectId(attackId), &task->extra.tmd->coords[1],
-                      NULL, &work->effectArg);
+        effectSpawnHit(damageGetPlayerAttackEffectId(attackId), &task->extra.tmd->coords[1],
+                       NULL, &work->effectArg);
         if (damageRollCriticalHit(enemy, attackId, 0) != 0) {
             damage *= 4;
             effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[1], 0, NULL);

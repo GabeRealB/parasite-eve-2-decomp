@@ -1344,7 +1344,7 @@ static void Actor00400_Fn00A14(Task* arg0)
             sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
         if (work->attackFrames == 0x18 || work->attackFrames == 0x30) {
-            func_800FDB18(7, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+            effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
         }
         if (work->attackFrames == 0x16 && work->inWater == 0) {
             work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1730,8 +1730,8 @@ static void Actor00400_Fn01B90(Task* arg0)
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
-                func_800FDB18(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value),
-                              &arg0->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
+                effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value),
+                               &arg0->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
                 work->hitReaction = (amount < 0x3C) ? ACTOR_00400_HIT_REACTION_FLINCH : ACTOR_00400_HIT_REACTION_HEAVY;
                 switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_NONE:
@@ -1787,7 +1787,7 @@ static void Actor00400_Fn01B90(Task* arg0)
                     obj->hp = 0;
                 }
             } else if ((damageGetPlayerAttackEffectId(work->hitContacts[i].key.value)) == 0xD) {
-                func_800FDB18(0xD, &arg0->extra.tmd->coords[1], 0, &work->effectArg);
+                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[1], 0, &work->effectArg);
             }
         }
         if (work->hitTaken != 0) {

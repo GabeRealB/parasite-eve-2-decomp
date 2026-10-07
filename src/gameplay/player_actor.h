@@ -113,7 +113,12 @@ void Gp_AimPitchToLock(Task* arg0);
 
 void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
 
-void Gp_DetachLinkNode(Task* arg0);
+/// Releases the actor's selected lock target and starts aim-angle decay.
+///
+/// Requires live GameActor work and, if selected, a live borrowed target node.
+/// Clears that node's targeted mark and the actor's pointer without unlinking
+/// or freeing the target. Decay is requested even when no target was selected.
+void playerActorClearLockTarget(Task* task);
 
 /// Selects an actor's lock target and transfers the targeted mark from its old node.
 ///

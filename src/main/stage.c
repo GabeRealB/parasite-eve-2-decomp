@@ -37,7 +37,6 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
-#include "gameplay/player_actor.h"
 #include "gameplay/world_collision.h"
 
 /// Vertical spacing of the two 240-row VRAM framebuffers, in rows.
@@ -399,7 +398,7 @@ static Task* Display_SpawnFromMode(void)
                 flag                      = obj->collisionEnableMask & 1;
                 ptr                       = slot->extra.tmd->coords;
                 if (flag) {
-                    func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
+                    worldCollisionApplyResponsePushback(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
                 }
                 worldCollisionClearContacts(obj->collisionContacts);
                 ptr->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -432,7 +431,7 @@ static Task* Display_SpawnFromMode(void)
                 flag                                    = obj->collisionEnableMask & 1;
                 ptr                                     = slot->extra.tmd->coords;
                 if (flag) {
-                    func_801011D0(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
+                    worldCollisionApplyResponsePushback(ptr, obj->collisionMotionContexts[0].contacts, 6, &obj->surfaceClass);
                 }
                 worldCollisionClearContacts(obj->collisionContacts);
                 ptr->composeStamp = GRAPHICS_COORD_DIRTY;

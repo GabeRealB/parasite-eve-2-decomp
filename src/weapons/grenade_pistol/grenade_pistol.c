@@ -21,6 +21,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
+#include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/gfx.h"
@@ -82,8 +83,8 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
             actor->statePhase                  = 3;
             actor->rumblePosted                = 0;
             actor->attackControl.cooldownTicks = 0x28;
-            Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                          ((gPlayerStatus.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
+            worldCoordPlaySound(arg0->extra.tmd->coords,
+                                ((gPlayerStatus.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
             effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);

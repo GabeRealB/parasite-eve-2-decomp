@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
 /// Picks one of twelve hit positions out of `gDesertChaserHitOffsets` by damage
@@ -63,6 +65,6 @@ void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2)
     work->effectArg.spawnArgLo = 0x100;
     work->effectArg.spawnArgHi = 2;
     work->hitOffset            = *sc;
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitOffset, &work->effectArg);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitOffset, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

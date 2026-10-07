@@ -1,3 +1,5 @@
+#include "gameplay/world_coords.h"
+
 /* Part of the grenade shell library; see grenade_shell.h. */
 
 /// Scratch-stack block the shell's flight state holds for one frame.
@@ -64,11 +66,11 @@ void grenadeShellFly(Task* arg0)
            are what cross-jumping merges into a single `jal` with an unfilled
            delay slot. */
         if (arg0->spawnArg1.value & 0x100000) {
-            Gp_PlayObjSfx(coord, 0x40660002, 1);
+            worldCoordPlaySound(coord, 0x40660002, 1);
         } else {
             sfxbase = scratch->weaponIndexBits << 8;
             sfxarg  = ((scratch->ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | 0x20000005;
-            Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
+            worldCoordPlaySound(coord, sfxbase | sfxarg, 1);
         }
         clip = 8;
         if (scratch->ammunitionIndex == GRENADE_ROUND_AIRBURST) {

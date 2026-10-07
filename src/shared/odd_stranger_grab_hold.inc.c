@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
 /// State 13: clip 6 restart; on entry sends the player animation 2 and the 0x3F9 object pair and starts a 5/0xFF/8 pad lerp. At the clip boundary spawns the 0x1001 effect at coordinate 1 and moves to state 0xE; each frame copies the clip frame to grabAnimFrame and pitches coordinates 2 and 3 by -0x80.
@@ -28,7 +30,7 @@ void oddStrangerGrabHold(Task* arg0)
         work->effectArg.coord      = arg0->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = ODD_STRANGER_PART1_FX_SCALE;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
 #if ODD_STRANGER_VARIANT == 1
         work->state = ODD_STRANGER_STATE_GRAB_RELEASE;
 #endif

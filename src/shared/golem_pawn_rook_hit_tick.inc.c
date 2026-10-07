@@ -1,5 +1,7 @@
 #include "main/random.h"
 
+#include "gameplay/room_effects.h"
+
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
 /// Hit and push tick. Applies the `groundContacts` / `hurtContacts` collision deltas
@@ -196,8 +198,8 @@ void golemPawnRookTakeHits(Task* arg0)
                     scratch->effectOffset.vx = 0;
                     scratch->effectOffset.vy = 0;
                     scratch->effectOffset.vz = (work->hitFromFront == 1) ? 0x12C : -0x96;
-                    func_800FDB18(damageGetPlayerAttackEffectId(work->hurtContacts[i].key.value), &arg0->extra.tmd->coords[3],
-                                  &scratch->effectOffset, &work->hitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->hurtContacts[i].key.value), &arg0->extra.tmd->coords[3],
+                                   &scratch->effectOffset, &work->hitEffectArg);
                 }
                 cooldown = damageGetPlayerAttackHitCooldown(work->hurtContacts[i].key.value);
                 if (cooldown > 0) {

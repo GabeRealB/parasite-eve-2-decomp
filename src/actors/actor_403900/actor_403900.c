@@ -113,7 +113,7 @@ extern s16 gGolemKnightBishopGrabHpLimits[];
 /// Animation block the grab's 0x3FF messages hand the player.
 extern AnimationSet* gGolemKnightBishopPlayerAnims[5];
 
-/// `func_800FDB18` argument record for the grab's finishing spark.
+/// `effectSpawnHit` argument record for the grab's finishing spark.
 extern EffectSpawnArg gGolemKnightBishopGrabEffect;
 
 /// The two four-vertex index rows the trail's shaded quads take their corners

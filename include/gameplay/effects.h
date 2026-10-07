@@ -130,7 +130,7 @@ typedef struct {
 } EffectBandScratch;
 STATIC_ASSERT_SIZEOF(EffectBandScratch, 0x118);
 
-/// Argument record for `func_800FDB18`, the id-dispatched effect spawner.
+/// Argument record for `effectSpawnHit`, the id-dispatched effect spawner.
 ///
 /// `coord` is the coordinate the effects hang off, and it is borrowed: the
 /// record does not own it. While it is NULL the spawner copies in the

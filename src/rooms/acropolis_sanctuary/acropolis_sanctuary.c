@@ -1999,7 +1999,7 @@ static inline void _acropolisSanctuaryCutsceneApplyPlacement(Task* task)
             break;
         case ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER:
             if (work->placementApplied == ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING) {
-                Gp_KillPlayerEffs();
+                playerActorRemoveEquipment();
                 _acropolisSanctuaryCutsceneInstallPlayerAnimation(task);
                 _acropolisSanctuaryCutscenePlacePlayer(work);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;

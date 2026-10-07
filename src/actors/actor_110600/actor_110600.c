@@ -383,7 +383,7 @@ STATIC_ASSERT_SIZEOF(_Actor110600ShudderStepStorage, 8);
 /// allocation.
 extern _Actor110600ShudderStepStorage D_actor_110600_80148688;
 
-/// Argument record `func_actor_110600_80135E20` fills for `func_800FDB18`:
+/// Argument record `func_actor_110600_80135E20` fills for `effectSpawnHit`:
 /// model part 1's coordinate, scale 0x100 and count 3.
 extern EffectSpawnArg D_actor_110600_80148698;
 
@@ -2215,7 +2215,7 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     D_actor_110600_80148698.coord      = &arg0->extra.tmd->coords[1];
     D_actor_110600_80148698.spawnArgLo = 0x100;
     D_actor_110600_80148698.spawnArgHi = 3;
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &D_actor_110600_80148698);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &D_actor_110600_80148698);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -2765,7 +2765,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
 }
 
 /// Offset, 100 units along Z, that `func_actor_110600_801372CC` hands
-/// `func_800FDB18` with the model's seventh coordinate when it spawns its
+/// `effectSpawnHit` with the model's seventh coordinate when it spawns its
 /// three effects.
 static const SVECTOR D_actor_110600_80131F1C = { 0, 0, 100, 0 };
 
@@ -2834,7 +2834,7 @@ static void func_actor_110600_801372CC(Task* arg0)
                 D_actor_110600_80148698.spawnArgLo = 0x100;
                 D_actor_110600_80148698.spawnArgHi = 3;
                 D_actor_110600_80148698.coord      = effectCoord;
-                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[9], &vec, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[9], &vec, &D_actor_110600_80148698);
             } else {
                 d             = &D_actor_110600_80148698;
                 vec.vx        = -0x19;
@@ -2844,7 +2844,7 @@ static void func_actor_110600_801372CC(Task* arg0)
                 d->spawnArgLo = 0x100;
                 d->spawnArgHi = 3;
                 d->coord      = effectCoord2;
-                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[2], &vec, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[2], &vec, &D_actor_110600_80148698);
             }
         }
     }
@@ -2867,9 +2867,9 @@ static void func_actor_110600_801372CC(Task* arg0)
                 tailEffect->spawnArgLo = 0x100;
                 tailEffect->spawnArgHi = 3;
                 tailEffect->coord      = effectCoord3;
-                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
-                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
-                func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
+                effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[6], &vec, &D_actor_110600_80148698);
             }
         }
     }

@@ -4760,7 +4760,7 @@ static void _acropolisPlazaLetterboxTask(Task* task)
 /// Six-state opening sequence for the plaza. State 0 fades in the room
 /// (`func_800E9BDC`), applies the plaza view, allocates the sequence work block
 /// and spawns entries 5 and 0xB of the room's table around
-/// `Gp_KillPlayerEffs`; states 1 and 2 idle. State 3 pins the camera override
+/// `playerActorRemoveEquipment`; states 1 and 2 idle. State 3 pins the camera override
 /// to (0x370, 0x370, 0x370), tells slot 6 to start (msg 0xFA4), spawns the
 /// stream watcher (entry 1) and the entry-8 actor, and arms
 /// `gCdCmdQueue.blockGamePause`. State 4 runs the ambience driver until
@@ -4788,7 +4788,7 @@ void func_acropolis_plaza_80180054(Task* task)
             ((_AcropolisPlazaSequenceWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((_AcropolisPlazaSequenceWork*)task->work)->eventTask =
                 taskSpawnFromTable(D_acropolis_plaza_80183824, 5, 0, 0);
-            Gp_KillPlayerEffs();
+            playerActorRemoveEquipment();
             taskSpawnFromTable(D_acropolis_plaza_80183824, 0xB, 0, 0);
             task->state = task->state + 1;
             return;

@@ -615,9 +615,9 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
             } else if (damage > 0) {
                 if (part->effectCooldown == 0) {
                     if ((damageGetPlayerAttackReaction(part->contacts[i].key.value) & 0xFFFF) == DAMAGE_PLAYER_REACTION_INCENDIARY) {
-                        func_800FDB18(3, coord, NULL, &part->effectArg);
+                        effectSpawnHit(EFFECT_HIT_KIND_BLAST, coord, NULL, &part->effectArg);
                     }
-                    func_800FDB18(7, coord, NULL, &part->effectArg);
+                    effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, NULL, &part->effectArg);
                     part->effectCooldown = ACTOR_205200_PART_HIT_EFFECT_COOLDOWN;
                 }
                 if (damage <= ACTOR_205200_PART_SPARK_DAMAGE_CAP) {
@@ -694,7 +694,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             if (--part->sparkTimer <= 0) {
                 gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 part->sparkTimer = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
-                func_800FDB18(7, coord, NULL, &part->effectArg);
+                effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, NULL, &part->effectArg);
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
                 view = Gp_GetStageView(&gGameSession->location.loc);
                 d.vx = view->transform.t[0] + coord->coord.t[0];
@@ -832,6 +832,6 @@ static void func_actor_205200_8014BA94(Task* arg0)
     _Actor205200Part* part = arg0->work;
 
     if (!(--part->sparkTimer & 0x3F)) {
-        func_800FDB18(7, arg0->extra.tmd->coords, NULL, &part->effectArg);
+        effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, arg0->extra.tmd->coords, NULL, &part->effectArg);
     }
 }

@@ -753,7 +753,7 @@ static void Actor02100_Fn004C4(Task* arg0)
                                         work->hitEffect.spawnArgLo | (work->hitEffect.spawnArgHi << 16),
                                         &scratch->shortVec);
                         }
-                        func_800FDB18(7, coord, &scratch->shortVec, &work->hitEffect);
+                        effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, &scratch->shortVec, &work->hitEffect);
                         work->hitEffectCooldown = 10;
                     }
                     sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150009;

@@ -1478,7 +1478,7 @@ static void func_actor_206100_8014B8B4(Task* task)
 /// the `0x7F`/`0x8000` pair on an id ending 0x1C forces the light reaction and
 /// clears bit 0 of the object's draw flags.  The `else` arm is the same record
 /// arriving with the cooldown still up: id parameter 0xD sounds
-/// `func_800FDB18` on the root coordinate's second part alone.
+/// `effectSpawnHit` on the root coordinate's second part alone.
 ///
 /// The tail turns `reactionFlags` into requests the same way -- stagger clears
 /// and asks for the heavy reaction, buildup asks for the consumer's
@@ -1517,8 +1517,8 @@ static void func_actor_206100_8014BAA8(Task* task)
                     amount = ((u32)dmg << 16) >> 14;
                     kind   = 1;
                 }
-                func_800FDB18(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value),
-                              &task->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
+                effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value),
+                               &task->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
                 if (amount >= 0xB4) {
                     work->hitReaction = heavy;
                 } else {
@@ -1576,7 +1576,7 @@ static void func_actor_206100_8014BAA8(Task* task)
                     enemy->hp = 0;
                 }
             } else if ((damageGetPlayerAttackEffectId(work->hitContacts[i].key.value)) == 0xD) {
-                func_800FDB18(0xD, &task->extra.tmd->coords[1], 0, &work->effectArg);
+                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &task->extra.tmd->coords[1], 0, &work->effectArg);
             }
         }
         if (work->hitTaken != 0) {
@@ -1984,7 +1984,7 @@ static void func_actor_206100_8014C458(Task* task)
                         (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
                 }
                 if (sub->attackFrames == 0x18 || sub->attackFrames == 0x30) {
-                    func_800FDB18(7, task->extra.tmd->coords + 1, NULL, &sub->effectArg);
+                    effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, task->extra.tmd->coords + 1, NULL, &sub->effectArg);
                 }
                 sub->attackFrames--;
             }

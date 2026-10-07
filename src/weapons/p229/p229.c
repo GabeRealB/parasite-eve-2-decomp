@@ -114,9 +114,9 @@ void func_p229_8011DDA0(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | 0x20500;
                 rec->end0Radius                                       = rec->end1Radius;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
-                func_80106238(arg0, 0, 0);
+                playerActorSetWeaponAttackFlags(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x84, 1);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20050004, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20050004, 0);
                 effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 5,
                             NULL);
@@ -127,9 +127,9 @@ void func_p229_8011DDA0(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x20516;
                 rec->end0Radius                                       = 0xC00;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                func_80106238(arg0, 0, 1);
+                playerActorSetWeaponAttackFlags(arg0, 0, 1);
                 Gp_ConsumeSlotQty(0x84, 0x101);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20050005, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20050005, 0);
                 eff = effectSpawn(EFFECT_P229_MUZZLE_FLASH,
                                   actor->equipmentTasks[1]->extra.tmd->coords, 5,
                                   NULL);
@@ -141,8 +141,8 @@ void func_p229_8011DDA0(Task* arg0)
             break;
         case 3:
         case 4:
-            if (actor->statePhase == 3 && Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_PlayObjSfx(spot, 0x17, 0);
+            if (actor->statePhase == 3 && playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                worldCoordPlaySound(spot, 0x17, 0);
             }
             actor->statePhase                                     = 5;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));

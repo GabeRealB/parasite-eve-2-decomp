@@ -421,7 +421,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
                 inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartDarknessDim();
-                Gp_DetachLinkNode(work);
+                playerActorClearLockTarget(work);
                 roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
             }
         }
@@ -503,7 +503,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
                 inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartDarknessDim();
-                Gp_DetachLinkNode(arg0);
+                playerActorClearLockTarget(arg0);
                 roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
                 break;
             }
@@ -638,7 +638,7 @@ void func_8010A670(Task* arg0)
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
             if (inner->targetNode != NULL) {
                 if (rand() & 3) {
-                    Gp_DetachLinkNode(arg0);
+                    playerActorClearLockTarget(arg0);
                 }
             } else {
                 mode = inner->state;
@@ -730,7 +730,7 @@ void Gp_StopPlayerAnim(Task* arg0, s32 arg1)
     } else {
         playerActorPlayChildSlotsWithBlend(arg0, 0x12, 0, arg1);
     }
-    Gp_DetachLinkNode(arg0);
+    playerActorClearLockTarget(arg0);
     inner->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
 }
 
@@ -846,7 +846,7 @@ void func_8010AD64(Task* arg0)
             }
             vec->vy = val;
             vec->vz = 0;
-            func_800FDB18(2, D_80113358.coord, vec, params);
+            effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, D_80113358.coord, vec, params);
             break;
         case 1:
             break;
@@ -868,7 +868,7 @@ static void func_8010AE98(Task* arg0)
     gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
     inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
     roomEffectStartDarknessDim();
-    Gp_DetachLinkNode(arg0);
+    playerActorClearLockTarget(arg0);
     roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
 }
 
@@ -1119,7 +1119,7 @@ void func_8010B3F8(Task* arg0)
                 params->spawnArgLo = argLo;
                 params->spawnArgHi = idx + 1;
                 params->coord      = coords;
-                func_800FDB18(3, coords, 0, params);
+                effectSpawnHit(EFFECT_HIT_KIND_BLAST, coords, 0, params);
             } else {
                 arg0->killCountdown = count - 1;
             }
@@ -1143,7 +1143,7 @@ void func_8010B520(Task* arg0)
     coords             = &raw[3];
     params->coord      = coords;
     params->spawnArgHi = (u16)arg0->spawnArg1.value + 1;
-    func_800FDB18(2, coords, 0, params);
+    effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, coords, 0, params);
     taskKill(arg0);
 }
 
@@ -1272,7 +1272,7 @@ Task* Gp_SetupAllyWeapon(void)
             companion = actor->companionWork;
             val1      = D_actor_800100_80167218[save->state.companionVariant];
             val2      = D_actor_800100_80167224[save->state.companionVariant];
-            Gp_AttachActorObj(work, val1, val2);
+            playerActorInitWeaponCollision(work, val1, val2);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
             companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4 && actor->weaponEffectTask == NULL) {
@@ -1452,7 +1452,7 @@ s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     vec    = SCRATCH_STACK_RESERVE_BYTES(0x10);
     actor  = arg0->work;
     playerActorGetPointDelta(coords, arg1, vec);
-    ret = func_80103E7C(actor->rotation.vy, ratan2(vec->vx, vec->vz));
+    ret = playerActorShortestTurn(actor->rotation.vy, ratan2(vec->vx, vec->vz));
     SCRATCH_STACK_RELEASE_BYTES(0x10);
     return ret;
 }
@@ -1469,7 +1469,7 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
     actor = arg0->work;
     playerActorGetPointDelta(extra->coords, arg1, &block->targetDelta);
     block->yaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val        = func_80103E7C(actor->rotation.vy, block->yaw);
+    val        = playerActorShortestTurn(actor->rotation.vy, block->yaw);
     block->yaw = val;
     if (val > 0x40) {
         block->yaw = 0x40;
@@ -1509,7 +1509,7 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     playerActorGetPointDelta(coord, targetPoint, &block->targetDelta);
     // Turn toward the target relative to body facing, preserving the strict aim limit.
     yawStep = ratan2(head[-1].targetDelta.vx, block->targetDelta.vz) - actor->rotation.vy;
-    yawStep = func_80103E7C(actor->aimYaw, yawStep);
+    yawStep = playerActorShortestTurn(actor->aimYaw, yawStep);
     if (yawStep > PLAYER_ACTOR_AIM_YAW_STEP) {
         yawStep = PLAYER_ACTOR_AIM_YAW_STEP;
     } else if (yawStep < -PLAYER_ACTOR_AIM_YAW_STEP) {

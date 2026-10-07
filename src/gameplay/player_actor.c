@@ -285,11 +285,11 @@ extern u8 D_80112DFC[];
 /// low halfword of its selector; the only call passes 0.
 extern _PlayerActorVibrationPreset D_80112E28[];
 
-/// s16 scale rows indexed by `GameActor.movementMode`. `Gp_StepPlayerMove` divides
+/// s16 scale rows indexed by `GameActor.movementMode`. `playerActorStepMovement` divides
 /// the normalized matrix-column by `D_80112E10[movementMode]`.
 extern s16 D_80112E10[];
 
-/// u16 facing-step rows indexed by `GameActor.turnRateIndex`. `Gp_TurnPlayer`
+/// u16 facing-step rows indexed by `GameActor.turnRateIndex`. `playerActorUpdateFacing`
 /// adds `D_80112E20[turnRateIndex] * turnSign` onto `rotation.vy` (masked `0xFFF`).
 extern u16 D_80112E20[];
 
@@ -318,7 +318,7 @@ extern u8 D_80112EF8[];
 /// makes `func_801088D4` abort the item-use path (`statePhase = 0x3E8`).
 extern u8 D_80112F1C[][2];
 
-/// 0x10-byte `VECTOR` rows indexed by `Gp_AttachActorObj` arg1: where the
+/// 0x10-byte `VECTOR` rows indexed by `playerActorInitWeaponCollision` weaponId: where the
 /// weapon of that attach id sits on the actor. Copied through scratch; the low
 /// 16 bits of `vx`/`vy`/`vz` seed the shape's `ends[1]`.
 extern VECTOR D_80112FA4[];
@@ -417,10 +417,7 @@ static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* bloc
 
 static inline void _playerActorPlaceAimPitchOrigin(_PlayerActorAimPitchScratch* scratch, GfxCoord* source, const SVECTOR* localOffset);
 
-/// Stores the lock target's position relative to `block->originCoord` in
-/// `block->targetDelta` and returns the length of that offset in the ground
-/// plane.
-static inline s32 _gpAimPitchLockDelta(GameActor* actor, _PlayerActorAimPitchScratch* block);
+static inline s32 _playerActorGetAimPitchTargetDelta(const GameActor* actor, _PlayerActorAimPitchScratch* scratch);
 
 static void Gp_AimPitchToLockAlt(Task* arg0);
 
@@ -432,7 +429,7 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2);
 
-inline static Task* spawn_attach(Task* parent, s32 row, s32 item);
+inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterId, s32 weaponId);
 
 static void Gp_CaptureActorPad(Task* arg0);
 
@@ -519,7 +516,7 @@ static void _playerActorUpdateIdleTurnAnimation(Task* task);
 
 static void func_80108684(Task* arg0);
 
-static void Gp_ResetActorAnimState(Task* arg0, s32 arg1);
+static void _playerActorEnterAimLocomotion(Task* task, s32 blendFrames);
 
 static void func_80108A0C(Task* arg0);
 
@@ -3238,7 +3235,7 @@ void effectControlTask0E(Task* task)
     effectKillTask(work, task);
 }
 
-void Gp_PulseState1C80(void)
+void roomEffectRequestCancelPe(void)
 {
     gRoomEffectState->pendingCancelFlags |= ROOM_EFFECT_CANCEL_PE;
 }
@@ -3670,106 +3667,121 @@ void effectSpriteTaskA7(Task* task)
 #undef EFFECT_RISING_WISP_SET_CORNERS
 }
 
-void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3)
+void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, EffectSpawnArg* spawnRecord)
 {
+    enum {
+        EFFECT_HIT_PUFF_PRIMARY_ARGUMENT        = 0x12380,
+        EFFECT_HIT_PUFF_ALTERNATE_ARGUMENT      = 0x12300,
+        EFFECT_HIT_PUFF_RANDOM_ARGUMENT         = 0x111300,
+        EFFECT_HIT_PUFF_REPEAT_ARGUMENT         = 0x111280,
+        EFFECT_HIT_PUFF_TINTED_PRIMARY_ARGUMENT = 0x10013380,
+        EFFECT_HIT_PUFF_TINTED_RANDOM_ARGUMENT  = 0x10111300,
+        EFFECT_HIT_PUFF_TINTED_REPEAT_ARGUMENT  = 0x10112280,
+        EFFECT_HIT_PUFF_SPARK_ARGUMENT          = 0x112300,
+        EFFECT_HIT_PUFF_DENSE_ARGUMENT          = 0x1112300,
+        EFFECT_HIT_SPARK_SIZE                   = 0x400,
+        EFFECT_HIT_ARGUMENT_HIGH_SHIFT          = 16,
+        EFFECT_HIT_ARGUMENT_SINGLE              = 0x10000,
+    };
     GameActor* actor;
-    s32        i;
+    s32        spawnIndex;
     s32        pan;
-    s16        id;
+    u16        kind;
 
-    id    = arg0;
+    kind  = effectKind;
     actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    if (arg3 == NULL) {
-        arg3        = &D_80112C74;
-        arg3->coord = arg1;
+    // Resolve call placement and the record's independently retained placement.
+    if (spawnRecord == NULL) {
+        spawnRecord        = &D_80112C74;
+        spawnRecord->coord = coord;
     } else {
-        if (arg3->coord == NULL) {
-            if (arg1 == NULL) {
-                arg3->coord = &gGfxViewCoord;
-                arg1        = arg3->coord;
+        if (spawnRecord->coord == NULL) {
+            if (coord == NULL) {
+                spawnRecord->coord = &gGfxViewCoord;
+                coord              = spawnRecord->coord;
             } else {
-                arg3->coord = arg1;
+                spawnRecord->coord = coord;
             }
-        } else if (arg1 == NULL) {
-            arg1 = arg3->coord;
+        } else if (coord == NULL) {
+            coord = spawnRecord->coord;
         }
     }
-    switch ((u16)id) {
-        case 1:
-            if (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & 0x4000) {
-                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x12300, arg2);
-                if (arg3->spawnArgHi >= 2) {
-                    for (i = 0; i < arg3->spawnArgHi; i++) {
-                        effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111280, arg2);
+    switch (kind) {
+        case EFFECT_HIT_KIND_WEAPON_PUFF:
+            if (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & PLAYER_ACTOR_WEAPON_ATTACK_ALTERNATE) {
+                effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_ALTERNATE_ARGUMENT, localOffset);
+                if (spawnRecord->spawnArgHi >= 2) {
+                    for (spawnIndex = 0; spawnIndex < spawnRecord->spawnArgHi; spawnIndex++) {
+                        effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_REPEAT_ARGUMENT, localOffset);
                     }
                 }
             } else {
-                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x12380, arg2);
-                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111300, arg2);
-                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111300, arg2);
-                for (i = 0; i < arg3->spawnArgHi; i++) {
-                    effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111280, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_PRIMARY_ARGUMENT, localOffset);
+                effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_RANDOM_ARGUMENT, localOffset);
+                effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_RANDOM_ARGUMENT, localOffset);
+                for (spawnIndex = 0; spawnIndex < spawnRecord->spawnArgHi; spawnIndex++) {
+                    effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_REPEAT_ARGUMENT, localOffset);
                 }
             }
             break;
-        case 2:
-            effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10013380, arg2);
-            effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10111300, arg2);
-            effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10111300, arg2);
-            for (i = 0; i < arg3->spawnArgHi; i++) {
-                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10112280, arg2);
+        case EFFECT_HIT_KIND_TINTED_PUFF:
+            effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_TINTED_PRIMARY_ARGUMENT, localOffset);
+            effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_TINTED_RANDOM_ARGUMENT, localOffset);
+            effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_TINTED_RANDOM_ARGUMENT, localOffset);
+            for (spawnIndex = 0; spawnIndex < spawnRecord->spawnArgHi; spawnIndex++) {
+                effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_TINTED_REPEAT_ARGUMENT, localOffset);
             }
             break;
-        case 4:
-            effectSpawn(EFFECT_HIT_PARTICLE_EMITTER, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+        case EFFECT_HIT_KIND_PARTICLE_EMITTER:
+            effectSpawn(EFFECT_HIT_PARTICLE_EMITTER, spawnRecord->coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), localOffset);
             break;
-        case 5:
-            effectSpawn(EFFECT_HIT_SPLATTER_SPRAY, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+        case EFFECT_HIT_KIND_SPLATTER:
+            effectSpawn(EFFECT_HIT_SPLATTER_SPRAY, coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), localOffset);
             break;
-        case 6:
-            effectSpawn(EFFECT_IMPACT_SPARK, arg1, 0x400, arg2);
-            for (i = 0; i < arg3->spawnArgHi; i++) {
-                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x112300, arg2);
+        case EFFECT_HIT_KIND_SPARK_AND_PUFFS:
+            effectSpawn(EFFECT_IMPACT_SPARK, coord, EFFECT_HIT_SPARK_SIZE, localOffset);
+            for (spawnIndex = 0; spawnIndex < spawnRecord->spawnArgHi; spawnIndex++) {
+                effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_HIT_PUFF_SPARK_ARGUMENT, localOffset);
             }
             break;
-        case 7:
-            effectSpawn(EFFECT_HIT_SPARK_BURST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+        case EFFECT_HIT_KIND_SPARK_BURST:
+            effectSpawn(EFFECT_HIT_SPARK_BURST, spawnRecord->coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), localOffset);
             break;
-        case 8:
-            for (i = 0; i < arg3->spawnArgHi * 3; i++) {
-                effectSpawn(EFFECT_HIT_PUFF, arg3->coord, 0x1112300, arg2);
+        case EFFECT_HIT_KIND_DENSE_PUFFS:
+            for (spawnIndex = 0; spawnIndex < spawnRecord->spawnArgHi * 3; spawnIndex++) {
+                effectSpawn(EFFECT_HIT_PUFF, spawnRecord->coord, EFFECT_HIT_PUFF_DENSE_ARGUMENT, localOffset);
             }
             break;
-        case 9:
-            effectSpawn(EFFECT_HIT_SPLATTER_SPRAY, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+        case EFFECT_HIT_KIND_SPLATTER_ALT:
+            effectSpawn(EFFECT_HIT_SPLATTER_SPRAY, coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), localOffset);
             break;
-        case 10:
-            effectSpawn(EFFECT_0E3, arg1, arg3->spawnArgLo | 0x10000, arg2);
+        case EFFECT_HIT_KIND_CONTROL_E3:
+            effectSpawn(EFFECT_0E3, coord, spawnRecord->spawnArgLo | EFFECT_HIT_ARGUMENT_SINGLE, localOffset);
             break;
-        case 11:
-            effectSpawn(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
-            pan = (s8)worldCoordGetOriginAudioPan(arg1);
+        case EFFECT_HIT_KIND_BLAST_WITH_SOUND:
+            effectSpawn(EFFECT_HIT_BLAST, spawnRecord->coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), NULL);
+            pan = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_80112C7C[(u16)(Gp_StateC08.attachId % 10U) - 1], pan,
-                                     (s8)worldCoordGetOriginAudioDepth(arg1));
+                                     (s8)worldCoordGetOriginAudioDepth(coord));
             break;
-        case 12:
-            effectSpawn(EFFECT_APOBIOSIS_SHARD, arg1, 1, NULL);
+        case EFFECT_HIT_KIND_APOBIOSIS_SHARD:
+            effectSpawn(EFFECT_APOBIOSIS_SHARD, coord, 1, NULL);
             break;
-        case 13:
-            for (i = 0; i < arg3->spawnArgHi; i++) {
-                effectSpawn((EFFECT_LIFE_DRAIN_MOTE | EFFECT_SPAWN_UNLIMITED), arg1, 1, NULL);
+        case EFFECT_HIT_KIND_LIFE_DRAIN_MOTES:
+            for (spawnIndex = 0; spawnIndex < spawnRecord->spawnArgHi; spawnIndex++) {
+                effectSpawn((EFFECT_LIFE_DRAIN_MOTE | EFFECT_SPAWN_UNLIMITED), coord, 1, NULL);
             }
             break;
-        case 15:
-            effectSpawn(EFFECT_HIT_SPARK_BURST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
-            effectSpawn(EFFECT_M4A1_HAMMER_IMPACT_FLASH, arg1, 1, NULL);
+        case EFFECT_HIT_KIND_HAMMER_FLASH:
+            effectSpawn(EFFECT_HIT_SPARK_BURST, spawnRecord->coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), localOffset);
+            effectSpawn(EFFECT_M4A1_HAMMER_IMPACT_FLASH, coord, 1, NULL);
             break;
-        case 16:
-            if (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & 0x4000) {
-                effectSpawn(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | 0x10000, arg2);
+        case EFFECT_HIT_KIND_WEAPON_BLAST:
+            if (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & PLAYER_ACTOR_WEAPON_ATTACK_ALTERNATE) {
+                effectSpawn(EFFECT_HIT_BLAST, spawnRecord->coord, spawnRecord->spawnArgLo | EFFECT_HIT_ARGUMENT_SINGLE, localOffset);
             } else {
-                case 3:
-                    effectSpawn(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+                case EFFECT_HIT_KIND_BLAST:
+                    effectSpawn(EFFECT_HIT_BLAST, spawnRecord->coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), localOffset);
             }
             break;
     }
@@ -4901,7 +4913,7 @@ static void Gp_PlayerWorkState1(Task* arg0)
         actor->previousPosition.vy = coord->coord.t[1];
         actor->previousPosition.vz = coord->coord.t[2];
         if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = func_801011D0(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
         } else {
             actor->gridResponse = 0;
         }
@@ -4924,54 +4936,64 @@ static void Gp_PlayerWorkState1(Task* arg0)
     actorRenderComposeCoord(coord);
 }
 
-void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
+void playerActorInitWeaponCollision(Task* actorTask, s32 weaponId, s32 attackRow)
 {
+    enum {
+        PLAYER_ACTOR_WEAPON_QUARTER_TURN       = ACTOR_TRANSFORM_ANGLE_TURN / 4,
+        PLAYER_ACTOR_WEAPON_RADIUS             = 0x100,
+        PLAYER_ACTOR_TONFA_RADIUS              = 0x280,
+        PLAYER_ACTOR_WEAPON_SPREAD_RADIUS      = 0x900,
+        PLAYER_ACTOR_TONFA_WEAPON_ID           = 0x13,
+        PLAYER_ACTOR_SPREAD_ATTACK_ROW         = 0xD,
+        PLAYER_ACTOR_WEAPON_DISTANCE_ROW_SHIFT = 8,
+    };
     GameActor*             actor;
-    WorldCollisionBody*    obj;
-    WorldCollisionCapsule* rec;
-    VECTOR*                tmp;
-    Task*                  task;
-    s32                    scale;
+    WorldCollisionBody*    weaponBody;
+    WorldCollisionCapsule* capsule;
+    VECTOR*                endpoint;
+    Task*                  weaponTask;
+    s32                    radius;
 
-    actor = arg0->work;
-    obj   = &actor->collisionBodies[GAME_ACTOR_BODY_WEAPON];
-    rec   = &actor->weaponShape;
+    actor      = actorTask->work;
+    weaponBody = &actor->collisionBodies[GAME_ACTOR_BODY_WEAPON];
+    capsule    = &actor->weaponShape;
     SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    tmp  = SCRATCH_STACK_CURSOR(VECTOR);
-    task = actor->equipmentTasks[1];
-    if (task != NULL) {
-        actor->weaponCollisionCoord = *task->extra.tmd->coords;
-        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, 0x400, GRAPHICS_ROTATION_COMPOSE);
-        obj->coord                                         = &actor->weaponCollisionCoord;
+    endpoint   = SCRATCH_STACK_CURSOR(VECTOR);
+    weaponTask = actor->equipmentTasks[1];
+    if (weaponTask != NULL) {
+        // Keep a collision coordinate independent of the rendered weapon node.
+        actor->weaponCollisionCoord = *weaponTask->extra.tmd->coords;
+        gfxRotMatrixX(&actor->weaponCollisionCoord.workm, PLAYER_ACTOR_WEAPON_QUARTER_TURN, GRAPHICS_ROTATION_COMPOSE);
+        weaponBody->coord                                  = &actor->weaponCollisionCoord;
         actor->weaponCollisionCoord.param.rot.vx           = 0;
         actor->weaponCollisionCoord.param.rot.vy           = 0;
         actor->weaponCollisionCoord.param.rot.vz           = 0;
-        obj->context.capsule                               = &actor->weaponShape;
-        obj->flags                                         = WORLD_COLLISION_BODY_CAPSULE;
-        obj->pos.vx                                        = 0;
-        obj->pos.vy                                        = 0;
-        obj->pos.vz                                        = 0;
-        actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x20000 | (id << 8) | kind;
-        *tmp                                               = D_80112FA4[id];
-        rec->ends[1].vx                                    = tmp->vx;
-        rec->ends[1].vy                                    = tmp->vy;
-        rec->ends[1].vz                                    = tmp->vz;
-        rec->ends[0].vx                                    = rec->ends[1].vx;
-        rec->ends[0].vy                                    = rec->ends[1].vy;
-        rec->ends[0].vz                                    = rec->ends[1].vz + D_80112F60[id];
-        scale                                              = 0x100;
-        if (gPlayerStatus.weapon == 0x13) {
-            scale = 0x280;
+        weaponBody->context.capsule                        = &actor->weaponShape;
+        weaponBody->flags                                  = WORLD_COLLISION_BODY_CAPSULE;
+        weaponBody->pos.vx                                 = 0;
+        weaponBody->pos.vy                                 = 0;
+        weaponBody->pos.vz                                 = 0;
+        actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = WORLD_COLLISION_CONTACT_ATTACK | (weaponId << PLAYER_ACTOR_WEAPON_DISTANCE_ROW_SHIFT) | attackRow;
+        *endpoint                                          = D_80112FA4[weaponId];
+        capsule->ends[1].vx                                = endpoint->vx;
+        capsule->ends[1].vy                                = endpoint->vy;
+        capsule->ends[1].vz                                = endpoint->vz;
+        capsule->ends[0].vx                                = capsule->ends[1].vx;
+        capsule->ends[0].vy                                = capsule->ends[1].vy;
+        capsule->ends[0].vz                                = capsule->ends[1].vz + D_80112F60[weaponId];
+        radius                                             = PLAYER_ACTOR_WEAPON_RADIUS;
+        if (gPlayerStatus.weapon == PLAYER_ACTOR_TONFA_WEAPON_ID) {
+            radius = PLAYER_ACTOR_TONFA_RADIUS;
         }
-        rec->end1Radius = scale;
-        if (kind != 0xD) {
-            rec->end0Radius = scale;
+        capsule->end1Radius = radius;
+        if (attackRow != PLAYER_ACTOR_SPREAD_ATTACK_ROW) {
+            capsule->end0Radius = radius;
         } else {
-            rec->end0Radius = 0x900;
+            capsule->end0Radius = PLAYER_ACTOR_WEAPON_SPREAD_RADIUS;
         }
-        rec->contacts = actor->weaponContacts;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, obj);
-        worldCollisionInitContacts(rec->contacts, ARRAY_SIZE(actor->weaponContacts), 0);
+        capsule->contacts = actor->weaponContacts;
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, weaponBody);
+        worldCollisionInitContacts(capsule->contacts, ARRAY_SIZE(actor->weaponContacts), 0);
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
@@ -4985,29 +5007,30 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         }                                           \
     } while (0)
 
-s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* arg3)
+s32 worldCollisionApplyResponsePushback(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s32* surfaceClassOut)
 {
     WorldCollisionDelta* delta;
-    s32                  ret;
+    s32                  response;
 
-    delta = SCRATCH_STACK_RESERVE_BLOCK(WorldCollisionDelta);
-    ret   = worldCollisionResolveResponsePushback(arg1, delta, arg2, arg3);
-    if (ret != 0) {
+    delta    = SCRATCH_STACK_RESERVE_BLOCK(WorldCollisionDelta);
+    response = worldCollisionResolveResponsePushback(contacts, delta, contactCount, surfaceClassOut);
+    // Apply whole-unit correction, then turn the returned surface mask into a class.
+    if (response != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
         GP_ROUND_FIXED_AWAY(delta->fixed.vx.word);
         GP_ROUND_FIXED_AWAY(delta->fixed.vy.word);
         GP_ROUND_FIXED_AWAY(delta->fixed.vz.word);
-        arg0->coord.t[0] += delta->fixed.vx.halves.integer;
-        arg0->coord.t[1] += delta->fixed.vy.halves.integer;
-        arg0->coord.t[2] += delta->fixed.vz.halves.integer;
-        if (arg3 != NULL) {
-            *arg3 = worldCollisionSurfaceClassFromMask((const u8*)arg3);
+        coord->coord.t[0] += delta->fixed.vx.halves.integer;
+        coord->coord.t[1] += delta->fixed.vy.halves.integer;
+        coord->coord.t[2] += delta->fixed.vz.halves.integer;
+        if (surfaceClassOut != NULL) {
+            *surfaceClassOut = worldCollisionSurfaceClassFromMask((const u8*)surfaceClassOut);
         }
         if ((delta->fixed.vx.word | delta->fixed.vz.word) == 0) {
-            ret = 0;
+            response = WORLD_COLLISION_PUSHBACK_NO_GRID_HIT;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WorldCollisionDelta);
-    return ret;
+    return response;
 }
 
 static void func_8010133C(void)
@@ -5218,7 +5241,7 @@ void Gp_TickActorAnimState(Task* arg0)
         case 5:
             if (rec != NULL) {
                 if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                    Gp_ResetActorAnimState(arg0, 3);
+                    _playerActorEnterAimLocomotion(arg0, 3);
                 }
             }
             break;
@@ -5257,24 +5280,50 @@ void Gp_TickActorAnimState(Task* arg0)
     }
 }
 
-void Gp_StepPlayerMove(Task* arg0)
+/// Derives root displacement from the normalized forward axis and the actor's speed row.
+///
+/// The live root's axis must meet SDK normalization requirements. Movement
+/// mode selects a nonzero divisor in rows 1..7; direction uses Q12 and velocity
+/// uses game-coordinate units. Scratch belongs to the caller; no pointer is retained.
+static inline void _playerActorSetForwardVelocity(GameActor* actor, GfxCoord* coord, _PlayerActorMoveStepScratch* scratch)
 {
+    scratch->speedDivisor = D_80112E10[(u16)actor->movementMode];
+    gfxReadMatrixZAxis(&coord->coord, &scratch->direction);
+    VectorNormalSS(&scratch->direction, &scratch->direction);
+    actor->velocity.vx = scratch->direction.vx * actor->movementSign / scratch->speedDivisor;
+    actor->velocity.vy = 0;
+    actor->velocity.vz = scratch->direction.vz * actor->movementSign / scratch->speedDivisor;
+}
+
+void playerActorStepMovement(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_MOVEMENT_STOPPED       = 0,
+        PLAYER_ACTOR_MOVEMENT_FORWARD_WALK  = 1,
+        PLAYER_ACTOR_MOVEMENT_BACKWARD_WALK = 2,
+        PLAYER_ACTOR_MOVEMENT_RUN           = 3,
+        PLAYER_ACTOR_MOVEMENT_CIRCLING      = 4,
+        PLAYER_ACTOR_CIRCLE_HALF_TURN       = ACTOR_TRANSFORM_ANGLE_HALF_TURN,
+        // 4096 * 1600 / (628 * radius) approximates a 16-unit arc in angle units.
+        PLAYER_ACTOR_CIRCLE_ARC_NUMERATOR       = 0x640000,
+        PLAYER_ACTOR_CIRCLE_CIRCUMFERENCE_SCALE = 0x274,
+    };
     GameActor*                   actor;
     GfxCoord*                    coord;
     _PlayerActorMoveStepScratch* block;
 
     block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorMoveStepScratch);
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    actor = task->work;
+    coord = task->extra.tmd->coords;
     switch ((u16)actor->movementMode) {
-        case 0:
+        case PLAYER_ACTOR_MOVEMENT_STOPPED:
             actor->velocity.vx = 0;
             actor->velocity.vy = 0;
             actor->velocity.vz = 0;
             break;
-        case 1:
-        case 2:
-        case 3:
+        case PLAYER_ACTOR_MOVEMENT_FORWARD_WALK:
+        case PLAYER_ACTOR_MOVEMENT_BACKWARD_WALK:
+        case PLAYER_ACTOR_MOVEMENT_RUN:
         case 5:
         case 6:
         case 7:
@@ -5284,31 +5333,22 @@ void Gp_StepPlayerMove(Task* arg0)
                 actor->velocity.vy = 0;
                 actor->velocity.vz = 0;
             } else {
-                block->speedDivisor = D_80112E10[(u16)actor->movementMode];
-                gfxReadMatrixZAxis(&coord->coord, &block->direction);
-                VectorNormalSS(&block->direction, &block->direction);
-                actor->velocity.vx = block->direction.vx * actor->movementSign / block->speedDivisor;
-                actor->velocity.vy = 0;
-                actor->velocity.vz = block->direction.vz * actor->movementSign / block->speedDivisor;
+                _playerActorSetForwardVelocity(actor, coord, block);
             }
             break;
-        case 4:
-            block->speedDivisor = D_80112E10[(u16)actor->movementMode];
-            gfxReadMatrixZAxis(&coord->coord, &block->direction);
-            VectorNormalSS(&block->direction, &block->direction);
-            actor->velocity.vx  = block->direction.vx * actor->movementSign / block->speedDivisor;
-            actor->velocity.vy  = 0;
-            actor->velocity.vz  = block->direction.vz * actor->movementSign / block->speedDivisor;
-            coord->coord.t[0]  += actor->velocity.vx;
-            coord->coord.t[1]  += actor->velocity.vy;
-            coord->coord.t[2]  += actor->velocity.vz;
+        case PLAYER_ACTOR_MOVEMENT_CIRCLING:
+            _playerActorSetForwardVelocity(actor, coord, block);
+            coord->coord.t[0] += actor->velocity.vx;
+            coord->coord.t[1] += actor->velocity.vy;
+            coord->coord.t[2] += actor->velocity.vz;
+            // Circle after applying forward motion, then restore the root orientation.
             block->savedMatrix  = coord->coord;
             block->speedDivisor = D_80112E10[(u16)actor->movementMode];
             worldTargetGetBodyPosition(actor->targetNode, &block->targetPosition);
             block->direction.vx  = abs(coord->coord.t[0] - block->targetPosition.vx);
             block->direction.vx += abs(coord->coord.t[2] - block->targetPosition.vz);
-            block->strafeYaw     = 0x640000;
-            block->strafeYaw     = (0x800 - block->strafeYaw / (block->direction.vx * 0x274)) >> 1;
+            block->strafeYaw     = PLAYER_ACTOR_CIRCLE_ARC_NUMERATOR;
+            block->strafeYaw     = (PLAYER_ACTOR_CIRCLE_HALF_TURN - block->strafeYaw / (block->direction.vx * PLAYER_ACTOR_CIRCLE_CIRCUMFERENCE_SCALE)) >> 1;
             gfxRotMatrixY(&coord->coord, block->strafeYaw, 0);
             gfxReadMatrixZAxis(&coord->coord, &block->direction);
             actor->velocity.vx = block->direction.vx * actor->turnSign / block->speedDivisor;
@@ -5354,48 +5394,49 @@ static inline MATRIX* _playerActorInvalidatePartMatrix(Task* task, s32 partIndex
     return &coord->coord;
 }
 
-void Gp_TurnPlayer(Task* arg0)
+void playerActorUpdateFacing(Task* task)
 {
     GameActor* actor;
     GfxCoord*  coord;
-    MATRIX*    m;
-    s32        moving;
-    s16        step;
+    MATRIX*    partMatrix;
+    s32        aimAnglesMoving;
+    s16        decayStep;
 
-    actor  = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    moving = 0;
+    actor           = task->work;
+    coord           = task->extra.tmd->coords;
+    aimAnglesMoving = 0;
     if (actor->turnRateIndex != 0) {
-        s32 dir = *(volatile u8*)&actor->turnSign;
+        s32 turnSign = (u8) * (volatile s8*)&actor->turnSign;
 
-        actor->rotation.vy = (actor->rotation.vy + D_80112E20[actor->turnRateIndex] * (s8)dir) & 0xFFF;
+        actor->rotation.vy = (actor->rotation.vy + D_80112E20[actor->turnRateIndex] * (s8)turnSign) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
     RotMatrix(&actor->rotation, &coord->coord);
     MatrixNormal(&coord->coord, &coord->coord);
+    // Ease residual aim offsets back to the ordinary pose before composing the parts.
     if (actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_DECAY) {
-        GP_DECAY_ANGLE(actor->part2Pitch, step, moving);
-        GP_DECAY_ANGLE(actor->part2Roll, step, moving);
-        GP_DECAY_ANGLE(actor->part3Pitch, step, moving);
-        GP_DECAY_ANGLE(actor->part3Roll, step, moving);
-        GP_DECAY_ANGLE(actor->part6Pitch, step, moving);
-        if (moving == 0) {
+        GP_DECAY_ANGLE(actor->part2Pitch, decayStep, aimAnglesMoving);
+        GP_DECAY_ANGLE(actor->part2Roll, decayStep, aimAnglesMoving);
+        GP_DECAY_ANGLE(actor->part3Pitch, decayStep, aimAnglesMoving);
+        GP_DECAY_ANGLE(actor->part3Roll, decayStep, aimAnglesMoving);
+        GP_DECAY_ANGLE(actor->part6Pitch, decayStep, aimAnglesMoving);
+        if (aimAnglesMoving == 0) {
             actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_OFF;
         }
     }
-    m = _playerActorInvalidatePartMatrix(arg0, 2);
-    RotMatrixX(actor->part2Pitch, m);
-    RotMatrixZ(actor->part2Roll, m);
-    MatrixNormal(m, m);
-    m = _playerActorInvalidatePartMatrix(arg0, 3);
-    RotMatrixX(actor->part3Pitch, m);
-    RotMatrixZ(actor->part3Roll, m);
-    MatrixNormal(m, m);
-    m = _playerActorInvalidatePartMatrix(arg0, 4);
-    gfxRotMatrixY(m, actor->aimYaw, 0);
-    MatrixNormal(m, m);
-    m = _playerActorInvalidatePartMatrix(arg0, 6);
-    gfxRotMatrixX(m, actor->part6Pitch, GRAPHICS_ROTATION_COMPOSE);
-    MatrixNormal(m, m);
+    partMatrix = _playerActorInvalidatePartMatrix(task, 2);
+    RotMatrixX(actor->part2Pitch, partMatrix);
+    RotMatrixZ(actor->part2Roll, partMatrix);
+    MatrixNormal(partMatrix, partMatrix);
+    partMatrix = _playerActorInvalidatePartMatrix(task, 3);
+    RotMatrixX(actor->part3Pitch, partMatrix);
+    RotMatrixZ(actor->part3Roll, partMatrix);
+    MatrixNormal(partMatrix, partMatrix);
+    partMatrix = _playerActorInvalidatePartMatrix(task, 4);
+    gfxRotMatrixY(partMatrix, actor->aimYaw, 0);
+    MatrixNormal(partMatrix, partMatrix);
+    partMatrix = _playerActorInvalidatePartMatrix(task, 6);
+    gfxRotMatrixX(partMatrix, actor->part6Pitch, GRAPHICS_ROTATION_COMPOSE);
+    MatrixNormal(partMatrix, partMatrix);
 }
 
 /// Returns the shortest signed turn between two angles, in 4096 units per turn.
@@ -5495,29 +5536,34 @@ static inline void _playerActorPlaceAimPitchOrigin(_PlayerActorAimPitchScratch* 
     actorRenderPlaceCoordOffset(source, &scratch->originCoord, &scratch->originOffset);
 }
 
-/// Stores the lock target's position relative to `block->originCoord` in
-/// `block->targetDelta` and returns the length of that offset in the ground
-/// plane.
-static inline s32 _gpAimPitchLockDelta(GameActor* actor, _PlayerActorAimPitchScratch* block)
+/// Returns the game-unit planar length of signed XZ components without overflow checks.
+static inline s32 _playerActorAimPitchPlanarLength(s32 x, s32 z)
 {
-    VECTOR3* lock;
-    VECTOR3* delta;
-    s32      dx;
-    s32      dz;
+    x = ABS(x);
+    x = x * x;
+    z = ABS(z);
+    z = z * z;
+    return SquareRoot0(x + z);
+}
 
-    lock = &block->targetPosition;
-    worldTargetGetBodyPosition(actor->targetNode, lock);
-    delta     = &block->targetDelta;
-    delta->vx = lock->vx - block->originCoord.coord.t[0];
-    delta->vy = lock->vy - block->originCoord.coord.t[1];
-    delta->vz = lock->vz - block->originCoord.coord.t[2];
-    dx        = block->targetDelta.vx;
-    dx        = ABS(dx);
-    dx        = dx * dx;
-    dz        = block->targetDelta.vz;
-    dz        = ABS(dz);
-    dz        = dz * dz;
-    return SquareRoot0(dx + dz);
+/// Stages the lock target's position and aim-origin displacement, returning its planar length.
+///
+/// Requires a live borrowed target and a placed origin in the caller's scratch
+/// block, in the target position's coordinate frame. Writes XYZ position and
+/// delta; ignores Y for the returned game-unit length. Absolute values, squares
+/// and their sum must fit s32. Retains no pointers; the caller owns the scratch.
+static inline s32 _playerActorGetAimPitchTargetDelta(const GameActor* actor, _PlayerActorAimPitchScratch* scratch)
+{
+    VECTOR3* targetPosition;
+    VECTOR3* targetDelta;
+
+    targetPosition = &scratch->targetPosition;
+    worldTargetGetBodyPosition(actor->targetNode, targetPosition);
+    targetDelta     = &scratch->targetDelta;
+    targetDelta->vx = targetPosition->vx - scratch->originCoord.coord.t[0];
+    targetDelta->vy = targetPosition->vy - scratch->originCoord.coord.t[1];
+    targetDelta->vz = targetPosition->vz - scratch->originCoord.coord.t[2];
+    return _playerActorAimPitchPlanarLength(scratch->targetDelta.vx, scratch->targetDelta.vz);
 }
 
 void Gp_AimPitchToLock(Task* arg0)
@@ -5534,7 +5580,7 @@ void Gp_AimPitchToLock(Task* arg0)
         block->originOffset.vy = -0x400;
         block->originOffset.vz = 0;
         actorRenderPlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
-        block->groundDistance   = _gpAimPitchLockDelta(actor, block);
+        block->groundDistance   = _playerActorGetAimPitchTargetDelta(actor, block);
         block->targetDelta.vy >>= 1;
         block->pitch            = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
         block->pitch           -= actor->part2Pitch;
@@ -5549,7 +5595,7 @@ void Gp_AimPitchToLock(Task* arg0)
         }
 
         _playerActorPlaceAimPitchOrigin(block, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
-        block->groundDistance = _gpAimPitchLockDelta(actor, block);
+        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
         block->pitch          = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
         block->pitch         -= actor->part3Pitch;
         if (block->pitch > 0x30) {
@@ -5579,7 +5625,7 @@ static void Gp_AimPitchToLockAlt(Task* arg0)
         block->originOffset.vy = -0x400;
         block->originOffset.vz = 0;
         actorRenderPlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
-        block->groundDistance   = _gpAimPitchLockDelta(actor, block);
+        block->groundDistance   = _playerActorGetAimPitchTargetDelta(actor, block);
         block->targetDelta.vy >>= 1;
         block->pitch            = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
         block->pitch           -= actor->part2Roll;
@@ -5593,7 +5639,7 @@ static void Gp_AimPitchToLockAlt(Task* arg0)
         }
 
         _playerActorPlaceAimPitchOrigin(block, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
-        block->groundDistance = _gpAimPitchLockDelta(actor, block);
+        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
         block->pitch          = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
         block->pitch         -= actor->part3Roll;
         if (block->pitch > 0x30) {
@@ -5618,7 +5664,7 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
     block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
     if (actor->targetNode != NULL) {
         _playerActorPlaceAimPitchOrigin(block, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[arg1]);
-        block->groundDistance = _gpAimPitchLockDelta(actor, block);
+        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
         if (block->groundDistance > (s16)arg2) {
             block->pitch  = ratan2(-block->targetDelta.vy, block->groundDistance);
             block->pitch -= actor->part6Pitch;
@@ -5651,7 +5697,7 @@ static void Gp_AimPitchDirect(Task* arg0)
         block->originOffset.vy = 0;
         block->originOffset.vz = 0;
         actorRenderPlaceCoordOffset(src, &block->originCoord, &block->originOffset);
-        block->groundDistance = _gpAimPitchLockDelta(actor, block);
+        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
         block->pitch          = ratan2(-block->targetDelta.vy, block->groundDistance);
         block->pitch         -= actor->directAimPitch;
         if (ABS(block->pitch) >= 0x20) {
@@ -5769,29 +5815,39 @@ static Task* func_80103294(Task* arg0, s32 arg1, s32 arg2)
     return actor->attachmentTasks[1];
 }
 
-inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
+/// Spawns the selected character's weapon model as a child of an attachment task.
+///
+/// Character id 0..3 selects a bank-7 descriptor base; weapon ids 1..32
+/// select its unchecked entry, which must be loaded. Zero weapon or allocation failure
+/// returns NULL. Borrows the parent's model root for coordinate parenting,
+/// sets the task's parent and requests local coordinate initialization.
+/// Parent, descriptor code and model resources must stay live with the child.
+inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterId, s32 weaponId)
 {
-    GfxCoord*  saved;
-    Task*      task;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    s32        type;
+    enum {
+        PLAYER_ACTOR_WEAPON_MODEL_BANK = 7,
+    };
+    GfxCoord*  parentCoord;
+    Task*      weaponTask;
+    TmdObject* weaponModel;
+    GfxCoord*  weaponCoord;
+    s32        descriptorBase;
 
-    saved = parent->extra.tmd->coords;
-    if (item == 0) {
+    parentCoord = parent->extra.tmd->coords;
+    if (weaponId == PLAYER_STATUS_EQUIPMENT_NONE) {
         return NULL;
     }
-    type = D_80112DF4[row] - 1;
-    task = taskSpawn(7, type + item, 0, 0);
-    if (task == NULL) {
+    descriptorBase = D_80112DF4[characterId] - 1;
+    weaponTask     = taskSpawn(PLAYER_ACTOR_WEAPON_MODEL_BANK, descriptorBase + weaponId, 0, 0);
+    if (weaponTask == NULL) {
         return NULL;
     }
-    extra                   = task->extra.tmd;
-    task->parent            = parent;
-    coord                   = extra->coords;
-    coord->parent           = saved;
-    coord->param.clearFlags = true;
-    return task;
+    weaponModel                   = weaponTask->extra.tmd;
+    weaponTask->parent            = parent;
+    weaponCoord                   = weaponModel->coords;
+    weaponCoord->parent           = parentCoord;
+    weaponCoord->param.clearFlags = true;
+    return weaponTask;
 }
 
 Task* Gp_SpawnWeaponEff(void)
@@ -5817,11 +5873,11 @@ Task* Gp_SpawnWeaponEff(void)
 
     parent = actor->attachmentTasks[1];
     if (parent != NULL) {
-        task                     = spawn_attach(parent, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, gPlayerStatus.weapon);
+        task                     = _playerActorSpawnEquippedWeapon(parent, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, gPlayerStatus.weapon);
         actor->equipmentTasks[1] = task;
         if (task != NULL) {
             cfg = &gPlayerStatus;
-            Gp_AttachActorObj(work, cfg->weapon, cfg->weaponSlotItem);
+            playerActorInitWeaponCollision(work, cfg->weapon, cfg->weaponSlotItem);
             if (actor->weaponEffectTask == NULL) {
                 extra = actor->equipmentTasks[1]->extra.tmd;
                 id    = cfg->weapon;
@@ -6019,18 +6075,18 @@ static s32 _playerActorGetIdleHealthBand(void)
     return healthBand;
 }
 
-void Gp_DetachLinkNode(Task* arg0)
+void playerActorClearLockTarget(Task* task)
 {
-    GameActor*       inner;
-    WorldTargetNode* node;
+    GameActor*       actor;
+    WorldTargetNode* target;
 
-    inner = arg0->work;
-    node  = inner->targetNode;
-    if (node != NULL) {
-        node->state.parts.targeted = 0;
-        inner->targetNode          = NULL;
+    actor  = task->work;
+    target = actor->targetNode;
+    if (target != NULL) {
+        target->state.parts.targeted = 0;
+        actor->targetNode            = NULL;
     }
-    inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+    actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
 }
 
 static s32 Gp_ApplyDirArg(Task* arg0, GameActorMoveBy* move)
@@ -6121,25 +6177,25 @@ s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPo
     return distance;
 }
 
-s16 func_80103E7C(s16 arg0, s16 arg1)
+s16 playerActorShortestTurn(s16 currentAngle, s16 targetAngle)
 {
-    void**                           head = SCRATCH_HEAD_ADDR;
+    void**                           scratchHeadAddress = SCRATCH_HEAD_ADDR;
     _PlayerActorShortestTurnScratch* candidates;
 
-    SCRATCH_PUSH_AT(head, _PlayerActorShortestTurnScratch);
-    candidates            = SCRATCH_HEAD_AT(head, _PlayerActorShortestTurnScratch);
-    candidates->direct    = arg1 - arg0;
+    SCRATCH_PUSH_AT(scratchHeadAddress, _PlayerActorShortestTurnScratch);
+    candidates            = SCRATCH_HEAD_AT(scratchHeadAddress, _PlayerActorShortestTurnScratch);
+    candidates->direct    = targetAngle - currentAngle;
     candidates->plusTurn  = candidates->direct + ACTOR_TRANSFORM_ANGLE_TURN;
     candidates->minusTurn = candidates->direct - ACTOR_TRANSFORM_ANGLE_TURN;
     if (ABS(candidates->direct) < ABS(candidates->plusTurn) && ABS(candidates->direct) < ABS(candidates->minusTurn)) {
-        arg0 = candidates->direct;
+        currentAngle = candidates->direct;
     } else if (ABS(candidates->plusTurn) < ABS(candidates->minusTurn)) {
-        arg0 = candidates->plusTurn;
+        currentAngle = candidates->plusTurn;
     } else {
-        arg0 = candidates->minusTurn;
+        currentAngle = candidates->minusTurn;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorShortestTurnScratch);
-    return arg0;
+    return currentAngle;
 }
 
 void Gp_TrackLockTarget(Task* arg0)
@@ -6300,33 +6356,33 @@ Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return task;
 }
 
-s32 Gp_KillPlayerEffs(void)
+s32 playerActorRemoveEquipment(void)
 {
-    Task*      work;
+    Task*      playerTask;
     GameActor* actor;
-    Task*      task;
+    Task*      equipmentTask;
 
-    work  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    actor = work->work;
-    if (!work | !actor) {
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    actor      = playerTask->work;
+    if (!playerTask | !actor) {
         return 0;
     }
 
-    task = actor->equipmentTasks[0];
-    if (task != NULL) {
-        taskKill(task);
+    equipmentTask = actor->equipmentTasks[0];
+    if (equipmentTask != NULL) {
+        taskKill(equipmentTask);
         actor->equipmentTasks[0] = NULL;
     }
 
-    task = actor->equipmentTasks[1];
-    if (task != NULL) {
-        taskKill(task);
+    equipmentTask = actor->equipmentTasks[1];
+    if (equipmentTask != NULL) {
+        taskKill(equipmentTask);
         actor->equipmentTasks[1] = NULL;
     }
 
-    task = actor->weaponEffectTask;
-    if (task != NULL) {
-        taskKill(task);
+    equipmentTask = actor->weaponEffectTask;
+    if (equipmentTask != NULL) {
+        taskKill(equipmentTask);
         actor->weaponEffectTask = NULL;
     }
 
@@ -6520,7 +6576,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
         animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
                              actor->animationSlots);
         if (arg2 == mode) {
-            Gp_ResetActorAnimState(arg0, 0);
+            _playerActorEnterAimLocomotion(arg0, 0);
         } else {
             playerActorEnterAim(arg0, 0);
         }
@@ -6736,7 +6792,7 @@ s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg
     actor->pendingCollisionUpdates = 0x38;
     angle                          = transform->rot.vy;
     actor->scriptMotion.targetYaw  = angle;
-    val                            = func_80103E7C(actor->rotation.vy, angle);
+    val                            = playerActorShortestTurn(actor->rotation.vy, angle);
     head[-4]                       = val;
     mode                           = 6;
     if (val < 0) {
@@ -7268,66 +7324,76 @@ void playerActorSetPendingDisplacement(const VECTOR3* displacement)
     actor->pendingDisplacement.vz = displacement->vz;
 }
 
-s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)
+s32 playerActorSpawnWeaponImpact(const WorldCollisionContact* contacts, const GfxCoord* weaponCoord, GfxCoord* impactCoordOut)
 {
-    s32                             minDist;
-    s32                             idx;
-    PlayerActorWeaponImpactScratch* block;
-    WorldCollisionContact*          rec;
-    s32                             i;
-    s32                             bestIdx;
-    s32                             dist;
+    enum {
+        PLAYER_ACTOR_IMPACT_NO_CANDIDATE        = 0x7FFFFFFF,
+        PLAYER_ACTOR_IMPACT_JITTER_MASK         = 7,
+        PLAYER_ACTOR_IMPACT_JAVELIN_WEAPON_ID   = 0x1D,
+        PLAYER_ACTOR_IMPACT_FIRE_AMMUNITION_ROW = 0xE,
+        PLAYER_ACTOR_IMPACT_FIRE_SIZE           = 0x300,
+        PLAYER_ACTOR_IMPACT_SMOKE_ARGUMENT      = 0xC0013300,
+    };
+    s32                             nearestDistance;
+    s32                             surfaceClass;
+    PlayerActorWeaponImpactScratch* scratch;
+    const WorldCollisionContact*    contact;
+    s32                             contactIndex;
+    s32                             impactMarked;
+    s32                             nearestContactIndex;
+    s32                             distance;
 
-    minDist = 0x7FFFFFFF;
-    if (worldCollisionCountContactsByKind(arg0, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+    nearestDistance = PLAYER_ACTOR_IMPACT_NO_CANDIDATE;
+    if (worldCollisionCountContactsByKind(contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
         return 0;
     }
-    block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorWeaponImpactScratch);
-    for (i = 0, bestIdx = 0; i < 6; i++) {
-        rec = &arg0[i];
-        if (rec->key.value & 0x100000) {
-            dist  = abs(arg1->workm.t[0] - rec->point.vx);
-            dist += abs(arg1->workm.t[1] - rec->point.vy);
-            dist += abs(arg1->workm.t[2] - rec->point.vz);
-            if (dist < minDist) {
-                worldCollisionResolveResponsePushback(rec, &block->pushback, 1, &idx);
-                idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
-                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
-                    minDist = dist;
-                    bestIdx = i;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorWeaponImpactScratch);
+    for (contactIndex = 0, nearestContactIndex = 0; contactIndex < ARRAY_SIZE(((GameActor*)0)->weaponContacts); contactIndex++) {
+        contact = &contacts[contactIndex];
+        if (contact->key.value & WORLD_COLLISION_CONTACT_GRID) {
+            distance  = abs(weaponCoord->workm.t[0] - contact->point.vx);
+            distance += abs(weaponCoord->workm.t[1] - contact->point.vy);
+            distance += abs(weaponCoord->workm.t[2] - contact->point.vz);
+            if (distance < nearestDistance) {
+                worldCollisionResolveResponsePushback(contact, &scratch->pushback, 1, &surfaceClass);
+                surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
+                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
+                    nearestDistance     = distance;
+                    nearestContactIndex = contactIndex;
                 }
             }
         }
     }
-    if (minDist != 0x7FFFFFFF) {
-        i                               = 1;
-        block->impactCoord.parent       = NULL;
-        block->impactCoord.composeStamp = GRAPHICS_COORD_SUPPLIED_CACHE;
-        block->impactCoord.workm.t[0]   = arg0[bestIdx].point.vx;
-        block->impactCoord.workm.t[1]   = arg0[bestIdx].point.vy;
-        block->impactCoord.workm.t[2]   = arg0[bestIdx].point.vz;
-        block->jitter.vx                = rand() & 7;
-        block->jitter.vy                = rand() & 7;
-        block->jitter.vz                = rand() & 7;
-        if (arg2 != NULL) {
-            arg2->workm.t[0] = block->impactCoord.workm.t[0] + block->jitter.vx;
-            arg2->workm.t[1] = block->impactCoord.workm.t[1] + block->jitter.vy;
-            arg2->workm.t[2] = block->impactCoord.workm.t[2] + block->jitter.vz;
+    // Report the jittered contact point; the retained scratch rotation also affects effect placement.
+    if (nearestDistance != PLAYER_ACTOR_IMPACT_NO_CANDIDATE) {
+        impactMarked                      = 1;
+        scratch->impactCoord.parent       = NULL;
+        scratch->impactCoord.composeStamp = GRAPHICS_COORD_SUPPLIED_CACHE;
+        scratch->impactCoord.workm.t[0]   = contacts[nearestContactIndex].point.vx;
+        scratch->impactCoord.workm.t[1]   = contacts[nearestContactIndex].point.vy;
+        scratch->impactCoord.workm.t[2]   = contacts[nearestContactIndex].point.vz;
+        scratch->jitter.vx                = rand() & PLAYER_ACTOR_IMPACT_JITTER_MASK;
+        scratch->jitter.vy                = rand() & PLAYER_ACTOR_IMPACT_JITTER_MASK;
+        scratch->jitter.vz                = rand() & PLAYER_ACTOR_IMPACT_JITTER_MASK;
+        if (impactCoordOut != NULL) {
+            impactCoordOut->workm.t[0] = scratch->impactCoord.workm.t[0] + scratch->jitter.vx;
+            impactCoordOut->workm.t[1] = scratch->impactCoord.workm.t[1] + scratch->jitter.vy;
+            impactCoordOut->workm.t[2] = scratch->impactCoord.workm.t[2] + scratch->jitter.vz;
         }
-        if (gPlayerStatus.weapon != 0x1D) {
-            if (gPlayerStatus.weaponSlotItem == 0xE) {
-                effectSpawn(EFFECT_FIRE_BURST, &block->impactCoord, 0x300, &block->jitter);
-                effectSpawn(EFFECT_ADDITIVE_PUFF, &block->impactCoord, 0x300, &block->jitter);
-                effectSpawn(EFFECT_SMOKE_PUFF, &block->impactCoord, 0xC0013300, &block->jitter);
+        if (gPlayerStatus.weapon != PLAYER_ACTOR_IMPACT_JAVELIN_WEAPON_ID) {
+            if (gPlayerStatus.weaponSlotItem == PLAYER_ACTOR_IMPACT_FIRE_AMMUNITION_ROW) {
+                effectSpawn(EFFECT_FIRE_BURST, &scratch->impactCoord, PLAYER_ACTOR_IMPACT_FIRE_SIZE, &scratch->jitter);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, &scratch->impactCoord, PLAYER_ACTOR_IMPACT_FIRE_SIZE, &scratch->jitter);
+                effectSpawn(EFFECT_SMOKE_PUFF, &scratch->impactCoord, PLAYER_ACTOR_IMPACT_SMOKE_ARGUMENT, &scratch->jitter);
             } else {
-                effectSpawn(EFFECT_IMPACT_SPARK, &block->impactCoord, 0, &block->jitter);
+                effectSpawn(EFFECT_IMPACT_SPARK, &scratch->impactCoord, 0, &scratch->jitter);
             }
         }
     } else {
-        i = 0;
+        impactMarked = 0;
     }
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorWeaponImpactScratch);
-    return i;
+    return impactMarked;
 }
 
 s32 func_80105ED4(Task* arg0)
@@ -7487,12 +7553,16 @@ void func_801061F0(void)
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x20000 | (gPlayerStatus.weapon << 8) | gPlayerStatus.weaponSlotItem;
 }
 
-void func_80106238(Task* arg0, s32 arg1, s32 arg2)
+void playerActorSetWeaponAttackFlags(Task* task, s32 attachmentAttack, s32 alternateAttack)
 {
+    enum {
+        PLAYER_ACTOR_WEAPON_ATTACK_SELECTOR_SHIFT = 14,
+        PLAYER_ACTOR_WEAPON_ATTACK_KEEP_MASK      = 0xFFFF3FFF,
+    };
     GameActor* actor;
 
-    actor                                              = arg0->work;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & 0xFFFF3FFF) | (((arg1 << 1) | arg2) << 14);
+    actor                                              = task->work;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & PLAYER_ACTOR_WEAPON_ATTACK_KEEP_MASK) | (((attachmentAttack << 1) | alternateAttack) << PLAYER_ACTOR_WEAPON_ATTACK_SELECTOR_SHIFT);
 }
 
 s32 func_80106264(s32 arg0)
@@ -7570,13 +7640,13 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
 }
 
-void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2)
+void worldCoordPlaySound(const GfxCoord* coord, s32 soundEvent, s32 signalNoise)
 {
-    s32 temp;
+    s32 pan;
 
-    temp = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(sfx, temp, (s8)worldCoordGetOriginAudioDepth(coord));
-    if (arg2 == 1) {
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(soundEvent, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    if (signalNoise == 1) {
         sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_NOISE);
     }
 }
@@ -7597,7 +7667,7 @@ void func_80106550(Task* arg0)
     if (((GameActor*)arg0->work)->aimControl & GAME_ACTOR_AIM_REQUEST_SCRIPTED) {
         func_801055D4(arg0, 0, 0, 0);
     } else {
-        Gp_ResetActorAnimState(arg0, 3);
+        _playerActorEnterAimLocomotion(arg0, 3);
     }
 }
 
@@ -7637,8 +7707,10 @@ static void func_801065A8(Task* arg0)
 
 /// Selects the ordinary forward-walk clip while installing its movement index.
 ///
-/// The caller supplies the walk index, preserving its live value for the actor
-/// stores; absence of an equipped weapon selects the unarmed native-bank clip.
+/// Requires live GameActor work. The supplied movement index is stored with
+/// signed-halfword narrowing. Equipment slot 1 selects native-bank clip 2
+/// when present or clip 19 when absent. Returns the set index without examining
+/// the clip table, starting playback or retaining a pointer.
 static inline s32 _playerActorSelectLocomotionWalkSet(GameActor* actor, s32 movementMode)
 {
     enum {
@@ -7783,7 +7855,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
                 inner->movementSign   = 0;
                 inner->turnSign       = 0;
                 inner->stateAux       = prev;
-                Gp_DetachLinkNode(arg0);
+                playerActorClearLockTarget(arg0);
                 inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
                 func_80106350(arg0, p->weapon, 0);
@@ -7796,8 +7868,8 @@ static void Gp_TickPlayerNormal(Task* arg0)
     Gp_PlayerStepSfx(arg0);
     Gp_TickActorAnimState(arg0);
     playerActorTickChildSlots(arg0);
-    Gp_TurnPlayer(arg0);
-    Gp_StepPlayerMove(arg0);
+    playerActorUpdateFacing(arg0);
+    playerActorStepMovement(arg0);
     if (gPlayerStatus.hp <= 0) {
         Gp_StopPlayerAnim(arg0, 4);
     }
@@ -7816,7 +7888,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
 
     actor = arg0->work;
     if (actor->movementSign != actor->previousMovementSign) {
-        Gp_ResetActorAnimState(arg0, 4);
+        _playerActorEnterAimLocomotion(arg0, 4);
     } else if (actor->movementSign == 0 && actor->turnSign != actor->previousTurnSign) {
         func_80108684(arg0);
     }
@@ -7849,7 +7921,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
                         func_801095BC(&variant);
                         base = gPlayerStatus.weapon << 16;
                         val  = variant | 0x20000001;
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | val, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | val, 0);
                     }
                 }
             }
@@ -7896,7 +7968,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         inner->animationState = 0;
         inner->statePhase     = 0;
         if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-            Gp_DetachLinkNode(arg0);
+            playerActorClearLockTarget(arg0);
             inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         } else {
             inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
@@ -7929,9 +8001,9 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     if (actor->statePhase == 0) {
                         actor->statePhase = 1;
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000002, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000002, 0);
                     } else {
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
                         done              = 1;
                         actor->statePhase = 0x64;
                     }
@@ -7949,7 +8021,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                     actor->stateTimer = tick;
                     if (tick == -1) {
                         actor->statePhase += 1;
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000002, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000002, 0);
                         if (actor->reloadEffectSuppressed == 0) {
                             effectSpawn(EFFECT_RELOAD_CASINGS_DROP, coord, 0, NULL);
                         }
@@ -7962,7 +8034,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                     if (rec != NULL && rec != actor->lastCueRecord) {
                         actor->lastCueRecord = rec;
                         if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                            Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
+                            worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
                             done                          = 1;
                             actor->reloadEffectSuppressed = 0;
                             actor->statePhase             = 0x64;
@@ -7975,7 +8047,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             if (actor->statePhase == 0) {
                 actor->statePhase = 1;
                 flags             = 0x20000002;
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
             } else {
                 rec = animationGetCurrentRecord(&actor->animationContext,
                                                 actor->animationSlots + 1);
@@ -7983,7 +8055,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                     actor->lastCueRecord = rec;
                     if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                         flags = 0x20000003;
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
                         done              = 1;
                         actor->statePhase = 0x64;
                     }
@@ -8003,7 +8075,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 actor->lastCueRecord = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     flags = 0x20000003;
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
                     done                          = 1;
                     actor->reloadEffectSuppressed = 0;
                     actor->statePhase             = 0x64;
@@ -8019,12 +8091,12 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     if (actor->statePhase == 0) {
                         flags = 0x20000003;
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
                         done              = 1;
                         actor->statePhase = 0x64;
                     } else {
                         flags = 0x20000002;
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
                     }
                 }
             }
@@ -8038,17 +8110,17 @@ static void Gp_PlayerNormalState5(Task* arg0)
                         case 0:
                             actor->statePhase = 1;
                             flags             = 0x20000003;
-                            Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                            worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
                             break;
                         case 1:
                             flags = 0x20000003;
-                            Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                            worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
                             done              = 1;
                             actor->statePhase = 0x64;
                             break;
                         case 0x64:
                             flags = 0x20000002;
-                            Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                            worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
                             break;
                     }
                 }
@@ -8067,9 +8139,9 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     if (actor->statePhase == 0) {
                         actor->statePhase = 1;
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
                     } else {
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
                         done              = 1;
                         actor->statePhase = 0x64;
                     }
@@ -8097,9 +8169,9 @@ static void Gp_PlayerNormalState5(Task* arg0)
                         } else if (step == 0x64) {
                             variant |= 0x20000009;
                         }
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, variant, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, variant, 0);
                     } else {
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, variant | 0x20000003, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, variant | 0x20000003, 0);
                     }
                     next              = actor->statePhase + 1;
                     actor->statePhase = next;
@@ -8113,14 +8185,14 @@ static void Gp_PlayerNormalState5(Task* arg0)
         default:
             if (actor->statePhase == 0) {
                 actor->statePhase = 1;
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000002, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000002, 0);
             } else {
                 rec = animationGetCurrentRecord(&actor->animationContext,
                                                 actor->animationSlots + 1);
                 if (rec != NULL && rec != actor->lastCueRecord) {
                     actor->lastCueRecord = rec;
                     if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                        Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000003, 0);
+                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
                         done              = 1;
                         actor->statePhase = 0x64;
                     }
@@ -8160,7 +8232,7 @@ static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
     inner->animationState = 0;
     inner->statePhase     = 0;
     if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-        Gp_DetachLinkNode(task);
+        playerActorClearLockTarget(task);
         inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     } else {
         inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
@@ -8301,7 +8373,7 @@ static void func_8010771C(Task* arg0)
             inner->animationState = 0;
             inner->statePhase     = 0;
             if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-                Gp_DetachLinkNode(arg0);
+                playerActorClearLockTarget(arg0);
                 inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
             } else {
                 inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
@@ -8454,7 +8526,7 @@ void Gp_PlayerMode2State4(Task* arg0)
     block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
     block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
     actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
     block->turnStep               = val;
     if (val > 0x40) {
         block->turnStep = 0x40;
@@ -8501,7 +8573,7 @@ void Gp_PlayerMode2State4(Task* arg0)
                 }
             }
             actor->movementSign = 1;
-            Gp_StepPlayerMove(arg0);
+            playerActorStepMovement(arg0);
             func_80105ED4(arg0);
             break;
     }
@@ -8529,7 +8601,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
             actor->animationState = 4;
             actor->statePhase     = 0;
             playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 6);
-            Gp_DetachLinkNode(arg0);
+            playerActorClearLockTarget(arg0);
         } else if (playerActorReadAttackButton(arg0) != 0 &&
                    animationGetCurrentRecord(&actor->animationContext,
                                              actor->animationSlots + 1) != NULL &&
@@ -8547,7 +8619,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
                 actor->attackControl.cooldownTicks = 0x14;
                 base                               = gPlayerStatus.weapon << 16;
                 val                                = variant | 0x20000001;
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, base | val, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, base | val, 0);
             }
         }
     }
@@ -8586,7 +8658,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
                     inner->animationState = 0;
                     inner->statePhase     = 0;
                     if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-                        Gp_DetachLinkNode(arg0);
+                        playerActorClearLockTarget(arg0);
                         inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
                     } else {
                         inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
@@ -8654,14 +8726,14 @@ static void Gp_ArmLockOnState(Task* arg0)
                     playerActorSetLockTarget(arg0, node);
                 }
             }
-            Gp_ResetActorAnimState(arg0, 3);
+            _playerActorEnterAimLocomotion(arg0, 3);
         }
     } else {
         func_80109374(arg0);
         if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
             inner->aimTransitionPending = 0;
             inner->aimTrackingState     = flag;
-            Gp_DetachLinkNode(arg0);
+            playerActorClearLockTarget(arg0);
             func_80108874(arg0);
         }
     }
@@ -8673,7 +8745,7 @@ static void func_80108568(Task* arg0)
 
     actor = arg0->work;
     if (actor->movementSign != actor->previousMovementSign) {
-        Gp_ResetActorAnimState(arg0, 4);
+        _playerActorEnterAimLocomotion(arg0, 4);
     } else if (actor->movementSign == 0) {
         if (actor->turnSign != actor->previousTurnSign) {
             func_80108684(arg0);
@@ -8788,49 +8860,71 @@ void playerActorEnterAim(Task* task, s32 blendFrames)
     }
 }
 
-static void Gp_ResetActorAnimState(Task* arg0, s32 arg1)
+/// Enters normal-mode aim locomotion with a native-bank clip chosen from movement input.
+///
+/// Stops displacement initially, selects turn rate, resets controller/phase,
+/// and uses idle clip 9, forward clip 12 or backward/turn clip 13. Forward
+/// movement resumes in mode 3 with aim decay, backward in mode 2 with tracking.
+/// Darkness releases the target and requests decay. Zero blendFrames restarts
+/// the child slots directly; 1..2047 blends captured poses for whole normal-rate
+/// frames. Actor, model and animation lifetimes follow child-slot playback.
+static void _playerActorEnterAimLocomotion(Task* task, s32 blendFrames)
 {
-    GameActor* inner;
-    s32        mode;
-    s32        temp;
+    enum {
+        PLAYER_ACTOR_AIM_LOCOMOTION_STATE      = 2,
+        PLAYER_ACTOR_AIM_LOCOMOTION_CONTROLLER = 0,
+        PLAYER_ACTOR_AIM_LOCOMOTION_STOPPED    = 0,
+        PLAYER_ACTOR_AIM_LOCOMOTION_BACKWARD   = 2,
+        PLAYER_ACTOR_AIM_LOCOMOTION_FORWARD    = 3,
+        PLAYER_ACTOR_AIM_TURN_MOVING           = 1,
+        PLAYER_ACTOR_AIM_TURN_IDLE             = 3,
+        PLAYER_ACTOR_AIM_SET_IDLE              = 9,
+        PLAYER_ACTOR_AIM_SET_FORWARD           = 12,
+        PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN  = 13,
+    };
+    GameActor* actor;
+    s32        setIndex;
+    s32        movementSign;
+    s32        turnRateIndex;
 
-    inner               = arg0->work;
-    inner->mode         = GAME_ACTOR_MODE_NORMAL;
-    inner->state        = 2;
-    inner->movementMode = 0;
-    if (inner->movementSign != 0) {
-        temp = 1;
+    actor               = task->work;
+    actor->mode         = GAME_ACTOR_MODE_NORMAL;
+    actor->state        = PLAYER_ACTOR_AIM_LOCOMOTION_STATE;
+    actor->movementMode = PLAYER_ACTOR_AIM_LOCOMOTION_STOPPED;
+    if (actor->movementSign != 0) {
+        turnRateIndex = PLAYER_ACTOR_AIM_TURN_MOVING;
     } else {
-        temp = 3;
+        turnRateIndex = PLAYER_ACTOR_AIM_TURN_IDLE;
     }
-    inner->turnRateIndex  = temp;
-    inner->animationState = 0;
-    inner->statePhase     = 0;
+    actor->turnRateIndex  = turnRateIndex;
+    actor->animationState = PLAYER_ACTOR_AIM_LOCOMOTION_CONTROLLER;
+    actor->statePhase     = 0;
+    // Darkness releases the lock; otherwise locomotion keeps tracking the selected target.
     if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-        Gp_DetachLinkNode(arg0);
-        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+        playerActorClearLockTarget(task);
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     } else {
-        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
+        actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
     }
-    temp = inner->movementSign;
-    if (temp == 0) {
-        if (inner->turnSign != 0) {
-            mode = 0xD;
+    movementSign = actor->movementSign;
+    if (movementSign == 0) {
+        if (actor->turnSign != 0) {
+            setIndex = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
         } else {
-            mode = 9;
+            setIndex = PLAYER_ACTOR_AIM_SET_IDLE;
         }
-    } else if (temp == 1) {
-        mode                    = 0xC;
-        inner->movementMode     = 3;
-        inner->aimTrackingState = temp;
+    } else if (movementSign == 1) {
+        setIndex                = PLAYER_ACTOR_AIM_SET_FORWARD;
+        actor->movementMode     = PLAYER_ACTOR_AIM_LOCOMOTION_FORWARD;
+        actor->aimTrackingState = movementSign;
     } else {
-        inner->movementMode = 2;
-        mode                = 0xD;
+        actor->movementMode = PLAYER_ACTOR_AIM_LOCOMOTION_BACKWARD;
+        setIndex            = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
     }
-    if (arg1 == 0) {
-        playerActorResetChildSlots(arg0, mode);
+    if (blendFrames == 0) {
+        playerActorResetChildSlots(task, setIndex);
     } else {
-        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, arg1);
+        playerActorPlayChildSlotsWithBlend(task, setIndex, 0, blendFrames);
     }
 }
 
@@ -8846,7 +8940,7 @@ void func_80108874(Task* arg0)
     inner->animationState = 4;
     inner->statePhase     = 0;
     playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 6);
-    Gp_DetachLinkNode(arg0);
+    playerActorClearLockTarget(arg0);
 }
 
 void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
@@ -8937,7 +9031,7 @@ static void func_80108AD4(Task* arg0)
     inner->movementSign   = 0;
     inner->turnSign       = 0;
     inner->stateAux       = prev;
-    Gp_DetachLinkNode(arg0);
+    playerActorClearLockTarget(arg0);
     inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
     func_80106350(arg0, gPlayerStatus.weapon, 0);
@@ -8982,7 +9076,7 @@ void Gp_PlayerMode2State2(Task* arg0)
         inner->state                 = flag;
         playerActorPlayChildSlotsWithBlend(arg0, flag, 0, 5);
     } else {
-        delta = func_80103E7C(cur, tgt);
+        delta = playerActorShortestTurn(cur, tgt);
         if (delta > 0x40) {
             delta = 0x40;
         } else if (delta < -0x40) {
@@ -9084,8 +9178,8 @@ static void Gp_TickPlayerMode1(Task* arg0)
     handlers.funcs[(u16)((GameActor*)arg0->work)->hitRegion](arg0);
     Gp_TickActorAnimState(arg0);
     playerActorTickChildSlots(arg0);
-    Gp_TurnPlayer(arg0);
-    Gp_StepPlayerMove(arg0);
+    playerActorUpdateFacing(arg0);
+    playerActorStepMovement(arg0);
 }
 
 /// `state` dispatcher copied by `Gp_TickPlayerMode2`.
@@ -9112,7 +9206,7 @@ static void Gp_TickPlayerMode2(Task* arg0)
     sp    = Gp_PlayerMode2States;
     inner = arg0->work;
     sp.funcs[inner->state](arg0);
-    Gp_TurnPlayer(arg0);
+    playerActorUpdateFacing(arg0);
     if (gPlayerStatus.hp <= 0 && inner->state != 0xA) {
         Gp_BindActorAnim(arg0);
         Gp_StopPlayerAnim(arg0, 4);
@@ -9146,14 +9240,14 @@ static void Gp_PlayerNormalState1(Task* arg0)
                     playerActorSetLockTarget(arg0, node);
                 }
             }
-            Gp_ResetActorAnimState(arg0, 3);
+            _playerActorEnterAimLocomotion(arg0, 3);
         }
     } else {
         func_80109374(arg0);
         if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
             inner->aimTransitionPending = 0;
             inner->aimTrackingState     = flag;
-            Gp_DetachLinkNode(arg0);
+            playerActorClearLockTarget(arg0);
             func_80108874(arg0);
         }
     }
@@ -9314,7 +9408,7 @@ static void Gp_UpdateLockTarget(Task* arg0)
     if (inner->targetNode != NULL) {
         flags = inner->padPressed;
         if (flags & 0x40) {
-            Gp_DetachLinkNode(arg0);
+            playerActorClearLockTarget(arg0);
         } else if (((inner->padHeld & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
             _playerActorSetTargetNode(arg0, worldTargetFindLockNodeFromPad(arg0));
         }
@@ -9356,7 +9450,7 @@ static void Gp_PlayerMode2State5(Task* arg0)
                 }
             } else {
                 inner->movementSign = 1;
-                Gp_StepPlayerMove(arg0);
+                playerActorStepMovement(arg0);
             }
             break;
     }
@@ -9559,7 +9653,7 @@ static void func_80109844(Task* arg0)
                 }
                 vec->vy = val;
                 vec->vz = 0;
-                func_800FDB18(idx, params->coord, vec, params);
+                effectSpawnHit(idx, params->coord, vec, params);
             } else {
                 inner->stateTimer--;
             }
@@ -9614,7 +9708,7 @@ static void func_80109A1C(Task* arg0)
                 temp               = idx;
                 params->spawnArgLo = (temp * 0x60) + 0xC0;
                 params->spawnArgHi = temp + 1;
-                func_800FDB18(3, coords, 0, params);
+                effectSpawnHit(EFFECT_HIT_KIND_BLAST, coords, 0, params);
             } else {
                 inner->stateTimer--;
             }

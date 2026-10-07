@@ -6871,7 +6871,7 @@ lw     v0, 0(v1)
 
 Copy `value` first, empty non-volatile `asm("" : "+r"(id))` so that store
 lands before `arg2`, then `lui`/`ori` with a fake input dependency on
-`arg2` pinned to `$s5` / scratch to `$v1`. `Gp_AttachActorObj` is the example.
+`arg2` pinned to `$s5` / scratch to `$v1`. `playerActorInitWeaponCollision` is the example.
 
 Pin `SCRATCH_STACK_CURSOR_SLOT` to `$v1` and the `(head - N)` temp to `$v0` so the
 delayed `lui 0x1F80` survives a `gGameSession` load in `$v0`, and the
@@ -7007,7 +7007,7 @@ then `packed = id << 8` then `obj->flags = three`, then `flag = 0x20000`. A
 `memory` barrier after `obj->field_C` keeps that block from floating above the
 coordinate stores. Keep a dead `$s4` / `$s1` live with `asm volatile("" :: "r"(id))`
 so `table[id]` is `sll v1, s4, 1` and `&actor->weaponContacts` is `addiu v0, s1, 0x32C`.
-`Gp_AttachActorObj` is the example.
+`playerActorInitWeaponCollision` is the example.
 
 ## Split `la` into `$s0` so `%hi` lands in `$v0` and `%lo` is a C `addiu`
 
@@ -7810,7 +7810,7 @@ clamp in `$a1`:
 
 ```c
 val = ratan2(dx, dz) - actor->rotation.vy;
-val = func_80103E7C(actor->aimYaw, val);
+val = playerActorShortestTurn(actor->aimYaw, val);
 ```
 
 `func_8010BE5C` is the example. The fused call stuck at 96.3% with
@@ -24325,7 +24325,7 @@ raw             = extra->coords;       /* extra local is required */
 params->spawnArgLo = 0xC0;
 coords             = &((GfxCoord*)raw)[3];
 params->coord      = coords;            /* sw %lo(Global)(s0) */
-func_800FDB18(2, coords, 0, params);
+effectSpawnHit(2, coords, 0, params);
 ```
 
 Dropping `raw` and writing `coords = &((GfxCoord*)extra->coords)[3]` in
@@ -24353,7 +24353,7 @@ if (!work | !actor) {
 ```
 
 `((u32)work < 1) | ((u32)actor < 1)` and `(work == NULL) | (actor == NULL)`
-are equivalent. `Gp_KillPlayerEffs` is the pure example.
+are equivalent. `playerActorRemoveEquipment` is the pure example.
 
 ## 3-way band: seed `ret = 1` then overwrite, do not `else if`
 
@@ -26425,7 +26425,7 @@ if ((u16)p->field == 1) {
 func_C(snd, temp, temp2);
 ```
 
-`Gp_PlayerStepSfx` is the example. Same pair as `Gp_PlayObjSfx`, but that
+`Gp_PlayerStepSfx` is the example. Same pair as `worldCoordPlaySound`, but that
 helper takes the first `SndEvt` argument as a parameter so it never has
 this hoist.
 
@@ -27159,7 +27159,7 @@ if (temp == 0) {
 }
 ```
 
-`Gp_ResetActorAnimState` is the example. `inner->aimTrackingState = inner->movementSign` (or
+`_playerActorEnterAimLocomotion` is the example. `inner->aimTrackingState = inner->movementSign` (or
 `= 1`) stuck at 95% with an extra `lbu` and inverted `turnSign` polarity.
 
 ## Access a pointer field per block so temps stay in `$v1` / `$a1`
@@ -29254,7 +29254,7 @@ coords = (GfxCoord*)slot->extra;
 count  = arg0->killCountdown;
 coords = (GfxCoord*)((GameActorExt*)coords)->field_8;
 coords = &coords[index + 1];
-func_800FDB18(3, coords, 0, params);
+effectSpawnHit(3, coords, 0, params);
 ```
 
 `func_8010B3F8` is the example. A separate `extra`/`raw` pair stuck at
@@ -29351,7 +29351,7 @@ __asm__ volatile("" : "+r"(block) : "r"(tmp));
 Because `$v0` is reserved, rematerialise the free through `tmp` as well
 (`tmp = (s32)SCRATCH_STACK_CURSOR_SLOT; *(void**)tmp = (u8*)*(void**)tmp + 0xC`).
 The idiomatic `*SCRATCH_STACK_CURSOR_SLOT = …` steals `$a0` for the `lui`
-and breaks the `lhu a0` return. `func_80103E7C` is the example.
+and breaks the `lhu a0` return. `playerActorShortestTurn` is the example.
 Without the `"r"(tmp)` read the first `tmp = head - N` was deleted
 (98.1%, lone `addiu a0`).
 
@@ -29878,7 +29878,7 @@ example. `vx, vz, vy` stuck at 99.3% with only that `sh zero` early.
 ## `s16 / 12` clamp: `u16` divide, signed compare, copy back so `$a0` is the call arg
 
 An `s16` field loaded with `lhu`, divided by 12 (`multu` `0xAAAAAAAB` /
-`srl 3`), then clamped to `{0,1,2}` for `func_800FDB18(3, ...)` needs
+`srl 3`), then clamped to `{0,1,2}` for `effectSpawnHit(3, ...)` needs
 three pieces:
 
 ```
@@ -29906,7 +29906,7 @@ if (temp < 3) {
 temp            = idx;
 params->spawnArgLo = (temp * 0x60) + 0xC0;
 params->spawnArgHi = temp + 1;
-func_800FDB18(3, coords, 0, params);
+effectSpawnHit(3, coords, 0, params);
 ```
 
 The copy-back is what yields `move v1, a0` / `li a0, 3` so the clamped
@@ -30271,7 +30271,7 @@ VectorNormal(vec, vec);
 ```
 
 `worldCollisionSegmentOccluded` is the example. This is the `playerActorPlanarDistance` store-first
-alloc plus the `func_80103E7C` `+r` copy, needed when the scratch block
+alloc plus the `playerActorShortestTurn` `+r` copy, needed when the scratch block
 is also `$a0` of a later call.
 
 ## Reuse the id `$s0` as the lookup pointer; compare the next field first
@@ -32207,7 +32207,7 @@ move  s4, a3
 sw    ra, 0x24(sp)
 ```
 
-`func_801011D0` is the example (`worldCollisionResolveResponsePushback(..., arg3)`).
+`worldCollisionApplyResponsePushback` is the example (`worldCollisionResolveResponsePushback(..., arg3)`).
 
 ## `>= 0` ternary for `bltz` / `lui 0xffff` / `lui 1`
 
@@ -32231,7 +32231,7 @@ if ((val & 0xFFFF) != 0) {
 }
 ```
 
-Use `-0x10000` (not `0xFFFF0000`) so the add stays signed. `func_801011D0`
+Use `-0x10000` (not `0xFFFF0000`) so the add stays signed. `worldCollisionApplyResponsePushback`
 is the example.
 
 ## Volatile store so `lw -N(head)` and `sw 0(block)` stay distinct
@@ -32249,7 +32249,7 @@ if ((val & 0xFFFF) != 0) {
 }
 ```
 
-`func_801011D0` is the example.
+`worldCollisionApplyResponsePushback` is the example.
 
 ## List identical switch cases separately, unique case last, so stores cross-jump
 
@@ -35599,7 +35599,7 @@ do {
 } while (++i < 6);
 ```
 
-`Gp_PickNearestRec18` is the example. Nine live-across-call values then color
+`playerActorSpawnWeaponImpact` is the example. Nine live-across-call values then color
 onto `$s0`–`$s7`+`$fp` with `index` in `$fp`.
 
 ## Split overlapping `$v0` temps so a later load can preload
@@ -35628,7 +35628,7 @@ assign it next to `dy`:
 }
 ```
 
-Pin `fy` to `$a0` so `lh a0, 0xA` fills the `lw t[0]` delay. `Gp_PickNearestRec18`
+Pin `fy` to `$a0` so `lh a0, 0xA` fills the `lw t[0]` delay. `playerActorSpawnWeaponImpact`
 is the example.
 
 ## Compute `&stack` before a scratch `lw` so `move rec, index` can fill the delay
@@ -35657,7 +35657,7 @@ addiu  v0, v0, -0x68
 ```
 
 Pass `pidx` to the callee instead of `&idx` so GCC does not emit a
-second `addiu`. `Gp_PickNearestRec18` is the example.
+second `addiu`. `playerActorSpawnWeaponImpact` is the example.
 
 ## Barrier after `a - b` so an independent add fills the preceding load
 
@@ -35677,7 +35677,7 @@ if (t2 < 0) {
 dist += t2;
 ```
 
-`Gp_PickNearestRec18` is the example.
+`playerActorSpawnWeaponImpact` is the example.
 
 ## Write `idx * size + (s32)ptr` so `addu` is `scaled, base`
 
@@ -35688,7 +35688,7 @@ The target is `addu v0, v0, s8`. Put the scaled index on the left:
 picked = (WorldCollisionContact*)(bestIdx * 0x18 + (s32)arg0);
 ```
 
-`Gp_PickNearestRec18` is the example. Use this only when operand order must
+`playerActorSpawnWeaponImpact` is the example. Use this only when operand order must
 match; prefer `index + bestIdx` otherwise.
 
 ## Non-volatile block-scoped `+r` pin so `(s16)x >> 1` is `sll 16; sra 17`
@@ -36237,7 +36237,7 @@ rather than the `vy` delay. `_animationBlendTranslationRotation` is the example.
 
 ## Put a later call's constant in each wrap-select arm
 
-Inlining the 0xC angle wrap (`func_80103E7C`) leaves the three `lhu` /
+Inlining the 0xC angle wrap (`playerActorShortestTurn`) leaves the three `lhu` /
 `j join` paths with a free delay. A later `equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE)` wants
 `li a0, 0x2000` in those delays, not a hoisted `lui` of `SCRATCH_STACK_CURSOR_SLOT`
 for the wrap pop. Assign the flag inside every arm so the `li` is live at
@@ -36863,7 +36863,7 @@ coord = (GfxCoord*)&coord[2].coord;
 RotMatrixX(angle, (MATRIX*)coord);
 ```
 
-`Gp_TurnPlayer` is the example.
+`playerActorUpdateFacing` is the example.
 
 ## Pin the table to `$a0` so the index `lhu` stays in `$v1`
 
@@ -36886,7 +36886,7 @@ A `register s32 idx asm("v1")` plus a volatile barrier before the `if` also
 pins the index but splits the prologue (`sw ra` before `sw s2`). Occupying
 `$a0` with the incoming arg (`keep`) only works if `keep` is actually used
 before the `la`; a comma-operator `(keep, table)` is DCE'd when `keep` equals
-the already-copied `$s` work pointer. `Gp_TurnPlayer` is the example.
+the already-copied `$s` work pointer. `playerActorUpdateFacing` is the example.
 
 ## Assign `flag = 1` before the min-step `ABS` so it fills the `beqz` delay
 
@@ -36914,7 +36914,7 @@ coord = (GfxCoord*)&coord->coord;
 RotMatrix(rot, (MATRIX*)coord);
 ```
 
-`Gp_TurnPlayer` is the example.
+`playerActorUpdateFacing` is the example.
 
 ## Billboard RTPS: trans then rot, then reuse UV/`u` registers
 
@@ -39972,7 +39972,7 @@ argument setup. Moving the assignment *after* the call in the source lets the
 scheduler sink it to just before the `jal`, which is where the target has it:
 
 ```c
-Gp_PlayObjSfx(obj, base | 0x20000003, 0);
+worldCoordPlaySound(obj, base | 0x20000003, 0);
 done = 1;                 /* li s3,1 ends up immediately before the jal */
 actor->statePhase = 0x64;
 ```
@@ -40309,7 +40309,7 @@ the target (`w, r0, h, b0, g0`).
 
 ## Keep a dead `$a0` temp live so a later `lui 0x64` colors as `$a1`
 
-`Gp_StepPlayerMove` loads lock-Z into `$a0` (`lw a0, 0x38(s4)`), uses it for
+`playerActorStepMovement` loads lock-Z into `$a0` (`lw a0, 0x38(s4)`), uses it for
 `subu v0, v0, a0`, then wants `$a0` free so the next `move a0, s2` can
 wait until after `sw a1, 4(s4)`. The constant `0x640000` must stay in
 `$a1` (`lui a1, 0x64` / `div a1, v0` / `sw a1`) because that register is
@@ -40342,7 +40342,7 @@ with the incoming arg so a later `la` cannot lift.
 The same function's scratch-head free wants a memory barrier after
 `t[0] += vel` so `lui a1, 0x1F80` fills the `t[1]` load-delay instead of
 the `t[0]` slot, plus `t2 = coord->coord.t[2]` before the bump so that
-word is preloaded during the `t[1]` add. `Gp_StepPlayerMove` is the example.
+word is preloaded during the `t[1]` add. `playerActorStepMovement` is the example.
 
 ## Keep a scratch local for a repeated struct load feeding primitive stores
 
@@ -41532,7 +41532,7 @@ file, in address order:
   placed at the source position matching its address.
 
 For 3FB8 that meant `Gp_EffTask07States` right after `Gp_EffSprTask30` and `Gp_PlayerWorkStates`
-right after `INCLUDE_ASM(…, func_800FDB18)` (whose `.s` now carries
+right after `INCLUDE_ASM(…, effectSpawnHit)` (whose `.s` now carries
 `jtbl_80097808`). Check the result in `build/USA/out/<ovl>.elf.map`: the unit's
 `.rodata` should start at the jtbl VMA and every named symbol should keep its
 original address. Remove the now-dead raw-split entry from the overlay config;
@@ -41901,7 +41901,7 @@ except through the addressing mode.
 
 ## Split a `(a << N) | (b | K)` argument into two named locals
 
-`Gp_PlayObjSfx(obj, (gPlayerStatus.weapon << 16) | (variant | 0x20000001), 0)`
+`worldCoordPlaySound(obj, (gPlayerStatus.weapon << 16) | (variant | 0x20000001), 0)`
 is reassociated by `fold` into `((x << 16) | K) | variant` and emits the
 constant `or` first. Hoisting only the constant part (`val = variant | K;`)
 stops the reassociation but still evaluates the shift into the argument
@@ -41912,7 +41912,7 @@ Both halves need their own local, and the shift must be assigned *first*:
 ```c
 base = gPlayerStatus.weapon << 16;
 val  = variant | 0x20000001;
-Gp_PlayObjSfx(arg0->extra->coords, base | val, 0);
+worldCoordPlaySound(arg0->extra->coords, base | val, 0);
 ```
 
 `val`-then-`base` scores 98.2% with the two `or` sources swapped; `val |=
@@ -44775,7 +44775,7 @@ Neither `volatile` on the pointed-to type nor a
 `COMPILER_BARRIER()` between the accesses stops the `cse` merge.
 
 The reverse holds too: the same source compiles to two different shapes
-depending on whether it is inlined. `func_80103E7C` is an out-of-line copy of
+depending on whether it is inlined. `playerActorShortestTurn` is an out-of-line copy of
 the `_playerActorShortestTurn` helper, and its target holds the head address in a
 register (`lui/ori v1` shared by the push's load and store, then a fresh
 `lui/ori` for the pop). Inlining the helper there gives the per-access form
@@ -46267,8 +46267,8 @@ access is in-struct at a varying (register) address, so a retype there is
 byte-neutral and the m2c seed's own score is the honest baseline. Both forms of
 
 ```c
-if (M2C_FIELD(work, u16 *, 0x6C) == 0) { M2C_FIELD(work, u16 *, 0x6C) = 1; Gp_KillPlayerEffs(); }
-if (work->playerEquipmentRemoved == 0) { work->playerEquipmentRemoved = 1; Gp_KillPlayerEffs(); }
+if (M2C_FIELD(work, u16 *, 0x6C) == 0) { M2C_FIELD(work, u16 *, 0x6C) = 1; playerActorRemoveEquipment(); }
+if (work->playerEquipmentRemoved == 0) { work->playerEquipmentRemoved = 1; playerActorRemoveEquipment(); }
 ```
 
 compile to the same object here, because the only global involved
@@ -60808,7 +60808,7 @@ lhu   v1, 4(s2)           ; work->phase
 bltz  v1, out
  addiu s0, sp, 0x28       ; base of both payloads, ahead of every test
 ...
-jal   Gp_KillPlayerEffs
+jal   playerActorRemoveEquipment
 ...
 sw    v0, 0xC(s0)         ; request: constants through the base
 sw    s1, 0x10(s0)
@@ -66291,7 +66291,7 @@ seven numbered attempts, with the permuter started on the 99.778% unpinned
 seed before the final manual change.
 
 
-## func_800FDB18: a narrowed local moves the incoming argument copy after pointer saves
+## effectSpawnHit: a narrowed local moves the incoming argument copy after pointer saves
 
 A natural switch with direct `effectSpawn` calls and `for` loops reached
 99.755% (`regs=16`, all other penalties zero). The only difference was the
@@ -76078,8 +76078,8 @@ bnez  v1,.L                   lhu   v0,0x64(v0)
 sh    zero,0x38(v0)           nop
 lui   v0,%hi(gPlayerStatus)   bnez  v0,.L
 lw    s1,0x1c(a0)             addiu s0,v1,%lo(gPlayerStatus)  # bnez delay
-jal   Gp_KillPlayerEffs       lw    s1,0x1c(a0)
-addiu s0,v0,%lo(...)          jal   Gp_KillPlayerEffs
+jal   playerActorRemoveEquipment       lw    s1,0x1c(a0)
+addiu s0,v0,%lo(...)          jal   playerActorRemoveEquipment
                               nop
 ```
 
@@ -97847,7 +97847,7 @@ The fix came from the matched sibling `func_actor_356100_8016A468`
 BRIEF's "similar matched bodies" list (none above 0.80) surfaces such a sibling,
 because both compare splat's disassembly *text* and these actors carry the idiom
 at different addresses. Grepping `src/` for a distinctive callee chain does —
-here `damageGetPlayerAttackEffectId(0x1001)` next to `func_800FDB18`, or `damagePackEnemyAttackKey((GpObj50*)…, 0)`
+here `damageGetPlayerAttackEffectId(0x1001)` next to `effectSpawnHit`, or `damagePackEnemyAttackKey((GpObj50*)…, 0)`
 with message `0x3FF`. Read that sibling's *source*, not just its asm: it also
 carried the statement order the next paragraph needed.
 
@@ -103492,7 +103492,7 @@ block after the magnitude switch differs, and only in three places:
 * the part index - a constant 1 in the sibling (`addiu $v1, $v1, 0x50`), here
   `sc->pad` (the `lh` plus the `sll`/`addu`/`sll` multiply by the 0x50
   `GfxCoord` stride),
-* the third `func_800FDB18` argument - `sc` itself in the sibling, here a copy
+* the third `effectSpawnHit` argument - `sc` itself in the sibling, here a copy
   saved into the work block (`work->field_8A0 = *sc;` then `&work->field_8A0`),
   which is the `lwl`/`lwr` quad decribed in "`lwl`/`lwr` + `swl`/`swr` quads are
   a whole-struct assignment" - the member's *declared* alignment is what picks
@@ -107293,7 +107293,7 @@ for an LCG draw - the family takes `(gRandomLcgState >> 16)` everywhere else.
 
 ## Holding a table base in a local pointer across an unrelated computation re-homes the whole block
 
-`func_actor_521100_80135230`'s second `func_800FDB18` call indexes the model's
+`func_actor_521100_80135230`'s second `effectSpawnHit` call indexes the model's
 coordinate array by a table lookup. Writing the table inline matches the
 instruction stream exactly but lands every register of the block one home off
 (`regs=19 insert=2 delete=2`), and no amount of juggling the index expression
@@ -110790,7 +110790,7 @@ across the `jal` and the copy disappears with it.
 
 ## A hard-register pin on the walking pointer suppresses loop.c's address givs
 
-`func_actor_800100_80166B40` is `Gp_PickNearestRec18` minus its `gPlayerStatus`
+`func_actor_800100_80166B40` is `playerActorSpawnWeaponImpact` minus its `gPlayerStatus`
 tail: `do { ... rec->key.value / rec->point ... rec++; } while (i < 6)`. Written
 unpinned the score stops at 83.7% with `regs=54 insert=14 delete=10`, and the
 `.loop` dump shows why:
@@ -110947,7 +110947,7 @@ repeating its own copy.
                 }
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
                 if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
-                    Gp_PlayObjSfx(place, 0x17, 1);
+                    worldCoordPlaySound(place, 0x17, 1);
                 }
                 break;
             }
@@ -110957,7 +110957,7 @@ repeating its own copy.
             actor->stateAux = 6;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
             if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
-                Gp_PlayObjSfx(place, 0x17, 1);
+                worldCoordPlaySound(place, 0x17, 1);
             }
             break;
 ```
@@ -127829,7 +127829,7 @@ if (id == 7 && work->lastCueIndex != id) {
     eff.coord      = ((TmdObject*)task->extra)->coords; /* part 0, no addiu */
     eff.spawnArgLo = 0x100;
     eff.spawnArgHi = 2;
-    func_800FDB18(damageGetPlayerAttackEffectId(0x1001), ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
+    effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
 }
 work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & 0x3FF; /* 0x16 -- slot 0, not 1 */
 ```
@@ -129990,7 +129990,7 @@ Inputs: `h2.c` (barrier before `x = 1`) 95.674%, `h3.c` (between `x = 1` and the
 ## Assignment order inside a straight-line block is the scheduler's load hoisting (func_actor_311500_80162F28, 2026-09-17)
 
 Case 0 fills an `SVECTOR` and an `EffectSpawnArg` and passes both, plus
-`&index->field_2C->field_8[2]`, to `func_800FDB18`. The target's block opens with
+`&index->field_2C->field_8[2]`, to `effectSpawnHit`. The target's block opens with
 the three loads that feed those expressions and only then runs the five constant
 stores; writing the stores first (the natural reading order) left them first and
 the loads at the bottom behind `nop`s. The flag is the *reload*: giving
@@ -135611,7 +135611,7 @@ typedef struct _Window {
 } Window;
 
 /* every one of 1308 uses */
-Gp_PlayObjSfx((Window*)arg0->extra->coords, id, 1);
+worldCoordPlaySound((Window*)arg0->extra->coords, id, 1);
 ```
 
 Here the operand is a `GfxCoord*` at every site, and a `MATRIX` at 0x24 is
@@ -142545,7 +142545,7 @@ two tails back into one. Three further knobs sat in the same loop:
 - A trail pointer whose init lands *after* the hoisted constants is a
   strength-reduced giv: write `point = &work->trail[i]` inside the loop, not a
   pointer initialised before it and stepped at the bottom.
-### A field of an embedded object written through the container is `off(container)`, not `off(member_ptr)` (Gp_AttachActorObj, 2026-09-26)
+### A field of an embedded object written through the container is `off(container)`, not `off(member_ptr)` (playerActorInitWeaponCollision, 2026-09-26)
 
 With `obj = &actor->collisionBodies[GAME_ACTOR_BODY_WEAPON]` held in `s2`, the target stored the key
 as `sw v1,0x124(s1)` - off the actor, not `0x18(s2)`. Writing
@@ -144730,7 +144730,7 @@ third pin (`lightScratch asm("s0")`) fixed. The typed scratch macros fixed it wi
 a pin: `SCRATCH_STACK_RESERVE_BLOCK(T); lightScratch = SCRATCH_STACK_CURSOR(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);`, with
 `&lightScratch->result.direction` in place of a separate `dir` pointer. When a scratch-block
 function pins the block pointer, try the typed push/read/pop form first.
-## Repeated decay blocks share one function-scope step; a per-node helper returns the member pointer (Gp_TurnPlayer, 2026-09-26)
+## Repeated decay blocks share one function-scope step; a per-node helper returns the member pointer (playerActorUpdateFacing, 2026-09-26)
 
 Five copies of `if (a) { step = a >> 3; clamp step to ±0x20; a -= step; snap }`
 had been pinned (`register s16 delta asm("v1")`) because a block-scoped `s16`
@@ -146454,7 +146454,7 @@ value should have removed, move neighbouring stores to the same struct between
 the store and the read. Here that meant writing the whole `move` vector after
 `scale` was set.
 
-## A store off the scratch pointer instead of `head-K`: write `x += ...` on the lvalue, not through a cached local (func_801011D0, 2026-09-27)
+## A store off the scratch pointer instead of `head-K`: write `x += ...` on the lvalue, not through a cached local (worldCollisionApplyResponsePushback, 2026-09-27)
 
 After `s = SCRATCH_STACK_RESERVE_BLOCK(T)`, cse knows `s == head - K`. The target loaded the
 first field as `lw -0x10($s1)` (the head form) but stored it back as

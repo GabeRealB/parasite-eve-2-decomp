@@ -250,7 +250,7 @@ extern TaskMessageEntry D_actor_401300_80158988[8];
 
 /// Twelve vectors `func_actor_401300_80134BA4` picks from by LCG, grouped by
 /// `|arg1|`: 0-4 below 0x200, 5-7 above 0x600, else 8-9 / 10-11 by sign.
-/// `pad` is the model coordinate index passed to `func_800FDB18`.
+/// `pad` is the model coordinate index passed to `effectSpawnHit`.
 extern SVECTOR D_actor_401300_80158928[12];
 
 /// The scratch-stack block of the two states that run at a point: the chase,
@@ -2432,7 +2432,7 @@ static void func_actor_401300_80134BA4(Task* arg0, s16 arg1, s32 arg2)
     work->effectArg.coord      = &arg0->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
     work->effectArg.spawnArgHi = 2;
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -3500,7 +3500,7 @@ static void func_actor_401300_80138800(Task* arg0)
         work->effectArg.coord      = &arg0->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x300;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
+        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
         work->state = ACTOR_401300_STATE_GRAB_STRIKE;
     }
 }
@@ -3526,7 +3526,7 @@ static void func_actor_401300_80138B24(Task* arg0)
         work->effectArg.coord      = &arg0->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x300;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
+        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg0->extra.tmd->coords[5], NULL, &work->effectArg);
         work->state = ACTOR_401300_STATE_GRAB_DONE;
     }
     work->grabAnimFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
@@ -3829,7 +3829,7 @@ static void func_actor_401300_801397F8(Task* arg0)
         work->effectArg.coord      = arg0->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = 0x300;
         work->effectArg.spawnArgHi = 2;
-        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
+        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->effectArg);
     }
     work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
     coord              = arg0->extra.tmd->coords;

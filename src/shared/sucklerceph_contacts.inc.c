@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
 /// Contact handler of the first enemy, with 0x4C bytes of scratch. The
@@ -100,7 +102,7 @@ void sucklercephContacts(Task* arg0)
                                 break;
                         }
                         if (enemy->hp > 0) {
-                            func_800FDB18(damageGetPlayerAttackEffectId(work->contacts[i].key.value), arg0->extra.tmd->coords + 1, NULL, &work->hitEffectArg);
+                            effectSpawnHit(damageGetPlayerAttackEffectId(work->contacts[i].key.value), arg0->extra.tmd->coords + 1, NULL, &work->hitEffectArg);
                         }
                         hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                         if (hitCooldown > 0) {

@@ -15,8 +15,6 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-struct GfxCoord;
-
 /// Scratch-stack block for the turn a scripted walk makes toward `GameActor.destination`.
 ///
 /// Holds the destination's displacement from the model's root coordinate,
@@ -58,7 +56,7 @@ STATIC_ASSERT_SIZEOF(PlayerActorWeaponImpactScratch, 0x68);
 /// `D_80112E04[field_22][1]` to `playerActorIsSlotAdvancingLinearly`.
 extern u8 D_80112E04[][2];
 
-/// u16 table indexed by `Gp_AttachActorObj` arg1: the reach a weapon of that
+/// u16 table indexed by `playerActorInitWeaponCollision` weaponId: the reach a weapon of that
 /// attach id adds to the shape's `ends[1]` to give its `ends[0]`.
 extern u16 D_80112F60[];
 
@@ -66,19 +64,20 @@ extern u16 Gp_WeaponIdBase[2];
 
 extern AnimationBank* Gp_PlayerAnimBlkTbl[34];
 
-/// Queues sound event `sfx` from the object's world position, panned and
-/// depth-attenuated by `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth`. A third argument of
-/// 1 raises the mid-action bit alongside it; the role of that argument at the
-/// call sites is not established.
-void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2);
-
-void Gp_PulseState1C80(void);
-
-void func_800FDB18(s32 arg0, struct GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3);
-
-s32 func_801011D0(struct GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* arg3);
-
-void Gp_AttachActorObj(Task* arg0, s32 arg1, s32 arg2);
+/// Initializes and links the equipped weapon's collision capsule for a player-type actor.
+///
+/// Requires live GameActor work; a missing equipment slot 1 leaves collision
+/// state unchanged. Copies the weapon root coordinate, rotates its cached
+/// frame by a quarter turn about X and installs the actor-owned capsule and
+/// six-contact table on the player-attack list. The capsule and copied node
+/// remain owned by the actor until the body is unlinked.
+///
+/// `weaponId` is a weapon/reach row in 0..32, packed into key bits 8..13;
+/// `attackRow` supplies the low attack identity byte. Row 13 widens the far
+/// radius for spread fire. Radius also depends on the player's equipped
+/// weapon even when this initializes a companion. The model, lookup tables
+/// and initialized scratch stack must be live; no bounds are checked.
+void playerActorInitWeaponCollision(Task* actorTask, s32 weaponId, s32 attackRow);
 
 /// Starts a selected animation set on the player or companion actor's child slots with a pose blend.
 ///
@@ -114,7 +113,26 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2);
 /// Message 1006; the fourth dispatch argument is unused.
 s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg3);
 
-s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, struct GfxCoord* arg1, struct GfxCoord* arg2);
+/// Marks the nearest eligible room contact with the equipped weapon's impact effect.
+///
+/// `contacts` is the initialized six-element weapon-contact table, including
+/// its LAST marker. Any enemy-body contact suppresses room impacts. Otherwise
+/// chooses the nearest grid contact by XYZ Manhattan distance from the weapon's
+/// composed origin, among surfaces permitting weapon impacts in the active room.
+/// `weaponCoord` must already be composed in the contact points' coordinate frame.
+/// Absolute differences must fit s32; their sum must be below 0x7FFFFFFF.
+///
+/// Returns 1 for a chosen point, even when Javelin suppresses spawning or an
+/// effect allocation fails, else 0. A non-NULL `impactCoordOut` receives only
+/// its three cached translation words, in game-coordinate units, with random
+/// 0..7 jitter on each axis; failure leaves it unchanged. It may alias the weapon
+/// node. No output rotation, parent or cache stamp is installed.
+///
+/// Requires live player/room state, surface tables, and initialized scratch/GTE
+/// state. The temporary spawn coordinate's rotation is left as scratch contained
+/// it, and the effects retain its address and offset after release; spawn-time
+/// orientation remains unproven. Preserve this placement behavior.
+s32 playerActorSpawnWeaponImpact(const WorldCollisionContact* contacts, const GfxCoord* weaponCoord, GfxCoord* impactCoordOut);
 
 /// Reports whether a slot has neither settled at a boundary nor followed a control jump.
 ///
@@ -126,7 +144,17 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, struct GfxCoord* arg1, stru
 /// ignored and retained for the calling convention. No pointer is retained.
 s32 playerActorIsSlotAdvancingLinearly(Task* task, s32 slotIndex, s32 unusedFirstArg, s32 unusedSecondArg);
 
-void func_80106238(Task* arg0, s32 arg1, s32 arg2);
+/// Alternate-fire selector stored in bit 14 of the weapon body's packed attack key.
+enum { PLAYER_ACTOR_WEAPON_ATTACK_ALTERNATE = 0x4000 };
+
+/// Replaces the weapon body's attachment and alternate-fire selector bits.
+///
+/// `task->work` must be a live GameActor. Both selectors must be 0 or 1:
+/// `attachmentAttack` sets bit 15, selecting attachment damage rows;
+/// `alternateAttack` sets bit 14, selecting alternate critical chance and
+/// hit-effect variants. Other key bits are retained. Does not enable collision
+/// or initialize the key. Callers must choose a matching low attack row.
+void playerActorSetWeaponAttackFlags(Task* task, s32 attachmentAttack, s32 alternateAttack);
 
 /// Restarts a player or companion actor's child slots on a selected animation set.
 ///
@@ -171,13 +199,50 @@ s32 func_80106264(s32 arg0);
 /// `playerActorResetChildSlots` / `playerActorPlayChildSlotsWithBlend` contracts.
 void playerActorEnterLocomotion(Task* task, s16 resetAnimation);
 
-s16 func_80103E7C(s16 arg0, s16 arg1);
+/// Returns the shortest signed turn from the current angle to the target angle.
+///
+/// Angles use 4096 units per turn. Current angle is wrapped to 0..4095;
+/// target uses that range or the signed heading range -2048..2047.
+/// Returns -2048..2048, choosing the wrapped candidate on a half-turn tie.
+/// Wider inputs narrow to s16 at the call boundary. Requires 12 bytes on the
+/// initialized scratch stack, released before return; retains no pointers.
+s16 playerActorShortestTurn(s16 currentAngle, s16 targetAngle);
 
-void Gp_StepPlayerMove(Task* arg0);
+/// Applies the player or companion actor's current movement to its model root.
+///
+/// Requires live GameActor work and root coordinates. Mode 0 clears velocity;
+/// modes 1..3 and 5..7 move along the normalized root forward axis only while
+/// animation slot 1 has a record. Mode 4 applies a forward step then a circling
+/// step about a live lock target. Movement and turn signs select direction;
+/// the speed row divides the Q12 axis to produce game-coordinate displacement.
+/// Other modes reuse the existing velocity. Updates velocity and local root
+/// translation without marking composition dirty.
+///
+/// Tables, playback, scratch stack and SDK normalization must be initialized.
+/// Circling requires nonzero XZ Manhattan distance to the lock target and
+/// intermediate arithmetic within signed word range. Retains no pointers.
+void playerActorStepMovement(Task* task);
 
-s32 Gp_KillPlayerEffs(void);
+/// Removes the player's equipped model tasks and persistent weapon effect.
+///
+/// Requires a live player task in the session slot; NULL work returns 0.
+/// Kills equipment slots 0 and 1 and the weapon-effect task in that order,
+/// clears their pointers and unlinks the weapon collision body, returning 1.
+/// Actor, attachment models, inventory and equipment selection remain live.
+/// Child exit callbacks and taskKill's deferred/immediate release rules apply;
+/// callers selecting immediate teardown must satisfy its execution-list contract.
+s32 playerActorRemoveEquipment(void);
 
-void Gp_TurnPlayer(Task* arg0);
+/// Rebuilds player-type actor facing and applies its aim offsets to model parts.
+///
+/// Requires live GameActor work, model parts 0..6, and a turn-rate index in
+/// 0..3. Adds the signed rate to body yaw and wraps to 0..4095 units per turn,
+/// rebuilding and normalizing the root rotation while retaining translation.
+/// Decaying aim offsets ease toward zero until tracking switches off.
+/// Applies pitch/roll to parts 2/3, aim yaw to part 4, and pitch to part 6;
+/// those parts' composition stamps are invalidated. The root stamp is retained.
+/// Angles use 4096 units per turn. No pointers are retained.
+void playerActorUpdateFacing(Task* task);
 
 /// Selected held fire input, with primary taking precedence when both are held.
 enum {

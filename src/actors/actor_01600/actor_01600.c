@@ -1883,7 +1883,7 @@ static void Actor01600_Fn00BAC(Task* actor)
                         }
                         work->attackAction = ACTOR_01600_ACTION_KNOCKBACK;
                     }
-                    func_800FDB18(damageGetPlayerAttackEffectId(work->bodySphere.contacts[contactIndex].key.value), world, 0, &work->hitEffect);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->bodySphere.contacts[contactIndex].key.value), world, 0, &work->hitEffect);
                 }
                 break;
             case 3:
@@ -2969,7 +2969,7 @@ static void Actor01600_Fn020F8(Task* actor)
                     if ((s16)temp_v0_6 == 0x14) {
                         work->grabBiteTimer = 0U;
                         work->grabBiteCount = (u16)work->grabBiteCount + 1;
-                        func_800FDB18(damageGetPlayerAttackEffectId(0x1001), effectCoord, &offset, &work->hitEffect);
+                        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), effectCoord, &offset, &work->hitEffect);
                         if (work->grabTargetIndex == 0) {
                             Gp_SpawnPadLerp(0xA, 0x80U, 0x80U);
                         }
@@ -4459,7 +4459,7 @@ static void Actor01600_Fn05F80(Task* arg0)
                     work->hitEffect.coord      = part1;
                     work->hitEffect.spawnArgLo = 0x100;
                     work->hitEffect.spawnArgHi = anim;
-                    func_800FDB18(1, part1, 0, &work->hitEffect);
+                    effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, part1, 0, &work->hitEffect);
                     effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 0, NULL);
                 }
                 if ((u32)((u16)work->animFrame - 0xF) < 8U) {

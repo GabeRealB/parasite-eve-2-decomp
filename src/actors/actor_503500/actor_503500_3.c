@@ -1358,7 +1358,7 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
                 break;
         }
     }
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, NULL, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, NULL, &work->hitEffect);
     stun = damageGetPlayerAttackHitCooldown(id);
     if (work->hitCooldown < stun) {
         work->hitCooldown = stun;
@@ -2996,7 +2996,7 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
     pos.vx += D_actor_503500_8016F068.vx;
     pos.vy += D_actor_503500_8016F068.vy;
     pos.vz += D_actor_503500_8016F068.vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
@@ -3821,7 +3821,7 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
     pos.vx += D_actor_503500_8016F0B0.vx;
     pos.vy += D_actor_503500_8016F0B0.vy;
     pos.vz += D_actor_503500_8016F0B0.vz;
-    func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
+    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }

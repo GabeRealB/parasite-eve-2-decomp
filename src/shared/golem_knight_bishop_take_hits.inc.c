@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
 /// Scratch-stack block of the per-frame hit handler.
@@ -160,9 +162,9 @@ void golemKnightBishopTakeHits(Task* arg0)
                         t = 0xC8;
                     }
                     sc->effectOffset.vz = t;
-                    func_800FDB18(damageGetPlayerAttackEffectId(work->hurtContacts[i].key.value),
-                                  &arg0->extra.tmd->coords[3], &sc->effectOffset,
-                                  &work->hitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->hurtContacts[i].key.value),
+                                   &arg0->extra.tmd->coords[3], &sc->effectOffset,
+                                   &work->hitEffectArg);
                 }
                 wait = damageGetPlayerAttackHitCooldown(work->hurtContacts[i].key.value);
                 if (wait > 0) {

@@ -18,6 +18,7 @@
 #include "model_objects.h"
 #include "pad_input.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "scene_runtime.h"
 
 /// Writable packet word containing vertex 0's texture coordinates and CLUT address.
@@ -3036,7 +3037,7 @@ void Gp_TickPlayClock(Task* task)
             }
             Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
             func_800A7DE0();
-            Gp_PulseState1C80();
+            roomEffectRequestCancelPe();
             session = gGameSession;
             if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
                 gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -3055,7 +3056,7 @@ void Gp_TickPlayClock(Task* task)
             }
             Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
             func_800A7DE0();
-            Gp_PulseState1C80();
+            roomEffectRequestCancelPe();
             companion = p->state.companionType;
             if (companion == 1) {
                 gGameSession->restartMode  = companion;

@@ -33,6 +33,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/blade_trail.h"
 #include "gameplay/animation.h"
+#include "gameplay/world_coords.h"
 
 /// Divisor that turns the model's forward axis into the distance a baton
 /// strike carries the actor per frame: 4096 / 84, about 48 coordinate units.
@@ -378,8 +379,8 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 if (delay == 0) {
                     actor->equipmentTasks[1]->spawnArg1.value             = 1;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    func_80106238(arg0, 0, 0);
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130001, 0);
+                    playerActorSetWeaponAttackFlags(arg0, 0, 0);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130001, 0);
                     eff = effectSpawn(EFFECT_TONFA_BATON_SWING_TRAIL,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0, NULL);
@@ -390,7 +391,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
             }
             if (actor->actionValue != 1 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 1;
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130003, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130003, 0);
             }
             if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -422,8 +423,8 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 actor->stateTimer   = step;
                 if (step == 3) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    func_80106238(arg0, 0, 1);
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130002, 0);
+                    playerActorSetWeaponAttackFlags(arg0, 0, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130002, 0);
                 } else if (step == 0) {
                     actor->statePhase                         = 4;
                     actor->stateTimer                         = 9;
@@ -442,7 +443,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
             }
             if (actor->actionValue != 2 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 2;
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20130004, 0);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130004, 0);
             }
             if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
                 func_80106550(arg0);

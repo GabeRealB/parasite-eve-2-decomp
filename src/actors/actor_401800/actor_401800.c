@@ -68,7 +68,7 @@ extern AnimationSet* D_actor_401800_801559F0[];
 /// damage magnitude: the low four when the hit is light, the high two when it
 /// is heavy, and the last four on the `arg1 > 0` / `arg1 <= 0` split in
 /// between. The fourth halfword (`pad`, unused by the effect itself) is the
-/// model part index `func_800FDB18` anchors the spawned effect to. Same role
+/// model part index `effectSpawnHit` anchors the spawned effect to. Same role
 /// `Actor00100_D1B9F4` plays for `Actor00100_Fn03340`.
 extern SVECTOR gOddStrangerHitOffsets[12];
 

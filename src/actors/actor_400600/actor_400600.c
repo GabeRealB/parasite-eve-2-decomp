@@ -3401,8 +3401,8 @@ static void func_actor_400600_80136968(Task* arg0)
                             work->markedFrames = 0x258;
                         }
                     } else {
-                        func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
-                                      &arg0->extra.tmd->coords[4], NULL, &work->effectArg);
+                        effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
+                                       &arg0->extra.tmd->coords[4], NULL, &work->effectArg);
                     }
                     if (amount >= 0x64) {
                         work->pendingAction = STALKER_ZEBRA_IVORY_PENDING_HEAVY;
@@ -3441,7 +3441,7 @@ static void func_actor_400600_80136968(Task* arg0)
                             break;
                     }
                 } else if ((damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value)) == 0xD) {
-                    func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+                    effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
                 }
                 break;
         }

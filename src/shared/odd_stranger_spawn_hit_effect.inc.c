@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
 /// Spawn the effect a hit record `arg2` names at one of twelve model offsets
@@ -6,7 +8,7 @@
 /// each selecting from its own run of `gOddStrangerHitOffsets`. The chosen
 /// offset goes into the work block's `effectOffset` and the `effectArg` argument
 /// record, which anchors it at the model's second coordinate part, scale
-/// 0x300 and count 2 — the effect `func_800FDB18` then spawns hangs off the
+/// 0x300 and count 2 — the effect `effectSpawnHit` then spawns hangs off the
 /// part the vector's `pad` names. The 8-byte scratch the offset is built in is
 /// carved off and given back around the call. Same body as
 /// `Actor00100_Fn03340`, which keeps its record inline and scales by 0x100.
@@ -71,9 +73,9 @@ void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2)
     work->effectArg.spawnArgHi = 2;
 #if ODD_STRANGER_HIT_FX_OFFSET
     work->effectOffset = *sc;
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->effectOffset, &work->effectArg);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->effectOffset, &work->effectArg);
 #else
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
 #endif
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

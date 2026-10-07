@@ -52,7 +52,7 @@ extern AnimationSet* D_actor_207200_80153ED4[13];
 /// `forwardSpeed` for frames 20..39 of the crawl animation, indexed by frame - 20.
 extern s16 D_actor_207200_80153F20[];
 /// Base damage the shatter hit doubles, before a 0..99 roll is added.
-/// Effect offsets `func_800FDB18` is handed for the two hit tables.
+/// Effect offsets `effectSpawnHit` is handed for the two hit tables.
 extern SVECTOR D_actor_207200_80153F08;
 extern SVECTOR D_actor_207200_80153F10;
 
@@ -1163,8 +1163,8 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                                                        scratch->delta.vector.vz * scratch->delta.vector.vz);
                 damageGetPlayerAttackReaction(work->bodyContacts[i].key.value);
                 damage = Gp_ComputeDamage(work->bodyContacts[i].key.value, damage, 0, 0);
-                func_800FDB18(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
-                              arg0->extra.tmd->coords + 1, &D_actor_207200_80153F10, &work->bodyHitEffectArg);
+                effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
+                               arg0->extra.tmd->coords + 1, &D_actor_207200_80153F10, &work->bodyHitEffectArg);
                 n = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if ((s16)n > 0) {
                     work->hitCooldown = n;
@@ -1260,8 +1260,8 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     }
                     damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
                     func_actor_207200_8014C870(arg0, damage);
-                    func_800FDB18(damageGetPlayerAttackEffectId(work->headContacts[i].key.value),
-                                  arg0->extra.tmd->coords + 3, &D_actor_207200_80153F08, &work->headHitEffectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(work->headContacts[i].key.value),
+                                   arg0->extra.tmd->coords + 3, &D_actor_207200_80153F08, &work->headHitEffectArg);
                     n = damageGetPlayerAttackHitCooldown(work->headContacts[i].key.value);
                     if ((s16)n > 0) {
                         work->hitCooldown = n;
@@ -1312,8 +1312,8 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
             snd     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480003;
             sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             effArg = &work->headLossEffectArg;
-            func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
-            func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
+            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
+            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
             work->frontAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->sideAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             worldCollisionUnlinkBody(&work->headBody);
@@ -1510,8 +1510,8 @@ static void func_actor_207200_8014CFEC(Task* arg0)
         func_actor_207200_8014DAF8(effect->task, arg0);
     }
     effArg = &work->headLossEffectArg;
-    func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
-    func_800FDB18(5, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
+    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
+    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
     work->headBurst       = 1;
     work->animId          = ACTOR_207200_ANIM_RECOIL;
     work->headLost        = 1;

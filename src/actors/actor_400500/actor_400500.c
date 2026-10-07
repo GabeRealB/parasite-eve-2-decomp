@@ -2627,7 +2627,7 @@ static void func_actor_400500_8013456C(Task* arg0)
                     enemy->hp       = 0;
                     work->deathHeld = 1;
                 }
-                func_800FDB18(
+                effectSpawnHit(
                     damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
                     &arg0->extra.tmd->coords[3],
                     NULL,
@@ -2641,7 +2641,7 @@ static void func_actor_400500_8013456C(Task* arg0)
                     work->lastHitReaction = ACTOR_400500_HIT_REACTION_LIGHT;
                 }
             } else if ((damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value)) == 0xD) {
-                func_800FDB18(0xD, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
             }
             switch (damageGetPlayerAttackReaction(work->bodyContacts[i].key.value) & 0xFFFF) {
                 case DAMAGE_PLAYER_REACTION_NONE:

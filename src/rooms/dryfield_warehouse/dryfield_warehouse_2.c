@@ -565,7 +565,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 case 0:
                     SetDispMask(1);
                     taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 2, 8, 0);
-                    Gp_KillPlayerEffs();
+                    playerActorRemoveEquipment();
                     work->playerEffectsSuppressed = 1;
                     cur                           = arg0->work;
                     if (cur->player != NULL) {

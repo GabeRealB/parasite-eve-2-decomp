@@ -1,3 +1,5 @@
+#include "gameplay/room_effects.h"
+
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 /// Per-frame callback, the seven-state counterpart of
@@ -18,7 +20,7 @@ void madChaserShrinkDeathTick(Task* arg0)
             work->frameCount++;
             sp.funcs[(s16)work->state](arg0);
             if (!(work->frameCount & 0x1F)) {
-                func_800FDB18(3, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+                effectSpawnHit(EFFECT_HIT_KIND_BLAST, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:

@@ -583,7 +583,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 mode = work->command->operand0.value;
                 if (mode == 0 || mode == 2) {
                     D_801156CD = 1;
-                    Gp_KillPlayerEffs();
+                    playerActorRemoveEquipment();
                     Gp_MsgPlayerWeapon(0);
                 }
                 if ((u32)(mode - 1) < 2U) {

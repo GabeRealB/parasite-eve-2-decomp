@@ -1404,8 +1404,8 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
         timer                 = (u16)work->hitEffectFrames - 1;
         work->hitEffectFrames = timer;
         if (!(timer & 7)) {
-            func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
-            func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+            effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+            effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
         }
     }
     hitKey = _actor01100FindClass2Contact(&scratch->shortVector, work->contacts[ACTOR_01100_BODY_CHEST]);
@@ -1620,7 +1620,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                     sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->hitFromBehind = fromBehind;
-                func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+                effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
             case ACTOR_01100_REACTION_FLINCH:
                 if (work->hp > 0) {
@@ -1633,7 +1633,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 work->mode          = ACTOR_01100_MODE_REACTING;
                 work->stateStep     = 0;
                 work->hitFromBehind = fromBehind;
-                func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+                effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
             case ACTOR_01100_REACTION_FALL:
                 if (work->hp > 0) {
@@ -1650,7 +1650,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 work->mode          = ACTOR_01100_MODE_REACTING;
                 work->stateStep     = 0;
                 work->hitFromBehind = fromBehind;
-                func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+                effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
             case ACTOR_01100_REACTION_FALL_AGAIN:
                 if (work->hp > 0) {
@@ -1671,7 +1671,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 _actor01100ClearObjPair(work);
                 work->mode      = ACTOR_01100_MODE_REACTING;
                 work->stateStep = 0;
-                func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+                effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
             case ACTOR_01100_REACTION_STUNNED:
                 if (work->hp > 0) {
@@ -1679,7 +1679,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                     sndId |= (u8)work->placeIndex << 8;
                     sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
-                func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+                effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
             case ACTOR_01100_REACTION_RISING_LIGHT:
                 if (work->hp > 0) {
@@ -1687,7 +1687,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                     sndId |= (u8)work->placeIndex << 8;
                     sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
-                func_800FDB18((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
+                effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
                 break;
         }
     }

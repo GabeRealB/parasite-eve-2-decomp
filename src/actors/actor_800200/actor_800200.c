@@ -1004,7 +1004,7 @@ static void func_actor_800200_801622B0(Task* arg0)
         coord->coord.t[2] = actor->previousPosition.vz;
     } else {
         if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = func_801011D0(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
             if ((s8)actor->gridResponse == 2) {
                 coord->coord.t[0] = actor->previousPosition.vx;
                 coord->coord.t[1] = actor->previousPosition.vy;
@@ -2139,7 +2139,7 @@ static void func_actor_800200_80164598(Task* arg0)
     block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
     block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
     actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
     block->turnStep               = val;
     if (val > 0x30) {
         block->turnStep = 0x30;
@@ -2308,7 +2308,7 @@ static void func_actor_800200_801649D8(Task* arg0)
             actor->statePhase        = one;
             target                   = ((u16)companion->targetHeading + actor->rotation.vy) & ACTOR_TRANSFORM_ANGLE_MASK;
             companion->targetHeading = target;
-            turn                     = func_80103E7C((s16)actor->rotation.vy, (s16)target) << 0x10;
+            turn                     = playerActorShortestTurn((s16)actor->rotation.vy, (s16)target) << 0x10;
             turnAnim                 = 5;
             if (turn > 0) {
                 turnAnim           = 6;
@@ -2379,7 +2379,7 @@ static void func_actor_800200_80164C54(Task* arg0)
     block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
     block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
     actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
     block->turnStep               = val;
     if (val > 0x40) {
         block->turnStep = 0x40;
@@ -2426,7 +2426,7 @@ static void func_actor_800200_80164C54(Task* arg0)
                 }
             }
             actor->movementSign = 1;
-            Gp_StepPlayerMove(arg0);
+            playerActorStepMovement(arg0);
             func_80105ED4(arg0);
             break;
     }
@@ -2449,7 +2449,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
     block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
     block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
     actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = func_80103E7C(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
     block->turnStep               = val;
     if (val > 0x40) {
         block->turnStep = 0x40;
@@ -2492,7 +2492,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
                 }
             }
             actor->movementSign = 1;
-            Gp_StepPlayerMove(arg0);
+            playerActorStepMovement(arg0);
             break;
     }
     playerActorTickChildSlots(arg0);
@@ -2968,8 +2968,8 @@ static void func_actor_800200_80165B84(Task* arg0)
     }
     Gp_TickActorAnimState(arg0);
     playerActorTickChildSlots(arg0);
-    Gp_TurnPlayer(arg0);
-    Gp_StepPlayerMove(arg0);
+    playerActorUpdateFacing(arg0);
+    playerActorStepMovement(arg0);
 }
 
 static void func_actor_800200_80165CB4(Task* arg0)
@@ -3033,8 +3033,8 @@ static void func_actor_800200_80165E90(Task* arg0)
     Gp_TickActorAnimState(arg0);
     playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
-    Gp_TurnPlayer(arg0);
-    Gp_StepPlayerMove(arg0);
+    playerActorUpdateFacing(arg0);
+    playerActorStepMovement(arg0);
 }
 
 static void func_actor_800200_80165F28(Task* arg0)
@@ -3085,7 +3085,7 @@ static void func_actor_800200_80165FF0(Task* arg0)
         actor->state                 = flag;
         playerActorPlayChildSlotsWithBlend(arg0, flag, 0, 5);
     } else {
-        delta = func_80103E7C(cur, tgt);
+        delta = playerActorShortestTurn(cur, tgt);
         if (delta > 0x30) {
             delta = 0x30;
         } else if (delta < -0x30) {

@@ -2252,7 +2252,7 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     work->hitEffectArg.spawnArgLo = 0x100;
     work->hitEffectArg.spawnArgHi = 1;
     work->hitEffectArg.coord      = coord;
-    func_800FDB18(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitEffectOffset, &work->hitEffectArg);
+    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitEffectOffset, &work->hitEffectArg);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 

@@ -241,7 +241,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                 actor->stateTimer        = 0;
                 actor->attackCancelTicks = 9;
                 actor->actionValue       = 3;
-                func_80106238(arg0, 0, 1);
+                playerActorSetWeaponAttackFlags(arg0, 0, 1);
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
             } else if (actor->attackButton & 2) {
                 beam                               = actor->weaponEffectTask;
@@ -254,7 +254,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                     beam->spawnArg1.value = 2;
                 }
                 Gp_ConsumeSlotQty(0x9B, 0x101);
-                Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201C0005, 1);
+                worldCoordPlaySound(arg0->extra.tmd->coords, 0x201C0005, 1);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
                 break;
             }
@@ -271,7 +271,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }
-                    Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201C0004, 1);
+                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x201C0004, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1C, NULL);
@@ -281,8 +281,8 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                 actor->stateTimer = delay - 1;
                 if (delay - 1 == 2) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                        Gp_PlayObjSfx(spot, 0x17, 1);
+                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                        worldCoordPlaySound(spot, 0x17, 1);
                     }
                 }
                 break;
@@ -291,8 +291,8 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
         case 4:
             actor->statePhase                                     = 6;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (Gp_PickNearestRec18(actor->weaponContacts, coord, spot) != 0) {
-                Gp_PlayObjSfx(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
+                worldCoordPlaySound(spot, 0x17, 1);
             }
             break;
         case 5:
