@@ -1809,22 +1809,6 @@ static __inline__ void actorAccumulateToView(GfxCoord* coord, MATRIX* mat)
     }
 }
 
-/// Sets up a collision object on `coord` with its record table, position and
-/// radius, links it at priority `prio`, and initialises the table as `kind`.
-static __inline__ void actorLinkWorkObj(GfxCoord* coord, WorldCollisionBody* obj, WorldCollisionContact* rec,
-                                        SVECTOR* pos, s16 field1C, s32 prio, s32 kind)
-{
-    obj->coord            = coord;
-    obj->context.contacts = rec;
-    obj->pos.vx           = pos->vx;
-    obj->pos.vy           = pos->vy;
-    obj->pos.vz           = pos->vz;
-    obj->radius           = field1C;
-    obj->flags            = 1;
-    worldCollisionLinkBody(prio, obj);
-    worldCollisionInitContacts(obj->context.contacts, kind, 0);
-}
-
 /// Whether the XZ offset `gap` reaches at least 1000.
 static __inline__ s32 actorOutOfReach(SVECTOR* gap)
 {

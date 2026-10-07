@@ -212,6 +212,34 @@ void worldCollisionUnlinkTrigger(s32 unusedListIndex, WorldCollisionTrigger* tri
 /// is ignored and retained for the exported interface; callers pass 0.
 void worldCollisionInitContacts(WorldCollisionContact* contacts, s32 count, s32 unused);
 
+/// Initializes and links a sphere body with a caller-owned contact table.
+///
+/// `body` must be non-NULL and absent from all lists; `listIndex` selects a
+/// collision group in 0..8. Copies XYZ from `localCenter` in `coord`'s local
+/// game-coordinate units; `radius` uses the same units. The centre is borrowed
+/// only for this call. Keeps the body's key and position pad halfword intact.
+/// Replaces its flags with SPHERE before linking, clearing body-index and pass
+/// options; callers set the key and enable the desired tests before scanning.
+///
+/// After linking, clears exactly the positive `contactCount` of writable
+/// contact elements and marks the last with `WORLD_COLLISION_CONTACT_LAST`.
+/// The table must provide that many elements without byte-count overflow.
+/// Keep the body, coordinate and contact storage live until
+/// `worldCollisionUnlinkBody`; no storage is allocated or freed.
+static __inline__ void _worldCollisionLinkSphereBody(GfxCoord* coord, WorldCollisionBody* body, WorldCollisionContact* contacts,
+                                                     const SVECTOR* localCenter, u16 radius, s32 listIndex, s32 contactCount)
+{
+    body->coord            = coord;
+    body->context.contacts = contacts;
+    body->pos.vx           = localCenter->vx;
+    body->pos.vy           = localCenter->vy;
+    body->pos.vz           = localCenter->vz;
+    body->radius           = radius;
+    body->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(listIndex, body);
+    worldCollisionInitContacts(body->context.contacts, contactCount, 0);
+}
+
 /// Search key selecting any occupied contact instead of an exact packed identity.
 enum { WORLD_COLLISION_FIND_ANY_KEY = 0 };
 

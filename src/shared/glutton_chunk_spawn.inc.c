@@ -62,8 +62,8 @@ void gluttonChunkSpawn(Enemy* enemy, Task* task)
 
     vec.vx = vec.vy = vec.vz = 0;
 
-    actorLinkWorkObj(task->extra.tmd->coords, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
-                     ARRAY_SIZE(work->attackContacts));
+    _worldCollisionLinkSphereBody(task->extra.tmd->coords, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
+                                  ARRAY_SIZE(work->attackContacts));
 
     work->gridBody.coord            = task->extra.tmd->coords;
     work->gridBody.context.contacts = work->gridContacts;

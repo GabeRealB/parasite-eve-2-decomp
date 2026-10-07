@@ -128,8 +128,8 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     gfxSetRotIdentity(&work->bodyCoord.coord);
     gfxRotMatrixY(&work->bodyCoord.coord, 0, 1);
 
-    actorLinkWorkObj(&work->bodyCoord, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
-                     ARRAY_SIZE(work->attackContacts));
+    _worldCollisionLinkSphereBody(&work->bodyCoord, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
+                                  ARRAY_SIZE(work->attackContacts));
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     snd = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000B;

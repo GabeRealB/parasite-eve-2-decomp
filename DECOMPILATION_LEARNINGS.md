@@ -74287,15 +74287,15 @@ order. For an inlined call that order is the order `expand_inline_function`
 copies the actuals into the formals, i.e. the **parameter** order. So
 
 ```
-addiu v0,s2,0x10     /* &work->coord */
-addiu s0,s2,0xb0     /* &work->obj   */
+addiu v0,s2,0x10     /* &work->bodyCoord  */
+addiu s0,s2,0xb0     /* &work->attackBody */
 sw    v0,8(s0)
 ```
 
 says the coordinate parameter is declared before the object parameter, even
-though the body writes `obj->field_8 = coord;`. Swapping the two parameters of
-`actorLinkWorkObj` was the last instruction of
-`func_actor_444000_80139594`; the helper's other two call sites in the same TU
+though the body writes `body->coord = coord;`. Swapping the two parameters of
+`_worldCollisionLinkSphereBody` was the last instruction of
+`gluttonRainSpawn`; the helper's other two call sites in the same TU
 still matched, because there the coordinate argument is a load rather than an
 address computation and nothing ties.
 
