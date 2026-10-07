@@ -69,7 +69,7 @@ typedef EnemyTaskFuncTable3 DesertChaserTaskStates;
 #if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
 /// Allocation holding the cutscene build's contact push step.
 ///
-/// `step` is the vector `ActorContact_GetScratchPosition` hands the contact
+/// `step` is the vector `_actorContactGetLastPushStep` hands the contact
 /// routines, which the armed builds allocate as a bare `SVECTOR`. In both
 /// cutscene packages eight zero bytes separate it from the effect record that
 /// follows. No access to them is recovered, so whether they are trailing
@@ -548,13 +548,41 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DesertChaserFrameScratch, 0x1C);
 #endif
 
-void desertChaserBlendTick(Task* task);
-void desertChaserAnimTick(Task* task);
-void desertChaserSpawn(Enemy* enemy, Task* task);
-s32  desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3);
+/// Animation blend weights have twelve fractional bits; rates count sixteenths of a frame.
+enum {
+    DESERT_CHASER_BLEND_WEIGHT_ONE            = 0x1000,
+    DESERT_CHASER_BLEND_WEIGHT_THREE_QUARTERS = 0xC00,
+    DESERT_CHASER_BLEND_WEIGHT_HALF           = 0x800,
+    DESERT_CHASER_BLEND_WEIGHT_REDUCED        = 0x5DE,
+    DESERT_CHASER_BLEND_WEIGHT_DEFAULT        = 0xBD0,
+    DESERT_CHASER_BLEND_FIRST_UNBLENDED_SLOT  = 11,
+    DESERT_CHASER_BLEND_MAIN_RATE_BIAS        = 3
+};
+
+/// EVT script words returned by animation cues; the sound bank selects their audio.
+enum {
+    DESERT_CHASER_SOUND_STEP_1 = 0x40010001,
+    DESERT_CHASER_SOUND_STEP_2 = 0x40010002,
+    DESERT_CHASER_SOUND_CUE_03 = 0x40010003,
+    DESERT_CHASER_SOUND_CUE_04 = 0x40010004,
+    DESERT_CHASER_SOUND_CUE_05 = 0x40010005,
+    DESERT_CHASER_SOUND_CUE_0F = 0x4001000F,
+    DESERT_CHASER_SOUND_CUE_11 = 0x40010011
+};
+
+/// Dust cue arguments: recursive child puffs, four-bit frame period, and twelve-bit size.
+enum {
+    DESERT_CHASER_CUE_DUST_RECURSIVE    = 0x80000000,
+    DESERT_CHASER_CUE_DUST_PERIOD_SHIFT = 12
+};
+
+static void _desertChaserBlendTick(Task* task);
+void        desertChaserAnimTick(Task* task);
+void        desertChaserSpawn(Enemy* enemy, Task* task);
+s32         desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3);
 
 /* Defined by each package. */
-s32 desertChaserAnimCues(Task* task, DesertChaserWork* work);
+static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work);
 
 void desertChaserFrameState(Enemy* enemy, Task* task);
 void desertChaserPartEffect(Task* arg0, s16 part, s16 flags);

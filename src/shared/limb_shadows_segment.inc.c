@@ -5,7 +5,7 @@
 /// `height`. The quad is `width` wide on each side of the segment and
 /// stretches half the segment's length past each end; it is tinted grey by
 /// `shade` and skipped when the projection clips it. Equal parts draw nothing.
-void limbShadowDrawSegment(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
+void LIMB_SHADOW_DRAW_SEGMENT(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
 {
     ActorLimbShadowScratch* s;
     s16                     angle;

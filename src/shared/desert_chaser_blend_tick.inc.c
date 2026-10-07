@@ -1,31 +1,35 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// Tick of the animation slots while the blend context is live: slots 1..10
-/// sample both contexts and write their pose mixed by `blendWeight` (the blend
-/// context gets the 0x1000 complement), each rate seeded from `animRate`
-/// (three below it) and `blendRate`; slots 11..17 only tick the main context.
-void desertChaserBlendTick(Task* task)
+/// Advances the two animation rigs and mixes secondary rotation into slots 1..10.
+///
+/// The cutscene build uses `blendWeight` for the main rotation and its
+/// 4096 complement for the secondary rotation on slots 1..10. All slots 1..17
+/// advance the main rig at `animRate - 3`; the blended slots also advance the
+/// secondary rig at `blendRate`. Rates use sixteenths of a frame, and signed
+/// negative rates are retained. Both rigs and their borrowed clip data must be live.
+static void _desertChaserBlendTick(Task* task)
 {
-    AnimationPose     pose;
+    AnimationPose     mainPose;
     AnimationPose     blendPose;
     AnimationContext* anim;
-    s16               weight;
-    s16               i;
+    s16               mainWeight;
+    s16               slotIndex;
     DesertChaserWork* work;
 
-    work   = task->work;
-    weight = work->blendWeight;
-    anim   = &work->rig.anim;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        if (i < 0xB) {
-            work->blend.slots[i].rate = work->blendRate;
-            work->rig.slots[i].rate   = (work->animRate - 3);
-            animationTickSlotPose(anim, i, &pose, 0);
-            animationTickSlotPose(&work->blend.anim, i, &blendPose, 0);
-            animationApplyPoseWithBlendedRotation(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+    work       = task->work;
+    mainWeight = work->blendWeight;
+    anim       = &work->rig.anim;
+    // Leave slot 0 intact; only slots 1..10 mix the secondary rotation.
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        if (slotIndex < DESERT_CHASER_BLEND_FIRST_UNBLENDED_SLOT) {
+            work->blend.slots[slotIndex].rate = work->blendRate;
+            work->rig.slots[slotIndex].rate   = (work->animRate - DESERT_CHASER_BLEND_MAIN_RATE_BIAS);
+            animationTickSlotPose(anim, slotIndex, &mainPose, NULL);
+            animationTickSlotPose(&work->blend.anim, slotIndex, &blendPose, NULL);
+            animationApplyPoseWithBlendedRotation(anim, slotIndex, &mainPose, &blendPose, mainWeight, DESERT_CHASER_BLEND_WEIGHT_ONE - mainWeight);
         } else {
-            work->rig.slots[i].rate = (work->animRate - 3);
-            animationTickSlot(&work->rig.anim, i);
+            work->rig.slots[slotIndex].rate = (work->animRate - DESERT_CHASER_BLEND_MAIN_RATE_BIAS);
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }

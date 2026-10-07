@@ -64,6 +64,23 @@
 #define DESERT_CHASER_BUILD DESERT_CHASER_REGULAR
 #include "../../shared/desert_chaser.h"
 
+/// Mine Mesa fall gates in root-parent coordinates; yaw uses 4096 units per turn.
+enum {
+    ACTOR00100_MESA_DROP_MIN_X      = 0x1541,
+    ACTOR00100_MESA_DROP_X_EXTENT   = 0x196D,
+    ACTOR00100_MESA_DROP_MAX_Z      = 0x5B4,
+    ACTOR00100_MESA_DROP_CORNER_X   = 0x2AF9,
+    ACTOR00100_MESA_DROP_MIN_YAW    = 0x501,
+    ACTOR00100_MESA_DROP_CORNER_YAW = 0x708,
+};
+
+/// Package message and hit-sound script identities.
+enum {
+    ACTOR00100_MESSAGE_IGNORE_2015 = 2015,
+    ACTOR00100_SOUND_LIGHT_HIT     = 0x40010007,
+    ACTOR00100_SOUND_HEAVY_HIT     = 0x40010008
+};
+
 /// Scratch-stack block of the state that waits for the chaser to come into
 /// view: the projection of the model root's origin, and the yaws between the
 /// chaser and the player.
@@ -126,8 +143,14 @@ extern AnimationSet* gDesertChaserFrontAnim[9];
 
 extern SVECTOR ActorContact_ScratchPosition;
 
-/// The contact routines' scratch position.
-static inline SVECTOR* ActorContact_GetScratchPosition(void)
+/// Returns this carrier's persistent last contact-push correction.
+///
+/// Components are signed 16.16 corrections shifted right by 16 and narrowed
+/// to halfwords. Fractional X/Z add a further unit in the correction's sign;
+/// X/Z record the root correction, while Y is only recorded. No grid hit
+/// leaves the old value intact. The borrowed vector lives for the overlay's
+/// lifetime; `pad` is unused.
+static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }
@@ -201,13 +224,13 @@ static TmdSource _gActor00100DesertChaserBody;
 
 s32 Actor00100_Fn00E58(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 
-s32 Actor00100_Fn0B134(Task*, s32, s32, s32);
+static s32 _actor00100IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unusedExtra);
 
 extern s8 gDesertChaserClipStartFrames[25][25];
 
 static const DesertChaserTaskStates gDesertChaserTaskStates;
 
-static void Actor00100_Fn0B4D8(Task* arg0);
+static void _actor00100HideState(Task* task);
 
 static void Actor00100_Fn0B730(Task* arg0);
 
@@ -215,48 +238,52 @@ static void Actor00100_Fn0B8D8(Task* arg0);
 
 static void Actor00100_Fn0BB2C(Task* arg0);
 
-static void Actor00100_Fn0BC14(Task* task);
+static void _actor00100IdleState2(Task* task);
 
-static void Actor00100_Fn0BCBC(Enemy* enemy, Task* task);
+static void _actor00100ReleaseBattleState(Enemy* enemy, Task* task);
 
-static __inline__ s16      Actor00100_FacingAway(GfxCoord* p);
-static __inline__ void     Actor00100_ScaleTransform(MATRIX* matrix, s16 amount);
-static __inline__ void     Actor00100_PositionDelta(GfxCoord* coord, SVECTOR* pos);
-static __inline__ s16      Actor00100_InRegion(Task* actor);
-static __inline__ s16      Actor00100_InDirection(Task* actor, VECTOR* motion);
-static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head);
-static __inline__ s32      Actor00100_FindDamageHit(WorldCollisionContact* records, SVECTOR* pos);
-static __inline__ void     Actor00100_SetHitState(DesertChaserWork* work);
-static s32                 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
-static void                Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
-static void                Actor00100_Fn02C54(Enemy* arg0, Task* arg1);
-static void                Actor00100_Fn0375C(Task* arg0);
-static void                Actor00100_Fn04270(Task* arg0);
-static void                Actor00100_Fn061FC(Task* arg0);
-static void                Actor00100_Fn06C10(Task* arg0);
-static void                Actor00100_Fn070DC(Task* arg0);
-static void                Actor00100_Fn07650(Task* arg0);
-static void                Actor00100_Fn08E7C(Task* arg0);
-static void                Actor00100_Fn09310(Task* arg0);
-static void                Actor00100_Fn09724(Task* arg0);
-static void                Actor00100_Fn09CCC(Task* arg0);
-static void                Actor00100_Fn0A288(Enemy* enemy, Task* actor);
-static s16                 Actor00100_Fn0B13C(Task* arg0);
-static void                Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2);
-static void                Actor00100_Fn0BC1C(Task* arg0);
+static __inline__ s16  _actor00100FacesMesaDrop(GfxCoord* coord);
+static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount);
+static __inline__ s16  _actor00100IsInMesaDropRegion(Task* actor);
+static __inline__ s16  _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion);
+static __inline__ s32  _actor00100FindAttackContact(WorldCollisionContact* contacts, SVECTOR* hitPosition);
+static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work);
+static s32             desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
+static void            _limbShadowDrawSegment(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
+#define LIMB_SHADOW_DRAW_SEGMENT _limbShadowDrawSegment
+#include "../../shared/limb_shadows.h"
+static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1);
+static void Actor00100_Fn0375C(Task* arg0);
+static void Actor00100_Fn04270(Task* arg0);
+static void Actor00100_Fn061FC(Task* arg0);
+static void Actor00100_Fn06C10(Task* arg0);
+static void Actor00100_Fn070DC(Task* arg0);
+static void Actor00100_Fn07650(Task* arg0);
+static void Actor00100_Fn08E7C(Task* arg0);
+static void Actor00100_Fn09310(Task* arg0);
+static void Actor00100_Fn09724(Task* arg0);
+static void Actor00100_Fn09CCC(Task* arg0);
+static void Actor00100_Fn0A288(Enemy* enemy, Task* actor);
+static s16  Actor00100_Fn0B13C(Task* arg0);
+static void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2);
+static void Actor00100_Fn0BC1C(Task* arg0);
 
-static __inline__ s16 Actor00100_FacingAway(GfxCoord* p)
+/// Tests whether a root faces through the Mine Mesa fall boundary.
+///
+/// The caller first checks the Mesa room and drop region. Yaw uses 4096 units
+/// per turn; the boundary changes direction at root X = 11001.
+static __inline__ s16 _actor00100FacesMesaDrop(GfxCoord* coord)
 {
-    s16 angle = ratan2(-p->coord.m[2][0], p->coord.m[2][2]);
-    s32 value = angle;
-    if (value < 0)
-        value = -value;
-    if (value >= 0x501) {
-        if (p->coord.t[0] < 0x2AF9)
+    s16 yaw          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    s32 yawMagnitude = yaw;
+    if (yawMagnitude < 0)
+        yawMagnitude = -yawMagnitude;
+    if (yawMagnitude >= ACTOR00100_MESA_DROP_MIN_YAW) {
+        if (coord->coord.t[0] < ACTOR00100_MESA_DROP_CORNER_X)
             return 1;
-        if ((s16)ratan2(-p->coord.m[2][0], p->coord.m[2][2]) >= 0x708)
+        if ((s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) >= ACTOR00100_MESA_DROP_CORNER_YAW)
             return 1;
-        if ((s16)ratan2(-p->coord.m[2][0], p->coord.m[2][2]) <= 0)
+        if ((s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) <= 0)
             return 1;
     }
     return 0;
@@ -289,42 +316,36 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
 }
 
-static __inline__ void Actor00100_PositionDelta(GfxCoord* coord, SVECTOR* pos)
-{
-    pos->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    pos->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    pos->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-}
-
-static __inline__ s16 Actor00100_InRegion(Task* actor)
+/// Tests the Mine Mesa drop region in the actor root's parent space.
+///
+/// X lies in [5441, 11949] and Z is below 1460, with no lower Z bound.
+/// The unsigned X subtraction implements both ends of the interval.
+static __inline__ s16 _actor00100IsInMesaDropRegion(Task* actor)
 {
     GfxCoord* coord = actor->extra.tmd->coords;
-    if ((u32)(coord->coord.t[0] - 0x1541) < 0x196DU) {
-        if (coord->coord.t[2] < 0x5B4)
+    if ((u32)(coord->coord.t[0] - ACTOR00100_MESA_DROP_MIN_X) < (u32)ACTOR00100_MESA_DROP_X_EXTENT) {
+        if (coord->coord.t[2] < ACTOR00100_MESA_DROP_MAX_Z)
             return 1;
     }
     return 0;
 }
 
-static __inline__ s16 Actor00100_InDirection(Task* actor, VECTOR* motion)
+/// Tests whether a displacement heads through the Mine Mesa fall boundary.
+///
+/// The caller checks the room and drop region first. X/Z displacement and root
+/// translation share parent-coordinate units; its bearing uses 4096 per turn.
+static __inline__ s16 _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion)
 {
     GfxCoord* coord = actor->extra.tmd->coords;
-    if (abs((s16)ratan2(motion->vx, motion->vz)) >= 0x501) {
-        if (coord->coord.t[0] < 0x2AF9)
+    if (abs((s16)ratan2(motion->vx, motion->vz)) >= ACTOR00100_MESA_DROP_MIN_YAW) {
+        if (coord->coord.t[0] < ACTOR00100_MESA_DROP_CORNER_X)
             return 1;
-        if ((s16)ratan2(motion->vx, motion->vz) >= 0x708)
+        if ((s16)ratan2(motion->vx, motion->vz) >= ACTOR00100_MESA_DROP_CORNER_YAW)
             return 1;
         if ((s16)ratan2(motion->vx, motion->vz) <= 0)
             return 1;
     }
     return 0;
-}
-
-static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head)
-{
-    SVECTOR* p                     = SCRATCH_HEAD_AT(head, SVECTOR) - 1;
-    SCRATCH_HEAD_AT(head, SVECTOR) = p;
-    return p;
 }
 
 // Each handler receives the argument view used by its message ID.
@@ -1180,7 +1201,7 @@ SVECTOR gDesertChaserHitOffsets[12] = {
 
 TaskMessageEntry Actor00100_D1BA54[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, Actor00100_Fn00E58 },
-    { 2015, Actor00100_Fn0B134 },
+    { ACTOR00100_MESSAGE_IGNORE_2015, _actor00100IgnoreMessage2015 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
@@ -1191,29 +1212,50 @@ TaskDesc Actor00100_D1BA84 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BU
 
 SVECTOR ActorContact_ScratchPosition;
 
-static __inline__ s32 Actor00100_FindDamageHit(WorldCollisionContact* records, SVECTOR* pos)
+/// Returns the first attack contact key and copies its world-space hit point.
+///
+/// `contacts` has DESERT_CHASER_CONTACTS entries, as each regular-build sphere
+/// provides. A zero key ends the scan. Returns zero without writing
+/// `hitPosition` when there is no attack; coordinates narrow to signed halfwords
+/// and the output vector's fourth halfword stays untouched.
+static __inline__ s32 _actor00100FindAttackContact(WorldCollisionContact* contacts, SVECTOR* hitPosition)
 {
-    s16 i;
-    for (i = 0; i < 5; i++) {
-        if (!records[i].key.value)
+    s16 contactIndex;
+    for (contactIndex = 0; contactIndex < DESERT_CHASER_CONTACTS; contactIndex++) {
+        if (!contacts[contactIndex].key.value)
             break;
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            hitPosition->vx = contacts[contactIndex].point.vx;
+            hitPosition->vy = contacts[contactIndex].point.vy;
+            hitPosition->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
 }
 
-static __inline__ void Actor00100_SetHitState(DesertChaserWork* work)
+/// Chooses the stagger or flinch state for a new hit.
+///
+/// Buildup, stagger, steering, flinch, rising, down, and recovery with a state
+/// timer below ten take the stagger reaction; other states take the flinch reaction.
+static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work)
 {
+    enum {
+        ACTOR00100_STATE_BUILDUP             = 4,
+        ACTOR00100_STATE_STAGGER             = 7,
+        ACTOR00100_STATE_RISE                = 11,
+        ACTOR00100_STATE_DOWN                = 17,
+        ACTOR00100_STATE_FLINCH              = 20,
+        ACTOR00100_STATE_STEER               = 33,
+        ACTOR00100_STATE_RECOVER             = 36,
+        ACTOR00100_RECOVER_HIT_WINDOW_FRAMES = 10,
+    };
+
     s32 state = work->state;
-    if (state == 4 || state == 7 || state == 0x21 || state == 0x14 || state == 0xB || state == 0x11 || (state == 0x24 && work->stateTimer < 10))
-        work->state = 7;
+    if (state == ACTOR00100_STATE_BUILDUP || state == ACTOR00100_STATE_STAGGER || state == ACTOR00100_STATE_STEER || state == ACTOR00100_STATE_FLINCH || state == ACTOR00100_STATE_RISE || state == ACTOR00100_STATE_DOWN || (state == ACTOR00100_STATE_RECOVER && work->stateTimer < ACTOR00100_RECOVER_HIT_WINDOW_FRAMES))
+        work->state = ACTOR00100_STATE_STAGGER;
     else
-        work->state = 0x14;
+        work->state = ACTOR00100_STATE_FLINCH;
 }
 
 // Transition durations indexed by previous * 25 + next animation.
@@ -1481,434 +1523,262 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
     return s->blocked != 0;
 }
 
-/// Draw the limb shadow under the segment between parts `firstJoint` and
-/// `secondJoint` of the actor's model: take both ends in world space, widen
-/// them into a `width`-half quad at height `height`, and emit it as a
-/// subtractive `POLY_FT4` tinted `shade`.
-static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade)
-{
-    ActorLimbShadowScratch* s;
-    s16                     angle;
-    GfxCoord*               secondCoord;
-    GfxCoord*               firstCoord;
-    s32                     offset0;
-    s32                     offset1;
-    s32                     offset2;
-    s32                     offset3;
-    s32                     halfX;
-    s32                     halfZ;
-    GfxCoord*               coords;
-    GfxCoord*               view;
-    POLY_FT4*               poly;
+#include "../../shared/limb_shadows_segment.inc.c"
+#undef LIMB_SHADOW_DRAW_SEGMENT
 
-    coords      = actor->extra.tmd->coords;
-    firstCoord  = coords + firstJoint;
-    secondCoord = coords + secondJoint;
-    if (firstJoint != secondJoint) {
-        s = SCRATCH_STACK_RESERVE_BLOCK(ActorLimbShadowScratch);
-        actorRenderComposeCoord(firstCoord);
-        actorRenderComposeCoord(secondCoord);
-        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->firstPos.vy   = height;
-        s->secondPos.vy  = height;
-        s->firstPos.vx   = s->firstMatrix.t[0];
-        s->firstPos.vz   = s->firstMatrix.t[2];
-        s->secondPos.vx  = s->secondMatrix.t[0];
-        s->secondPos.vz  = s->secondMatrix.t[2];
-        angle            = ratan2(s->secondPos.vx - s->firstPos.vx, s->secondPos.vz - s->firstPos.vz);
-        halfX            = (s->firstPos.vx - s->secondPos.vx) / 2;
-        halfZ            = (s->firstPos.vz - s->secondPos.vz) / 2;
-        offset0          = rcos(angle) * width;
-        s->corners[0].vy = height;
-        s->corners[0].vx = halfX + (s->firstPos.vx - (offset0 >> 0xC));
-        s->corners[0].vz = halfZ + (s->firstPos.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1          = rcos(angle) * width;
-        s->corners[1].vy = height;
-        s->corners[1].vx = halfX + (s->firstPos.vx + (offset1 >> 0xC));
-        s->corners[1].vz = halfZ + (s->firstPos.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2          = rcos(angle) * width;
-        s->corners[2].vy = height;
-        s->corners[2].vx = (s->secondPos.vx - (offset2 >> 0xC)) - halfX;
-        s->corners[2].vz = (s->secondPos.vz + ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        offset3          = rcos(angle) * width;
-        s->corners[3].vy = height;
-        s->corners[3].vx = (s->secondPos.vx + (offset3 >> 0xC)) - halfX;
-        s->corners[3].vz = (s->secondPos.vz - ((s32)(rsin(angle) * width) >> 0xC)) - halfZ;
-        /* `gGfxViewCoord`, reached back from its `workm`: the address is built
-           from `gGfxViewCoord.workm`, whose high half the GTE loads below share. */
-        view               = &gGfxViewCoord;
-        view->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(view);
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_SetTransMatrix(&gGfxViewCoord.workm);
-        s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],
-                                 &s->screenCorners[2], &s->screenCorners[3], &s->depthCue, &s->flag);
-        if (s->flag >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 9);
-            poly->code                     = 0x2E;
-            GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screenCorners[0];
-            GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screenCorners[1];
-            GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screenCorners[2];
-            GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screenCorners[3];
-            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-            poly->tpage = 0x48;
-            poly->clut  = 0x4283;
-            setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
-        }
-        SCRATCH_STACK_RELEASE_BLOCK(ActorLimbShadowScratch);
-    }
-}
-
-void desertChaserBlendTick(Task* arg0)
+/// Advances the two animation rigs and mixes secondary rotation into slots 1..10.
+///
+/// The regular build uses 3/4 main weight on slots 1..3, 1502/4096 on
+/// slots 4..5, and 3024/4096 on slots 6..10. All slots 1..17
+/// advance the main rig at `animRate - 3`; the blended slots also advance the
+/// secondary rig at `blendRate`. Rates use sixteenths of a frame, and signed
+/// negative rates are retained. Both rigs and their borrowed clip data must be live.
+static void _desertChaserBlendTick(Task* task)
 {
-    AnimationPose     pose;
-    AnimationPose     otherPose;
+    AnimationPose     mainPose;
+    AnimationPose     blendPose;
     AnimationContext* anim;
-    s16               part;
-    s16               index;
-    s32               blend;
-    s32               invBlend;
+    s16               partIndex;
+    s16               slotIndex;
+    s32               mainWeight;
+    s32               blendWeight;
     DesertChaserWork* work;
 
-    work = arg0->work;
+    work = task->work;
     anim = &work->rig.anim;
-    for (index = 1; index < ARRAY_SIZE(work->rig.slots); index++) {
-        part = index - 1;
-        switch (part) {
+    // Leave slot 0 intact; only slots 1..10 mix the secondary rotation.
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        partIndex = slotIndex - 1;
+        switch (partIndex) {
             case 0:
-                blend = 0xC00;
+                mainWeight = DESERT_CHASER_BLEND_WEIGHT_THREE_QUARTERS;
                 break;
             case 1:
-                blend = 0xC00;
+                mainWeight = DESERT_CHASER_BLEND_WEIGHT_THREE_QUARTERS;
                 break;
             case 2:
-                blend = 0xC00;
+                mainWeight = DESERT_CHASER_BLEND_WEIGHT_THREE_QUARTERS;
                 break;
             case 3:
-                blend = 0x5DE;
+                mainWeight = DESERT_CHASER_BLEND_WEIGHT_REDUCED;
                 break;
             case 4:
-                blend = 0x5DE;
+                mainWeight = DESERT_CHASER_BLEND_WEIGHT_REDUCED;
                 break;
             default:
-                blend = 0xBD0;
+                mainWeight = DESERT_CHASER_BLEND_WEIGHT_DEFAULT;
                 break;
         }
-        invBlend = 0x1000 - blend;
-        if (index < 0xB) {
-            work->blend.slots[index].rate = work->blendRate;
-            work->rig.slots[index].rate   = work->animRate - 3;
-            animationTickSlotPose(anim, (s32)index, &pose, 0);
-            animationTickSlotPose(&work->blend.anim, (s32)index, &otherPose, 0);
-            animationApplyPoseWithBlendedRotation(anim, (s32)index, &pose, &otherPose, blend, invBlend);
+        blendWeight = DESERT_CHASER_BLEND_WEIGHT_ONE - mainWeight;
+        if (slotIndex < DESERT_CHASER_BLEND_FIRST_UNBLENDED_SLOT) {
+            work->blend.slots[slotIndex].rate = work->blendRate;
+            work->rig.slots[slotIndex].rate   = work->animRate - DESERT_CHASER_BLEND_MAIN_RATE_BIAS;
+            animationTickSlotPose(anim, (s32)slotIndex, &mainPose, NULL);
+            animationTickSlotPose(&work->blend.anim, (s32)slotIndex, &blendPose, NULL);
+            animationApplyPoseWithBlendedRotation(anim, (s32)slotIndex, &mainPose, &blendPose, mainWeight, blendWeight);
         } else {
-            work->rig.slots[index].rate = work->animRate - 3;
-            animationTickSlot(&work->rig.anim, (s32)index);
+            work->rig.slots[slotIndex].rate = work->animRate - DESERT_CHASER_BLEND_MAIN_RATE_BIAS;
+            animationTickSlot(&work->rig.anim, (s32)slotIndex);
         }
     }
 }
 
-s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
+/// Spawns one dust cue at a model part, after staging its local vertical offset.
+///
+/// The offset is copied for placement. The dust task never reads the retained
+/// source pointer. `dustArgs` holds its recursive-puff bit, frame period and size.
+static inline void _actor00100SpawnCueDust(Task* task, s32 jointIndex, s32 height, s32 dustArgs)
 {
-    DesertChaserWork* work;
-    u32               prev;
-    s32               var_a0 = 1;
+    DesertChaserWork* effectWork = task->work;
 
-    switch (arg1->animId) {
+    effectWork->effectOffset.vz = 0;
+    effectWork->effectOffset.vx = 0;
+    effectWork->effectOffset.vy = height;
+    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[jointIndex], dustArgs, &effectWork->effectOffset);
+    }
+}
+
+/// Emits one-shot animation dust cues and returns an EVT sound script, or zero.
+///
+/// The armed builds test slot 1. The low ten pose record-index bits select a
+/// cue; per-slot history suppresses repeats until a non-cue clears the history.
+/// The task and work must belong to the same live chaser, with slots and model
+/// parts 0..17 available. Dust offsets use model-part units and are borrowed
+/// for placement; dust playback does not follow the retained offset pointer.
+/// Sound placement and panning belong to the caller.
+static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
+{
+    u32 previousCueIndex;
+    s32 resetCueHistory = 1;
+
+    // The low ten record-index bits identify cues, not elapsed animation frames.
+    switch (work->animId) {
         case 0:
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 9) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 9) {
-                    arg1->lastCueFrames[1] = 9;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80002280, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80002120, &work->effectOffset);
-                    }
-                    return 0x40010002;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 9) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 9) {
+                    work->lastCueFrames[1] = 9;
+                    _actor00100SpawnCueDust(task, 17, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 640));
+                    _actor00100SpawnCueDust(task, 9, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 288));
+                    return DESERT_CHASER_SOUND_STEP_2;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 6) {
-                    arg1->lastCueFrames[1] = 6;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80002220, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80002120, &work->effectOffset);
-                    }
-                    return 0x40010001;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 6) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 6) {
+                    work->lastCueFrames[1] = 6;
+                    _actor00100SpawnCueDust(task, 14, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544));
+                    _actor00100SpawnCueDust(task, 7, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 288));
+                    return DESERT_CHASER_SOUND_STEP_1;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
             break;
         case 0xA:
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xA) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 0xA) {
-                    arg1->lastCueFrames[1] = 0xA;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[0], 0x80004A00, &work->effectOffset);
-                    }
-                    return 0x40010005;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xA) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 0xA) {
+                    work->lastCueFrames[1] = 0xA;
+                    _actor00100SpawnCueDust(task, 0, 0, (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2560));
+                    return DESERT_CHASER_SOUND_CUE_05;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
             break;
         case 3:
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xC) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 0xC) {
-                    arg1->lastCueFrames[1] = 0xC;
-                    return 0x40010004;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 0xC) {
+                    work->lastCueFrames[1] = 0xC;
+                    return DESERT_CHASER_SOUND_CUE_04;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 8) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 8) {
-                    arg1->lastCueFrames[1] = 8;
-                    return 0x40010003;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 8) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 8) {
+                    work->lastCueFrames[1] = 8;
+                    return DESERT_CHASER_SOUND_CUE_03;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
             break;
         case 6:
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 6) {
-                    arg1->lastCueFrames[1] = 6;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
-                    }
-                    return 0x40010004;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 6) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 6) {
+                    work->lastCueFrames[1] = 6;
+                    _actor00100SpawnCueDust(task, 9, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    _actor00100SpawnCueDust(task, 7, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    return DESERT_CHASER_SOUND_CUE_04;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xC) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 0xC) {
-                    arg1->lastCueFrames[1] = 0xC;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80004480, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80004480, &work->effectOffset);
-                    }
-                    return 0x40010011;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 0xC) {
+                    work->lastCueFrames[1] = 0xC;
+                    _actor00100SpawnCueDust(task, 17, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1152));
+                    _actor00100SpawnCueDust(task, 14, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1152));
+                    return DESERT_CHASER_SOUND_CUE_11;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
             break;
         case 0x12:
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 6) {
-                    arg1->lastCueFrames[1] = 6;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
-                    }
-                    return 0x40010001;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 6) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 6) {
+                    work->lastCueFrames[1] = 6;
+                    _actor00100SpawnCueDust(task, 9, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    _actor00100SpawnCueDust(task, 7, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    return DESERT_CHASER_SOUND_STEP_1;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 9) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 9) {
-                    arg1->lastCueFrames[1] = 9;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
-                    }
-                    return 0x40010001;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 9) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 9) {
+                    work->lastCueFrames[1] = 9;
+                    _actor00100SpawnCueDust(task, 9, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    _actor00100SpawnCueDust(task, 17, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    return DESERT_CHASER_SOUND_STEP_1;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xE) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 0xE) {
-                    arg1->lastCueFrames[1] = 0xE;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
-                    }
-                    return 0x40010002;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xE) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 0xE) {
+                    work->lastCueFrames[1] = 0xE;
+                    _actor00100SpawnCueDust(task, 14, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    _actor00100SpawnCueDust(task, 17, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    return DESERT_CHASER_SOUND_STEP_2;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
             break;
         case 0x11:
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 6) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 6) {
-                    arg1->lastCueFrames[1] = 6;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
-                    }
-                    return 0x40010001;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 6) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 6) {
+                    work->lastCueFrames[1] = 6;
+                    _actor00100SpawnCueDust(task, 9, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    _actor00100SpawnCueDust(task, 7, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    return DESERT_CHASER_SOUND_STEP_1;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xA) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 0xA) {
-                    arg1->lastCueFrames[1] = 0xA;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
-                    }
-                    return 0x40010001;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xA) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 0xA) {
+                    work->lastCueFrames[1] = 0xA;
+                    _actor00100SpawnCueDust(task, 7, 0x2BC, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    _actor00100SpawnCueDust(task, 14, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    return DESERT_CHASER_SOUND_STEP_1;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xE) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 0xE) {
-                    arg1->lastCueFrames[1] = 0xE;
-                    work                   = arg0->work;
-                    work->effectOffset.vz  = 0;
-                    work->effectOffset.vx  = 0;
-                    work->effectOffset.vy  = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
-                    }
-                    work                  = arg0->work;
-                    work->effectOffset.vz = 0;
-                    work->effectOffset.vx = 0;
-                    work->effectOffset.vy = 0x258;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
-                    }
-                    return 0x40010002;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xE) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 0xE) {
+                    work->lastCueFrames[1] = 0xE;
+                    _actor00100SpawnCueDust(task, 14, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    _actor00100SpawnCueDust(task, 17, 0x258, (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512));
+                    return DESERT_CHASER_SOUND_STEP_2;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
             break;
         case 0xD:
-            if ((arg1->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x18) {
-                prev = arg1->lastCueFrames[1];
-                if (prev != 0x18) {
-                    arg1->lastCueFrames[1] = 0x18;
-                    return 0x4001000F;
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x18) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != 0x18) {
+                    work->lastCueFrames[1] = 0x18;
+                    return DESERT_CHASER_SOUND_CUE_0F;
                 }
-                arg1->lastCueFrames[1] = prev;
-                var_a0                 = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
             break;
     }
-    if (var_a0 == 1) {
-        memFillBytes(arg1->lastCueFrames, 0U, sizeof(arg1->lastCueFrames));
+    // An intervening non-cue record rearms the one-shot cue history.
+    if (resetCueHistory == 1) {
+        memFillBytes(work->lastCueFrames, 0U, sizeof(work->lastCueFrames));
     }
     return 0;
 }
@@ -2134,16 +2004,18 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
 
 #include "../../shared/desert_chaser_hit_effect.inc.c"
 
-/// Starts the sound script `script` for this enemy's placement at the actor's
-/// position.
-static inline void Actor00100_PlaySound(Task* task, Enemy* enemy, s32 script)
+/// Starts a sound script for this enemy placement at the model root.
+///
+/// `script` is an EVT script word with placement bits 8..15 clear. The enemy
+/// placement index supplies those bits; pan and depth narrow to signed bytes.
+static inline void _actor00100PlayPlacedSound(Task* task, Enemy* enemy, s32 script)
 {
-    s32 sound;
-    s32 pan;
+    s32 soundId;
+    s32 audioPan;
 
-    sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | script;
-    pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | script;
+    audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
 static void Actor00100_Fn0375C(Task* arg0)
@@ -2188,10 +2060,10 @@ static void Actor00100_Fn0375C(Task* arg0)
     if (ctx->hp > 0) {
         head            = SCRATCH_STACK_CURSOR(DesertChaserDamageScratch);
         scratch         = (SCRATCH_STACK_CURSOR(DesertChaserDamageScratch) = head - 1);
-        scratch->hitKey = Actor00100_FindDamageHit(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, &scratch->hitPos);
+        scratch->hitKey = _actor00100FindAttackContact(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, &scratch->hitPos);
         if (scratch->hitKey == 0) {
             hitPos          = &scratch->hitPos;
-            scratch->hitKey = Actor00100_FindDamageHit(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPos);
+            scratch->hitKey = _actor00100FindAttackContact(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPos);
         }
         if (scratch->hitKey != 0) {
             work->hitFlag                         = 1;
@@ -2256,15 +2128,15 @@ static void Actor00100_Fn0375C(Task* arg0)
                             magnitude = -magnitude;
                         }
                         if (magnitude < 0x501) {
-                            Actor00100_SetHitState(work);
+                            _actor00100SelectHitReaction(work);
                         }
                     }
                     break;
                 case 9:
-                    Actor00100_SetHitState(work);
+                    _actor00100SelectHitReaction(work);
                     break;
                 case DAMAGE_PLAYER_REACTION_BUILDUP:
-                    Actor00100_SetHitState(work);
+                    _actor00100SelectHitReaction(work);
                     damageStartEnemyBuildup(ctx, scratch->hitKey, 0);
                     break;
                 case DAMAGE_PLAYER_REACTION_POISON:
@@ -2334,22 +2206,22 @@ static void Actor00100_Fn0375C(Task* arg0)
                     if ((deathState == 0x21) || (deathState == 0x11) || (deathState == 0xB) || (deathState == 7) || (deathState == 4)) {
                         work->state     = 7;
                         work->prevState = -1;
-                        Actor00100_PlaySound(arg0, ctx, 0x40010008);
+                        _actor00100PlayPlacedSound(arg0, ctx, ACTOR00100_SOUND_HEAVY_HIT);
                     } else {
-                        Actor00100_PlaySound(arg0, ctx, 0x40010008);
+                        _actor00100PlayPlacedSound(arg0, ctx, ACTOR00100_SOUND_HEAVY_HIT);
                         work->state = 0x14;
                     }
                 }
             } else if ((s16)totalDamage >= 0x47) {
                 hurtState = work->state;
                 if ((hurtState != 4) && (hurtState != 0x14) && (hurtState != 7) && (hurtState != 0xB) && (hurtState != 0x11)) {
-                    Actor00100_PlaySound(arg0, ctx, 0x40010008);
+                    _actor00100PlayPlacedSound(arg0, ctx, ACTOR00100_SOUND_HEAVY_HIT);
                     work->state = 0x14;
                 } else {
-                    Actor00100_PlaySound(arg0, ctx, 0x40010007);
+                    _actor00100PlayPlacedSound(arg0, ctx, ACTOR00100_SOUND_LIGHT_HIT);
                 }
             } else {
-                Actor00100_PlaySound(arg0, ctx, 0x40010007);
+                _actor00100PlayPlacedSound(arg0, ctx, ACTOR00100_SOUND_LIGHT_HIT);
             }
         }
         if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
@@ -2488,7 +2360,7 @@ static void Actor00100_Fn061FC(Task* arg0)
     }
     radius = 1000;
     desertChaserAnimTick(arg0);
-    Actor00100_PositionDelta(arg0->extra.tmd->coords, &delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &delta);
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         outside     = actorOutsideRadius(&delta, radius);
         work->state = outside == 0 ? 0x1F : 0x26;
@@ -3028,9 +2900,9 @@ static void Actor00100_Fn09CCC(Task* arg0)
 /// Per-state handlers the per-frame update calls, indexed by the work block's
 /// `state`, called unconditionally; a null entry is a state with no handler.
 static const DesertChaserStateTable Actor00100_D000F0 = { {
-    Actor00100_Fn0B4D8,
+    _actor00100HideState,
     Actor00100_Fn08E7C,
-    Actor00100_Fn0BC14,
+    _actor00100IdleState2,
     Actor00100_Fn09310,
     desertChaserStunned,
     Actor00100_Fn09724,
@@ -3077,7 +2949,6 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     DesertChaserStateTable states;
     GfxCoord*              actorcoord;
 
-    SVECTOR**             scratchHead;
     SVECTOR*              scratch;
     s32                   state;
     s16                   modeState;
@@ -3123,9 +2994,9 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
             if (initialState != 21 && initialState != 0 && initialState != 6 && initialState != 3) {
                 actor->extra.tmd->flags = 0;
                 height                  = actor->extra.tmd->coords->coord.t[1];
-                Actor00100_Fn01900(actor, 1, 3, 0x12C, (s32)height, 0xFF);
-                Actor00100_Fn01900(actor, 3, 4, 0xC8, (s32)height, 0xFF);
-                Actor00100_Fn01900(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 3, 0x12C, height, 0xFF);
+                _limbShadowDrawSegment(actor, 3, 4, 0xC8, height, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 0xB, 0xFA, height, 0xFF);
             }
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -3133,17 +3004,16 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
             if ((modeState != 0x15) && (modeState != 0) && (modeState != 6) && (modeState != 3)) {
                 actor->extra.tmd->flags = 0;
                 modeHeight              = actor->extra.tmd->coords->coord.t[1];
-                Actor00100_Fn01900(actor, 1, 3, 0x12C, (s32)modeHeight, 0xFF);
-                Actor00100_Fn01900(actor, 3, 4, 0xC8, (s32)modeHeight, 0xFF);
-                Actor00100_Fn01900(actor, 1, 0xB, 0xFA, (s32)modeHeight, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 3, 0x12C, modeHeight, 0xFF);
+                _limbShadowDrawSegment(actor, 3, 4, 0xC8, modeHeight, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 0xB, 0xFA, modeHeight, 0xFF);
             }
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    scratchHead = (SVECTOR**)SCRATCH_HEAD_ADDR;
-    scratch     = Actor00100_AllocVector(scratchHead);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     if (work->hitCooldown > 0) {
         work->hitCooldown = (s16)((u16)work->hitCooldown - 1);
     } else if (work->state != 5) {
@@ -3218,7 +3088,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                             work->playerMove.displacement.vy >>= 1;
                             work->playerMove.displacement.vz >>= 1;
                         }
-                    } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < 6) && Actor00100_InRegion(player) && Actor00100_InDirection(player, &work->playerMove.displacement)) {
+                    } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < 6) && _actor00100IsInMesaDropRegion(player) && _actor00100MovesTowardMesaDrop(player, &work->playerMove.displacement)) {
                         work->playerMove.collisionRequests = (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
                         Gp_StateC08.flags                  = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                         roomEffectRequestCancelAll();
@@ -3347,7 +3217,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     enemy->bodyPos.vy = (s32)scratch->vy;
     enemy->bodyPos.vz = (s32)scratch->vz;
     enemy->coord      = &gGfxViewCoord;
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// The task's handlers, indexed by `Task::state`: set-up, the per-frame state
@@ -3355,11 +3225,15 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
 static const DesertChaserTaskStates gDesertChaserTaskStates = { {
     Actor00100_Fn02C54,
     Actor00100_Fn0A288,
-    Actor00100_Fn0BCBC,
+    _actor00100ReleaseBattleState,
     enemyDestroy,
 } };
 
-s32 Actor00100_Fn0B134(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Empty handler for message 2015; ignores the task and both payload words.
+///
+/// The binary leaves the reply register unspecified. The message callback
+/// signature is retained without manufacturing a return value.
+static s32 _actor00100IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unusedExtra)
 {
 }
 
@@ -3432,17 +3306,23 @@ static void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2)
     }
 }
 
-static void Actor00100_Fn0B4D8(Task* arg0)
+/// Hides the chaser and disables root grid collision on entry to work state 0.
+///
+/// The enemy cannot be locked onto while hidden. Pair collision participation
+/// is managed by the per-frame driver.
+static void _actor00100HideState(Task* task)
 {
     TmdObject*        obj;
+    Enemy*            enemy;
     DesertChaserWork* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        obj                                                  = task->extra.tmd;
+        enemy                                                = task->spawnArg2.pointer;
+        enemy->node.state.parts.flags                        = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                                          |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     }
 }
 
@@ -3569,7 +3449,8 @@ static void Actor00100_Fn0BB2C(Task* arg0)
     }
 }
 
-static void Actor00100_Fn0BC14(Task* task)
+/// Idle handler for work state 2; leaves the actor and state unchanged.
+static void _actor00100IdleState2(Task* task)
 {
 }
 
@@ -3588,7 +3469,11 @@ static void Actor00100_Fn0BC1C(Task* arg0)
     }
 }
 
-static void Actor00100_Fn0BCBC(Enemy* enemy, Task* task)
+/// Settles a pending battle reference release, then advances toward teardown.
+///
+/// The enemy argument is unused. Clears the pending marker before releasing
+/// with rewards; task state advances once the marker is zero.
+static void _actor00100ReleaseBattleState(Enemy* enemy, Task* task)
 {
     DesertChaserWork* work;
 

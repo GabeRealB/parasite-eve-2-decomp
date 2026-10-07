@@ -86126,7 +86126,7 @@ sh   v0, 0xC(v1)
 and those offsets are ambiguous on purpose: `0x1C` / `0x2C` are `Task::work` /
 `Task::extra` *and* the `field_1C` / `field_2C` work/model pair the `Actor00100`
 family hangs off its actor object. The shape match is the second reading
-(`Actor00100_Fn0B4D8`, `src/actors/lib/actor_400100_tail.c`, which is this body
+(`_actor00100HideState`, `src/actors/lib/actor_400100_tail.c`, which is this body
 plus a `flags &= 0xBFFF`), and since both readings load the same two operands
 the matcher cannot separate them - it scores operand shape, not type.
 

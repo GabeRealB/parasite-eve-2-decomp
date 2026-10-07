@@ -2,7 +2,7 @@
  *
  * All five functions are static: every file that uses them carries its own
  * copies, including retained helpers without callers. Each file owns its
- * contact scratch allocation; ActorContact_GetScratchPosition supplies its
+ * last contact-push correction; `_actorContactGetLastPushStep` supplies its
  * SVECTOR view, including when the allocation retains trailing bytes.
  *
  * Include this header in the prologue, then either actor_contacts.inc.c for
@@ -96,7 +96,7 @@ static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldColli
 static s32                        ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
 static s32                        ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 
-/* View of the including overlay's contact scratch allocation. */
-static inline SVECTOR* ActorContact_GetScratchPosition(void);
+/* Borrowed view of the including overlay's last contact-push correction. */
+static inline SVECTOR* _actorContactGetLastPushStep(void);
 
 #endif /* SRC_SHARED_ACTOR_CONTACTS_H */

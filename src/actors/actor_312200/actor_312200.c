@@ -45,8 +45,14 @@ extern TaskMessageEntry D_actor_312200_80169F5C[4];
 /// Whole-unit part of the last step `ActorContact_PushContact` applied.
 extern SVECTOR ActorContact_ScratchPosition;
 
-/// The contact routines' scratch position.
-static inline SVECTOR* ActorContact_GetScratchPosition(void)
+/// Returns this carrier's persistent last contact-push correction.
+///
+/// Components are signed 16.16 corrections shifted right by 16 and narrowed
+/// to halfwords. Fractional X/Z add a further unit in the correction's sign;
+/// X/Z record the root correction, while Y is only recorded. No grid hit
+/// leaves the old value intact. The borrowed vector lives for the overlay's
+/// lifetime; `pad` is unused.
+static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }

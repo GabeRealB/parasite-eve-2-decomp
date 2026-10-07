@@ -1000,7 +1000,14 @@ TaskDesc D_actor_323400_8017120C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
-static inline SVECTOR* ActorContact_GetScratchPosition(void)
+/// Returns this carrier's persistent last contact-push correction.
+///
+/// Components are signed 16.16 corrections shifted right by 16 and narrowed
+/// to halfwords. Fractional X/Z add a further unit in the correction's sign;
+/// X/Z record the root correction, while Y is only recorded. No grid hit
+/// leaves the old value intact. The borrowed vector lives for the overlay's
+/// lifetime; `pad` is unused.
+static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &(ActorContact_ScratchPosition.step);
 }
@@ -1013,265 +1020,267 @@ DesertChaserEffectArgStorage gRigEffectRec;
 
 #include "../../shared/desert_chaser_blend_tick.inc.c"
 
-/// Per-frame effect dispatch keyed on `animId` and the record each animation
-/// slot has reached. A recognised record is handled once: `lastCueFrames` remembers,
-/// per slot, the record last handled, and meeting it again only clears `reset`.
-/// A handled record spawns its effects while the room effect mode is 2 and
-/// returns a request word; otherwise the result is 0, after wiping `lastCueFrames`
-/// when no case claimed a record.
+/// Emits one-shot animation dust cues and returns an EVT sound script, or zero.
 ///
-/// `steer` is a matching carrier (see `CSE_STEER`); it has no effect.
-s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
+/// Walking tests slots 9, 7, 14 and 17; other clips test slot 1. The low ten pose record-index bits select a
+/// cue; per-slot history suppresses repeats until a non-cue clears the history.
+/// The task and work must belong to the same live chaser, with slots and model
+/// parts 0..17 available. Dust offsets use model-part units and are borrowed
+/// for placement; dust playback does not follow the retained offset pointer.
+/// Sound placement and panning belong to the caller.
+static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
 {
-    SVECTOR vec;
-    s32     reset;
-    s32     steer;
-    reset = 1;
+    SVECTOR effectOffset;
+    s32     resetCueHistory;
+    s32     cueGuard;
+    resetCueHistory = 1;
+    // The low ten record-index bits identify cues, not elapsed animation frames.
     switch (work->animId) {
         case 0: {
-            s32 clip = work->rig.slots[9].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            s32 old;
-            if (clip == 0x58) {
-                old = work->lastCueFrames[9];
-                if (old != clip) {
-                    work->lastCueFrames[9] = clip;
-                    vec.vz                 = 0;
-                    vec.vx                 = 0;
-                    vec.vy                 = 0x2BC;
+            s32 cueIndex = work->rig.slots[9].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 previousCueIndex;
+            if (cueIndex == 0x58) {
+                previousCueIndex = work->lastCueFrames[9];
+                if (previousCueIndex != cueIndex) {
+                    work->lastCueFrames[9] = cueIndex;
+                    effectOffset.vz        = 0;
+                    effectOffset.vx        = 0;
+                    effectOffset.vy        = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002220, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                     }
-                    return 0x40010002;
+                    return DESERT_CHASER_SOUND_STEP_2;
                 }
-                work->lastCueFrames[9] = old;
-                reset                  = 0;
+                work->lastCueFrames[9] = previousCueIndex;
+                resetCueHistory        = 0;
             }
         }
             {
-                s32 clip = work->rig.slots[7].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-                s32 old;
-                if (clip == 0x3E) {
-                    old = work->lastCueFrames[7];
-                    if (old != clip) {
-                        work->lastCueFrames[7] = clip;
-                        vec.vz                 = 0;
-                        vec.vx                 = 0;
-                        vec.vy                 = 0x2BC;
+                s32 cueIndex = work->rig.slots[7].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 previousCueIndex;
+                if (cueIndex == 0x3E) {
+                    previousCueIndex = work->lastCueFrames[7];
+                    if (previousCueIndex != cueIndex) {
+                        work->lastCueFrames[7] = cueIndex;
+                        effectOffset.vz        = 0;
+                        effectOffset.vx        = 0;
+                        effectOffset.vy        = 0x2BC;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002220, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                         }
-                        return 0x40010001;
+                        return DESERT_CHASER_SOUND_STEP_1;
                     }
-                    work->lastCueFrames[7] = old;
-                    reset                  = 0;
+                    work->lastCueFrames[7] = previousCueIndex;
+                    resetCueHistory        = 0;
                 }
             }
             {
-                s32 clip = work->rig.slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-                s32 old;
-                if (clip == 0x84) {
-                    old = work->lastCueFrames[14];
-                    if (old != clip) {
-                        work->lastCueFrames[14] = clip;
-                        vec.vz                  = 0;
-                        vec.vx                  = 0;
-                        vec.vy                  = 0x258;
+                s32 cueIndex = work->rig.slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 previousCueIndex;
+                if (cueIndex == 0x84) {
+                    previousCueIndex = work->lastCueFrames[14];
+                    if (previousCueIndex != cueIndex) {
+                        work->lastCueFrames[14] = cueIndex;
+                        effectOffset.vz         = 0;
+                        effectOffset.vx         = 0;
+                        effectOffset.vy         = 0x258;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002220, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                         }
-                        return 0x40010002;
+                        return DESERT_CHASER_SOUND_STEP_2;
                     }
-                    work->lastCueFrames[14] = old;
-                    reset                   = 0;
+                    work->lastCueFrames[14] = previousCueIndex;
+                    resetCueHistory         = 0;
                 }
             }
             {
-                s32 clip = work->rig.slots[17].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-                s32 old;
-                if (clip == 0xA9) {
-                    old = work->lastCueFrames[17];
-                    if (old != clip) {
-                        work->lastCueFrames[17] = clip;
-                        vec.vz                  = 0;
-                        vec.vx                  = 0;
-                        vec.vy                  = 0x258;
+                s32 cueIndex = work->rig.slots[17].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 previousCueIndex;
+                if (cueIndex == 0xA9) {
+                    previousCueIndex = work->lastCueFrames[17];
+                    if (previousCueIndex != cueIndex) {
+                        work->lastCueFrames[17] = cueIndex;
+                        effectOffset.vz         = 0;
+                        effectOffset.vx         = 0;
+                        effectOffset.vy         = 0x258;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002220, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                         }
-                        return 0x40010001;
+                        return DESERT_CHASER_SOUND_STEP_1;
                     }
-                    work->lastCueFrames[17] = old;
-                    reset                   = 0;
+                    work->lastCueFrames[17] = previousCueIndex;
+                    resetCueHistory         = 0;
                 }
             }
             break;
 
         case 10: {
-            s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            s32 old;
-            if (clip == 0x9) {
-                old = work->lastCueFrames[1];
-                if (old != clip) {
-                    work->lastCueFrames[1] = clip;
-                    vec.vz                 = 0;
-                    vec.vx                 = 0;
-                    vec.vy                 = 0;
+            s32 cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 previousCueIndex;
+            if (cueIndex == 0x9) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != cueIndex) {
+                    work->lastCueFrames[1] = cueIndex;
+                    effectOffset.vz        = 0;
+                    effectOffset.vx        = 0;
+                    effectOffset.vy        = 0;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, task->extra.tmd->coords, 0x80004A00, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, task->extra.tmd->coords, (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2560), &effectOffset);
                     }
-                    return 0x40010005;
+                    return DESERT_CHASER_SOUND_CUE_05;
                 }
-                work->lastCueFrames[1] = old;
-                reset                  = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
         } break;
 
         case 3: {
-            s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            s32 old;
-            if (clip == 0x4) {
-                reset = 0;
-                old   = work->lastCueFrames[1];
-                if (old != clip) {
-                    work->lastCueFrames[1] = clip;
-                    return 0x40010004;
+            s32 cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 previousCueIndex;
+            if (cueIndex == 0x4) {
+                resetCueHistory  = 0;
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != cueIndex) {
+                    work->lastCueFrames[1] = cueIndex;
+                    return DESERT_CHASER_SOUND_CUE_04;
                 }
-                work->lastCueFrames[1] = old;
+                work->lastCueFrames[1] = previousCueIndex;
             }
         }
             {
-                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-                s32 old;
-                if (clip == 0x8) {
-                    old = work->lastCueFrames[1];
-                    if (old != clip) {
-                        work->lastCueFrames[1] = clip;
-                        return 0x40010003;
+                s32 cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 previousCueIndex;
+                if (cueIndex == 0x8) {
+                    previousCueIndex = work->lastCueFrames[1];
+                    if (previousCueIndex != cueIndex) {
+                        work->lastCueFrames[1] = cueIndex;
+                        return DESERT_CHASER_SOUND_CUE_03;
                     }
-                    work->lastCueFrames[1] = old;
-                    reset                  = 0;
+                    work->lastCueFrames[1] = previousCueIndex;
+                    resetCueHistory        = 0;
                 }
             }
             break;
 
         case 6: {
-            s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            s32 old;
-            if (clip == 0x6) {
-                old = work->lastCueFrames[1];
-                if (old != clip) {
-                    work->lastCueFrames[1] = clip;
-                    vec.vz                 = 0;
-                    vec.vx                 = 0;
-                    vec.vy                 = 0x2BC;
+            s32 cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            s32 previousCueIndex;
+            if (cueIndex == 0x6) {
+                previousCueIndex = work->lastCueFrames[1];
+                if (previousCueIndex != cueIndex) {
+                    work->lastCueFrames[1] = cueIndex;
+                    effectOffset.vz        = 0;
+                    effectOffset.vx        = 0;
+                    effectOffset.vy        = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80003200, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                     }
-                    vec.vz = 0;
-                    vec.vx = 0;
-                    vec.vy = 0x2BC;
+                    effectOffset.vz = 0;
+                    effectOffset.vx = 0;
+                    effectOffset.vy = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80003200, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                     }
                     return 0;
                 }
-                work->lastCueFrames[1] = old;
-                reset                  = 0;
+                work->lastCueFrames[1] = previousCueIndex;
+                resetCueHistory        = 0;
             }
         }
             {
-                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-                s32 old;
-                if (clip == 0xB) {
-                    old = work->lastCueFrames[1];
-                    if (old != clip) {
-                        work->lastCueFrames[1] = clip;
-                        vec.vz                 = 0;
-                        vec.vx                 = 0;
-                        vec.vy                 = 0x258;
+                s32 cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 previousCueIndex;
+                if (cueIndex == 0xB) {
+                    previousCueIndex = work->lastCueFrames[1];
+                    if (previousCueIndex != cueIndex) {
+                        work->lastCueFrames[1] = cueIndex;
+                        effectOffset.vz        = 0;
+                        effectOffset.vx        = 0;
+                        effectOffset.vy        = 0x258;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80004480, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1152), &effectOffset);
                         }
-                        vec.vz = 0;
-                        vec.vx = 0;
-                        vec.vy = 0x258;
+                        effectOffset.vz = 0;
+                        effectOffset.vx = 0;
+                        effectOffset.vy = 0x258;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80004480, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1152), &effectOffset);
                         }
                         return 0;
                     }
-                    work->lastCueFrames[1] = old;
-                    reset                  = 0;
+                    work->lastCueFrames[1] = previousCueIndex;
+                    resetCueHistory        = 0;
                 }
             }
             {
-                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-                s32 old;
-                if (clip == 0xC) {
-                    old = work->lastCueFrames[1];
-                    if (old != clip) {
-                        work->lastCueFrames[1] = clip;
-                        vec.vz                 = 0;
-                        vec.vx                 = 0;
-                        vec.vy                 = 0x2BC;
+                s32 cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 previousCueIndex;
+                if (cueIndex == 0xC) {
+                    previousCueIndex = work->lastCueFrames[1];
+                    if (previousCueIndex != cueIndex) {
+                        work->lastCueFrames[1] = cueIndex;
+                        effectOffset.vz        = 0;
+                        effectOffset.vx        = 0;
+                        effectOffset.vy        = 0x2BC;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002200, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                         }
-                        CSE_STEER(steer);
-                        vec.vz = 0;
-                        vec.vx = 0;
-                        vec.vy = 0x2BC;
-                        if (steer == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002240, &vec);
+                        CSE_STEER(cueGuard);
+                        effectOffset.vz = 0;
+                        effectOffset.vx = 0;
+                        effectOffset.vy = 0x2BC;
+                        if (cueGuard == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 576), &effectOffset);
                         }
-                        CSE_STEER(steer);
-                        vec.vz = 0;
-                        vec.vx = 0;
-                        vec.vy = 0x258;
-                        if (steer == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80003300, &vec);
+                        CSE_STEER(cueGuard);
+                        effectOffset.vz = 0;
+                        effectOffset.vx = 0;
+                        effectOffset.vy = 0x258;
+                        if (cueGuard == 0 && gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 768), &effectOffset);
                         }
-                        vec.vz = 0;
-                        vec.vx = 0;
-                        vec.vy = 0x258;
+                        effectOffset.vz = 0;
+                        effectOffset.vx = 0;
+                        effectOffset.vy = 0x258;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80003340, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 832), &effectOffset);
                         }
                         return 0;
                     }
-                    work->lastCueFrames[1] = old;
-                    reset                  = 0;
+                    work->lastCueFrames[1] = previousCueIndex;
+                    resetCueHistory        = 0;
                 }
             }
             {
-                s32 clip = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-                s32 old;
-                if (clip == 0xD) {
-                    old = work->lastCueFrames[1];
-                    if (old != clip) {
-                        work->lastCueFrames[1] = clip;
-                        vec.vz                 = 0;
-                        vec.vx                 = 0;
-                        vec.vy                 = 0x258;
+                s32 cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                s32 previousCueIndex;
+                if (cueIndex == 0xD) {
+                    previousCueIndex = work->lastCueFrames[1];
+                    if (previousCueIndex != cueIndex) {
+                        work->lastCueFrames[1] = cueIndex;
+                        effectOffset.vz        = 0;
+                        effectOffset.vx        = 0;
+                        effectOffset.vy        = 0x258;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002200, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                         }
-                        vec.vz = 0;
-                        vec.vx = 0;
-                        vec.vy = 0x258;
+                        effectOffset.vz = 0;
+                        effectOffset.vx = 0;
+                        effectOffset.vy = 0x258;
                         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002300, &vec);
+                            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 768), &effectOffset);
                         }
                         return 0;
                     }
-                    work->lastCueFrames[1] = old;
-                    reset                  = 0;
+                    work->lastCueFrames[1] = previousCueIndex;
+                    resetCueHistory        = 0;
                 }
             }
             break;
     }
 
-    if (reset == 1) {
+    // An intervening non-cue record rearms the one-shot cue history.
+    if (resetCueHistory == 1) {
         memFillBytes(work->lastCueFrames, 0, sizeof(work->lastCueFrames));
     }
     return 0;

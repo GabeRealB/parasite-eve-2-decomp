@@ -4,10 +4,10 @@
 /// (`BLEND` with the length `gDesertChaserClipStartFrames` gives the
 /// transition, `RESET` by restarting on `animId`), seeds the blend rig when
 /// `blendRequest` is `RESET`, then ticks the slots - blended through
-/// `desertChaserBlendTick` while `blendActive` is set. It eases `lookYaw`
+/// `_desertChaserBlendTick` while `blendActive` is set. It eases `lookYaw`
 /// toward `lookYawTarget` and spreads it over the neck parts 2-4, eases
 /// `waistYaw` toward `waistYawTarget` and turns the waist, part 10, against
-/// it, and plays the sound `desertChaserAnimCues` returns, panned at the root.
+/// it, and plays the sound `_desertChaserAnimCues` returns, panned at the root.
 /// The blend tick and the cue step are each build's own. The armed builds
 /// also tip part 4 forward in state 0x26 while no clip is queued, and the
 /// regular build adds the placement index to the cue's sound id.
@@ -107,7 +107,7 @@ void desertChaserAnimTick(Task* task)
             tickIndex += 1;
         } while (tickIndex < ARRAY_SIZE(tickWork->rig.slots));
     } else {
-        desertChaserBlendTick(task);
+        _desertChaserBlendTick(task);
         if (work->blend.slots[1].status.fields.flags & DESERT_CHASER_BLEND_DONE) {
             work->blendActive = 0;
         }
@@ -184,7 +184,7 @@ void desertChaserAnimTick(Task* task)
     }
     _actorRenderYawJointInWorld(&task->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->waistYaw * -1));
     task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
-    sound                                    = desertChaserAnimCues(task, work);
+    sound                                    = _desertChaserAnimCues(task, work);
     if (sound != 0) {
 #if DESERT_CHASER_CUE_NEEDS_PLACE
         soundId = sound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);

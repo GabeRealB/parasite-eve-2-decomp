@@ -13,6 +13,14 @@
 
 #include "main/task_types.h"
 
-void limbShadowDrawSegment(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
+/// Identifier of the included segment drawer; defaults to `limbShadowDrawSegment`.
+///
+/// A carrier selecting a static instance declares its matching signature before
+/// including this header, then keeps the binding through the fragment include.
+#ifndef LIMB_SHADOW_DRAW_SEGMENT
+#define LIMB_SHADOW_DRAW_SEGMENT limbShadowDrawSegment
+#endif
+
+void LIMB_SHADOW_DRAW_SEGMENT(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
 
 #endif /* SRC_SHARED_LIMB_SHADOWS_H */

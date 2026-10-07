@@ -2852,8 +2852,14 @@ s8 D_actor_403200_8015F8E0[8] = { 0 };
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
-/// The contact routines' scratch position.
-static inline SVECTOR* ActorContact_GetScratchPosition(void)
+/// Returns this carrier's persistent last contact-push correction.
+///
+/// Components are signed 16.16 corrections shifted right by 16 and narrowed
+/// to halfwords. Fractional X/Z add a further unit in the correction's sign;
+/// X/Z record the root correction, while Y is only recorded. No grid hit
+/// leaves the old value intact. The borrowed vector lives for the overlay's
+/// lifetime; `pad` is unused.
+static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }

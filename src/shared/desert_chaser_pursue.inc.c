@@ -93,8 +93,8 @@ void desertChaserPursue(Task* arg0)
         yaw                        = actorYawTo(arg0->extra.tmd->coords, ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
         if ((abs(yaw) >= 0x601) && (scratch->pushLengthSquared >= 0xE11U)) {
 #if !DESERT_CHASER_RUN_SEQUENCE
-            if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && Actor00100_InRegion(arg0)) {
-                if (Actor00100_FacingAway(arg0->extra.tmd->coords)) {
+            if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && _actor00100IsInMesaDropRegion(arg0)) {
+                if (_actor00100FacesMesaDrop(arg0->extra.tmd->coords)) {
                     work->state = 6;
                 } else {
                     work->state = 0x1D;
