@@ -60,7 +60,7 @@ static void func_shelter_r47_8018431C(Task* task);
 static void func_shelter_r47_801844A0(Task* task);
 static void func_shelter_r47_80184658(Task* task);
 static void func_shelter_r47_80184AE0(Task* task);
-static void func_shelter_r47_80184F40(s32 x, s32 y, s32 variant);
+static void _actionPromptDrawCursor(s32 x, s32 y, s32 mode);
 static void func_shelter_r47_80185028(Task* task);
 static void func_shelter_r47_80185098(Task* task);
 static void func_shelter_r47_801851B8(Task* task);
@@ -1898,15 +1898,15 @@ static void func_shelter_r47_80184658(Task* task)
 
 /// The second prompt's copy.
 #define actionPromptMoveCursors func_shelter_r47_80184AE0
-#define actionPromptDrawCursor  func_shelter_r47_80184F40
+#undef ACTION_PROMPT_DRAW_CURSOR
+/// Binds both fragments to this translation unit's private cursor drawer.
+#define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
 #include "../../shared/action_prompt_move_cursors.inc.c"
 #undef actionPromptMoveCursors
-#undef actionPromptDrawCursor
 
-/// The second prompt's copy.
-#define actionPromptDrawCursor func_shelter_r47_80184F40
 #include "../../shared/action_prompt_draw_cursor.inc.c"
-#undef actionPromptDrawCursor
+#undef ACTION_PROMPT_DRAW_CURSOR
+#define ACTION_PROMPT_DRAW_CURSOR actionPromptDrawCursor
 
 static void func_shelter_r47_80185028(Task* task)
 {

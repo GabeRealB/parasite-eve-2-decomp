@@ -145,6 +145,6 @@ void actionPromptMoveCursors(Task* task)
 
         prompt->screen.xy.x = prompt->fixedX >> ACTION_PROMPT_SUBPIXEL_SHIFT;
         prompt->screen.xy.y = prompt->fixedY >> ACTION_PROMPT_SUBPIXEL_SHIFT;
-        actionPromptDrawCursor(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
+        ACTION_PROMPT_DRAW_CURSOR(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
     }
 }

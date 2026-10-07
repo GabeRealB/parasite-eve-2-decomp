@@ -36,7 +36,19 @@ STATIC_ASSERT_SIZEOF(ActionPromptRect, 0x8);
 
 void actionPromptReset(Task* task);
 void actionPromptMoveCursors(Task* task);
-void actionPromptDrawCursor(s32 x, s32 y, s32 variant);
+
+/// Selects the cursor drawer declared and called by the included prompt fragments.
+///
+/// Bind to a function identifier with signature `void(s32 x, s32 y, s32 mode)`.
+/// The default is the overlay-shared drawer. Acropolis security and Shelter R47
+/// rebind it around both the move and draw fragments for an additional private
+/// instance, declared static in the carrier's prologue, then restore the default.
+/// This object-like binding captures no arguments and constructs no tokens.
+#ifndef ACTION_PROMPT_DRAW_CURSOR
+#define ACTION_PROMPT_DRAW_CURSOR actionPromptDrawCursor
+#endif
+void ACTION_PROMPT_DRAW_CURSOR(s32 x, s32 y, s32 mode);
+
 s32  actionPromptHitTest(ActionPromptHotspot* table, s16 x, s16 y);
 void actionPromptOutlineRect(ActionPromptRect* rect, u8 r, u8 g, u8 b);
 void actionPromptEventEnd(Task* task);

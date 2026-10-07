@@ -452,7 +452,7 @@ static void func_acropolis_security_room_8017EADC(Task* task);
 static void func_acropolis_security_room_8017EB9C(Task* task);
 static void func_acropolis_security_room_8017EE44(Task* task);
 static void func_acropolis_security_room_8017F480(Task* task);
-static void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant);
+static void _actionPromptDrawCursor(s32 x, s32 y, s32 mode);
 static void func_acropolis_security_room_8017FA18(Task* task);
 static void func_acropolis_security_room_8017FB20(Task* task);
 static void func_acropolis_security_room_8017FB54(Task* task);
@@ -2861,15 +2861,15 @@ static void func_acropolis_security_room_8017F300(Task* task)
 
 /// The second prompt's copy.
 #define actionPromptMoveCursors func_acropolis_security_room_8017F480
-#define actionPromptDrawCursor  func_acropolis_security_room_8017F8E0
+#undef ACTION_PROMPT_DRAW_CURSOR
+/// Binds both fragments to this translation unit's private cursor drawer.
+#define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
 #include "../../shared/action_prompt_move_cursors.inc.c"
 #undef actionPromptMoveCursors
-#undef actionPromptDrawCursor
 
-/// The second prompt's copy.
-#define actionPromptDrawCursor func_acropolis_security_room_8017F8E0
 #include "../../shared/action_prompt_draw_cursor.inc.c"
-#undef actionPromptDrawCursor
+#undef ACTION_PROMPT_DRAW_CURSOR
+#define ACTION_PROMPT_DRAW_CURSOR actionPromptDrawCursor
 
 /// Task callback of the descriptor at `D_acropolis_security_room_801826C0`:
 /// a two-state dispatcher whose handler table is built on the stack rather
