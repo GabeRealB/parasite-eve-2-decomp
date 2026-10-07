@@ -292,7 +292,7 @@ void f(Actor105100Ctx* arg0, Actor105100* arg1)
 
 Do not pin `$s3`. The copy is the live-length lever in `CODEGEN_MODEL.md` §10.1 / §10.4.
 
-## Unroll identical calls in a count switch; gotos to a shared last call over-share (func_actor_105100_801336B8, 2026-09-21)
+## Unroll identical calls in a count switch; gotos to a shared last call over-share (_actor105100SummonBeams, 2026-09-21)
 
 A switch whose cases make 2, 3 and 1 copies of the same `enemySpawnFromTable`
 call looks in the ROM like m2c's reconstruction: case 0 one call then jump to a
@@ -59038,7 +59038,7 @@ all three; the source has the `0x108` assignment *first* and the scheduler sinks
 its store past the two constant stores.
 
 **A shared constant materialises where its statement sits, not where the target
-emits it.** `func_actor_105100_801327B4` ends a run of three constant stores with
+emits it.** `_actor105100Spawn` ends a run of three constant stores with
 
 ```
 lui   v0, 0x2
@@ -78988,7 +78988,7 @@ Preprocessed SHA256 (baseline m2c seed, then the matching source):
 
 ## A scalar global at a fixed address does not alias a struct field store
 
-`func_actor_105100_80135FCC` bumps a struct field and then clamps it against a
+`_actor105100ApplyPartnerHealing` bumps a struct field and then clamps it against a
 global, and the target keeps the global's load *after* the store:
 
 ```
@@ -79058,7 +79058,7 @@ fixed scalar that gets hoisted over a struct store. Same heuristic, opposite
 direction, and the remedy has to be applied to whichever side the schedule
 needs it to stop classifying as the other's complement.
 
-Matched as `func_actor_105100_80135FCC`. The 92.857% m2c baseline was the
+Matched as `_actor105100ApplyPartnerHealing`. The 92.857% m2c baseline was the
 documented `(s8)`-on-`worldCoordGetOriginAudioPan`/`worldCoordGetOriginAudioDepth` shape, not this.
 
 Preprocessed SHA256 (97.857% struct-typed port, then the matching source):
@@ -79246,7 +79246,7 @@ Preprocessed SHA256:
 - `base_1.c` (100.000%): `d37273823c6906334d153ea160c718b8678fe7210331ae93931707ad88e93f9f`
 - `base_2.c` (100.000%, struct-typed, needs the `_Actor105100Work` members `strikeBody.flags`/`ringEffect`/`action`/`actionStep`/`shield.fields.cooldown`/`summonPhase`/`charging`/`chargeBroken`/`buildupPending`): `0a16323da74cdf3ae1722254f7d40300cdf80a0fcfa800399620d93bd7ba8073`
 
-Second instance, `func_actor_105100_80135F50` (`base.c` 92.833%, `base_1.c`
+Second instance, `_actor105100RaiseShield` (`base.c` 92.833%, `base_1.c`
 100%): the m2c `s16 temp_a0` gives `lh a1` for the tree plus `lhu a0` for the
 `sh` in the arm, and the redundant reload even takes the load-delay slot the
 target spends on a `nop` (`insert`/`delete` 1 each, `regs` 3). Retyping the
@@ -79263,7 +79263,7 @@ A handler that reads one object through two views - `work` for some fields and
 `rec` for others - costs a saved register even when both variables hold the same
 address, because GCC allocates a pseudo per *variable*, not per value, and does
 not coalesce two pseudos with overlapping live ranges. In
-`func_actor_105100_801354E8` the two-pointer form compiled to `move s0,s3` plus
+`_actor105100BeamTick` the two-pointer form compiled to `move s0,s3` plus
 a fifth saved register (`$s4`, with `ra` pushed to `0x24(sp)`); the target keeps
 one pointer in `$s0` and saves four.
 
@@ -79297,7 +79297,7 @@ does on its own when the expression is written out at each use, because `cse`
 invalidates memory at a call and at an intervening store and so cannot keep the
 earlier load alive.
 
-`func_actor_105100_801327B4` had four late uses of `value->field_2C->field_8`
+`_actor105100Spawn` had four late uses of `task->extra.tmd->coords`
 against one early use. With the local, the function saved five registers and
 used a `0x38` frame (78.2%); writing the chain out at the four late sites died
 the pseudo at the early use, dropped the frame to `0x30` and freed `$s4`/`$s5`
@@ -103379,7 +103379,7 @@ made `$a3` free at the birth, and the loads then hoisted above the stores.
 100.000%, all penalties zero.
 
 The two matched siblings that share this function shape both put `field_18`
-first in that group — `func_actor_105100_801327B4` and this overlay's own
+first in that group — `_actor105100Spawn` and this overlay's own
 `Actor00700_Fn01FE0` (`field_18` immediately after `worldTargetLinkNode`, before
 `node.flags`). Neither sibling's *object* shows that order: the store sinks to
 the end of the run anyway. Read the sibling's source for statement order, never
@@ -117015,9 +117015,9 @@ in `splat/segtypes/common/c.py` - and anything else falls through to
 `nonmatchings/` remains the unmatched list; `matchings/` there means only "this
 file no longer declares it".
 
-## A struct store's place in the final order is its priority, and that priority is an anti-dependence (func_actor_105100_8013329C, 2026-09-16)
+## A struct store's place in the final order is its priority, and that priority is an anti-dependence (_actor105100Idle, 2026-09-16)
 
-`func_actor_105100_8013329C` is the enemy's idle action: it advances the
+`_actor105100Idle` is the enemy's idle action: it advances the
 LCG, reads the next action out of a 16-entry `u16` table, and steps the
 `summonCount` counter. Four independent levers each moved the score, and
 all four are about *where an instruction lands in sched1's output*.
@@ -117087,7 +117087,7 @@ has `$v1` in case 0 and `$a0` in case 1, i.e. two pseudos. Reusing the *switch*
 variable (`state = 2; if (...) state = 1; work->actionStep = state;`) leaves the
 case-1 `summon` variable single-block for `lreg`, which then picks `$a0`, and the
 switch variable keeps `$v1` from the dispatch. That reuse is this overlay's own
-style (`func_actor_105100_80135F50` writes `state = work->actionStep` and uses
+style (`_actor105100RaiseShield` writes `step = work->actionStep` and uses
 `state` inside the cases), which is why it reads naturally.
 
 ## A cast written inline at the call site is a call-crossing temp; through a local it is not
@@ -117139,9 +117139,9 @@ only ever an argument is often what vacates it.
 what emits the shifts; which register the first one writes is allocation, not
 the expander, so the same source shape with the same expansion still moves.
 
-## Among sibling stores, the alias-set-0 one is the one sched1 ranks to the head of the block (func_actor_105100_8013345C, 2026-09-17)
+## Among sibling stores, the alias-set-0 one is the one sched1 ranks to the head of the block (_actor105100SummonFireballs, 2026-09-17)
 
-`func_actor_105100_8013345C` opens with five constant stores into one
+`_actor105100SummonFireballs` opens with five constant stores into one
 `_Actor105100Work` -- `anim` 3, then `fireballTimer`, `childCount`, `actionStep`,
 `summonPhase` -- and the target has the `lw` of `gRandomLcgState` ahead of the whole
 run, the stores in source order behind it. A body that is otherwise finished
@@ -124959,7 +124959,7 @@ value `cse` has to reach through a value already in a register. The matched
 Two smaller order fixes in the same function, both read off the target's
 scheduling rather than guessed: `tmd->field_1C`, `tmd->field_C = 0`,
 `tmd->field_20` is the source order that yields retail's `sh $zero,0xc($s3)`
-between the two `sw`s (`func_actor_105100_801327B4` shows this compiler keeps
+between the two `sw`s (`_actor105100Spawn` shows this compiler keeps
 adjacent TmdObject stores in source order), and the search loop's early exit
 adds `0x84` to the `0xFF` terminator scan of `func_actor_136100_80133A88`.
 
@@ -137126,7 +137126,7 @@ hashes, compiler hash, predictions and relevant dump blocks are retained in
 `tools/compiler_evidence/2026-09-20-actor105100-35e54.json`.
 
 
-## A range-redundant short cast can preserve a copy until combine (func_actor_105100_80135B40, 2026-09-20)
+## A range-redundant short cast can preserve a copy until combine (_actor105100BeamSeekPlayer, 2026-09-20)
 
 With `s32 cur` already masked to `0xfff`, `s32 next = cur` disappears during
 CSE. Writing `next = (s16)cur` instead preserves the conversion through CSE,
@@ -137150,7 +137150,7 @@ an SI intermediate does not remove it. A cast is only value-preserving here
 because cur is in 0..4095. These are dump observations and a successful
 preplanned prediction, not a claim about all narrowing casts or reorg paths.
 
-Evidence: scratch `nonmatchings/func_actor_105100_80135B40-vacuum`, base_3/base_7
+Evidence: scratch `nonmatchings/_actor105100BeamSeekPlayer-vacuum`, base_3/base_7
 CSE/combine/greg/dbr dumps and compare_3_7.txt. Input SHA256 base_3.i
 `c29b4ee40231a0ebc2185e8107529fef18022e95ae9578ffe330f1a5319f4291`, base_7.i
 `d8c6687fa29572302e1a6db5075ede4b1cc2fc2b1d4782e24a82264dd10caff8`; compiler
@@ -137159,7 +137159,7 @@ Full unscoped build and lost-match check passed. The router skipped the earlier
 95.832% candidate for differing block connections; no permuter gain contributed.
 
 
-## A read-only use reproduces a permuter loop-weight gain without its wrapper (func_actor_105100_80135278, 2026-09-20)
+## A read-only use reproduces a permuter loop-weight gain without its wrapper (_actor105100BeamSpawn, 2026-09-20)
 
 The 99.712% retry had only nine register penalties: arg0 in s6 instead of
 s5, and the table address in s5 instead of s6. The two global allocnos had
@@ -137191,7 +137191,7 @@ ported base_4.i `53b554614d3001ca589d9bd18284472f8f5ba4fd34ddd394cfb54cd5109bbc0
 Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Selected observations and full
 conflict/disposition excerpts: `tools/compiler_evidence/2026-09-20-actor105100-35278.json`.
 Retained paired sources/dumps: `PERMUTER_EVIDENCE/5c9f8231875b41c9` in the scratch
-and the immutable `tools/permuter_findings/func_actor_105100_80135278` archive.
+and the immutable `tools/permuter_findings/_actor105100BeamSpawn` archive.
 
 
 ## Sharing a task temporary removes sched1 birth promotion but can propagate a global register preference (func_actor_105700_80135AE4, 2026-09-20)
@@ -138841,7 +138841,7 @@ ranks highest here only buy the frame layout; they never produce the two `li`s.
 `func_actor_323400_80163448` has the same run. Watching `cse_end_of_basic_block`
 and `make_regs_eqv` under gdb shows the paths directly; `-da` dumps do not.
 
-## A ternary is the only assign-then-override form `cse` will not merge across (func_actor_105100_801347D4, 2026-09-21)
+## A ternary is the only assign-then-override form `cse` will not merge across (_actor105100FireballSpawn, 2026-09-21)
 
 **Symptom:** a constant the target materialises once per basic block - the LCG
 seed and a global's `%hi` are the usual pair - is emitted once for the whole
@@ -139763,7 +139763,7 @@ only `tbl`, `&gDisplayState` and the scratch addresses.
   and `lhu v1` loads, so it gets `$a0`.
 
 Indexing `D_x[j].vx` three times instead of through a pointer scored 93.5%.
-## Two register ties decided by sched1's order, which sched2 later undoes (func_actor_105100_801347D4, 2026-09-23)
+## Two register ties decided by sched1's order, which sched2 later undoes (_actor105100FireballSpawn, 2026-09-23)
 
 **Symptom.** Instruction order matched, but two pairs of values swapped registers. In one block, two local quantities traded `$v1`/`$a0`: an LCG load (3 refs over 8 half-insns, priority 3750) beat a table load (2 refs over 6, 3333). In a second pair, two callee-saved pointers swapped `$s1`/`$s3` because one live length was a single insn off. No change to statement order moved either.
 
@@ -149568,7 +149568,7 @@ attempts; left as it was.
 - **`if (d > 0) { if (K - d < L) goto snap; else goto turn; } else if (K + d <
   L) goto snap; else goto turn;`** is one condition,
   `if (d > 0 ? K - d < L : K + d < L) snap; else turn;`
-  (`func_actor_105100_80135B40`): a `?:` of two comparisons in a condition
+  (`_actor105100BeamSeekPlayer`): a `?:` of two comparisons in a condition
   branches from each arm straight to the `then`/`else` code.
 - **`if (a && b) goto handOff; if (c == 0) { handOff: ... }`** is
   `if ((a && b) || c == 0)` (`func_acropolis_square_80181AEC`).
