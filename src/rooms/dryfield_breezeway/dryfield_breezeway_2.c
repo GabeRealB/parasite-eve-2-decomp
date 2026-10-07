@@ -841,19 +841,12 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
     GfxCoord*                           coord  = task->extra.tmd->coords;
     _DryfieldBreezewayKeyItemEventWork* work   = task->work;
     ActionPromptHotspot*                hs     = D_dryfield_breezeway_80182DDC;
-    MATRIX*                             m;
 
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
 
-    m                                = &coord->coord;
-    MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 1, 1)             = 0x1000;
-    *&m->m[2][2]                     = 0x1000;
-    MATRIX_PAIR(m, 0, 2)             = 0;
-    MATRIX_PAIR(m, 2, 0)             = 0;
-
-    RotMatrixY(rsin(gDisplayState.animFrame * 0x10), m);
+    gfxSetRotIdentity(&coord->coord);
+    RotMatrixY(rsin(gDisplayState.animFrame * 0x10), &coord->coord);
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
     if (actionPromptHitTest(hs, work->lineEndX, work->lineEndY) != 0) {
