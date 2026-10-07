@@ -3,22 +3,19 @@
 
 #include "types.h"
 
-/// Measures one arrival gap before its signed-halfword narrowing.
+/// Computes one coordinate-axis gap for the scripted walk's arrival test.
 ///
-/// Borrows two coordinates in the root's parent frame. Their signed full-word
-/// difference must fit a word; its sign selects which unsigned low halfwords
-/// to subtract. This preserves wrap at 65536 instead of taking a full-word
-/// absolute value. The arrival test then narrows the result to a signed halfword.
+/// Borrows two signed 32-bit coordinates in the root's parent frame, with a
+/// difference that fits a signed word. The full-word difference selects the
+/// subtraction order, but the operands narrow to unsigned low halfwords.
+/// Returns -65535..65535; the result can be negative when an input crosses a
+/// multiple of 65536. Callers narrow it to a signed halfword for comparison.
 static inline s32 _actorMotionWalkAxisGap(const long* targetAxis, const long* rootAxis)
 {
-    s32 gap;
-
     if (*targetAxis - *rootAxis >= 0) {
-        gap = (u16)*targetAxis - (u16)*rootAxis;
-    } else {
-        gap = (u16)*rootAxis - (u16)*targetAxis;
+        return (u16)*targetAxis - (u16)*rootAxis;
     }
-    return gap;
+    return (u16)*rootAxis - (u16)*targetAxis;
 }
 
 #endif
