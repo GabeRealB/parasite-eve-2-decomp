@@ -2,38 +2,42 @@
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hold in `holdFrames` runs out, picks state 4 or 1 at random.
-/// Before that, a player actor within 0xDAC moves the state machine to
-/// state 3 and one within 0x1388 advances the sub-state.
-void madChaserLurkWait(Task* arg0)
+/// Waits through the lurk idle hold, interrupting it when the nearer player comes close.
+///
+/// Expires when the old elapsed signed halfword exceeds holdFrames, before its
+/// post-increment. Expiration selects
+/// look or shift with equal random probability. Before expiration, distance below
+/// 3500 parent-coordinate units starts alert; below 5000 advances to the idle-end
+/// sub-state. Requires initialized Mad Chaser work and refreshed player distance.
+static void _madChaserLurkWait(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
-    s16            dist;
+    MadChaserWork* work = task->work;
+    s16            playerDistance;
 
     if (work->holdFrames < (s16)work->stateFrames++) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            MadChaserWork* w = (MadChaserWork*)arg0->work;
+            MadChaserWork* nextWork = task->work;
 
-            w->state    = 4;
-            w->subState = 0;
+            nextWork->state    = MAD_CHASER_LURK_STATE_SHIFT;
+            nextWork->subState = 0;
         } else {
-            MadChaserWork* w = (MadChaserWork*)arg0->work;
+            MadChaserWork* nextWork = task->work;
 
-            w->state    = 1;
-            w->subState = 0;
+            nextWork->state    = MAD_CHASER_LURK_STATE_LOOK;
+            nextWork->subState = 0;
         }
         return;
     }
-    dist = work->playerDist;
-    if (dist < 0xDAC) {
-        MadChaserWork* next = (MadChaserWork*)arg0->work;
+    playerDistance = work->playerDist;
+    if (playerDistance < MAD_CHASER_LURK_ALERT_DISTANCE) {
+        MadChaserWork* alertWork = task->work;
 
-        next->state    = 3;
-        next->subState = 0;
+        alertWork->state    = MAD_CHASER_LURK_STATE_ALERT;
+        alertWork->subState = 0;
         return;
     }
-    if (dist < 0x1388) {
+    if (playerDistance < MAD_CHASER_LURK_LOOK_DISTANCE) {
         work->subState++;
     }
 }

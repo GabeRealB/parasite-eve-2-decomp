@@ -1071,7 +1071,7 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
 /// State handler: with `stateScratch` 1, a pending request 1 while `hitTaken`
 /// is set queues animation 0xB (kind 2, speed 0x20); otherwise a consumed
 /// request wins, and a hit moves to state 3. With `stateScratch` clear, a hit
-/// calls `madChaserSetAlertHold` and moves to state 5. The request test
+/// calls `_madChaserSetAlertHold` and moves to state 5. The request test
 /// compares against the constant 1, which CSE folds into the `stateScratch`
 /// register; writing `== work->stateScratch` reloads the byte instead.
 static void Actor04400_Fn03390(Task* arg0)
@@ -1086,11 +1086,11 @@ static void Actor04400_Fn03390(Task* arg0)
             return;
         }
         if (madChaserTakeRequest(arg0) == 0 && madChaserIsHit(arg0)) {
-            madChaserSetStateS16(arg0, 3);
+            _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_COMBAT_STATE_WALK);
         }
     } else if (madChaserIsHit(arg0)) {
-        madChaserSetAlertHold(arg0, 1);
-        madChaserSetStateS16(arg0, 5);
+        _madChaserSetAlertHold(arg0, 1);
+        _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_COMBAT_STATE_ALERT);
     }
 }
 
@@ -1129,19 +1129,19 @@ static void Actor04400_Fn03538(Task* arg0)
             if (madChaserTakeHit(arg0) == 0) {
                 sp.funcs[(s16)work->state](arg0);
             }
-            madChaserTickAnim(arg0);
+            _madChaserTickAnim(arg0);
             madChaserTwistSpine(arg0);
             madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             if (work->busy == 0 && enemy->hp <= 0) {
-                madChaserEnterState(arg0, 4);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_DROP_DEATH && work->busy == 0) {
-                madChaserEnterState(arg0, 8);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DROP_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_SHRINK_DEATH && work->busy == 0) {
-                madChaserEnterState(arg0, 9);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_SHRINK_DEATH);
             } else if (madChaserTakeRequest(arg0)) {
                 work->busy = 0;
-                madChaserEnterState(arg0, 3);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
@@ -1156,16 +1156,16 @@ static void Actor04400_Fn03538(Task* arg0)
 
 /// Sub-state handlers `Actor04400_Fn07CF0` dispatches by `subState`.
 static const TaskFuncTable3 Actor04400_D00150 = { {
-    madChaserStartHold,
-    madChaserLurkWait,
-    madChaserLurkIdleEnd,
+    _madChaserLurkStartIdleHold,
+    _madChaserLurkWait,
+    _madChaserLurkIdleEnd,
 } };
 
 /// Sub-state handlers `Actor04400_Fn07D78` dispatches by `subState`.
 static const TaskFuncTable3 Actor04400_D0015C = { {
-    madChaserLurkCrouch,
-    madChaserLurkRaise,
-    madChaserLurkLookAround,
+    _madChaserLurkPrepareLook,
+    _madChaserLurkStartLookHold,
+    _madChaserLurkLookAround,
 } };
 
 /// Sub-state handlers `madChaserLurkAlertState` dispatches by `subState`.
@@ -1370,8 +1370,8 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 
 /// A further copy, under this file's own name.
 #define madChaserVanishState Actor04400_Fn0674C
-#define madChaserVanish      madChaserAdvanceState
-#define madChaserVanishFree  madChaserDespawn
+#define madChaserVanish      _madChaserAdvanceBehaviorState
+#define madChaserVanishFree  _madChaserDespawn
 #include "../../shared/mad_chaser_vanish_state.inc.c"
 #undef madChaserVanishState
 #undef madChaserVanish
@@ -1490,7 +1490,7 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 /// A further copy, under this file's own name.
 #define madChaserWalkState      Actor04400_Fn07CF0
 #define gMadChaserWalkSteps     Actor04400_D00150
-#define madChaserTakeHitRequest madChaserJoinAlert
+#define madChaserTakeHitRequest _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps
@@ -1499,7 +1499,7 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 /// A further copy, under this file's own name.
 #define madChaserWalkState      Actor04400_Fn07D78
 #define gMadChaserWalkSteps     Actor04400_D0015C
-#define madChaserTakeHitRequest madChaserJoinAlert
+#define madChaserTakeHitRequest _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps

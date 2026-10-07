@@ -1,13 +1,13 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, requests animation 0xB; once the enemy's
+/// Once slot 1 reports a boundary, jump or hold, requests animation 0xB; once the enemy's
 /// buildup countdown (`damageTickEnemyBuildup`) runs out, moves the state machine to state 3.
 void madChaserStatusHold(Task* arg0)
 {
     MadChaserWork* work;
     MadChaserWork* work2;
 
-    if ((madChaserAnimEnded(arg0) << 0x10) != 0) {
+    if ((_madChaserAnimHasBoundaryStatus(arg0) << 0x10) != 0) {
         work                  = (MadChaserWork*)arg0->work;
         work->animBlendFrames = 4;
         work->animRate        = ANIMATION_RATE_ONE;

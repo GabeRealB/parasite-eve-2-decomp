@@ -37,6 +37,6 @@ void madChaserDeathSettle(Task* arg0)
         work4->animId          = next;
         work4->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     }
-    madChaserTickAnim(arg0);
+    _madChaserTickAnim(arg0);
     work->state++;
 }

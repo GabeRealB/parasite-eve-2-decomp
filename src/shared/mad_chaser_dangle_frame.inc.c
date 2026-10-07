@@ -29,7 +29,7 @@ void madChaserDangleFrame(Task* arg0)
                 w->state    = 0;
                 w->subState = 0;
             }
-            madChaserTickAnim(arg0);
+            _madChaserTickAnim(arg0);
             if (work->anchored == 1) {
                 madChaserPinPart(arg0, 6, (SVECTOR3*)&work->anchorPos);
             }

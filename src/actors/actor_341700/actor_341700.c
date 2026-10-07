@@ -914,16 +914,16 @@ static const TaskFuncTable5 gMadChaserLurkStates = { {
 
 /// Sub-state handlers `func_actor_341700_80169B40` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkHoldSteps = { {
-    madChaserStartHold,
-    madChaserLurkWait,
-    madChaserLurkIdleEnd,
+    _madChaserLurkStartIdleHold,
+    _madChaserLurkWait,
+    _madChaserLurkIdleEnd,
 } };
 
 /// Sub-state handlers `func_actor_341700_80169BC8` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkCrouchSteps = { {
-    madChaserLurkCrouch,
-    madChaserLurkRaise,
-    madChaserLurkLookAround,
+    _madChaserLurkPrepareLook,
+    _madChaserLurkStartLookHold,
+    _madChaserLurkLookAround,
 } };
 
 /// Sub-state handlers `madChaserLurkRiseState` dispatches by `subState`.
@@ -998,7 +998,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_emerge_tick.inc.c"
 
-/// `madChaserSetStateS16` with an `s16` state. The narrower parameter is load-bearing:
+/// `_madChaserSetBehaviorStateS16` with an `s16` state. The narrower parameter is load-bearing:
 /// with the `s32` one, `madChaserEmergeAtSpot` no longer matches. Each
 /// call site reloads `work`, and cross-jumping merges the identical stores,
 /// which is what leaves one `lw` per arm in front of a shared tail.
@@ -1069,8 +1069,8 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 /// A further copy, under this file's own name.
 #define madChaserVanishState func_actor_341700_8016859C
-#define madChaserVanish      madChaserAdvanceState
-#define madChaserVanishFree  madChaserDespawn
+#define madChaserVanish      _madChaserAdvanceBehaviorState
+#define madChaserVanishFree  _madChaserDespawn
 #include "../../shared/mad_chaser_vanish_state.inc.c"
 #undef madChaserVanishState
 #undef madChaserVanish
@@ -1186,7 +1186,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 /// A further copy, under this file's own name.
 #define madChaserWalkState      func_actor_341700_80169B40
 #define gMadChaserWalkSteps     gMadChaserLurkHoldSteps
-#define madChaserTakeHitRequest madChaserJoinAlert
+#define madChaserTakeHitRequest _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps
@@ -1195,7 +1195,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 /// A further copy, under this file's own name.
 #define madChaserWalkState      func_actor_341700_80169BC8
 #define gMadChaserWalkSteps     gMadChaserLurkCrouchSteps
-#define madChaserTakeHitRequest madChaserJoinAlert
+#define madChaserTakeHitRequest _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps

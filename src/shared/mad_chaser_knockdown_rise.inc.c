@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, requests animation 7 (when `stateScratch` is 1)
+/// Once slot 1 reports a boundary, jump or hold, requests animation 7 (when `stateScratch` is 1)
 /// or 1, and advances the sub-state.
 void madChaserKnockdownRise(Task* arg0)
 {
@@ -9,7 +9,7 @@ void madChaserKnockdownRise(Task* arg0)
     MadChaserWork* fast;
 
     work = (MadChaserWork*)arg0->work;
-    if (madChaserAnimEnded(arg0) != 0) {
+    if (_madChaserAnimHasBoundaryStatus(arg0) != 0) {
         if (work->stateScratch == 1) {
             fast                  = (MadChaserWork*)arg0->work;
             fast->animBlendFrames = 0x32;

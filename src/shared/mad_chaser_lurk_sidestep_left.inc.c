@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Unless `madChaserJoinAlert` takes over, side-steps to the left on
+/// Unless `_madChaserJoinAlert` takes over, side-steps to the left on
 /// frames 0x17..0x23 and, once the hit flags are set, returns the state
 /// machine to state 0.
 void madChaserLurkSidestepLeft(Task* arg0)
@@ -14,7 +14,7 @@ void madChaserLurkSidestepLeft(Task* arg0)
     s32            scale;
 
     work = (MadChaserWork*)arg0->work;
-    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
+    if ((_madChaserJoinAlert(arg0) << 0x10) == 0) {
         if ((u16)(work->stateFrames++ - 0x17) < 0xD) {
             scale                                 = -0x1E;
             angle                                 = work->rotation.vy + 0x400;

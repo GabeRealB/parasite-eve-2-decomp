@@ -2,7 +2,7 @@
 
 /// Walks toward the player: keeps the speed at least the distance band's, turns
 /// toward the player, steps forward at the animation speed and plays a footstep
-/// at each cycle end. Advances once inside the random range with the player
+/// at each slot-1 boundary, jump or hold. Advances once inside the random range with the player
 /// ahead and the leap cooldown spent (or within 1500).
 void madChaserWalkApproach(Task* arg0)
 {
@@ -40,12 +40,12 @@ void madChaserWalkApproach(Task* arg0)
         work->turnStep = step;
     }
     madChaserTurnToPlayer(arg0, work->turnStep);
-    speed                                 = madChaserScaleBySpeed(arg0, -0x10);
+    speed                                 = _madChaserScaleByAnimRate(arg0, -0x10);
     angle                                 = work->rotation.vy;
     arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (madChaserAnimEnded(arg0)) {
+    if (_madChaserAnimHasBoundaryStatus(arg0)) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));

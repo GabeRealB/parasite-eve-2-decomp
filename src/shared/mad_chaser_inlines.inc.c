@@ -1,13 +1,17 @@
 /* Part of the library; see mad_chaser.h. Inline helpers the fragments use. */
 
-/// Moves the task to `state` with a fresh state machine.
-static __inline__ void madChaserEnterState(Task* arg0, s32 state)
+/// Enters a task state at behavior zero and sub-state zero.
+///
+/// taskState must select a supported entry of this form's task table (0..5 for
+/// the ordinary form, 0..9 for the hidden form). The work must be live; animation
+/// requests and frame counters are retained.
+static __inline__ void _madChaserEnterTaskState(Task* task, s32 taskState)
 {
-    MadChaserWork* w = (MadChaserWork*)arg0->work;
+    MadChaserWork* work = task->work;
 
-    arg0->state = state;
-    w->state    = 0;
-    w->subState = 0;
+    task->state    = taskState;
+    work->state    = 0;
+    work->subState = 0;
 }
 
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte
@@ -65,14 +69,16 @@ static __inline__ void madChaserCalcPush(Task* arg0, GfxCoord* coord, WorldColli
     out->vz = (pen * d.vz) >> 12;
 }
 
-/// Moves the state machine to `state` at sub-state 0, reloading the work
-/// block through the task as the original does.
-static __inline__ void madChaserSetState(Task* arg0, s32 state)
+/// Selects a behavior in the current task state and resets its sub-state.
+///
+/// behaviorState is narrowed to 16 bits and must index the active behavior table.
+/// Requires live Mad Chaser work; task state, animation and counters are retained.
+static __inline__ void _madChaserSetBehaviorState(Task* task, s32 behaviorState)
 {
-    MadChaserWork* w = (MadChaserWork*)arg0->work;
+    MadChaserWork* work = task->work;
 
-    w->state    = state;
-    w->subState = 0;
+    work->state    = behaviorState;
+    work->subState = 0;
 }
 
 /// Inlined copy of `madChaserTakeHitRequest`: while `hitTaken` is 1,
@@ -85,19 +91,19 @@ static __inline__ s32 madChaserTakeRequest(Task* arg0)
     if (work->hitTaken == 1) {
         switch ((s16)(work->hitReaction - 1)) {
             case MAD_CHASER_HIT_REACTION_LIGHT - 1:
-                madChaserSetState(arg0, 6);
+                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_RECOIL_LIGHT);
                 break;
             case MAD_CHASER_HIT_REACTION_HEAVY - 1:
-                madChaserSetState(arg0, 7);
+                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY);
                 break;
             case MAD_CHASER_HIT_REACTION_STATUS - 1:
-                madChaserSetState(arg0, 8);
+                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_STATUS_HOLD);
                 break;
             case MAD_CHASER_HIT_REACTION_BLAST - 1:
-                madChaserSetState(arg0, 7);
+                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY);
                 break;
             case MAD_CHASER_HIT_REACTION_KNOCKDOWN - 1:
-                madChaserSetState(arg0, 9);
+                _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_KNOCKDOWN);
                 break;
         }
         work->hitReaction = MAD_CHASER_HIT_REACTION_NONE;
@@ -117,16 +123,18 @@ static __inline__ s32 madChaserIsHit(Task* arg0)
     return 0;
 }
 
-/// `madChaserSetState` with an `s16` state. The narrower parameter is load-bearing:
-/// with the `s32` one, `madChaserEmergeAtSpot` no longer matches. Each
-/// call site reloads `work`, and cross-jumping merges the identical stores,
-/// which is what leaves one `lw` per arm in front of a shared tail.
-static __inline__ void madChaserSetStateS16(Task* arg0, s16 state)
+/// Selects a behavior from a signed halfword and resets its sub-state.
+///
+/// behaviorState must be nonnegative and index the active behavior table. The
+/// signed-halfword interface retains the entry selectors used by emerge and alert
+/// transitions. Requires live Mad Chaser work; task state, animation and counters
+/// are retained.
+static __inline__ void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorState)
 {
-    MadChaserWork* w = (MadChaserWork*)arg0->work;
+    MadChaserWork* work = task->work;
 
-    w->state    = state;
-    w->subState = 0;
+    work->state    = behaviorState;
+    work->subState = 0;
 }
 
 /// Message 0x2C00 (see `command`) consumes the message and restarts the
@@ -147,7 +155,7 @@ static __inline__ s16 madChaserTakeHit(Task* arg0)
     if ((work->command & MAD_CHASER_COMMAND_KIND_MASK) == MAD_CHASER_COMMAND_PULL) {
         if (work->busy == 0) {
             work->command = 0;
-            madChaserEnterState(arg0, 3);
+            _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
             w2           = (MadChaserWork*)arg0->work;
             w2->state    = 10;
             w2->subState = 0;
@@ -155,7 +163,7 @@ static __inline__ s16 madChaserTakeHit(Task* arg0)
         }
     } else if ((work->command & MAD_CHASER_COMMAND_KIND_MASK) == MAD_CHASER_COMMAND_VANISH) {
         work->command = 0;
-        madChaserEnterState(arg0, 7);
+        _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_VANISH);
         return 1;
     }
     return 0;

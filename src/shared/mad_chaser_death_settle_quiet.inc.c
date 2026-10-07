@@ -29,6 +29,6 @@ void madChaserDeathSettleQuiet(Task* arg0)
         work->animId          = next;
         work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     }
-    madChaserTickAnim(arg0);
+    _madChaserTickAnim(arg0);
     work->state++;
 }

@@ -55,13 +55,13 @@ void madChaserEmergeAtSpot(Task* arg0)
         w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
         switch ((work->command >> 4) & 0xF) {
             case 0:
-                madChaserSetStateS16(arg0, 1);
+                _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_EMERGE_STATE_BACKFLIP);
                 break;
             case 1:
-                madChaserSetStateS16(arg0, 4);
+                _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_EMERGE_STATE_ARC_BACK);
                 break;
             default:
-                madChaserSetStateS16(arg0, 7);
+                _madChaserSetBehaviorStateS16(arg0, MAD_CHASER_EMERGE_STATE_HIGH_ARC);
                 break;
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;

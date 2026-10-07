@@ -10,7 +10,7 @@ void madChaserLurkRiseState(Task* arg0)
         madChaserLurkRiseEnd,
     };
 
-    if (madChaserJoinAlert(arg0) == 0) {
+    if (_madChaserJoinAlert(arg0) == 0) {
         states[(s16)work->subState](arg0);
     }
 }

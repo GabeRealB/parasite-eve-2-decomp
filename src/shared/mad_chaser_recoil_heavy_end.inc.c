@@ -20,7 +20,7 @@ void madChaserRecoilHeavyEnd(Task* arg0)
             work->state    = 3;
             work->subState = 0;
         } else {
-            madChaserSetAlertHold(arg0, 1);
+            _madChaserSetAlertHold(arg0, 1);
             work           = (MadChaserWork*)arg0->work;
             work->state    = 5;
             work->subState = 0;

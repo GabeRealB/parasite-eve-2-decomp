@@ -1,12 +1,12 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, moves the state machine to state 3 (when
+/// Once slot 1 reports a boundary, jump or hold, moves the state machine to state 3 (when
 /// `stateScratch` is 1) or 5.
 void madChaserKnockdownEnd(Task* arg0)
 {
     MadChaserWork* work = (MadChaserWork*)arg0->work;
 
-    if (madChaserAnimEnded(arg0)) {
+    if (_madChaserAnimHasBoundaryStatus(arg0)) {
         if (work->stateScratch == 1) {
             MadChaserWork* w = (MadChaserWork*)arg0->work;
 

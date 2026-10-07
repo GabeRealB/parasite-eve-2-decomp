@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, releases this enemy's `gSceneCombatState` hold,
+/// Once slot 1 reports a boundary, jump or hold, releases this enemy's `gSceneCombatState` hold,
 /// requests animation 0xF and advances the sub-state.
 void madChaserAlertRelease(Task* arg0)
 {
@@ -8,8 +8,8 @@ void madChaserAlertRelease(Task* arg0)
     MadChaserWork* work2;
 
     work = (MadChaserWork*)arg0->work;
-    if ((madChaserAnimEnded(arg0) << 0x10) != 0) {
-        madChaserSetAlertHold(arg0, 0);
+    if ((_madChaserAnimHasBoundaryStatus(arg0) << 0x10) != 0) {
+        _madChaserSetAlertHold(arg0, 0);
         work2                  = (MadChaserWork*)arg0->work;
         work2->animBlendFrames = 8;
         work2->animRate        = ANIMATION_RATE_ONE;

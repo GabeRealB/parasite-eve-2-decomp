@@ -30,7 +30,7 @@ void madChaserLurkSidestepToCombat(Task* arg0)
     }
     if (cond) {
         work->busy = 0;
-        madChaserEnterState(arg0, 3);
-        madChaserSetState(arg0, 3);
+        _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
+        _madChaserSetBehaviorState(arg0, MAD_CHASER_COMBAT_STATE_WALK);
     }
 }

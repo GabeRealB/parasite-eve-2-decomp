@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Unless `madChaserJoinAlert` takes over, waits for the hit flags,
+/// Unless `_madChaserJoinAlert` takes over, waits for the hit flags,
 /// then marks the enemy busy, requests animation 4 and advances the
 /// sub-state.
 void madChaserLurkShiftBrace(Task* arg0)
@@ -11,7 +11,7 @@ void madChaserLurkShiftBrace(Task* arg0)
     s32            cond;
 
     work = (MadChaserWork*)arg0->work;
-    if ((madChaserJoinAlert(arg0) << 0x10) == 0) {
+    if ((_madChaserJoinAlert(arg0) << 0x10) == 0) {
         work2 = (MadChaserWork*)arg0->work;
         if ((work2->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
             (work2->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {

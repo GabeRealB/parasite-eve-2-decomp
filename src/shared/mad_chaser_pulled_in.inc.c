@@ -32,7 +32,7 @@ void madChaserPulledIn(Task* arg0)
     worldCollisionUnlinkBody(&objs->pairBody);
     worldCollisionUnlinkBody(&objs->gridBody);
     worldCollisionUnlinkBody(&objs->attackBody);
-    madChaserEnterState(arg0, 5);
+    _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DESPAWN);
     taskMessageDispatch(sceneFindPlacedActor(0), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
     tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }

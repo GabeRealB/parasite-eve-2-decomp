@@ -2,7 +2,7 @@
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Plays sound 4 on the first frame and, once the hit flags are set, turns
+/// Plays sound 4 on the first frame and, once slot 1 reports a boundary, jump or hold, turns
 /// the enemy around, draws a 0x5A..0xD9 cooldown into `leapCooldown`, requests
 /// animation 0xD and moves the task to state 1.
 void madChaserLeapTurnAway(Task* arg0)
@@ -20,7 +20,7 @@ void madChaserLeapTurnAway(Task* arg0)
         pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (madChaserAnimEnded(arg0) != 0) {
+    if (_madChaserAnimHasBoundaryStatus(arg0) != 0) {
         work->busy         = 0;
         rand               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->leapCooldown = ((rand >> 16) & 0x7F) + 0x5A;

@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Plays sounds 4 and 3 on the first two frames; once the hit flags are set,
+/// Plays sounds 4 and 3 on the first two frames; once slot 1 reports a boundary, jump or hold,
 /// moves the task to state 3 with the state machine at state 3.
 void madChaserDangleLand(Task* arg0)
 {
@@ -29,7 +29,7 @@ void madChaserDangleLand(Task* arg0)
         pan     >>= 24;
         sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    if (madChaserAnimEnded(arg0)) {
+    if (_madChaserAnimHasBoundaryStatus(arg0)) {
         next            = (MadChaserWork*)arg0->work;
         arg0->state     = 3;
         next->state     = 0;

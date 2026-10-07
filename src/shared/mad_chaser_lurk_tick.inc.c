@@ -24,19 +24,19 @@ void madChaserLurkTick(Task* arg0)
             if (madChaserTakeHit(arg0) == 0) {
                 sp.funcs[(s16)work->state](arg0);
             }
-            madChaserTickAnim(arg0);
+            _madChaserTickAnim(arg0);
             madChaserTwistSpine(arg0);
             madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             if (work->busy == 0 && enemy->hp <= 0) {
-                madChaserEnterState(arg0, 4);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_DROP_DEATH && work->busy == 0) {
-                madChaserEnterState(arg0, 8);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_DROP_DEATH);
             } else if (work->command == MAD_CHASER_COMMAND_SHRINK_DEATH && work->busy == 0) {
-                madChaserEnterState(arg0, 9);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_SHRINK_DEATH);
             } else if (madChaserTakeRequest(arg0)) {
                 work->busy = 0;
-                madChaserEnterState(arg0, 3);
+                _madChaserEnterTaskState(arg0, MAD_CHASER_TASK_COMBAT);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:

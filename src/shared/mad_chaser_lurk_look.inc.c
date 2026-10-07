@@ -1,46 +1,56 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Holds for `holdFrames` frames, then moves to state 2. Over the last 0x30
-/// frames the head yaw `spineYaw` eases back to zero; before that, while a
-/// player actor is within 0xDAC and roughly ahead, it turns toward it and
-/// after 16 such frames arms `gSceneCombatState` and moves to state 3, and
-/// otherwise it sways between two fixed yaws by bit 6 of `frameCount`.
-void madChaserLurkLookAround(Task* arg0)
+/// Turns and sways the spine during the lurk look hold, engaging battle after 16 qualifying ticks.
+///
+/// Increments the elapsed halfword before testing it; exceeding the hold selects
+/// the rise behavior. The final 48 hold ticks ease the yaw to zero. Earlier ticks
+/// track a player within 3500 parent-coordinate units and 960 heading units of
+/// forward, or sway about +/-896 yaw units. Angles use 4096 units per turn.
+/// Qualifying ticks accumulate across interruptions; they need not be consecutive.
+/// Requires initialized Mad Chaser work and refreshed player distance/bearing.
+static void _madChaserLurkLookAround(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
-    MadChaserWork* state;
-    MadChaserWork* state2;
-    s32            angle;
-    s32            cur;
-    s32            aim;
+    enum {
+        MAD_CHASER_LOOK_RELAX_FRAMES   = 48,
+        MAD_CHASER_LOOK_ENGAGE_TICKS   = 16,
+        MAD_CHASER_LOOK_FORWARD_LIMIT  = 960,
+        MAD_CHASER_LOOK_BACKWARD_LIMIT = 3136,
+        MAD_CHASER_LOOK_SWAY_YAW       = 896,
+    };
+    MadChaserWork* work = task->work;
+    MadChaserWork* nextWork;
+    MadChaserWork* alertWork;
+    s32            spineYaw;
+    s32            relaxYaw;
+    s32            playerBearing;
 
     if ((s16)++work->stateFrames > work->holdFrames) {
-        state           = (MadChaserWork*)arg0->work;
-        state->state    = 2;
-        state->subState = 0;
+        nextWork           = task->work;
+        nextWork->state    = MAD_CHASER_LURK_STATE_RISE;
+        nextWork->subState = 0;
         return;
     }
-    if (work->holdFrames - 0x30 < (s16)work->stateFrames) {
-        cur            = (u16)work->spineYaw;
-        work->spineYaw = cur + ((s16)(-(cur * 16)) >> 9);
+    // Relax the spine before the hold ends and the rise transition begins.
+    if (work->holdFrames - MAD_CHASER_LOOK_RELAX_FRAMES < (s16)work->stateFrames) {
+        relaxYaw       = (u16)work->spineYaw;
+        work->spineYaw = relaxYaw + ((s16)(-(relaxYaw * 16)) >> 9);
         return;
     }
-    if (work->playerDist < 0xDAC && (aim = (u16)work->playerBearing, (aim < 0x3C0 || aim > 0xC40))) {
-        angle          = (u16)work->spineYaw;
-        work->spineYaw = angle + ((s16)((aim - angle) * 16) >> 6);
-        if (++work->lookFrames >= 0x10) {
+    if (work->playerDist < MAD_CHASER_LURK_ALERT_DISTANCE && (playerBearing = (u16)work->playerBearing, (playerBearing < MAD_CHASER_LOOK_FORWARD_LIMIT || playerBearing > MAD_CHASER_LOOK_BACKWARD_LIMIT))) {
+        spineYaw       = (u16)work->spineYaw;
+        work->spineYaw = spineYaw + ((s16)((playerBearing - spineYaw) * 16) >> 6);
+        if (++work->lookFrames >= MAD_CHASER_LOOK_ENGAGE_TICKS) {
             sceneEngageBattle(1);
-            state2           = (MadChaserWork*)arg0->work;
-            state2->state    = 3;
-            state2->subState = 0;
+            alertWork           = task->work;
+            alertWork->state    = MAD_CHASER_LURK_STATE_ALERT;
+            alertWork->subState = 0;
         }
     } else {
-        // Both arms are spelled out: the cross-jumped tail leaves each its own
-        // load of `spineYaw`, which a single update after an if/else lacks.
+        // Alternate sway targets every 64 running ticks; keep the halfword wrap.
         if (!(((u16)work->frameCount >> 6) & 1)) {
-            work->spineYaw = (u16)work->spineYaw + ((s16)(0x3800 - (u16)work->spineYaw * 16) >> 9);
+            work->spineYaw = (u16)work->spineYaw + ((s16)((MAD_CHASER_LOOK_SWAY_YAW * 16) - (u16)work->spineYaw * 16) >> 9);
         } else {
-            work->spineYaw = (u16)work->spineYaw + ((s16)(-0x3800 - (u16)work->spineYaw * 16) >> 9);
+            work->spineYaw = (u16)work->spineYaw + ((s16)(-(MAD_CHASER_LOOK_SWAY_YAW * 16) - (u16)work->spineYaw * 16) >> 9);
         }
     }
 }

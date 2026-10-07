@@ -56,7 +56,7 @@ void madChaserSpawnHidden(Task* task)
     w2->animRate    = ANIMATION_RATE_ONE;
     w2->animId      = 7;
     w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
-    madChaserTickAnim(task);
+    _madChaserTickAnim(task);
     coord->parent = &gGfxViewCoord;
     madChaserLinkBodies(task);
     w->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;

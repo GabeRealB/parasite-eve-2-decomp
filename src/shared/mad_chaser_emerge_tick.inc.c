@@ -20,7 +20,7 @@ void madChaserEmergeTick(Task* arg0)
             if (madChaserTakeHitNibble3(arg0) == 0) {
                 sp.funcs[(s16)work->state](arg0);
             }
-            madChaserTickAnim(arg0);
+            _madChaserTickAnim(arg0);
             madChaserUpdateRotation(arg0);
             madChaserApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -1,26 +1,32 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, requests animation 0xD and advances the
-/// sub-state.
-void madChaserLurkCrouch(Task* arg0)
+/// Requests the transition into the lurk look sequence once slot 1 reaches a control point.
+///
+/// Blends the transition clip over eight frames at normal rate, then advances
+/// the look sequence's sub-state. Requires the initialized Mad Chaser work.
+static void _madChaserLurkPrepareLook(Task* task)
 {
+    enum {
+        MAD_CHASER_LOOK_TRANSITION_CLIP         = 13,
+        MAD_CHASER_LOOK_TRANSITION_BLEND_FRAMES = 8,
+    };
     MadChaserWork* work;
-    MadChaserWork* work2;
-    s32            cond;
+    MadChaserWork* requestWork;
+    s32            hasBoundaryStatus;
 
-    work = (MadChaserWork*)arg0->work;
+    work = task->work;
     if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
         (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
+        hasBoundaryStatus = 1;
     } else {
-        cond = 0;
+        hasBoundaryStatus = 0;
     }
-    if (cond) {
-        work2                  = (MadChaserWork*)arg0->work;
-        work2->animBlendFrames = 8;
-        work2->animRate        = ANIMATION_RATE_ONE;
-        work2->animId          = 0xD;
-        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+    if (hasBoundaryStatus) {
+        requestWork                  = task->work;
+        requestWork->animBlendFrames = MAD_CHASER_LOOK_TRANSITION_BLEND_FRAMES;
+        requestWork->animRate        = ANIMATION_RATE_ONE;
+        requestWork->animId          = MAD_CHASER_LOOK_TRANSITION_CLIP;
+        requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
         work->subState++;
     }
 }

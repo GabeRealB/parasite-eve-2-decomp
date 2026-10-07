@@ -1,6 +1,6 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, marks the enemy busy (`busy`), requests
+/// Once slot 1 reports a boundary, jump or hold, marks the enemy busy (`busy`), requests
 /// animation 4 and advances the sub-state.
 void madChaserAlertCrouch(Task* arg0)
 {
@@ -8,7 +8,7 @@ void madChaserAlertCrouch(Task* arg0)
     MadChaserWork* work2;
 
     work = (MadChaserWork*)arg0->work;
-    if ((madChaserAnimEnded(arg0) << 0x10) != 0) {
+    if ((_madChaserAnimHasBoundaryStatus(arg0) << 0x10) != 0) {
         work->busy             = 1;
         work->stateFrames      = 0;
         work2                  = (MadChaserWork*)arg0->work;
