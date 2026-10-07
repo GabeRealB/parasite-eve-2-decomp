@@ -1685,7 +1685,6 @@ void func_actor_503500_80132778(Task* task)
         ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_NARROW_UPWARD = 0x03800000, // Movement kind 3 (random, narrowly upward) at speed 0x80
     };
     GfxCoord*                           coord;
-    GfxRotationWords*                   rot;
     _Actor503500DriftSpriteEmitterWork* work;
     SVECTOR*                            pos;
     u8                                  done;
@@ -1696,12 +1695,7 @@ void func_actor_503500_80132778(Task* task)
         coord->coord.t[0]   = pos->vx;
         coord->coord.t[1]   = pos->vy;
         coord->coord.t[2]   = pos->vz;
-        rot                 = (GfxRotationWords*)&coord->coord;
-        rot->m00M01         = ONE;
-        rot->m02M10         = 0;
-        rot->m11M12         = ONE;
-        rot->m20M21         = 0;
-        rot->m22            = ONE;
+        gfxSetRotIdentity(&coord->coord);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         work                = memCalloc(sizeof(*work), false);
         if (work == NULL) {
