@@ -31,11 +31,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b2_pod_access_tunnel_80185708[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_shelter_b2_pod_access_tunnel_80185708_value __asm__("D_shelter_b2_pod_access_tunnel_80185708");
+extern u8 D_shelter_b2_pod_access_tunnel_80185708;
 
 extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
@@ -84,12 +80,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b2_pod_access_tunnel_80185708[4] = {
-    0,
-    83,
-    70,
-    179,
-};
+u8 D_shelter_b2_pod_access_tunnel_80185708 = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_b2_pod_access_tunnel_80185709 = 83;
+
+u8 D_shelter_b2_pod_access_tunnel_8018570A = 70;
+
+u8 D_shelter_b2_pod_access_tunnel_8018570B = 179;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
@@ -103,7 +101,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
 
 static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b2_pod_access_tunnel_80185708_value = 0;
+    D_shelter_b2_pod_access_tunnel_80185708 = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -112,7 +110,7 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_b2_pod_access_tunnel_80183BC0, 0, 0, 0);
-            D_shelter_b2_pod_access_tunnel_80185708_value = 1;
+            D_shelter_b2_pod_access_tunnel_80185708 = 1;
         }
         return 2;
     }
