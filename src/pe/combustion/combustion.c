@@ -175,7 +175,6 @@ void func_combustion_8012F2BC(Task* arg0)
 {
     EffectWork*       mem;
     GfxCoord*         coord;
-    GfxRotationWords* rot;
     EffectWork*       spawned;
     s32               rng;
     s32               spawnRng1;
@@ -189,13 +188,8 @@ void func_combustion_8012F2BC(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot           = (GfxRotationWords*)&coord->coord;
             coord->parent = mem->parent;
-            rot->m00M01   = ONE;
-            rot->m02M10   = 0;
-            rot->m11M12   = ONE;
-            rot->m20M21   = 0;
-            rot->m22      = ONE;
+            gfxSetRotIdentity(&coord->coord);
 
             coord->coord.t[0]   = mem->pos.vx;
             coord->coord.t[1]   = mem->pos.vy;
