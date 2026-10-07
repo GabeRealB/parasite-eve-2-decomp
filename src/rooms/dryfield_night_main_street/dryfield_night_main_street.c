@@ -73,10 +73,6 @@
 #include "../../shared/main_street.h"
 
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
-#define D_dryfield_night_main_street_801821B8 (D_dryfield_night_main_street_801821A8[2])
-#define D_dryfield_night_main_street_801821C8 (D_dryfield_night_main_street_801821A8[4])
-#define D_dryfield_night_main_street_801821D8 (D_dryfield_night_main_street_801821A8[6])
-#define D_dryfield_night_main_street_801821E8 (D_dryfield_night_main_street_801821A8[8])
 
 /// Advances the gameplay LCG and yields the high half of the new state.
 
@@ -1723,16 +1719,16 @@ void func_dryfield_night_main_street_8017E484(Task* task)
         _glowDrawShaft(D_dryfield_night_main_street_801821A8, 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[2]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821B8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[2], 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[4]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821C8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[4], 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[6]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821D8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[6], 0x180);
     }
     if (mask & D_dryfield_night_main_street_80182230[8]) {
-        _glowDrawShaft(&D_dryfield_night_main_street_801821E8, 0x180);
+        _glowDrawShaft(&D_dryfield_night_main_street_801821A8[8], 0x180);
     }
     for (i = 10; i < 16; i++) {
         if (mask & D_dryfield_night_main_street_80182230[i]) {
