@@ -19,11 +19,7 @@ void golemKnightBishopApplyScale(Task* arg0)
     work                                = arg0->work;
 
     coord->coord            = work->unscaledRootMtx;
-    m->rotationWords.m00M01 = ONE;
-    m->rotationWords.m02M10 = 0;
-    m->rotationWords.m11M12 = ONE;
-    m->rotationWords.m20M21 = 0;
-    m->rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&m->mat);
     ScaleMatrix(&m->mat, &work->scale);
     MulMatrix(&coord->coord, &m->mat);
     SCRATCH_POP_AT(scratch, GfxMatrix);
