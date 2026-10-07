@@ -3298,7 +3298,6 @@ void func_mine_cavern_80183A68(Task* arg0)
 static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
 {
     _MineCavernTargetWork* work;
-    MATRIX*                m;
     VECTOR                 vec;
     SVECTOR                ang;
 
@@ -3314,12 +3313,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
     if (!((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> (u16)task->spawnArg1.value) & 1)) {
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        m                                           = &work->centerCoord.coord;
-        MATRIX_PAIR(&work->centerCoord.coord, 0, 0) = 0x1000;
-        MATRIX_PAIR(m, 0, 2)                        = 0;
-        MATRIX_PAIR(m, 1, 1)                        = 0x1000;
-        MATRIX_PAIR(m, 2, 0)                        = 0;
-        m->m[2][2]                                  = 0x1000;
+        gfxSetRotIdentity(&work->centerCoord.coord);
         work->centerCoord.parent                    = task->extra.tmd->coords;
         work->centerCoord.coord.t[2]                = 0;
         work->centerCoord.coord.t[0]                = 0;
