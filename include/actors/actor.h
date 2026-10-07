@@ -1727,25 +1727,30 @@ static __inline__ void actorUpdateColor(Enemy* enemy, GfxCoord* coord)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Relights the enemy of `arg0` for the world position of its model's second
-/// part.
-static __inline__ void actorUpdateModelColor(Task* arg0)
+/// Updates an enemy model's lighting and colour from coordinate 1's cached translation.
+///
+/// `task` must own a live TMD model with at least two coordinates and an Enemy
+/// in `spawnArg2.pointer`, with that enemy's task and lighting matrices live.
+/// Copies signed 32-bit XYZ in game units without composing the coordinate;
+/// the lighting query interprets the cached sample as world coordinates.
+/// Requires an initialized, word-aligned scratch stack with room for one
+/// VECTOR plus `worldCoordUpdateActorColor`'s nested reservations. The unused
+/// fourth word is left intact. Releases the sample before returning, retains
+/// no pointer and changes GTE state through the lighting query.
+static __inline__ void _actorRenderUpdateModelColor(Task* task)
 {
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+    GfxCoord* sampleCoord;
+    VECTOR*   samplePosition;
 
-    coord                          = &arg0->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    sampleCoord    = &task->extra.tmd->coords[1];
+    samplePosition = SCRATCH_STACK_CURSOR(VECTOR) - 1;
+    // Keep the sample stores before publishing the reservation for nested queries.
+    samplePosition->vx           = sampleCoord->workm.t[0];
+    samplePosition->vy           = sampleCoord->workm.t[1];
+    samplePosition->vz           = sampleCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = samplePosition;
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, samplePosition, 0, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Transforms an actor-local point in place into world space.

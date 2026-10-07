@@ -2387,7 +2387,7 @@ static void func_actor_400600_801337A8(Task* arg0)
         case SCENE_COMBAT_ACTORS_PAUSED:
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
-            actorUpdateModelColor(arg0);
+            _actorRenderUpdateModelColor(arg0);
             _actor400600DrawFloorShadows(arg0, work->shadowHeight, work->shadowShade);
             if (work->cloaked == 0) {
                 model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -4130,7 +4130,7 @@ static void func_actor_400600_80137EF0(Task* arg0)
         case SCENE_COMBAT_ACTORS_PAUSED:
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
-            actorUpdateModelColor(arg0);
+            _actorRenderUpdateModelColor(arg0);
             _actor400600DrawFloorShadows(arg0, 0, work->shadowShade);
             break;
     }

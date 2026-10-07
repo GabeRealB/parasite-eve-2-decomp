@@ -1997,7 +1997,7 @@ static void func_actor_405800_80133800(Task* arg0)
                 w->subState = 0;
             }
         case SCENE_COMBAT_ACTORS_PAUSED:
-            actorUpdateModelColor(arg0);
+            _actorRenderUpdateModelColor(arg0);
             func_actor_405800_80132E3C(arg0, work->shadowHeight, work->shadowShade);
             Actor405800_ProjectPart(part);
             model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;

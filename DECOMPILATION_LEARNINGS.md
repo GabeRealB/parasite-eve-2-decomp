@@ -117837,9 +117837,9 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
 }
 ```
 
-The `static __inline__` helpers `actorUpdateModelColor` and
-`actorUpdateModelColor` in their overlay headers are this same body, and this
-is why they are headers rather than call-site code.
+The `static __inline__` helper `_actorRenderUpdateModelColor` in
+`include/actors/actor.h` is this same body, now with typed VECTOR element
+arithmetic, and this is why it stays an inline helper rather than call-site code.
 
 `func_actor_206100_8014E7D4` is the worked example.  The tail written at the
 call site (92.540%, `base_2`, `ef536d3e50b6e405`) gives one `lui`/`ori` and four
