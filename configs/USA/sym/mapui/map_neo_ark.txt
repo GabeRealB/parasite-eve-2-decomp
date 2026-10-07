@@ -185,7 +185,7 @@ D_neo_ark_altar_8017F0FC = 0x8017F0FC; // absolute:True owner=neo_ark_altar
 D_neo_ark_altar_8017F5A0 = 0x8017F5A0; // absolute:True owner=neo_ark_altar
 D_neo_ark_altar_8017FE38 = 0x8017FE38; // absolute:True owner=neo_ark_altar shared=rooms
 D_neo_ark_altar_8018005C = 0x8018005C; // absolute:True owner=neo_ark_altar
-func_neo_ark_shrine_8017D948 = 0x8017D948; // type:func absolute:True owner=neo_ark_shrine shared=rooms
+neoArkShrineRoomTask = 0x8017D948; // type:func absolute:True owner=neo_ark_shrine shared=rooms
 D_neo_ark_shrine_80182724 = 0x80182724; // absolute:True owner=neo_ark_shrine
 D_neo_ark_shrine_80182784 = 0x80182784; // absolute:True owner=neo_ark_shrine
 D_neo_ark_shrine_801827F0 = 0x801827F0; // absolute:True owner=neo_ark_shrine

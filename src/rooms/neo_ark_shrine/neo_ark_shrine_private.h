@@ -74,7 +74,17 @@ extern Task* D_neo_ark_shrine_80186864;
 
 extern NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16];
 
-void func_neo_ark_shrine_8017DF7C(void);
+/// Advances the shrine's tile animation by one frame and draws the puzzle.
+///
+/// The board must be a permutation of tile numbers 0..15, with zero the gap.
+/// Screen origins are in pixels relative to the display centre; texture
+/// origins are texels, and each visible tile is drawn unscaled at 32x32.
+/// Drawn positions halve their remaining displacement with signed shifts,
+/// then snap when both residuals are less than four pixels. The gap moves but
+/// emits no packet. Requires the board and drawn positions initialized, a
+/// current ordering table, the tile texture loaded, and packet-arena space
+/// for fifteen `POLY_FT4` packets. Packets remain borrowed until GPU completion.
+void neoArkShrineAnimateAndDrawPuzzle(void);
 
 /// Per-frame helper of the cap script, declared without a parameter list
 /// because some callers pass it their `task`: the extra argument setup is what

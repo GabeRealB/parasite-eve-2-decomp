@@ -59,6 +59,12 @@ void neoArkShrineRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_neo_ark_shrine_801811EC(Task* task);
 
-void func_neo_ark_shrine_8017D948(Task* task);
+/// Initializes the shrine's room messages and puzzle, then waits for room messages.
+///
+/// The map's room descriptor supplies a bodyless task starting in state 0.
+/// State 0 registers it in `GAME_TASK_SLOT_ROOM` and resets the board; state 1
+/// idles with the message table installed, and state 2 kills the task. The
+/// dispatcher requires `Task::state` in 0..2 and does not check that bound.
+void neoArkShrineRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_SHRINE_H

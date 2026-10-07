@@ -1067,7 +1067,7 @@ void func_neo_ark_shrine_8017EA70(Task* task)
 /// puzzle.
 void func_neo_ark_shrine_8017EAC0()
 {
-    func_neo_ark_shrine_8017DF7C();
+    neoArkShrineAnimateAndDrawPuzzle();
 }
 
 /// Task callback of the shrine's cap script: dispatches `Task::state` through a

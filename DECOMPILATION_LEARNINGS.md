@@ -87796,7 +87796,7 @@ Inputs: `base.i` `5530d1a052123f45a3a374f80f584ad5b1de658a6801d4d36476bf9dfa5149
 `func_neo_ark_shrine_8017F320` is 30 insns. Its second call has an explicit
 `addu $a0,$s1,$zero` immediately before the `jal`, yet the callee
 (`func_neo_ark_shrine_8017EAC0`) takes no arguments - its decompiled body is one
-call to `func_neo_ark_shrine_8017DF7C` and it never reads `$a0` - and the three
+call to `neoArkShrineAnimateAndDrawPuzzle` and it never reads `$a0` - and the three
 other call sites in the same unit load nothing into `$a0` (their `.s` under
 `asm/USA/rooms/matchings/neo_ark_shrine/neo_ark_shrine_6/` show the `jal` with a
 non-`$a0` instruction in the delay slot). So the source passes an argument here
@@ -139556,7 +139556,7 @@ preceding `gte_SetRotMatrix` asm, rather than at the top of the loop. Volatile
 asm is a scheduling barrier, so where the statement sits decides which side of
 the asm the arithmetic lands on (99.2% to a match).
 
-### A table read once through a pointer is not hoisted; spelling `tbl[i].f` at each use is (func_neo_ark_shrine_8017DF7C)
+### A table read once through a pointer is not hoisted; spelling `tbl[i].f` at each use is (neoArkShrineAnimateAndDrawPuzzle)
 
 Symptom: inside a loop, the target loads a table's address into a callee-free
 temp in the preheader (`lui t5,%hi(T); addiu t5,t5,%lo(T)`) and only does

@@ -5,7 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "neo_ark_shrine_private.h"
 
@@ -42,6 +42,20 @@
 /// texels alike: the tile sheet is drawn unscaled.
 #define NEO_ARK_SHRINE_TILE_SIZE 32
 
+/// Tile zero is the gap; the remaining tile numbers select texture-sheet squares.
+enum { NEO_ARK_SHRINE_PUZZLE_GAP_TILE = 0 };
+
+/// Arrangement-check replies selecting the puzzle script's next action.
+///
+/// Replies select puzzle completion, enemy release or a room layout transition.
+enum {
+    NEO_ARK_SHRINE_PUZZLE_MATCH_NONE            = 0,
+    NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED          = 1,
+    NEO_ARK_SHRINE_PUZZLE_MATCH_RELEASE_ENEMIES = 2,
+    NEO_ARK_SHRINE_PUZZLE_MATCH_ACTIVATE_LAYOUT = 3,
+    NEO_ARK_SHRINE_PUZZLE_MATCH_RESTORE_LAYOUT  = 4,
+};
+
 /// Message table installed at `Task::msgTable` by the room task's state 0.
 extern TaskMessageEntry D_neo_ark_shrine_80181E34[];
 
@@ -58,18 +72,18 @@ extern s16 D_neo_ark_shrine_801825EC[][5];
 extern NeoArkShrineTileOrigin D_neo_ark_shrine_8018252C[16];
 extern NeoArkShrineTileOrigin D_neo_ark_shrine_801825AC[16];
 
-/// Steps the currently selected group and returns which kind of step it was.
-static s16 func_neo_ark_shrine_8017E254(void);
+static s16  _neoArkShrineCheckPuzzleArrangement(void);
+static void _neoArkShrineRoomIdle(Task* task);
 
-s32  func_neo_ark_shrine_8017D6A4(Task*, s32, s32, s32);
-s32  func_neo_ark_shrine_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_shrine_8017D740(Task*, s32, s32, s32);
-s32  func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void func_neo_ark_shrine_8017D84C(Task*);
+static s32 _neoArkShrineRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_neo_ark_shrine_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_neo_ark_shrine_8017D740(Task*, s32, s32, s32);
+s32        func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+void       func_neo_ark_shrine_8017D84C(Task*);
 
 TaskMessageEntry D_neo_ark_shrine_80181E34[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_shrine_8017D6AC },
-    { 5105, func_neo_ark_shrine_8017D6A4 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkShrineRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_shrine_8017D7F0 },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_shrine_8017D740 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -265,12 +279,14 @@ s16 D_neo_ark_shrine_801825EC[16][5] = {
 };
 
 static void func_neo_ark_shrine_8017D8F4(Task* task);
-static void func_neo_ark_shrine_8017D940(Task* task);
 
-/// Always returns 0.
-s32 func_neo_ark_shrine_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every collected key item offered to the shrine room.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; the item menu supplies `itemId` and a
+/// zero second payload. All arguments are ignored and no room state changes.
+static s32 _neoArkShrineRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -354,25 +370,23 @@ static void func_neo_ark_shrine_8017D8F4(Task* task)
     task->state++;
 }
 
-/// Second state of the room task: nothing left to do but idle.
-static void func_neo_ark_shrine_8017D940(Task* task)
+/// Keeps the initialized room task available for messages without per-frame work.
+static void _neoArkShrineRoomIdle(Task* task)
 {
 }
 
-/// State handlers of the room task `func_neo_ark_shrine_8017D948`, indexed by
+/// State handlers of the room task `neoArkShrineRoomTask`, indexed by
 /// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_neo_ark_shrine_8017D5C4 = {
-    { func_neo_ark_shrine_8017D8F4, func_neo_ark_shrine_8017D940, taskKill },
+    { func_neo_ark_shrine_8017D8F4, _neoArkShrineRoomIdle, taskKill },
 };
 
-/// Room task: runs the state handler `D_neo_ark_shrine_8017D5C4` names for
-/// `Task::state`, through a copy of the table taken onto the stack.
-void func_neo_ark_shrine_8017D948(Task* task)
+void neoArkShrineRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_neo_ark_shrine_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_neo_ark_shrine_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 /// Idle state of the shrine's cap script: the hotspot the cursor sits on is
@@ -471,7 +485,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
 ///   from the assignment and one of those three spots stops matching.
 void func_neo_ark_shrine_8017DB10(Task* arg0)
 {
-    s16                     temp_v0;
+    s16                     arrangementResult;
     s16                     state;
     s16                     slot;
     s32                     i;
@@ -501,9 +515,9 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
     }
     arg0->state = 2;
     if ((moved = swapped != 0)) {
-        temp_v0 = func_neo_ark_shrine_8017E254();
-        switch (temp_v0) {
-            case 1:
+        arrangementResult = _neoArkShrineCheckPuzzleArrangement();
+        switch (arrangementResult) {
+            case NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED:
                 if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED) == 0) {
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
                     gameFlagSetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, 1);
@@ -512,14 +526,14 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
                     return;
                 }
                 break;
-            case 2:
+            case NEO_ARK_SHRINE_PUZZLE_MATCH_RELEASE_ENEMIES:
                 arg0->state = 9;
                 break;
-            case 3:
+            case NEO_ARK_SHRINE_PUZZLE_MATCH_ACTIVATE_LAYOUT:
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
                 arg0->state = 7;
                 break;
-            case 4:
+            case NEO_ARK_SHRINE_PUZZLE_MATCH_RESTORE_LAYOUT:
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
                 arg0->state = 0xE;
                 break;
@@ -529,102 +543,140 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-/// Animates and draws the shrine's sliding-tile puzzle. Each tile's target
-/// position is taken from the board position it now occupies; its drawn
-/// position eases halfway there every frame and snaps once both axes are
-/// within four units. Every tile but tile 0, the gap, is then drawn as a 32x32
-/// textured quad.
-void func_neo_ark_shrine_8017DF7C(void)
+/// Moves one tile halfway towards its target and snaps small residuals.
+///
+/// Requires a tile number in 0..15 and initialized screen origins in pixels.
+static inline void _neoArkShrineEasePuzzleTile(s32 tileNumber)
 {
-    s32                     i;
-    s32                     tile;
-    NeoArkShrineTileOrigin* cur;
-    NeoArkShrineTileOrigin* tgt;
-    POLY_FT4*               prim;
+    enum { NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS = 4 };
 
-    for (i = 0; i < 16; i++) {
-        tile                              = D_neo_ark_shrine_8018686C[i];
-        D_neo_ark_shrine_801868CC[tile].x = D_neo_ark_shrine_8018252C[i].x;
-        D_neo_ark_shrine_801868CC[tile].y = D_neo_ark_shrine_8018252C[i].y;
+    NeoArkShrineTileOrigin* drawnOrigin  = &D_neo_ark_shrine_8018688C[tileNumber];
+    NeoArkShrineTileOrigin* targetOrigin = &D_neo_ark_shrine_801868CC[tileNumber];
+
+    drawnOrigin->x += (targetOrigin->x - drawnOrigin->x) >> 1;
+    drawnOrigin->y += (targetOrigin->y - drawnOrigin->y) >> 1;
+    if (ABS(drawnOrigin->x - targetOrigin->x) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS &&
+        ABS(D_neo_ark_shrine_8018688C[tileNumber].y - D_neo_ark_shrine_801868CC[tileNumber].y) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS) {
+        D_neo_ark_shrine_8018688C[tileNumber].x = D_neo_ark_shrine_801868CC[tileNumber].x;
+        D_neo_ark_shrine_8018688C[tileNumber].y = D_neo_ark_shrine_801868CC[tileNumber].y;
+    }
+}
+
+void neoArkShrineAnimateAndDrawPuzzle(void)
+{
+    enum {
+        NEO_ARK_SHRINE_PUZZLE_TPAGE  = getTPage(1, 0, 832, 0), // 8-bit tile sheet at VRAM (832, 0)
+        NEO_ARK_SHRINE_PUZZLE_CLUT   = getClut(0, 255),        // Palette at VRAM (0, 255)
+        NEO_ARK_SHRINE_PUZZLE_OT_TAG = 10,
+    };
+
+    s32       cellIndex;
+    s32       tileNumber;
+    POLY_FT4* tileQuad;
+
+    // Convert the cell-to-tile board into per-tile animation targets.
+    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018686C); cellIndex++) {
+        tileNumber                              = D_neo_ark_shrine_8018686C[cellIndex];
+        D_neo_ark_shrine_801868CC[tileNumber].x = D_neo_ark_shrine_8018252C[cellIndex].x;
+        D_neo_ark_shrine_801868CC[tileNumber].y = D_neo_ark_shrine_8018252C[cellIndex].y;
     }
 
-    for (i = 0; i < 16; i++) {
-        tile    = D_neo_ark_shrine_8018686C[i];
-        cur     = &D_neo_ark_shrine_8018688C[tile];
-        tgt     = &D_neo_ark_shrine_801868CC[tile];
-        cur->x += (tgt->x - cur->x) >> 1;
-        cur->y += (tgt->y - cur->y) >> 1;
-        if (ABS(cur->x - tgt->x) < 4 &&
-            ABS(D_neo_ark_shrine_8018688C[tile].y - D_neo_ark_shrine_801868CC[tile].y) < 4) {
-            D_neo_ark_shrine_8018688C[tile].x = D_neo_ark_shrine_801868CC[tile].x;
-            D_neo_ark_shrine_8018688C[tile].y = D_neo_ark_shrine_801868CC[tile].y;
-        }
-        if (tile != 0) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            setUVWH(prim, D_neo_ark_shrine_801825AC[tile].x, D_neo_ark_shrine_801825AC[tile].y,
+    // Animate the gap too, but reserve packets only for visible tiles.
+    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018686C); cellIndex++) {
+        tileNumber = D_neo_ark_shrine_8018686C[cellIndex];
+        _neoArkShrineEasePuzzleTile(tileNumber);
+        if (tileNumber != NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+            tileQuad       = gGpuPrimCursor;
+            gGpuPrimCursor = tileQuad + 1;
+            setPolyFT4(tileQuad);
+            setUVWH(tileQuad, D_neo_ark_shrine_801825AC[tileNumber].x, D_neo_ark_shrine_801825AC[tileNumber].y,
                     NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE);
-            prim->tpage = 0x8D;
-            prim->clut  = 0x3FC0;
-            setShadeTex(prim, 1);
-            setXYWH(prim, D_neo_ark_shrine_8018688C[tile].x, D_neo_ark_shrine_8018688C[tile].y,
+            tileQuad->tpage = NEO_ARK_SHRINE_PUZZLE_TPAGE;
+            tileQuad->clut  = NEO_ARK_SHRINE_PUZZLE_CLUT;
+            setShadeTex(tileQuad, true);
+            setXYWH(tileQuad, D_neo_ark_shrine_8018688C[tileNumber].x, D_neo_ark_shrine_8018688C[tileNumber].y,
                     NEO_ARK_SHRINE_TILE_SIZE, NEO_ARK_SHRINE_TILE_SIZE);
-            addPrim(&gGpuCurrentOt[10], prim);
+            addPrim(&gGpuCurrentOt[NEO_ARK_SHRINE_PUZZLE_OT_TAG], tileQuad);
         }
     }
 }
 
-static s16 func_neo_ark_shrine_8017E254(void)
+/// Consumes an accepted restore request and rebuilds the base shrine layout.
+///
+/// `restoreRequest` must be 1, which also supplies the pre-reveal room selector.
+/// Saved and live room selectors change together; the motor ramp lasts 40 frames.
+static inline void _neoArkShrineRestorePuzzleLayout(s32 restoreRequest)
 {
-    s32 flag;
+    enum {
+        NEO_ARK_SHRINE_BASE_LAYOUT_AFTER_REVEAL = 4,
+        NEO_ARK_SHRINE_RESTORE_RUMBLE_FRAMES    = 40,
+        NEO_ARK_SHRINE_RESTORE_RUMBLE_START     = 48,
+        NEO_ARK_SHRINE_RESTORE_RUMBLE_END       = 96,
+    };
+
+    D_neo_ark_shrine_8018686A = false;
+    if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = restoreRequest;
+        gGameSession->location.loc.room                            = restoreRequest;
+    } else {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_SHRINE_BASE_LAYOUT_AFTER_REVEAL;
+        gGameSession->location.loc.room                            = NEO_ARK_SHRINE_BASE_LAYOUT_AFTER_REVEAL;
+    }
+    gGameSession->roomObjsDirty = true;
+    sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);
+    padScriptSpawnVariableMotorRamp(NEO_ARK_SHRINE_RESTORE_RUMBLE_FRAMES,
+                                    NEO_ARK_SHRINE_RESTORE_RUMBLE_START, NEO_ARK_SHRINE_RESTORE_RUMBLE_END);
+}
+
+/// Selects the next puzzle action and restores a pending base room layout.
+///
+/// Called after a tile move with a valid 4x4 board. The gap must occupy the
+/// bottom-right cell for any tile pattern to match. The top-row 9..12 pattern
+/// takes priority over the active-layout latch, which takes priority over the
+/// 1..4 diagonal; each pattern accepts either tile order. A pending restore is
+/// consumed only after those early returns, before checking the 5..8 column.
+/// Returns a `NEO_ARK_SHRINE_PUZZLE_MATCH_*` action, without moving any tiles.
+static s16 _neoArkShrineCheckPuzzleArrangement(void)
+{
+    s32 restoreRequest;
 
     if (D_neo_ark_shrine_8018686C[0] == 9 && D_neo_ark_shrine_8018686C[1] == 10 &&
         D_neo_ark_shrine_8018686C[2] == 11 && D_neo_ark_shrine_8018686C[3] == 12 &&
-        D_neo_ark_shrine_8018686C[15] == 0) {
-        return 3;
+        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+        return NEO_ARK_SHRINE_PUZZLE_MATCH_ACTIVATE_LAYOUT;
     }
     if (D_neo_ark_shrine_8018686C[0] == 12 && D_neo_ark_shrine_8018686C[1] == 11 &&
         D_neo_ark_shrine_8018686C[2] == 10 && D_neo_ark_shrine_8018686C[3] == 9 &&
-        D_neo_ark_shrine_8018686C[15] == 0) {
-        return 3;
+        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+        return NEO_ARK_SHRINE_PUZZLE_MATCH_ACTIVATE_LAYOUT;
     }
-    if (D_neo_ark_shrine_80186868 == 1) {
-        return 4;
+    if (D_neo_ark_shrine_80186868 == true) {
+        return NEO_ARK_SHRINE_PUZZLE_MATCH_RESTORE_LAYOUT;
     }
     if (D_neo_ark_shrine_8018686C[3] == 1 && D_neo_ark_shrine_8018686C[6] == 2 &&
         D_neo_ark_shrine_8018686C[9] == 3 && D_neo_ark_shrine_8018686C[12] == 4 &&
-        D_neo_ark_shrine_8018686C[15] == 0) {
-        return 1;
+        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+        return NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED;
     }
     if (D_neo_ark_shrine_8018686C[3] == 4 && D_neo_ark_shrine_8018686C[6] == 3 &&
         D_neo_ark_shrine_8018686C[9] == 2 && D_neo_ark_shrine_8018686C[12] == 1 &&
-        D_neo_ark_shrine_8018686C[15] == 0) {
-        return 1;
+        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+        return NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED;
     }
-    flag = D_neo_ark_shrine_8018686A;
-    if (flag == 1) {
-        D_neo_ark_shrine_8018686A = 0;
-        if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = flag;
-            gGameSession->location.loc.room                            = flag;
-        } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 4;
-            gGameSession->location.loc.room                            = 4;
-        }
-        gGameSession->roomObjsDirty = 1;
-        sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);
-        padScriptSpawnVariableMotorRamp(0x28, 0x30, 0x60);
+    // Consume the pending restore only after the higher-priority pattern checks.
+    restoreRequest = D_neo_ark_shrine_8018686A;
+    if (restoreRequest == true) {
+        _neoArkShrineRestorePuzzleLayout(restoreRequest);
     }
     if (D_neo_ark_shrine_8018686C[0] == 5 && D_neo_ark_shrine_8018686C[4] == 6 &&
         D_neo_ark_shrine_8018686C[8] == 7 && D_neo_ark_shrine_8018686C[12] == 8 &&
-        D_neo_ark_shrine_8018686C[15] == 0) {
-        return 2;
+        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+        return NEO_ARK_SHRINE_PUZZLE_MATCH_RELEASE_ENEMIES;
     }
     if (D_neo_ark_shrine_8018686C[0] == 8 && D_neo_ark_shrine_8018686C[4] == 7 &&
         D_neo_ark_shrine_8018686C[8] == 6 && D_neo_ark_shrine_8018686C[12] == 5 &&
-        D_neo_ark_shrine_8018686C[15] == 0) {
-        return 2;
+        D_neo_ark_shrine_8018686C[15] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
+        return NEO_ARK_SHRINE_PUZZLE_MATCH_RELEASE_ENEMIES;
     }
-    return 0;
+    return NEO_ARK_SHRINE_PUZZLE_MATCH_NONE;
 }
