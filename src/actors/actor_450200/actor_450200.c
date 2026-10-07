@@ -1315,25 +1315,30 @@ static void _actor450200CompanionPuffTask(Task* task)
     }
 }
 
-/// Fades a retained head-aim weight toward ONE when enabled, or zero otherwise.
+/// Fades the scene's head-turn blend weight toward full aiming or the current pose.
 ///
-/// `aim` is writable task-owned state. Normal weights need eight enabled ticks
-/// or sixteen disabled ticks for a full ramp. Preserve halfword wrapping before
-/// the signed clamp, including for weights outside the normal 0..ONE range.
+/// A full-range fade takes eight calls with `enabled` nonzero or sixteen with
+/// it zero. Requires writable `aim`; only its Q12 `rate` changes, where zero
+/// holds the current pose and `ONE` applies the aim. Updates wrap to a signed
+/// halfword before endpoint checks, including outside the normal 0..ONE range.
 static inline void _actor450200RampHeadAimWeight(AnimationHeadAim* aim, s32 enabled)
 {
-    u16 nextRate;
+    enum {
+        ACTOR_450200_HEAD_AIM_FADE_IN_TICKS  = 8,
+        ACTOR_450200_HEAD_AIM_FADE_OUT_TICKS = 16,
+    };
+    s16 nextWeight;
 
     if (enabled != 0) {
-        nextRate  = aim->rate + ONE / 8;
-        aim->rate = nextRate;
-        if ((s16)nextRate > ONE) {
+        nextWeight = aim->rate + ONE / ACTOR_450200_HEAD_AIM_FADE_IN_TICKS;
+        aim->rate  = nextWeight;
+        if (nextWeight > ONE) {
             aim->rate = ONE;
         }
     } else {
-        nextRate  = aim->rate - ONE / 16;
-        aim->rate = nextRate;
-        if ((s16)nextRate < 0) {
+        nextWeight = aim->rate - ONE / ACTOR_450200_HEAD_AIM_FADE_OUT_TICKS;
+        aim->rate  = nextWeight;
+        if (nextWeight < 0) {
             aim->rate = 0;
         }
     }
