@@ -2768,7 +2768,6 @@ static void func_actor_503500_80137678(Task* arg0)
 {
     SVECTOR                           rot;
     GfxMatrix                         m;
-    GfxRotationWords*                 ident;
     _Actor503500PinkFlashEmitterWork* work;
     Enemy*                            enemy;
     GfxCoord*                         coord;
@@ -2865,12 +2864,7 @@ static void func_actor_503500_80137678(Task* arg0)
     rot.vx                 = work->spin.fixed.vx.word >> 16;
     rot.vy                 = work->spin.fixed.vy.word >> 16;
     rot.vz                 = work->spin.fixed.vz.word >> 16;
-    m.rotationWords.m00M01 = ONE;
-    m.rotationWords.m02M10 = 0;
-    ident                  = &m.rotationWords;
-    ident->m11M12          = ONE;
-    m.rotationWords.m20M21 = 0;
-    ident->m22             = ONE;
+    gfxSetRotIdentity(&m.mat);
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&m.mat);
