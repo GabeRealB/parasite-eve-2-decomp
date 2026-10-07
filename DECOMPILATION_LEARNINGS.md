@@ -126086,7 +126086,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (matched on the second build). Scratch
 `nonmatchings/func_actor_341300_80163028-vacuum`.
 
-## An m2c `extern` with a narrowed *return type* sign-extends every call result; the game's own callees have no prototype here (func_actor_341300_80162278, 2026-09-17)
+## An m2c `extern` with a narrowed *return type* sign-extends every call result; the game's own callees have no prototype here (_actor341300TurnPlayerTowardScenePlacementTask, 2026-09-17)
 
 **Symptom:** the raw m2c seed scores 96.227% with `branch=8 insert=2 regs=3
 reorder=1` and no block, predicate or call difference at all. The whole diff is
@@ -126132,7 +126132,7 @@ and both are a declared width in the seed. The tell for this one is a
 source asking for a truncation — a real `(s16)` cast and a phantom one look
 identical in the object.
 
-`func_actor_341300_80162278` has no twin: `overlay_dup_index.py find` reports it
+`_actor341300TurnPlayerTowardScenePlacementTask` has no twin: `overlay_dup_index.py find` reports it
 as its own only copy, so nothing was promoted. Its body otherwise matches
 `_dryfieldMainStreetTurnPlayerTowardAreaActorTask` (`src/rooms/dryfield_main_street/`), which
 is a matched sibling of the same algorithm — the aim angle, the `-0x800..0x800`
@@ -126146,7 +126146,7 @@ Inputs: `base.i` (96.227%) SHA256
 `5f09ad11b3c561f8e5a5f0566ca3c0ad16fe8523cb1d9365d0885132d030162b`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (matched on the second build). Scratch
-`nonmatchings/func_actor_341300_80162278-vacuum`.
+`nonmatchings/_actor341300TurnPlayerTowardScenePlacementTask-vacuum`.
 ## Write an `s16` division as `/ 2`; m2c's `(u32)(x << 16) >> 31` spelling re-derives the shift after the narrowing
 
 The target of `func_actor_323300_8016359C` narrows a clamped `s16` into a *new*
@@ -129691,21 +129691,21 @@ read's own register, as the target does (`andi v0,v0,0xffff`). Separately, an
 the target's entry copy of the argument into a call-clobbered register
 (`move t3,a2`), freeing `$a2` for a loop variable.
 
-### Projected screen coords as `long sxy[]`, a `k = i * 4` local, and `setUV4` order (func_actor_341300_80161E84, 2026-09-17)
+### Projected screen coords as `long packedScreenXY[]`, a `firstCorner = quadIndex * 4` local, and `setUV4` order (_actor341300DrawTexturedQuads, 2026-09-17)
 
 **Problem.** A loop draws two POLY_FT4s from `RotTransPers`/`RotTransPers3` into an
-8-entry screen-coord array, copies them into `s16 x[8]`/`y[8]`, then fills the prim.
+8-entry screen-coord array, copies them into `s16 screenX[8]`/`screenY[8]`, then fills the quad.
 Three separate symptoms, each from a different source choice:
 
-- The copy loop read `lhu 0(p)` then `lh 2(p)`. `DVECTOR sxy[8]` gives `lhu` twice.
-  **Fix:** `long sxy[8]` (the PsyQ prototype's type) with `x[j] = sxy[j]; y[j] = sxy[j] >> 16;`.
-- `x[i*4]`/`y[i*4]` were strength-reduced to spilled pointer givs in the target
-  (stack 0x100 vs 0xF8); writing `i * 4` inline makes loop.c print `giv of insn N
-  not worth while, 124 vs 172`. **Fix:** `k = i * 4;` at the top of the body and
-  `k`, `k + 1`, `for (j = k; j < k + 4; j++)` everywhere (80% -> 94%). `j < i*4 + 4`
-  instead folds the pre-check to `li v0,1`; a separate `k += 4` biv is worse.
+- The copy loop read `lhu 0(p)` then `lh 2(p)`. `DVECTOR packedScreenXY[8]` gives `lhu` twice.
+  **Fix:** `long packedScreenXY[8]` (the PsyQ prototype's type) with `screenX[cornerIndex] = packedScreenXY[cornerIndex]; screenY[cornerIndex] = packedScreenXY[cornerIndex] >> 16;`.
+- `screenX[quadIndex*4]`/`screenY[quadIndex*4]` were strength-reduced to spilled pointer givs in the target
+  (stack 0x100 vs 0xF8); writing `quadIndex * 4` inline makes loop.c print `giv of insn N
+  not worth while, 124 vs 172`. **Fix:** `firstCorner = quadIndex * 4;` at the top of the body and
+  `firstCorner`, `firstCorner + 1`, `for (cornerIndex = firstCorner; cornerIndex < firstCorner + 4; cornerIndex++)` everywhere (80% -> 94%). `cornerIndex < quadIndex*4 + 4`
+  instead folds the pre-check to `li v0,1`; a separate `firstCorner += 4` biv is worse.
 - The UV constants were loaded early into `$a1`/`$v1` and stored late. Per-field
-  `u0 = u2 = 0x23` style assignments do not do it. **Fix:** `setUV4(prim, u0, v0, u1,
+  `u0 = u2 = 0x23` style assignments do not do it. **Fix:** `setUV4(quad, u0, v0, u1,
   v1, u2, v2, u3, v3)` *before* `setRGB0`, then clut, then tpage (94% -> 100%);
   `setRGB0` first scores 99.05%.
 
