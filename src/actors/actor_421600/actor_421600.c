@@ -178,34 +178,26 @@ extern s16 D_actor_421600_80151268;
 /// Signed transition durations, indexed by old animation * 25 + new animation.
 extern s8 gDesertChaserClipStartFrames[25][25];
 
-/// Allocation holding the Water Tower chaser's two catch tables and its hit
-/// offsets, kept as one object because the extents the code writes overlap.
+/// The Water Tower chaser's two catch tables and its hit offsets, three
+/// objects stored one after another.
 ///
 /// A catch table lists the animation sets the caught player is sent, indexed
 /// by `AnimationPlayRequest::animationId`: 1 to 3 are this package's own, and
 /// 4 and 5 are filled in during the catch with the sets of the player's
-/// weapon. The regular build gives each table nine words. This one stores
-/// five, so the word for set 5 lies past the table that was chosen: for the
-/// front table it is `rear[0]`, an entry no request names, and for the rear
-/// table it is the `vx` and `vy` of `hitOffsets[0]`. The three therefore share
-/// one object, and the code reaches them through views of it six words long.
+/// weapon. The regular build (`actor_00100`) gives each table nine words. This
+/// one stores five, and the catch handler was not changed: its third stage
+/// still writes set 5, ONE PAST THE END of the chosen table, and the player's
+/// animation task then reads it back from there. For the front table that
+/// word is `gDesertChaserRearAnim[0]`, an entry no request names; for the rear
+/// table it is the `vx` and `vy` of `gDesertChaserHitOffsets[0]`.
 ///
-/// Whether a rear catch that reaches set 5 happens in play, and with it the
-/// overwritten hit offset, is not established.
-typedef struct {
-    AnimationSet* front[5];       // Sets sent to a player caught facing the chaser
-    AnimationSet* rear[5];        // Sets sent to a player caught from behind
-    SVECTOR       hitOffsets[12]; // Offsets of the hit effects from their model part, with the part's index in `pad`
-} _Actor421600CatchTableStorage;
-STATIC_ASSERT_SIZEOF(_Actor421600CatchTableStorage, 136);
-STATIC_ASSERT(OFFSET_OF(_Actor421600CatchTableStorage, rear) == 20, actor421600_rear_catch_table_offset);
-STATIC_ASSERT(OFFSET_OF(_Actor421600CatchTableStorage, hitOffsets) == 40, actor421600_hit_offsets_offset);
-extern _Actor421600CatchTableStorage D_actor_421600_80151090;
-
-// These bounded symbol views preserve the original independent address loads.
-extern AnimationSet* gDesertChaserFrontAnim[6] __asm__("D_actor_421600_80151090");
-extern AnimationSet* gDesertChaserRearAnim[6] __asm__("D_actor_421600_80151090+20");
-extern SVECTOR       gDesertChaserHitOffsets[12] __asm__("D_actor_421600_80151090+40");
+/// The out-of-bounds access is the original program's, kept as it is: the
+/// tables have their real five-entry extent, and the handler indexes them the
+/// way the regular build does. Whether a rear catch reaches set 5 in play,
+/// and with it the overwritten hit offset, is not established.
+extern AnimationSet* gDesertChaserFrontAnim[5];   // Sets sent to a player caught facing the chaser
+extern AnimationSet* gDesertChaserRearAnim[5];    // Sets sent to a player caught from behind
+extern SVECTOR       gDesertChaserHitOffsets[12]; // Offsets of the hit effects from their model part, with the part's index in `pad`
 
 static void func_actor_421600_8013E668(Task* task);
 static void func_actor_421600_8013E858(Task* arg0);
@@ -1197,7 +1189,11 @@ u8 D_actor_421600_80151028[104] = {
     0,
 };
 
-_Actor421600CatchTableStorage D_actor_421600_80151090 = { { NULL, &_gActor421600Animation19E54, &_gActor421600Animation1ADFC, &_gActor421600Animation1B8C4, NULL }, { NULL, &_gActor421600Animation1A5F0, &_gActor421600Animation1B610, &_gActor421600Animation1BBE4, NULL }, { { 60, -12, 30, 2 }, { -50, -130, 29, 2 }, { 20, -70, 25, 2 }, { -30, -65, 25, 2 }, { 60, -120, 30, 2 }, { 20, -20, -5, 2 }, { -15, -50, 0, 2 }, { 2, 10, -15, 2 }, { 14, 0, 0, 7 }, { 25, 0, 0, 2 }, { -14, 0, 0, 9 }, { -25, 0, 0, 2 } } };
+AnimationSet* gDesertChaserFrontAnim[5] = { NULL, &_gActor421600Animation19E54, &_gActor421600Animation1ADFC, &_gActor421600Animation1B8C4, NULL };
+
+AnimationSet* gDesertChaserRearAnim[5] = { NULL, &_gActor421600Animation1A5F0, &_gActor421600Animation1B610, &_gActor421600Animation1BBE4, NULL };
+
+SVECTOR gDesertChaserHitOffsets[12] = { { 60, -12, 30, 2 }, { -50, -130, 29, 2 }, { 20, -70, 25, 2 }, { -30, -65, 25, 2 }, { 60, -120, 30, 2 }, { 20, -20, -5, 2 }, { -15, -50, 0, 2 }, { 2, 10, -15, 2 }, { 14, 0, 0, 7 }, { 25, 0, 0, 2 }, { -14, 0, 0, 9 }, { -25, 0, 0, 2 } };
 
 TaskMessageEntry D_actor_421600_80151118[8] = {
     { 2015, func_actor_421600_8013E424 },
