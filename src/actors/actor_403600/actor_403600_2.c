@@ -2280,17 +2280,10 @@ static void func_actor_403600_8013A444(Task* arg0)
 /// an identity turn matrix for `RotMatrixY` to rotate.
 static inline void _actor403600ArcStart(_Actor403600RushPassScratch* s)
 {
-    GfxMatrix* m;
-
     s->offset.vx            = 0;
     s->offset.vy            = 0;
-    m                       = &s->rotation;
     s->offset.vz            = 0x3A98 - D_actor_403600_801605D4.vz;
-    m->rotationWords.m00M01 = ONE;
-    m->rotationWords.m02M10 = 0;
-    m->rotationWords.m11M12 = ONE;
-    m->rotationWords.m20M21 = 0;
-    m->rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&s->rotation.mat);
 }
 
 /// Rotates the arc vector by the turn matrix on the GTE and places the actor's
