@@ -973,6 +973,12 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
             release(g)
             continue
         limit = limits[key[0]]
+        # Resident code is reviewed through headers every image includes, so
+        # each build and reference search costs more: a full step of it took a
+        # median 31 minutes against 26 for overlay code, one in ten over 49,
+        # and a round waits for its slowest step. Half the size keeps it level.
+        if key[0] == "func" and key[1].startswith(RESIDENT_UNITS):
+            limit = max(1, limit // 2)
         members = list(g)
         release(g)
         queue = ready[key]
@@ -1028,6 +1034,8 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
     steps.extend(g for g in pending if g not in placed)
     return [g for g in order if g not in pset] + steps
 
+
+RESIDENT_UNITS = ("src/main/", "src/gameplay/")
 
 RUN_KINDS = os.path.join("local", "name_pass_kinds")
 
