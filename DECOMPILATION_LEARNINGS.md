@@ -3317,7 +3317,7 @@ switch wants, and the byte store subregs it:
         ...
         case 1:
             companion->routeComplete = state;
-            func_actor_800200_801654EC(arg0, 0);
+            _actor800200EnterTimedWait(arg0, 0);
             break;
 ```
 
@@ -3377,7 +3377,7 @@ That is exactly the `update_equiv_regs` precondition in `local-alloc.c`
 the second store its own literal — it is 1 on both paths anyway — and the first
 one collapses.
 
-`func_actor_800200_8016390C`: literals in both stores 98.7% (`insert=1`, the
+`_actor800200TickArea5Route`: literals in both stores 98.7% (`insert=1`, the
 spare `li`, everything else identical), `s32 flag = 1` into the field plus a
 literal at the second store 100% / 82 instructions. Inputs: `base_1.i`
 `446182eceb20d58928a31b6c243cc7bdbf22a96652ec244c260da9fc00717a85` (two-use
@@ -12029,7 +12029,7 @@ example (matched 100% on the first typed attempt, 80.283% as the m2c seed, whose
 translation unit.** The worked example is the file's last function, so nothing
 downstream of it sees the prototype; unprototyping the header really is enough.
 For a function whose *definition* precedes its caller — the normal case in an
-address-ordered file, `func_actor_800200_80163044` (matched 100% on the first
+address-ordered file, `_actor800200TickArea23Route7` (matched 100% on the first
 typed attempt at `0x80163044`) against its caller `func_actor_800200_80165644`
 (`0x80165644`) — the definition's own prototype is already in scope at the call
 and the old-style header declaration cannot undo it. The bare `f()` is a hard
@@ -49536,7 +49536,7 @@ that leads to another `extra` two loads later is a `parent`.
 The call-site mirror of the two entries above. When the callee's first parameter
 is the *caller's* own first parameter, `$a0` is never re-written before the
 `jal`, so m2c treats it as already-live and omits it from the argument list,
-shifting every remaining argument down one position. `func_actor_800200_801654EC`
+shifting every remaining argument down one position. `_actor800200EnterTimedWait`
 compiles to
 
 ```
@@ -49559,8 +49559,8 @@ leading argument and it matches on the first build; the matched sibling in the
 same TU (`func_actor_800200_801653C0`, `playerActorPlayChildSlotsWithBlend(index, 7, 0, 3)`)
 shows the true arity.
 
-It is not a one-off in that TU: `func_actor_800200_80165534`, the very next
-`INCLUDE_ASM` after `func_actor_800200_801654EC`, carries the identical
+It is not a one-off in that TU: `_actor800200EnterRouteAnimation`, the very next
+`INCLUDE_ASM` after `_actor800200EnterTimedWait`, carries the identical
 three-argument call for its own `0xE` mode and matched the same way. An actor
 state-entry function whose whole body is a field block plus one
 `playerActorPlayChildSlotsWithBlend` should be checked for the missing `index` before
@@ -75869,17 +75869,17 @@ compares of the one value.
 
 ### Reassigning a local reuses its pseudo, so a repeated load needs a second variable
 
-`func_actor_800200_8016545C` reads `index->actor` twice - once before the call to
+`_actor800200StartActionBurst` reads `task->work` twice - once before the call to
 `worldTargetFindLockNode` and once after it, which cse cannot merge across the call -
 and the target keeps the two in different registers (`$s0` for the first,
 `$v0` for everything after the call). Writing it the obvious way does not:
 
 ```c
-GameActor* actor = arg0->actor;   /* -> $s0 */
-actor->companionWork->activity.combat.repeatsRemaining = arg1;
-if (gSceneCombatState.signals.bytes.battlePhase == 1) { actor->targetNode = worldTargetFindLockNode(arg0); }
+GameActor* actor = task->work;   /* -> $s0 */
+actor->companionWork->activity.combat.repeatsRemaining = repeatsRemaining;
+if (gSceneCombatState.signals.bytes.battlePhase == 1) { actor->targetNode = worldTargetFindLockNode(task); }
 ...
-actor = arg0->actor;              /* still the same pseudo: one quantity */
+actor = task->work;              /* still the same pseudo: one quantity */
 actor->mode = 0;
 ```
 
@@ -82704,7 +82704,7 @@ in both the fix is at the declaration, not at a pin: **when two branches of one
 it does not, they are two variables.
 
 The shared name does not have to be a pointer, and the split does not have to be
-between two branches of one `if`. `func_actor_800200_801637B4` hit the same thing
+between two branches of one `if`. `_actor800200TickArea2Route` hit the same thing
 across the two cases of a `switch`, with the value 1 in case 0 and the call
 argument 6 / 5 in case 1 under one `s32 flag`:
 
@@ -82716,7 +82716,7 @@ argument 6 / 5 in case 1 under one `s32 flag`:
             if (companion->waypointIndex == 1) {
                 flag = 5;
             }
-            func_actor_800200_80165408(arg0, flag);
+            _actor800200EnterApproach(arg0, flag);
 ```
 
 One allocno spanning both cases takes `$a1`, because the case-1 use is an
@@ -106148,7 +106148,7 @@ where `state == 1` was proven, `record_jump_equiv` ties `state ≡ const`, after
 which `fold_rtx` canonicalises that tail's store to
 `(subreg:QI (reg:SI <extended state>) 0)`. The zero-extended switch value then
 lives across the call and has to be callee-saved, which pushes the argument
-register up a slot and adds a save/restore — `func_actor_800200_80163A54` sat
+register up a slot and adds a save/restore — `_actor800200TickArea1Route` sat
 at 86.4% (13/13 blocks, calls matching, two extra frame insns) with
 `Register 129 used 4 times across 30 insns; crosses 1 call` in `.lreg` as the
 tell. Reading the store back to a value that is *not* the compared register
@@ -106159,7 +106159,7 @@ Symptoms to look for: a `sh`/`sb` in one arm using a fresh `li` where the
 matched neighbour uses an existing register, plus a `.lreg` line whose live
 range "crosses N calls" only because a constant was canonicalised into it.
 
-## A switch arm that cannot reach the comparison's constant still shares it through an `SI` local (func_actor_800200_80163B90, 2026-09-16)
+## A switch arm that cannot reach the comparison's constant still shares it through an `SI` local (_actor800200TickArea20Route8To10, 2026-09-16)
 
 **Symptom:** case 0 of `switch (actor->stateAux)` writes `actor->stateAux = 1`, and the target stores it
 with the *same* `$v0` the `== 1` test uses, materialised once in the `beqz` delay slot:
@@ -106204,9 +106204,9 @@ and the store one SImode register, and the scheduler parks its `li` in the `beqz
 Using `next` in the comparison as well (`state != next`) is *not* the same thing: the two uses then need
 different types of comparison and it drops to 94.2%.
 
-## An explicit arrival join breaks CSE's constant lifetime; an SI local then permits delay-slot redundancy removal (func_actor_800200_80163A54, 2026-09-20)
+## An explicit arrival join breaks CSE's constant lifetime; an SI local then permits delay-slot redundancy removal (_actor800200TickArea1Route, 2026-09-20)
 
-The 86.370% archived seed duplicated `routeComplete = 1; 654EC(index, 0)` in
+The 86.370% archived seed duplicated `routeComplete = 1; _actor800200EnterTimedWait(index, 0)` in
 both switch arms. First CSE reused the case-0 HI constant and case-1 state
 respectively, carrying both across the distance call. The immediate matched
 sibling's `goto arrived` fixes this before allocation: place `arrived:` inside
@@ -106231,17 +106231,17 @@ the exact internal call path was not traced. This qualifies earlier CSE-only
 explanations of the sibling idiom. Preconditions here include the same hard
 register, a suitable target-head instruction, and no intervening conflicts.
 
-Evidence: scratch `func_actor_800200_80163A54-vacuum`, `base_1`/`base_2`
+Evidence: scratch `_actor800200TickArea1Route-vacuum`, `base_1`/`base_2`
 `.cse`, `.lreg`, `.greg`, `.jump2`, `.dbr`, plans/conclusions and LEARNINGS.md.
 Input SHA256s: base_1 `d63072cdee474cf9c5bedcf695a18411ebc3a2b8b33df364ed799873348c51cf`;
 base_2 `4b5a3f4b5971dc3b8b431742f242e4eaffd7a7953a66a9eaa5e0889ae2b4d012`.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A switch's shared tail is emitted where its label sits - an earlier case `goto`s into the later case's branch (func_actor_800200_80163B90, 2026-09-16)
+## A switch's shared tail is emitted where its label sits - an earlier case `goto`s into the later case's branch (_actor800200TickArea20Route8To10, 2026-09-16)
 
-**Symptom:** both arms end in `routeComplete = 1; func_...4EC(index, 0);`. Written once after the switch (the
+**Symptom:** both arms end in `routeComplete = 1; _actor800200EnterTimedWait(index, 0);`. Written once after the switch (the
 join-point fix recorded above) the instructions are all correct but the block order is not: the tail is
-emitted last, after the `waypointIndex++` and `func_...5408` blocks, so the branches into it come out mirrored
+emitted last, after the `waypointIndex++` and `_actor800200EnterApproach` blocks, so the branches into it come out mirrored
 (`beq` where the target has `bne`) and the case-0 tail is threaded differently - 92.1% with
 `branch=2 reorder=7 insert=1 delete=1`, every instruction present, 79/79.
 
@@ -106256,7 +106256,7 @@ switch's end - it lies *between* case 1's body and case 1's two inner sub-blocks
         if (playerActorPlanarDistance(...) < 0x401) {
             goto arrived;
         }
-        func_actor_800200_80165534(arg0);
+        _actor800200EnterRouteAnimation(arg0);
         return;
     case 1:
         ...
@@ -106264,7 +106264,7 @@ switch's end - it lies *between* case 1's body and case 1's two inner sub-blocks
             if (companion->waypointIndex == 4) {
             arrived:
                 companion->routeComplete = 1;
-                func_actor_800200_801654EC(arg0, 0);
+                _actor800200EnterTimedWait(arg0, 0);
                 return;
             }
             companion->waypointIndex++;
@@ -106370,7 +106370,7 @@ cross-jump at all.
 
 Consequence for reading a target: one `jal` reached from two paths does not mean
 the source called once. `func_actor_800200_80163E14` (`actor_800200`) shows a
-single `jal func_actor_800200_80165534`, entered both by its `arrived` label
+single `jal _actor800200EnterRouteAnimation`, entered both by its `arrived` label
 (case 0's `< 0x401` test, and case 1's `waypointIndex == 4`) and by the `waypointIndex++`
 path, with the `routeComplete = 1` store in the `j`'s delay slot. The sibling bodies
 in the same file duplicate the call, and so does the source that matches:
@@ -106379,11 +106379,11 @@ in the same file duplicate the call, and so does the source that matches:
     if (companion->waypointIndex == 4) {
     arrived:
         companion->routeComplete = 1;
-        func_actor_800200_80165534(arg0);
+        _actor800200EnterRouteAnimation(arg0);
         return;
     }
     companion->waypointIndex++;
-    func_actor_800200_80165534(arg0);
+    _actor800200EnterRouteAnimation(arg0);
     return;
 ```
 
@@ -106395,7 +106395,7 @@ sources are therefore indistinguishable from the target, so a shared `jal` is no
 evidence that the original hoisted, and a matched sibling's duplicated tail
 should not be "cleaned up" to match one.
 
-## A stale `(void)` prototype can be renamed around in the scratch env (func_actor_800200_80163180, 2026-09-16)
+## A stale `(void)` prototype can be renamed around in the scratch env (_actor800200TickArea22Route, 2026-09-16)
 
 Landing a `(void)`-stubbed actor function whose body takes `index` means giving
 the header the real prototype and passing `index` at the call site (see "A staged
@@ -106407,13 +106407,13 @@ is exactly what a scratch run should not do.
 Rename the stale prototype away for the include, then define normally:
 
 ```c
-#define func_actor_800200_80163180 func_actor_800200_80163180_stale_proto
+#define _actor800200TickArea22Route actor800200TickArea22RouteStaleProto
 #include "actors/actor_800200.h"
-#undef func_actor_800200_80163180
+#undef _actor800200TickArea22Route
 ```
 
 The header declares the symbol once, so the macro rewrites nothing else. The
-sibling `func_actor_800200_8016337C` and `func_actor_800200_80163584` are still
+sibling `_actor800200TickArea20Route7` and `_actor800200TickArea4Route` are still
 `(void)` stubs in the same header and will each need this until they land.
 
 The landed body itself is the family shape already described here: the m2c seed
@@ -106424,9 +106424,9 @@ into `0x780`. Declaring `_Actor800200Waypoint D_actor_800200_8016A058[]` and wri
 100.00% with all-zero penalties on the first typed attempt; the `$s3 = 1` held
 across calls that the seed lacked came out of the source by itself, with no pin.
 
-## A duplicated call whose constant *argument* differs is not cross-jumped: hoist it into a variable (func_actor_800200_80162BFC, 2026-09-16)
+## A duplicated call whose constant *argument* differs is not cross-jumped: hoist it into a variable (_actor800200TickArea23Route1, 2026-09-16)
 
-`func_actor_800200_80162BFC` ends `case 1` with a call whose second argument is
+`_actor800200TickArea23Route1` ends `case 1` with a call whose second argument is
 `5` or `6` depending on `companion->waypointIndex == 3`, and the ROM has **one** `jal`:
 
 ```asm
@@ -106435,7 +106435,7 @@ across calls that the seed lacked came out of the source by itself, with no pin.
      addiu $a1, $zero, 6        /* fall-through value, rides the delay slot */
     addiu $a1, $zero, 5         /* taken when waypointIndex == 3 */
 .L:
-    jal   func_actor_800200_80165408
+    jal   _actor800200EnterApproach
      addu $a0, $s4, $zero
 ```
 
@@ -106456,11 +106456,11 @@ was hoisted instead, the source selected it into a variable first:
             if (companion->waypointIndex == 3) {
                 mode = 5;
             }
-            func_actor_800200_80165408(arg0, mode);
+            _actor800200EnterApproach(arg0, mode);
 ```
 
 100.00% with all-zero penalties, and the same idiom already lands in the matched
-sibling `func_actor_800200_801637B4` (`mode = 6; if (companion->waypointIndex == 1) mode = 5;`).
+sibling `_actor800200TickArea2Route` (`mode = 6; if (companion->waypointIndex == 1) mode = 5;`).
 
 ## Widening a stale `(void)` prototype does not disturb a matched caller whose argument is still in `$a0`
 
@@ -106468,23 +106468,23 @@ sibling `func_actor_800200_801637B4` (`mode = 6; if (companion->waypointIndex ==
 scratch-env workaround. When the match lands, the shared header does have to get
 the real prototype and the call site does have to pass the argument - and that
 second edit is safe: in `func_actor_800200_80165580` the changed call still
-compiles to `jal func_actor_800200_80162BFC` + `nop`, byte-identical to the ROM,
+compiles to `jal _actor800200TickArea23Route1` + `nop`, byte-identical to the ROM,
 because `index` is that caller's own parameter, never written, and so already
 lives in `$a0`; GCC drops the self-move. Check the caller's prologue for a write
 to `$a0` before assuming the same, and confirm in the built object
 (`mipsel-linux-gnu-objdump -dr <obj> | grep <callee>`) rather than trusting the
 build's silence.
 
-`func_actor_800200_80162BFC` itself then matched on the first typed attempt after
+`_actor800200TickArea23Route1` itself then matched on the first typed attempt after
 the two mechanical edits, following the `D_actor_800200_8016A020[3]` /
 `[companion->waypointIndex]` `_Actor800200Waypoint` idiom of its siblings; the seed had typed the
 table as an untyped scalar and scaled `coord + 0x18` by `sizeof(GfxCoord)`.
 
-## A stored literal the arm also compares against needs no `SC` local (func_actor_800200_8016337C, 2026-09-16)
+## A stored literal the arm also compares against needs no `SC` local (_actor800200TickArea20Route7, 2026-09-16)
 
 "A switch arm that cannot reach the comparison's constant still shares it through an `SI` local" records
 the arm that grew its own `li` for `stateAux = 1` and needed the local. The neighbouring shadow function,
-`func_actor_800200_8016337C`, has the same shape and matched 100% on the first attempt with plain
+`_actor800200TickArea20Route7`, has the same shape and matched 100% on the first attempt with plain
 literals, because the value its arm stores is also the constant a nearby test compares against:
 
 ```c
@@ -106499,8 +106499,8 @@ literals, because the value its arm stores is also the constant a nearby test co
 cse gives the constant `2` one register for both uses, so the arm materialises nothing of its own: the
 store is `sh $s3,0x960($s0)` - the same `$s3` the `bne $v0,$s3` tests - and its definition is the
 `addiu $s3,$zero,2` the scheduler parks in the `beqz` delay slot two branches above. The two byte-shape
-twins in the same overlay differ exactly here: `func_actor_800200_80162BFC` compares `waypointIndex` against
-`3` and `func_actor_800200_80163180` against `1` while both store `2`, so no constant is shared and both
+twins in the same overlay differ exactly here: `_actor800200TickArea23Route1` compares `waypointIndex` against
+`3` and `_actor800200TickArea22Route` against `1` while both store `2`, so no constant is shared and both
 materialise `2` at the store. Reach for the `s32` local only when the stored constant has no other reader
 in the arm's extended basic block.
 
@@ -106703,7 +106703,7 @@ Written the way m2c renders it, as the block's trailing statement
 stores in the RTL, and nothing can move it up: a load may not cross a
 may-aliasing store, and the target's load precedes all of them. The read must
 therefore be evaluated before the store block in the source. The matched sibling
-`func_actor_800200_80165408` (same file) shows the shape the original used - a
+`_actor800200EnterApproach` (same file) shows the shape the original used - a
 `u16` local, so declared:
 
 ```c
@@ -106747,14 +106747,14 @@ addiu v1,v1,%lo(Tab)      /* the symbol's own low half, not Tab+0x18 */
 lw    v0,0x18(v1)         /* 8*3 here, not 0 */
 ```
 
-The sibling `func_actor_800200_80162BFC` is the control: its matched
+The sibling `_actor800200TickArea23Route1` is the control: its matched
 `D_actor_800200_8016A020[3].x` is `addiu $v1,$v1,0xA020` (`%lo(0x8016A020)`)
 plus `lw $v0,0x18($v1)`. So a target word pair of `%lo(SYM)` + `lw 0x18(reg)` is
 `SYM[3]`, and rewriting it as a second symbol at `SYM+0x18` indexed from zero is
 *not* equivalent - that emits `%lo(SYM+0x18)` (`0xA010` for a `0x9FF8` base) with
 displacement 0, and only the checksum notices.
 
-`func_actor_800200_80162990` reads its path table both ways and they agree on one
+`_actor800200TickArea26Route` reads its path table both ways and they agree on one
 symbol: case 0 is `D_actor_800200_80169FF8[3]` (`%lo(...9FF8)` + `0x18`) and case
 1 is `D_actor_800200_80169FF8[companion->waypointIndex]` (same base, `sll 3` folded into the
 register, displacement 0). Splat printed that base as an auto-named
@@ -149148,7 +149148,7 @@ It fails in two ways:
 - the image keeps the *earlier* copy and jumps backward to it
   (`Gp_PlayerMode2State3`: the later arm has a constant 1 in `$s5`, so the
   surviving later copy stores `s5` where the image has `move v0,a1`);
-- cse makes the copies different: in `func_actor_800200_80163044` the
+- cse makes the copies different: in `_actor800200TickArea23Route7` the
   duplicated `routeComplete = 1` reuses the register that held 1 for an
   earlier store, across a call (`li s4,1`), where the shared block reloads
   it. A label with two users ends the cse path; a duplicated block does not.
@@ -150469,15 +150469,15 @@ attempts; left as it was.
 - **The companion's `goto arrived;` from case 0 into case 1's `if (waypoint ==
   LAST) { arrived: routeComplete = 1; ...; return; }`** converts by writing the
   two statements in case 0 only where cse leaves both copies alone:
-  `func_actor_800200_80162990`, `_80162BFC` and `_8016337C` (LAST is 3 or 2,
+  `_actor800200TickArea26Route`, `_actor800200TickArea23Route1` and `_actor800200TickArea20Route7` (LAST is 3 or 2,
   `stateAux = 1` a literal). It fails in the other seven of the list for two
   reasons, both the label's doing (a block with two predecessors starts a new
   cse path): where LAST is 1, case 1's copy stores the register that held the
   waypoint (`bne v1,v0; sb v1`) in place of a fresh `li v0,1`
-  (`_80163180`, `_80163584`, `_80163044`); where case 0 stores `stateAux`
+  (`_actor800200TickArea22Route`, `_actor800200TickArea4Route`, `_actor800200TickArea23Route7`); where case 0 stores `stateAux`
   through the `s32 flag = 1` local, case 0's copy keeps that register across
   the distance call and case 1's copy stores the switch index, known to be 1
-  (`_801637B4`, `_8016390C`, `_80163A54`, `_80163B90`). `actor->stateAux++`
+  (`_actor800200TickArea2Route`, `_actor800200TickArea5Route`, `_actor800200TickArea1Route`, `_actor800200TickArea20Route8To10`). `actor->stateAux++`
   in place of the `flag` local is not folded to a constant. Those seven keep
   the goto.
 - Not converted: `func_actor_800200_80163F5C`'s `goto resume;` from the
@@ -150611,7 +150611,7 @@ constant).
   a goto**: in `func_actor_800200_80163CCC`/`_80163E14` the arrival block
   stores 1 and the jumping block sits in the extended basic block of the
   `state == 1` compare, so a written-out copy reuses that register across a
-  call (`li s4,1`, as recorded for `_80163044`); the block after the switch
+  call (`li s4,1`, as recorded for `_actor800200TickArea23Route7`); the block after the switch
   reached by `break` gets the registers right and the block order wrong.
   `_sndLoadInstallScriptBank`'s `fail` is the same with -1 (`addu v0,v0,s2`
   against `addiu v0,v0,-1`).

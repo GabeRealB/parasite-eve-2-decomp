@@ -42,6 +42,35 @@
 
 enum { COMPANION_ROUTE_COMPLETE = 1 };
 
+/// Normal behavior selectors and animation choices used by the route entries.
+enum {
+    ACTOR_800200_STATE_TARGET_TURN         = 2,
+    ACTOR_800200_STATE_ACTION_BURST        = 4,
+    ACTOR_800200_STATE_APPROACH            = 8,
+    ACTOR_800200_STATE_TIMED_WAIT          = 9,
+    ACTOR_800200_STATE_ROUTE_ANIMATION     = 11,
+    ACTOR_800200_MOVEMENT_STOPPED          = 0,
+    ACTOR_800200_MOVEMENT_WALK             = 5,
+    ACTOR_800200_MOVEMENT_RUN              = 6,
+    ACTOR_800200_TURN_DISABLED             = 0,
+    ACTOR_800200_TURN_TARGET               = 2,
+    ACTOR_800200_ANIMATION_CONTROLLER_NONE = 0,
+    ACTOR_800200_ANIMATION_CONTROLLER_ONCE = 7,
+    ACTOR_800200_ANIMATION_IDLE            = 1,
+    ACTOR_800200_ANIMATION_ROUTE           = 14,
+    ACTOR_800200_ENTRY_BLEND_FRAMES        = 3
+};
+
+/// Persistent route phases and exclusive X/Z arrival limits in game units.
+enum {
+    ACTOR_800200_ROUTE_CHECK_END               = 0,
+    ACTOR_800200_ROUTE_TRAVEL                  = 1,
+    ACTOR_800200_ROUTE_WAIT_PLAYER             = 2,
+    ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT  = 0x401,
+    ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT = 0x201,
+    ACTOR_800200_ROUTE_RANDOM_DELAY_MASK       = 0x7F
+};
+
 /// One X/Z stop on a scripted route for this companion.
 ///
 /// A route is a table of these stops. Handlers select an entry with
@@ -78,13 +107,13 @@ extern _Actor800200Waypoint D_actor_800200_8016A130[];
 static void func_actor_800200_801626A0(Task* task);
 static void func_actor_800200_801652EC(Task* arg0);
 static void func_actor_800200_80165380(Task* arg0);
-static void func_actor_800200_801653A0(Task* arg0);
+static void _actor800200EnterTargetTurn(Task* task);
 static void func_actor_800200_801653C0(Task* arg0);
-static void func_actor_800200_80165408(Task* arg0, s32 arg1);
-static void func_actor_800200_80165434(Task* arg0, s16 arg1);
-static void func_actor_800200_8016545C(Task* arg0, s8 arg1);
-static void func_actor_800200_801654EC(Task* arg0, s32 arg1);
-static void func_actor_800200_80165534(Task* arg0);
+static void _actor800200EnterApproach(Task* task, s32 movementMode);
+static void _actor800200EnterActionBurst(Task* task, s16 targetVariant);
+static void _actor800200StartActionBurst(Task* task, s8 repeatsRemaining);
+static void _actor800200EnterTimedWait(Task* task, s32 unusedArgument);
+static void _actor800200EnterRouteAnimation(Task* task);
 static void func_actor_800200_80165580(Task* arg0);
 static void func_actor_800200_80165644(Task* arg0);
 static void func_actor_800200_80165708(Task* arg0);
@@ -864,17 +893,17 @@ static void func_actor_800200_80162088(Task* arg0);
 static void func_actor_800200_801622B0(Task* arg0);
 static void func_actor_800200_80162694(Task* arg0);
 static void func_actor_800200_80162750(Task* arg0);
-static void func_actor_800200_80162990(Task* arg0);
-static void func_actor_800200_80162BFC(Task* arg0);
+static void _actor800200TickArea26Route(Task* task);
+static void _actor800200TickArea23Route1(Task* task);
 static void func_actor_800200_80162E0C(Task* arg0);
-static void func_actor_800200_80163044(Task* arg0);
-static void func_actor_800200_80163180(Task* arg0);
-static void func_actor_800200_8016337C(Task* arg0);
-static void func_actor_800200_80163584(Task* arg0);
-static void func_actor_800200_801637B4(Task* arg0);
-static void func_actor_800200_8016390C(Task* arg0);
-static void func_actor_800200_80163A54(Task* arg0);
-static void func_actor_800200_80163B90(Task* arg0);
+static void _actor800200TickArea23Route7(Task* task);
+static void _actor800200TickArea22Route(Task* task);
+static void _actor800200TickArea20Route7(Task* task);
+static void _actor800200TickArea4Route(Task* task);
+static void _actor800200TickArea2Route(Task* task);
+static void _actor800200TickArea5Route(Task* task);
+static void _actor800200TickArea1Route(Task* task);
+static void _actor800200TickArea20Route8To10(Task* task);
 static void func_actor_800200_80163CCC(Task* arg0);
 static void func_actor_800200_80163E14(Task* arg0);
 static void func_actor_800200_80163F5C(Task* arg0);
@@ -1156,11 +1185,11 @@ static void func_actor_800200_80162750(Task* arg0)
                 break;
             case 1:
                 worldTargetGetBodyPosition(actor->targetNode, &actor->destination);
-                func_actor_800200_80165408(arg0, 6);
+                _actor800200EnterApproach(arg0, 6);
                 break;
             case 2:
                 companion->activity.combat.repeatsRemaining = (rand() & 3) + 1;
-                func_actor_800200_80165434(arg0, 1);
+                _actor800200EnterActionBurst(arg0, 1);
                 break;
             case 3:
                 func_actor_800200_80165380(arg0);
@@ -1176,7 +1205,7 @@ static void func_actor_800200_80162750(Task* arg0)
             }
             if (diff >= 0x200) {
                 actor->targetNode = NULL;
-                func_actor_800200_801653A0(arg0);
+                _actor800200EnterTargetTurn(arg0);
             } else if (actor->actionValue >= ((rand() & 0x7F) + 0x96)) {
                 func_actor_800200_801653C0(arg0);
             }
@@ -1185,133 +1214,164 @@ static void func_actor_800200_80162750(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-static void func_actor_800200_80162990(Task* arg0)
-{
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+/// Sets a route stop in X/Z while retaining the root's current translation Y.
+///
+/// All inputs must be side-effect-free expressions: actor is evaluated three
+/// times, and routeTable and stopIndex twice. The selected stop must be in
+/// bounds. The root and destination share the root node's parent coordinates.
+/// Expands to a compound statement; call inside a braced block, never as
+/// an unbraced if/else arm.
+#define ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, routeTable, stopIndex) \
+    {                                                                               \
+        (actor)->destination.vx = (routeTable)[(stopIndex)].x;                      \
+        (actor)->destination.vy = (rootCoord)->coord.t[1];                          \
+        (actor)->destination.vz = (routeTable)[(stopIndex)].z;                      \
+    }
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_80169FF8[3].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_80169FF8[3].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+/// Advances the four-stop area-26 route selected by spawn mode 1.
+///
+/// Requires a live companion task, model and player; `waypointIndex` must be 0..3.
+/// Tests the final stop on entry, then follows X/Z stops at the current Y.
+/// Waits for the player at intermediate stops and for the wire rope at stop 2;
+/// waiting periodically starts one target-dependent action. Distances are in
+/// root-parent game-coordinate units; the route phase survives behavior changes.
+static void _actor800200TickArea26Route(Task* task)
+{
+    enum { ACTOR_800200_ROUTE_ROPE_WAYPOINT         = 2,
+           ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_80169FF8) - 1,
+           ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xe00,
+           ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0xc01 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             movementMode;
+    s32             actionDelay;
+
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_80169FF8, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                func_actor_800200_801654EC(arg0, 0);
+                _actor800200EnterTimedWait(task, 0);
                 return;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_80169FF8[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_80169FF8[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 3) {
+            // Fall through to select the current waypoint.
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_80169FF8, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
-                if (companionGetPlayerPlanarDistance(coord) >= 0xE00 || (companion->waypointIndex == 2 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE) == 0)) {
-                    actor->stateAux   = 2;
+                if (companionGetPlayerPlanarDistance(coord) >= ACTOR_800200_ROUTE_WAIT_DISTANCE || (companion->waypointIndex == ACTOR_800200_ROUTE_ROPE_WAYPOINT && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE) == 0)) {
+                    actor->stateAux   = ACTOR_800200_ROUTE_WAIT_PLAYER;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
-                    func_actor_800200_801653A0(arg0);
+                    _actor800200EnterTargetTurn(task);
                     return;
                 }
                 companion->waypointIndex++;
                 return;
             }
-            mode = 6;
-            if (companion->waypointIndex == 3) {
-                mode = 5;
+            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
+                movementMode = ACTOR_800200_MOVEMENT_WALK;
             }
-            func_actor_800200_80165408(arg0, mode);
+            _actor800200EnterApproach(task, movementMode);
             return;
-        case 2:
-            if ((companionGetPlayerPlanarDistance(coord) < 0xC01 && companion->waypointIndex < 2) || (companion->waypointIndex == state && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE) != 0)) {
+        case ACTOR_800200_ROUTE_WAIT_PLAYER:
+            // Stop 2 remains gated by rope collection even when the player is close.
+            if ((companionGetPlayerPlanarDistance(coord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT && companion->waypointIndex < ACTOR_800200_ROUTE_ROPE_WAYPOINT) || (companion->waypointIndex == ACTOR_800200_ROUTE_ROPE_WAYPOINT && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE) != 0)) {
                 companion->waypointIndex++;
-                actor->stateAux = 1;
+                actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
                 return;
             }
-            delay             = actor->stateTimer - 1;
-            actor->stateTimer = delay;
-            if (delay <= 0) {
-                actor->stateTimer = rand() & 0x7F;
-                func_actor_800200_8016545C(arg0, 1);
+            actionDelay       = actor->stateTimer - 1;
+            actor->stateTimer = actionDelay;
+            if (actionDelay <= 0) {
+                actor->stateTimer = rand() & ACTOR_800200_ROUTE_RANDOM_DELAY_MASK;
+                _actor800200StartActionBurst(task, 1);
             }
             return;
     }
 }
 
-static void func_actor_800200_80162BFC(Task* arg0)
+/// Advances the four-stop area-23 route selected by spawn mode 1.
+///
+/// Requires a live companion task, model and player; `waypointIndex` must be 0..3.
+/// Keeps the current Y and waits at intermediate stops when the player is far
+/// away. The wait resumes only at a positive waypoint index; stop 0 retains
+/// that original restriction. The final leg walks rather than runs.
+static void _actor800200TickArea23Route1(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_8016A020) - 1,
+           ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xc00,
+           ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0xb01 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             movementMode;
+    s32             actionDelay;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A020[3].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A020[3].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A020, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                func_actor_800200_801654EC(arg0, 0);
+                _actor800200EnterTimedWait(task, 0);
                 return;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A020[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A020[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 3) {
+            // Fall through to select the current waypoint.
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A020, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
-                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
-                    actor->stateAux   = 2;
+                if (companionGetPlayerPlanarDistance(coord) >= ACTOR_800200_ROUTE_WAIT_DISTANCE) {
+                    actor->stateAux   = ACTOR_800200_ROUTE_WAIT_PLAYER;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
-                    func_actor_800200_801653A0(arg0);
+                    _actor800200EnterTargetTurn(task);
                     return;
                 }
                 companion->waypointIndex++;
                 return;
             }
-            mode = 6;
-            if (companion->waypointIndex == 3) {
-                mode = 5;
+            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
+                movementMode = ACTOR_800200_MOVEMENT_WALK;
             }
-            func_actor_800200_80165408(arg0, mode);
+            _actor800200EnterApproach(task, movementMode);
             return;
-        case 2:
-            if (companionGetPlayerPlanarDistance(coord) < 0xB01 && companion->waypointIndex > 0) {
+        case ACTOR_800200_ROUTE_WAIT_PLAYER:
+            if (companionGetPlayerPlanarDistance(coord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT && companion->waypointIndex > 0) {
                 companion->waypointIndex++;
-                actor->stateAux = 1;
+                actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
                 return;
             }
-            delay             = actor->stateTimer - 1;
-            actor->stateTimer = delay;
-            if (delay <= 0) {
-                actor->stateTimer = rand() & 0x7F;
-                func_actor_800200_8016545C(arg0, 1);
+            actionDelay       = actor->stateTimer - 1;
+            actor->stateTimer = actionDelay;
+            if (actionDelay <= 0) {
+                actor->stateTimer = rand() & ACTOR_800200_ROUTE_RANDOM_DELAY_MASK;
+                _actor800200StartActionBurst(task, 1);
             }
             return;
     }
@@ -1340,19 +1400,19 @@ static void func_actor_800200_80162E0C(Task* arg0)
                     actor->statePhase     = 0;
                     actor->animationState = 7;
                     playerActorPlayChildSlotsWithBlend(arg0, 7, 0, 3);
-                    func_actor_800200_80165408(arg0, 6);
+                    _actor800200EnterApproach(arg0, 6);
                     return;
                 }
                 if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {
                     actor->stateAux   = 1;
                     actor->stateTimer = 0;
                     actor->targetNode = 0;
-                    func_actor_800200_801653A0(arg0);
+                    _actor800200EnterTargetTurn(arg0);
                     return;
                 }
                 companion->waypointIndex++;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(arg0, 6);
             return;
         case 1:
             if ((companionGetPlayerPlanarDistance(coord) < 0xA01) || (coord->coord.t[0] < target->coord.t[0])) {
@@ -1365,7 +1425,7 @@ static void func_actor_800200_80162E0C(Task* arg0)
             if (delay <= 0) {
                 companion->activity.combat.repeatsRemaining = 1;
                 actor->stateTimer                           = rand() & 0x7F;
-                func_actor_800200_80165434(arg0, 0);
+                _actor800200EnterActionBurst(arg0, 0);
             }
             return;
         case 3:
@@ -1385,424 +1445,469 @@ static void func_actor_800200_80162E0C(Task* arg0)
     }
 }
 
-static void func_actor_800200_80163044(Task* arg0)
+/// Advances the two-stop area-23 route selected by spawn mode 7.
+///
+/// Requires a live companion task and model; `waypointIndex` must be 0..1.
+/// Skips travel when initially within 1024 game units of the final X/Z stop;
+/// otherwise runs through the stops at the actor's current Y, completing within
+/// 512 units of the final stop.
+static void _actor800200TickArea23Route7(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            flag;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A048) - 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             initialRoutePhase;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            flag                  = 1;
-            actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A048[1].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A048[1].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
+            actor->stateAux   = initialRoutePhase;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A048, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A048[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A048[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 1) {
+            // Fall through to select the current waypoint.
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A048, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
                 companion->waypointIndex++;
                 return;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             return;
         default:
             return;
     }
 }
 
-static void func_actor_800200_80163180(Task* arg0)
+/// Advances the two-stop area-22 route selected by spawn mode 7.
+///
+/// Requires a live companion task, model and player; `waypointIndex` must be 0..1.
+/// Runs at the current Y, waiting at stop 0 when the player is at least 3072 game
+/// units away and resuming within 2048. Waiting periodically starts one
+/// target-dependent action without advancing the route.
+static void _actor800200TickArea22Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            delay;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_8016A058) - 1,
+           ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xc00,
+           ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0x801 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             actionDelay;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A058[1].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A058[1].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A058, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A058[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A058[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 1) {
+            // Fall through to select the current waypoint.
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A058, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
-                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
-                    actor->stateAux   = 2;
+                if (companionGetPlayerPlanarDistance(coord) >= ACTOR_800200_ROUTE_WAIT_DISTANCE) {
+                    actor->stateAux   = ACTOR_800200_ROUTE_WAIT_PLAYER;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
-                    func_actor_800200_801653A0(arg0);
+                    _actor800200EnterTargetTurn(task);
                     return;
                 }
                 companion->waypointIndex++;
                 return;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             return;
-        case 2:
-            if (companionGetPlayerPlanarDistance(coord) < 0x801) {
+        case ACTOR_800200_ROUTE_WAIT_PLAYER:
+            if (companionGetPlayerPlanarDistance(coord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT) {
                 companion->waypointIndex++;
-                actor->stateAux = 1;
+                actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
                 return;
             }
-            delay             = actor->stateTimer - 1;
-            actor->stateTimer = delay;
-            if (delay <= 0) {
-                actor->stateTimer = rand() & 0x7F;
-                func_actor_800200_8016545C(arg0, 1);
+            actionDelay       = actor->stateTimer - 1;
+            actor->stateTimer = actionDelay;
+            if (actionDelay <= 0) {
+                actor->stateTimer = rand() & ACTOR_800200_ROUTE_RANDOM_DELAY_MASK;
+                _actor800200StartActionBurst(task, 1);
             }
             return;
     }
 }
 
-static void func_actor_800200_8016337C(Task* arg0)
+/// Advances the three-stop area-20 route selected by spawn mode 7.
+///
+/// Requires a live companion task, model and player; `waypointIndex` must be 0..2.
+/// Waits at intermediate stops when the player is at least 3072 game units away
+/// and resumes within 2304. Keeps the current Y and walks the final leg;
+/// waiting periodically starts one target-dependent action.
+static void _actor800200TickArea20Route7(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_8016A068) - 1,
+           ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xc00,
+           ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0x901 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             movementMode;
+    s32             actionDelay;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A068[2].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A068[2].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A068, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                func_actor_800200_801654EC(arg0, 0);
+                _actor800200EnterTimedWait(task, 0);
                 return;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A068[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A068[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 2) {
+            // Fall through to select the current waypoint.
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A068, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
-                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
-                    actor->stateAux   = 2;
+                if (companionGetPlayerPlanarDistance(coord) >= ACTOR_800200_ROUTE_WAIT_DISTANCE) {
+                    actor->stateAux   = ACTOR_800200_ROUTE_WAIT_PLAYER;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
-                    func_actor_800200_801653A0(arg0);
+                    _actor800200EnterTargetTurn(task);
                     return;
                 }
                 companion->waypointIndex++;
                 return;
             }
-            mode = 6;
-            if (companion->waypointIndex == 2) {
-                mode = 5;
+            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
+                movementMode = ACTOR_800200_MOVEMENT_WALK;
             }
-            func_actor_800200_80165408(arg0, mode);
+            _actor800200EnterApproach(task, movementMode);
             return;
-        case 2:
-            if (companionGetPlayerPlanarDistance(coord) < 0x901) {
+        case ACTOR_800200_ROUTE_WAIT_PLAYER:
+            if (companionGetPlayerPlanarDistance(coord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT) {
                 companion->waypointIndex++;
-                actor->stateAux = 1;
+                actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
                 return;
             }
-            delay             = actor->stateTimer - 1;
-            actor->stateTimer = delay;
-            if (delay <= 0) {
-                actor->stateTimer = rand() & 0x7F;
-                func_actor_800200_8016545C(arg0, 1);
+            actionDelay       = actor->stateTimer - 1;
+            actor->stateTimer = actionDelay;
+            if (actionDelay <= 0) {
+                actor->stateTimer = rand() & ACTOR_800200_ROUTE_RANDOM_DELAY_MASK;
+                _actor800200StartActionBurst(task, 1);
             }
             return;
     }
 }
 
-static void func_actor_800200_80163584(Task* arg0)
+/// Advances the two-stop area-4 route selected by spawn modes 8 through 10.
+///
+/// Requires a live companion task, model and player; `waypointIndex` must be 0..1.
+/// Plays route animation 14 before initial travel and after waiting for the
+/// player at stop 0, then walks the final leg at the current Y. The four route
+/// phases survive returns to idle and other normal-mode behavior states.
+static void _actor800200TickArea4Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            mode;
-    s32            delay;
+    enum { ACTOR_800200_ROUTE_PLAY_ANIMATION         = 1,
+           ACTOR_800200_ROUTE_TRAVEL_AFTER_ANIMATION = 2,
+           ACTOR_800200_ROUTE_WAIT_AFTER_ANIMATION   = 3,
+           ACTOR_800200_ROUTE_LAST_WAYPOINT          = ARRAY_SIZE(D_actor_800200_8016A080) - 1,
+           ACTOR_800200_ROUTE_WAIT_DISTANCE          = 0xc00,
+           ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT  = 0x901 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             movementMode;
+    s32             actionDelay;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            actor->stateAux       = 1;
-            actor->destination.vx = D_actor_800200_8016A080[1].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A080[1].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            actor->stateAux = ACTOR_800200_ROUTE_PLAY_ANIMATION;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A080, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-        case 1:
+        case ACTOR_800200_ROUTE_PLAY_ANIMATION:
             actor->stateAux++;
-            func_actor_800200_80165534(arg0);
+            _actor800200EnterRouteAnimation(task);
             return;
-        case 2:
-            actor->destination.vx = D_actor_800200_8016A080[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A080[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 1) {
+        case ACTOR_800200_ROUTE_TRAVEL_AFTER_ANIMATION:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A080, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
-                if (companionGetPlayerPlanarDistance(coord) >= 0xC00) {
-                    actor->stateAux   = 3;
+                if (companionGetPlayerPlanarDistance(coord) >= ACTOR_800200_ROUTE_WAIT_DISTANCE) {
+                    actor->stateAux   = ACTOR_800200_ROUTE_WAIT_AFTER_ANIMATION;
                     actor->stateTimer = 0;
                     actor->targetNode = NULL;
-                    func_actor_800200_801653A0(arg0);
+                    _actor800200EnterTargetTurn(task);
                     return;
                 }
                 companion->waypointIndex++;
                 return;
             }
-            mode = 6;
-            if (companion->waypointIndex == 1) {
-                mode = 5;
+            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
+                movementMode = ACTOR_800200_MOVEMENT_WALK;
             }
-            func_actor_800200_80165408(arg0, mode);
+            _actor800200EnterApproach(task, movementMode);
             return;
-        case 3:
-            if (companionGetPlayerPlanarDistance(coord) < 0x901) {
+        case ACTOR_800200_ROUTE_WAIT_AFTER_ANIMATION:
+            if (companionGetPlayerPlanarDistance(coord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT) {
                 companion->waypointIndex++;
-                actor->stateAux = 1;
+                actor->stateAux = ACTOR_800200_ROUTE_PLAY_ANIMATION;
                 return;
             }
-            delay             = actor->stateTimer - 1;
-            actor->stateTimer = delay;
-            if (delay <= 0) {
-                actor->stateTimer = rand() & 0x7F;
-                func_actor_800200_8016545C(arg0, 1);
+            actionDelay       = actor->stateTimer - 1;
+            actor->stateTimer = actionDelay;
+            if (actionDelay <= 0) {
+                actor->stateTimer = rand() & ACTOR_800200_ROUTE_RANDOM_DELAY_MASK;
+                _actor800200StartActionBurst(task, 1);
             }
             return;
     }
 }
 
-static void func_actor_800200_801637B4(Task* arg0)
+/// Advances the three-stop area-2 route selected by spawn modes 8 through 10.
+///
+/// Requires a live companion task and model; `waypointIndex` must be 0..2.
+/// Keeps the current Y, plays route animation 14 after intermediate arrivals,
+/// and walks to stop 1 while running to the other stops. Completion selects timed wait.
+static void _actor800200TickArea2Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            flag;
-    s32            mode;
+    enum { ACTOR_800200_ROUTE_WALK_WAYPOINT = 1,
+           ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A098) - 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             initialRoutePhase;
+    s32             movementMode;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            flag                  = 1;
-            actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A098[2].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A098[2].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
+            actor->stateAux   = initialRoutePhase;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A098, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A098[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A098[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 2) {
+            // Fall through to select the current waypoint.
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A098, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
                 companion->waypointIndex++;
-                func_actor_800200_80165534(arg0);
+                _actor800200EnterRouteAnimation(task);
                 return;
             }
-            mode = 6;
-            if (companion->waypointIndex == 1) {
-                mode = 5;
+            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            if (companion->waypointIndex == ACTOR_800200_ROUTE_WALK_WAYPOINT) {
+                movementMode = ACTOR_800200_MOVEMENT_WALK;
             }
-            func_actor_800200_80165408(arg0, mode);
+            _actor800200EnterApproach(task, movementMode);
             return;
         default:
             return;
     }
 }
 
-static void func_actor_800200_8016390C(Task* arg0)
+/// Advances the three-stop area-5 route selected by spawn modes 8 through 10.
+///
+/// Requires a live companion task and model; `waypointIndex` must be 0..2.
+/// Runs at the current Y and plays route animation 14 after each intermediate
+/// arrival. Completion selects timed wait.
+static void _actor800200TickArea5Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            flag;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A0B0) - 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             initialRoutePhase;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            flag                  = 1;
-            actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A0B0[2].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0B0[2].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
+            actor->stateAux   = initialRoutePhase;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0B0, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A0B0[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0B0[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 2) {
+            // Fall through to select the current waypoint.
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0B0, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
                 companion->waypointIndex++;
-                func_actor_800200_80165534(arg0);
+                _actor800200EnterRouteAnimation(task);
                 return;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             return;
         default:
             return;
     }
 }
 
-static void func_actor_800200_80163A54(Task* arg0)
+/// Advances the three-stop area-1 route selected by spawn modes 8 through 10.
+///
+/// Requires a live companion task and model; `waypointIndex` must be 0..2.
+/// Plays route animation 14 before the first leg and after intermediate arrivals,
+/// then runs at the current Y. Completion selects timed wait.
+static void _actor800200TickArea1Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    s32            flag;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A0C8) - 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    s32             initialRoutePhase;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
+    actor     = task->work;
+    coord     = task->extra.tmd->coords;
     companion = actor->companionWork;
     switch (actor->stateAux) {
-        case 0:
-            flag                  = 1;
-            actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A0C8[2].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0C8[2].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
+            actor->stateAux   = initialRoutePhase;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0C8, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-            func_actor_800200_80165534(arg0);
+            _actor800200EnterRouteAnimation(task);
             break;
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A0C8[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0C8[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 2) {
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0C8, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     break;
                 }
                 companion->waypointIndex = companion->waypointIndex + 1;
-                func_actor_800200_80165534(arg0);
+                _actor800200EnterRouteAnimation(task);
                 break;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             break;
     }
 }
 
-static void func_actor_800200_80163B90(Task* arg0)
+/// Advances the five-stop area-20 route selected by spawn modes 8 through 10.
+///
+/// Requires a live companion task and model; `waypointIndex` must be 0..4.
+/// Plays route animation 14 before travel and after intermediate arrivals,
+/// then runs at the current Y. Completion selects timed wait.
+static void _actor800200TickArea20Route8To10(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            flag;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A0E0) - 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* coord;
+    u16             routePhase;
+    s32             initialRoutePhase;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            flag                  = 1;
-            actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A0E0[4].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0E0[4].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    coord      = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            // A spawn near the final stop skips the intermediate route.
+            initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
+            actor->stateAux   = initialRoutePhase;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0E0, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-            func_actor_800200_80165534(arg0);
+            _actor800200EnterRouteAnimation(task);
             return;
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A0E0[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A0E0[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 4) {
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0E0, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
                 companion->waypointIndex++;
-                func_actor_800200_80165534(arg0);
+                _actor800200EnterRouteAnimation(task);
                 return;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             return;
         default:
             return;
     }
 }
+
+#undef ACTOR_800200_SET_ROUTE_DESTINATION
 
 static void func_actor_800200_80163CCC(Task* arg0)
 {
@@ -1834,14 +1939,14 @@ static void func_actor_800200_80163CCC(Task* arg0)
                 if (companion->waypointIndex == 3) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_801654EC(arg0, 0);
+                    _actor800200EnterTimedWait(arg0, 0);
                     return;
                 }
                 companion->waypointIndex++;
-                func_actor_800200_80165534(arg0);
+                _actor800200EnterRouteAnimation(arg0);
                 return;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(arg0, 6);
             return;
         default:
             return;
@@ -1879,18 +1984,18 @@ static void func_actor_800200_80163E14(Task* arg0)
                 if (companion->waypointIndex == 4) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    func_actor_800200_80165534(arg0);
+                    _actor800200EnterRouteAnimation(arg0);
                     return;
                 }
                 companion->waypointIndex++;
-                func_actor_800200_80165534(arg0);
+                _actor800200EnterRouteAnimation(arg0);
                 return;
             }
             mode = 6;
             if (companion->waypointIndex == 1) {
                 mode = 5;
             }
-            func_actor_800200_80165408(arg0, mode);
+            _actor800200EnterApproach(arg0, mode);
             return;
         default:
             return;
@@ -2644,14 +2749,19 @@ static void func_actor_800200_80165380(Task* arg0)
     actor->statePhase     = 0;
 }
 
-static void func_actor_800200_801653A0(Task* arg0)
+/// Enters normal behavior that turns toward the current target, or the player.
+///
+/// Requires live `GameActor` work and `CompanionWork`. Preserves `targetNode`, route
+/// phase and waypoint index; callers select the target before entry. Resets the
+/// turning behavior's phase and selects turn-rate row 2 (40 angle units per tick).
+static void _actor800200EnterTargetTurn(Task* task)
 {
-    GameActor* actor = arg0->work;
+    GameActor* actor = task->work;
 
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->state          = 2;
-    actor->turnRateIndex  = 2;
-    actor->animationState = 0;
+    actor->state          = ACTOR_800200_STATE_TARGET_TURN;
+    actor->turnRateIndex  = ACTOR_800200_TURN_TARGET;
+    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
 }
 
@@ -2668,79 +2778,107 @@ static void func_actor_800200_801653C0(Task* arg0)
     playerActorPlayChildSlotsWithBlend(arg0, 7, 0, 3);
 }
 
-static void func_actor_800200_80165408(Task* arg0, s32 arg1)
+/// Enters normal behavior that turns and moves toward the stored destination.
+///
+/// Requires live `GameActor` work, `CompanionWork` and model. `movementMode` is speed
+/// row 5 (walk) or 6 (run), staged in `stateTimer` until the turn has finished.
+/// The approach ends within 192 planar game units or on wall contact, then
+/// returns to idle; it leaves the route phase and waypoint index intact.
+static void _actor800200EnterApproach(Task* task, s32 movementMode)
 {
-    GameActor* actor = arg0->work;
+    GameActor* actor = task->work;
 
-    actor->state          = 8;
+    actor->state          = ACTOR_800200_STATE_APPROACH;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->movementMode   = 5;
-    actor->turnRateIndex  = 0;
-    actor->animationState = 0;
+    actor->movementMode   = ACTOR_800200_MOVEMENT_WALK;
+    actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
+    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
-    actor->stateTimer     = arg1;
+    actor->stateTimer     = movementMode;
 }
 
-static void func_actor_800200_80165434(Task* arg0, s16 arg1)
+/// Resets normal stationary behavior without changing the retained route progress.
+static inline void _actor800200EnterStationaryState(GameActor* actor, u16 state)
 {
-    GameActor* actor = arg0->work;
-
-    actor->mode                        = GAME_ACTOR_MODE_NORMAL;
-    actor->state                       = 4;
-    actor->movementMode                = 0;
-    actor->turnRateIndex               = 0;
-    actor->animationState              = 0;
-    actor->statePhase                  = 0;
-    actor->attackControl.targetVariant = arg1;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = state;
+    actor->movementMode   = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
+    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
+    actor->statePhase     = 0;
 }
 
-static void func_actor_800200_8016545C(Task* arg0, s8 arg1)
+/// Enters a stationary burst of target-dependent animation and sound.
+///
+/// Requires live `GameActor` work and `CompanionWork`. `targetVariant` is 0 for the
+/// player-directed action or 1 for the target-directed action; the handler selects
+/// animation 10 + `targetVariant` and sound script 0x40720009 + `targetVariant`.
+/// The caller supplies `targetNode` and `repeatsRemaining` before entry. Completion
+/// can turn toward the focus or return to idle; route progress is retained.
+static void _actor800200EnterActionBurst(Task* task, s16 targetVariant)
 {
-    GameActor* actor = arg0->work;
-    GameActor* actor2;
-    u16        flag;
+    GameActor* actor = task->work;
 
-    actor->companionWork->activity.combat.repeatsRemaining = arg1;
+    _actor800200EnterStationaryState(actor, ACTOR_800200_STATE_ACTION_BURST);
+    actor->attackControl.targetVariant = targetVariant;
+}
+
+/// Selects a battle target and starts a stationary animation/sound burst.
+///
+/// Requires live `GameActor` work and `CompanionWork`. `repeatsRemaining` is stored
+/// in the counter byte; positive requests must fit `s8` (1..127). The action
+/// handler consumes that byte as `s8` and can shorten a burst when its target
+/// disappears. An engaged battle borrows the current lock node; otherwise
+/// the focus is the player. The target remains borrowed while the action runs.
+static void _actor800200StartActionBurst(Task* task, s8 repeatsRemaining)
+{
+    GameActor* actor = task->work;
+    GameActor* currentActor;
+    u16        targetVariant;
+
+    actor->companionWork->activity.combat.repeatsRemaining = repeatsRemaining;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        actor->targetNode = worldTargetFindLockNode(arg0);
+        actor->targetNode = worldTargetFindLockNode(task);
     } else {
-        actor->targetNode = 0;
+        actor->targetNode = NULL;
     }
-    flag                                = actor->targetNode != 0;
-    actor2                              = arg0->work;
-    actor2->mode                        = GAME_ACTOR_MODE_NORMAL;
-    actor2->state                       = 4;
-    actor2->movementMode                = 0;
-    actor2->turnRateIndex               = 0;
-    actor2->animationState              = 0;
-    actor2->statePhase                  = 0;
-    actor2->attackControl.targetVariant = flag;
+    targetVariant = actor->targetNode != NULL;
+    currentActor  = task->work;
+    _actor800200EnterStationaryState(currentActor, ACTOR_800200_STATE_ACTION_BURST);
+    currentActor->attackControl.targetVariant = targetVariant;
 }
 
-static void func_actor_800200_801654EC(Task* arg0, s32 arg1)
+/// Stops in idle animation before a distance-dependent wait and action burst.
+///
+/// Requires live `GameActor` work, `CompanionWork` and initialized child animation
+/// slots. The wait handler initializes its own random tick count on its first
+/// update. Blends idle set 1 for three normal-rate frames, retaining route
+/// progress. `unusedArgument` is ignored and retained in the calling convention.
+static void _actor800200EnterTimedWait(Task* task, s32 unusedArgument)
 {
-    GameActor* actor = arg0->work;
+    GameActor* actor = task->work;
 
-    actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->state          = 9;
-    actor->movementMode   = 0;
-    actor->turnRateIndex  = 0;
-    actor->animationState = 0;
-    actor->statePhase     = 0;
-    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 3);
+    _actor800200EnterStationaryState(actor, ACTOR_800200_STATE_TIMED_WAIT);
+    playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_IDLE, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
 }
 
-static void func_actor_800200_80165534(Task* arg0)
+/// Plays one route animation before returning to normal idle behavior.
+///
+/// Requires live `GameActor` work and initialized child animation slots. Stops
+/// movement and turning, blends set 14 for three normal-rate frames, and uses
+/// the one-shot animation controller to advance the completion phase. Keeps
+/// the route phase and waypoint index for the next route update.
+static void _actor800200EnterRouteAnimation(Task* task)
 {
-    GameActor* actor = arg0->work;
+    GameActor* actor = task->work;
 
-    actor->state          = 0xB;
+    actor->state          = ACTOR_800200_STATE_ROUTE_ANIMATION;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->movementMode   = 0;
-    actor->turnRateIndex  = 0;
-    actor->animationState = 7;
+    actor->movementMode   = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
+    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_ONCE;
     actor->statePhase     = 0;
-    playerActorPlayChildSlotsWithBlend(arg0, 0xE, 0, 3);
+    playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_ROUTE, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
 }
 
 static void func_actor_800200_80165580(Task* arg0)
@@ -2748,19 +2886,19 @@ static void func_actor_800200_80165580(Task* arg0)
     u8 temp_v1;
 
     if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
-        func_actor_800200_801654EC(arg0, 0);
+        _actor800200EnterTimedWait(arg0, 0);
         return;
     }
     temp_v1 = gGameSession->location.loc.area;
     switch (temp_v1) {
         case 26:
-            func_actor_800200_80162990(arg0);
+            _actor800200TickArea26Route(arg0);
             return;
         case 24:
             func_actor_800200_80165814(arg0);
             return;
         case 23:
-            func_actor_800200_80162BFC(arg0);
+            _actor800200TickArea23Route1(arg0);
             return;
         case 25:
             func_actor_800200_801658E0(arg0);
@@ -2773,7 +2911,7 @@ static void func_actor_800200_80165644(Task* arg0)
     u8 temp_v1;
 
     if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
-        func_actor_800200_801654EC(arg0, 0);
+        _actor800200EnterTimedWait(arg0, 0);
         return;
     }
     temp_v1 = gGameSession->location.loc.area;
@@ -2782,13 +2920,13 @@ static void func_actor_800200_80165644(Task* arg0)
             func_actor_800200_8016599C(arg0);
             return;
         case 23:
-            func_actor_800200_80163044(arg0);
+            _actor800200TickArea23Route7(arg0);
             return;
         case 22:
-            func_actor_800200_80163180(arg0);
+            _actor800200TickArea22Route(arg0);
             return;
         case 20:
-            func_actor_800200_8016337C(arg0);
+            _actor800200TickArea20Route7(arg0);
             return;
     }
 }
@@ -2798,25 +2936,25 @@ static void func_actor_800200_80165708(Task* arg0)
     u8 temp_v0;
 
     if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
-        func_actor_800200_801654EC(arg0, 0);
+        _actor800200EnterTimedWait(arg0, 0);
         return;
     }
     temp_v0 = gGameSession->location.loc.area;
     switch (temp_v0) {
         case 1:
-            func_actor_800200_80163A54(arg0);
+            _actor800200TickArea1Route(arg0);
             return;
         case 2:
-            func_actor_800200_801637B4(arg0);
+            _actor800200TickArea2Route(arg0);
             return;
         case 3:
             func_actor_800200_801659CC(arg0);
             return;
         case 4:
-            func_actor_800200_80163584(arg0);
+            _actor800200TickArea4Route(arg0);
             return;
         case 5:
-            func_actor_800200_8016390C(arg0);
+            _actor800200TickArea5Route(arg0);
             return;
         case 15:
             func_actor_800200_80163E14(arg0);
@@ -2825,7 +2963,7 @@ static void func_actor_800200_80165708(Task* arg0)
             func_actor_800200_80163CCC(arg0);
             return;
         case 20:
-            func_actor_800200_80163B90(arg0);
+            _actor800200TickArea20Route8To10(arg0);
             return;
         case 24:
             func_actor_800200_80165ACC(arg0);
@@ -2849,14 +2987,14 @@ static void func_actor_800200_80165814(Task* arg0)
         actor->destination.vz = D_actor_800200_8016A018[companion->waypointIndex].z;
         if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-            func_actor_800200_801654EC(arg0, 0);
+            _actor800200EnterTimedWait(arg0, 0);
             return;
         }
         arg = 6;
         if (companion->waypointIndex == 2) {
             arg = 5;
         }
-        func_actor_800200_80165408(arg0, arg);
+        _actor800200EnterApproach(arg0, arg);
     }
 }
 
@@ -2875,17 +3013,17 @@ static void func_actor_800200_801658E0(Task* arg0)
         actor->destination.vz = D_actor_800200_8016A040[companion->waypointIndex].z;
         if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-            func_actor_800200_801654EC(arg0, 0);
+            _actor800200EnterTimedWait(arg0, 0);
             return;
         }
-        func_actor_800200_80165408(arg0, 6);
+        _actor800200EnterApproach(arg0, 6);
     }
 }
 
 static void func_actor_800200_8016599C(Task* arg0)
 {
     ((GameActor*)arg0->work)->companionWork->routeComplete = COMPANION_ROUTE_COMPLETE;
-    func_actor_800200_801654EC(arg0, 0);
+    _actor800200EnterTimedWait(arg0, 0);
 }
 
 static void func_actor_800200_801659CC(Task* arg0)
@@ -2907,15 +3045,15 @@ static void func_actor_800200_801659CC(Task* arg0)
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
                 actor->stateAux++;
                 if (companion->routeComplete != COMPANION_ROUTE_COMPLETE) {
-                    func_actor_800200_80165534(arg0);
+                    _actor800200EnterRouteAnimation(arg0);
                 }
                 return;
             }
-            func_actor_800200_80165408(arg0, 6);
+            _actor800200EnterApproach(arg0, 6);
             return;
         case 1:
             companion->routeComplete = state;
-            func_actor_800200_801654EC(arg0, 0);
+            _actor800200EnterTimedWait(arg0, 0);
             break;
     }
 }
@@ -2935,10 +3073,10 @@ static void func_actor_800200_80165ACC(Task* arg0)
         actor->destination.vz = D_actor_800200_8016A128[companion->waypointIndex].z;
         if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-            func_actor_800200_80165534(arg0);
+            _actor800200EnterRouteAnimation(arg0);
             return;
         }
-        func_actor_800200_80165408(arg0, 6);
+        _actor800200EnterApproach(arg0, 6);
     }
 }
 
