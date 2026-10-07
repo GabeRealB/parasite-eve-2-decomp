@@ -1,3 +1,5 @@
+#include "actors/actor_361100.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -124,7 +126,7 @@ extern TaskMessageEntry D_actor_361100_80171BB8[5];
 void func_actor_403600_80138C9C(Actor403600Ripple* state);
 void func_actor_403600_801353D0(Actor403600Ripple* state, GfxCoord* coord);
 
-static void func_actor_361100_80161FF8(Task* arg0);
+static void _actor361100DrawStreamRefraction(Task* task);
 
 /// Draw modes with deferred primitive-buffer release or manual buffer recovery.
 ///
@@ -140,6 +142,15 @@ enum { ACTOR_361100_BUFFER_FREE_IDLE = -1 };
 
 /// One parent-relative coordinate unit in signed 16.16 translation.
 enum { ACTOR_361100_TRANSLATION_ONE = 0x10000 };
+
+/// Script-selected head-aim policy and local descriptor slots.
+enum {
+    ACTOR_361100_HEAD_AIM_RELAX      = 0,
+    ACTOR_361100_HEAD_AIM_TRACK      = 1,
+    ACTOR_361100_HEAD_AIM_KILL       = -1,
+    ACTOR_361100_HEAD_AIM_TASK_INDEX = 0,
+    ACTOR_361100_SHAKE_TASK_INDEX    = 1,
+};
 
 static void _actor361100TickTentacle(Task* task);
 static void _actor361100InitTentacle(Task* task);
@@ -187,8 +198,8 @@ extern ActorCommand         D_actor_361100_80165E84;
 extern ActorCommand         D_actor_361100_80165F3C;
 extern ActorTransform       D_actor_361100_80165D98;
 void                        func_actor_361100_8016297C(void);
-void                        func_actor_361100_801629D0(s32);
-void                        func_actor_361100_80162AEC(s32);
+static void                 _actor361100SetHeadAimMode(s32 mode);
+static void                 _actor361100AddFlowFlags(s32 bits);
 
 extern AnimationPlayRequest      D_actor_361100_80165CB4;
 extern AnimationPlayRequest      D_actor_361100_80165CC8;
@@ -222,18 +233,16 @@ extern ActorTransform            D_actor_361100_80165E5C;
 extern ActorTransform            D_actor_361100_80165EEC;
 extern ActorTransform            D_actor_361100_80165F04;
 extern ActorTransform            D_actor_361100_80165F1C;
-void                             func_actor_361100_8016291C(void);
-void                             func_actor_361100_8016293C(void);
-void                             func_actor_361100_8016295C(void);
+static void                      _actor361100StageSceneAudioStart(void);
+static void                      _actor361100StartScenePlayback(void);
+static void                      _actor361100FinishScene(void);
 void                             func_actor_361100_8016297C(void);
-void                             func_actor_361100_8016299C(void);
-void                             func_actor_361100_801629D0(s32);
-void                             func_actor_361100_80162A24(s32);
-void                             func_actor_361100_80162AEC(s32);
+static void                      _actor361100SpawnHeadAimTask(void);
+static void                      _actor361100SpawnShakeTask(s32 durationTicks);
 
-void func_actor_361100_80161E3C(Task*);
-void func_actor_361100_801627D4(Task*);
-void func_actor_361100_80162A54(Task*);
+void        func_actor_361100_80161E3C(Task*);
+static void _actor361100HeadAimTask(Task* task);
+void        func_actor_361100_80162A54(Task*);
 
 TaskDesc D_actor_361100_801637C8 = { { { TASK_BODY_COORD, 192 } }, func_actor_361100_80161E3C, { .value = 0 } };
 
@@ -436,7 +445,7 @@ static AnimationSet _gActor361100Animation03E10 = {
 };
 
 TaskDesc D_actor_361100_80165C58[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_361100_801627D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor361100HeadAimTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_361100_80162A54, { .value = 0 } },
 };
 
@@ -541,7 +550,7 @@ EvsSceneKey D_actor_361100_80165F40 = { 6, 11, 21 };
 
 EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_361100_80165F40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016291C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_361100_80165C98 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CB4 }, { .value = 0 } },
@@ -549,20 +558,20 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016293C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016299C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100SpawnHeadAimTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1019 }, { .message = { .pointer = &D_actor_361100_80165D80 } }, { .message = { .pointer = &D_actor_361100_80165DC8 } } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165DB0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_801629D0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SetHeadAimMode }, { .value = ACTOR_361100_HEAD_AIM_TRACK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165D18 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165EEC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165EB0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_801629D0 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SetHeadAimMode }, { .value = ACTOR_361100_HEAD_AIM_KILL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165EC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -605,7 +614,7 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_80162A24 }, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SpawnShakeTask }, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -620,11 +629,11 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016295C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016297C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_80162AEC }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_80162AEC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_AREA_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
@@ -649,7 +658,7 @@ EvsCommand D_actor_361100_80166848[26] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016297C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_801629D0 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SetHeadAimMode }, { .value = ACTOR_361100_HEAD_AIM_KILL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -657,8 +666,8 @@ EvsCommand D_actor_361100_80166848[26] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_80162AEC }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_361100_80162AEC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_AREA_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165F3C } }, { .value = 0 } },
@@ -949,12 +958,10 @@ TaskMessageEntry D_actor_361100_80171BB8[5] = {
 
 Task* D_actor_361100_80171BE0;
 
-void func_actor_361100_80162B0C(s32 unused);
-
 /// Runs while `Fs_ChunkOutputSizes[2]` reports a streaming write in flight -- it is `-1`
 /// until `Fs_LoadFile` has a chunk, and the mode byte in `gGameSession->location.loc.view`
 /// then picks this actor's part in the load: 11 hands the task to
-/// `func_actor_361100_80161FF8`, 12 publishes the stream position `D_actor_403600_8016069C`
+/// `_actor361100DrawStreamRefraction`, 12 publishes the stream position `D_actor_403600_8016069C`
 /// (half the remaining 0x18000-byte window past the write pointer, times the
 /// per-chunk rate) and uploads the coordinate, and 10 exits the task.
 ///
@@ -1012,7 +1019,7 @@ void func_actor_361100_80161E3C(Task* arg0)
         }
         mode = *modePtr;
         if (mode == 11) {
-            func_actor_361100_80161FF8(arg0);
+            _actor361100DrawStreamRefraction(arg0);
             return;
         } else if (mode == 12) {
             D_actor_403600_8016069C = writePtr + (gDisplayState.otBuffer * ((s32)(streamLeft + (streamLeft >> 0x1F)) >> 1));
@@ -1025,384 +1032,437 @@ void func_actor_361100_80161E3C(Task* arg0)
     }
 }
 
-/// Draws the refraction ripple over screen rows 0x50..0xEF while more than
-/// 0x6680 bytes of the 0x18000-byte window past `Fs_ChunkOutputSizes[2]` remain free,
-/// building `POLY_FT4` strips downward from the `Fs_ActorLoadBase2` side of it (half
-/// the free space further in when `DisplayState::otBuffer` is set). Each row is
-/// projected through the transposed view matrix to get its ordering-table
-/// depth, and the strip samples the other display buffer (`otBuffer` picks the
-/// texture page row and the v offset) displaced by a wave built from `rsin` /
-/// `rcos` of two phases seeded from `Task::killCountdown`, which the task
-/// advances by 0x20 per call while `gSceneCombatState.actorControl` is clear.
+/// Prepares screen rays and the depth dividend for the scene's horizontal plane.
 ///
-/// The row window, fade, clip and mode locals are fixed values in this build,
-/// so only the default arm of each mode switch ever runs.
-///
-/// Matching notes: `xNeg` is read uninitialised by the mode 2/3 arms and
-/// `spare` is never assigned; both only exist in the register allocator's view
-/// (the first adds one instruction to `z`'s live range, the second is a stack
-/// slot the retail frame carries). The `do { } while (0)` around the wave latch
-/// raises the loop weight of `wave`'s references so it outranks the two masks
-/// for `$t3`, as retail does.
-static void func_actor_361100_80161FF8(Task* arg0)
+/// Requires one reserved scratch block and a live display projection. Coordinates
+/// use integer world units; rows use centred pixels. View translation narrows
+/// to signed halfwords before rotation. Overwrites the GTE rotation.
+static inline void _actor361100PrepareRefractionProjection(WaterRefractionScratch* scratch, const DisplayState* display)
 {
-    DisplayState*            disp;
-    WaterRefractionScratch*  block;
-    WaterRefractionScratch** slot;
-    POLY_FT4*                prim;
-    s32                      left;
-    s32                      adj;
-    u8*                      ptr;
-    s32                      otBuf;
-    s32                      mode;
-    s32                      shift;
-    s32                      ang2;
-    s32                      ang;
-    s32                      y;
-    s32                      yTop;
-    s32                      x0;
-    s32                      x1;
-    s32                      nprims;
-    s32                      clip;
-    s32                      otOff;
-    s32                      fade;
-    s32                      scale;
-    s32                      xNeg;
-    s32                      wave;
-    s32                      wave1;
-    s32                      baseY;
-    s32                      one;
-    s32                      dist;
-    s32                      z;
-    s32                      otz;
-    s32                      i;
-    s32                      yOff;
-    s32                      fadeLen;
-    s32                      xMin;
-    s32                      xMax;
-    s32                      xLeft;
-    s32                      xRight;
-    s32                      xL;
-    s32                      xR;
-    s32                      v;
-    s32                      edge;
-    s32                      sine;
-    s32                      cosine;
-    u16                      spare;
+    enum { ACTOR_361100_REFRACTION_PLANE_Y = 1810 };
 
-    left    = 0x18000 - Fs_ChunkOutputSizes[2];
-    left   &= -8;
-    adj     = left - 0x18000;
-    ptr     = (u8*)Fs_ActorLoadBase2 - adj;
-    disp    = &gDisplayState;
-    otBuf   = disp->otBuffer;
-    mode    = 0;
-    shift   = mode;
-    clip    = 0;
-    scale   = 0x1000;
-    fade    = 0x1000;
-    baseY   = 0x50;
-    one     = 1;
-    otOff   = 0;
-    yOff    = 0;
-    fadeLen = 8;
-    xMin    = -0xA0;
-    xMax    = 0xA0;
-    xLeft   = -0xA0;
-    xRight  = 0xA0;
-    if ((u32)left >= 0x6680U) {
-        if (otBuf != 0) {
-            ptr += left >> 1;
+    TransposeMatrix(&gGfxViewCoord.workm, &scratch->transposedView);
+    scratch->viewTranslation.vx = gGfxViewCoord.workm.t[0];
+    scratch->viewTranslation.vy = gGfxViewCoord.workm.t[1];
+    scratch->viewTranslation.vz = gGfxViewCoord.workm.t[2];
+    _gfxRotateSv(&scratch->transposedView, &scratch->viewTranslation);
+    scratch->depth        = scratch->viewTranslation.vy + ACTOR_361100_REFRACTION_PLANE_Y;
+    scratch->depth       *= display->screenDistance;
+    scratch->screenRow.vx = 0;
+    scratch->screenRow.vz = display->screenDistance;
+    gte_SetRotMatrix(&scratch->transposedView);
+}
+
+/// Redraws the scene's lower screen rows as vertically refracted framebuffer strips.
+///
+/// Called for view 11 during the chunked actor load. Requires a writable 0x18000-
+/// byte streaming window at `Fs_ActorLoadBase2`, a written-byte count in 0..0x18000,
+/// and scratch-stack space. The count is rounded up to an eight-byte boundary;
+/// only an aligned free tail of at least 0x6680 bytes draws. Each display buffer
+/// uses half that tail, with 160 rows split into 320 POLY_FT4 packets (12800 bytes).
+/// Packets and the sampled framebuffer must survive GPU consumption and further
+/// streaming must not overwrite the selected half while it is still in use.
+///
+/// Screen positions are pixels centred on (160,120); the horizontal plane offset
+/// is 1810 world units. `killCountdown` is a wrapping 16-bit wave phase (4096 units
+/// per turn), advanced by 32 while actor control runs. Rotated rays supply depth
+/// buckets masked to 0..1023. The clipping configuration is fixed to full width.
+/// Borrows task state and streaming storage; restores the scratch cursor and
+/// overwrites GTE rotation/arithmetic state.
+static void _actor361100DrawStreamRefraction(Task* task)
+{
+    enum {
+        ACTOR_361100_REFRACTION_STREAM_BYTES       = 0x18000,
+        ACTOR_361100_REFRACTION_MIN_FREE_BYTES     = 0x6680,
+        ACTOR_361100_REFRACTION_TOP_ROW            = 80,
+        ACTOR_361100_REFRACTION_BOTTOM_ROW         = 240,
+        ACTOR_361100_REFRACTION_HALF_WIDTH         = 160,
+        ACTOR_361100_REFRACTION_HALF_HEIGHT        = 120,
+        ACTOR_361100_REFRACTION_PHASE_STEP         = 32,
+        ACTOR_361100_REFRACTION_SINE_ROW_STEP      = 31,
+        ACTOR_361100_REFRACTION_COSINE_ROW_STEP    = 197,
+        ACTOR_361100_REFRACTION_COSINE_OFFSET      = 308,
+        ACTOR_361100_REFRACTION_WAVE_BIAS          = 2 * ONE,
+        ACTOR_361100_REFRACTION_WAVE_PIXEL_SHIFT   = 9,
+        ACTOR_361100_REFRACTION_DEPTH_PHASE_START  = 768,
+        ACTOR_361100_REFRACTION_FADE_ROWS          = 8,
+        ACTOR_361100_REFRACTION_TRIG_SHIFT         = 12,
+        ACTOR_361100_REFRACTION_QUAD_WORDS         = 9,
+        ACTOR_361100_REFRACTION_RAW_QUAD_CODE      = 0x2D,
+        ACTOR_361100_REFRACTION_MAX_DEPTH          = 0x3FFF,
+        ACTOR_361100_REFRACTION_RIGHT_PAGE_U_BIAS  = 32,
+        ACTOR_361100_REFRACTION_LEFT_PAGE_U_BIAS   = 96,
+        ACTOR_361100_REFRACTION_TEXTURE_LAST_ROW   = 239,
+        ACTOR_361100_REFRACTION_TEXTURE_REFLECTION = 476,
+    };
+    DisplayState*           display;
+    WaterRefractionScratch* scratch;
+    POLY_FT4*               quad;
+    s32                     freeBytes;
+    s32                     negativeWrittenBytes;
+    u8*                     packetBytes;
+    s32                     displayBuffer;
+    s32                     clipMode;
+    s32                     splitX;
+    s32                     sinePhase;
+    s32                     cosinePhase;
+    s32                     screenY;
+    s32                     centeredY;
+    s32                     spanLeft;
+    s32                     spanRight;
+    s32                     spanCount;
+    s32                     splitY;
+    s32                     bucketOffset;
+    s32                     fullWave;
+    s32                     waveScale;
+    s32                     modeLeftEdge; // Uninitialized only in dormant clip modes; fixed mode 0 never reads it
+    s32                     waveDisplacement;
+    s32                     fadedDisplacement;
+    s32                     fadeStartY;
+    s32                     fadeShift;
+    s32                     fadeDistance;
+    s32                     rowDepth;
+    s32                     bucket;
+    s32                     spanIndex;
+    s32                     splitFadeStartY;
+    s32                     fadeRows;
+    s32                     baseLeft;
+    s32                     baseRight;
+    s32                     splitLeft;
+    s32                     splitRight;
+    s32                     rightPageLeft;
+    s32                     leftPageRight;
+    s32                     textureY;
+    s32                     secondSpanWidth;
+    s32                     sineSample;
+    s32                     cosineSample;
+    u16                     unusedFrameSlot; // Its shifted read emits no load; retained for the matched spill layout
+
+    freeBytes            = ACTOR_361100_REFRACTION_STREAM_BYTES - Fs_ChunkOutputSizes[2];
+    freeBytes           &= -8;
+    negativeWrittenBytes = freeBytes - ACTOR_361100_REFRACTION_STREAM_BYTES;
+    packetBytes          = (u8*)Fs_ActorLoadBase2 - negativeWrittenBytes;
+    display              = &gDisplayState;
+    displayBuffer        = display->otBuffer;
+    clipMode             = 0;
+    splitX               = clipMode;
+    splitY               = 0;
+    waveScale            = ONE;
+    fullWave             = ONE;
+    fadeStartY           = ACTOR_361100_REFRACTION_TOP_ROW;
+    fadeShift            = 1;
+    bucketOffset         = 0;
+    splitFadeStartY      = 0;
+    fadeRows             = ACTOR_361100_REFRACTION_FADE_ROWS;
+    baseLeft             = -ACTOR_361100_REFRACTION_HALF_WIDTH;
+    baseRight            = ACTOR_361100_REFRACTION_HALF_WIDTH;
+    splitLeft            = -ACTOR_361100_REFRACTION_HALF_WIDTH;
+    splitRight           = ACTOR_361100_REFRACTION_HALF_WIDTH;
+    // The remaining streamed-load tail supplies two independent packet halves.
+    if ((u32)freeBytes >= (u32)ACTOR_361100_REFRACTION_MIN_FREE_BYTES) {
+        if (displayBuffer != 0) {
+            packetBytes += freeBytes >> 1;
         }
-        prim = (POLY_FT4*)ptr - 1;
+        quad = (POLY_FT4*)packetBytes;
+        quad--;
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-            arg0->killCountdown = (u16)arg0->killCountdown + 0x20;
+            task->killCountdown = (u16)task->killCountdown + ACTOR_361100_REFRACTION_PHASE_STEP;
         }
-        ang2                                          = arg0->killCountdown * 2;
-        ang                                           = arg0->killCountdown;
-        slot                                          = (WaterRefractionScratch**)SCRATCH_HEAD_ADDR;
-        SCRATCH_HEAD_AT(slot, WaterRefractionScratch) = SCRATCH_HEAD_AT(slot, WaterRefractionScratch) - 1;
-        block                                         = SCRATCH_HEAD_AT(slot, WaterRefractionScratch);
-        TransposeMatrix(&gGfxViewCoord.workm, &block->transposedView);
-        block->viewTranslation.vx = gGfxViewCoord.workm.t[0];
-        block->viewTranslation.vy = gGfxViewCoord.workm.t[1];
-        block->viewTranslation.vz = gGfxViewCoord.workm.t[2];
-        _gfxRotateSv(&block->transposedView, &block->viewTranslation);
-        block->depth        = block->viewTranslation.vy + 0x712;
-        block->depth       *= disp->screenDistance;
-        block->screenRow.vx = 0;
-        block->screenRow.vz = disp->screenDistance;
-        gte_SetRotMatrix(&block->transposedView);
-        y = 0x50;
+        sinePhase   = task->killCountdown * 2;
+        cosinePhase = task->killCountdown;
+        scratch     = SCRATCH_STACK_RESERVE_BLOCK(WaterRefractionScratch);
+        _actor361100PrepareRefractionProjection(scratch, display);
+        // Rotate each screen ray, then displace the sampled framebuffer row.
+        screenY = ACTOR_361100_REFRACTION_TOP_ROW;
         do {
-            yTop                = y - 0x78;
-            block->screenRow.vy = yTop;
-            gte_ldv0(&block->screenRow);
+            centeredY             = screenY - ACTOR_361100_REFRACTION_HALF_HEIGHT;
+            scratch->screenRow.vy = centeredY;
+            gte_ldv0(&scratch->screenRow);
             gte_rtv0();
-            x0     = xMin;
-            x1     = xMax;
-            nprims = 1;
-            if (clip > 0) {
-                if (y < 8) {
-                    x1 = x0 + shift;
-                    if (shift <= 0) {
-                        x1 = xMax;
-                        x0 = x1 + shift;
+            spanLeft  = baseLeft;
+            spanRight = baseRight;
+            spanCount = 1;
+            if (splitY > 0) {
+                if (screenY < ACTOR_361100_REFRACTION_FADE_ROWS) {
+                    spanRight = spanLeft + splitX;
+                    if (splitX <= 0) {
+                        spanRight = baseRight;
+                        spanLeft  = spanRight + splitX;
                     }
-                    if (clip < y) {
-                        nprims = 2;
+                    if (splitY < screenY) {
+                        spanCount = 2;
                     }
                 }
             } else {
-                if ((clip < 0) && (-clip < y)) {
-                    x0 = xLeft;
-                    if (shift > 0) {
-                        x1 = x0 + shift;
+                if ((splitY < 0) && (-splitY < screenY)) {
+                    spanLeft = splitLeft;
+                    if (splitX > 0) {
+                        spanRight = spanLeft + splitX;
                     } else {
-                        x1 = xRight;
-                        x0 = x1 + shift;
+                        spanRight = splitRight;
+                        spanLeft  = spanRight + splitX;
                     }
                 }
             }
-            sine    = rsin(ang2);
-            cosine  = rcos(ang + 0x134);
-            sine   += 0x2000;
-            wave1   = cosine + sine;
-            wave1 >>= 9;
-            if (fade == 0) {
-                wave1 = (wave1 * scale) >> 12;
+            // Combine Q12 samples, then fade the pixel displacement over the first eight rows.
+            sineSample          = rsin(sinePhase);
+            cosineSample        = rcos(cosinePhase + ACTOR_361100_REFRACTION_COSINE_OFFSET);
+            sineSample         += ACTOR_361100_REFRACTION_WAVE_BIAS;
+            fadedDisplacement   = cosineSample + sineSample;
+            fadedDisplacement >>= ACTOR_361100_REFRACTION_WAVE_PIXEL_SHIFT;
+            // Retain the allocator-visible one-pass wave latches required by this image.
+            if (fullWave == 0) {
+                fadedDisplacement = (fadedDisplacement * waveScale) >> ACTOR_361100_REFRACTION_TRIG_SHIFT;
                 do {
-                    wave  = wave1;
-                    wave1 = wave + 1;
+                    waveDisplacement  = fadedDisplacement;
+                    fadedDisplacement = waveDisplacement + 1;
                 } while (0);
             } else {
                 do {
-                    wave  = wave1;
-                    wave1 = wave + 1;
+                    waveDisplacement  = fadedDisplacement;
+                    fadedDisplacement = waveDisplacement + 1;
                 } while (0);
             }
-            if (baseY != 1) {
-                dist = y - baseY;
-                if (dist < fadeLen) {
-                    wave1  = wave >> ((fadeLen - dist) >> one);
-                    wave1 += one;
+            if (fadeStartY != 1) {
+                fadeDistance = screenY - fadeStartY;
+                if (fadeDistance < fadeRows) {
+                    fadedDisplacement  = waveDisplacement >> ((fadeRows - fadeDistance) >> fadeShift);
+                    fadedDisplacement += fadeShift;
                 }
             }
-            gte_stsv(&block->rotatedRow);
-            if (block->rotatedRow.vy > 0) {
-                otz   = block->depth / block->rotatedRow.vy;
-                otz >>= 2;
+            gte_stsv(&scratch->rotatedRow);
+            if (scratch->rotatedRow.vy > 0) {
+                bucket   = scratch->depth / scratch->rotatedRow.vy;
+                bucket >>= 2;
             } else {
-                otz = 0x3FFF;
+                bucket = ACTOR_361100_REFRACTION_MAX_DEPTH;
             }
-            v    = yTop + 0x78 + wave1;
-            z    = otz;
-            otz  = ((z << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
-            otz += otOff;
-            if (v >= 0xEF) {
-                v = 0x1DC - v;
+            textureY = centeredY + ACTOR_361100_REFRACTION_HALF_HEIGHT + fadedDisplacement;
+            rowDepth = bucket;
+            bucket   = ((rowDepth << gDisplayState.otDepthShift) & ACTOR_361100_REFRACTION_MAX_DEPTH) >> 4;
+            bucket  += bucketOffset;
+            if (textureY >= ACTOR_361100_REFRACTION_TEXTURE_LAST_ROW) {
+                textureY = ACTOR_361100_REFRACTION_TEXTURE_REFLECTION - textureY;
             }
-            if (mode == 1) {
-                xNeg = -0xA0;
-                if (y < 0x7D) {
-                    x0 = xNeg;
-                    x1 = 0xA0;
+            if (clipMode == 1) {
+                modeLeftEdge = -ACTOR_361100_REFRACTION_HALF_WIDTH;
+                if (screenY < 0x7D) {
+                    spanLeft  = modeLeftEdge;
+                    spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                 } else {
-                    x0 = xNeg;
-                    if (y < 0xB3) {
-                        nprims = 2;
+                    spanLeft = modeLeftEdge;
+                    if (screenY < 0xB3) {
+                        spanCount = 2;
                     }
-                    x1 = -0x59;
+                    spanRight = -0x59;
                 }
-            } else if (mode == 2) {
-                if (y < 0x83) {
-                    x0 = xNeg;
-                    x1 = 0xA0;
+            } else if (clipMode == 2) {
+                if (screenY < 0x83) {
+                    spanLeft  = modeLeftEdge;
+                    spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                 } else {
-                    if (y < 0xB7) {
-                        nprims = 2;
-                        x0     = 0x57;
+                    if (screenY < 0xB7) {
+                        spanCount = 2;
+                        spanLeft  = 0x57;
                     } else {
-                        x0 = 0x57;
+                        spanLeft = 0x57;
                     }
-                    x1 = 0xA0;
+                    spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                 }
-            } else if (mode == 3) {
-                nprims = 1;
-                if (y < 0x43) {
-                    x0 = xNeg;
-                    x1 = 0xA0;
+            } else if (clipMode == 3) {
+                spanCount = 1;
+                if (screenY < 0x43) {
+                    spanLeft  = modeLeftEdge;
+                    spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                 } else {
-                    nprims = 2;
+                    spanCount = 2;
                 }
             }
-            i = 0;
-            if (nprims != 0) {
+            spanIndex = 0;
+            if (spanCount != 0) {
                 do {
-                    if (mode == 1) {
-                        if (i != 0) {
-                            x0 = 0x3C;
-                            x1 = 0xA0;
+                    if (clipMode == 1) {
+                        if (spanIndex != 0) {
+                            spanLeft  = 0x3C;
+                            spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                         }
-                    } else if (mode == 2) {
-                        if (i == 1) {
-                            x0 = xNeg;
-                            x1 = -0x69;
+                    } else if (clipMode == 2) {
+                        if (spanIndex == 1) {
+                            spanLeft  = modeLeftEdge;
+                            spanRight = -0x69;
                         }
-                    } else if (mode == 3) {
-                        if (i == 0) {
-                            if (y < 0x43) {
-                                x0 = xNeg;
-                                x1 = 0xA0;
+                    } else if (clipMode == 3) {
+                        if (spanIndex == 0) {
+                            if (screenY < 0x43) {
+                                spanLeft  = modeLeftEdge;
+                                spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                             } else {
-                                x0 = xNeg;
-                                x1 = -0x57;
+                                spanLeft  = modeLeftEdge;
+                                spanRight = -0x57;
                             }
                         } else {
-                            if (y < 0xC1) {
-                                x0 = 0x5D;
-                                x1 = 0xA0;
+                            if (screenY < 0xC1) {
+                                spanLeft  = 0x5D;
+                                spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                             } else {
-                                x0 = 0x2A;
-                                x1 = 0xA0;
+                                spanLeft  = 0x2A;
+                                spanRight = ACTOR_361100_REFRACTION_HALF_WIDTH;
                             }
                         }
-                    } else if (i == 1) {
-                        if (y - yOff < fadeLen) {
-                            wave1 = wave >> ((fadeLen - (y - yOff)) >> one);
-                            v     = yTop + 0x79 + wave1;
-                            if (v >= 0xEF) {
-                                v = 0x1DC - v;
+                    } else if (spanIndex == 1) {
+                        if (screenY - splitFadeStartY < fadeRows) {
+                            fadedDisplacement = waveDisplacement >> ((fadeRows - (screenY - splitFadeStartY)) >> fadeShift);
+                            textureY          = centeredY + 0x79 + fadedDisplacement;
+                            if (textureY >= ACTOR_361100_REFRACTION_TEXTURE_LAST_ROW) {
+                                textureY = ACTOR_361100_REFRACTION_TEXTURE_REFLECTION - textureY;
                             }
                         }
-                        edge = shift - 0x140;
-                        if (shift <= 0) {
-                            edge = shift + 0x140;
+                        secondSpanWidth = splitX - 2 * ACTOR_361100_REFRACTION_HALF_WIDTH;
+                        if (splitX <= 0) {
+                            secondSpanWidth = splitX + 2 * ACTOR_361100_REFRACTION_HALF_WIDTH;
                         }
-                        x0 = xMin;
-                        if (edge > 0) {
-                            x1 = edge + x0;
+                        spanLeft = baseLeft;
+                        if (secondSpanWidth > 0) {
+                            spanRight = secondSpanWidth + spanLeft;
                         } else {
-                            x1 = xMax;
-                            x0 = edge + x1;
+                            spanRight = baseRight;
+                            spanLeft  = secondSpanWidth + spanRight;
                         }
                     }
-                    if (x1 > 0) {
-                        prim++;
-                        prim->y1    = yTop;
-                        prim->y0    = yTop;
-                        prim->y3    = yTop + 1;
-                        prim->y2    = yTop + 1;
-                        prim->tpage = getTPage(2, 0, 0x80, otBuf << 8);
-                        xL          = x0;
-                        if (x0 < 0) {
-                            xL = 0;
+                    // Split at X=0 because each texture page covers one screen half.
+                    if (spanRight > 0) {
+                        quad++;
+                        quad->y1      = centeredY;
+                        quad->y0      = centeredY;
+                        quad->y3      = centeredY + 1;
+                        quad->y2      = centeredY + 1;
+                        quad->tpage   = getTPage(2, 0, 0x80, displayBuffer << 8);
+                        rightPageLeft = spanLeft;
+                        if (spanLeft < 0) {
+                            rightPageLeft = 0;
                         }
-                        prim->x2 = xL;
-                        prim->x0 = xL;
-                        prim->u2 = xL + 0x20;
-                        prim->u0 = xL + 0x20;
-                        prim->x3 = x1;
-                        prim->x1 = x1;
-                        prim->u3 = x1 + 0x20;
-                        prim->u1 = x1 + 0x20;
-                        prim->v1 = v + (otBuf << 4);
-                        prim->v0 = v + (otBuf << 4);
-                        prim->v3 = v + (otBuf << 4) + 1;
-                        prim->v2 = v + (otBuf << 4) + 1;
-                        setlen(prim, 9);
-                        setcode(prim, 0x2D);
-                        addPrim(&gGpuCurrentOt[otz], prim);
+                        quad->x2 = rightPageLeft;
+                        quad->x0 = rightPageLeft;
+                        quad->u2 = rightPageLeft + ACTOR_361100_REFRACTION_RIGHT_PAGE_U_BIAS;
+                        quad->u0 = rightPageLeft + ACTOR_361100_REFRACTION_RIGHT_PAGE_U_BIAS;
+                        quad->x3 = spanRight;
+                        quad->x1 = spanRight;
+                        quad->u3 = spanRight + ACTOR_361100_REFRACTION_RIGHT_PAGE_U_BIAS;
+                        quad->u1 = spanRight + ACTOR_361100_REFRACTION_RIGHT_PAGE_U_BIAS;
+                        quad->v1 = textureY + (displayBuffer << 4);
+                        quad->v0 = textureY + (displayBuffer << 4);
+                        quad->v3 = textureY + (displayBuffer << 4) + 1;
+                        quad->v2 = textureY + (displayBuffer << 4) + 1;
+                        setlen(quad, ACTOR_361100_REFRACTION_QUAD_WORDS);
+                        setcode(quad, ACTOR_361100_REFRACTION_RAW_QUAD_CODE);
+                        addPrim(&gGpuCurrentOt[bucket], quad);
                     }
-                    if (x0 <= 0) {
-                        prim++;
-                        prim->y1    = yTop;
-                        prim->y0    = yTop;
-                        prim->y2    = (prim->y3 = yTop + 1);
-                        prim->tpage = getTPage(2, 0, 0, otBuf << 8);
-                        xR          = x1;
-                        if (x1 > 0) {
-                            xR = 0;
+                    if (spanLeft <= 0) {
+                        quad++;
+                        quad->y1      = centeredY;
+                        quad->y0      = centeredY;
+                        quad->y2      = (quad->y3 = centeredY + 1);
+                        quad->tpage   = getTPage(2, 0, 0, displayBuffer << 8);
+                        leftPageRight = spanRight;
+                        // Split at X=0 because each texture page covers one screen half.
+                        if (spanRight > 0) {
+                            leftPageRight = 0;
                         }
-                        prim->u2 = x0 - 0x60;
-                        prim->u0 = x0 - 0x60;
-                        prim->u3 = (x0 - 0x60) + (xR - x0);
-                        prim->u1 = (x0 - 0x60) + (xR - x0);
-                        prim->x2 = x0;
-                        prim->x0 = x0;
-                        prim->x3 = xR;
-                        prim->x1 = xR;
-                        prim->v1 = v + (otBuf << 4);
-                        prim->v0 = v + (otBuf << 4);
-                        prim->v3 = v + (otBuf << 4) + 1;
-                        prim->v2 = v + (otBuf << 4) + 1;
-                        setlen(prim, 9);
-                        setcode(prim, 0x2D);
-                        addPrim(&gGpuCurrentOt[otz], prim);
+                        quad->u2 = spanLeft - ACTOR_361100_REFRACTION_LEFT_PAGE_U_BIAS;
+                        quad->u0 = spanLeft - ACTOR_361100_REFRACTION_LEFT_PAGE_U_BIAS;
+                        quad->u3 = (spanLeft - ACTOR_361100_REFRACTION_LEFT_PAGE_U_BIAS) + (leftPageRight - spanLeft);
+                        quad->u1 = (spanLeft - ACTOR_361100_REFRACTION_LEFT_PAGE_U_BIAS) + (leftPageRight - spanLeft);
+                        quad->x2 = spanLeft;
+                        quad->x0 = spanLeft;
+                        quad->x3 = leftPageRight;
+                        quad->x1 = leftPageRight;
+                        quad->v1 = textureY + (displayBuffer << 4);
+                        quad->v0 = textureY + (displayBuffer << 4);
+                        quad->v3 = textureY + (displayBuffer << 4) + 1;
+                        quad->v2 = textureY + (displayBuffer << 4) + 1;
+                        setlen(quad, ACTOR_361100_REFRACTION_QUAD_WORDS);
+                        setcode(quad, ACTOR_361100_REFRACTION_RAW_QUAD_CODE);
+                        addPrim(&gGpuCurrentOt[bucket], quad);
                     }
-                    i += 1;
-                } while (i < nprims);
+                    spanIndex += 1;
+                } while (spanIndex < spanCount);
             }
-            ang2 += 0x1F + (spare >> 16);
-            if (z >= 0x301) {
-                ang += 0xC5 + (z - 0x300) / 4;
+            sinePhase += ACTOR_361100_REFRACTION_SINE_ROW_STEP + (unusedFrameSlot >> 16);
+            if (rowDepth >= ACTOR_361100_REFRACTION_DEPTH_PHASE_START + 1) {
+                cosinePhase += ACTOR_361100_REFRACTION_COSINE_ROW_STEP + (rowDepth - ACTOR_361100_REFRACTION_DEPTH_PHASE_START) / 4;
             } else {
-                ang += 0xC5;
+                cosinePhase += ACTOR_361100_REFRACTION_COSINE_ROW_STEP;
             }
-            y += 1;
-        } while (y < 0xF0);
-        SCRATCH_STACK_RELEASE_BYTES(sizeof(WaterRefractionScratch));
+            screenY += 1;
+        } while (screenY < ACTOR_361100_REFRACTION_BOTTOM_ROW);
+        SCRATCH_STACK_RELEASE_BLOCK(WaterRefractionScratch);
     }
 }
 
-/// Head-aim state of the actor, run only while `D_801156F9` is clear: a looker
-/// task that is missing, or a target task that is, parks the state machine on
-/// -1. State 0 allocates the `AnimationHeadAim` record into `Task::work` and
-/// seeds its clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up
-/// toward 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it
-/// is not, then hands the record to `animationAimHeadAt` between the slot-3 task
-/// (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`, the skeleton whose head turns) and the
-/// `sceneFindPlacedActor(2)` task it turns toward. Every other state kills the task
-/// and clears `D_actor_361100_80171BE0`. State 0 reaching a NULL allocation
-/// falls out of its own `if` into that kill, rather than into state 1.
-void func_actor_361100_801627D4(Task* task)
+/// Ramps the retained head-aim rate by ONE/16, with halfword truncation before clamping.
+///
+/// aim is live writable state; nonzero tracking ramps toward ONE, zero toward 0.
+static inline void _actor361100RampHeadAimRate(AnimationHeadAim* aim, s32 tracking)
 {
-    Task*             looker;
+    enum { ACTOR_361100_HEAD_AIM_RATE_STEP = ONE / 16 };
+    u16 rate;
+
+    if (tracking != 0) {
+        rate      = aim->rate + ACTOR_361100_HEAD_AIM_RATE_STEP;
+        aim->rate = rate;
+        if ((s16)rate > ONE) {
+            aim->rate = ONE;
+        }
+    } else {
+        rate      = aim->rate - ACTOR_361100_HEAD_AIM_RATE_STEP;
+        aim->rate = rate;
+        if ((s16)rate < 0) {
+            aim->rate = 0;
+        }
+    }
+}
+
+/// Turns the player's head toward placed scene actor 2 with a ramped Q12 rate.
+///
+/// Both tasks must own live TMD models with parts 0..4 in root-to-head order.
+/// The script freeze gate suspends all state changes. State 0 allocates zeroed
+/// AnimationHeadAim work, setting yaw/pitch limits to 768/512 units (4096 per
+/// turn), then updates immediately. State 1 changes rate by ONE/16 each tick:
+/// nonzero spawnArg1 ramps to ONE, zero ramps to 0. The rate is narrowed to a
+/// halfword before a signed clamp. Missing tasks, failed allocation and other
+/// states kill the task and clear its handle. taskKill releases owned work.
+static void _actor361100HeadAimTask(Task* task)
+{
+    enum {
+        ACTOR_361100_HEAD_AIM_INIT        = 0,
+        ACTOR_361100_HEAD_AIM_UPDATE      = 1,
+        ACTOR_361100_HEAD_AIM_TARGET      = 2,
+        ACTOR_361100_HEAD_AIM_YAW_LIMIT   = 768,
+        ACTOR_361100_HEAD_AIM_PITCH_LIMIT = 512,
+    };
+    Task*             subject;
     Task*             target;
     AnimationHeadAim* aim;
-    u16               rate;
 
-    looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    target = sceneFindPlacedActor(2);
+    subject = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    target  = sceneFindPlacedActor(ACTOR_361100_HEAD_AIM_TARGET);
     if (D_801156F9 == 0) {
-        if ((looker == NULL) || (target == NULL)) {
-            task->state = -1;
+        if ((subject == NULL) || (target == NULL)) {
+            task->state = ACTOR_361100_HEAD_AIM_KILL;
         }
         switch (task->state) {
-            case 0:
+            case ACTOR_361100_HEAD_AIM_INIT:
                 aim = memCalloc(sizeof(AnimationHeadAim), false);
                 if (aim != NULL) {
                     task->work      = aim;
-                    aim->yawLimit   = 0x300;
-                    aim->pitchLimit = 0x200;
+                    aim->yawLimit   = ACTOR_361100_HEAD_AIM_YAW_LIMIT;
+                    aim->pitchLimit = ACTOR_361100_HEAD_AIM_PITCH_LIMIT;
                     task->state++;
                         /* fallthrough */
-                    case 1:
+                    case ACTOR_361100_HEAD_AIM_UPDATE:
                         aim = task->work;
-                        if (task->spawnArg1.value != 0) {
-                            rate      = aim->rate + 0x100;
-                            aim->rate = rate;
-                            if ((s16)rate > ONE) {
-                                aim->rate = ONE;
-                            }
-                        } else {
-                            rate      = aim->rate - 0x100;
-                            aim->rate = rate;
-                            if ((s16)rate < 0) {
-                                aim->rate = 0;
-                            }
-                        }
-                        animationAimHeadAt(looker, target, aim);
+                        _actor361100RampHeadAimRate(aim, task->spawnArg1.value);
+                        animationAimHeadAt(subject, target, aim);
                         return;
                 }
                 /* fallthrough */
@@ -1414,23 +1474,29 @@ void func_actor_361100_801627D4(Task* task)
     }
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: queues the
-/// replacing load of overlay 0x82.
-void func_actor_361100_8016291C(void)
+/// Stages the selected scene's deferred audio start for this package's script.
+///
+/// Requires a selected scene and prepared buffers through CD consumption. A
+/// missing selection leaves the previous deferred request intact.
+static void _actor361100StageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: queues the load
-/// of overlay 0x81.
-void func_actor_361100_8016293C(void)
+/// Queues playback of the selected scene for this package's event script.
+///
+/// Requires prepared playback storage and resident CD queue capacity. The scene
+/// descriptor and buffers must remain live until playback completes.
+static void _actor361100StartScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: restores the
-/// stream random-number state.
-void func_actor_361100_8016295C(void)
+/// Ends the selected scene stream and restores its saved random state.
+///
+/// Requires a successful scene selection. Buffer and CD-request teardown remain
+/// with their owners; the script cancels the deferred CD request separately.
+static void _actor361100FinishScene(void)
 {
     streamFinishScene();
 }
@@ -1442,17 +1508,27 @@ void func_actor_361100_8016297C(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-void func_actor_361100_8016299C(void)
+/// Spawns and retains this scene's initially relaxed player-head aim task.
+///
+/// The package and gameplay must remain loaded while it runs. Call once after
+/// clearing the handle; an existing task is neither checked nor killed. Failed
+/// spawning stores NULL. Task teardown owns any subsequently allocated work.
+static void _actor361100SpawnHeadAimTask(void)
 {
-    D_actor_361100_80171BE0 = taskSpawnFromTable(D_actor_361100_80165C58, 0, 0, 0);
+    D_actor_361100_80171BE0 = taskSpawnFromTable(D_actor_361100_80165C58, ACTOR_361100_HEAD_AIM_TASK_INDEX, ACTOR_361100_HEAD_AIM_RELAX, 0);
 }
 
-void func_actor_361100_801629D0(s32 arg0)
+/// Sets the retained head-aim task's ramp policy, or kills it for any other value.
+///
+/// Mode 0 relaxes, 1 tracks, and every other signed word kills and clears the
+/// handle; the scripts use -1 for teardown. A NULL handle does nothing. The
+/// change is applied on the task's next unfrozen update, with work owned by it.
+static void _actor361100SetHeadAimMode(s32 mode)
 {
     if (D_actor_361100_80171BE0 != NULL) {
-        if (arg0 < 2) {
-            if (arg0 >= 0) {
-                D_actor_361100_80171BE0->spawnArg1.value = arg0;
+        if (mode < ACTOR_361100_HEAD_AIM_TRACK + 1) {
+            if (mode >= ACTOR_361100_HEAD_AIM_RELAX) {
+                D_actor_361100_80171BE0->spawnArg1.value = mode;
                 return;
             }
         }
@@ -1461,9 +1537,15 @@ void func_actor_361100_801629D0(s32 arg0)
     }
 }
 
-void func_actor_361100_80162A24(s32 arg0)
+/// Spawns the scene's one-pixel vertical shake and controller-vibration task.
+///
+/// durationTicks is the signed update countdown (the script uses 120); the child
+/// decrements before shaking, giving durationTicks-1 active updates for a positive
+/// value, and stops when the event is skipped. Spawning failure is ignored. The
+/// descriptor and pad/vibration script storage must survive the child task.
+static void _actor361100SpawnShakeTask(s32 durationTicks)
 {
-    taskSpawnFromTable(D_actor_361100_80165C58, 1, arg0, 0);
+    taskSpawnFromTable(D_actor_361100_80165C58, ACTOR_361100_SHAKE_TASK_INDEX, durationTicks, 0);
 }
 
 void func_actor_361100_80162A54(Task* arg0)
@@ -1482,17 +1564,19 @@ void func_actor_361100_80162A54(Task* arg0)
     }
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data, taking the
-/// record's argument word: ORs it into `GameSession::flowFlags` (the script
-/// passes 1 and 2).
-void func_actor_361100_80162AEC(s32 bits)
+/// Adds music-loading and weapon-restoration flags requested by the event script.
+///
+/// bits is a raw signed callback word; OR assignment retains only its low byte.
+/// The scripts set GAME_SESSION_FLOW_SKIP_ENDING_MUSIC and
+/// GAME_SESSION_FLOW_SKIP_AREA_MUSIC independently, preserving earlier flags.
+static void _actor361100AddFlowFlags(s32 bits)
 {
     gGameSession->flowFlags |= bits;
 }
 
-void func_actor_361100_80162B0C(s32 unused)
+void actor361100ClearHeadAimTaskHandle(s32 unused)
 {
-    D_actor_361100_80171BE0 = 0;
+    D_actor_361100_80171BE0 = NULL;
 }
 
 /// Applies one signed 16.16 root translation step and retains fractional carry.
@@ -1894,9 +1978,13 @@ static void _actor361100BindAyaBreaLighting(Task* task)
 
 /// Starts or blends the requested clip on Aya's bound non-root animation slots.
 ///
-/// work must own a bound rig with loaded clip data. request is borrowed through
-/// the call; its clip id narrows to the model's signed byte and blend duration
-/// uses whole frames. Slot 0 is reserved for separately scripted root motion.
+/// work must own a bound nineteen-slot rig with loaded set and track data for
+/// request.animationId (1..4). All rig, pose-buffer, model and clip storage must
+/// remain live during playback. request is borrowed only through this call.
+/// Its clip id narrows to the model's signed byte; blendFrames counts whole
+/// frames (0..2047). Nonzero blend captures a ticking pose before seeking the
+/// new clip; otherwise each driven slot resets. Ticks slots 1..18 immediately
+/// and enables subsequent playback. Slot 0 retains separately scripted motion.
 static inline void _actor361100StartAyaBreaClip(_Actor361100AyaBreaWork* work, const AnimationPlayRequest* request)
 {
     s32 slotIndex;

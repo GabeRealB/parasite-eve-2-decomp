@@ -74502,7 +74502,7 @@ if (arg0 < 2) {
 }
 ```
 
-`func_actor_361100_801629D0` scored 52.33% with `insert=4 delete=5 branch=1`
+`_actor361100SetHeadAimMode` scored 52.33% with `insert=4 delete=5 branch=1`
 as a single `&&`; nesting the `if`s and changing nothing else gave 100%.
 
 The suppression is about the two compares landing in different blocks, not about
@@ -83573,7 +83573,7 @@ to the *earlier* arm and mirrors the target's layout.
 
 ## An m2c seed can need two of its temps *merged*: the argument-register preference is on the other one
 
-**Symptom.** `func_actor_361100_801627D4` sat at 94.817% with `regs=5` and
+**Symptom.** `_actor361100HeadAimTask` sat at 94.817% with `regs=5` and
 nothing else wrong: the `memCalloc` result and every use of it were in `$v1`
 where the target had `$a2` — `move a2,v0` / `beqz a2` / `sw a2,0x1c(s0)` /
 `sh v0,0(a2)` / `sh v0,2(a2)`, five operands, one value.
@@ -88896,7 +88896,7 @@ void func_mine_mesa_8017E70C(s32 arg0)
 }
 ```
 
-100%, all penalties zero, first build after the baseline. `func_actor_361100_801629D0`
+100%, all penalties zero, first build after the baseline. `_actor361100SetHeadAimMode`
 is the same body in the actors family, already matched with this exact nesting,
 which is what makes the shape the original's rather than a matching trick - the
 two bodies differ only in the global they guard (`D_actor_361100_80171BE0`
@@ -102178,7 +102178,7 @@ test compiles to `andi` + `beqz` where the target has `sll 16` + `bgez` (see
 "`lhu` + `sll 16` + `bgez`: a `u16` countdown tested as signed" — the fix is
 `rate` declared `u16` and compared as `if ((s16)rate < 0)`), and the matching
 `if ((s16)rate >= 0x1001)` on the ramp-up arm. The twin body
-`func_actor_361100_801627D4` is a near-copy of this function and its matched
+`_actor361100HeadAimTask` is a near-copy of this function and its matched
 source supplies both idioms verbatim; `functions/actors` briefs name it under
 *Similar matched bodies*, and reading it beat reasoning from the asm.
 
@@ -102445,9 +102445,9 @@ right, the *cascade size* was not. With `index` already in `$s1` the rest of the
 allocation held, so only the one value moved. Predict the register home; do not
 predict how many penalties it is worth.
 
-**The shortcut.** `BRIEF.md`'s similar-body list named `func_actor_361100_801627D4`
+**The shortcut.** `BRIEF.md`'s similar-body list named `_actor361100HeadAimTask`
 at `fields` 0.96, and that matched body is this same 0xC head-aim record and
-state machine. It opens with `looker = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);` **before** the
+state machine. It opens with `subject = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);` **before** the
 switch and writes the clamp as `if ((s16)rate < 0)`. Porting its statement
 order verbatim - call first, and the signed cast in place of m2c's `rate &
 0x8000` (the `andi`/`beqz` against `sll`/`bgez` rule already recorded above) -
@@ -108931,7 +108931,7 @@ if (enemy->hp <= 0) {
 }
 ```
 
-This is the mirror image of the `func_actor_361100_801627D4` entry above: there m2c's *split* had to be
+This is the mirror image of the `_actor361100HeadAimTask` entry above: there m2c's *split* had to be
 undone by merging two temps so one allocno carried an argument-register preference across both live
 ranges; here m2c's single temp has to be *split* by storing directly, so no allocno spans the join at
 all. Both are read off `.greg` — the tell is the allocno count and a `dispositions` line for a value
@@ -118903,7 +118903,7 @@ that one source variable as two -- `temp_v0` for the allocation, `temp_a2` for
 the re-read -- and the object came out `move v1,v0` / `sw v1,0x1C(s0)` /
 `sh v0,0(v1)`: 94.817%, `regs=5 insert=2 delete=2`, structure already matching
 17/17 blocks and 82/82 instructions. Writing the single variable the sibling
-`func_mine_mesa_8017E2A4` (and the 1.00-shape twin `func_actor_361100_801627D4`)
+`func_mine_mesa_8017E2A4` (and the 1.00-shape twin `_actor361100HeadAimTask`)
 uses is the whole register fix.
 
 **Mechanism.** A named C variable is one pseudo (the rule in "One variable is
@@ -139164,7 +139164,7 @@ __asm__("move %0,%1" : "=r"(block) : "r"(vec));
 makes the move a real, schedulable insn that sched puts after the load, and the
 function matched. `SCHED_BARRIER()` in the same place is worse (88.9%): it also
 pins the `%10` reciprocal's `mfhi` on the wrong side.
-## A constant test the compiler "cannot" have emitted is a constant local that got no register (func_actor_361100_80161FF8, 2026-09-23)
+## A constant test the compiler "cannot" have emitted is a constant local that got no register (_actor361100DrawStreamRefraction, 2026-09-23)
 
 Signs in the target: `move $t9,$zero; blez $t9`, `li $t9,0x1000; bnez $t9`,
 `li $t3,0x50; li $t8,1; beq $t3,$t8`, `li $t9,8; subu $v0,$t9,$a0`, and an
@@ -139172,7 +139172,7 @@ Signs in the target: `move $t9,$zero; blez $t9`, `li $t9,0x1000; bnez $t9`,
 (`$t2 $t3 $t8 $t9` here), and the value is re-loaded before every use.
 
 Cause: the source assigns a constant to a local once, before the loop
-(`clip = 0; fade = 0x1000; baseY = 0x50; one = 1; otOff = 0;`). CSE cannot see
+(`splitY = 0; fullWave = 0x1000; fadeStartY = 0x50; fadeShift = 1; bucketOffset = 0;`). CSE cannot see
 that value past the loop label, so the tests are not folded. Global allocation
 gives these locals no register, and reload rematerialises the REG_EQUIV constant
 at each use. A constant added to a register comes out as `addiu rX,rX,0`.
@@ -139183,30 +139183,30 @@ size on the first build and reached 97% once the rest of the structure followed.
 Details that matter:
 
 - A test and a use of the same constant need two locals if the target keeps
-  both. `if (fade == 0) w = (w * scale) >> 12` with one local folds the
+  both. `if (fullWave == 0) w = (w * waveScale) >> 12` with one local folds the
   multiply to zero in the taken arm. The target's `mult v1,$t9` reuses the
   test's register only through `reload_cse`.
 - `reload_cse` swaps a rematerialised constant for any register that already
   holds it. `subu $t6,$s3,$a2`, where `$a2` is the loop counter just set to 0,
-  is `y - zeroLocal`.
+  is `screenY - zeroLocal`.
 - If CSE knows a variable already equals a constant local, it deletes a second
   `x = local` as a no-op. When the target keeps that store, the re-set uses a
   *different* local with the same value.
 
-## Stack "counters" and preheader copies can be loop.c output, and removing them shifts every hoist (func_actor_361100_80161FF8, 2026-09-23)
+## Stack "counters" and preheader copies can be loop.c output, and removing them shifts every hoist (_actor361100DrawStreamRefraction, 2026-09-23)
 
 The seed had `lineY = -0x27; ... lineY += 1;` kept on the stack, plus
-`yCopy = lineY`, `otY = otBuf << 8`, `tpageBits`, `tpageRight/Left` and
+`yCopy = lineY`, `otY = displayBuffer << 8`, `tpageBits`, `tpageRight/Left` and
 `fadeShift` computed before the inner loop. The source had none of them. It
-wrote `prim->y2 = yTop + 1`, `getTPage(2, 0, 0x80, otBuf << 8)` and the fade
+wrote `quad->y2 = centeredY + 1`, `getTPage(2, 0, 0x80, displayBuffer << 8)` and the fade
 expression inside the inner loop. The inner loop hoisted those values. The outer
-loop then hoisted `otBuf << 8` further and strength-reduced `yTop + 1` into the
+loop then hoisted `displayBuffer << 8` further and strength-reduced `centeredY + 1` into the
 stack counter.
 
 This also changed what stayed in the loop. `move_movables` lowers its threshold
 by 3 for every register it moves, so the earlier hoists made the later
-`savings 2 x life 2` candidates undesirable (`otBuf << 4`,
-`%hi(gGpuCurrentOt)`, the `setlen`/`setcode` constants, `otz << 2`). The target
+`savings 2 x life 2` candidates undesirable (`displayBuffer << 4`,
+`%hi(gGpuCurrentOt)`, the `setlen`/`setcode` constants, `bucket << 2`). The target
 recomputes all of those in the arms. When a seed has precomputed temporaries
 that the target spills, try writing them back inline before fighting their
 allocation.
@@ -139217,7 +139217,7 @@ operation in the loop, assign its result to a user variable that is also set
 outside the loop. The `maybe_never && !reg_in_basic_block_p` test then makes it
 immovable.
 
-Input `base_44.i` SHA256
+Input `base_44.spanIndex` SHA256
 `5dd4db8d122127f87ae078138d084ee1ba467ffe9331420869ee754166010bc5`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
@@ -139248,41 +139248,41 @@ Input `base_12.i` SHA256
 `8fc90ce71d69e3c8bf8c45b4936f90cb64fc6bc55616955cb417171217874ef1`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A one-insn tail after a label always cross-jumps; duplicate the assignment before it into both inner arms (func_actor_361100_80161FF8, 2026-09-23)
+## A one-insn tail after a label always cross-jumps; duplicate the assignment before it into both inner arms (_actor361100DrawStreamRefraction, 2026-09-23)
 
 The ROM had its own `j END; li s2,0xa0` tail inside one arm of an if/else
-chain, while two sibling arms ending `x0 = -0xA0; x1 = 0xA0;` were merged. Every
-spelling that ended the arm with `if (c) nprims = 2; x1 = 0xA0;` had its
-`x1 = 0xA0` merged into the pair. `find_cross_jump` compares backwards from the
+chain, while two sibling arms ending `spanLeft = -0xA0; spanRight = 0xA0;` were merged. Every
+spelling that ended the arm with `if (c) spanCount = 2; spanRight = 0xA0;` had its
+`spanRight = 0xA0` merged into the pair. `find_cross_jump` compares backwards from the
 jump. After the one matching `s2 = 0xA0` it reaches the join label, and a
 `CODE_LABEL` decrements the minimum, so one insn is enough.
 
-What survives is a tail whose insn before `x1` is *not* a label and differs from
+What survives is a tail whose insn before `spanRight` is *not* a label and differs from
 the pairs:
 
 ```c
-if (y < 0xB7) { nprims = 2; x0 = 0x57; } else { x0 = 0x57; }
-x1 = 0xA0;
+if (screenY < 0xB7) { spanCount = 2; spanLeft = 0x57; } else { spanLeft = 0x57; }
+spanRight = 0xA0;
 ```
 
-jump2 first merges the inner arm's `x0 = 0x57` into the else (fallthrough,
-minimum 1). That deletes the join label, leaving `L: x0 = 0x57; x1 = 0xA0; j END`.
+jump2 first merges the inner arm's `spanLeft = 0x57` into the else (fallthrough,
+minimum 1). That deletes the join label, leaving `L: spanLeft = 0x57; spanRight = 0xA0; j END`.
 Against the `-0xA0/0xA0` pairs only one insn matches, which is under the minimum
-of 2. reorg then puts `x0 = 0x57` into the branch delay and `x1` into the `j`
-delay. Writing `x0 = 0x57` once after the join gives the same jump2 output, but
+of 2. reorg then puts `spanLeft = 0x57` into the branch delay and `spanRight` into the `j`
+delay. Writing `spanLeft = 0x57` once after the join gives the same jump2 output, but
 with fewer references. Here that flipped a near-tied x0/x1 register priority, so
 count the extra sets when the tie is close.
 
 Two further findings from the same function. First, the fix grew the loop by 8
 RTL insns, which made the hoisted `1` of an `== 1` compare lose a priority tie
 (`36/580 < 10/159`) and shrank the frame by a slot. Writing another compare as
-`baseY != 1` rather than against a constant local `one` gave that pseudo more
+`fadeStartY != 1` rather than against a constant local `fadeShift` gave that pseudo more
 refs and restored the frame, without changing the emitted `li`, because the
 pseudo is rematerialised anyway. Second, the permuter's best output that time
-deleted `dist = y - baseY;` but kept a use of `dist`, which reads an
+deleted `fadeDistance = screenY - fadeStartY;` but kept a use of `fadeDistance`, which reads an
 uninitialized stack slot. Check a large permuter gain for that before trusting it.
 
-Input `base_6.i` SHA256
+Input `base_6.spanIndex` SHA256
 `a9b5dc8370e1fa2e0c925fccedd419f4053bc52b97ce6a286256006dfeefd00e`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## A value computed before a call but used after it keeps a callee-saved home even when sched1 sinks it (func_neo_ark_woodland_path_8017E2E8, 2026-09-23)
@@ -139680,7 +139680,7 @@ function. Here `$t1` lost to `$s5` in `order_regs_for_reload`, and every
 `movstr` scratch and remat changed register. A separate local per block fixed
 ~150 register differences at once. Check for shared locals before chasing a
 function-wide register shift.
-## An untouched word between spill slots can be reload's frame rounding, and moving it means one more or one fewer unallocated pseudo (func_actor_361100_80161FF8, 2026-09-23)
+## An untouched word between spill slots can be reload's frame rounding, and moving it means one more or one fewer unallocated pseudo (_actor361100DrawStreamRefraction, 2026-09-23)
 
 **Symptom.** Frame size and saved-register offsets match, but a run of spill slots sits 4 bytes lower than the target's, and each side has a different stack word that nothing reads or writes (ours 0x34, the target's 0x24).
 
@@ -140262,7 +140262,7 @@ rec->field_C = ...`) is folded back by cse, and pinning the pointer to `a3`
 sets `a3` too early. Reusing a parameter as the copy gives the store the right
 register but not the move order.
 
-## An unused first-pass stack slot is an uninitialised pseudo whose only use combine folds away (func_actor_361100_80161FF8, 2026-09-23)
+## An unused first-pass stack slot is an uninitialised pseudo whose only use combine folds away (_actor361100DrawStreamRefraction, 2026-09-23)
 
 **Symptom.** Everything matches but the frame: the target leaves one word
 between the first-pass spill slots unused (here 0x24), so every later
@@ -140281,8 +140281,8 @@ register, and reload's first `alter_reg` pass gives it a slot that nothing ever
 touches. Its number decides where the gap lands, so declare it among the
 locals that precede the slot.
 
-**Fix used.** An uninitialised `u16 spare;` read once as
-`ang2 += 0x1F + (spare >> 16);` in the loop tail. The shift survives tree fold
+**Fix used.** An uninitialised `u16 unusedFrameSlot;` read once as
+`sinePhase += 0x1F + (unusedFrameSlot >> 16);` in the loop tail. The shift survives tree fold
 and cse, combine's `nonzero_bits` makes it zero, and the tail was chosen
 because only pseudos that are already unallocated or safely ranked live there
 (each flow-time insn still lengthens every pseudo live across it). Placing the
@@ -140299,16 +140299,16 @@ orphan slot. The same construct closed it: `sinArg += 0x1F + (spare >> 16);`,
 with `u16 spare` declared last among the locals. A retry had stalled at 99.86%
 for 69 attempts while it looked for a spilled temporary instead.
 
-## `do { } while (0)` raises flow's loop weight for the references inside it (func_actor_361100_80161FF8, 2026-09-23)
+## `do { } while (0)` raises flow's loop weight for the references inside it (_actor361100DrawStreamRefraction, 2026-09-23)
 
 flow.c adds `loop_depth` to `REG_N_REFS` per reference and counts
 `NOTE_INSN_LOOP_BEG`, which a `do { } while (0)` still emits, so every
 reference inside one weighs one more than its surroundings without adding an
-instruction. Here `wave` needed about 11 weighted references (global priority
+instruction. Here `waveDisplacement` needed about 11 weighted references (global priority
 `floor_log2(n) * n / live_length` above the 0xFF000000 mask's 1390) but the
 retail code shows only a store, one use in the outer body and one in the inner
-loop. Writing the store-and-increment pair in both arms of the `fade` test
-(`do { wave = wave1; wave1 = wave + 1; } while (0);` twice) gives two stores
+loop. Writing the store-and-increment pair in both arms of the `fullWave` test
+(`do { waveDisplacement = fadedDisplacement; fadedDisplacement = waveDisplacement + 1; } while (0);` twice) gives two stores
 that jump2 cross-jumps into the single retail store, and the wrapper lifts
 their weight from 2 to 3. Wrapping the whole `if`/`else` instead also weights
 the multiply and the phases and loses (94.7%).
@@ -140387,7 +140387,7 @@ CSE pass replaces the asm operand's `(plus fp 16)` with the block-move destinati
 Its `addiu v0,sp,0x10` then sits before the copy, because volatile asm is a sched barrier.
 Retail computes it right before the `lwc2`. The same body written as
 `static inline void rotTrans(MATRIX* m, SVECTOR* v) { SVECTOR tmp; tmp = *v; gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0(); gte_stsv(v); }`,
-the form `func_actor_361100_80161FF8` already used, matches. Look for an inline helper when a
+the form `_actor361100DrawStreamRefraction` already used, matches. Look for an inline helper when a
 GTE address is materialised late. A pointer temporary assigned after the barrier does not
 help.
 ### A parameter spilled to its home slot while constants hold `$s` regs: try `s16`

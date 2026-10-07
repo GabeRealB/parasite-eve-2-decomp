@@ -7,6 +7,7 @@
 
 #include "shelter_b2_pod_bottom_private.h"
 
+#include "actors/actor_361100.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -30,8 +31,6 @@
 #include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
-
-void func_actor_361100_80162B0C(s32 unused);
 
 extern EvsCommand       D_actor_361100_80165F48[];
 extern EvsCommand       D_actor_361100_80166848[];
@@ -1020,7 +1019,7 @@ s32 func_shelter_b2_pod_bottom_8017D640(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// The room task's setup state: installs the room's message table, stores the
-/// task in pointer slot 7 and, on place 1, calls `func_80162B0C` and
+/// task in pointer slot 7 and, on place 1, calls `actor361100ClearHeadAimTaskHandle` and
 /// `evsStartScriptWithSkip`; elsewhere it sends message 0x7DB to placed actor 0.
 static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
 {
@@ -1029,7 +1028,7 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     arg0->msgTable = D_shelter_b2_pod_bottom_80181C6C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
-        func_actor_361100_80162B0C(0);
+        actor361100ClearHeadAimTaskHandle(0);
         evsStartScriptWithSkip(D_actor_361100_80165F48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_361100_80166848);
     } else {
         msg.context.loc.stage = 0;
