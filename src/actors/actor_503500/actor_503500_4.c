@@ -1584,8 +1584,6 @@ static void func_actor_503500_8013CAE4(Task* arg0)
     Enemy*                     enemy;
     Task*                      parent;
     GfxCoord*                  coord;
-    MATRIX*                    mtx;
-    GfxCoord*                  parts;
     WorldCollisionContact*     rec;
     _Actor503500ChainBaseWork* work;
     SVECTOR*                   pos;
@@ -1600,15 +1598,9 @@ static void func_actor_503500_8013CAE4(Task* arg0)
     memFillBytes(work, 0, sizeof(*work));
     arg0->work = work;
 
-    parts                            = parent->extra.tmd->coords;
-    MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    coord->parent                    = &parts[1];
-    mtx                              = &coord->coord;
-    MATRIX_PAIR(mtx, 0, 2)           = 0;
-    MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
-    MATRIX_PAIR(mtx, 2, 0)           = 0;
-    mtx->m[2][2]                     = 0x1000;
-    enemy->field_4                   = mtx;
+    coord->parent = &parent->extra.tmd->coords[1];
+    gfxSetRotIdentity(&coord->coord);
+    enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
     enemy->coord                     = coord;
     enemy->node.state.parts.flags    = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
