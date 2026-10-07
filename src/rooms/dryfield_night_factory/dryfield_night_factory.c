@@ -26,6 +26,7 @@
 #include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
+#include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
