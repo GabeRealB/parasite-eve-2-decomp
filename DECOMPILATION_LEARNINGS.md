@@ -91383,7 +91383,7 @@ allocator gives it `coord`'s register once `coord` dies at `&coord->coord`.
 The same function shows the companion rule for a constant offset. `a - (b + 0x600)`
 is reassociated into `(a - 0x600) - b`, emitting `addiu v0,v0,-0x600` on the
 *player* coordinate; the target adds `0x600` to the view coordinate. Holding the
-sum in a temporary, as `func_actor_403100_8013B5E0` already does, pins it to the
+sum in a temporary, as `_actor403100AimHead` already does, pins it to the
 operand the source wrote it on:
 
 ```c
@@ -115523,7 +115523,7 @@ respelling the expression (cast through `s8`/`s32`/`u8*`, array index, an interm
 even reading the scratch pointer twice all compile to a single `addiu`: `cse` puts the source and the
 copy in one class and the allocator coalesces them.
 
-**Fix:** the idiom the project already uses at `func_actor_403100_8013B5E0` - compute into one variable,
+**Fix:** the idiom the project already uses at `_actor403100AimHead` - compute into one variable,
 then force the copy with an `asm` whose output is the second:
 
 ```c
@@ -133679,7 +133679,7 @@ Matched base_9 input SHA256:
 The normal-header port also matches. This is a manually isolated compiler
 mechanism after the router returned a miss, not a permuter-generated result.
 
-## Repeating an indexed subobject address after a branch join enables invariant hoisting and its walking GIV (func_actor_403100_80132064, 2026-09-19)
+## Repeating an indexed subobject address after a branch join enables invariant hoisting and its walking GIV (_actor403100EmitFlame, 2026-09-19)
 
 The archived seed was 96.688% with all target saved-register homes, but one extra pool-pointer copy and the wrong ordering of loop increments. It explicitly initialized a coordinate pointer before the loop and advanced it by the entry stride. Moving `coord = &entries[i].coord` into the free-entry branch removed the pool copy, but did not create the needed coordinate GIV: CSE expressed the address as `i * 240 + (pool + 32)`, and the `pool + 32` invariant had lifetime1/savings1. loop.c declined to hoist that addend, so it could not recognize the dependent coordinate as a GIV. Using `coord->parent` for an additional store did not fix this, and changed the required store base and saved homes.
 
@@ -133687,7 +133687,7 @@ Keep the indexed parent store, but spell the later call after the flag-branch jo
 
 The supported mechanism is invariant matching enabling GIV recognition. Merely adding another pointer use is insufficient, as failed base_1 demonstrates. The model's ordinary loop-invariant desirability and GIV combination rules explain this; no new general scheduler rule is implied. Two permuter outputs were separately rejected for deriving a coordinate from an uninitialized pool pointer, despite a paired 99.2% score.
 
-Evidence: scratch `nonmatchings/func_actor_403100_80132064-vacuum`, `PERMUTER_ANALYSIS.md`, `coordinate-chain.txt`, base_1/base_2/base_3 `.i.loop`, `.i.cse`, `.i.cse2`, `.i.lreg`, `.i.greg`, `.i.sched`, `.i.sched2`, `.i.dbr`; retained via `tools/permuter_findings/func_actor_403100_80132064/`. The base_2 prediction was recorded before its build. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; preprocessed base_1 `89d89f37b2e1f94bc1dd764b892228294232e4a8485c906601143a23a58cff4f`, base_2 `5d388121c0670e37e97c924cb34f03111892ccdd2bf7f7366dcd942611024960`, base_3 `85ff96da23731802bcd2209adf0490c4ea7abeefd8bbc716d62ef78a5c36cb23`.
+Evidence: scratch `nonmatchings/_actor403100EmitFlame-vacuum`, `PERMUTER_ANALYSIS.md`, `coordinate-chain.txt`, base_1/base_2/base_3 `.i.loop`, `.i.cse`, `.i.cse2`, `.i.lreg`, `.i.greg`, `.i.sched`, `.i.sched2`, `.i.dbr`; retained via `tools/permuter_findings/_actor403100EmitFlame/`. The base_2 prediction was recorded before its build. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; preprocessed base_1 `89d89f37b2e1f94bc1dd764b892228294232e4a8485c906601143a23a58cff4f`, base_2 `5d388121c0670e37e97c924cb34f03111892ccdd2bf7f7366dcd942611024960`, base_3 `85ff96da23731802bcd2209adf0490c4ea7abeefd8bbc716d62ef78a5c36cb23`.
 
 
 ## Conditional pointer touch preserves a C copy for a branch delay slot
@@ -144326,7 +144326,7 @@ gone; the `$a1` count needs no asm at all. See "One asm instead of two: a
 call's argument copy is a leftover or a birth by how often its register is
 set" at the end of this file.
 
-## `li s0,K` before an `if`/`else if` chain, `bne x,s0`: a variable equal to K, set before the calls (func_actor_403100_8013B5E0, 2026-09-26)
+## `li s0,K` before an `if`/`else if` chain, `bne x,s0`: a variable equal to K, set before the calls (_actor403100AimHead, 2026-09-26)
 
 **Symptom.** One arm of a compare chain tests against a constant held in a
 callee-saved register loaded ahead of the chain (`li s0,3` in the block before
@@ -144337,7 +144337,7 @@ delay slot. A literal `value == 3` loads it late into `$v0`; a local
 
 **Mechanism.** cse canonicalises the compare's constant register to an older
 pseudo already known to hold 3, so a literal `== 3` is enough once *some*
-variable equal to 3 exists (here the part index used for `&root[part]`, which
+variable equal to 3 exists (here the part index used for `&rootCoord[headPartIndex]`, which
 cse folds into the address). If that variable is assigned before the calls,
 flow counts it as crossing them, and sched1 (calls do not end a block) sinks the
 lone `li` to the end of the block while keeping `REG_N_CALLS_CROSSED`, so
@@ -146205,7 +146205,7 @@ switch (scratch->base) { ... }
 
 `switch (b)` on the same local extends by 16 instead of 24.
 
-## `"+r"(view) : "r"(index)` after a call: a global's address passed to an inline helper, plus where a pointer local is assigned (func_actor_403100_8013C7B4, 2026-09-27)
+## `"+r"(view) : "r"(index)` after a call: a global's address passed to an inline helper, plus where a pointer local is assigned (_actor403100ProbeArmPlayerContact, 2026-09-27)
 
 A function walked two coordinate chains up to `&gGfxViewCoord` - once through
 an inline helper taking the view as a third parameter, once open-coded - and
@@ -146216,7 +146216,7 @@ natural changes. Compare against `&gGfxViewCoord` inside the helper (the shape
 of the out-of-line sibling in the same file) and call the helper for both
 walks: CSE keeps the address in `$s2` for the first loop and rematerialises it
 in `$t0` for the second, exactly as the target does. Then assign the second
-chain's start (`second = coords + 7`) right after `coords` instead of after the
+chain's start (`forearmCoord = actorCoords + ACTOR_403100_PART_FOREARM`) right after `coords` instead of after the
 call: the longer live range lowers its priority below `index`. The helper's
 separate `current = coord` copy also had to go - with it the `move s1,s6`
 schedules after the `lui/addiu` of the address.
@@ -153441,7 +153441,7 @@ that step was inferred from the result, not read out of a dump.
   A helper with its own `MATRIX` leaves `rot` undeclared; keeping both grows
   the frame. The other use is probably an inline too (inlined frames in sibling
   blocks can share a slot); find that one first.
-- `func_actor_403100_80132064` (1): matrix at frame offset 8, so the plain call
+- `_actor403100EmitFlame` (1): matrix at frame offset 8, so the plain call
   does produce the split, but the target keeps `&matrix` hoisted out of the
   loop in a callee-saved register and spills `mode`. Plain call and a
   `_PlaceCoord(coord, position)` helper with its own matrix both lose that
@@ -153498,7 +153498,7 @@ The build compiles with `-w`, so the retype was also checked by running `cc1`
 without it on every rebuilt `.i` before and after: no new pointer-type warning.
 
 **What is left.** `GfxMatrix` remains for six locals that still store through
-`rotationWords` by hand: `matrix`/`identity` in `func_actor_403100_80132064`
+`rotationWords` by hand: `worldTransform`/`identityTransform` in `_actor403100EmitFlame`
 and `rot`/`src` in `func_actor_400500_8013973C` and `_8013A0B8`. Do not
 declare a new matrix as `GfxMatrix` unless it needs that view.
 

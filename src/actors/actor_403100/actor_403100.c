@@ -68,11 +68,47 @@
 
 extern GpuImageUpload D_actor_403100_801555EC[2];
 
-static void func_actor_403100_80132064(Task* arg0, SVECTOR* first, SVECTOR* second, s32 arg3);
-static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
-static void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3);
-static void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-static void func_actor_403100_8013D06C(void);
+static void _actor403100EmitFlame(Task* task, SVECTOR* offset, const SVECTOR* velocity, s32 disableCollision);
+static void _actor403100AimHead(Task* task, s16 aimMode);
+static void _actor403100StepHeadAimPitch(SVECTOR* targetAngles, s32 pitchStep, s32 upperPitchLimit, s16 lowerPitchLimit);
+static void _actor403100StepHeadAimYaw(const SVECTOR* targetAngles, s32 headYawStep, s32 bodyYawStep, s32 bodyCatchupStep, s32 bodyTurnStep);
+static void _actor403100RelaxHeadAimRoll(void);
+
+/// Player-region ids used by the attack range gate and attack picker.
+///
+/// The floor rectangles can share an id; 0 lies outside all listed regions.
+enum {
+    ACTOR_403100_PLAYER_REGION_1 = 1,
+    ACTOR_403100_PLAYER_REGION_2 = 2,
+    ACTOR_403100_PLAYER_REGION_3 = 3,
+    ACTOR_403100_PLAYER_REGION_4 = 4,
+    ACTOR_403100_PLAYER_REGION_5 = 5,
+    ACTOR_403100_PLAYER_REGION_6 = 6,
+};
+
+/// Whether a newly emitted flame participates in grid and body-pair collision.
+enum {
+    ACTOR_403100_FLAME_COLLISION_ENABLED  = 0,
+    ACTOR_403100_FLAME_COLLISION_DISABLED = 1,
+};
+
+/// Sound selection of an explicit jaw/head pitch-kick request.
+enum {
+    ACTOR_403100_PITCH_KICK_KEEP_SOUND          = 0,
+    ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND = 1,
+};
+
+/// Burner skeleton coordinates used by the head and arm pose helpers.
+enum {
+    ACTOR_403100_PART_LOWER_TRUNK  = 1,
+    ACTOR_403100_PART_MIDDLE_TRUNK = 2,
+    ACTOR_403100_PART_HEAD         = 3,
+    ACTOR_403100_PART_FOREARM      = 7,
+    ACTOR_403100_PART_HAND         = 8,
+};
+
+/// Head aim's inclusive pitch/yaw dead zone, in 4096 units per turn.
+enum { ACTOR_403100_AIM_DEAD_ZONE = 0x20 };
 
 /// Ends a `_Actor403100Zone` table, in the `id` of its last entry.
 enum { ACTOR_403100_ZONE_END = -1 };
@@ -293,7 +329,7 @@ static void _actor403100TurnUpperArm(Task* task);
 static void func_actor_403100_8013B128(Task* arg0);
 static void func_actor_403100_8013B3C4(Task* arg0);
 static void func_actor_403100_8013D11C(Task* arg0);
-static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
+static void _actor403100PlacePlayer(s16 x, s16 y, s16 z, s16 yaw);
 static void _actor403100PlayPlayerAnimation(s16 animationId, s16 messageId);
 static void _actor403100RequestHitPitchKick(void);
 static s32  _actor403100GetWorldRotation(const GfxCoord* joint, MATRIX* rotation);
@@ -302,11 +338,10 @@ static void _actor403100TurnForearm(Task* task);
 static void _actor403100RequestAnimationBlend(s16 animationId, s16 rate, s16 blendFrames);
 static void func_actor_403100_8013F610(void);
 static void func_actor_403100_8013F658(void);
-static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
 
 extern DamageAttack D_actor_403100_80147614[6];
 static void         func_actor_403100_801342B4(Task* arg0);
-static void         func_actor_403100_8013C7B4(Task* arg0);
+static void         _actor403100ProbeArmPlayerContact(Task* task);
 
 extern u8 D_actor_403100_801557A8[];
 
@@ -3217,7 +3252,7 @@ static void _actor403100ApplyAnimationBlend(void);
 
 static void func_actor_403100_8013712C(Task* arg0);
 
-static void func_actor_403100_8013C008(s16 arg0, s16 arg1);
+static void _actor403100DrawHoldForeground(s16 offsetX, s16 offsetY);
 
 static void func_actor_403100_8013D74C(Task* arg0);
 
@@ -3245,7 +3280,7 @@ static void func_actor_403100_8013CBE0(Task* task);
 
 static void func_actor_403100_8013CDC0(void);
 
-static void func_actor_403100_8013D2A0(s16 arg0);
+static void _actor403100RequestPitchKick(s16 selectAttackSound);
 
 static void func_actor_403100_8013D6B4(Task* arg0);
 
@@ -3253,9 +3288,9 @@ static void func_actor_403100_8013D700(Task* arg0);
 
 static void func_actor_403100_80136830(Task* arg0);
 
-static void func_actor_403100_80137268(Task* task);
+static void _actor403100WaitForPlayerInAttackRange(Task* task);
 
-static void func_actor_403100_80137310(Task* task);
+static void _actor403100ChooseAttack(Task* task);
 
 static void func_actor_403100_8013BB8C(Task* arg0);
 
@@ -3378,21 +3413,21 @@ typedef struct {
 } _Actor403100HeadAimScratch;
 STATIC_ASSERT_SIZEOF(_Actor403100HeadAimScratch, 0x88);
 
-static __inline__ s32  Actor403100_FindRegion(s16 x, s16 z);
+static __inline__ s32  _actor403100FindBalconySection(s16 x, s16 z);
 static __inline__ s32  Actor403100_FindEffectRegion(s16 x, s16 z);
 static __inline__ s32  _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
 static __inline__ s16  _actor403100PreviousAnimationAtBoundaryOrJump(void);
 static __inline__ s16  _actor403100AnimationAtBoundaryOrJump(void);
-static __inline__ s16  Actor403100_TestFlags12C(void);
+static __inline__ s16  _actor403100Slot2AnimationSettled(void);
 static void            func_actor_403100_80132320(Task* arg0);
-static void            func_actor_403100_80132528(Task* arg0);
+static void            _actor403100PlaceHeldPlayer(Task* task);
 static void            func_actor_403100_801331D4(Task* arg0);
 static void            func_actor_403100_8013335C(Task* arg0);
 static inline void     _actor403100SetRootYaw(Task* task);
 static inline void     _actor403100ScaleRoot(Task* task, s16 factor);
 static inline void     _actor403100UpdateColor(Task* task, GfxCoord* coord);
 static void            func_actor_403100_801339EC(Task* arg0);
-static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 i);
+static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 spawnPointIndex);
 static __inline__ void _actor403100SetObjFlags(WorldCollisionBody* obj, s32 mask, s32 bits);
 static void            func_actor_403100_80134D50(Task* arg0);
 static void            func_actor_403100_8013506C(Task* arg0);
@@ -3464,16 +3499,21 @@ static __inline__ void _actor403100CopyRotation(MATRIX* destination, const MATRI
         *(rotation) = *(normalizedRotation);                                                       \
     } while (0)
 
-static __inline__ s32 Actor403100_FindRegion(s16 x, s16 z)
+/// Finds the first breakable balcony section containing a world-space X/Z point.
+///
+/// Both far rectangle edges are included. Returns section 3..8, or 0 outside
+/// the section table; overlapping edges take the earlier entry.
+static __inline__ s32 _actor403100FindBalconySection(s16 x, s16 z)
 {
-    _Actor403100Zone* zone;
+    enum { ACTOR_403100_BALCONY_SECTION_NONE = 0 };
+    const _Actor403100Zone* zone;
     for (zone = D_actor_403100_80155698; zone->id != ACTOR_403100_ZONE_END; zone++) {
         if (x >= zone->x && x <= zone->x + zone->width &&
             z >= zone->z && z <= zone->z + zone->depth) {
             return zone->id;
         }
     }
-    return 0;
+    return ACTOR_403100_BALCONY_SECTION_NONE;
 }
 
 static __inline__ s32 Actor403100_FindEffectRegion(s16 x, s16 z)
@@ -3574,9 +3614,13 @@ static __inline__ s16 _actor403100AnimationAtBoundaryOrJump(void)
     return 0;
 }
 
-static __inline__ s16 Actor403100_TestFlags12C(void)
+/// Tests whether live animation slot 2 holds its boundary pose.
+///
+/// Returns 0 or 1 from ANIMATION_SLOT_SETTLED; reaching a boundary or following
+/// a control jump alone does not qualify.
+static __inline__ s16 _actor403100Slot2AnimationSettled(void)
 {
-    if (D_actor_403100_80155808->rig.slots[2].status.fields.flags & 0x100) {
+    if (D_actor_403100_80155808->rig.slots[2].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         return 1;
     }
     return 0;
@@ -3592,74 +3636,86 @@ static const _Actor403100PlayerReactionTable D_actor_403100_80131E24 = {
     },
 };
 
-static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
+/// Emits one head-local flame puff into the lowest free pool slot.
+///
+/// `offset` and `velocity` use signed halfword game coordinates in head part 3's
+/// frame. On emission, `offset` becomes world space; `velocity` stays intact.
+/// The input vectors are separate. A full pool changes neither input.
+/// Only `disableCollision`'s low 16 bits count:
+/// zero enables grid/pair tests, nonzero disables both. The pool owns the linked
+/// attack body until the puff update or teardown unlinks it. Requires the live
+/// actor model and global work, view hierarchy, attack table and flame pool.
+static void _actor403100EmitFlame(Task* task, SVECTOR* offset, const SVECTOR* velocity, s32 disableCollision)
 {
-    SVECTOR                end;
-    GfxMatrix              matrix;
-    u16                    mode;
-    GfxMatrix*             identity;
-    GfxCoord*              joint;
-    s32                    i;
-    u32                    random;
+    enum { ACTOR_403100_FLAME_RADIUS = 50 };
+    SVECTOR                velocityEndpoint;
+    GfxMatrix              worldTransform;
+    u16                    collisionDisabled;
+    GfxMatrix*             identityTransform;
+    GfxCoord*              headCoord;
+    s32                    flameIndex;
+    u32                    spriteRandom;
     WorldCollisionContact* contacts;
-    WorldCollisionBody*    body;
-    GfxCoord*              coord;
+    WorldCollisionBody*    collisionBody;
+    GfxCoord*              flameCoord;
 
-    i      = 0;
-    mode   = arg3;
-    joint  = &arg0->extra.tmd->coords[3];
-    end.vx = arg1->vx + arg2->vx;
-    end.vy = arg1->vy + arg2->vy;
-    end.vz = arg1->vz + arg2->vz;
-    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
-        if (D_actor_403100_80155814[i].active == 0) {
-            coord                                 = &D_actor_403100_80155814[i].coord;
-            D_actor_403100_80155814[i].active     = 1;
-            D_actor_403100_80155814[i].age        = 0;
-            random                                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                       = random;
-            D_actor_403100_80155814[i].spriteStep = (s16)((random >> 0x10) & 0xF);
-            _actorRenderTransformPointToWorld(joint, arg1);
-            identity = &matrix;
-            _actorRenderTransformPointToWorld(joint, &end);
-            D_actor_403100_80155814[i].velocity.vx           = (s16)(end.vx - arg1->vx);
-            D_actor_403100_80155814[i].velocity.vy           = (s16)(end.vy - arg1->vy);
-            D_actor_403100_80155814[i].velocity.vz           = (s16)(end.vz - arg1->vz);
-            D_actor_403100_80155814[i].position.vx           = (u16)arg1->vx;
-            D_actor_403100_80155814[i].position.vy           = (u16)arg1->vy;
-            D_actor_403100_80155814[i].position.vz           = (u16)arg1->vz;
-            D_actor_403100_80155814[i].coord.parent          = &gGfxViewCoord;
-            matrix.rotationWords.m00M01                      = ONE;
-            matrix.rotationWords.m02M10                      = 0;
-            identity->rotationWords.m11M12                   = ONE;
-            matrix.rotationWords.m20M21                      = 0;
-            identity->rotationWords.m22                      = ONE;
-            matrix.mat.t[0]                                  = (s32)(s16)arg1->vx;
-            matrix.mat.t[1]                                  = (s32)(s16)arg1->vy;
-            contacts                                         = D_actor_403100_80155814[i].contacts;
-            matrix.mat.t[2]                                  = (s32)(s16)arg1->vz;
-            D_actor_403100_80155814[i].coord.coord           = matrix.mat;
-            D_actor_403100_80155814[i].body.coord            = coord;
-            D_actor_403100_80155814[i].body.context.contacts = contacts;
-            D_actor_403100_80155814[i].body.pos.vx           = 0;
-            D_actor_403100_80155814[i].body.pos.vy           = 0;
-            D_actor_403100_80155814[i].body.pos.vz           = 0;
-            D_actor_403100_80155814[i].body.key              = damagePackAttackKey(D_actor_403100_80147614, 1);
-            D_actor_403100_80155814[i].body.radius           = 0x32;
-            D_actor_403100_80155814[i].body.flags            = WORLD_COLLISION_BODY_SPHERE;
-            body                                             = &D_actor_403100_80155814[i].body;
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, body);
-            worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_403100_80155814[i].contacts), 0);
-            if ((mode << 0x10) == 0) {
-                body->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    flameIndex        = 0;
+    collisionDisabled = disableCollision;
+    headCoord         = &task->extra.tmd->coords[ACTOR_403100_PART_HEAD];
+    // Transform both endpoints so the velocity includes the head's orientation.
+    velocityEndpoint.vx = offset->vx + velocity->vx;
+    velocityEndpoint.vy = offset->vy + velocity->vy;
+    velocityEndpoint.vz = offset->vz + velocity->vz;
+    for (; flameIndex < ARRAY_SIZE(D_actor_403100_80155814); flameIndex++) {
+        if (D_actor_403100_80155814[flameIndex].active == 0) {
+            flameCoord                                     = &D_actor_403100_80155814[flameIndex].coord;
+            D_actor_403100_80155814[flameIndex].active     = 1;
+            D_actor_403100_80155814[flameIndex].age        = 0;
+            spriteRandom                                   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                                = spriteRandom;
+            D_actor_403100_80155814[flameIndex].spriteStep = (s16)((spriteRandom >> 0x10) & 0xF);
+            _actorRenderTransformPointToWorld(headCoord, offset);
+            identityTransform = &worldTransform;
+            _actorRenderTransformPointToWorld(headCoord, &velocityEndpoint);
+            D_actor_403100_80155814[flameIndex].velocity.vx = (s16)(velocityEndpoint.vx - offset->vx);
+            D_actor_403100_80155814[flameIndex].velocity.vy = (s16)(velocityEndpoint.vy - offset->vy);
+            D_actor_403100_80155814[flameIndex].velocity.vz = (s16)(velocityEndpoint.vz - offset->vz);
+            D_actor_403100_80155814[flameIndex].position.vx = (u16)offset->vx;
+            D_actor_403100_80155814[flameIndex].position.vy = (u16)offset->vy;
+            D_actor_403100_80155814[flameIndex].position.vz = (u16)offset->vz;
+            // Each puff owns a world-space coordinate and a linked attack sphere.
+            D_actor_403100_80155814[flameIndex].coord.parent          = &gGfxViewCoord;
+            worldTransform.rotationWords.m00M01                       = ONE;
+            worldTransform.rotationWords.m02M10                       = 0;
+            identityTransform->rotationWords.m11M12                   = ONE;
+            worldTransform.rotationWords.m20M21                       = 0;
+            identityTransform->rotationWords.m22                      = ONE;
+            worldTransform.mat.t[0]                                   = (s32)(s16)offset->vx;
+            worldTransform.mat.t[1]                                   = (s32)(s16)offset->vy;
+            contacts                                                  = D_actor_403100_80155814[flameIndex].contacts;
+            worldTransform.mat.t[2]                                   = (s32)(s16)offset->vz;
+            D_actor_403100_80155814[flameIndex].coord.coord           = worldTransform.mat;
+            D_actor_403100_80155814[flameIndex].body.coord            = flameCoord;
+            D_actor_403100_80155814[flameIndex].body.context.contacts = contacts;
+            D_actor_403100_80155814[flameIndex].body.pos.vx           = 0;
+            D_actor_403100_80155814[flameIndex].body.pos.vy           = 0;
+            D_actor_403100_80155814[flameIndex].body.pos.vz           = 0;
+            D_actor_403100_80155814[flameIndex].body.key              = damagePackAttackKey(D_actor_403100_80147614, 1);
+            D_actor_403100_80155814[flameIndex].body.radius           = ACTOR_403100_FLAME_RADIUS;
+            D_actor_403100_80155814[flameIndex].body.flags            = WORLD_COLLISION_BODY_SPHERE;
+            collisionBody                                             = &D_actor_403100_80155814[flameIndex].body;
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, collisionBody);
+            worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_403100_80155814[flameIndex].contacts), 0);
+            if ((collisionDisabled << 0x10) == 0) {
+                collisionBody->flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
-                body->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                collisionBody->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
-            actorRenderComposeCoord(&D_actor_403100_80155814[i].coord);
-            D_actor_403100_80155814[i].coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            D_actor_403100_80155814[i].coord.coord.t[0]   = (s32)(s16)D_actor_403100_80155814[i].position.vx;
-            D_actor_403100_80155814[i].coord.coord.t[1]   = (s32)(s16)D_actor_403100_80155814[i].position.vy;
-            D_actor_403100_80155814[i].coord.coord.t[2]   = (s32)(s16)D_actor_403100_80155814[i].position.vz;
+            actorRenderComposeCoord(&D_actor_403100_80155814[flameIndex].coord);
+            D_actor_403100_80155814[flameIndex].coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            D_actor_403100_80155814[flameIndex].coord.coord.t[0]   = (s32)(s16)D_actor_403100_80155814[flameIndex].position.vx;
+            D_actor_403100_80155814[flameIndex].coord.coord.t[1]   = (s32)(s16)D_actor_403100_80155814[flameIndex].position.vy;
+            D_actor_403100_80155814[flameIndex].coord.coord.t[2]   = (s32)(s16)D_actor_403100_80155814[flameIndex].position.vz;
             break;
         }
     }
@@ -3712,55 +3768,64 @@ static void func_actor_403100_80132320(Task* arg0)
     worldCollisionInitContacts(D_actor_403100_80155808->forearmContacts, ARRAY_SIZE(D_actor_403100_80155808->forearmContacts), 0);
     D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
-static void func_actor_403100_80132528(Task* arg0)
+/// Places the held player at the arm's grip sampled two animation ticks ahead.
+///
+/// Uses coordinate 7's world rotation and a fixed local grip offset, writing the
+/// player's root and stored Euler angles. Both live models and the actor's
+/// animation rig are required. Reverse playback undoes the sampled advance and
+/// restores the requested rate. Sampling also advances animation bookkeeping and
+/// updates the pose helpers and composition caches.
+static void _actor403100PlaceHeldPlayer(Task* task)
 {
-    SVECTOR    pos;
-    SVECTOR    rotation;
-    MATRIX     matrix;
-    GameActor* player;
-    GfxCoord*  joint;
+    SVECTOR    heldPosition;
+    SVECTOR    heldRotation;
+    MATRIX     heldWorldRotation;
+    GameActor* playerActor;
+    GfxCoord*  gripCoord;
     GfxCoord*  playerCoord;
-    s32        rate;
-    s32        anim;
-    u16        savedRate;
-    GfxCoord*  coords;
+    s32        originalRate;
+    s32        animationId;
+    u16        savedRateBits;
+    GfxCoord*  actorCoords;
 
-    anim                                   = D_actor_403100_80155808->animationId;
-    playerCoord                            = (*gPlayerActorTasks)->extra.tmd->coords;
-    coords                                 = arg0->extra.tmd->coords;
-    player                                 = (*gPlayerActorTasks)->work;
-    rate                                   = D_actor_403100_80155808->animationRate;
-    savedRate                              = (u16)D_actor_403100_80155808->animationRate;
-    D_actor_403100_80155808->animationRate = rate * 2;
-    _actor403100RequestAnimationBlend(anim, D_actor_403100_80155808->animationRate, 0);
-    _actor403100UpdateAnimation(arg0);
-    _actor403100TurnUpperArm(arg0);
-    _actor403100TurnForearm(arg0);
+    animationId   = D_actor_403100_80155808->animationId;
+    playerCoord   = (*gPlayerActorTasks)->extra.tmd->coords;
+    actorCoords   = task->extra.tmd->coords;
+    playerActor   = (*gPlayerActorTasks)->work;
+    originalRate  = D_actor_403100_80155808->animationRate;
+    savedRateBits = (u16)D_actor_403100_80155808->animationRate;
+    // Sample two ticks ahead for the held pose, then rewind the actor below.
+    D_actor_403100_80155808->animationRate = originalRate * 2;
+    _actor403100RequestAnimationBlend(animationId, D_actor_403100_80155808->animationRate, 0);
+    _actor403100UpdateAnimation(task);
+    _actor403100TurnUpperArm(task);
+    _actor403100TurnForearm(task);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
-    joint                  = &coords[7];
-    coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(joint);
-    pos.vx = -0x290;
-    pos.vy = 0x1E8;
-    pos.vz = 0x220;
-    _actorRenderTransformPointToWorld(joint, &pos);
-    _actor403100GetWorldRotation(joint, &matrix);
-    gfxExtractEulerAngles(&matrix, &rotation);
-    player->rotation.vx = rotation.vx;
-    player->rotation.vy = rotation.vy;
-    player->rotation.vz = rotation.vz;
-    RotMatrix(&rotation, &playerCoord->coord);
-    playerCoord->coord.t[0]   = pos.vx;
-    playerCoord->coord.t[1]   = pos.vy;
-    playerCoord->coord.t[2]   = pos.vz;
+    gripCoord                                           = &actorCoords[ACTOR_403100_PART_FOREARM];
+    actorCoords[ACTOR_403100_PART_FOREARM].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(gripCoord);
+    heldPosition.vx = -0x290;
+    heldPosition.vy = 0x1E8;
+    heldPosition.vz = 0x220;
+    _actorRenderTransformPointToWorld(gripCoord, &heldPosition);
+    _actor403100GetWorldRotation(gripCoord, &heldWorldRotation);
+    gfxExtractEulerAngles(&heldWorldRotation, &heldRotation);
+    playerActor->rotation.vx = heldRotation.vx;
+    playerActor->rotation.vy = heldRotation.vy;
+    playerActor->rotation.vz = heldRotation.vz;
+    RotMatrix(&heldRotation, &playerCoord->coord);
+    playerCoord->coord.t[0]   = heldPosition.vx;
+    playerCoord->coord.t[1]   = heldPosition.vy;
+    playerCoord->coord.t[2]   = heldPosition.vz;
     playerCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(playerCoord);
-    D_actor_403100_80155808->animationRate = (-rate) << 1;
+    // Reverse the sampled advance and restore the pending playback rate.
+    D_actor_403100_80155808->animationRate = (-originalRate) << 1;
     _actor403100RequestAnimationBlend(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
-    _actor403100UpdateAnimation(arg0);
-    D_actor_403100_80155808->animationRate = (s16)savedRate;
-    _actor403100RequestAnimationBlend(D_actor_403100_80155808->animationId, rate, 0);
+    _actor403100UpdateAnimation(task);
+    D_actor_403100_80155808->animationRate = (s16)savedRateBits;
+    _actor403100RequestAnimationBlend(D_actor_403100_80155808->animationId, originalRate, 0);
 }
 /// Applies the pending clip and rate to every non-root animation slot.
 ///
@@ -4336,13 +4401,15 @@ static void func_actor_403100_80133D88(Task* arg0)
     }
 }
 
-/* Puts a newly spawned task's coordinate at point `i` of the spawn point
-   table, on the ground plane. */
-static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 i)
+/// Places a spawned effect coordinate at one of the five floor emission points.
+///
+/// `spawnPointIndex` is 0..4. X/Z are parent-frame game coordinates and Y is
+/// zero. The caller owns the live coordinate and updates its cache stamp.
+static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 spawnPointIndex)
 {
-    coord->coord.t[0] = D_actor_403100_80155794[i][0];
+    coord->coord.t[0] = D_actor_403100_80155794[spawnPointIndex][0];
     coord->coord.t[1] = 0;
-    coord->coord.t[2] = D_actor_403100_80155794[i][1];
+    coord->coord.t[2] = D_actor_403100_80155794[spawnPointIndex][1];
 }
 
 static void func_actor_403100_80133E88(Task* arg0)
@@ -4456,7 +4523,7 @@ static void func_actor_403100_801342B4(Task* arg0)
     pos2.vz = offset2.vz = 0;
     _actorRenderTransformPointToWorld(coord2, &pos2);
     for (; i < 9; i++) {
-        if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
+        if (_actor403100FindBalconySection(pos1.vx, pos1.vz) == i) {
             if (D_actor_403100_80155808->sectionDamaged[i] == 0) {
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord1, 0, &offset1);
                 func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
@@ -4467,7 +4534,7 @@ static void func_actor_403100_801342B4(Task* arg0)
         }
     }
     for (i = 3; i < 9; i++) {
-        if (Actor403100_FindRegion(pos2.vx, pos2.vz) == i) {
+        if (_actor403100FindBalconySection(pos2.vx, pos2.vz) == i) {
             if (D_actor_403100_80155808->sectionDamaged[i] == 0) {
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord2, 0, &offset2);
                 func_dryfield_night_motel_balcony_8017E250((s16)i, 1);
@@ -4867,7 +4934,7 @@ static void func_actor_403100_801356F4(Task* arg0)
         first.vx  = 0;
         second.vx = 0;
         second.vz = 0xF0;
-        func_actor_403100_80132064(arg0, &first, &second, 1);
+        _actor403100EmitFlame(arg0, &first, &second, ACTOR_403100_FLAME_COLLISION_DISABLED);
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->subState += 1;
@@ -5007,7 +5074,7 @@ static void func_actor_403100_80135C00(Task* arg0)
     if ((s16)D_actor_403100_80155808->stateFrames == 0x5E) {
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
     }
-    if (Actor403100_TestFlags12C()) {
+    if (_actor403100Slot2AnimationSettled()) {
         D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
         D_actor_403100_80155808->animationId      = 0x15;
         D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
@@ -5045,7 +5112,7 @@ static void func_actor_403100_80135F30(Task* arg0)
         depth2 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
         sndEvtRequestScriptStart(sound2, (s32)pan2, (s8)(depth2 / 2));
     }
-    if (Actor403100_TestFlags12C()) {
+    if (_actor403100Slot2AnimationSettled()) {
         D_actor_403100_80155808->animationBlendFrames = 0x18;
         D_actor_403100_80155808->animationRate        = 0x18;
         D_actor_403100_80155808->animationId          = 0x16;
@@ -5163,7 +5230,7 @@ static void func_actor_403100_8013631C(Task* arg0)
         padScriptSpawnVariableMotorRamp(0x1E, 0xFF, 8);
         D_actor_403100_80155808->shakeFrames = 0x1E;
     }
-    if (Actor403100_TestFlags12C()) {
+    if (_actor403100Slot2AnimationSettled()) {
         D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
         D_actor_403100_80155808->animationId      = 0x18;
         D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
@@ -5497,7 +5564,7 @@ static void func_actor_403100_80136830(Task* arg0)
             } else {
                 displaySetShakeY(0);
             }
-            func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
+            _actor403100AimHead(arg0, D_actor_403100_80155808->aimMode);
             _actor403100SetRootYaw(arg0);
             scale = 0x1400;
             _actor403100ScaleRoot(arg0, scale);
@@ -5599,87 +5666,112 @@ static void func_actor_403100_8013712C(Task* arg0)
 static const TaskFuncTable3 D_actor_403100_80131F60 = {
     {
         func_actor_403100_8013F18C,
-        func_actor_403100_80137268,
-        func_actor_403100_80137310,
+        _actor403100WaitForPlayerInAttackRange,
+        _actor403100ChooseAttack,
     },
 };
 
-static void func_actor_403100_80137268(Task* task)
+/// Advances the idle substate when the player's region permits an attack.
+///
+/// Region 1 requires distance below 8000 game units; regions 3..5 below 6100.
+/// Regions 2 and 6 advance immediately, and an unlisted region leaves it waiting.
+/// The cached player distance/region must describe this frame. `task` is unused
+/// but retained for the task-handler table's signature.
+static void _actor403100WaitForPlayerInAttackRange(Task* task)
 {
-    s16 state;
+    enum { ACTOR_403100_REGION_1_ATTACK_RANGE       = 8000,
+           ACTOR_403100_REGIONS_3_TO_5_ATTACK_RANGE = 6100 };
+    s16 regionIndex;
 
-    state = D_actor_403100_80155808->playerRegion - 1;
-    switch (state) {
-        case 0:
-            if (D_actor_403100_80155808->playerDistance < 0x1F40) {
+    regionIndex = D_actor_403100_80155808->playerRegion - ACTOR_403100_PLAYER_REGION_1;
+    switch (regionIndex) {
+        case ACTOR_403100_PLAYER_REGION_1 - 1:
+            if (D_actor_403100_80155808->playerDistance < ACTOR_403100_REGION_1_ATTACK_RANGE) {
                 D_actor_403100_80155808->subState += 1;
             }
             break;
-        case 1:
-        case 5:
+        case ACTOR_403100_PLAYER_REGION_2 - 1:
+        case ACTOR_403100_PLAYER_REGION_6 - 1:
             D_actor_403100_80155808->subState += 1;
             break;
-        case 2:
-        case 3:
-        case 4:
-            if (D_actor_403100_80155808->playerDistance < 0x17D4) {
+        case ACTOR_403100_PLAYER_REGION_3 - 1:
+        case ACTOR_403100_PLAYER_REGION_4 - 1:
+        case ACTOR_403100_PLAYER_REGION_5 - 1:
+            if (D_actor_403100_80155808->playerDistance < ACTOR_403100_REGIONS_3_TO_5_ATTACK_RANGE) {
                 D_actor_403100_80155808->subState += 1;
             }
             break;
     }
 }
-static void func_actor_403100_80137310(Task* task)
+/// Chooses an attack from health-dependent odds, region eligibility and history.
+///
+/// Resets subState for the chosen state. Regions 2/6 select the side flame
+/// without a draw or history update. Other regions draw from sixteen entries,
+/// substitute ineligible attacks, then avoid a third consecutive repeat.
+/// recentStateCursor must index the three-entry history. `task` is unused but
+/// retained for the task-handler table's signature.
+static void _actor403100ChooseAttack(Task* task)
 {
-    s32 halfHealth;
-    s16 phase;
-    s16 previousState;
-    s16 state;
-    u32 random1;
-    u32 random2;
+    enum {
+        ACTOR_403100_ATTACK_ARM_SWING        = 2,
+        ACTOR_403100_ATTACK_AIMED_FLAME      = 3,
+        ACTOR_403100_ATTACK_JUMP_SLAM        = 4,
+        ACTOR_403100_ATTACK_GRAB_AND_SQUEEZE = 5,
+        ACTOR_403100_ATTACK_SIDE_FLAME       = 6,
+        ACTOR_403100_ATTACK_GRAB_AND_DRAG    = 7,
+    };
+    s32 halfPlayerHealth;
+    s16 playerRegion;
+    s16 firstHistoryAttack;
+    s16 selectedAttack;
+    u32 weakenedDraw;
+    u32 normalDraw;
 
-    halfHealth = gPlayerStatus.hpMax / 2;
-    phase      = D_actor_403100_80155808->playerRegion;
-    if (phase != 2 && phase != 6) {
-        if ((gPlayerStatus.hp < halfHealth) || (D_actor_403100_80155808->lowHealth != 0)) {
-            random1                           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                   = random1;
-            D_actor_403100_80155808->state    = D_actor_403100_801557B0.states[ACTOR_403100_ATTACK_ODDS_WEAKENED][(random1 >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
+    halfPlayerHealth = gPlayerStatus.hpMax / 2;
+    playerRegion     = D_actor_403100_80155808->playerRegion;
+    // Apply the health-dependent odds, then restrict attacks to eligible regions.
+    if (playerRegion != ACTOR_403100_PLAYER_REGION_2 && playerRegion != ACTOR_403100_PLAYER_REGION_6) {
+        if ((gPlayerStatus.hp < halfPlayerHealth) || (D_actor_403100_80155808->lowHealth != 0)) {
+            weakenedDraw                      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                   = weakenedDraw;
+            D_actor_403100_80155808->state    = D_actor_403100_801557B0.states[ACTOR_403100_ATTACK_ODDS_WEAKENED][(weakenedDraw >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
             D_actor_403100_80155808->subState = 0;
         } else {
-            random2                           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                   = random2;
-            D_actor_403100_80155808->state    = D_actor_403100_801557B0.states[ACTOR_403100_ATTACK_ODDS_NORMAL][(random2 >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
+            normalDraw                        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                   = normalDraw;
+            D_actor_403100_80155808->state    = D_actor_403100_801557B0.states[ACTOR_403100_ATTACK_ODDS_NORMAL][(normalDraw >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
             D_actor_403100_80155808->subState = 0;
         }
-        if ((s16)D_actor_403100_80155808->state == 4) {
+        if ((s16)D_actor_403100_80155808->state == ACTOR_403100_ATTACK_JUMP_SLAM) {
             if (D_actor_403100_80155808->lowHealth != 0) {
-                D_actor_403100_80155808->state    = 2;
+                D_actor_403100_80155808->state    = ACTOR_403100_ATTACK_ARM_SWING;
                 D_actor_403100_80155808->subState = 0;
             }
         }
-        if ((s16)D_actor_403100_80155808->state == 5) {
-            if (D_actor_403100_80155808->playerRegion != 1) {
-                D_actor_403100_80155808->state    = 7;
+        if ((s16)D_actor_403100_80155808->state == ACTOR_403100_ATTACK_GRAB_AND_SQUEEZE) {
+            if (D_actor_403100_80155808->playerRegion != ACTOR_403100_PLAYER_REGION_1) {
+                D_actor_403100_80155808->state    = ACTOR_403100_ATTACK_GRAB_AND_DRAG;
                 D_actor_403100_80155808->subState = 0;
             }
         }
-        if (((s16)D_actor_403100_80155808->state == 7) && ((u32)((u16)D_actor_403100_80155808->playerRegion - 3) >= 2U)) {
-            D_actor_403100_80155808->state    = 4;
+        if (((s16)D_actor_403100_80155808->state == ACTOR_403100_ATTACK_GRAB_AND_DRAG) && ((u32)((u16)D_actor_403100_80155808->playerRegion - ACTOR_403100_PLAYER_REGION_3) >= 2U)) {
+            D_actor_403100_80155808->state    = ACTOR_403100_ATTACK_JUMP_SLAM;
             D_actor_403100_80155808->subState = 0;
         }
+        // Replace a third consecutive repeat and record the final choice.
         D_actor_403100_80155808->recentStates[D_actor_403100_80155808->recentStateCursor] = (u16)D_actor_403100_80155808->state;
-        previousState                                                                     = D_actor_403100_80155808->recentStates[0];
-        if ((previousState == D_actor_403100_80155808->recentStates[1]) && (previousState == D_actor_403100_80155808->recentStates[2])) {
-            state = (s16)D_actor_403100_80155808->state;
-            if (state == 2 || state == 4 || state == 7) {
-                D_actor_403100_80155808->state    = 3;
+        firstHistoryAttack                                                                = D_actor_403100_80155808->recentStates[0];
+        if ((firstHistoryAttack == D_actor_403100_80155808->recentStates[1]) && (firstHistoryAttack == D_actor_403100_80155808->recentStates[2])) {
+            selectedAttack = (s16)D_actor_403100_80155808->state;
+            if (selectedAttack == ACTOR_403100_ATTACK_ARM_SWING || selectedAttack == ACTOR_403100_ATTACK_JUMP_SLAM || selectedAttack == ACTOR_403100_ATTACK_GRAB_AND_DRAG) {
+                D_actor_403100_80155808->state    = ACTOR_403100_ATTACK_AIMED_FLAME;
                 D_actor_403100_80155808->subState = 0;
-            } else if (state == 3) {
+            } else if (selectedAttack == ACTOR_403100_ATTACK_AIMED_FLAME) {
                 if (D_actor_403100_80155808->lowHealth != 0) {
-                    D_actor_403100_80155808->state    = 2;
+                    D_actor_403100_80155808->state    = ACTOR_403100_ATTACK_ARM_SWING;
                     D_actor_403100_80155808->subState = 0;
                 } else {
-                    D_actor_403100_80155808->state    = 4;
+                    D_actor_403100_80155808->state    = ACTOR_403100_ATTACK_JUMP_SLAM;
                     D_actor_403100_80155808->subState = 0;
                 }
             }
@@ -5690,7 +5782,7 @@ static void func_actor_403100_80137310(Task* task)
             D_actor_403100_80155808->recentStateCursor = 0;
         }
     } else {
-        D_actor_403100_80155808->state    = 6;
+        D_actor_403100_80155808->state    = ACTOR_403100_ATTACK_SIDE_FLAME;
         D_actor_403100_80155808->subState = 0;
     }
 }
@@ -5739,7 +5831,7 @@ static void func_actor_403100_801376D8(Task* arg0)
     u16   angle;
 
     if ((u32)(D_actor_403100_80155808->stateFrames - 0x36) < 4U) {
-        func_actor_403100_8013C7B4(arg0);
+        _actor403100ProbeArmPlayerContact(arg0);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x39) {
         func_actor_403100_801342B4(arg0);
@@ -5765,7 +5857,7 @@ static void func_actor_403100_801376D8(Task* arg0)
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
         D_actor_403100_80155808->swingConnected       = 1;
-        func_actor_403100_8013D2A0(1);
+        _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
     }
     D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << 4) >> 7;
     if (_actor403100AnimationAtBoundaryOrJump()) {
@@ -5803,7 +5895,7 @@ static void func_actor_403100_801379B4(Task* arg0)
     u16   angle;
 
     if ((u32)(D_actor_403100_80155808->stateFrames - 0x3C) < 9U) {
-        func_actor_403100_8013C7B4(arg0);
+        _actor403100ProbeArmPlayerContact(arg0);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x44) {
         func_actor_403100_801342B4(arg0);
@@ -5828,7 +5920,7 @@ static void func_actor_403100_801379B4(Task* arg0)
         }
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
-        func_actor_403100_8013D2A0(1);
+        _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
         D_actor_403100_80155808->swingConnected = 1;
         D_actor_403100_80155808->stateCounter   = 1;
     }
@@ -6021,7 +6113,7 @@ static void func_actor_403100_80138048(Task* arg0)
         offset.vx   = 0;
         velocity.vx = 0;
         velocity.vz = 0xF0;
-        func_actor_403100_80132064(arg0, &offset, &velocity, 0);
+        _actor403100EmitFlame(arg0, &offset, &velocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
         func_actor_403100_8013D11C(arg0);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x7E) {
@@ -6174,7 +6266,7 @@ static void func_actor_403100_80138844(Task* arg0)
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
     }
-    func_actor_403100_8013C7B4(arg0);
+    _actor403100ProbeArmPlayerContact(arg0);
     D_actor_403100_80155808->stateFrames += 1;
     D_actor_403100_80155808->armYaw =
         (u16)D_actor_403100_80155808->armYaw +
@@ -6243,7 +6335,7 @@ static void func_actor_403100_80138C18(Task* task)
         random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = random;
         if ((random >> 0x10) & 1) {
-            func_actor_403100_8013D2A0(1);
+            _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
         }
         D_actor_403100_80155808->animationBlendFrames = 8;
         D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
@@ -6290,7 +6382,7 @@ static void func_actor_403100_80138DB0(Task* arg0)
     D_actor_403100_80155808->stateFrames = (u16)(D_actor_403100_80155808->stateFrames + 1);
     if (_actor403100HandleHitReaction() == 0) {
         if ((s16)D_actor_403100_80155808->stateFrames < 0x101) {
-            func_actor_403100_8013C7B4(arg0);
+            _actor403100ProbeArmPlayerContact(arg0);
             work = D_actor_403100_80155808;
             if (work->handTouchedPlayer != 0) {
                 work->vulnerable                       = 1;
@@ -6331,14 +6423,14 @@ static void func_actor_403100_80138F88(Task* arg0)
 
     coords = arg0->extra.tmd->coords;
     part   = coords + 6;
-    func_actor_403100_8013C008(D_actor_403100_80155808->overlayX, D_actor_403100_80155808->overlayY);
+    _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, D_actor_403100_80155808->overlayY);
     D_actor_403100_80155808->overlayX    = (u16)D_actor_403100_80155808->overlayX - 1;
     D_actor_403100_80155808->overlayY    = (u16)D_actor_403100_80155808->overlayY + 6;
     coords->coord.t[1]                  += -coords->coord.t[1] >> 6;
     D_actor_403100_80155808->rotation.vx = 0;
     D_actor_403100_80155808->rotation.vy = 0xA00;
     D_actor_403100_80155808->rotation.vz = 0;
-    func_actor_403100_80132528(arg0);
+    _actor403100PlaceHeldPlayer(arg0);
     if (_actor403100AnimationAtBoundaryOrJump()) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000C;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
@@ -6415,13 +6507,13 @@ static void func_actor_403100_8013922C(Task* arg0)
         frame                                      = D_actor_403100_80155808->playerDeathFrames + 1;
         D_actor_403100_80155808->playerDeathFrames = frame;
         if ((s16)frame == 0x3C) {
-            func_actor_403100_8013D2A0(1);
+            _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
         }
         if ((s16)D_actor_403100_80155808->playerDeathFrames >= 0x79) {
             gGameSession->suppressDeathChecks = 0;
         }
     }
-    func_actor_403100_80132528(arg0);
+    _actor403100PlaceHeldPlayer(arg0);
     func_actor_403100_8013D700(arg0);
     func_actor_403100_8013C214(arg0);
     if (D_actor_403100_80155808->hitTaken != 0) {
@@ -6506,7 +6598,7 @@ static void func_actor_403100_801395EC(Task* arg0)
     D_actor_403100_80155808->rotation.vx    = 0;
     D_actor_403100_80155808->rotation.vy    = 0xC00;
     D_actor_403100_80155808->rotation.vz    = 0;
-    func_actor_403100_80132528(arg0);
+    _actor403100PlaceHeldPlayer(arg0);
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     i                                    = 0;
@@ -6594,7 +6686,7 @@ static void func_actor_403100_80139818(Task* arg0)
     }
     D_actor_403100_80155808->overlayX = 0;
     D_actor_403100_80155808->overlayY = 0x3C;
-    func_actor_403100_8013C008(D_actor_403100_80155808->overlayX, 0x3C);
+    _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, 0x3C);
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame == 0x33) {
@@ -6619,7 +6711,7 @@ static void func_actor_403100_80139818(Task* arg0)
         position.vx = 0;
         velocity.vx = 0;
         velocity.vz = 0xE0;
-        func_actor_403100_80132064(arg0, &position, &velocity, 0);
+        _actor403100EmitFlame(arg0, &position, &velocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
     }
     if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
         effectCoords = arg0->extra.tmd->coords;
@@ -6679,7 +6771,7 @@ static void func_actor_403100_80139818(Task* arg0)
     D_actor_403100_80155808->rotation.vx    = 0;
     D_actor_403100_80155808->rotation.vy    = 0xA00;
     D_actor_403100_80155808->rotation.vz    = 0;
-    func_actor_403100_80132528(arg0);
+    _actor403100PlaceHeldPlayer(arg0);
     if (D_actor_403100_80155808->playerKilled == 0) {
         if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
             _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
@@ -6692,7 +6784,7 @@ static void func_actor_403100_80139818(Task* arg0)
         deathFrame                                 = (u16)D_actor_403100_80155808->playerDeathFrames + 1;
         D_actor_403100_80155808->playerDeathFrames = deathFrame;
         if (deathFrame == 0x3C) {
-            func_actor_403100_8013D2A0(0);
+            _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_KEEP_SOUND);
         }
         if (D_actor_403100_80155808->playerDeathFrames >= 0x79) {
             gGameSession->suppressDeathChecks = 0;
@@ -6717,7 +6809,7 @@ static void func_actor_403100_80139E80(Task* arg0)
     D_actor_403100_80155808->overlayX = (u16)D_actor_403100_80155808->overlayX - 1;
     angle                             = (u16)D_actor_403100_80155808->overlayY + 6;
     D_actor_403100_80155808->overlayY = angle;
-    func_actor_403100_8013C008(D_actor_403100_80155808->overlayX, angle);
+    _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, angle);
     part                                    = coords + 6;
     y                                       = coords->coord.t[1];
     coords->coord.t[1]                      = (s32)(y + ((s32)-y >> 6));
@@ -6733,7 +6825,7 @@ static void func_actor_403100_80139E80(Task* arg0)
     D_actor_403100_80155808->forearmTurn.vz = rotationZ + ((s32)(0x2E00 - (s16)(rotationZ * 0x10)) >> 7);
     x                                       = part->coord.t[0];
     part->coord.t[0]                        = (s32)(x + ((s32)(-0x807 - x) >> 3));
-    func_actor_403100_80132528(arg0);
+    _actor403100PlaceHeldPlayer(arg0);
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if ((s16)frame >= 0x1F) {
@@ -6780,7 +6872,7 @@ static void func_actor_403100_8013A064(Task* arg0)
     D_actor_403100_80155808->rotation.vx = 0;
     D_actor_403100_80155808->rotation.vy = 0xC00;
     D_actor_403100_80155808->rotation.vz = 0;
-    func_actor_403100_80132528(arg0);
+    _actor403100PlaceHeldPlayer(arg0);
     if ((s16)D_actor_403100_80155808->stateFrames >= 0x44) {
         D_actor_403100_80155808->animationBlendFrames              = 0x14;
         D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE;
@@ -6788,7 +6880,7 @@ static void func_actor_403100_8013A064(Task* arg0)
         D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_BLEND;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x17;
         D_actor_403100_80155808->subState                         += 1;
-        func_actor_403100_8013D0B8(-0x1BBC, -0xC80, -0x4B0, 0x400);
+        _actor403100PlacePlayer(-0x1BBC, -0xC80, -0x4B0, 0x400);
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 5), 0) != 0) {
             gGameSession->suppressDeathChecks = 1;
@@ -6931,7 +7023,7 @@ static void func_actor_403100_8013A5AC(Task* arg0)
         offset.vx   = 0;
         velocity.vx = 0;
         velocity.vz = 0xE0;
-        func_actor_403100_80132064(arg0, &offset, &velocity, 0);
+        _actor403100EmitFlame(arg0, &offset, &velocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
     }
     if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
         effectCoord = &arg0->extra.tmd->coords[3];
@@ -6993,7 +7085,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
     D_actor_403100_80155808->rotation.vy = angle + ((s32)((-0x4000 - (angle * 0x10)) << 0x10) >> 0x16);
     D_actor_403100_80155808->stateFrames = frame + 1;
     if ((u32)((frame - 0x33) & 0xFFFF) < 0x16U) {
-        func_actor_403100_8013C7B4(arg0);
+        _actor403100ProbeArmPlayerContact(arg0);
     } else if (_actor403100HandleHitReaction() != 0) {
         return;
     }
@@ -7008,7 +7100,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
         D_actor_403100_80155808->holdingPlayer = 1;
         Gp_StateC08.flags                     |= ATTACHMENT_FLAG_EVENT_LOCK;
         _actor403100PlayPlayerAnimation(3, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-        func_actor_403100_8013D0B8(D_actor_403100_80155808->playerPosition.vx, D_actor_403100_80155808->playerPosition.vy, (s16)((u16)D_actor_403100_80155808->playerPosition.vz + 0xBB8), 0x800);
+        _actor403100PlacePlayer(D_actor_403100_80155808->playerPosition.vx, D_actor_403100_80155808->playerPosition.vy, (s16)((u16)D_actor_403100_80155808->playerPosition.vz + 0xBB8), 0x800);
         D_actor_403100_80155808->handTouchedPlayer = 0;
         D_actor_403100_80155808->stateFrames       = 0;
         gGameSession->suppressViewTriggers         = 1;
@@ -7047,7 +7139,7 @@ static void func_actor_403100_8013AC04(Task* task)
     }
     work = D_actor_403100_80155808;
     if ((s16)work->stateFrames < 5) {
-        func_actor_403100_8013D0B8(work->playerPosition.vx, work->playerPosition.vy, (s16)(work->playerPosition.vz + 0x3E8), 0x800);
+        _actor403100PlacePlayer(work->playerPosition.vx, work->playerPosition.vy, (s16)(work->playerPosition.vz + 0x3E8), 0x800);
     }
     if (((s16)D_actor_403100_80155808->stateFrames >= 6) || (D_actor_403100_80155808->playerPosition.vz >= 0x1B58)) {
         finished = 1;
@@ -7061,7 +7153,7 @@ static void func_actor_403100_8013AC04(Task* task)
             gGameSession->deathSoundCountdown     = GAME_SESSION_DEATH_SOUND_HOLD;
             D_actor_403100_80155808->playerKilled = 1U;
         }
-        func_actor_403100_8013D0B8(-0x1928, -0xC7C, 0x29D6, 0x800);
+        _actor403100PlacePlayer(-0x1928, -0xC7C, 0x29D6, 0x800);
         if (D_actor_403100_80155808->playerKilled != 0) {
             actor->state = 0xA;
             state        = 7;
@@ -7248,105 +7340,111 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     }
 }
 
-static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
+/// Updates the head's aim and rebuilds its rotation in the trunk's local frame.
+///
+/// `aimMode` selects ACTOR_403100_AIM_*; target and model positions are game
+/// coordinates and angles use 4096 units per turn. Tracking steps root-frame
+/// pitch/yaw, while animated modes ease toward the current pose. Requires live
+/// parts 0..3 and current composed root/head/view matrices. Borrows one scratch
+/// block during the call, retains translation and marks the trunk/head dirty.
+static void _actor403100AimHead(Task* task, s16 aimMode)
 {
-    SVECTOR                     headRotation, middleRotation, lowerRotation;
-    MATRIX                      worldMatrix;
-    VECTOR                      delta, local;
-    _Actor403100HeadAimScratch* scratch;
-    SVECTOR*                    angles;
-    GfxCoord*                   coords;
-    GfxCoord*                   head;
-    GfxCoord*                   middle;
-    GfxCoord*                   lower;
-    GfxCoord*                   root;
-    MATRIX*                     headLocal;
-    MATRIX*                     lowerInverse;
-    MATRIX*                     dest;
-    s32                         sum;
-    s32                         offsetY;
-    s32                         part;
+    enum {
+        ACTOR_403100_SIGNED_ANGLE_SHIFT  = 20, // Sign-extend a 12-bit turn angle in a 32-bit value
+        ACTOR_403100_AIM_EASE_SHIFT      = 3,  // Approach animated angles by one eighth per update
+        ACTOR_403100_AIM_ORIGIN_Y_OFFSET = 1536,
+    };
+    SVECTOR                     animatedHeadAngles, animatedMiddleAngles, animatedLowerAngles;
+    MATRIX                      headWorldTransform;
+    VECTOR                      worldTargetOffset, rootTargetOffset;
+    _Actor403100HeadAimScratch* aimScratch;
+    SVECTOR*                    targetAngles;
+    GfxCoord*                   actorCoords;
+    GfxCoord*                   headCoord;
+    GfxCoord*                   middleTrunkCoord;
+    GfxCoord*                   lowerTrunkCoord;
+    GfxCoord*                   rootCoord;
+    MATRIX*                     headLocalRotation;
+    MATRIX*                     lowerInverseRotation;
+    MATRIX*                     headRotation;
+    s32                         animatedPitchSum;
+    s32                         headAimOriginY;
+    s32                         headPartIndex;
 
-    coords  = arg0->extra.tmd->coords;
-    head    = &coords[3];
-    middle  = &coords[2];
-    lower   = &coords[1];
-    part    = 3;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403100HeadAimScratch);
-    angles  = &scratch->targetAngles;
-    gfxSetRotIdentity(&scratch->aim);
-    root = arg0->extra.tmd->coords;
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &root[part].workm, &worldMatrix);
-    delta.vx = D_actor_403100_80155808->aimTarget.vx - worldMatrix.t[0];
-    offsetY  = worldMatrix.t[1] + 0x600;
-    delta.vy = D_actor_403100_80155808->aimTarget.vy - offsetY;
-    delta.vz = D_actor_403100_80155808->aimTarget.vz - worldMatrix.t[2];
-    ApplyTransposeMatrixLV(&root->coord, &delta, &local);
-    angles->vx = (ratan2(-local.vy, local.vz) << 20) >> 20;
-    angles->vy = (ratan2(local.vx, local.vz) << 20) >> 20;
-    angles->vz = 0;
-    if (arg1 == ACTOR_403100_AIM_TRACK) {
-        func_actor_403100_8013CEAC((u16*)angles, 8, 0x280, -0x2C0);
-        func_actor_403100_8013CF60(angles, 8, 2, 1, 4);
-        func_actor_403100_8013D06C();
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
-    } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY) {
-        gfxExtractEulerAngles(&coords[part].coord, &headRotation);
-        D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
-        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
-        func_actor_403100_8013CF60(angles, 8, 4, 1, 4);
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
-    } else if (arg1 == ACTOR_403100_AIM_ANIMATED) {
-        gfxExtractEulerAngles(&coords[part].coord, &headRotation);
-        gfxExtractEulerAngles(&coords[2].coord, &middleRotation);
-        gfxExtractEulerAngles(&coords[1].coord, &lowerRotation);
-        sum                                  = (u16)headRotation.vx + ((u16)middleRotation.vx + (u16)lowerRotation.vx);
-        headRotation.vx                      = sum;
-        headRotation.vy                      = (u16)headRotation.vy + ((u16)middleRotation.vy + (u16)lowerRotation.vy);
-        headRotation.vz                      = (u16)headRotation.vz + ((u16)middleRotation.vz + (u16)lowerRotation.vz);
-        D_actor_403100_80155808->headAim.vx += ((s32)((sum - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
-        D_actor_403100_80155808->headAim.vy += ((s32)(((u16)headRotation.vy - (u16)D_actor_403100_80155808->headAim.vy) << 20) >> 23);
-        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
-    } else if (arg1 == ACTOR_403100_AIM_TRACK_FAST) {
-        func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
-        func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
-        func_actor_403100_8013D06C();
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
-    } else if (arg1 == ACTOR_403100_AIM_YAW_ONLY_FAST) {
-        gfxExtractEulerAngles(&coords[part].coord, &headRotation);
-        D_actor_403100_80155808->headAim.vx += ((s32)(((u16)headRotation.vx - (u16)D_actor_403100_80155808->headAim.vx) << 20) >> 23);
-        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)headRotation.vz - (u16)D_actor_403100_80155808->headAim.vz) << 20) >> 23);
-        func_actor_403100_8013CF60(angles, 0x10, 4, 2, 8);
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
-    } else if (arg1 == ACTOR_403100_AIM_TRACK_STEPPED) {
-        func_actor_403100_8013CEAC((u16*)angles, 0x10, 0x280, -0x280);
-        func_actor_403100_8013CF60(angles, D_actor_403100_80155808->aimYawStep, 4, 2, 8);
-        func_actor_403100_8013D06C();
-        RotMatrixZXY(&D_actor_403100_80155808->headAim, &scratch->aim);
+    actorCoords      = task->extra.tmd->coords;
+    headCoord        = &actorCoords[ACTOR_403100_PART_HEAD];
+    middleTrunkCoord = &actorCoords[ACTOR_403100_PART_MIDDLE_TRUNK];
+    lowerTrunkCoord  = &actorCoords[ACTOR_403100_PART_LOWER_TRUNK];
+    headPartIndex    = ACTOR_403100_PART_HEAD;
+    aimScratch       = SCRATCH_STACK_RESERVE_BLOCK(_Actor403100HeadAimScratch);
+    targetAngles     = &aimScratch->targetAngles;
+    gfxSetRotIdentity(&aimScratch->aim);
+    rootCoord = task->extra.tmd->coords;
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &rootCoord[headPartIndex].workm, &headWorldTransform);
+    // Measure target pitch/yaw in the root frame from the offset head origin.
+    worldTargetOffset.vx = D_actor_403100_80155808->aimTarget.vx - headWorldTransform.t[0];
+    headAimOriginY       = headWorldTransform.t[1] + ACTOR_403100_AIM_ORIGIN_Y_OFFSET;
+    worldTargetOffset.vy = D_actor_403100_80155808->aimTarget.vy - headAimOriginY;
+    worldTargetOffset.vz = D_actor_403100_80155808->aimTarget.vz - headWorldTransform.t[2];
+    ApplyTransposeMatrixLV(&rootCoord->coord, &worldTargetOffset, &rootTargetOffset);
+    targetAngles->vx = (ratan2(-rootTargetOffset.vy, rootTargetOffset.vz) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> ACTOR_403100_SIGNED_ANGLE_SHIFT;
+    targetAngles->vy = (ratan2(rootTargetOffset.vx, rootTargetOffset.vz) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> ACTOR_403100_SIGNED_ANGLE_SHIFT;
+    targetAngles->vz = 0;
+    // Tracking modes step the aim; animated modes ease toward the current pose.
+    if (aimMode == ACTOR_403100_AIM_TRACK) {
+        _actor403100StepHeadAimPitch(targetAngles, 8, 0x280, -0x2C0);
+        _actor403100StepHeadAimYaw(targetAngles, 8, 2, 1, 4);
+        _actor403100RelaxHeadAimRoll();
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &aimScratch->aim);
+    } else if (aimMode == ACTOR_403100_AIM_YAW_ONLY) {
+        gfxExtractEulerAngles(&actorCoords[headPartIndex].coord, &animatedHeadAngles);
+        D_actor_403100_80155808->headAim.vx += ((s32)(((u16)animatedHeadAngles.vx - (u16)D_actor_403100_80155808->headAim.vx) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_SIGNED_ANGLE_SHIFT + ACTOR_403100_AIM_EASE_SHIFT));
+        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)animatedHeadAngles.vz - (u16)D_actor_403100_80155808->headAim.vz) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_SIGNED_ANGLE_SHIFT + ACTOR_403100_AIM_EASE_SHIFT));
+        _actor403100StepHeadAimYaw(targetAngles, 8, 4, 1, 4);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &aimScratch->aim);
+    } else if (aimMode == ACTOR_403100_AIM_ANIMATED) {
+        gfxExtractEulerAngles(&actorCoords[headPartIndex].coord, &animatedHeadAngles);
+        gfxExtractEulerAngles(&actorCoords[ACTOR_403100_PART_MIDDLE_TRUNK].coord, &animatedMiddleAngles);
+        gfxExtractEulerAngles(&actorCoords[ACTOR_403100_PART_LOWER_TRUNK].coord, &animatedLowerAngles);
+        animatedPitchSum                     = (u16)animatedHeadAngles.vx + ((u16)animatedMiddleAngles.vx + (u16)animatedLowerAngles.vx);
+        animatedHeadAngles.vx                = animatedPitchSum;
+        animatedHeadAngles.vy                = (u16)animatedHeadAngles.vy + ((u16)animatedMiddleAngles.vy + (u16)animatedLowerAngles.vy);
+        animatedHeadAngles.vz                = (u16)animatedHeadAngles.vz + ((u16)animatedMiddleAngles.vz + (u16)animatedLowerAngles.vz);
+        D_actor_403100_80155808->headAim.vx += ((s32)((animatedPitchSum - (u16)D_actor_403100_80155808->headAim.vx) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_SIGNED_ANGLE_SHIFT + ACTOR_403100_AIM_EASE_SHIFT));
+        D_actor_403100_80155808->headAim.vy += ((s32)(((u16)animatedHeadAngles.vy - (u16)D_actor_403100_80155808->headAim.vy) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_SIGNED_ANGLE_SHIFT + ACTOR_403100_AIM_EASE_SHIFT));
+        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)animatedHeadAngles.vz - (u16)D_actor_403100_80155808->headAim.vz) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_SIGNED_ANGLE_SHIFT + ACTOR_403100_AIM_EASE_SHIFT));
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &aimScratch->aim);
+    } else if (aimMode == ACTOR_403100_AIM_TRACK_FAST) {
+        _actor403100StepHeadAimPitch(targetAngles, 0x10, 0x280, -0x280);
+        _actor403100StepHeadAimYaw(targetAngles, 0x10, 4, 2, 8);
+        _actor403100RelaxHeadAimRoll();
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &aimScratch->aim);
+    } else if (aimMode == ACTOR_403100_AIM_YAW_ONLY_FAST) {
+        gfxExtractEulerAngles(&actorCoords[headPartIndex].coord, &animatedHeadAngles);
+        D_actor_403100_80155808->headAim.vx += ((s32)(((u16)animatedHeadAngles.vx - (u16)D_actor_403100_80155808->headAim.vx) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_SIGNED_ANGLE_SHIFT + ACTOR_403100_AIM_EASE_SHIFT));
+        D_actor_403100_80155808->headAim.vz += ((s32)(((u16)animatedHeadAngles.vz - (u16)D_actor_403100_80155808->headAim.vz) << ACTOR_403100_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_SIGNED_ANGLE_SHIFT + ACTOR_403100_AIM_EASE_SHIFT));
+        _actor403100StepHeadAimYaw(targetAngles, 0x10, 4, 2, 8);
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &aimScratch->aim);
+    } else if (aimMode == ACTOR_403100_AIM_TRACK_STEPPED) {
+        _actor403100StepHeadAimPitch(targetAngles, 0x10, 0x280, -0x280);
+        _actor403100StepHeadAimYaw(targetAngles, D_actor_403100_80155808->aimYawStep, 4, 2, 8);
+        _actor403100RelaxHeadAimRoll();
+        RotMatrixZXY(&D_actor_403100_80155808->headAim, &aimScratch->aim);
     }
-    // The head's own rotation is the aim brought into the frame of the two
-    // trunk parts it hangs from: (lower * middle)^-1 * aim.
-    headLocal = &scratch->local;
-    TransposeMatrix(&middle->coord, headLocal);
-    lowerInverse = &scratch->lowerInverse;
-    TransposeMatrix(&lower->coord, lowerInverse);
-    MulMatrix(headLocal, lowerInverse);
-    MulMatrix(headLocal, &scratch->aim);
-    dest          = &head->coord;
-    dest->m[0][0] = headLocal->m[0][0];
-    dest->m[0][1] = headLocal->m[0][1];
-    dest->m[0][2] = headLocal->m[0][2];
-    dest->m[1][0] = headLocal->m[1][0];
-    dest->m[1][1] = headLocal->m[1][1];
-    dest->m[1][2] = headLocal->m[1][2];
-    dest->m[2][0] = headLocal->m[2][0];
-    dest->m[2][1] = headLocal->m[2][1];
-    dest->m[2][2] = headLocal->m[2][2];
+    // The headCoord's own rotation is the aim brought into the frame of the two
+    // trunk parts it hangs from: (lowerTrunkCoord * middleTrunkCoord)^-1 * aim.
+    headLocalRotation = &aimScratch->local;
+    TransposeMatrix(&middleTrunkCoord->coord, headLocalRotation);
+    lowerInverseRotation = &aimScratch->lowerInverse;
+    TransposeMatrix(&lowerTrunkCoord->coord, lowerInverseRotation);
+    MulMatrix(headLocalRotation, lowerInverseRotation);
+    MulMatrix(headLocalRotation, &aimScratch->aim);
+    headRotation = &headCoord->coord;
+    _actor403100CopyRotation(headRotation, headLocalRotation);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403100HeadAimScratch);
-    lower->composeStamp  = GRAPHICS_COORD_DIRTY;
-    middle->composeStamp = GRAPHICS_COORD_DIRTY;
-    head->composeStamp   = GRAPHICS_COORD_DIRTY;
+    lowerTrunkCoord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    middleTrunkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    headCoord->composeStamp        = GRAPHICS_COORD_DIRTY;
 }
 /// Steps of the behaviour mode `func_actor_403100_8013DB48`, indexed by `subState`.
 static const TaskFuncTable6 D_actor_403100_80131F84 = {
@@ -7588,39 +7686,53 @@ static void func_actor_403100_8013BEF0(Task* arg0)
     }
     coords->coord.t[1] = -((rsin(D_actor_403100_80155808->stridePhase) << 13) >> 16);
 }
-static void func_actor_403100_8013C008(s16 arg0, s16 arg1)
+/// Writes one raw-texture foreground quad at a signed pixel offset.
+///
+/// Borrows the sprite source and fills the caller's writable GPU packet.
+static inline void _actor403100WriteHoldForegroundQuad(POLY_FT4* quad, const SpriteSource* spriteSource, s16 offsetX, s16 offsetY)
 {
-    POLY_FT4*     poly;
-    SpriteSource* entry;
-    s32           i;
-    u16           clut;
+    u16 clut;
 
-    for (i = 0; i < ARRAY_SIZE(D_actor_403100_801557E0); i++) {
-        entry          = &D_actor_403100_801557E0[i];
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setPolyFT4(poly);
-        poly->tpage = entry->tpage;
-        clut        = entry->clut;
-        setShadeTex(poly, 1);
-        poly->clut = clut;
-        poly->u0   = entry->uv.fields.u0;
-        poly->v0   = entry->uv.fields.v0;
-        poly->u1   = entry->uv.fields.u0 + (u8)entry->size.fields.w;
-        poly->v1   = entry->uv.fields.v0;
-        poly->u2   = entry->uv.fields.u0;
-        poly->v2   = entry->uv.fields.v0 + (u8)entry->size.fields.h;
-        poly->u3   = entry->uv.fields.u0 + (u8)entry->size.fields.w;
-        poly->v3   = entry->uv.fields.v0 + (u8)entry->size.fields.h;
-        poly->x0   = entry->x0 + arg0;
-        poly->y0   = entry->y0 + arg1;
-        poly->x1   = arg0 + (entry->x0 + entry->size.fields.w);
-        poly->y1   = entry->y0 + arg1;
-        poly->x2   = entry->x0 + arg0;
-        poly->y2   = arg1 + (entry->y0 + entry->size.fields.h);
-        poly->x3   = arg0 + (entry->x0 + entry->size.fields.w);
-        poly->y3   = arg1 + (entry->y0 + entry->size.fields.h);
-        addPrim((&gGpuCurrentOt[((((u32)(entry->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
+    setPolyFT4(quad);
+    quad->tpage = spriteSource->tpage;
+    clut        = spriteSource->clut;
+    setShadeTex(quad, 1);
+    quad->clut = clut;
+    quad->u0   = spriteSource->uv.fields.u0;
+    quad->v0   = spriteSource->uv.fields.v0;
+    quad->u1   = spriteSource->uv.fields.u0 + (u8)spriteSource->size.fields.w;
+    quad->v1   = spriteSource->uv.fields.v0;
+    quad->u2   = spriteSource->uv.fields.u0;
+    quad->v2   = spriteSource->uv.fields.v0 + (u8)spriteSource->size.fields.h;
+    quad->u3   = spriteSource->uv.fields.u0 + (u8)spriteSource->size.fields.w;
+    quad->v3   = spriteSource->uv.fields.v0 + (u8)spriteSource->size.fields.h;
+    quad->x0   = spriteSource->x0 + offsetX;
+    quad->y0   = spriteSource->y0 + offsetY;
+    quad->x1   = offsetX + (spriteSource->x0 + spriteSource->size.fields.w);
+    quad->y1   = spriteSource->y0 + offsetY;
+    quad->x2   = spriteSource->x0 + offsetX;
+    quad->y2   = offsetY + (spriteSource->y0 + spriteSource->size.fields.h);
+    quad->x3   = offsetX + (spriteSource->x0 + spriteSource->size.fields.w);
+    quad->y3   = offsetY + (spriteSource->y0 + spriteSource->size.fields.h);
+}
+
+/// Draws the two textured foreground pieces used while the player is held.
+///
+/// Offsets are signed screen pixels relative to each source's position. Emits
+/// raw-texture POLY_FT4s at the sources' ordering depths; the primitive cursor
+/// must provide two packets and the current ordering table must be live.
+static void _actor403100DrawHoldForeground(s16 offsetX, s16 offsetY)
+{
+    POLY_FT4*           quad;
+    const SpriteSource* spriteSource;
+    s32                 spriteIndex;
+
+    for (spriteIndex = 0; spriteIndex < ARRAY_SIZE(D_actor_403100_801557E0); spriteIndex++) {
+        spriteSource   = &D_actor_403100_801557E0[spriteIndex];
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        _actor403100WriteHoldForegroundQuad(quad, spriteSource, offsetX, offsetY);
+        addPrim((&gGpuCurrentOt[((((u32)(spriteSource->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), quad);
     }
 }
 static void func_actor_403100_8013C214(Task* arg0)
@@ -7814,61 +7926,81 @@ static inline void _actor403100RequestAnimationBlendInline(s16 animationId, s16 
     D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
 }
 
-static void func_actor_403100_8013C7B4(Task* arg0)
-{
-    SVECTOR   pos0, pos1, delta;
-    GfxCoord* playerCoord;
-    GfxCoord* joint;
-    s16       dx0;
-    s16       dx1;
-    s16       dz0;
-    s16       dz1;
-    u16       savedRate;
-    GfxCoord* coords;
-    GfxCoord* second;
+/// Transforms an arm sample and latches contact with the player.
+///
+/// Coordinate pointers must be stable and side-effect-free; vector lvalues are
+/// writable and separate. deltaX/deltaZ/contactFlag are writable scalar lvalues.
+/// Arguments may be evaluated repeatedly; a miss leaves contactFlag unchanged.
+/// Requires the three ACTOR_403100_ARM_CONTACT_* constants in the caller's scope.
+/// Expands to a braced block; use the invocation as a standalone statement.
+#define ACTOR_403100_LATCH_ARM_CONTACT(limbCoord, playerCoord, point, playerOffset, deltaX, deltaZ, contactFlag)                                                                                                                                           \
+    {                                                                                                                                                                                                                                                      \
+        _actor403100PointToWorld((limbCoord), &(point));                                                                                                                                                                                                   \
+        (deltaX)          = (u16)(playerCoord)->coord.t[0] - (u16)(point).vx;                                                                                                                                                                              \
+        (playerOffset).vx = (deltaX);                                                                                                                                                                                                                      \
+        (playerOffset).vy = (u16)(playerCoord)->coord.t[1] - ((u16)(point).vy + ACTOR_403100_ARM_CONTACT_CENTER_Y);                                                                                                                                        \
+        (deltaZ)          = (u16)(playerCoord)->coord.t[2] - (u16)(point).vz;                                                                                                                                                                              \
+        (playerOffset).vz = (deltaZ);                                                                                                                                                                                                                      \
+        if ((SquareRoot0(((deltaX) * (deltaX)) + ((deltaZ) * (deltaZ))) < (ACTOR_403100_ARM_CONTACT_RADIUS + 1)) && ((u32)(((u16)(playerOffset).vy + ACTOR_403100_ARM_CONTACT_HALF_HEIGHT) & 0xFFFF) < (2U * ACTOR_403100_ARM_CONTACT_HALF_HEIGHT + 1))) { \
+            (contactFlag) = 1;                                                                                                                                                                                                                             \
+        }                                                                                                                                                                                                                                                  \
+    }
 
-    playerCoord = (*gPlayerActorTasks)->extra.tmd->coords;
-    savedRate   = (u16)D_actor_403100_80155808->animationRate;
-    coords      = arg0->extra.tmd->coords;
-    second      = coords + 7;
+/// Latches hand/forearm contact with the player at a one-tick-ahead arm pose.
+///
+/// Tests the two world-space sample points against the player root: integer
+/// X/Z distance at most 1024 game units and Y within 849 of point Y + 850.
+/// Differences narrow to signed halfwords. Requires both live models and the
+/// actor's animation rig. Reverses the sampled advance and restores the requested
+/// rate; contact latches, animation bookkeeping and pose/composition updates remain.
+static void _actor403100ProbeArmPlayerContact(Task* task)
+{
+    enum {
+        ACTOR_403100_ARM_CONTACT_RADIUS      = 1024,
+        ACTOR_403100_ARM_CONTACT_CENTER_Y    = 850,
+        ACTOR_403100_ARM_CONTACT_HALF_HEIGHT = 849,
+    };
+    SVECTOR   handPoint, forearmPoint, playerOffset;
+    GfxCoord* playerCoord;
+    GfxCoord* handCoord;
+    s16       handDeltaX;
+    s16       forearmDeltaX;
+    s16       handDeltaZ;
+    s16       forearmDeltaZ;
+    u16       savedRateBits;
+    GfxCoord* actorCoords;
+    GfxCoord* forearmCoord;
+
+    playerCoord   = (*gPlayerActorTasks)->extra.tmd->coords;
+    savedRateBits = (u16)D_actor_403100_80155808->animationRate;
+    actorCoords   = task->extra.tmd->coords;
+    forearmCoord  = actorCoords + ACTOR_403100_PART_FOREARM;
+    // Sample one tick ahead; contact flags latch rather than clearing on a miss.
     _actor403100RequestAnimationBlendInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
     _actor403100UpdateAnimation();
-    _actor403100TurnUpperArm(arg0);
+    _actor403100TurnUpperArm(task);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
-    joint                  = coords + 8;
-    coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(joint);
-    pos0.vx = 0x160;
-    pos0.vy = 0x148;
-    pos0.vz = 0x2C0;
-    _actor403100PointToWorld(joint, &pos0);
-    dx0      = (u16)playerCoord->coord.t[0] - (u16)pos0.vx;
-    delta.vx = dx0;
-    delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos0.vy + 0x352);
-    dz0      = (u16)playerCoord->coord.t[2] - (u16)pos0.vz;
-    delta.vz = dz0;
-    if ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
-        D_actor_403100_80155808->handTouchedPlayer = 1;
-    }
-    pos1.vx = 0x160;
-    pos1.vy = 0x148;
-    pos1.vz = 0x180;
-    _actor403100PointToWorld(second, &pos1);
-    dx1      = (u16)playerCoord->coord.t[0] - (u16)pos1.vx;
-    delta.vx = dx1;
-    delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos1.vy + 0x352);
-    dz1      = (u16)playerCoord->coord.t[2] - (u16)pos1.vz;
-    delta.vz = dz1;
-    if ((SquareRoot0((dx1 * dx1) + (dz1 * dz1)) < 0x401) && ((u32)(((u16)delta.vy + 0x351) & 0xFFFF) < 0x6A3U)) {
-        D_actor_403100_80155808->forearmTouchedPlayer = 1;
-    }
-    D_actor_403100_80155808->animationRate = -(s16)savedRate;
+    handCoord                                        = actorCoords + ACTOR_403100_PART_HAND;
+    actorCoords[ACTOR_403100_PART_HAND].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(handCoord);
+    handPoint.vx = 0x160;
+    handPoint.vy = 0x148;
+    handPoint.vz = 0x2C0;
+    ACTOR_403100_LATCH_ARM_CONTACT(handCoord, playerCoord, handPoint, playerOffset, handDeltaX, handDeltaZ, D_actor_403100_80155808->handTouchedPlayer);
+    forearmPoint.vx = 0x160;
+    forearmPoint.vy = 0x148;
+    forearmPoint.vz = 0x180;
+    ACTOR_403100_LATCH_ARM_CONTACT(forearmCoord, playerCoord, forearmPoint, playerOffset, forearmDeltaX, forearmDeltaZ, D_actor_403100_80155808->forearmTouchedPlayer);
+    // Rewind the pose sample and restore the forward playback rate.
+    D_actor_403100_80155808->animationRate = -(s16)savedRateBits;
     _actor403100RequestAnimationBlendInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
-    _actor403100UpdateAnimation(arg0);
-    D_actor_403100_80155808->animationRate = (s16)savedRate;
+    _actor403100UpdateAnimation(task);
+    D_actor_403100_80155808->animationRate = (s16)savedRateBits;
     _actor403100RequestAnimationBlendInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
 }
+
+#undef ACTOR_403100_LATCH_ARM_CONTACT
 
 /// Starts a character-bank sound for this actor's place index at model
 /// coordinate 4, at that coordinate's pan and half its depth.
@@ -7962,100 +8094,130 @@ static void func_actor_403100_8013CDC0(void)
     }
 }
 
-static void func_actor_403100_8013CEAC(u16* arg0, s32 arg1, s32 arg2, s16 arg3)
+/// Steps head pitch toward a biased target inside its permitted pitch interval.
+///
+/// Mutates targetAngles->vx by subtracting 0x140, with halfword wrapping.
+/// Angles/steps use 4096 units per turn; limits compare as signed halfwords and
+/// are exclusive. Outside them pitch returns toward zero at 24 per update.
+/// Inside them a difference in -32..32 holds the current pitch; otherwise the
+/// supplied pitchStep is added/subtracted with halfword wrapping, without a clamp.
+static void _actor403100StepHeadAimPitch(SVECTOR* targetAngles, s32 pitchStep, s32 upperPitchLimit, s16 lowerPitchLimit)
 {
-    s16 facing;
-    s16 target;
-    s16 angle;
-    u16 targetU;
-    u16 facingU;
+    enum {
+        ACTOR_403100_AIM_PITCH_BIAS        = 0x140,
+        ACTOR_403100_AIM_PITCH_RETURN_STEP = 0x18,
+    };
+    s16 restPitch;
+    s16 currentPitch;
+    s16 biasedPitch;
+    u16 currentPitchBits;
+    u16 restPitchBits;
 
-    angle = *arg0 - 0x140;
-    *arg0 = angle;
-    if ((angle < (s16)arg2) && (arg3 < (s16)angle)) {
-        target  = D_actor_403100_80155808->headAim.vx;
-        targetU = (u16)D_actor_403100_80155808->headAim.vx;
-        if ((u32)(((s16)angle - target) + 0x20) >= 0x41U) {
-            if (target < (s16)angle) {
-                D_actor_403100_80155808->headAim.vx = (s16)(targetU + arg1);
+    biasedPitch      = (u16)targetAngles->vx - ACTOR_403100_AIM_PITCH_BIAS;
+    targetAngles->vx = biasedPitch;
+    if ((biasedPitch < (s16)upperPitchLimit) && (lowerPitchLimit < (s16)biasedPitch)) {
+        currentPitch     = D_actor_403100_80155808->headAim.vx;
+        currentPitchBits = (u16)D_actor_403100_80155808->headAim.vx;
+        if ((u32)(((s16)biasedPitch - currentPitch) + ACTOR_403100_AIM_DEAD_ZONE) >= (2U * ACTOR_403100_AIM_DEAD_ZONE + 1)) {
+            if (currentPitch < (s16)biasedPitch) {
+                D_actor_403100_80155808->headAim.vx = (s16)(currentPitchBits + pitchStep);
                 return;
             }
-            D_actor_403100_80155808->headAim.vx = (s16)(targetU - arg1);
+            D_actor_403100_80155808->headAim.vx = (s16)(currentPitchBits - pitchStep);
         }
     } else {
-        facing  = D_actor_403100_80155808->headAim.vx;
-        facingU = (u16)D_actor_403100_80155808->headAim.vx;
-        if (facing >= 0x21) {
-            D_actor_403100_80155808->headAim.vx = (s16)(facingU - 0x18);
+        restPitch     = D_actor_403100_80155808->headAim.vx;
+        restPitchBits = (u16)D_actor_403100_80155808->headAim.vx;
+        if (restPitch >= ACTOR_403100_AIM_DEAD_ZONE + 1) {
+            D_actor_403100_80155808->headAim.vx = (s16)(restPitchBits - ACTOR_403100_AIM_PITCH_RETURN_STEP);
             return;
         }
-        if (facing < -0x20) {
-            D_actor_403100_80155808->headAim.vx = (s16)(facingU + 0x18);
+        if (restPitch < -ACTOR_403100_AIM_DEAD_ZONE) {
+            D_actor_403100_80155808->headAim.vx = (s16)(restPitchBits + ACTOR_403100_AIM_PITCH_RETURN_STEP);
         }
     }
 }
-static void func_actor_403100_8013CF60(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+/// Tracks head yaw and turns the body toward the target or the held head yaw.
+///
+/// Angles and steps use 4096 units per turn and stores wrap to halfwords.
+/// Target yaw in -639..639 tracks the head by headYawStep, adding bodyYawStep
+/// while the head error exceeds 32. Otherwise the body approaches held head yaw
+/// by bodyCatchupStep. Beyond +/-640 it turns by bodyTurnStep; exactly +/-640
+/// does not turn in that branch. The target vector is borrowed read-only.
+static void _actor403100StepHeadAimYaw(const SVECTOR* targetAngles, s32 headYawStep, s32 bodyYawStep, s32 bodyCatchupStep, s32 bodyTurnStep)
 {
-    s16 facing;
-    s16 target;
-    u16 yaw;
-    u16 targetU;
-    u16 facingU;
+    enum { ACTOR_403100_AIM_YAW_LIMIT = 0x280 };
+    s16 bodyYaw;
+    s16 currentHeadYaw;
+    u16 targetYawBits;
+    u16 currentHeadYawBits;
+    u16 bodyYawBits;
 
-    yaw = (u16)arg0->vy;
-    if ((u32)((yaw + 0x27F) & 0xFFFF) < 0x4FFU) {
-        target  = D_actor_403100_80155808->headAim.vy;
-        targetU = (u16)D_actor_403100_80155808->headAim.vy;
-        if ((u32)(((s16)yaw - target) + 0x20) >= 0x41U) {
-            if (target < (s16)yaw) {
-                D_actor_403100_80155808->headAim.vy  = targetU + arg1;
-                D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy + arg2;
+    targetYawBits = (u16)targetAngles->vy;
+    if ((u32)((targetYawBits + (ACTOR_403100_AIM_YAW_LIMIT - 1)) & 0xFFFF) < (2U * ACTOR_403100_AIM_YAW_LIMIT - 1)) {
+        currentHeadYaw     = D_actor_403100_80155808->headAim.vy;
+        currentHeadYawBits = (u16)D_actor_403100_80155808->headAim.vy;
+        if ((u32)(((s16)targetYawBits - currentHeadYaw) + ACTOR_403100_AIM_DEAD_ZONE) >= (2U * ACTOR_403100_AIM_DEAD_ZONE + 1)) {
+            if (currentHeadYaw < (s16)targetYawBits) {
+                D_actor_403100_80155808->headAim.vy  = currentHeadYawBits + headYawStep;
+                D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy + bodyYawStep;
                 return;
             }
-            D_actor_403100_80155808->headAim.vy  = targetU - arg1;
-            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy - arg2;
+            D_actor_403100_80155808->headAim.vy  = currentHeadYawBits - headYawStep;
+            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy - bodyYawStep;
             return;
         }
-        facing  = (s16)D_actor_403100_80155808->rotation.vy;
-        facingU = D_actor_403100_80155808->rotation.vy;
-        if (facing < target) {
-            D_actor_403100_80155808->rotation.vy = facingU + arg3;
+        bodyYaw     = (s16)D_actor_403100_80155808->rotation.vy;
+        bodyYawBits = D_actor_403100_80155808->rotation.vy;
+        if (bodyYaw < currentHeadYaw) {
+            D_actor_403100_80155808->rotation.vy = bodyYawBits + bodyCatchupStep;
             return;
         }
-        if (target < facing) {
-            D_actor_403100_80155808->rotation.vy = facingU - arg3;
+        if (currentHeadYaw < bodyYaw) {
+            D_actor_403100_80155808->rotation.vy = bodyYawBits - bodyCatchupStep;
         }
     } else {
-        if ((s16)yaw >= 0x281) {
-            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy + arg4;
+        if ((s16)targetYawBits >= ACTOR_403100_AIM_YAW_LIMIT + 1) {
+            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy + bodyTurnStep;
         }
-        if (arg0->vy < -0x280) {
-            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy - arg4;
+        if (targetAngles->vy < -ACTOR_403100_AIM_YAW_LIMIT) {
+            D_actor_403100_80155808->rotation.vy = D_actor_403100_80155808->rotation.vy - bodyTurnStep;
         }
     }
 }
 
-static void func_actor_403100_8013D06C(void)
+/// Returns head roll toward zero by eight angle units outside -16..16.
+///
+/// Angles use 4096 units per turn; the two tests see any result of the first
+/// store and narrow stores to a halfword.
+static void _actor403100RelaxHeadAimRoll(void)
 {
-    if (D_actor_403100_80155808->headAim.vz >= 0x11) {
-        D_actor_403100_80155808->headAim.vz = (u16)D_actor_403100_80155808->headAim.vz - 8;
+    enum { ACTOR_403100_AIM_ROLL_DEAD_ZONE   = 16,
+           ACTOR_403100_AIM_ROLL_RETURN_STEP = 8 };
+    if (D_actor_403100_80155808->headAim.vz >= ACTOR_403100_AIM_ROLL_DEAD_ZONE + 1) {
+        D_actor_403100_80155808->headAim.vz = (u16)D_actor_403100_80155808->headAim.vz - ACTOR_403100_AIM_ROLL_RETURN_STEP;
     }
-    if (D_actor_403100_80155808->headAim.vz < -0x10) {
-        D_actor_403100_80155808->headAim.vz = (u16)D_actor_403100_80155808->headAim.vz + 8;
+    if (D_actor_403100_80155808->headAim.vz < -ACTOR_403100_AIM_ROLL_DEAD_ZONE) {
+        D_actor_403100_80155808->headAim.vz = (u16)D_actor_403100_80155808->headAim.vz + ACTOR_403100_AIM_ROLL_RETURN_STEP;
     }
 }
 
-static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Places the player at a world position and yaw with zero pitch and roll.
+///
+/// Position components are signed halfword game coordinates; yaw uses 4096
+/// units per turn. The placement message synchronously consumes the stack
+/// transform, updates stored angles and composes the live player's root.
+static void _actor403100PlacePlayer(s16 x, s16 y, s16 z, s16 yaw)
 {
-    ActorTransform msg;
+    ActorTransform transform;
 
-    msg.pos.vx = arg0;
-    msg.pos.vy = arg1;
-    msg.pos.vz = arg2;
-    msg.rot.vx = 0;
-    msg.rot.vy = arg3;
-    msg.rot.vz = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
+    transform.pos.vx = x;
+    transform.pos.vy = y;
+    transform.pos.vz = z;
+    transform.rot.vx = 0;
+    transform.rot.vy = yaw;
+    transform.rot.vz = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &transform, 0);
 }
 static void func_actor_403100_8013D11C(Task* arg0)
 {
@@ -8121,11 +8283,17 @@ static void _actor403100RequestHitPitchKick(void)
         D_actor_403100_80155808->jawKickSound   = hitTaken;
     }
 }
-static void func_actor_403100_8013D2A0(s16 arg0)
+/// Requests a jaw/head pitch kick when both parts are at rest.
+///
+/// Only ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND (1) selects the random
+/// attack sound; all other values retain the current sound request. The next
+/// per-frame pitch updates take up the two start phases.
+static void _actor403100RequestPitchKick(s16 selectAttackSound)
 {
+    enum { ACTOR_403100_JAW_KICK_ATTACK_SOUND = 2 };
     if ((D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->headPitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
-        if (arg0 == 1) {
-            D_actor_403100_80155808->jawKickSound = 2;
+        if (selectAttackSound == ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND) {
+            D_actor_403100_80155808->jawKickSound = ACTOR_403100_JAW_KICK_ATTACK_SOUND;
         }
         D_actor_403100_80155808->jawPitchPhase  = ACTOR_403100_PITCH_PHASE_START;
         D_actor_403100_80155808->headPitchPhase = ACTOR_403100_PITCH_PHASE_START;
@@ -8654,7 +8822,7 @@ static void func_actor_403100_8013E9D8(Task* arg0)
     sp = D_actor_403100_80131EBC;
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     _actor403100UpdateAnimation(arg0);
-    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
+    _actor403100AimHead(arg0, D_actor_403100_80155808->aimMode);
 }
 static void func_actor_403100_8013EA60(Task* arg0)
 {
@@ -8676,7 +8844,7 @@ static void func_actor_403100_8013EAD4(Task* arg0)
     obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     _actor403100UpdateAnimation(arg0);
-    func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
+    _actor403100AimHead(arg0, D_actor_403100_80155808->aimMode);
 }
 static void func_actor_403100_8013EB68(Task* arg0)
 {
@@ -8808,7 +8976,7 @@ static void func_actor_403100_8013EF58(Task* task)
 
 static void func_actor_403100_8013EF60(Task* task)
 {
-    if (Actor403100_TestFlags12C()) {
+    if (_actor403100Slot2AnimationSettled()) {
         D_actor_403100_80155808->animationBlendFrames = 0xB4;
         D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
         D_actor_403100_80155808->animationId          = 1;
@@ -8985,7 +9153,7 @@ static void func_actor_403100_8013F3EC(Task* arg0)
     D_actor_403100_80155808->rotation.vx      = 0;
     D_actor_403100_80155808->rotation.vz      = 0;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    func_actor_403100_80132528(arg0);
+    _actor403100PlaceHeldPlayer(arg0);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
     D_actor_403100_80155808->overlayX                          = 0;
     D_actor_403100_80155808->overlayY                          = 0;
