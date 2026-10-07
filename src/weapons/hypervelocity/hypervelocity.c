@@ -804,7 +804,6 @@ static void func_hypervelocity_8011F374(Task* arg0)
     TmdObject*        playerExtra;
     GfxCoord*         coord;
     Task*             work;
-    GfxRotationWords* mat;
     s16               count;
 
     parent      = arg0->parent;
@@ -853,12 +852,7 @@ static void func_hypervelocity_8011F374(Task* arg0)
             coord->coord.t[1] = -0x15C;
             coord->coord.t[2] = 0xA8;
 
-            mat         = (GfxRotationWords*)&coord->coord;
-            mat->m00M01 = ONE;
-            mat->m02M10 = 0;
-            mat->m11M12 = ONE;
-            mat->m20M21 = 0;
-            mat->m22    = ONE;
+            gfxSetRotIdentity(&coord->coord);
             RotMatrixX(coord->param.rot.vx, &coord->coord);
             break;
     }
