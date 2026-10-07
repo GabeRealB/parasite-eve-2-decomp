@@ -181,7 +181,7 @@ void func_shelter_b1_armory_8018034C(Task*);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_shelter_b1_armory_801824D0 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
+TaskDesc D_shelter_b1_armory_801824D0 = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -197,8 +197,6 @@ TaskMessageEntry D_shelter_b1_armory_80182500[5] = {
     { ROOM_MESSAGE_COMMAND, func_shelter_b1_armory_80180698 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-
-static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 #include "../../shared/shop.inc.c"
 

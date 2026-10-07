@@ -232,7 +232,7 @@ void                              func_dryfield_trailer_coach_80182850(void);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_dryfield_trailer_coach_80183F84 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
+TaskDesc D_dryfield_trailer_coach_80183F84 = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
 static TmdBone _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
@@ -1580,8 +1580,6 @@ extern EvsCommand D_dryfield_trailer_coach_80185964[];
 static void func_dryfield_trailer_coach_80182888(Task* arg0);
 
 extern SVECTOR D_dryfield_trailer_coach_801871C4;
-
-static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 static void func_dryfield_trailer_coach_801826A0(Task* task);
 

@@ -229,7 +229,7 @@ s32                               func_shelter_1f_heliport_801804BC(Task*, s32, 
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_shelter_1f_heliport_80181188 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
+TaskDesc D_shelter_1f_heliport_80181188 = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
 TaskDesc D_shelter_1f_heliport_80181194 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -601,7 +601,6 @@ u8 D_shelter_1f_heliport_80182CB3 = 224;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-static inline s32     Shop_AddItemCount(s32 item, s32 count);
 static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
 #include "../../shared/shop.inc.c"

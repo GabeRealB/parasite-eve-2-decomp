@@ -1,7 +1,7 @@
 /* Shop inventory, purchase dialogs, previews and refill animation.
  *
  * Every function is static. The including overlay defines its own session
- * descriptor pointing to Shop_SessionTask and declares that descriptor in its
+ * descriptor pointing to _shopSessionTask and declares that descriptor in its
  * overlay header. The descriptor's storage wrapper, when present, stays there.
  * Refill work belongs to its existing overlay TU; another TU imports it through
  * the overlay's private header. No linkage or symbol-name configuration is used.
@@ -17,7 +17,13 @@
 
 #include "main/task_types.h"
 
+/// Special row ids in stock lists; the terminator is never offered as a row.
+enum {
+    SHOP_ROW_RECHARGE_SERVICE = 0xFFFE, // Batteries/Fuel service, outside the item catalogue.
+    SHOP_ROW_END              = 0xFFFF  // End of the readable stock list.
+};
+
 /* Used by each overlay's own session descriptor. */
-static void Shop_SessionTask(Task* task);
+static void _shopSessionTask(Task* task);
 
 #endif /* SRC_SHARED_SHOP_H */

@@ -178,7 +178,7 @@ void func_dryfield_night_trailer_coach_80182864(void);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_dryfield_night_trailer_coach_801846D0 = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
+TaskDesc D_dryfield_night_trailer_coach_801846D0 = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
 static TmdBone _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
@@ -852,8 +852,6 @@ static void func_dryfield_night_trailer_coach_8018231C(Task* task);
 /// spawns entry 0 of the room's task table at `0x8018797C` and request 0x17
 /// asks the cap system to run command 0x17. Always returns 0.
 extern TaskDesc D_dryfield_night_trailer_coach_8018797C;
-
-static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 #include "../../shared/shop.inc.c"
 

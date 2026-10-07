@@ -148989,7 +148989,7 @@ a block boundary" at the end of this file.
 
 ## Measured and left (2026-10-05)
 
-- `Shop_QuantityTask` (`register s32 maxHeld asm("v0")`). The image has
+- `_shopPurchaseQuantityTask` (`register s32 maxHeld asm("v0")`). The image has
   `jal inventoryGetConsumableStackQuantity; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`. Unpinned,
   combine substitutes the return register into the subtraction
   (`subu s6,v1,v0`, no move). Keeping the copy needs `$v0` set between it and
@@ -151959,15 +151959,15 @@ boundary).
 - Count references for the value the vanished branch read. If the listing is
   short by more than the test itself, the vanished arms used it too.
 
-### A call result kept in a register of its own, the next load in `$v0`: a block boundary after the call that left no branch (Shop_QuantityTask, 2026-10-07)
+### A call result kept in a register of its own, the next load in `$v0`: a block boundary after the call that left no branch (_shopPurchaseQuantityTask, 2026-10-07)
 
 **Symptom.** `jal inventoryGetConsumableStackQuantity; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`,
 matched only with `register s32 maxHeld asm("v0")`. Plain
-`maxQty = stackInfo->maxHeld - held` gives `lhu v1,2(s0); subu s6,v1,v0`.
+`maxPacks = stackLimits->maxHeld - heldUnits` gives `lhu v1,2(s0); subu s6,v1,v0`.
 
 **Mechanism.** This is not a ranking question in local-alloc: in the pin-free
 form there is no quantity for the held count at all. combine substitutes the
-copy `(set held (reg v0))` into the subtraction (same block, `held` dies
+copy `(set heldUnits (reg v0))` into the subtraction (same block, `heldUnits` dies
 there, nothing sets `$v0` in between), so `$v0` stays live to the `subu` and
 the load can only take `$v1`. The image needs the copy to survive combine.
 Once it does, the allocation follows by itself: the load (2 refs / 1 insn) is
@@ -151977,26 +151977,26 @@ and is the lowest register; the held count then conflicts with it and takes
 the copy and the subtraction is enough, and the image shows no branch there -
 so the boundary is one that jump2 deleted.
 
-**Fix (fitted).** `if (held > 0) { maxQty = stackInfo->maxHeld - held; } else {
-maxQty = stackInfo->maxHeld - held; }`. The held count becomes a multi-block
+**Fix (fitted).** `if (heldUnits > 0) { maxPacks = stackLimits->maxHeld - heldUnits; } else {
+maxPacks = stackLimits->maxHeld - heldUnits; }`. The held count becomes a multi-block
 pseudo (4 refs over 6 insns, global-alloc), each arm loads into `$v0`, and
 cross-jumping merges the arms and deletes the branch. All seven shop images
-match. What the original tested is unknown. `held != 0` does not work: cse
+match. What the original tested is unknown. `heldUnits != 0` does not work: cse
 knows the value in the zero arm and drops the subtraction there (`lhu s6`),
 so the arms differ and the branch stays.
 
-**Not matching** (each leaves `lhu v1; subu s6,v1,v0`): `held = 0; held +=
+**Not matching** (each leaves `lhu v1; subu s6,v1,v0`): `heldUnits = 0; heldUnits +=
 call`; `do { } while (0)` after the call, around the call, or between
-`maxQty = stackInfo->maxHeld` and `maxQty -= held` (a loop note is not a block
+`maxPacks = stackLimits->maxHeld` and `maxPacks -= heldUnits` (a loop note is not a block
 boundary for combine; the last two also rotate `$s5/$s6` or `$s2/$fp`); a
-one-case `switch (held)`. A second use of the count that combine could cancel
+one-case `switch (heldUnits)`. A second use of the count that combine could cancel
 was looked for and not found.
 
 **Use.** `move vN,v0` directly after a `jal` with the result used once, a few
 instructions later in what looks like the same block, means combine did not
 see copy and use in one block. Look for a vanished block boundary before
 ranking quantities. Correction to "Measured and left (2026-10-05)": the pin
-on `Shop_QuantityTask` is gone.
+on `_shopPurchaseQuantityTask` is gone.
 
 ### A register that has to rank lower with nothing to remove: instructions that exist until jump2 and leave no code (padInputUpdate, 2026-10-07)
 

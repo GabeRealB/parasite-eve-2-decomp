@@ -28,35 +28,101 @@
 
 #include "rooms/shop_tier.h"
 
+/// Stock-set selectors in the low halfword; categories occupy the high halfword.
+///
+/// Shelter's alternate set is selected by room variant or the soldier follow-up;
+/// its event sets are selected while the sterilization-room event state is 2.
+enum {
+    SHOP_STOCK_MIST                    = 0x10,
+    SHOP_STOCK_DRYFIELD                = 0x20,
+    SHOP_STOCK_DRYFIELD_LATE           = 0x21,
+    SHOP_STOCK_SHELTER                 = 0x30,
+    SHOP_STOCK_SHELTER_ALTERNATE       = 0x31,
+    SHOP_STOCK_SHELTER_EVENT           = 0x32,
+    SHOP_STOCK_SHELTER_ALTERNATE_EVENT = 0x33,
+    SHOP_STOCK_ARMORY                  = 0x40,
+    SHOP_CATEGORY_WEAPONS              = 0,
+    SHOP_CATEGORY_AMMUNITION           = 1,
+    SHOP_CATEGORY_ARMOR                = 2,
+    SHOP_CATEGORY_ITEMS                = 3,
+    SHOP_CATEGORY_COUNT                = 4
+};
+
+/// Catalogue groups and individual accessories used to partition unlocked stock.
+enum {
+    SHOP_PE_ITEM_FIRST             = 0xF,
+    SHOP_PE_ABILITY_COUNT          = 12,
+    SHOP_PE_LEVEL_COUNT            = 3,
+    SHOP_PE_ITEM_COUNT             = SHOP_PE_ABILITY_COUNT * SHOP_PE_LEVEL_COUNT,
+    SHOP_PE_STOCK_BITS_PER_ABILITY = 2,
+    SHOP_PE_STOCK_LEVEL_MASK       = 3,
+    SHOP_PE_STOCK_ALL_LEVELS       = -1,
+    SHOP_CARRIED_ITEM_ID_LIMIT     = 0x100,
+    SHOP_GAME_MODE_NORMAL          = 0,
+    SHOP_GAME_MODE_SCAVENGER       = 2,
+    SHOP_ITEM_SMG_CLIP_HOLDER      = 9,
+    SHOP_ITEM_RIFLE_CLIP_HOLDER    = 0xA,
+    SHOP_ITEM_SNAIL_MAGAZINE       = 0xC,
+    SHOP_ITEM_BELT_POUCH           = 0xD,
+    SHOP_ITEM_HAMMER               = 0x42,
+    SHOP_ITEM_PYKE                 = 0x43,
+    SHOP_ITEM_JAVELIN              = 0x44,
+    SHOP_ITEM_M203                 = 0x45,
+    SHOP_ITEM_M9                   = 0x46,
+    SHOP_ARMOR_ITEM_FIRST          = 0x60,
+    SHOP_ARMOR_ITEM_COUNT          = 0x20,
+    SHOP_ITEM_TACTICAL_VEST        = 0x65,
+    SHOP_WEAPON_ITEM_COUNT         = 0x20,
+    SHOP_ITEM_GRENADE_PISTOL       = 0x8A,
+    SHOP_ITEM_MP5A5_FIRST          = 0x9D,
+    SHOP_ITEM_MP5A5_COUNT          = 3
+};
+
+/// Panel initialization states; task storage keeps its existing integer widths.
+enum { SHOP_PANEL_INITIAL = 0 };
+
+/// Refill phases: initialize the scan, charge the next weapon, animate its supply.
+enum { SHOP_REFILL_INITIAL     = 0,
+       SHOP_REFILL_NEXT_SUPPLY = 1,
+       SHOP_REFILL_ANIMATE     = 2 };
+
+/// Shop-session phases, including the delay while its UI tree closes.
+enum { SHOP_SESSION_INITIAL = 0,
+       SHOP_SESSION_OPEN    = 1,
+       SHOP_SESSION_CLOSING = 2 };
+
+/// Purchase failure messages and display timing/units used by shop panels.
+enum {
+    SHOP_NOTICE_INSUFFICIENT_BP     = 0,
+    SHOP_NOTICE_INVENTORY_FULL      = 1,
+    SHOP_NOTICE_AMMUNITION_CAPACITY = 2,
+    SHOP_NOTICE_DURATION_TICKS      = 188,
+    SHOP_NOTICE_DISMISSED_COUNTDOWN = 0x7FFF,
+    SHOP_REFILL_DURATION_FRAMES     = 188,
+    SHOP_REFILL_FRACTION_BITS       = 8,
+    SHOP_REFILL_STEP_FIXED          = 0x40, // One quarter of a supply unit per callback.
+    SHOP_REFILL_METER_COLOR_RGB     = 0x1741F,
+    SHOP_SESSION_CLOSE_FRAMES       = 10,
+    SHOP_ITEM_LIST_VISIBLE_ROWS     = 9,
+    SHOP_TEXT_COLOR_RGB             = 0x606060,
+    SHOP_PREVIEW_NONE               = -1
+};
+
 /// Work block of the shop's item-list panel, parked in `Task::work`.
 ///
 /// The panel's task allocates it on its first frame and the task's teardown
 /// frees it. The list's row callback and the builders reach `rowIds` through
 /// the owning task and index it by the list's item index; `list.itemCount` is
-/// the number of ids in use. Nothing checks an append against the capacity.
+/// the number of ids in use. Current stock sets and unlock combinations
+/// require at most 33 rows;
+/// appends rely on that bound rather than checking the 64-row capacity.
 typedef struct {
     UiList list;         // List control the panel is drawn from; its `itemCount` counts the `rowIds` in use
-    u16    rowIds[0x40]; // What each row offers: an item id, or 0xFFFE for the "Batteries/Fuel" recharge service
+    u16    rowIds[0x40]; // Item or recharge-service row ids; at most 33 used by the current stock/unlock combinations
 } _ShopItemListWork;
 STATIC_ASSERT_SIZEOF(_ShopItemListWork, 0xA4);
 
-static void Shop_ItemListTask(Task* task);
-static void Shop_SessionTask(Task* task);
-
-static u16* Shop_SelectStock(s32 mode);
 static void Shop_ItemRow(UiList* prompt, UiObject* obj);
-static void Shop_AddItem(UiList* list, UiObject* obj, s32 item);
-static void Shop_BuildItemList(UiList* list, UiObject* obj);
-static void Shop_CategoryRow(UiList* prompt, UiObject* obj);
-static void Shop_CategoryListTask(Task* task);
-static void Shop_BalanceTask(Task* task);
-static void Shop_BuyRow(UiList* prompt, UiObject* obj);
-static void Shop_NoticeTask(Task* task);
-static void Shop_ChargeTask(Task* task);
-static void Shop_PreviewTask(Task* task);
-static void Shop_QuantityTask(Task* task);
-static void Shop_MessageRow(UiList* prompt, UiObject* obj);
-static void Shop_BuyPromptTask(Task* task);
 
 /// Borrows a consumable's pack quantity and per-stack capacity from the catalogue.
 ///
@@ -68,200 +134,202 @@ static inline const InventoryConsumableStack* _inventoryGetConsumableStackInfo(s
     return &Gp_StackLimits[consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
 }
 
-/// Returns the 0xFFFF-terminated item id list the shop list starts from. The
-/// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
-/// or any other value) and the high halfword one of the group's four;
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` 2 and above has groups of its own. A high halfword
-/// above 3 falls through the 0x30-0x33 groups in turn and on into 0x20's;
-/// every other miss returns `Shop_Data_80181AD4`.
-static u16* Shop_SelectStock(s32 mode)
+/// Borrows the stock set for a packed stock-set/category selector.
+///
+/// The low halfword selects the vendor's stock profile; the unsigned high
+/// halfword selects Weapons, Ammunition, Armor or Items (0..3). Save modes
+/// below 2 use the normal/Bounty tables; modes 2 and above use the alternate
+/// tables. Invalid categories return an empty list, including after the
+/// Shelter switch fallthroughs. Rows end at `SHOP_ROW_END`; storage belongs
+/// to this room's loaded image and is returned read-only.
+static const u16* _shopSelectStockList(s32 stockSelector)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode < 2) {
-        switch ((u16)mode) {
-            case 0x30:
-                switch ((u32)mode >> 16) {
-                    case 0:
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode < SHOP_GAME_MODE_SCAVENGER) {
+        switch ((u16)stockSelector) {
+            case SHOP_STOCK_SHELTER:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_801816D8;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_801816F0;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181704;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_8018170C;
                 }
-            case 0x31:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_SHELTER_ALTERNATE:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181720;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_8018173C;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_8018174C;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181758;
                 }
-            case 0x32:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_SHELTER_EVENT:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181770;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_8018178C;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_801817A0;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_801817A8;
                 }
-            case 0x33:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_SHELTER_ALTERNATE_EVENT:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_801817BC;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_801817DC;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_801817EC;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_801817F8;
                 }
-            case 0x20:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_DRYFIELD:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181620;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181630;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181640;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181648;
                 }
                 break;
-            case 0x21:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_DRYFIELD_LATE:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181694;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_801816AC;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_801816C0;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_801816C8;
                 }
                 break;
-            case 0x40:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_ARMORY:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181658;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181668;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181678;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181680;
                 }
                 break;
             default:
-                switch ((u32)mode >> 16) {
-                    case 0:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_801815F8;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181600;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181608;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181610;
                 }
                 break;
         }
     } else {
-        switch ((u16)mode) {
-            case 0x30:
-                switch ((u32)mode >> 16) {
-                    case 0:
+        switch ((u16)stockSelector) {
+            case SHOP_STOCK_SHELTER:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_801818A4;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_801818B0;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_801818B8;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_801818C4;
                 }
-            case 0x31:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_SHELTER_ALTERNATE:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_801818D0;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_801818DC;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_801818E0;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_801818EC;
                 }
-            case 0x32:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_SHELTER_EVENT:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_801818F8;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181904;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_8018190C;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181918;
                 }
-            case 0x33:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_SHELTER_ALTERNATE_EVENT:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181924;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181930;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181938;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181944;
                 }
-            case 0x20:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_DRYFIELD:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181830;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181838;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181840;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181848;
                 }
                 break;
-            case 0x21:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_DRYFIELD_LATE:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_8018187C;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181888;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181890;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181898;
                 }
                 break;
-            case 0x40:
-                switch ((u32)mode >> 16) {
-                    case 0:
+            case SHOP_STOCK_ARMORY:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181854;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_8018185C;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181868;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181870;
                 }
                 break;
             default:
-                switch ((u32)mode >> 16) {
-                    case 0:
+                switch ((u32)stockSelector >> 16) {
+                    case SHOP_CATEGORY_WEAPONS:
                         return Shop_Data_80181810;
-                    case 1:
+                    case SHOP_CATEGORY_AMMUNITION:
                         return Shop_Data_80181814;
-                    case 2:
+                    case SHOP_CATEGORY_ARMOR:
                         return Shop_Data_80181818;
-                    case 3:
+                    case SHOP_CATEGORY_ITEMS:
                         return Shop_Data_80181820;
                 }
                 break;
@@ -392,122 +460,140 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
-/// Adds an item id to the room's shop list, keeping one entry per item kind:
-/// ids 0xF..0x32 are three consecutive levels of the same kind, so an entry of
-/// the same kind is overwritten only by a higher level. In mode 0x10 the ids
-/// 0x9D..0x9F, 0x8A and 0x65 are never added.
+/// Appends an offered row or upgrades the first lower PE level of its ability.
 ///
-/// `list` is the panel's list control, whose `itemCount` counts the ids; the
-/// ids themselves go to the `_ShopItemListWork` of the task owning `obj`.
-static void Shop_AddItem(UiList* list, UiObject* obj, s32 item)
+/// `list` must be the list in the owning task's `_ShopItemListWork`; `rowId`
+/// is a catalogue id or `SHOP_ROW_RECHARGE_SERVICE`. Exact duplicates return
+/// immediately. A higher PE level replaces the first lower level, but a lower
+/// level arriving after a higher one can append a second row of that ability.
+/// M.I.S.T. excludes the MP5A5 variants, Grenade Pistol and Tactical Vest only
+/// while scanning an existing row, so an empty list bypasses that exclusion.
+/// Newly appended catalogue items are identified. The stock builder proves
+/// at most 33 rows; callers must leave space in the 64-row allocation.
+static void _shopAppendItemRow(UiList* list, UiObject* object, s32 rowId)
 {
-    Task*              task = obj->owner;
-    s32                mode = task->spawnArg1.value;
-    _ShopItemListWork* work = task->work;
-    s32                i;
+    Task*              ownerTask     = object->owner;
+    s32                stockSelector = ownerTask->spawnArg1.value;
+    _ShopItemListWork* work          = ownerTask->work;
+    s32                rowIndex;
 
-    for (i = 0; i < list->itemCount; i++) {
-        s32 cur = work->rowIds[i];
-        s32 q;
+    // Exact duplicates and upward PE replacement preserve insertion order.
+    for (rowIndex = 0; rowIndex < list->itemCount; rowIndex++) {
+        s32 existingRowId = work->rowIds[rowIndex];
+        s32 abilityIndex;
 
-        if (cur == item) {
+        if (existingRowId == rowId) {
             return;
         }
-        if (((mode & 0xFFFF) == 0x10) &&
-            (((u32)(item - 0x9D) < 3U) || (item == 0x8A) || (item == 0x65))) {
+        if (((stockSelector & 0xFFFF) == SHOP_STOCK_MIST) &&
+            (((u32)(rowId - SHOP_ITEM_MP5A5_FIRST) < SHOP_ITEM_MP5A5_COUNT) || (rowId == SHOP_ITEM_GRENADE_PISTOL) || (rowId == SHOP_ITEM_TACTICAL_VEST))) {
             return;
         }
-        if (((u32)(item - 0xF) < 0x24U) && ((u16)(cur - 0xF) < 0x24U)) {
-            q = (item - 0xF) / 3;
-            if ((q == (cur - 0xF) / 3) && (((item - 0xF) % 3 + 1) > ((cur - 0xF) % 3 + 1))) {
-                work->rowIds[i] = item;
+        if (((u32)(rowId - SHOP_PE_ITEM_FIRST) < SHOP_PE_ITEM_COUNT) && ((u16)(existingRowId - SHOP_PE_ITEM_FIRST) < SHOP_PE_ITEM_COUNT)) {
+            abilityIndex = (rowId - SHOP_PE_ITEM_FIRST) / SHOP_PE_LEVEL_COUNT;
+            if ((abilityIndex == (existingRowId - SHOP_PE_ITEM_FIRST) / SHOP_PE_LEVEL_COUNT) && (((rowId - SHOP_PE_ITEM_FIRST) % SHOP_PE_LEVEL_COUNT + 1) > ((existingRowId - SHOP_PE_ITEM_FIRST) % SHOP_PE_LEVEL_COUNT + 1))) {
+                work->rowIds[rowIndex] = rowId;
                 return;
             }
         }
     }
 
-    itemSetIdentified(item, 1);
-    work->rowIds[list->itemCount] = item;
+    itemSetIdentified(rowId, 1);
+    work->rowIds[list->itemCount] = rowId;
     list->itemCount++;
 }
 
-/// Fills the `_ShopItemListWork` of the task owning `obj` with the ids the
-/// shop currently offers, counting them into `list`, the list control of that
-/// work block. It then sorts them by `inventoryGetItemSortKey`, caps the visible row
-/// count at 9 and clears the cursor item.
+/// Sorts offered row ids by ascending inventory catalogue key.
+static inline void _shopSortItemRows(_ShopItemListWork* work, const UiList* list)
+{
+    s32 rowIndex;
+    s32 otherRowIndex;
+    s32 sortKey;
+    s32 otherSortKey;
+    u16 swapRowId;
+
+    for (rowIndex = 0; rowIndex < list->itemCount - 1; rowIndex++) {
+        sortKey = inventoryGetItemSortKey(work->rowIds[rowIndex]);
+        for (otherRowIndex = rowIndex + 1; otherRowIndex < list->itemCount; otherRowIndex++) {
+            otherSortKey = inventoryGetItemSortKey(work->rowIds[otherRowIndex]);
+            if (otherSortKey < sortKey) {
+                swapRowId                   = work->rowIds[rowIndex];
+                sortKey                     = otherSortKey;
+                work->rowIds[rowIndex]      = work->rowIds[otherRowIndex];
+                work->rowIds[otherRowIndex] = swapRowId;
+            }
+        }
+    }
+}
+
+/// Builds and sorts a category's stock, including saved replay and PE unlocks.
 ///
-/// The upper halfword of the owning task's `spawnArg1` is the mode, which picks
-/// the fixed id list (`Shop_SelectStock`) and, in game mode
-/// 0, which items of each unlocked `ShopTier` row are added: mode 0 ids 0x80-0x9F
-/// and 9, 0xA, 0xC, 0x42-0x46; mode 1 ids 0xA0-0xBF; mode 2 ids 0x60-0x7F and
-/// 0xD; mode 3 ids 1-0x5F other than those. Mode 3 also adds, for each of the
-/// twelve two-bit levels in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock`, the id of that level
-/// (the first slot needs level 2). With `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` 1 every row
-/// and level is unlocked first.
-static void Shop_BuildItemList(UiList* list, UiObject* obj)
+/// `list` is the owning task's embedded list control. Normal/replay mode 0
+/// adds unlocked tier items by category and the twelve packed two-bit PE
+/// levels to Items; Pyrokinesis requires level 2. Demo scene 1 first writes
+/// all tier and PE unlock bits to the live save. The complete stock/unlock
+/// domain produces at most 33 rows. Visible rows cap at nine, and the preview
+/// selection resets to `SHOP_PREVIEW_NONE`.
+static void _shopBuildItemList(UiList* list, UiObject* object)
 {
     _ShopItemListWork* work;
-    u16*               ids;
-    s32                mode;
-    s32                tier;
-    s32                slot;
-    s32                level;
-    s32                id;
-    s32                item;
-    s32                unlocked;
-    s32                i;
-    s32                j;
-    s32                k;
-    s32                key;
-    s32                otherKey;
-    u16                tmp;
-    u8                 count;
+    const u16*         stockRows;
+    s32                stockSelector;
+    s32                tierIndex;
+    s32                abilityIndex;
+    s32                abilityLevel;
+    s32                levelItemOffset;
+    s32                itemId;
+    s32                tierUnlocked;
+    s32                tierItemIndex;
+    u8                 rowCount;
 
-    mode = obj->owner->spawnArg1.value;
-    ids  = Shop_SelectStock(mode);
+    stockSelector = object->owner->spawnArg1.value;
+    stockRows     = _shopSelectStockList(stockSelector);
 
     list->itemCount = 0;
-    while (*ids != 0xFFFF) {
-        Shop_AddItem(list, obj, *ids);
-        ids++;
+    while (*stockRows != SHOP_ROW_END) {
+        _shopAppendItemRow(list, object, *stockRows);
+        stockRows++;
     }
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers = SHOP_TIER_ALL_MASK;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock = -1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock = SHOP_PE_STOCK_ALL_LEVELS;
     }
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode == 0) {
+    // Replay bonuses are offered only in normal/replay mode.
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode == SHOP_GAME_MODE_NORMAL) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers != 0) {
-            for (tier = 0; tier < SHOP_TIER_COUNT; tier++) {
-                unlocked = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers & (1 << tier);
-                if (unlocked != 0) {
-                    for (j = 0; j < ARRAY_SIZE(Shop_Data_80181950[tier].items); j++) {
-                        item = Shop_Data_80181950[tier].items[j];
-                        switch (mode >> 16) {
-                            case 0:
-                                if (((u32)(item - 0x80) < 0x20U) || (item == 0xC) || (item == 9) ||
-                                    (item == 0xA) || (item == 0x46) || (item == 0x45) ||
-                                    (item == 0x42) || (item == 0x43) || (item == 0x44)) {
-                                    Shop_AddItem(list, obj, item);
+            for (tierIndex = 0; tierIndex < SHOP_TIER_COUNT; tierIndex++) {
+                tierUnlocked = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers & (1 << tierIndex);
+                if (tierUnlocked != 0) {
+                    for (tierItemIndex = 0; tierItemIndex < ARRAY_SIZE(Shop_Data_80181950[tierIndex].items); tierItemIndex++) {
+                        itemId = Shop_Data_80181950[tierIndex].items[tierItemIndex];
+                        switch (stockSelector >> 16) {
+                            case SHOP_CATEGORY_WEAPONS:
+                                if (((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < SHOP_WEAPON_ITEM_COUNT) || (itemId == SHOP_ITEM_SNAIL_MAGAZINE) || (itemId == SHOP_ITEM_SMG_CLIP_HOLDER) ||
+                                    (itemId == SHOP_ITEM_RIFLE_CLIP_HOLDER) || (itemId == SHOP_ITEM_M9) || (itemId == SHOP_ITEM_M203) ||
+                                    (itemId == SHOP_ITEM_HAMMER) || (itemId == SHOP_ITEM_PYKE) || (itemId == SHOP_ITEM_JAVELIN)) {
+                                    _shopAppendItemRow(list, object, itemId);
                                 }
                                 break;
-                            case 1:
-                                if ((u32)(item - 0xA0) < 0x20U) {
-                                    Shop_AddItem(list, obj, item);
+                            case SHOP_CATEGORY_AMMUNITION:
+                                if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                                    _shopAppendItemRow(list, object, itemId);
                                 }
                                 break;
-                            case 2:
-                                if (((u32)(item - 0x60) < 0x20U) || (item == 0xD)) {
-                                    Shop_AddItem(list, obj, item);
+                            case SHOP_CATEGORY_ARMOR:
+                                if (((u32)(itemId - SHOP_ARMOR_ITEM_FIRST) < SHOP_ARMOR_ITEM_COUNT) || (itemId == SHOP_ITEM_BELT_POUCH)) {
+                                    _shopAppendItemRow(list, object, itemId);
                                 }
                                 break;
-                            case 3:
-                                if (((u32)(item - 1) < 0x5FU) && (item != 0xD) && (item != 0xC) &&
-                                    (item != 9) && (item != 0xA) && (item != 0x46) &&
-                                    (item != 0x45) && (item != 0x42) && (item != 0x43) &&
-                                    (item != 0x44)) {
-                                    Shop_AddItem(list, obj, item);
+                            case SHOP_CATEGORY_ITEMS:
+                                if (((u32)(itemId - 1) < 0x5FU) && (itemId != SHOP_ITEM_BELT_POUCH) && (itemId != SHOP_ITEM_SNAIL_MAGAZINE) &&
+                                    (itemId != SHOP_ITEM_SMG_CLIP_HOLDER) && (itemId != SHOP_ITEM_RIFLE_CLIP_HOLDER) && (itemId != SHOP_ITEM_M9) &&
+                                    (itemId != SHOP_ITEM_M203) && (itemId != SHOP_ITEM_HAMMER) && (itemId != SHOP_ITEM_PYKE) &&
+                                    (itemId != SHOP_ITEM_JAVELIN)) {
+                                    _shopAppendItemRow(list, object, itemId);
                                 }
                                 break;
                         }
@@ -516,38 +602,27 @@ static void Shop_BuildItemList(UiList* list, UiObject* obj)
             }
         }
 
-        if ((mode >> 16) == 3) {
-            for (slot = 0; slot < 0xC; slot++) {
-                level = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> (slot * 2)) & 3;
-                if (slot == 0 ? level >= 2 : level > 0) {
-                    /* The assignment keeps `+ 0xE` on the level instead of
-                       letting GCC reassociate it onto the row base. */
-                    Shop_AddItem(list, obj, slot * 3 + (id = level + 0xE));
+        if ((stockSelector >> 16) == SHOP_CATEGORY_ITEMS) {
+            for (abilityIndex = 0; abilityIndex < SHOP_PE_ABILITY_COUNT; abilityIndex++) {
+                abilityLevel = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> (abilityIndex * SHOP_PE_STOCK_BITS_PER_ABILITY)) & SHOP_PE_STOCK_LEVEL_MASK;
+                if (abilityIndex == 0 ? abilityLevel >= 2 : abilityLevel > 0) {
+                    levelItemOffset = abilityLevel + (SHOP_PE_ITEM_FIRST - 1);
+                    _shopAppendItemRow(list, object, abilityIndex * SHOP_PE_LEVEL_COUNT + levelItemOffset);
                 }
             }
         }
     }
 
-    work = obj->owner->work;
-    for (i = 0; i < list->itemCount - 1; i++) {
-        key = inventoryGetItemSortKey(work->rowIds[i]);
-        for (k = i + 1; k < list->itemCount; k++) {
-            otherKey = inventoryGetItemSortKey(work->rowIds[k]);
-            if (otherKey < key) {
-                tmp             = work->rowIds[i];
-                key             = otherKey;
-                work->rowIds[i] = work->rowIds[k];
-                work->rowIds[k] = tmp;
-            }
-        }
-    }
+    // Sort row ids together, then fit the scrolling viewport.
+    work = object->owner->work;
+    _shopSortItemRows(work, list);
 
-    count                               = list->itemCount;
-    list->visibleRowCount.unsignedValue = count;
-    if ((s8)count >= 0xA) {
-        list->visibleRowCount.unsignedValue = 9;
+    rowCount                            = list->itemCount;
+    list->visibleRowCount.unsignedValue = rowCount;
+    if ((s8)rowCount >= SHOP_ITEM_LIST_VISIBLE_ROWS + 1) {
+        list->visibleRowCount.unsignedValue = SHOP_ITEM_LIST_VISIBLE_ROWS;
     }
-    Shop_Data_801819EC = -1;
+    Shop_Data_801819EC = SHOP_PREVIEW_NONE;
 }
 
 static const u8 Shop_Data_8017D6D0[] = "Select";
@@ -562,621 +637,638 @@ static const u8 Shop_Data_8017D6EC[] = "Notice";
 
 static const char Shop_Data_8017D6F4[8] = SHOP_CHARGE_TITLE_BYTES;
 
-/// The shop's "Select" panel. On its first frame it allocates the
-/// `_ShopItemListWork` work block, fills it through
-/// `Shop_BuildItemList` and opens the panel
-/// `Shop_Data_80181BF4` beside it. Every frame it draws the list and the
-/// "BP" caption; menu reports -1 and cancel 6 to the parent. A child that
-/// reports 6 is torn down and the list takes input again; one that reports -1
-/// passes it up.
-static void Shop_ItemListTask(Task* task)
+/// Runs the offered-item list and its preview and purchase child panels.
+///
+/// `spawnArg1` is the packed stock selector and `spawnArg2.pointer` borrows
+/// the task-owned UI object. Initialization allocates `_ShopItemListWork`,
+/// released by task teardown. Cancel returns CONFIRM to close this panel;
+/// Menu propagates CANCEL through the shop. Child CONFIRM closes that child
+/// and restores list input; child CANCEL propagates upward.
+static void _shopItemListTask(Task* task)
 {
     TextDrawReq        req;
-    UiObject*          obj;
+    UiObject*          object;
     _ShopItemListWork* work;
-    Task*              head;
-    Task*              child;
-    Task*              next;
-    UiObject*          childObj;
-    void*              mem;
-    s32                code;
-    s32                x;
-    s32                y;
+    Task*              firstChild;
+    Task*              childTask;
+    Task*              nextChild;
+    UiObject*          childObject;
+    void*              allocation;
+    s32                childResult;
+    s32                captionOriginX;
+    s32                captionOriginY;
 
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6D0);
-    if (task->state == 0) {
-        mem = memCalloc(sizeof(_ShopItemListWork), 0);
-        if (mem != NULL) {
-            work                      = mem;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, (const char*)Shop_Data_8017D6D0);
+    if (task->state == SHOP_PANEL_INITIAL) {
+        allocation = memCalloc(sizeof(_ShopItemListWork), 0);
+        if (allocation != NULL) {
+            work                      = allocation;
             task->work                = work;
             work->list.rowCallbacks   = Shop_Data_80181AD8;
             work->list.wrapNavigation = 0;
             work->list.rowHeight      = 0xF;
-            Shop_BuildItemList(&work->list, obj);
-            uiFitPanelToList(&work->list, &(obj)->panel);
+            _shopBuildItemList(&work->list, object);
+            uiFitPanelToList(&work->list, &object->panel);
             work->list.flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
             uiSetListSystemCursorSound(&work->list, 1);
-            obj->panel.bounds.unsignedRect.h += 8;
-            work->list.topInset               = 8;
-            uiSpawnObject(&Shop_Data_80181BF4, 0, 0, 0, obj);
+            object->panel.bounds.unsignedRect.h += 8;
+            work->list.topInset                  = 8;
+            uiSpawnObject(&Shop_Data_80181BF4, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
             task->state += 1;
         }
     }
     work = task->work;
-    uiUpdateList(&work->list, &obj->panel);
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 6);
+    uiUpdateList(&work->list, &object->panel);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + 6);
 
-    x              = obj->panel.contentOriginX.unsignedValue - 2;
-    req.x          = obj->panel.contentRight.unsignedValue + x;
-    y              = obj->panel.contentOriginY.unsignedValue + 2;
-    req.y          = obj->panel.contentTop.unsignedValue + y;
-    req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.colorRgb   = 0x606060;
+    captionOriginX = object->panel.contentOriginX.unsignedValue - 2;
+    req.x          = object->panel.contentRight.unsignedValue + captionOriginX;
+    captionOriginY = object->panel.contentOriginY.unsignedValue + 2;
+    req.y          = object->panel.contentTop.unsignedValue + captionOriginY;
+    req.otIndex    = object->panel.otIndex.signedValue + 1;
+    req.colorRgb   = SHOP_TEXT_COLOR_RGB;
     req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     req.alignment  = TEXT_ALIGNMENT_RIGHT;
     req.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req, Shop_Data_8017D6D8);
 
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 
-    head = task->firstChild;
-    if (head != NULL) {
-        child = head;
+    firstChild = task->firstChild;
+    if (firstChild != NULL) {
+        childTask = firstChild;
         do {
-            childObj = child->spawnArg2.pointer;
-            code     = childObj->result;
-            next     = child->nextSibling;
-            if (code != USER_INTERFACE_RESULT_CANCEL) {
-                if (code == USER_INTERFACE_RESULT_CONFIRM) {
-                    uiStartTreeClosing(childObj, childObj->owner);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            childObject = childTask->spawnArg2.pointer;
+            childResult = childObject->result;
+            nextChild   = childTask->nextSibling;
+            if (childResult != USER_INTERFACE_RESULT_CANCEL) {
+                if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
+                    uiStartTreeClosing(childObject, childObject->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
-                obj->result = code;
+                object->result = childResult;
             }
-            child = next;
-        } while (child != task->firstChild);
+            childTask = nextChild;
+        } while (childTask != task->firstChild);
     }
 }
 
-/// Row handler of the shop's mode menu. The last row is the exit, which
-/// reports 6 on confirm. Any other row stores its index as the owning task's
-/// mode (the upper halfword of `spawnArg1`) and draws that mode's label; the
-/// row is greyed out and unselectable when the mode's item-id list is empty,
-/// and confirm opens the shop list panel with the mode.
-static void Shop_CategoryRow(UiList* prompt, UiObject* obj)
+/// Draws a category or Pass row and opens the selected category's item list.
+///
+/// The shared row callback uses `currentItemIndex` (0 Weapons, 1 Ammunition,
+/// 2 Armor, 3 Items, last row Pass). It preserves the owning task's low-half
+/// stock profile while replacing its high-half category. An empty stock set
+/// dims and disables the category. Confirm on Pass returns CONFIRM to close
+/// the shop; opening an item list suspends this panel's input.
+static void _shopDrawCategoryRow(UiList* list, UiObject* object)
 {
-    u8* text;
-    s32 status;
-    s32 one;
-    s32 one2;
+    const u8* label;
+    s32       panelControl;
 
-    if ((prompt->itemCount - 1) == prompt->currentItemIndex) {
-        one = 1;
-        textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A04, prompt->colorRgb, one, TEXT_ALIGNMENT_LEFT);
-        if (prompt->rowInputEnabled == one && padCheckButtons(0, one, Pad_MaskConfirm) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    if ((list->itemCount - 1) == list->currentItemIndex) {
+        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Shop_Data_80181A04, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
         return;
     }
 
-    text                        = Shop_Data_80181A5C;
-    obj->owner->spawnArg1.value = (u16)obj->owner->spawnArg1.value;
-    switch (prompt->currentItemIndex) {
-        case 0:
+    label                          = Shop_Data_80181A5C;
+    object->owner->spawnArg1.value = (u16)object->owner->spawnArg1.value;
+    switch (list->currentItemIndex) {
+        case SHOP_CATEGORY_WEAPONS:
             break;
-        case 1:
-            text                         = Shop_Data_80181A64;
-            obj->owner->spawnArg1.value |= 0x10000;
+        case SHOP_CATEGORY_AMMUNITION:
+            label                           = Shop_Data_80181A64;
+            object->owner->spawnArg1.value |= (SHOP_CATEGORY_AMMUNITION << 16);
             break;
-        case 2:
-            text                         = Shop_Data_80181A70;
-            obj->owner->spawnArg1.value |= 0x20000;
+        case SHOP_CATEGORY_ARMOR:
+            label                           = Shop_Data_80181A70;
+            object->owner->spawnArg1.value |= (SHOP_CATEGORY_ARMOR << 16);
             break;
-        case 3:
-            text                         = Shop_Data_80181A78;
-            obj->owner->spawnArg1.value |= 0x30000;
+        case SHOP_CATEGORY_ITEMS:
+            label                           = Shop_Data_80181A78;
+            object->owner->spawnArg1.value |= (SHOP_CATEGORY_ITEMS << 16);
             break;
     }
 
-    if (*Shop_SelectStock(obj->owner->spawnArg1.value) == 0xFFFF) {
-        prompt->colorRgb        = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
-        prompt->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
+    if (*_shopSelectStockList(object->owner->spawnArg1.value) == SHOP_ROW_END) {
+        list->colorRgb        = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
     }
 
-    one2 = 1;
-    textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, text, prompt->colorRgb, one2, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, label, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
-    status = obj->panel.control.word;
-    if (((status >> 16) == one2) || (status == one2)) {
-        if (prompt->selectedItemIndex == prompt->currentItemIndex) {
-            uiSetPromptText(Gp_StrEmpty, 0, 0);
+    panelControl = object->panel.control.word;
+    if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
         }
     }
 
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Shop_Data_80181B4C, obj->owner->spawnArg1, 1, 1, obj);
-        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        uiSpawnObject(&Shop_Data_80181B4C, object->owner->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
 
-/// The shop's "List" panel, whose rows are the modes. Its first frame clears the item previews,
-/// opens the list-row panel and the preview panel, and lays out its five-row
-/// list. Cancel or menu reports -1. A child reporting 6 is torn down; one
-/// reporting -1 releases `Wip_UiHolder` and passes the code up.
-static void Shop_CategoryListTask(Task* task)
+/// Runs the shop's four-category menu and Pass row with balance and help panels.
+///
+/// `spawnArg1` carries the packed stock selector; `spawnArg2.pointer` borrows
+/// its UI object. Initialization clears preview state and fits the shared
+/// five-row control. Cancel/Menu reports CANCEL. Child CONFIRM closes the
+/// child and restores input; child CANCEL clears the UI holder and propagates.
+static void _shopCategoryListTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
     UiList*   list;
-    Task*     child;
-    Task*     next;
-    Task*     head;
-    UiObject* childObj;
-    s32       code;
+    Task*     childTask;
+    Task*     nextChild;
+    Task*     firstChild;
+    UiObject* childObject;
+    s32       childResult;
 
-    obj         = task->spawnArg2.pointer;
-    list        = &Shop_Data_80181AE0;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6DC);
-    if (task->state == 0) {
+    object         = task->spawnArg2.pointer;
+    list           = &Shop_Data_80181AE0;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, (const char*)Shop_Data_8017D6DC);
+    if (task->state == SHOP_PANEL_INITIAL) {
         itemMenuClearPreviewItems();
         D_80067634 = NULL;
-        uiSpawnObject(&Shop_Data_80181B68, task->spawnArg1, 0, 1, obj);
-        uiSpawnObject(&D_8010D6F4[10], 0, 0, 0, obj);
-        list->itemCount                     = 5;
-        list->visibleRowCount.unsignedValue = 5;
-        uiFitPanelToList(list, &(obj)->panel);
+        uiSpawnObject(&Shop_Data_80181B68, task->spawnArg1, USER_INTERFACE_PANEL_INACTIVE, 1, object);
+        uiSpawnObject(&D_8010D6F4[10], 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+        list->itemCount                     = SHOP_CATEGORY_COUNT + 1;
+        list->visibleRowCount.unsignedValue = SHOP_CATEGORY_COUNT + 1;
+        uiFitPanelToList(list, &object->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         uiSetListSystemCursorSound(list, 1);
         task->state += 1;
     }
-    uiUpdateList(list, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-        obj->result = USER_INTERFACE_RESULT_CANCEL;
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
+        object->result = USER_INTERFACE_RESULT_CANCEL;
     }
 
-    head = task->firstChild;
-    if (head != NULL) {
-        child = head;
+    firstChild = task->firstChild;
+    if (firstChild != NULL) {
+        childTask = firstChild;
         do {
-            childObj = child->spawnArg2.pointer;
-            code     = childObj->result;
-            next     = child->nextSibling;
-            if (code != USER_INTERFACE_RESULT_CANCEL) {
-                if (code == USER_INTERFACE_RESULT_CONFIRM) {
-                    uiStartTreeClosing(childObj, childObj->owner);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            childObject = childTask->spawnArg2.pointer;
+            childResult = childObject->result;
+            nextChild   = childTask->nextSibling;
+            if (childResult != USER_INTERFACE_RESULT_CANCEL) {
+                if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
+                    uiStartTreeClosing(childObject, childObject->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
-                Wip_UiHolder = NULL;
-                obj->result  = code;
+                Wip_UiHolder   = NULL;
+                object->result = childResult;
             }
-            child = next;
-        } while (child != task->firstChild);
+            childTask = nextChild;
+        } while (childTask != task->firstChild);
     }
 }
 
-/// Balance panel: the "BP" caption with the player's BP, and the "TOTAL"
-/// caption with the carried item count over the inventory's row capacity.
-static void Shop_BalanceTask(Task* task)
+/// Draws the player's BP balance and occupied carried rows over row capacity.
+///
+/// `spawnArg2.pointer` borrows the panel object. Counts refer to inventory
+/// slots, including stacks as one occupied slot, rather than item units.
+static void _shopBalancePanelTask(Task* task)
 {
-    u8                  digits[0x20];
-    u8                  total[0x20];
-    TextDrawReq         req0;
-    TextDrawReq         req1;
-    UiObject*           obj;
-    PlayerStatus*       cfg;
-    InventoryItemRange* scan;
-    u8*                 p;
-    s32                 x;
-    s32                 y;
-    s32                 y2;
-    s32                 col;
-    s32                 capacity;
-    s32                 count;
+    u8                        balanceText[0x20];
+    u8                        capacityText[0x20];
+    TextDrawReq               balanceLabelRequest;
+    TextDrawReq               capacityLabelRequest;
+    UiObject*                 object;
+    const PlayerStatus*       playerStatus;
+    const InventoryItemRange* carriedItems;
+    u8*                       textCursor;
+    s32                       labelLeft;
+    s32                       contentTop;
+    s32                       capacityTop;
+    s32                       valueRight;
+    s32                       capacity;
+    s32                       occupiedRows;
 
-    obj = task->spawnArg2.pointer;
-    cfg = &gPlayerStatus;
-    x   = obj->panel.contentLeft.signedValue + 2;
-    col = obj->panel.contentRight.signedValue - 2;
-    y   = obj->panel.contentTop.signedValue;
+    object       = task->spawnArg2.pointer;
+    playerStatus = &gPlayerStatus;
+    labelLeft    = object->panel.contentLeft.signedValue + 2;
+    valueRight   = object->panel.contentRight.signedValue - 2;
+    contentTop   = object->panel.contentTop.signedValue;
 
-    req0.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req0.y          = obj->panel.contentOriginY.unsignedValue + y + 9;
-    req0.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req0.colorRgb   = 0x606060;
-    req0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req0.alignment  = TEXT_ALIGNMENT_LEFT;
-    req0.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req0, Shop_Data_8017D6D8);
+    balanceLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelLeft;
+    balanceLabelRequest.y          = object->panel.contentOriginY.unsignedValue + contentTop + 9;
+    balanceLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    balanceLabelRequest.colorRgb   = SHOP_TEXT_COLOR_RGB;
+    balanceLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    balanceLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    balanceLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&balanceLabelRequest, Shop_Data_8017D6D8);
 
-    textItoaUnsigned(digits, cfg->bp);
-    textDrawUiLine(obj, col, y + 0x19, digits, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textItoaUnsigned(balanceText, playerStatus->bp);
+    textDrawUiLine(object, valueRight, contentTop + 0x19, balanceText, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    y2              = y + 0x28;
-    req1.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req1.y          = obj->panel.contentOriginY.unsignedValue + (y2 - 6);
-    req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.colorRgb   = 0x606060;
-    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req1.alignment  = TEXT_ALIGNMENT_LEFT;
-    req1.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req1, Shop_Data_8017D6E4);
+    capacityTop                     = contentTop + 0x28;
+    capacityLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelLeft;
+    capacityLabelRequest.y          = object->panel.contentOriginY.unsignedValue + (capacityTop - 6);
+    capacityLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    capacityLabelRequest.colorRgb   = SHOP_TEXT_COLOR_RGB;
+    capacityLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    capacityLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    capacityLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&capacityLabelRequest, Shop_Data_8017D6E4);
 
-    p        = total;
-    scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    count    = inventoryCountOccupiedRows(scan);
-    capacity = scan->rowCount;
-    textItoaUnsigned(p, count);
-    while (*(const s8*)p != 0) {
-        p++;
+    textCursor   = capacityText;
+    carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    occupiedRows = inventoryCountOccupiedRows(carriedItems);
+    capacity     = carriedItems->rowCount;
+    textItoaUnsigned(textCursor, occupiedRows);
+    while (*(const s8*)textCursor != 0) {
+        textCursor++;
     }
-    *p = '/';
-    textItoaUnsigned(p + 1, capacity);
-    textDrawUiLine(obj, col, y2 + 0xA, total, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    *textCursor = '/';
+    textItoaUnsigned(textCursor + 1, capacity);
+    textDrawUiLine(object, valueRight, capacityTop + 0xA, capacityText, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
-/// Row handler of the buy prompt. On confirm it checks the price against the
-/// player's BP (notice 0 when short) and the inventory (notice 2 for a
-/// stackable item already held, 1 otherwise when it cannot be added). When the
-/// owning task's parent runs in mode 1 it opens the quantity picker; otherwise
-/// it takes the price, gives one of the item and reports 6.
-static void Shop_BuyRow(UiList* prompt, UiObject* obj)
+/// Draws Purchase and handles the affordability and inventory-capacity checks.
+///
+/// The owning task's `spawnArg1` is the item id. Confirm shows insufficient
+/// BP, full-inventory or full-ammunition notices as appropriate. Ammunition
+/// category 1 opens a pack-quantity picker; other categories deduct one pack's
+/// price, grant one pack and return CONFIRM. A child dialog suspends input.
+static void _shopDrawPurchaseRow(UiList* list, UiObject* object)
 {
-    TextDrawReq         req;
-    UiObject*           child;
-    PlayerStatus*       cfg;
-    InventoryItemRange* scan;
+    TextDrawReq         request;
+    UiObject*           quantityObject;
+    PlayerStatus*       playerStatus;
+    InventoryItemRange* carriedItems;
     s32                 itemId;
-    s32                 mode;
-    s32                 price;
+    s32                 packPrice;
 
-    itemId = obj->owner->spawnArg1.value;
+    itemId = object->owner->spawnArg1.value;
 
-    req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
-    req.y          = obj->panel.contentOriginY.unsignedValue + prompt->rowTextY.unsignedValue;
-    req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.colorRgb   = prompt->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Shop_Data_801819F0);
+    request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    request.otIndex    = object->panel.otIndex.signedValue + 1;
+    request.colorRgb   = list->colorRgb;
+    request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    request.alignment  = TEXT_ALIGNMENT_LEFT;
+    request.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&request, Shop_Data_801819F0);
 
-    mode = prompt->rowInputEnabled;
-    if (mode == 1 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-        cfg   = &gPlayerStatus;
-        price = Gp_ItemDescs[itemId].price;
-        scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        playerStatus = &gPlayerStatus;
+        packPrice    = Gp_ItemDescs[itemId].price;
+        carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        if (cfg->bp >= price) {
-            if (inventoryCanAddItem(scan, itemId) == 0) {
-                if ((u32)(itemId - 0xA0) < 0x20U && inventoryGetItemQuantity(scan, itemId) != 0) {
-                    uiSpawnObject(&Shop_Data_80181BA0, 2, 1, 1, obj);
+        if (playerStatus->bp >= packPrice) {
+            if (inventoryCanAddItem(carriedItems, itemId) == 0) {
+                if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT && inventoryGetItemQuantity(carriedItems, itemId) != 0) {
+                    uiSpawnObject(&Shop_Data_80181BA0, SHOP_NOTICE_AMMUNITION_CAPACITY, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                 } else {
-                    uiSpawnObject(&Shop_Data_80181BA0, 1, 1, 1, obj);
+                    uiSpawnObject(&Shop_Data_80181BA0, SHOP_NOTICE_INVENTORY_FULL, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                 }
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            } else if ((obj->owner->parent->spawnArg1.value >> 16) == mode) {
-                child = uiSpawnObject(&Shop_Data_80181C10, itemId, 1, 1, obj);
-                if (child != NULL) {
-                    uiPositionRowDialog(&(child)->panel, prompt, &(obj)->panel);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            } else if ((object->owner->parent->spawnArg1.value >> 16) == SHOP_CATEGORY_AMMUNITION) {
+                quantityObject = uiSpawnObject(&Shop_Data_80181C10, itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                if (quantityObject != NULL) {
+                    uiPositionRowDialog(&quantityObject->panel, list, &object->panel);
+                    object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else {
-                cfg->bp -= price;
-                inventoryGiveItem(scan, itemId, INVENTORY_GIVE_ONE_PACK);
-                obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                playerStatus->bp -= packPrice;
+                inventoryGiveItem(carriedItems, itemId, INVENTORY_GIVE_ONE_PACK);
+                object->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         } else {
-            uiSpawnObject(&Shop_Data_80181BA0, 0, 1, 1, obj);
-            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&Shop_Data_80181BA0, SHOP_NOTICE_INSUFFICIENT_BP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
 
-/// Notice panel: shows one of three messages picked by `spawnArg1`, sized to
-/// the text. Menu reports -1; confirm, cancel or 0xBC frames elapsing tell the
-/// parent panel to close with 6.
-static void Shop_NoticeTask(Task* task)
+/// Shows a timed purchase-failure notice, then dismisses the purchase prompt.
+///
+/// `spawnArg1` selects full inventory (1), ammunition capacity (2), or
+/// insufficient BP (all other values). `spawnArg2.pointer` borrows the notice
+/// object. The countdown uses nominal 60-Hz display ticks. Once input is
+/// active, Confirm/Cancel or expiry sets the parent object's result to
+/// CONFIRM; Menu returns CANCEL through the child-result path.
+static void _shopNoticeTask(Task* task)
 {
-    UiObject* obj;
-    u8*       text;
-    s32       kind;
+    UiObject* object;
+    UiObject* parentObject;
+    const u8* message;
+    s32       noticeId;
 
-    kind = task->spawnArg1.value;
-    obj  = task->spawnArg2.pointer;
-    switch (kind) {
-        case 1:
-            text = Shop_Data_80181A94;
+    noticeId = task->spawnArg1.value;
+    object   = task->spawnArg2.pointer;
+    switch (noticeId) {
+        case SHOP_NOTICE_INVENTORY_FULL:
+            message = Shop_Data_80181A94;
             break;
-        case 2:
-            text = Shop_Data_80181AA4;
+        case SHOP_NOTICE_AMMUNITION_CAPACITY:
+            message = Shop_Data_80181AA4;
             break;
         default:
-            text = Shop_Data_80181A80;
+            message = Shop_Data_80181A80;
             break;
     }
 
-    uiDrawPanelLabel(&(obj)->panel, (const char*)Shop_Data_8017D6EC);
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (task->state == 0) {
-        uiSizePanelForTextDefault(&(obj)->panel, text);
-        task->killCountdown = 0xBC;
+    uiDrawPanelLabel(&object->panel, (const char*)Shop_Data_8017D6EC);
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == SHOP_PANEL_INITIAL) {
+        uiSizePanelForTextDefault(&object->panel, message);
+        task->killCountdown = SHOP_NOTICE_DURATION_TICKS;
         task->state        += 1;
     }
-    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, message, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->killCountdown -= gDisplayState.frameTicks;
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
             return;
         }
         if (task->killCountdown <= 0 || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            ((UiObject*)task->parent->spawnArg2.pointer)->result = USER_INTERFACE_RESULT_CONFIRM;
-            task->killCountdown                                  = 0x7FFF;
+            parentObject         = task->parent->spawnArg2.pointer;
+            parentObject->result = USER_INTERFACE_RESULT_CONFIRM;
+            task->killCountdown  = SHOP_NOTICE_DISMISSED_COUNTDOWN;
         }
     }
 }
 
-/// The charge panel: steps through the built-in supplies of carried weapons,
-/// refilling each supply's load to its capacity and animating a bar from the
-/// old value up to the new one for at most 0xBC frames. Confirm or cancel (or
-/// the timer running out) moves to the next supply; running out of supplies
-/// reports 6 to the parent.
-static void Shop_ChargeTask(Task* task)
+/// Fully refills each carried weapon's built-in supply and animates its charge.
+///
+/// `spawnArg2.pointer` borrows the UI object. The service requires at least
+/// one carried rechargeable weapon and keeps the current supply and animation
+/// quantity in this room's shared refill storage. The actual load reaches
+/// capacity immediately; its display advances by a quarter-unit per callback
+/// in eight-fractional-bit units. Active Confirm/Cancel or 188 callbacks moves
+/// to the next supply. Exhaustion returns CONFIRM; it still draws the last
+/// supply while the panel closes. No BP or carried item stack is consumed.
+static void _shopRefillWeaponSupplyTask(Task* task)
 {
-    UiObject*                    obj;
+    UiObject*                    object;
     const EquipmentWeaponSupply* supply;
-    EquipmentWeaponLoad*         slot;
-    s32                          slotId;
-    s32                          itemId;
+    EquipmentWeaponLoad*         weaponLoad;
+    s32                          supplyIndex;
+    s32                          refillWeaponItemId;
     s32                          weaponItemId;
     s32                          supplyItemId;
-    s32                          qty;
-    s32                          y;
-    s32                          h;
-    s32                          status;
-    s16                          countdown;
+    s32                          capacityFixed;
+    s32                          contentTop;
+    s32                          contentBottom;
+    s32                          panelControl;
+    s16                          remainingFrames;
 
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Shop_Data_8017D6F4);
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, Shop_Data_8017D6F4);
 
-    if (task->state == 0) {
+    if (task->state == SHOP_REFILL_INITIAL) {
         task->spawnArg1.value = 0;
         task->state           = task->state + 1;
     }
-    if (task->state == 1) {
-        slotId                = equipmentFindNextCarriedWeaponSupply(task->spawnArg1.value);
-        task->spawnArg1.value = slotId;
-        if (slotId < 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    // Commit the full load before its displayed quantity begins rising.
+    if (task->state == SHOP_REFILL_NEXT_SUPPLY) {
+        supplyIndex           = equipmentFindNextCarriedWeaponSupply(task->spawnArg1.value);
+        task->spawnArg1.value = supplyIndex;
+        if (supplyIndex < 0) {
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else {
-            supply             = equipmentGetWeaponSupply(slotId);
+            supply             = equipmentGetWeaponSupply(supplyIndex);
             Shop_Data_8018762C = supply;
-            itemId             = supply->weaponItemId;
-            slot               = equipmentGetWeaponLoad(itemId);
+            refillWeaponItemId = supply->weaponItemId;
+            weaponLoad         = equipmentGetWeaponLoad(refillWeaponItemId);
             if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-                Shop_Data_80187628 = slot->primaryQty;
-                slot->primaryQty   = equipmentGetWeaponLoadCapacity(itemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+                Shop_Data_80187628     = weaponLoad->primaryQty;
+                weaponLoad->primaryQty = equipmentGetWeaponLoadCapacity(refillWeaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
             } else {
-                Shop_Data_80187628 = slot->secondaryQty;
-                slot->secondaryQty = equipmentGetWeaponLoadCapacity(itemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+                Shop_Data_80187628       = weaponLoad->secondaryQty;
+                weaponLoad->secondaryQty = equipmentGetWeaponLoadCapacity(refillWeaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
             }
-            task->killCountdown  = 0xBC;
-            Shop_Data_80187628 <<= 8;
+            task->killCountdown  = SHOP_REFILL_DURATION_FRAMES;
+            Shop_Data_80187628 <<= SHOP_REFILL_FRACTION_BITS;
             task->state          = task->state + 1;
         }
     }
 
+    // Keep drawing the last selected supply during completion and closure.
     weaponItemId = Shop_Data_8018762C->weaponItemId;
     supplyItemId = Shop_Data_8018762C->supplyItemId;
     if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-        qty = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+        capacityFixed = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
     } else {
-        qty = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+        capacityFixed = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
     }
-    qty               <<= 8;
-    Shop_Data_80187628 += 0x40;
-    if (qty < Shop_Data_80187628) {
-        Shop_Data_80187628 = qty;
+    capacityFixed     <<= SHOP_REFILL_FRACTION_BITS;
+    Shop_Data_80187628 += SHOP_REFILL_STEP_FIXED;
+    if (capacityFixed < Shop_Data_80187628) {
+        Shop_Data_80187628 = capacityFixed;
     }
 
-    y = obj->panel.contentTop.signedValue;
-    itemMenuDrawItemRow(obj, obj->panel.contentLeft.signedValue + 2, y + 0xF, weaponItemId, 0x606060, 0);
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, y + 0x12);
-    itemMenuDrawItemRow(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, supplyItemId, 0x606060, 0);
-    itemMenuDrawQuantity(obj, obj->panel.contentLeft.signedValue + 2, y + 0x23, Shop_Data_80187628 >> 8, 0x606060);
-    h = obj->panel.contentBottom.signedValue;
-    itemMenuDrawMeter(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, h - 6, qty,
-                      Shop_Data_80187628, 0x1741F);
+    contentTop = object->panel.contentTop.signedValue;
+    itemMenuDrawItemRow(object, object->panel.contentLeft.signedValue + 2, contentTop + 0xF, weaponItemId, SHOP_TEXT_COLOR_RGB, 0);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, contentTop + 0x12);
+    itemMenuDrawItemRow(object, object->panel.contentLeft.signedValue + 2, contentTop + 0x23, supplyItemId, SHOP_TEXT_COLOR_RGB, 0);
+    itemMenuDrawQuantity(object, object->panel.contentLeft.signedValue + 2, contentTop + 0x23, Shop_Data_80187628 >> SHOP_REFILL_FRACTION_BITS, SHOP_TEXT_COLOR_RGB);
+    contentBottom = object->panel.contentBottom.signedValue;
+    itemMenuDrawMeter(&object->panel, object->panel.contentLeft.signedValue + 2, object->panel.contentRight.signedValue - 2, contentBottom - 6, capacityFixed,
+                      Shop_Data_80187628, SHOP_REFILL_METER_COLOR_RGB);
 
-    if (task->state == 2) {
-        countdown           = task->killCountdown - 1;
-        task->killCountdown = countdown;
-        status              = obj->panel.control.word;
-        if (status == 1 && (countdown <= 0 || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
-            task->state           = status;
+    if (task->state == SHOP_REFILL_ANIMATE) {
+        remainingFrames     = task->killCountdown - 1;
+        task->killCountdown = remainingFrames;
+        panelControl        = object->panel.control.word;
+        if (panelControl == USER_INTERFACE_PANEL_ACTIVE && (remainingFrames <= 0 || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskConfirm) != 0)) {
+            task->state           = panelControl;
             task->spawnArg1.value = task->spawnArg1.value + 1;
         }
     }
 }
 
-static inline s32 Shop_AddItemCount(s32 item, s32 count)
+/// Adds carried consumable units or matching non-consumable rows to a count.
+///
+/// Consumable ids 0xA0..0xBF use the first stack's signed quantity, including
+/// loaded ammunition. Other ids count matching rows without summing their
+/// quantities. The live save's carried range must fit its readable table;
+/// the returned count includes `accumulatedCount`. Nothing is changed or retained.
+static inline s32 _shopAddCarriedItemCount(s32 itemId, s32 accumulatedCount)
 {
-    s32                 i;
-    s32                 n;
-    InventoryItemRow*   rec;
-    InventoryItemRange* scan;
+    s32                       rowIndex;
+    s32                       rowCount;
+    const InventoryItemRow*   rows;
+    const InventoryItemRange* carriedItems;
 
-    if ((u32)(item - 0xA0) < 0x20U) {
-        count += inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
+    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        accumulatedCount += inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
     } else {
-        scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-        rec  = inventoryGetRangeTable(scan) + scan->firstRow;
-        n    = scan->rowCount;
-        for (i = 0; i < n; i++) {
-            if (rec[i].itemId == item) {
-                count++;
+        carriedItems = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+        rows         = inventoryGetRangeTable(carriedItems) + carriedItems->firstRow;
+        rowCount     = carriedItems->rowCount;
+        for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            if (rows[rowIndex].itemId == itemId) {
+                accumulatedCount++;
             }
         }
     }
-    return count;
+    return accumulatedCount;
 }
 
-/// Draws the preview of the item the shop list's cursor rests on and, for an
-/// item id below 0x100, the "Amount" caption with how many of it the player
-/// already holds. Stackable items (0xA0..0xBF) ask the scan for their stack
-/// quantity; everything else is counted by walking the item table.
-static void Shop_PreviewTask(Task* task)
+/// Draws the selected item's loaded preview and the carried Amount caption.
+///
+/// `spawnArg2.pointer` borrows the panel object. The preview stays hidden until
+/// disk commands are idle and the loaded slot agrees with the selected row.
+/// Row ids below 0x100 display the carried count; the empty selection -1 also
+/// follows that path and displays zero. Service rows omit the amount caption.
+static void _shopItemPreviewTask(Task* task)
 {
-    u8          buf[0x10];
-    TextDrawReq req;
-    UiObject*   obj;
-    s32         item;
-    s32         y;
-    s32         ry;
-    s32         count;
+    u8          quantityText[0x10];
+    TextDrawReq amountRequest;
+    UiObject*   object;
+    s32         rowId;
+    s32         amountTop;
+    s32         captionOffsetY;
+    s32         heldCount;
 
-    item         = Shop_Data_801819EC;
-    obj          = task->spawnArg2.pointer;
+    rowId        = Shop_Data_801819EC;
+    object       = task->spawnArg2.pointer;
     task->status = 0;
-    if ((cdCmdIsIdle() & 0xFFFF) && Shop_Data_801819EC == itemMenuGetPrimaryPreviewItem()) {
-        itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP);
+    if (cdCmdIsIdle() && Shop_Data_801819EC == itemMenuGetPrimaryPreviewItem()) {
+        itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP);
     } else {
-        itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP | ITEM_MENU_PREVIEW_HIDDEN);
+        itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP | ITEM_MENU_PREVIEW_HIDDEN);
     }
-    y = obj->panel.contentTop.signedValue + 0x50;
-    if (item < 0x100) {
-        req.x          = obj->panel.contentLeft.signedValue + (obj->panel.contentOriginX.unsignedValue + 2);
-        ry             = obj->panel.contentOriginY.unsignedValue - 6;
-        req.y          = ry + y;
-        req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-        req.colorRgb   = 0x606060;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Shop_Data_80181AC4);
-        count = 0;
-        count = Shop_AddItemCount(item, count);
-        textDrawUiLine(obj, obj->panel.contentRight.signedValue - 2, y + 0xA, textItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
+    amountTop = object->panel.contentTop.signedValue + 0x50;
+    if (rowId < SHOP_CARRIED_ITEM_ID_LIMIT) {
+        amountRequest.x          = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 2);
+        captionOffsetY           = object->panel.contentOriginY.unsignedValue - 6;
+        amountRequest.y          = captionOffsetY + amountTop;
+        amountRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+        amountRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+        amountRequest.colorRgb   = SHOP_TEXT_COLOR_RGB;
+        amountRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+        amountRequest.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&amountRequest, Shop_Data_80181AC4);
+        heldCount = 0;
+        heldCount = _shopAddCarriedItemCount(rowId, heldCount);
+        textDrawUiLine(object, object->panel.contentRight.signedValue - 2, amountTop + 0xA, textItoaSigned(quantityText, heldCount), SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED,
                        TEXT_ALIGNMENT_RIGHT);
     }
 }
 
-/// Quantity picker of the buy prompt. Up and down step the count between 1 and
-/// the most the player can take: for a stackable item, what its stock ceiling
-/// still allows in steps of its per-buy amount; otherwise the free inventory
-/// rows; in both cases no more than the BP affords. It shows the unit and
-/// total price. Confirm takes the total and gives the items; confirm or
-/// cancel tells the parent panel to close with 6.
-static void Shop_QuantityTask(Task* task)
+/// Picks a number of packs, shows their BP cost, and grants them on confirmation.
+///
+/// `spawnArg1` is an affordable item id from a validated purchase row;
+/// `spawnArg2.pointer` borrows this task's UI object. `extraState.value` holds
+/// the selected pack count, starting at one. The catalogue price must be
+/// positive. Consumable capacity limits packs
+/// with upward rounding, allowing the last pack's inventory clamp; other items
+/// use free carried rows. BP affordability further caps the count. Active
+/// Up/Right and Down/Left adjust it; Confirm deducts BP and grants packs.
+/// Confirm and Cancel both set the parent result to CONFIRM to close it.
+static void _shopPurchaseQuantityTask(Task* task)
 {
-    u8          buf[0x20];
-    TextDrawReq req;
-    UiObject*   obj;
-    UiObject*   parentObj;
+    u8          numberText[0x20];
+    TextDrawReq priceLabelRequest;
+    UiObject*   object;
+    UiObject*   parentObject;
     s32         itemId;
-    s32         price;
-    s32         maxQty;
-    s32         afford;
-    s32         held;
-    s32         count;
-    s32         left;
-    s32         top;
-    s32         x;
-    s32         y;
-    s32         i;
+    s32         packPrice;
+    s32         maxPacks;
+    s32         affordablePacks;
+    s32         heldUnits;
+    s32         purchasePacks;
+    s32         contentLeft;
+    s32         contentTop;
+    s32         rowLeft;
+    s32         lineY;
+    s32         packIndex;
 
-    itemId = task->spawnArg1.value;
-    obj    = task->spawnArg2.pointer;
-    maxQty = 1;
-    price  = Gp_ItemDescs[itemId].price;
+    itemId    = task->spawnArg1.value;
+    object    = task->spawnArg2.pointer;
+    maxPacks  = 1;
+    packPrice = Gp_ItemDescs[itemId].price;
 
-    if (task->state == 0) {
+    if (task->state == SHOP_PANEL_INITIAL) {
         task->extraState.value = 1;
-        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) - 3);
+        uiSetPanelContentSize(&object->panel, 0, uiGetTextRowsHeight(3) - 3);
         task->state = task->state + 1;
     }
 
     if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
-        const InventoryConsumableStack* stackInfo = _inventoryGetConsumableStackInfo(itemId);
+        const InventoryConsumableStack* stackLimits = _inventoryGetConsumableStackInfo(itemId);
 
-        if (stackInfo->packQty != 0) {
-            held = inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
-            // The image keeps the held count in a register of its own
-            // (`move v1,v0`) and loads the ceiling into `$v0`, which needs a
-            // block boundary between the call and the subtraction that is
-            // gone from the final code: without one, combine substitutes the
-            // return register into the subtraction and the copy disappears.
-            // Two arms that compile to the same code give that boundary
-            // (cross-jumping merges them and deletes the branch). What the
-            // original tested here, and how its arms differed in source, is
-            // unknown; `held > 0` is fitted. `held != 0` does not work: cse
-            // then drops the subtraction from the zero arm.
-            if (held > 0) {
-                maxQty = stackInfo->maxHeld - held;
+        if (stackLimits->packQty != 0) {
+            heldUnits = inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
+            // The duplicated arms preserve a vanished block boundary before the capacity load.
+            // The original predicate is unproven; both arms have the same arithmetic.
+            if (heldUnits > 0) {
+                maxPacks = stackLimits->maxHeld - heldUnits;
             } else {
-                maxQty = stackInfo->maxHeld - held;
+                maxPacks = stackLimits->maxHeld - heldUnits;
             }
-            if (maxQty <= 0) {
-                maxQty = 1;
+            if (maxPacks <= 0) {
+                maxPacks = 1;
             } else {
-                maxQty = (maxQty - 1) / stackInfo->packQty;
-                maxQty = maxQty + 1;
+                maxPacks = (maxPacks - 1) / stackLimits->packQty;
+                maxPacks = maxPacks + 1;
             }
         }
     } else {
-        maxQty = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount - inventoryCountOccupiedRows(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems);
+        maxPacks = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount - inventoryCountOccupiedRows(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems);
     }
 
-    afford = gPlayerStatus.bp / price;
-    if (afford < maxQty) {
-        maxQty = afford;
+    affordablePacks = gPlayerStatus.bp / packPrice;
+    if (affordablePacks < maxPacks) {
+        maxPacks = affordablePacks;
     }
 
-    left = obj->panel.contentLeft.signedValue;
-    x    = left + 2;
-    top  = obj->panel.contentTop.signedValue;
-    y    = top + 0xF;
-    itemMenuDrawItemRow(obj, x, y, itemId, 0x606060, 0);
+    contentLeft = object->panel.contentLeft.signedValue;
+    rowLeft     = contentLeft + 2;
+    contentTop  = object->panel.contentTop.signedValue;
+    lineY       = contentTop + 0xF;
+    itemMenuDrawItemRow(object, rowLeft, lineY, itemId, SHOP_TEXT_COLOR_RGB, 0);
     if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
-        const InventoryConsumableStack* stackInfo = _inventoryGetConsumableStackInfo(itemId);
+        const InventoryConsumableStack* stackLimits = _inventoryGetConsumableStackInfo(itemId);
 
-        itemMenuDrawQuantity(obj, x, y, stackInfo->packQty, 0x606060);
+        itemMenuDrawQuantity(object, rowLeft, lineY, stackLimits->packQty, SHOP_TEXT_COLOR_RGB);
     }
 
-    count = task->extraState.value;
-    textDrawUiLine(obj, left + 0x98, y, Shop_Data_80181AD0, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    textDrawUiLine(obj, -x, y, textItoaSigned(buf, count), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    uiDrawHorizontalSeparator(&(obj)->panel, left, -x + 2, top + 0x12);
+    purchasePacks = task->extraState.value;
+    textDrawUiLine(object, contentLeft + 0x98, lineY, Shop_Data_80181AD0, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(object, -rowLeft, lineY, textItoaSigned(numberText, purchasePacks), SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    uiDrawHorizontalSeparator(&object->panel, contentLeft, -rowLeft + 2, contentTop + 0x12);
 
-    req.x          = obj->panel.contentOriginX.unsignedValue - x;
-    y              = top + 0x1A;
-    req.y          = obj->panel.contentOriginY.unsignedValue + y;
-    req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.colorRgb   = 0x606060;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Shop_Data_8017D6D8);
+    priceLabelRequest.x          = object->panel.contentOriginX.unsignedValue - rowLeft;
+    lineY                        = contentTop + 0x1A;
+    priceLabelRequest.y          = object->panel.contentOriginY.unsignedValue + lineY;
+    priceLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    priceLabelRequest.colorRgb   = SHOP_TEXT_COLOR_RGB;
+    priceLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    priceLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+    priceLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&priceLabelRequest, Shop_Data_8017D6D8);
 
-    textDrawUiLine(obj, -x, top + 0x2B, textItoaSigned(buf, count * price), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(object, -rowLeft, contentTop + 0x2B, textItoaSigned(numberText, purchasePacks * packPrice), SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        parentObj = task->parent->spawnArg2.pointer;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        parentObject = task->parent->spawnArg2.pointer;
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP | PAD_BUTTON_RIGHT) != 0) {
-            if (task->extraState.value < maxQty) {
+            if (task->extraState.value < maxPacks) {
                 task->extraState.value = task->extraState.value + 1;
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
             }
@@ -1186,113 +1278,120 @@ static void Shop_QuantityTask(Task* task)
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            gPlayerStatus.bp -= price * task->extraState.value;
-            for (i = 0; i < task->extraState.value; i++) {
+            gPlayerStatus.bp -= packPrice * task->extraState.value;
+            for (packIndex = 0; packIndex < task->extraState.value; packIndex++) {
                 inventoryGiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId, INVENTORY_GIVE_ONE_PACK);
             }
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
+            parentObject->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
+            parentObject->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
 
-/// Row handler that draws a single message and reports 6 on confirm.
-static void Shop_MessageRow(UiList* prompt, UiObject* obj)
+/// Draws Pass and returns CONFIRM when the active row receives Confirm.
+static void _shopDrawPassRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
+    TextDrawReq request;
 
-    req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
-    req.y          = obj->panel.contentOriginY.unsignedValue + prompt->rowTextY.unsignedValue;
-    req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.colorRgb   = prompt->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Shop_Data_80181A04);
+    request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    request.otIndex    = object->panel.otIndex.signedValue + 1;
+    request.colorRgb   = list->colorRgb;
+    request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    request.alignment  = TEXT_ALIGNMENT_LEFT;
+    request.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&request, Shop_Data_80181A04);
 
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
-/// A list panel over `Shop_Data_80181B0C`. Cancel reports 6 and
-/// menu -1; a child reporting 6 is torn down, one reporting -1 passes it up.
-static void Shop_BuyPromptTask(Task* task)
+/// Runs the two-row Purchase/Pass prompt and closes completed child dialogs.
+///
+/// `spawnArg1` carries the offered item id; `spawnArg2.pointer` borrows the
+/// UI object. Cancel returns CONFIRM and Menu returns CANCEL. A child returning
+/// CONFIRM closes and restores this prompt's input; child CANCEL propagates.
+static void _shopPurchasePromptTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
     UiList*   list;
-    Task*     child;
-    UiObject* childObj;
-    s16       code;
+    Task*     childTask;
+    UiObject* childObject;
+    s16       childResult;
 
-    list        = &Shop_Data_80181B0C;
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (task->state == 0) {
-        uiFitPanelToList(list, &(obj)->panel);
+    list           = &Shop_Data_80181B0C;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == SHOP_PANEL_INITIAL) {
+        uiFitPanelToList(list, &object->panel);
         uiSetListSystemCursorSound(list, 1);
         task->state += 1;
     }
-    uiUpdateList(list, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 
-    child = task->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        code     = childObj->result;
-        if (code != USER_INTERFACE_RESULT_CANCEL) {
-            if (code == USER_INTERFACE_RESULT_CONFIRM) {
-                uiStartTreeClosing(childObj, childObj->owner);
-                obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+    childTask = task->firstChild;
+    if (childTask != NULL) {
+        childObject = childTask->spawnArg2.pointer;
+        childResult = childObject->result;
+        if (childResult != USER_INTERFACE_RESULT_CANCEL) {
+            if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
+                uiStartTreeClosing(childObject, childObject->owner);
+                object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
             }
         } else {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
 
-/// Opens the panel `Shop_Data_80181B30` with the task's
-/// `spawnArg1` as its parameter, setting frame timing 0 and the session's UI
-/// flag while it is open; once the panel reports cancel or confirm it is torn down, and
-/// ten frames later frame timing 1 and the flag are restored and the task
-/// kills itself.
-static void Shop_SessionTask(Task* task)
+/// Owns a shop UI session and restores display timing after its tree closes.
+///
+/// `spawnArg1` is the packed stock selector. The session acquires the stage's
+/// primitive buffer and stores its root UI object in `spawnArg2.pointer`.
+/// While open it selects every-VBlank timing and sets the session UI-open flag.
+/// Either root result starts tree closure and a ten-callback delay; completion
+/// restores two-VBlank timing, clears the flag, kills the task, releases the
+/// primitive buffer and requests exit from the stage mode task.
+static void _shopSessionTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
 
-    if (task->state == 0) {
+    if (task->state == SHOP_SESSION_INITIAL) {
         stageEnsureHeapTaskPrimitiveBuffer();
-        obj = uiSpawnObject(&Shop_Data_80181B30, task->spawnArg1, 1, 1, NULL);
-        if (obj == NULL) {
+        object = uiSpawnObject(&Shop_Data_80181B30, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+        if (object == NULL) {
             return;
         }
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
-        task->spawnArg2.pointer = obj;
+        task->spawnArg2.pointer = object;
         task->state++;
     }
 
-    if (task->state == 1) {
-        obj = task->spawnArg2.pointer;
-        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            uiStartTreeClosing(obj, obj->owner);
-            task->killCountdown = 10;
-            task->state         = 2;
+    if (task->state == SHOP_SESSION_OPEN) {
+        object = task->spawnArg2.pointer;
+        if (object->result == USER_INTERFACE_RESULT_CANCEL || object->result == USER_INTERFACE_RESULT_CONFIRM) {
+            uiStartTreeClosing(object, object->owner);
+            task->killCountdown = SHOP_SESSION_CLOSE_FRAMES;
+            task->state         = SHOP_SESSION_CLOSING;
         }
     }
 
-    if (task->state == 2) {
+    // Let the closing tree finish before releasing its drawing storage.
+    if (task->state == SHOP_SESSION_CLOSING) {
         task->killCountdown--;
         if (task->killCountdown <= 0) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);

@@ -1,21 +1,21 @@
 /* Private per-instance storage. Include at the original data position.
  * The configuration contract is documented in shop.h. */
 
-static void Shop_ItemListTask(Task* task);
+static void _shopItemListTask(Task* task);
 
-static void Shop_BuyPromptTask(Task* task);
+static void _shopPurchasePromptTask(Task* task);
 
-static void Shop_MessageRow(UiList* prompt, UiObject* obj);
+static void _shopDrawPassRow(UiList* list, UiObject* object);
 
-static void Shop_NoticeTask(Task* task);
+static void _shopNoticeTask(Task* task);
 
-static void Shop_BuyRow(UiList* prompt, UiObject* obj);
+static void _shopDrawPurchaseRow(UiList* list, UiObject* object);
 
-static void Shop_BalanceTask(Task* task);
+static void _shopBalancePanelTask(Task* task);
 
-static void Shop_CategoryListTask(Task* task);
+static void _shopCategoryListTask(Task* task);
 
-static void Shop_CategoryRow(UiList* prompt, UiObject* obj);
+static void _shopDrawCategoryRow(UiList* list, UiObject* object);
 
 static void Shop_ItemRow(UiList* prompt, UiObject* obj);
 
@@ -932,27 +932,27 @@ static UiListRowCallback Shop_Data_80181AD8[1] = {
 };
 
 static UiListRowCallback Shop_Data_80181ADC[1] = {
-    Shop_CategoryRow,
+    _shopDrawCategoryRow,
 };
 
 static UiList Shop_Data_80181AE0 = { Shop_Data_80181ADC, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiListRowCallback Shop_Data_80181B04[2] = {
-    Shop_BuyRow,
-    Shop_MessageRow,
+    _shopDrawPurchaseRow,
+    _shopDrawPassRow,
 };
 
 static UiList Shop_Data_80181B0C = { Shop_Data_80181B04, 2, { .unsignedValue = 2 }, 1, 10, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiObjectDesc Shop_Data_80181B30 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 128, 40 }, 56, 0, TASK_BODY_NONE, 192, Shop_CategoryListTask, 0 };
+static UiObjectDesc Shop_Data_80181B30 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 128, 40 }, 56, 0, TASK_BODY_NONE, 192, _shopCategoryListTask, 0 };
 
-static UiObjectDesc Shop_Data_80181B4C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, -93, 188, 160 }, 48, 0, TASK_BODY_NONE, 192, Shop_ItemListTask, 0 };
+static UiObjectDesc Shop_Data_80181B4C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, -93, 188, 160 }, 48, 0, TASK_BODY_NONE, 192, _shopItemListTask, 0 };
 
-static UiObjectDesc Shop_Data_80181B68 = { 0, { 48, 4, 96, 60 }, 52, 0, TASK_BODY_NONE, 192, Shop_BalanceTask, 0 };
+static UiObjectDesc Shop_Data_80181B68 = { 0, { 48, 4, 96, 60 }, 52, 0, TASK_BODY_NONE, 192, _shopBalancePanelTask, 0 };
 
-static UiObjectDesc Shop_Data_80181B84 = { 0, { 48, 32, 70, 32 }, 20, 0, TASK_BODY_NONE, 192, Shop_BuyPromptTask, 0 };
+static UiObjectDesc Shop_Data_80181B84 = { 0, { 48, 32, 70, 32 }, 20, 0, TASK_BODY_NONE, 192, _shopPurchasePromptTask, 0 };
 
-static UiObjectDesc Shop_Data_80181BA0 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -48, 192, 96 }, 8, 0, TASK_BODY_NONE, 192, Shop_NoticeTask, 0 };
+static UiObjectDesc Shop_Data_80181BA0 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -48, 192, 96 }, 8, 0, TASK_BODY_NONE, 192, _shopNoticeTask, 0 };
 
 /* Retained complete UI descriptor, including its embedded task seed. */
-static UiObjectDesc Shop_ItemListDescriptor = { 0, { -128, -32, 160, 92 }, 48, 0, TASK_BODY_NONE, 192, Shop_ItemListTask, 0 };
+static UiObjectDesc Shop_ItemListDescriptor = { 0, { -128, -32, 160, 92 }, 48, 0, TASK_BODY_NONE, 192, _shopItemListTask, 0 };

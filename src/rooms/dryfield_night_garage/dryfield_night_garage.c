@@ -194,7 +194,7 @@ s32 func_dryfield_night_garage_801803A4(Task*, s32, s32, s32);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_dryfield_night_garage_80181C2C = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
+TaskDesc D_dryfield_night_garage_80181C2C = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_garage_80180360 },
@@ -350,9 +350,8 @@ AnimationSet gDryfieldNightGarageAnimation056B0 = {
     { NULL, _gDryfieldNightGarageAnimation056B0Bank1, NULL, NULL, _gDryfieldNightGarageAnimation056B0Bank4, NULL, NULL, NULL },
 };
 
-static inline s32 Shop_AddItemCount(s32 item, s32 count);
-static void       func_dryfield_night_garage_8017FF2C(Task* task);
-static void       func_dryfield_night_garage_801803AC(Task* task);
+static void func_dryfield_night_garage_8017FF2C(Task* task);
+static void func_dryfield_night_garage_801803AC(Task* task);
 
 #include "../../shared/shop.inc.c"
 

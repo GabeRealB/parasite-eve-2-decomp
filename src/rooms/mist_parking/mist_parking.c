@@ -154,7 +154,7 @@ void func_mist_parking_801827A0(s32);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_mist_parking_8018668C = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } };
+TaskDesc D_mist_parking_8018668C = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -951,8 +951,6 @@ extern TaskMessageEntry D_mist_parking_80186BB8[5];
 extern EvsCommand D_mist_parking_80186C5C[];
 
 extern EvsCommand D_mist_parking_80186DC4[];
-
-static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 #include "../../shared/shop.inc.c"
 

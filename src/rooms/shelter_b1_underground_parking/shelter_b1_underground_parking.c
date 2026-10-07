@@ -471,7 +471,7 @@ extern SpriteSource D_shelter_b1_underground_parking_80189C14[32];
 
 #include "../../shared/shop_panels.inc.c"
 
-ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0 = { { { { TASK_BODY_NONE, 192 } }, Shop_SessionTask, { .value = 0 } }, { 0 } };
+ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0 = { { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } }, { 0 } };
 
 TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
@@ -1704,9 +1704,8 @@ u16 D_shelter_b1_underground_parking_8018D78A = 0xCCEE;
 
 u16 D_shelter_b1_underground_parking_8018D78C = 0;
 
-static inline s32 Shop_AddItemCount(s32 item, s32 count);
-static void       func_shelter_b1_underground_parking_801826C0(Task* roomTask);
-static void       _shelterB1UndergroundParkingDrawPanelIndicators(void);
+static void func_shelter_b1_underground_parking_801826C0(Task* roomTask);
+static void _shelterB1UndergroundParkingDrawPanelIndicators(void);
 
 #include "../../shared/telephone.inc.c"
 
