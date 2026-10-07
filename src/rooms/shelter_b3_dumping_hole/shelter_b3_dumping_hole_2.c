@@ -3422,8 +3422,6 @@ static void _shelterB3DumpingHoleShardTask(Task* task)
 static void func_shelter_b3_dumping_hole_8018098C(Task* task)
 {
     _ShelterB3DumpingHoleCollapseEventWork* work;
-    GfxMatrix*                              ident;
-    GfxMatrix*                              ident2;
     u16                                     i;
     ActorCommand*                           command3;
     ActorCommand*                           command5;
@@ -3518,24 +3516,12 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             task->extra.tmd->coords[2].coord.t[1] += 8;
                             work->part3Scale.vx                   -= 10;
                             work->part3Scale.vz                   -= 10;
-                            ident                                  = (GfxMatrix*)&task->extra.tmd->coords[3].coord;
-
-                            ident->rotationWords.m00M01 = ONE;
-                            ident->rotationWords.m02M10 = 0;
-                            ident->rotationWords.m11M12 = ONE;
-                            ident->rotationWords.m20M21 = 0;
-                            ident->rotationWords.m22    = ONE;
+                            gfxSetRotIdentity(&task->extra.tmd->coords[3].coord);
 
                             gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->part3Scale);
                         } else if (work->timer < 0x20) {
                             task->extra.tmd->coords[2].coord.t[1] += 0x20;
-                            ident2                                 = (GfxMatrix*)&task->extra.tmd->coords[3].coord;
-
-                            ident2->rotationWords.m00M01 = ONE;
-                            ident2->rotationWords.m02M10 = 0;
-                            ident2->rotationWords.m11M12 = ONE;
-                            ident2->rotationWords.m20M21 = 0;
-                            ident2->rotationWords.m22    = ONE;
+                            gfxSetRotIdentity(&task->extra.tmd->coords[3].coord);
                         }
                         if (!(gDisplayState.animFrame & 0xF)) {
                             buf.vec[1].vx = 0xC8;
