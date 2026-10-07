@@ -12,9 +12,12 @@ Matches the main executable load path in ``fs.c``:
     ``RECT(w=0x40, h=0x20)`` halfwords = ``0x1000`` bytes. Column height comes
     from ``D5B498_8006ACD4`` (default ``0x100``).
 
-**Type 2 – CLUT (``Fs_LoadImageChunk`` + ``fsDecompressImagePayload``)**
+**Type 2 – CLUT (``fsUploadImageChunk`` + ``fsDecompressImagePayload``)**
     ``FsImageChunk`` header (``u16 x, y, h, w`` then 8 unread bytes) then **LZSS**
-    payload decompressing to ``w * h`` ABGR1555 colours.
+    payload for ``w * h`` ABGR1555 colours. Runtime decoding stops at the end
+    token and uploads the rectangle regardless of decoded length. This offline
+    renderer pads short output with zeros and trims excess bytes instead of
+    retaining the runtime staging buffer's previous contents.
 
 Pack encodes from PNG + meta under the type store (``pe2img/``, ``pe2clut/``).
 """

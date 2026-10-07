@@ -6001,8 +6001,8 @@ void func_actor_560800_801364A0(u16 arg0)
 
 /// Copies a 64x256 strip of VRAM to (0x280, 0x100), then re-loads the chunk at
 /// `D_8006C338[35].data` with `D5B498_8006C234` set to 5 for the duration (that byte is
-/// the image mode `Fs_LoadImageChunk` reads for chunks whose second halfword is
-/// in 0xF5..0xFF), restoring it to 0 afterwards.
+/// the signed row shift `fsUploadImageChunk` applies to source Y in 245..255),
+/// restoring it to 0 afterwards.
 void func_actor_560800_80136548(void)
 {
     RECT rect;
@@ -6013,7 +6013,7 @@ void func_actor_560800_80136548(void)
     rect.h = 0x100;
     MoveImage(&rect, 0x280, 0x100);
     D5B498_8006C234 = 5;
-    Fs_LoadImageChunk(D_8006C338[35].data, 1);
+    fsUploadImageChunk(D_8006C338[35].data, 1);
     D5B498_8006C234 = 0;
 }
 
@@ -6074,7 +6074,7 @@ void func_actor_560800_801366B0(Task* arg0)
             rect.h = 0x100;
             MoveImage(&rect, 0x200, 0x100);
             D5B498_8006C234 = 8;
-            Fs_LoadImageChunk(D_8006C338[36].data, 1);
+            fsUploadImageChunk(D_8006C338[36].data, 1);
             D5B498_8006C234 = 0;
             taskKill(arg0);
             displayResumeGameLoop();

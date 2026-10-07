@@ -791,7 +791,7 @@ void Gp_LoadViewImages(void)
     for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
         if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
             if (view - 1 == i) {
-                while (Fs_LoadImageChunk(D_8006C338[i].data, 1)) {
+                while (fsUploadImageChunk(D_8006C338[i].data, 1)) {
                 }
                 break;
             }
@@ -904,7 +904,7 @@ void Gp_LoadViewAndCd(u8 arg0)
     for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
         if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
             if (view - 1 == i) {
-                while (Fs_LoadImageChunk(D_8006C338[i].data, 1)) {
+                while (fsUploadImageChunk(D_8006C338[i].data, 1)) {
                 }
                 break;
             }

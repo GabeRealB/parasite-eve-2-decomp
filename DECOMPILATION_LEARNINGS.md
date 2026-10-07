@@ -17556,7 +17556,7 @@ if (GetRCnt(timer) >= TIMEOUT) {
 Also: assign `z = NULL` *before* the idle wait so CSE does not replace
 `move a0, zero` with `move a0, s1` when `retry == 0` is proven.
 
-`Fs_LoadImageChunk` is the pure example. Pair with `register ... asm("s0")` /
+`fsUploadImageChunk` is the pure example. Pair with `register ... asm("s0")` /
 `asm("s1")` when ot/retry would otherwise swap.
 
 ## Split range-check condition into a temp for `move a1` delay fill

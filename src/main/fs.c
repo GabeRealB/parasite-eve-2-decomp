@@ -317,6 +317,38 @@ static void _fsResumeDrawing(u_long* resumeAddress);
 /// Unreferenced.
 static s32 D_8005EBC0 = 0;
 
+/// Selects the relocated rectangle and byte cursors for a complete image upload.
+static inline void _fsPrepareImageChunkUpload(const FsImageChunk* imageChunk)
+{
+    enum {
+        FILE_SYSTEM_IMAGE_CHUNK_SHIFT_FIRST_ROW = 245,
+        FILE_SYSTEM_IMAGE_CHUNK_SHIFT_ROW_COUNT = 11,
+        FILE_SYSTEM_IMAGE_CHUNK_RELOCATION_MODE = 2,
+    };
+    s8                  yShiftRows;
+    const FsImageChunk* rectangleHeader;
+    u32                 applyHeaderYShift;
+
+    D_8006C4C8[D5B498_8006ADF4] = 0;
+    Fs_ImageRect.x              = imageChunk->x;
+    applyHeaderYShift           = (u32)(imageChunk->y - FILE_SYSTEM_IMAGE_CHUNK_SHIFT_FIRST_ROW) < FILE_SYSTEM_IMAGE_CHUNK_SHIFT_ROW_COUNT;
+    rectangleHeader             = imageChunk;
+    if (applyHeaderYShift) {
+        yShiftRows = D5B498_8006C234;
+    } else {
+        yShiftRows = 0;
+    }
+    if (Fs_ChunkMode == FILE_SYSTEM_IMAGE_CHUNK_RELOCATION_MODE) {
+        Fs_ImageRect.y = yShiftRows + (rectangleHeader->y + 1);
+    } else {
+        Fs_ImageRect.y = rectangleHeader->y + yShiftRows;
+    }
+    Fs_ChunkReadPtr  = (u8*)(imageChunk + 1);
+    Fs_ImageRect.w   = rectangleHeader->w;
+    Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
+    Fs_ImageRect.h   = rectangleHeader->h;
+}
+
 /// Clears the loading-screen phase and active latch without releasing buffers.
 static void _gameFlowResetLoadScreenState(void)
 {
@@ -617,8 +649,8 @@ static u8 Fs_ProcessChunkHeader(void)
 
         case FILE_SYSTEM_CHUNK_CLUT:
             if (Fs_ChunkEndSector == Fs_ReqSector) {
-                status = Fs_LoadImageChunk((FsImageChunk*)Fs_CdSector.chunk.data.bytes, 0);
-                if (status == 0xFF || status == 0x7F) {
+                status = fsUploadImageChunk((const FsImageChunk*)Fs_CdSector.chunk.data.bytes, 0);
+                if (status == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED || status == FILE_SYSTEM_IMAGE_UPLOAD_RETRY) {
                     Fs_OnCdError(0);
                     break;
                 }
@@ -820,12 +852,12 @@ static u8 Fs_ProcessChunkData(void)
         case 3:
             CdGetSector(D_8006CCD8, 0x200);
             // The image header is the start of the previous sector's payload, contiguous with this continuation sector.
-            status = Fs_LoadImageChunk((FsImageChunk*)(D_8006CCD8 - sizeof(Fs_CdSector.chunk.data.bytes)), 0);
+            status = fsUploadImageChunk((const FsImageChunk*)(D_8006CCD8 - sizeof(Fs_CdSector.chunk.data.bytes)), 0);
             ff     = 0xFF;
-            if (status == ff) {
+            if (status == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED) {
                 Fs_ReqSector--;
                 Fs_OnCdError(2);
-            } else if (status == 0x7F) {
+            } else if (status == FILE_SYSTEM_IMAGE_UPLOAD_RETRY) {
                 Fs_OnCdError(0);
             } else {
                 endFlag = Fs_ChunkEndFlag;
@@ -1430,79 +1462,61 @@ restart:
     }
 }
 
-u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
+u8 fsUploadImageChunk(const FsImageChunk* imageChunk, u8 ignoreGpuTimeLimit)
 {
-    u_long*       ot;
-    s32           retry;
-    s8            yAdj;
-    FsImageChunk* img;
-    u32           inRange;
+    enum {
+        FILE_SYSTEM_IMAGE_UPLOAD_TIME_LIMIT_TICKS = 0x6E40,
+    };
+    u_long* drawResumeAddress;
+    s32     ignoreTimeLimitAfterUpload;
 
     if (ResetRCnt(RCntCNT2) == 0) {
-        return 0xFF;
+        return FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED;
     }
 
+    // Suspend draw DMA before reusing the GPU for this upload.
     do {
-        ot = BreakDraw();
-        /* BreakDraw returns the SDK sentinel -1 when it cannot suspend DMA. */
-        if (ot != FS_DRAW_BREAK_FAILED) {
+        drawResumeAddress = BreakDraw();
+        if (drawResumeAddress != FS_DRAW_BREAK_FAILED) {
             break;
         }
-        if (GetRCnt(RCntCNT2) >= 0x6E40) {
-            if (arg1 == 0) {
-                _fsResumeDrawing(ot);
-                return 0x7F;
+        if (GetRCnt(RCntCNT2) >= FILE_SYSTEM_IMAGE_UPLOAD_TIME_LIMIT_TICKS) {
+            if (ignoreGpuTimeLimit == 0) {
+                _fsResumeDrawing(drawResumeAddress);
+                return FILE_SYSTEM_IMAGE_UPLOAD_RETRY;
             }
         }
     } while (1);
 
-    D_8006C4C8[D5B498_8006ADF4] = 0;
-    Fs_ImageRect.x              = chunk->x;
-
-    inRange = (u32)(chunk->y - 0xF5) < 0xBU;
-    img     = chunk;
-    if (inRange) {
-        yAdj = D5B498_8006C234;
-    } else {
-        yAdj = 0;
-    }
-
-    if (Fs_ChunkMode == 2) {
-        Fs_ImageRect.y = yAdj + (img->y + 1);
-    } else {
-        Fs_ImageRect.y = img->y + yAdj;
-    }
-
-    Fs_ChunkReadPtr  = (u8*)(chunk + 1);
-    Fs_ImageRect.w   = img->w;
-    Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
-    Fs_ImageRect.h   = img->h;
+    // Relocate palette rows, then decode the payload into the upload buffer.
+    _fsPrepareImageChunkUpload(imageChunk);
     fsDecompressImagePayload();
 
     if (D5B498_8006D748 == FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY) {
-        _fsResumeDrawing(ot);
-        return 0x7F;
+        _fsResumeDrawing(drawResumeAddress);
+        return FILE_SYSTEM_IMAGE_UPLOAD_RETRY;
     }
 
     LoadImage2(&Fs_ImageRect, D5B498_8006D870);
 
-    retry = arg1;
+    // An elapsed cutoff can reject the call even after the pixels reached VRAM.
+    ignoreTimeLimitAfterUpload = ignoreGpuTimeLimit;
     do {
         while (IsIdleGPU(-1) != 0) {
         }
-        if (GetRCnt(RCntCNT2) < 0x6E40) {
+        if (GetRCnt(RCntCNT2) < FILE_SYSTEM_IMAGE_UPLOAD_TIME_LIMIT_TICKS) {
             break;
         }
-        if (retry != 0) {
+        if (ignoreTimeLimitAfterUpload != 0) {
             break;
         }
-        ContinueDraw(NULL, ot);
-        return 0x7F;
+        ContinueDraw(NULL, drawResumeAddress);
+        return FILE_SYSTEM_IMAGE_UPLOAD_RETRY;
     } while (0);
 
     D_8006C4C8[D5B498_8006ADF4] = (u8)Fs_ImageRect.h;
-    _fsResumeDrawing(ot);
-    return 0;
+    _fsResumeDrawing(drawResumeAddress);
+    return FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE;
 }
 
 void fsBeginImageColumns(const FsImageColumn* table)

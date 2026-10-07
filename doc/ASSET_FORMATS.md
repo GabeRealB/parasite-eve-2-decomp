@@ -214,7 +214,7 @@ python3 tools/peassets/lzss_roundtrip_report.py --log layout_diff.log
 |---|---|---|---|---|
 | `0x0` | Room package | `.pe2pkg` | `Fs_DecompressChunk` | LZSS body; overlays load at `load_addr` |
 | `0x1` | Image | `.pe2img` | `fsBeginImageColumns` + `Fs_LoadImageStrip` | Sequential LZSS strips → VRAM |
-| `0x2` | Color lookup table | `.pe2clut` | `Fs_LoadImageChunk` + `fsDecompressImagePayload` | 16-byte image header + LZSS → ABGR1555 |
+| `0x2` | Color lookup table | `.pe2clut` | `fsUploadImageChunk` + `fsDecompressImagePayload` | 16-byte image header + LZSS → ABGR1555 |
 | `0x4` | Dialogue / cap2 | `.pe2cap2` | (package-like) | Often has load address |
 | `0x5` | Room background | `.bs` | MDEC path | PSX BS v2 → PNG (320×240) |
 | `0x6` | Music | `.spk` | SndLoad / SPU | `hSPK` bank → WAV samples |
@@ -388,7 +388,7 @@ FsImageChunk (0x10 bytes) — runtime struct in include/main/fs_types.h:
   u8  unused[8] unread by the loader; zero in every retail CLUT payload and bundle image
 
 Then: LZSS-compressed ABGR1555 colour data
-  decompressed size = w * h * 2 bytes
+  uploaded size = w * h * 2 bytes
 ```
 
 Example: `w=256, h=6` → 1536 colours (six 256-colour palettes), common for
@@ -396,11 +396,19 @@ Example: `w=256, h=6` → 1536 colours (six 256-colour palettes), common for
 
 ### 7.2 Load path
 
-`Fs_LoadImageChunk`:
+`fsUploadImageChunk`:
 
 1. Build `RECT` from `x, y, w, h`. Rows 245 through 255 receive the active Y shift, and chunk mode 2 adds one row.
 2. `fsDecompressImagePayload` from bytes after the header.
 3. `LoadImage2` the palette into VRAM.
+
+The end token determines the decoded byte count; the loader does not compare
+it with the rectangle size or clear its 4480-byte staging buffer. Retail CLUT
+streams produce either the uploaded byte count or two extra bytes. Some bundle
+and scene palettes end one byte short, so their final uploaded byte retains
+the previous staging-buffer contents. The GPU source transfer rounds up to
+whole 32-bit words. A complete compressed stream and its decoder lookahead,
+decoded bytes, and word-rounded upload must all fit their backing storage.
 
 Do **not** treat the bytes after the header as raw colours without LZSS.
 

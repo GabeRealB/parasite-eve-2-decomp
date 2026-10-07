@@ -245,7 +245,42 @@ void Fs_ReadSectorEx(s32 sector, s32 endSector, u8* dest, u8 mode);
 
 bool Fs_StageCdfIsAvailable(u32 stageIdx);
 
-u8 Fs_LoadImageChunk(FsImageChunk* img, u8 retryNonzero);
+/// Results of uploading a complete compressed image rectangle.
+enum {
+    FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE     = 0,
+    FILE_SYSTEM_IMAGE_UPLOAD_RETRY        = 0x7F,
+    FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED = 0xFF,
+};
+
+/// Decodes a filesystem image chunk and uploads its rectangle to VRAM.
+///
+/// `imageChunk` is a readable, halfword-aligned 16-byte header followed by one
+/// complete LZSS payload with a zero-offset end token and one readable byte of
+/// lookahead. Both the decoded byte count and the upload's `w * h` halfwords,
+/// rounded up to a whole word, must fit the shared 4480-byte staging buffer.
+/// Neither extent is checked. Width must be in 1..1024 and height in 1..512.
+/// The GPU reads the whole rectangle even when the decoder produces fewer
+/// bytes, retaining the previous buffer contents in that tail. Width counts
+/// VRAM halfwords; height and Y count rows. Source rows 245..255 receive the signed
+/// Y shift; relocation mode adds one row for every source Y. The resulting
+/// rectangle must fit VRAM. Input is borrowed only for this call.
+///
+/// Requires counter 2 to be running and an initialized scratch stack whose
+/// cursor is above byte 256. The decoder uses the uncleared scratchpad history
+/// ring at bytes [0, 256); back-references must use bytes written by this payload
+/// or valid prior contents. Shares filesystem decode/GPU state and cannot be
+/// reentered; the current image-load slot must be in 0..11.
+///
+/// Zero `ignoreGpuTimeLimit` permits an abort at 28224 counter-2 ticks while
+/// suspending drawing or after upload. Nonzero waits without that cutoff; GPU
+/// completion always waits without a timeout. Drawing resumes before return.
+/// Returns FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE on success,
+/// FILE_SYSTEM_IMAGE_UPLOAD_RETRY on scratch contention or elapsed cutoff,
+/// and FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED if the counter cannot reset.
+/// The SDK upload result is ignored; COMPLETE does not report SDK failures.
+/// RETRY can follow an already completed upload. Repeating a chunk also repeats
+/// its decode and preserves any tail bytes the stream does not overwrite.
+u8 fsUploadImageChunk(const FsImageChunk* imageChunk, u8 ignoreGpuTimeLimit);
 
 /// Caption choices for a location loading screen.
 enum {

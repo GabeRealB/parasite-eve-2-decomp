@@ -309,7 +309,7 @@ STATIC_ASSERT(FILE_SYSTEM_IMAGE_VLC_OFFSET + STREAM_VLC_TABLE_BYTES <= sizeof(Fs
 /// Header of one compressed VRAM rectangle.
 ///
 /// CLUT chunk payloads, image resources in a CDF bundle, and scene-image
-/// records begin with this header. `Fs_LoadImageChunk` copies the rectangle,
+/// records begin with this header. `fsUploadImageChunk` copies the rectangle,
 /// decompresses the LZSS bytes that follow the header, and uploads the result.
 /// Height is stored before width.
 typedef struct {

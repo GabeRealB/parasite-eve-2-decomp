@@ -1129,7 +1129,7 @@ static void Mdec_ProcessDecode(void)
                             Fs_ChunkMode    = 2;
                             D5B498_8006C234 = STREAM_SCENE_CHUNK_Y_SHIFT_ROWS;
                         }
-                        while (Fs_LoadImageChunk((FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->imageChunkOffsets[i]), 1)) {
+                        while (fsUploadImageChunk((const FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->imageChunkOffsets[i]), 1)) {
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C234 = 0;
