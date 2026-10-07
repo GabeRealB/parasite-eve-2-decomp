@@ -169,7 +169,7 @@ void func_gunblade_8011E040(Task* arg0)
             } else {
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
             }
-            Gp_ConsumeSlotQty(0x96, 1);
+            equipmentConsumeWeaponLoad(0x96, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, actor->equipmentTasks[1]->extra.tmd->coords,
@@ -205,7 +205,7 @@ void func_gunblade_8011E040(Task* arg0)
                         lvl = 0x20;
                     }
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = lvl | 0x21700;
-                    Gp_ConsumeSlotQty(0x96, 1);
+                    equipmentConsumeWeaponLoad(0x96, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
                     func_gunblade_8011E008(gPlayerStatus.weaponSlotItem);
                 } else {

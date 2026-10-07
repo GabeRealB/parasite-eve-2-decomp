@@ -88,7 +88,7 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
             effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);
-            Gp_ConsumeSlotQty(WEAPON_ITEM(GRENADE_WEAPON), 1);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM(GRENADE_WEAPON), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             /* The projectile's kind and its row of the muzzle-offset and speed tables
                (bits 16-19 of its spawn argument) both follow the variant. */
             func_80104490(arg0, 0, 1 + GRENADE_VARIANT,

@@ -2562,7 +2562,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
         if (gPlayerStatus.weapon == 2) {
             limit = 4;
         }
-        if (Gp_ConsumeSlotQty(gPlayerStatus.weapon + 0x7F, 0) < limit) {
+        if (equipmentConsumeWeaponLoad(gPlayerStatus.weapon + 0x7F, EQUIPMENT_WEAPON_LOAD_QUERY_PRIMARY) < limit) {
             prev              = work->phase;
             work->phase       = 0x10;
             work->interrupted = 1;

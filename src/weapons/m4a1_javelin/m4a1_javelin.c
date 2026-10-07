@@ -797,7 +797,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x21D1F;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
                 playerActorSetWeaponAttackFlags(arg0, 0, 0);
-                Gp_ConsumeSlotQty(0x9C, 0x101);
+                equipmentConsumeWeaponLoad(0x9C, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 eff = effectSpawn(EFFECT_JAVELIN_GUIDE_BEAM,
                                   actor->equipmentTasks[1]->extra.tmd->coords,
                                   0x1D, NULL);
@@ -818,7 +818,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                     actor->stateTimer                                     = 3;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_ConsumeSlotQty(0x9C, 1);
+                    equipmentConsumeWeaponLoad(0x9C, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }

@@ -86,7 +86,7 @@ segments:
       - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from Gp_LookupStageFlag
       - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and Gp_StepCdAudioCmd, then its strings and state tables
-      - [0x268, .rodata, equipment] # jtbl from func_800B7420, then Gp_StrNotice2
+      - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then Gp_StrNotice2
       - [0x4CC, .rodata, item_menu] # jtbls: Gp_ItemMoveChild + strings/tables + _itemMenuHandlePaneChildResult
       - [0x668, .rodata, item_inventory]
       - [0x364C, .rodata, attachment_menu]

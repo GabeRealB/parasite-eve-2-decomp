@@ -80,7 +80,7 @@ void func_m4a1_8011D1C4(Task* arg0)
                     actor->stateTimer                                     = 3;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }

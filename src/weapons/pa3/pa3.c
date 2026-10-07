@@ -90,7 +90,7 @@ void func_pa3_8011D1DC(Task* arg0)
         case 2:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             worldCoordPlaySound(arg0->extra.tmd->coords,
                                 ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,

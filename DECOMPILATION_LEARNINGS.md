@@ -28467,7 +28467,7 @@ id -= 0x80;
 slot->field_0 = mapped;
 ```
 
-`Gp_ApplyItemMap` is the example. Pair with `register s32 count asm("a1")`
+`equipmentInitializeWeaponSupplies` is the example. Pair with `register s32 count asm("a1")`
 so the default `count = 0` stays in `$a1`, and `&arr[i]` each iteration
 (not `p++`) so GCC does not strength-reduce `&p->field_2` into a second
 IV. `off + (s32)base` still supplies `addu a0, v0, base`.
@@ -29982,7 +29982,7 @@ counter = (s32*)(off4 + (s32)counts);
 ```
 
 Shift `index << 3` *before* mentioning `gMcSaveData` so that shift takes
-`$v1` and the `lui` of the table can follow it. `Gp_ConsumeSlotQty` is the
+`$v1` and the `lui` of the table can follow it. `equipmentConsumeWeaponLoad` is the
 example.
 
 ## Take `&gMcSaveData` only on the later path so it is not CSEd with `+0x1C8`
@@ -30001,7 +30001,7 @@ addiu  a0,a0,0x5BC
 
 Assign `save = &gMcSaveData` only in that path and use `save->cheatMode`
 / `&save->carriedItems`. Leave the first path as `gMcSaveData.field_*` so
-it still CSEs with the live slot-base pointer. `Gp_ConsumeSlotQty` is the
+it still CSEs with the live slot-base pointer. `equipmentConsumeWeaponLoad` is the
 example.
 
 ## `s16` layout field wins `$s0`; assign mask / lineY before the first call
@@ -31225,7 +31225,7 @@ A running `base += 3` after the inner walk will steal the `start` copy
 (`$a1` becomes the incrementing base) unless `start` stays live past the
 loop. `register s32 start asm("a1")` plus `asm volatile("" :: "r"(start))`
 after the do-while keeps the copy; `register s32 base asm("a3")` keeps
-the increment on `$a3`. `Gp_RecalcMaxMp` is the example.
+the increment on `$a3`. `equipmentRecalculateMaxMp` is the example.
 
 ## Keep `id + 0x80` as a live s32 so it does not CSE with `id - 0x80`
 
@@ -33731,7 +33731,7 @@ if (shifted > 0) {
 
 A `for (i = 0; i < 3; i++)` over `((u8*)((s32)row + i))[1]` keeps two
 long-lived pointers (`arg2`, a table) in `$s3`/`$s4`. The equivalent
-`goto` loop swaps those two s-registers. `Gp_EquipRelatedBank` is the example.
+`goto` loop swaps those two s-registers. `equipmentLoadCarriedWeaponConsumable` is the example.
 
 ## Leave `p = &global` unpinned so `%hi` is `$v0` and fills the incoming `bne`
 
@@ -34423,7 +34423,7 @@ if (count != 0) {
 
 ## Inline a recalc helper so `cfg` stays in `$a1` and the old current stays in `$a3`
 
-`Gp_UiBoostMp` `jal`s `Gp_RecalcMaxMp` then `cfg->field_1c = cfg->field_1e`,
+`Gp_UiBoostMp` `jal`s `equipmentRecalculateMaxMp` then `cfg->field_1c = cfg->field_1e`,
 so `cfg`/`save` live in `$s0`/`$s1`. The HP sibling must write the
 `equipmentRecalculateMaxHp` body inline (no `jal`): `cfg` stays in `$a1`, `save` in
 `$t0`. Cache original `field_18` in an `s32` so the `Gp_HpMpWork` store is
@@ -34985,7 +34985,7 @@ fail:
 ```
 
 `asm volatile("" : "=r"(arg3)); arg3 = 0;` in the `arg3 == 0` else forces
-the redundant `move s2, zero` that CSE would drop. `Gp_EquipRelatedItem` is
+the redundant `move s2, zero` that CSE would drop. `equipmentLoadWeaponConsumable` is
 the example. Also `asm volatile("" : "+r"(qtyTable))` after `la` so
 `*(u8*)((s32)qtyTable + off + 0x200)` emits `addu v0, v1, v0` rather
 than the commuted `addu v0, v0, v1`.
@@ -41666,7 +41666,7 @@ The barrier emits nothing, but the extra insn in the tail stops
 `find_cross_jump` from matching backwards, so each case keeps its own
 `bnez v0, ret / li v0,1` (the delay-slot filler then folds each per-case
 `return 1` block into the branch) and its own `j ret / move v0,zero`.
-`func_800B7420` went 89% → 100% with six of these. Cases that *should* share a
+`inventoryIsItemLimitReached` went 89% → 100% with six of these. Cases that *should* share a
 tail in the target (there, the `>= 2` tails of two other cases) must be left
 alone — only barrier the ones the ROM keeps separate.
 
@@ -41682,14 +41682,14 @@ Split the jtbl range off into a dotted sibling of the C TU and keep the
 remainder as asm:
 
 ```yaml
-      - [0x268, .rodata, 268] # jtbl from func_800B7420
+      - [0x268, .rodata, 268] # jtbl from inventoryIsItemLimitReached
       - [0x4C4, rodata, rodata_268]
 ```
 
 Changing the config makes `ninja_config.py` re-run splat, so the asm file is
 regenerated without the jtbl. The C TU's `.rodata` must be the *first*
 jtbl-bearing group at that offset (here the TU's text starts at
-`func_800B7420`), otherwise the generated jtbl lands in the wrong order.
+`inventoryIsItemLimitReached`), otherwise the generated jtbl lands in the wrong order.
 Correct ownership and the explicit dotted subsegment order in the config;
 do not add a generated-linker-script patch.
 
@@ -50369,13 +50369,13 @@ when the call is written **first**.
 
 ```c
 /* Target: li a1,1 / lh a0,0(s0) / jal itemSetIdentified / addu s1,s1,a1 */
-if (func_800B7420(*weapon) != 0) {
+if (inventoryIsItemLimitReached(*weapon) != 0) {
     itemSetIdentified(*weapon, 1);
     count += 1;
 }
 
 /* Mismatch: addiu s1,s1,1 as its own insn, then li a1,1 in the jal slot */
-if (func_800B7420(*weapon) != 0) {
+if (inventoryIsItemLimitReached(*weapon) != 0) {
     count += 1;
     itemSetIdentified(*weapon, 1);
 }
@@ -56672,7 +56672,7 @@ Two arms writing the same flag word, joined and then followed by a call:
 ```
 sh   v0,0x12a(s0)
 li   a0,0x96
-jal  Gp_ConsumeSlotQty
+jal  equipmentConsumeWeaponLoad
  li  a1,1
 ```
 
@@ -101990,7 +101990,7 @@ call, loads the *same global* again instead of keeping the value:
 lw     a0,%lo(ActorsShared80131f9cWork)(s2)   # work, at the top
 lw     v0,0x4F0(a0)
 ...
-jal    func_800B7420
+jal    inventoryIsItemLimitReached
 ...
 lw     v0,%lo(ActorsShared80131f9cWork)(s2)   # re-loaded, not kept
 sb     s0,0x4F4(v0)
@@ -102017,7 +102017,7 @@ two instructions' difference and the whole `regs` penalty, from one identifier.
 
     switch (mode) {
         case 1:
-            if (func_800B7420(0x88) == 0) {
+            if (inventoryIsItemLimitReached(0x88) == 0) {
                 ActorsShared80131f9cWork->field_4F4 = mode;
                 obj->field_C                        = 0;
             }
@@ -142411,7 +142411,7 @@ static inline void rotateSv(MATRIX* m, SVECTOR* v)
 **Fix.** `gDisplayState.screenDistance = h; gte_SetGeomScreen(gDisplayState.screenDistance);`. The field is addressed twice, so CSE keeps `&gDisplayState` in a pseudo and addresses both through it; the read-back itself is then satisfied from the stored register and emits no load. The same pair of statements in gameplay's view loaders reads the value from a record instead, which is why they fold.
 
 The in-place random-radius trick above (`rnd = (u16)(rnd >> 16); rnd &= mask;`) keeps a wanted `sll 16; sra 16`, but the in-place set adds an anti-dependence on the `gRandomLcgState` store. That lengthens the radius chain's sched1 priority, so an independent computation next to it (here the angle drawn from the previous LCG step) is scheduled after the chain instead of before it. Where the target computes that neighbour first, the trick does not fit, and the extension stays a hack.
-## `addu base,idx` against a constant table: CSE puts a known constant second, so the base must be a real array indexed by an offset variable (Gp_EquipRelatedItem, 2026-09-26)
+## `addu base,idx` against a constant table: CSE puts a known constant second, so the base must be a real array indexed by an offset variable (equipmentLoadWeaponConsumable, 2026-09-26)
 
 `fold_rtx` (cse.c, "place any constant second") swaps a commutative operation
 whenever its first operand is a register CSE knows to equal a constant. Any
@@ -142761,14 +142761,14 @@ at its uses. `abs` is written at both uses rather than stored in a local: a
 shared `adiff` would outrank everything again. An inline helper or a block
 with its own locals gives each copy separate pseudos and cannot reproduce it.
 
-### An index shift before `bnez` plus a `0x200(table+idx*4)` load: each arm indexes its own sub-slice symbol (Gp_EquipRelatedBank, 2026-09-26)
+### An index shift before `bnez` plus a `0x200(table+idx*4)` load: each arm indexes its own sub-slice symbol (equipmentLoadCarriedWeaponConsumable, 2026-09-26)
 
 **Symptom.** `bnez bank; sll v0,id,2` then per-arm `lui v1/addiu v1` of two tables, one
 `addu row,v0,v1` at the join, and later `lbu 0x200(v1 + (id-0x80)*4)`. The seed pinned
 the shift to `$v0` before an `if` choosing a table pointer, and hand-built the `+0x200`.
 
 **Cause.** The original wrote each arm in full against the *slice* symbol that starts
-0x80 entries into the table: `row = &Gp_RelatedQty0.rows[id - 0x80]; max = _gpRelatedQty(id, 0);`
+0x80 entries into the table: `row = &Gp_RelatedQty0.rows[id - 0x80]; max = _equipmentGetWeaponLoadCapacity(id, 0);`
 (and the `1` arm likewise). `sym[id - k]` folds to `(sym - k*4) + id*4`, so each arm
 loads `sym - 0x200` into one register and the helper's `sym[idx]` becomes `0x200` off it.
 jump2 cross-jumps the two identical helper tails into one, and reorg puts the `sll` that
@@ -144641,7 +144641,7 @@ never a movable).
   sign-extension sets a `(subreg:SI (reg:HI))`, which is not a movable.
 - The `u16` local, assigned before the field stores, is also what puts the two
   key-part loads ahead of the first store to the struct.
-### A `move aN,aM` pointer copy in a branch delay slot is an inlined getter's return value (Gp_ApplyItemMap, 2026-09-26)
+### A `move aN,aM` pointer copy in a branch delay slot is an inlined getter's return value (equipmentInitializeWeaponSupplies, 2026-09-26)
 
 **Symptom.** A loop computes a slot pointer, then `bnez …; move a3,a0` copies
 it before an if/else; one arm stores through `a0` throughout, the other stores
@@ -148790,7 +148790,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
 
 ### Unresolved, with the mechanism measured: five gameplay barriers, and how sched1 orders a block (2026-10-05)
 
-A dehack pass removed nothing from `Gp_EquipRelatedItem`, `func_800E5578`,
+A dehack pass removed nothing from `equipmentLoadWeaponConsumable`, `func_800E5578`,
 `itemMenuInfoTask`, `Gp_EffSprTask7C` and `_worldCoordScoreDirectionalLight`. What
 each barrier stands for is below; none of it is a fix.
 
@@ -148850,21 +148850,21 @@ address add is placed directly in front of the load that reads it.
   `score` assigned twice with the store between its last assignment and the
   `return`. See the section at the end of this file with this function's name.
 
-**`Gp_EquipRelatedItem`, `asm("" : "=r"(arg3)); arg3 = 0;`.** cse1 deletes
-`arg3 = 0` in the arm reached by `beqz arg3` (a `switch` and an inline wrapper
+**`equipmentLoadWeaponConsumable`, `asm("" : "=r"(requestedQuantity)); requestedQuantity = 0;`.** cse1 deletes
+`requestedQuantity = 0` in the arm reached by `beqz requestedQuantity` (a `switch` and an inline wrapper
 too), so the surviving `move s2,zero` is a set of a *different* pseudo that
 shares `$s2`. Global alloc only does that by exclusion: the result has to be
 born while `have` (`$s0`) and `slot` (`$s1`) are live, rank below `slot`
 (at most 7 refs over its 19 insns), and leave the parameter 8 refs so it still
-outranks `arg0`. `used = arg3; if (have < used) used = have;` gives 8 and 7 the
+outranks `arg0`. `used = requestedQuantity; if (have < used) used = have;` gives 8 and 7 the
 wrong way round, because cse makes `used` the class head and the `slt` reads
 it. Writing the compare first does not help either: sched1 launches the `slt`
 next to its branch, the copy moves above it, and `optimize_reg_copy_1`
 (local-alloc.c) then rewrites the `slt`'s operand to the copy's destination.
-Only a compare result held in a multi-set local (`i = have < arg3; used = arg3;
+Only a compare result held in a multi-set local (`i = have < requestedQuantity; used = requestedQuantity;
 if (i) used = have;`) keeps the order; it matches all 177 insns except the
 flag's register (`$v1` for `$v0`), and is no better than the asm.
-`if (have >= arg3) used = arg3; else used = have;` ties `used` to `have`.
+`if (have >= requestedQuantity) used = requestedQuantity; else used = have;` ties `used` to `have`.
 
 **`Gp_EffSprTask7C`, `asm("" : "=r"(tmp) : "0"(col))`.** The target's
 `move v1,v0; andi s5,v1,0xff` needs a copy that cse does not fold (the copy
@@ -150687,7 +150687,7 @@ constant).
   draw; return; } task->state++; return;`) so the merged increment is the
   case's last block.
 - **`goto done` from the innermost of three nested `if`s past a second,
-  exclusive test** (`Gp_ConsumeSlotQty`) is `if (a && b && c) { ... } else if
+  exclusive test** (`equipmentConsumeWeaponLoad`) is `if (a && b && c) { ... } else if
   (d) { ... }`; with the fields named at their uses the `count` and `save`
   alias locals of both arms were not needed.
 - `_gluttonHitGroups1To2`: both scans are `_gluttonFindHit` with the key stored
@@ -150778,58 +150778,58 @@ constant).
   unnecessary once the failure path was written twice instead of as a jump
   into the second `if`.
 
-### A compare computed one block early keeps a clamp's copy below its `slt`: `Gp_EquipRelatedItem` without the barrier (2026-10-06)
+### A compare computed one block early keeps a clamp's copy below its `slt`: `equipmentLoadWeaponConsumable` without the barrier (2026-10-06)
 
-Corrects the `Gp_EquipRelatedItem` paragraph of "Unresolved, with the mechanism
-measured: five gameplay barriers" and the `asm volatile("" : "=r"(arg3)); arg3 = 0;`
+Corrects the `equipmentLoadWeaponConsumable` paragraph of "Unresolved, with the mechanism
+measured: five gameplay barriers" and the `asm volatile("" : "=r"(requestedQuantity)); requestedQuantity = 0;`
 half of "Empty `asm volatile("")` pins `if (x <= 0) return`". The barrier is gone.
 
 Problem: the target zeroes `$s2` in the arm reached by `beqz s2`
-(`move s2,zero`), and cse1 deletes `arg3 = 0` there. The deletion is cse.c's
+(`move s2,zero`), and cse1 deletes `requestedQuantity = 0` there. The deletion is cse.c's
 "same as the destination" case: the taken `beqz` puts the register in the class
 of `const 0`, the set becomes `(set r r)` and `delete_dead_from_cse` removes
 it. So the zero is a set of a second pseudo, the result, which shares `$s2`
 with the parameter. Global alloc gives it `$s2` only by exclusion: it must
-conflict with `have` (`$s0`) and `slot` (`$s1`), have 7 refs (below `slot`'s
+conflict with `availableQuantity` (`$s0`) and `weaponLoad` (`$s1`), have 7 refs (below `weaponLoad`'s
 9 refs / 29 insns), and leave the parameter 8 refs. That needs, at `.lreg`:
 
 ```
-slt   flag, have, arg3      # reads the PARAMETER
-used = arg3                 # arg3 dies here, have still live
+slt   flag, availableQuantity, requestedQuantity      # reads the PARAMETER
+loadedQuantity = requestedQuantity                 # requestedQuantity dies here, availableQuantity still live
 beqz  flag
-used = have
+loadedQuantity = availableQuantity
 ```
 
-Symptom: every clamp spelling written inside `if (arg3 != 0)` gives 8/7 the
-wrong way round (`used` in `$s1`, `slot` in `$s2`, parameter in `$s4`).
-`if (have < arg3) used = have; else used = arg3;` does leave jump.c's
+Symptom: every clamp spelling written inside `if (requestedQuantity != 0)` gives 8/7 the
+wrong way round (`loadedQuantity` in `$s1`, `weaponLoad` in `$s2`, parameter in `$s4`).
+`if (availableQuantity < requestedQuantity) loadedQuantity = availableQuantity; else loadedQuantity = requestedQuantity;` does leave jump.c's
 `slt; copy; branch`, but sched1 then launches the `slt` at `LAUNCH_PRIORITY`
-(`birthing_insn_p`: single-set and live) while the copy of the multi-set `used`
+(`birthing_insn_p`: single-set and live) while the copy of the multi-set `loadedQuantity`
 stays at priority 1, so the copy rises above the `slt`, and
-`optimize_reg_copy_1` rewrites the `slt` to read `used`. `?:` folds to
+`optimize_reg_copy_1` rewrites the `slt` to read `loadedQuantity`. `?:` folds to
 `MIN_EXPR`, whose expansion compares the target itself. The in-place clamp with
-`used = arg3` after the stores is born with `have` dead and takes `$s0`.
+`loadedQuantity = requestedQuantity` after the stores is born with `availableQuantity` dead and takes `$s0`.
 
 Fix: the `slt` must not sit in the block that holds the copy. Computing the
-compare before the `arg3 != 0` test does that, the flag then crosses a block
+compare before the `requestedQuantity != 0` test does that, the flag then crosses a block
 and is allocated globally (it still gets `$v0`), and dbr puts the `slt` in the
 `beqz s2` delay slot where the target has it:
 
 ```c
-limited = have < arg3;
-if (arg3 != 0) {
-    used = limited ? have : arg3;
-    ... stores of used ...
+stockLimited = availableQuantity < requestedQuantity;
+if (requestedQuantity != 0) {
+    loadedQuantity = stockLimited ? availableQuantity : requestedQuantity;
+    ... stores of loadedQuantity ...
 } else {
-    used = 0;
+    loadedQuantity = 0;
 }
-if (used > 0) { ... }
-return used;
+if (loadedQuantity > 0) { ... }
+return loadedQuantity;
 ```
 
-`if (limited) used = have; else used = arg3;` and `used = arg3; if (limited)
-used = have;` compile the same. A flag local set at both clamps (multi-set, so
-not launched) also matches; hoisting it above the `have <= 0` return does not.
+`if (stockLimited) loadedQuantity = availableQuantity; else loadedQuantity = requestedQuantity;` and `loadedQuantity = requestedQuantity; if (stockLimited)
+loadedQuantity = availableQuantity;` compile the same. A flag local set at both clamps (multi-set, so
+not launched) also matches; hoisting it above the `availableQuantity <= 0` return does not.
 
 General: when a register is right only if a compare reads the *source* of a
 copy rather than its destination, look at the block the compare is in. sched1

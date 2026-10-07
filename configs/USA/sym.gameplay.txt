@@ -370,17 +370,17 @@ Gp_LookupBit2Item = 0x800B63B8; // type:func
 func_800B65B0 = 0x800B65B0; // type:func
 Gp_SpawnPlaceById = 0x800B6950; // type:func
 Gp_SpawnPlaces = 0x800B6B44; // type:func
-Gp_ApplyItemMap = 0x800B6CF0; // type:func
-Gp_ConsumeSlotQty = 0x800B6DA4; // type:func
-Gp_EquipRelatedBank = 0x800B6EE0; // type:func
-Gp_EquipRelatedItem = 0x800B715C; // type:func
+equipmentInitializeWeaponSupplies = 0x800B6CF0; // type:func
+equipmentConsumeWeaponLoad = 0x800B6DA4; // type:func
+equipmentLoadCarriedWeaponConsumable = 0x800B6EE0; // type:func
+equipmentLoadWeaponConsumable = 0x800B715C; // type:func
 
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/equipment.c) — file-split 0x23C20
 // ---------------------------------------------------------------------------
-func_800B7420 = 0x800B7420; // type:func
-Gp_RecalcMaxMp = 0x800B7930; // type:func
-Gp_EquipMod = 0x800B7A50; // type:func
+inventoryIsItemLimitReached = 0x800B7420; // type:func
+equipmentRecalculateMaxMp = 0x800B7930; // type:func
+equipmentEquipCarriedArmor = 0x800B7A50; // type:func
 Gp_InitStarterInv = 0x800B7D18; // type:func
 func_800B8014 = 0x800B8014; // type:func
 Gp_MoveItemSlot = 0x800B83F0; // type:func

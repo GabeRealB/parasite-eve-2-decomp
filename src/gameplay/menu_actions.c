@@ -2576,7 +2576,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         }
                         cfg->exp                                                                                         -= price & 0xFFFF;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
-                        Gp_RecalcMaxMp();
+                        equipmentRecalculateMaxMp();
                         cfg->mp        = cfg->mpMax;
                         Gp_HpMpWork.mp = cfg->mp;
                         obj->result    = USER_INTERFACE_RESULT_DISMISS;

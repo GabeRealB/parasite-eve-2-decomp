@@ -173,7 +173,7 @@ extern EvsCommand D_actor_215100_80153D6C[];
 /// struct reference and keeps the two in order.
 
 /// The ten weapons the gallery's weapon picker offers, in row order. Rows whose
-/// item is not unlocked yet (`func_800B7420` returns 0) are skipped, so
+/// weapon family is not owned (`inventoryIsItemLimitReached` returns 0) are skipped, so
 /// `UiList::currentItemIndex` indexes the drawn rows rather than table slots.
 extern s16 D_mist_shooting_gallery_80184F34[];
 
@@ -990,7 +990,7 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
             break;
     }
     equipmentRestoreHpMp();
-    Gp_ApplyItemMap();
+    equipmentInitializeWeaponSupplies();
 }
 void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
 {
@@ -1008,7 +1008,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
     skip = arg0->currentItemIndex;
     i    = 0;
     do {
-        if (func_800B7420(D_mist_shooting_gallery_80184F34[i]) != 0) {
+        if (inventoryIsItemLimitReached(D_mist_shooting_gallery_80184F34[i]) != 0) {
             skip--;
             if (skip < 0) {
                 item = D_mist_shooting_gallery_80184F34[i];
@@ -1037,9 +1037,9 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             inventoryClearItems(scan);
             inventoryGiveItem(scan, item, 1);
             inventoryGiveItem(scan, 0x6C, 1);
-            Gp_EquipMod(0x6C);
+            equipmentEquipCarriedArmor(0x6C);
             inventoryGiveItem(scan, ammo, 0x3E7)->attachSlot = selected;
-            Gp_EquipRelatedItem(scan, item, ammo, -1);
+            equipmentLoadWeaponConsumable(scan, item, ammo, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
             equipmentRestoreHpMp();
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
@@ -1084,7 +1084,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
         i      = count;
         weapon = D_mist_shooting_gallery_80184F34;
         do {
-            if (func_800B7420(*weapon) != 0) {
+            if (inventoryIsItemLimitReached(*weapon) != 0) {
                 itemSetIdentified(*weapon, 1);
                 count += 1;
             }
@@ -1739,7 +1739,7 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
             task->killCountdown = 0xA;
             uiStartTreeClosing(obj, obj->owner);
             equipmentRecalculateMaxHp();
-            Gp_RecalcMaxMp();
+            equipmentRecalculateMaxMp();
 
             cfg->exp = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
             cfg->bp  = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);

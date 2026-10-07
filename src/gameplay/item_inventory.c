@@ -852,10 +852,10 @@ ItemDesc Gp_KeyItemDescs[] = {
 };
 
 /* Gives `scan` one `weapon` and loads it with `ammo`. */
-#define GP_GIVE_LOADED(scan, weapon, ammo)           \
-    do {                                             \
-        inventoryGiveItem(scan, weapon, 1);          \
-        Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
+#define GP_GIVE_LOADED(scan, weapon, ammo)                                                    \
+    do {                                                                                      \
+        inventoryGiveItem(scan, weapon, 1);                                                   \
+        equipmentLoadWeaponConsumable(scan, weapon, ammo, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY); \
     } while (0)
 
 /* Clears the carried inventory, equips the starting armour, restores HP/MP,
@@ -864,7 +864,7 @@ ItemDesc Gp_KeyItemDescs[] = {
     do {                                                     \
         inventoryClearItems(scan);                           \
         inventoryGiveItem(scan, 0x60, 1);                    \
-        Gp_EquipMod(0x60);                                   \
+        equipmentEquipCarriedArmor(0x60);                    \
         (cfg)->hp = (cfg)->hpMax;                            \
         (cfg)->mp = (cfg)->mpMax;                            \
         inventoryGiveItem(scan, 0x92, 1);                    \
@@ -933,7 +933,7 @@ void func_800B8014(void)
         slots->field_4 = 0;
         slots++;
     }
-    Gp_ApplyItemMap();
+    equipmentInitializeWeaponSupplies();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.firstRow = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount = 0x14;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;

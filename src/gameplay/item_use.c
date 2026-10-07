@@ -168,7 +168,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
             qty   = 0;
             held  = cfg->weapon + 0x7F;
             slot  = equipmentGetWeaponLoad(held);
-            if (Gp_EquipRelatedBank(0, held, id, 0) == 0) {
+            if (equipmentLoadCarriedWeaponConsumable(0, held, id, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
                 Gp_PendingRelatedId = id;
                 Gp_RelatedPending   = flag;
                 relId               = slot->primaryItemId;
@@ -179,7 +179,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                 }
                 itemSetIdentified(id, 1);
                 ret = 1;
-            } else if (Gp_EquipRelatedBank(1, held, id, 0) == 0) {
+            } else if (equipmentLoadCarriedWeaponConsumable(1, held, id, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
                 Gp_PendingRelatedId = -id;
                 Gp_RelatedPending   = flag;
                 relId               = slot->secondaryItemId;
@@ -385,7 +385,7 @@ static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1)
             scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             val  = arg1->qty - equipmentGetLoadedConsumableQuantity(scan, arg0);
             if (val > 0) {
-                if (Gp_EquipRelatedItem(scan, cfg->weapon + 0x7F, arg0, 0) == 0) {
+                if (equipmentLoadWeaponConsumable(scan, cfg->weapon + 0x7F, arg0, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY) == 0) {
                     ret = 0;
                 }
             }
@@ -641,7 +641,7 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
         val = -val;
     }
     Gp_PendingRelatedId = 0;
-    return Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, val, -1);
+    return equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, val, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
 }
 
 /// Borrows the highest-index row in `range` whose item id equals `itemId`.

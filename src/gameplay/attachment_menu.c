@@ -542,7 +542,7 @@ void Gp_ReloadPromptTask(Task* arg0)
         } else {
             itemSetIdentified(lo, 1);
             text = itemGetText(lo, ITEM_TEXT_NAME, 0);
-            Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, hi, lo, -1);
+            equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, hi, lo, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
             other       = textMeasureLineWidth((const u8*)Gp_StrLoaded);
             arg0->state = 1;
         }
@@ -669,7 +669,7 @@ void Gp_EquipPromptTask(Task* arg0)
                 itemSetIdentified(val, 1);
             }
         } else if ((u32)(val - 0x60) < 0x20U) {
-            Gp_EquipMod(val);
+            equipmentEquipCarriedArmor(val);
         }
         width = textMeasureLineWidth(itemGetText(arg0->spawnArg1.value, ITEM_TEXT_NAME, 0)) + 0xB;
         other = textMeasureLineWidth((const u8*)Gp_StrEquipped);

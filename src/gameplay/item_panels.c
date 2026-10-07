@@ -816,7 +816,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             rec->itemId = result;
             equipmentClearSelectedRemovableLoads(result, EQUIPMENT_CLEAR_LOAD_BOTH);
             slotDst->primaryItemId = slotSrc->primaryItemId;
-            Gp_EquipRelatedItem(scanInit, result, slotDst->primaryItemId, slotSrc->primaryQty);
+            equipmentLoadWeaponConsumable(scanInit, result, slotDst->primaryItemId, slotSrc->primaryQty);
             if ((extra == 0) && (slotDst->secondaryItemId == slotSrc->secondaryItemId)) {
                 slotDst->secondaryQty = slotSrc->secondaryQty;
             }
@@ -1011,7 +1011,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         if (save->state.attachLevels[col + row * 3] < n) {
             save->state.attachLevels[col + row * 3] = n;
         }
-        Gp_RecalcMaxMp();
+        equipmentRecalculateMaxMp();
         cfg->mp             = cfg->mpMax;
         Gp_HpMpWork.mp      = cfg->mp;
         arg1->killCountdown = 0xBC;

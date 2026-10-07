@@ -247,7 +247,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                 if (beam != NULL) {
                     beam->spawnArg1.value = 2;
                 }
-                Gp_ConsumeSlotQty(0x9B, 0x101);
+                equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 worldCoordPlaySound(arg0->extra.tmd->coords, 0x201C0005, 1);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
                 break;
@@ -261,7 +261,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                     actor->stateTimer                                     = 3;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_ConsumeSlotQty(0x9B, 1);
+                    equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }
@@ -294,7 +294,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                 spent = func_80106264(2);
                 if (playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY && spent != 0) {
                     actor->actionValue = 0x14;
-                    Gp_ConsumeSlotQty(0x9B, 0x101);
+                    equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 } else {
                     beam              = actor->weaponEffectTask;
                     actor->statePhase = 6;

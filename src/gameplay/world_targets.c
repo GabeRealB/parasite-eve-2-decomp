@@ -1085,7 +1085,7 @@ s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
                     item = rec->items[i];
                     if (item != 0) {
                         if ((i != INVENTORY_BATTLE_REWARD_BONUS_SLOT) || (equipmentHasEffect(EQUIPMENT_EFFECT_MEDICINE_WHEEL) != 0)) {
-                            if (func_800B7420(item) == 0) {
+                            if (inventoryIsItemLimitReached(item) == 0) {
                                 ret = 1;
                                 if (i == INVENTORY_BATTLE_REWARD_BONUS_SLOT) {
                                     ret = 2;

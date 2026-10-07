@@ -535,7 +535,7 @@ static void Gp_ResetAuxSlots(void)
         p->field_4 = 0;
         p++;
     }
-    Gp_ApplyItemMap();
+    equipmentInitializeWeaponSupplies();
 }
 
 static s32 Gp_SumItemQty(s32 arg0)

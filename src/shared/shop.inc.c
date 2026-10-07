@@ -264,9 +264,9 @@ static u16* Shop_SelectStock(s32 mode)
 /// id as the cursor item while the row is selected. Row 0xFFFE is greyed out
 /// and unselectable unless `Gp_HasMappedItem` answers non-zero, and opens its
 /// own panel; row 0xFFFC is greyed out while the scan holds item 0x8F. Any
-/// other row is an item with its price, greyed out when `func_800B7420`
-/// refuses it; confirm opens the buy panel and button 0x10 the item's detail
-/// panel.
+/// other row is an item with its price, greyed out when `inventoryIsItemLimitReached`
+/// reports its ownership limit reached; confirm opens the buy panel and button
+/// 0x10 the item's detail panel.
 static void Shop_ItemRow(UiList* prompt, UiObject* obj)
 {
     TextDrawReq         req;
@@ -344,7 +344,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     }
 
     price = Gp_ItemDescs[itemId].price;
-    if (func_800B7420(itemId) != 0) {
+    if (inventoryIsItemLimitReached(itemId) != 0) {
         blocked          = 1;
         prompt->colorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }

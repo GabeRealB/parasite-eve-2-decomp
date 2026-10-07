@@ -12,28 +12,81 @@
 
 extern PlayerModeBaseStats Gp_StatRows[];
 
-void Gp_ApplyItemMap(void);
+/// Installs and fully charges every built-in weapon supply in the live save.
+///
+/// Initializes the catalogue's primary or secondary load, including weapons
+/// the player does not carry. Other loads and inventory quantities stay intact.
+void equipmentInitializeWeaponSupplies(void);
 
-s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1);
+/// Exact query/consume commands and the return-channel bit for weapon loads.
+enum {
+    EQUIPMENT_WEAPON_LOAD_QUERY_PRIMARY     = 0,
+    EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY   = 1,
+    EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY   = 0x100,
+    EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY = 0x101,
+    EQUIPMENT_WEAPON_LOAD_SECONDARY_MASK    = 0x100
+};
 
-/// Equips related item `arg2` (ids `0xA0..0xBF`) onto save-slot `arg1`
-/// (ids `0x80..0x9F`) in the table selected by `arg0`. Tries `Gp_QtyById0`
-/// then `Gp_QtyById1` for a matching related id. `arg3 < 0` uses that
-/// row's max qty. Returns the stored count, 0 if `arg3 == 0`, or -1.
-s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Queries a weapon's remaining load, optionally consuming one round or supply unit.
+///
+/// `weaponItemId` must be 0x80..0x9F; there is no bounds check. Only the exact
+/// consume commands spend a nonempty selected load, unless cheat mode is set.
+/// Consumption also removes one unit from the first carried stack, if present,
+/// and increments the weapon-use count up to 999999. An unavailable secondary
+/// load cannot be spent. Every request returns the remaining primary quantity
+/// when its secondary bit is clear, otherwise the secondary quantity.
+s32 equipmentConsumeWeaponLoad(s32 weaponItemId, s32 request);
 
-s32 func_800B7420(s32 arg0);
+/// Quantity requests and failure result for loading weapon consumables.
+enum {
+    EQUIPMENT_WEAPON_LOAD_TO_CAPACITY = -1,
+    EQUIPMENT_WEAPON_LOAD_CHECK_ONLY  = 0,
+    EQUIPMENT_WEAPON_LOAD_FAILED      = -1
+};
 
-void Gp_RecalcMaxMp(void);
+/// Loads a held weapon with a compatible consumable, preferring its primary load.
+///
+/// Weapon ids 0x80..0x9F and consumable ids 0xA0..0xBF are checked. The readable
+/// range must fit its table and contain the weapon. Loads always belong to the
+/// live save, even for a different range. Available stock is the first stack's
+/// signed quantity minus all loads in the range, plus both loads of this weapon
+/// that already use the consumable. Loading does not consume inventory stock.
+///
+/// Negative quantities request capacity; positive quantities clamp to capacity
+/// and available stock. Zero checks compatibility and positive stock without
+/// changing a load. Failure returns -1; success returns the clamped quantity
+/// (zero for a check). A positive result identifies the consumable. An
+/// unavailable secondary load is left intact but still returns and identifies
+/// that positive result. The range descriptor and rows are left unchanged.
+s32 equipmentLoadWeaponConsumable(const InventoryItemRange* range, s32 weaponItemId, s32 consumableItemId, s32 requestedQuantity);
 
-/// Equips item `arg0` (ids `0x60..0x7F`) as `gPlayerStatus.armor`
-/// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
-/// previous selection, then recomputes max HP/MP (same bodies as
-/// `equipmentRecalculateMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
-/// `inventoryDetachItem`, and sets the collected bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits`.
-/// `arg0 == 0` only recomputes HP/MP. Both of those paths copy current
-/// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
-void Gp_EquipMod(s32 arg0);
+/// Returns nonzero when saved ownership reaches an item's acquisition limit.
+///
+/// Scans saved rows 0..254, including stored items beyond the carried range.
+/// M4A1, P08 and MP5A5 variants each share a one-weapon limit. Mounted add-ons
+/// count toward their own one-copy limits; clip holders allow two copies,
+/// counting those mounted on upgraded weapons. Other armor/weapon ids return
+/// their total saved quantity; other items return zero. No state is changed.
+s32 inventoryIsItemLimitReached(s32 itemId);
+
+/// Recomputes maximum MP from learned spells, armor, mode and permanent bonus.
+///
+/// The first twelve saved spell levels must be 0..3, the save mode 0..3 and
+/// armor selector 0..32. Each learned level contributes its catalogue MP bonus.
+/// The sum narrows to signed 16 bits before the maximum is capped at 250;
+/// current MP is reduced only when above that maximum.
+void equipmentRecalculateMaxMp(void);
+
+/// Selects carried armor and refreshes the player's statistics and attachments.
+///
+/// Armor ids 0x60..0x7F select the last matching carried row. A changed selection
+/// marks that row as equipped, clears the previous armor marker if found,
+/// recomputes maximum HP/MP, detaches all positive armor attachments and identifies
+/// the new armor. The carried range must fit its writable table, mode must be
+/// 0..3 and the current armor selector 0..32. Current HP/MP only clamp downward.
+/// Zero only recomputes statistics. Valid armor ids, including an unchanged or
+/// absent item, and zero copy current HP/MP into the display work; other ids do nothing.
+void equipmentEquipCarriedArmor(s32 armorItemId);
 
 /// Default pack and full-stack quantity requests for `inventoryGiveItem`.
 enum {
@@ -62,7 +115,7 @@ void Gp_ResetInventory(void);
 /// zeros the `Gp_DefaultScan` item table, writes `{0, 0x14, 0}` into
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, and if that table has an equipped 0x60–0x7F
 /// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP
-/// (`equipmentRecalculateMaxHp` / `Gp_RecalcMaxMp`). Heals current HP/MP to max, then
+/// (`equipmentRecalculateMaxHp` / `equipmentRecalculateMaxMp`). Heals current HP/MP to max, then
 /// clears `Gp_StateC08.activeIndex` / `wheelIndex`.
 void Gp_ClearInventory(void);
 

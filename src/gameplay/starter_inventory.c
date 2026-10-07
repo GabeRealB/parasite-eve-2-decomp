@@ -127,12 +127,12 @@ void Gp_InitStarterInv(void)
         slots++;
     }
     three = 3;
-    Gp_ApplyItemMap();
+    equipmentInitializeWeaponSupplies();
     inventoryGiveItem(scan, 0x63, 1);
     gGameSession->loadedCharacterId = GAME_SESSION_CHARACTER_NOT_LOADED;
     cfg->weapon                     = PLAYER_STATUS_EQUIPMENT_NONE;
     cfg->resourceVariant            = three;
-    Gp_EquipMod(0x63);
+    equipmentEquipCarriedArmor(0x63);
     added             = inventoryGiveItem(scan, 0x40, 1);
     added->attachSlot = 1;
     added             = inventoryGiveItem(scan, 2, 1);
@@ -140,7 +140,7 @@ void Gp_InitStarterInv(void)
     added             = inventoryGiveItem(scan, 0x81, 1);
     added->attachSlot = three;
     inventoryGiveItem(scan, 0xA0, 0x64);
-    Gp_EquipRelatedItem(scan, 0x81, 0xA0, -1);
+    equipmentLoadWeaponConsumable(scan, 0x81, 0xA0, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
     inventoryGiveItem(scan, 0x92, 1);
     cfg2             = &gPlayerStatus;
     hp               = cfg2->hpMax;

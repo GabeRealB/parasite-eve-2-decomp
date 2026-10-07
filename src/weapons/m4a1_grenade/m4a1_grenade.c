@@ -128,7 +128,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                 actor->statePhase                  = 4;
                 actor->attackControl.cooldownTicks = 0x28;
                 actor->attackCancelTicks           = 0x22;
-                Gp_ConsumeSlotQty(0x9A, 0x101);
+                equipmentConsumeWeaponLoad(0x9A, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 worldCoordPlaySound(arg0->extra.tmd->coords,
                                     ((sfx - 0xA) << 24) | 0x201B0006, 1);
                 effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
@@ -147,7 +147,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                     actor->stateTimer                                     = 3;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    Gp_ConsumeSlotQty(0x9A, 1);
+                    equipmentConsumeWeaponLoad(0x9A, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (func_80106264(1) == 0) {
                         actor->actionValue = 0;
                     }

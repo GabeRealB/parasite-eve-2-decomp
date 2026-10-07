@@ -61,7 +61,7 @@ void func_m950_8011D1DC(Task* arg0)
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                Gp_ConsumeSlotQty(0x82, 1);
+                equipmentConsumeWeaponLoad(0x82, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                 worldCoordPlaySound(arg0->extra.tmd->coords, 0x20030004, 1);
                 effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 3, NULL);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);

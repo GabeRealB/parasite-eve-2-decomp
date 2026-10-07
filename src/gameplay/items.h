@@ -13,7 +13,7 @@
 // Inventory contents, collection flags, quantities, sorting and equipment.
 
 /// Qty table indexed by raw item id. `Gp_RelatedQty1` is the 0x80–0x9F slice
-/// at +0x200 (`Gp_EquipRelatedBank`).
+/// at +0x200 (`equipmentLoadCarriedWeaponConsumable`).
 extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty1;
 
 extern EquipmentWeaponSupply Gp_ItemMaps[];
@@ -22,7 +22,18 @@ extern InventoryItemRow* Gp_ItemTable1;
 
 extern const char Gp_StrNotice2[8];
 
-s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Loads or checks a consumable in a selected load of a carried weapon.
+///
+/// Zero selection means primary; every nonzero selection means secondary.
+/// Weapon ids outside 0x80..0x9F, absent weapons or items outside that load's
+/// catalogue choices return -1. The carried range must fit its readable table.
+/// Stock is the first stack's signed quantity minus carried weapon loads, plus
+/// this selected load's quantity when it already uses the consumable.
+/// Negative requests use capacity; positive requests clamp to capacity and stock.
+/// Zero checks positive stock without writing, even for an unavailable secondary
+/// load. A positive write to an unavailable secondary returns -1; other successes
+/// return the clamped quantity. Inventory totals and identification stay intact.
+s32 equipmentLoadCarriedWeaponConsumable(s32 loadSelection, s32 weaponItemId, s32 consumableItemId, s32 requestedQuantity);
 
 /// Quantity request that consumes the whole first matching stack.
 enum { INVENTORY_REMOVE_WHOLE_STACK = -1 };

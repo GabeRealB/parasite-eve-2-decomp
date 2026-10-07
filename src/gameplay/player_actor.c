@@ -7500,10 +7500,10 @@ s32 func_80106264(s32 arg0)
     item = gPlayerStatus.weapon + 0x7F;
     ret  = 0;
     if (arg0 & 1) {
-        ret = Gp_ConsumeSlotQty(item, 0);
+        ret = equipmentConsumeWeaponLoad(item, EQUIPMENT_WEAPON_LOAD_QUERY_PRIMARY);
     }
     if (arg0 & 2) {
-        ret |= Gp_ConsumeSlotQty(item, 0x100) << 16;
+        ret |= equipmentConsumeWeaponLoad(item, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) << 16;
     }
     return ret;
 }
@@ -7539,7 +7539,7 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
         sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_NO_FADE);
     } else if (arg1 == 0x19) {
         if (actor->weaponEffectTask != NULL) {
-            if (Gp_ConsumeSlotQty(0x98, 0x100) != 0) {
+            if (equipmentConsumeWeaponLoad(0x98, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) != 0) {
                 actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_IDLE;
             } else {
                 actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_OFF;
@@ -7547,7 +7547,7 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
         }
     } else if (arg1 == 0x1C) {
         if (actor->weaponEffectTask != NULL) {
-            if (Gp_ConsumeSlotQty(0x9B, 0x100) != 0) {
+            if (equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) != 0) {
                 value = 1;
                 if (actor->weaponEffectTask->spawnArg1.value == 2) {
                     value = 3;

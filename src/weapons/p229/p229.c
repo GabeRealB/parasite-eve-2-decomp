@@ -115,7 +115,7 @@ void func_p229_8011DDA0(Task* arg0)
                 rec->end0Radius                                       = rec->end1Radius;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
                 playerActorSetWeaponAttackFlags(arg0, 0, 0);
-                Gp_ConsumeSlotQty(0x84, 1);
+                equipmentConsumeWeaponLoad(0x84, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                 worldCoordPlaySound(arg0->extra.tmd->coords, 0x20050004, 0);
                 effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 5,
@@ -128,7 +128,7 @@ void func_p229_8011DDA0(Task* arg0)
                 rec->end0Radius                                       = 0xC00;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
                 playerActorSetWeaponAttackFlags(arg0, 0, 1);
-                Gp_ConsumeSlotQty(0x84, 0x101);
+                equipmentConsumeWeaponLoad(0x84, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 worldCoordPlaySound(arg0->extra.tmd->coords, 0x20050005, 0);
                 eff = effectSpawn(EFFECT_P229_MUZZLE_FLASH,
                                   actor->equipmentTasks[1]->extra.tmd->coords, 5,

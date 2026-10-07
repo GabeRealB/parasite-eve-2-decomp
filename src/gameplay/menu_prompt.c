@@ -1807,7 +1807,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
             }
         } else if (mode == rowState) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-                if (Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
+                if (equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weapon, Gp_SelItemRec->itemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY) >= 0) {
                     itemSetIdentified(Gp_SelItemRec->itemId, 1);
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     Gp_ItemOrderMode = 0;
@@ -2360,7 +2360,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                 } else if ((flag == status) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
                     if ((u32)(Gp_SelItemRec->itemId - 0x60) < 0x20U) {
                         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                        Gp_EquipMod(Gp_SelItemRec->itemId);
+                        equipmentEquipCarriedArmor(Gp_SelItemRec->itemId);
                         itemSetIdentified(Gp_SelItemRec->itemId, 1);
                         Gp_ItemOrderMode = 0;
                     } else {

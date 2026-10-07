@@ -141,7 +141,7 @@ s32 Gp_LookupBit2Item(s32 arg0)
                                 Gp_PubItemLoc = item;
                                 D_80114DDE    = extra;
                                 if (item < 0x100U) {
-                                    if (func_800B7420(*tail) != 0) {
+                                    if (inventoryIsItemLimitReached(*tail) != 0) {
                                         if ((u32)(*tail - 0x80) < 0x20U) {
                                             Gp_PubItemLoc = 0x3D;
                                         } else {

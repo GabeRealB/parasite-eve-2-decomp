@@ -23,43 +23,89 @@ extern u8 D_8010D320[2];
 
 extern u8 D_8010D324[3];
 
-static inline s32 _gpRelatedQty(s32 item, s32 bank);
-
-static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* scan, s32 item);
-
-static inline s32 _gpRelatedQty(s32 item, s32 bank)
+/// Spends one loaded unit and counts its use, consuming the first carried stack.
+///
+/// The quantity must be nonzero and cheat mode must already be excluded.
+static inline void _equipmentConsumeLoadedUnit(u8* quantity, s32 consumableItemId, s32* useCount)
 {
-    s32 ret;
+    enum { EQUIPMENT_WEAPON_USE_COUNT_MAX = 999999 };
+    s32 previousUseCount;
 
-    item -= EQUIPMENT_WEAPON_ITEM_FIRST;
-    ret   = 0;
-    if ((u32)item < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
-        if (bank == 0) {
-            ret = Gp_RelatedQty0.rows[item].capacity;
+    (*quantity)--;
+    inventoryConsumeFirstStack(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, consumableItemId, 1);
+    previousUseCount = *useCount;
+    if (previousUseCount <= EQUIPMENT_WEAPON_USE_COUNT_MAX - 1) {
+        *useCount = previousUseCount + 1;
+    }
+}
+
+/// Recomputes maximum HP, preserving unsigned accumulation and the signed cap.
+///
+/// Mode must be 0..3 and armor 0..32. Current HP only clamps downward.
+static inline void _equipmentRecalculateMaxHp(PlayerStatus* status, const PlayerModeBaseStats* modeStats, const McSaveData* save)
+{
+    u16 maximumHp;
+
+    maximumHp     = modeStats[save->state.gameMode].baseHp.hp;
+    status->hpMax = maximumHp;
+    maximumHp    += save->state.hpBonus;
+    status->hpMax = maximumHp;
+    if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+        maximumHp    += Gp_ModStatAttrs[status->armor - 1].hpBonus;
+        status->hpMax = maximumHp;
+    }
+    if (status->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+        status->hpMax = PLAYER_STATUS_STAT_MAX;
+    }
+    if (status->hp > status->hpMax) {
+        status->hp = status->hpMax;
+    }
+}
+
+/// Returns catalogue capacity for one weapon load, independent of possession.
+///
+/// Ids outside 0x80..0x9F return zero; zero selection is primary, nonzero secondary.
+/// This is the inline form of `equipmentGetWeaponLoadCapacity`.
+static inline s32 _equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSelection)
+{
+    s32 weaponIndex;
+    s32 capacity;
+
+    weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
+    capacity    = 0;
+    if ((u32)weaponIndex < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+        if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+            capacity = Gp_RelatedQty0.rows[weaponIndex].capacity;
         } else {
-            ret = Gp_RelatedQty1.rows[item].capacity;
+            capacity = Gp_RelatedQty1.rows[weaponIndex].capacity;
         }
     }
-    return ret;
+    return capacity;
 }
-static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* scan, s32 item)
-{
-    s32 index;
-    s32 found;
-    s32 i;
 
-    found = 0;
-    if (item >= 0xA0) {
-        index = scan->firstRow;
-        return inventoryFindStackQuantity(table, scan, &index, item);
+/// Returns row-item presence below 0xA0, or the first stack's signed quantity.
+///
+/// The borrowed table must back the readable range. Row-item quantity and
+/// duplicate rows are ignored; a stack's u16 quantity narrows to s16.
+/// Inputs are unchanged and no pointer is retained.
+static inline s16 _inventoryGetItemPresenceOrStackQuantity(const InventoryItemRow* table, const InventoryItemRange* range, s32 itemId)
+{
+    s32 stackRowIndex;
+    s32 present;
+    s32 rowIndex;
+
+    present = 0;
+    if (itemId >= INVENTORY_CONSUMABLE_ITEM_FIRST) {
+        stackRowIndex = range->firstRow;
+        return inventoryFindStackQuantity(table, range, &stackRowIndex, itemId);
     }
-    for (i = scan->firstRow; i < scan->firstRow + scan->rowCount; i++) {
-        if (table[i].itemId == item) {
-            found = 1;
+    for (rowIndex = range->firstRow; rowIndex < range->firstRow + range->rowCount; rowIndex++) {
+        if (table[rowIndex].itemId == itemId) {
+            present = 1;
             break;
         }
     }
-    return found;
+    return present;
 }
 
 EquipmentWeaponLoadOptionsTable Gp_RelatedQty1                             = { { { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 50, { 181, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 0, { 0, 0, 0 } }, { 40, { 187, 0, 0 } }, { 0, { 0, 0, 0 } }, { 1, { 169, 170, 171 } }, { 30, { 189, 0, 0 } }, { 60, { 190, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } }, { 50, { 181, 0, 0 } } } };
@@ -74,213 +120,206 @@ EquipmentWeaponSupply           Gp_ItemMaps[EQUIPMENT_WEAPON_SUPPLY_COUNT] = {
     { EQUIPMENT_WEAPON_SUPPLY_SECONDARY, 0x9F, 0xB5, 0 }, // MP5A5(+2), Battery
 };
 
-void Gp_ApplyItemMap(void)
+void equipmentInitializeWeaponSupplies(void)
 {
-    s32                    i;
-    EquipmentWeaponSupply* supply;
-    EquipmentWeaponLoad*   weaponLoad;
-    s32                    weaponItemId;
+    s32                          supplyIndex;
+    const EquipmentWeaponSupply* supply;
+    EquipmentWeaponLoad*         weaponLoad;
+    s32                          weaponItemId;
 
     // Install each built-in supply at its load's capacity.
-    for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
-        supply       = &Gp_ItemMaps[i];
+    for (supplyIndex = 0; supplyIndex < ARRAY_SIZE(Gp_ItemMaps); supplyIndex++) {
+        supply       = &Gp_ItemMaps[supplyIndex];
         weaponItemId = supply->weaponItemId;
         weaponLoad   = _equipmentGetWeaponLoad(weaponItemId);
         if (supply->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
             weaponLoad->primaryItemId = supply->supplyItemId;
-            weaponLoad->primaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+            weaponLoad->primaryQty    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
         } else {
             weaponLoad->secondaryItemId = supply->supplyItemId;
-            weaponLoad->secondaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+            weaponLoad->secondaryQty    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
         }
     }
 }
 
-s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
+s32 equipmentConsumeWeaponLoad(s32 weaponItemId, s32 request)
 {
-    EquipmentWeaponLoad* slot;
-    s32*                 counter;
-    s32                  count;
+    EquipmentWeaponLoad* weaponLoad;
+    s32*                 useCount;
 
-    slot    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    counter = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[arg0 - 0x80];
+    weaponLoad = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    useCount   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
 
-    if (arg1 == 1 && slot->primaryItemId != INVENTORY_ITEM_NONE && slot->primaryQty != 0) {
+    if (request == EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY && weaponLoad->primaryItemId != INVENTORY_ITEM_NONE && weaponLoad->primaryQty != 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-            slot->primaryQty--;
-            inventoryConsumeFirstStack(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->primaryItemId, 1);
-            count = *counter;
-            if (count <= 0xF423E) {
-                *counter = count + 1;
-            }
+            _equipmentConsumeLoadedUnit(&weaponLoad->primaryQty, weaponLoad->primaryItemId, useCount);
         }
-    } else if (arg1 == 0x101 && slot->secondaryItemId != 0 && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE &&
-               slot->secondaryQty != 0) {
+    } else if (request == EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY && weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE && weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE &&
+               weaponLoad->secondaryQty != 0) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-            slot->secondaryQty--;
-            inventoryConsumeFirstStack(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, slot->secondaryItemId, 1);
-            count = *counter;
-            if (count <= 0xF423E) {
-                *counter = count + 1;
-            }
+            _equipmentConsumeLoadedUnit(&weaponLoad->secondaryQty, weaponLoad->secondaryItemId, useCount);
         }
     }
 
-    if (!(arg1 & 0x100)) {
-        return slot->primaryQty;
+    if (!(request & EQUIPMENT_WEAPON_LOAD_SECONDARY_MASK)) {
+        return weaponLoad->primaryQty;
     }
-    return slot->secondaryQty;
+    return weaponLoad->secondaryQty;
 }
 
-s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 equipmentLoadCarriedWeaponConsumable(s32 loadSelection, s32 weaponItemId, s32 consumableItemId, s32 requestedQuantity)
 {
-    s32                               index;
-    InventoryItemRow*                 table;
-    InventoryItemRange*               scan;
-    EquipmentWeaponLoad*              slot;
-    const EquipmentWeaponLoadOptions* row;
-    s32                               maxQty;
-    s32                               have;
-    s32                               i;
+    s32                               stackRowIndex;
+    const InventoryItemRow*           inventoryRows;
+    const InventoryItemRange*         range;
+    EquipmentWeaponLoad*              weaponLoad;
+    const EquipmentWeaponLoadOptions* loadOptions;
+    s32                               capacity;
+    s32                               availableQuantity;
+    s32                               choiceIndex;
 
-    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = inventoryGetRangeTable(scan);
-    if ((u32)(arg1 - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
-        return -1;
+    range         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    inventoryRows = inventoryGetRangeTable(range);
+    if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+        return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    if (_gpScanHeldQty(table, scan, arg1) <= 0) {
-        return -1;
+    if (_inventoryGetItemPresenceOrStackQuantity(inventoryRows, range, weaponItemId) <= 0) {
+        return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    if (arg0 == 0) {
-        row    = &Gp_RelatedQty0.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-        maxQty = _gpRelatedQty(arg1, 0);
+    if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+        loadOptions = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+        capacity    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
     } else {
-        row    = &Gp_RelatedQty1.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-        maxQty = _gpRelatedQty(arg1, 1);
+        loadOptions = &Gp_RelatedQty1.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+        capacity    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
     }
-    for (i = 0; i < ARRAY_SIZE(row->acceptedItemIds); i++) {
-        if (row->acceptedItemIds[i] == arg2) {
+    for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(loadOptions->acceptedItemIds); choiceIndex++) {
+        if (loadOptions->acceptedItemIds[choiceIndex] == consumableItemId) {
             break;
         }
     }
-    if (i == ARRAY_SIZE(row->acceptedItemIds)) {
-        return -1;
+    if (choiceIndex == ARRAY_SIZE(loadOptions->acceptedItemIds)) {
+        return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    if (arg3 < 0) {
-        arg3 = maxQty;
+    if (requestedQuantity < 0) {
+        requestedQuantity = capacity;
     }
-    if (maxQty < arg3) {
-        arg3 = maxQty;
+    if (capacity < requestedQuantity) {
+        requestedQuantity = capacity;
     }
-    index = scan->firstRow;
-    slot  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    have  = inventoryFindStackQuantity(table, scan, &index, arg2);
-    have -= equipmentGetLoadedConsumableQuantity(scan, arg2);
-    if (arg0 == 0) {
-        if (slot->primaryItemId == arg2) {
-            have += slot->primaryQty;
+    stackRowIndex     = range->firstRow;
+    weaponLoad        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    availableQuantity = inventoryFindStackQuantity(inventoryRows, range, &stackRowIndex, consumableItemId);
+    // Loaded units remain in inventory totals; reclaim this weapon's eligible load below.
+    availableQuantity -= equipmentGetLoadedConsumableQuantity(range, consumableItemId);
+    if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+        if (weaponLoad->primaryItemId == consumableItemId) {
+            availableQuantity += weaponLoad->primaryQty;
         }
-    } else if (slot->secondaryItemId == arg2) {
-        have += slot->secondaryQty;
+    } else if (weaponLoad->secondaryItemId == consumableItemId) {
+        availableQuantity += weaponLoad->secondaryQty;
     }
-    if (have <= 0) {
-        return -1;
+    if (availableQuantity <= 0) {
+        return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    if (arg3 != 0) {
-        if (have < arg3) {
-            arg3 = have;
+    if (requestedQuantity != 0) {
+        if (availableQuantity < requestedQuantity) {
+            requestedQuantity = availableQuantity;
         }
-        if (arg0 == 0) {
-            slot->primaryItemId = arg2;
-            slot->primaryQty    = arg3;
-        } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-            slot->secondaryItemId = arg2;
-            slot->secondaryQty    = arg3;
+        if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+            weaponLoad->primaryItemId = consumableItemId;
+            weaponLoad->primaryQty    = requestedQuantity;
+        } else if (weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            weaponLoad->secondaryItemId = consumableItemId;
+            weaponLoad->secondaryQty    = requestedQuantity;
         } else {
-            arg3 = -1;
+            requestedQuantity = EQUIPMENT_WEAPON_LOAD_FAILED;
         }
-        return arg3;
+        return requestedQuantity;
     }
     return 0;
 }
 
-s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 equipmentLoadWeaponConsumable(const InventoryItemRange* range, s32 weaponItemId, s32 consumableItemId, s32 requestedQuantity)
 {
-    s32                               index;
-    InventoryItemRow*                 table;
-    EquipmentWeaponLoad*              slot;
-    const EquipmentWeaponLoadOptions* row;
-    s32                               maxQty;
-    s32                               have;
-    s32                               useSecond;
-    s32                               i;
-    s32                               limited;
-    s32                               used;
+    s32                               stackRowIndex;
+    const InventoryItemRow*           inventoryRows;
+    EquipmentWeaponLoad*              weaponLoad;
+    const EquipmentWeaponLoadOptions* loadOptions;
+    s32                               capacity;
+    s32                               availableQuantity;
+    s32                               loadSelection;
+    s32                               choiceIndex;
+    s32                               stockLimited;
+    s32                               loadedQuantity;
 
-    table     = inventoryGetRangeTable(arg0);
-    useSecond = 0;
-    if ((u32)(arg2 - 0xA0) >= 0x20 || (u32)(arg1 - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
-        return -1;
+    inventoryRows = inventoryGetRangeTable(range);
+    loadSelection = EQUIPMENT_WEAPON_SUPPLY_PRIMARY;
+    if ((u32)(consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) >= INVENTORY_CONSUMABLE_ITEM_COUNT || (u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) >= ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+        return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    if (_gpScanHeldQty(table, arg0, arg1) <= 0) {
-        return -1;
+    if (_inventoryGetItemPresenceOrStackQuantity(inventoryRows, range, weaponItemId) <= 0) {
+        return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    row    = &Gp_RelatedQty0.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    maxQty = _gpRelatedQty(arg1, 0);
-    for (i = 0; i < ARRAY_SIZE(row->acceptedItemIds); i++) {
-        if (row->acceptedItemIds[i] == arg2) {
+    loadOptions = &Gp_RelatedQty0.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    capacity    = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+    for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(loadOptions->acceptedItemIds); choiceIndex++) {
+        if (loadOptions->acceptedItemIds[choiceIndex] == consumableItemId) {
             break;
         }
     }
-    if (i == ARRAY_SIZE(row->acceptedItemIds)) {
-        useSecond = 1;
-        row       = &Gp_RelatedQty1.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-        maxQty    = _gpRelatedQty(arg1, 1);
-        for (i = 0; i < ARRAY_SIZE(row->acceptedItemIds); i++) {
-            if (row->acceptedItemIds[i] == arg2) {
+    if (choiceIndex == ARRAY_SIZE(loadOptions->acceptedItemIds)) {
+        loadSelection = EQUIPMENT_WEAPON_SUPPLY_SECONDARY;
+        loadOptions   = &Gp_RelatedQty1.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+        capacity      = _equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+        for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(loadOptions->acceptedItemIds); choiceIndex++) {
+            if (loadOptions->acceptedItemIds[choiceIndex] == consumableItemId) {
                 break;
             }
         }
-        if (i == ARRAY_SIZE(row->acceptedItemIds)) {
-            return -1;
+        if (choiceIndex == ARRAY_SIZE(loadOptions->acceptedItemIds)) {
+            return EQUIPMENT_WEAPON_LOAD_FAILED;
         }
     }
-    if (arg3 < 0) {
-        arg3 = maxQty;
+    if (requestedQuantity < 0) {
+        requestedQuantity = capacity;
     }
-    if (maxQty < arg3) {
-        arg3 = maxQty;
+    if (capacity < requestedQuantity) {
+        requestedQuantity = capacity;
     }
-    index = arg0->firstRow;
-    slot  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    have  = inventoryFindStackQuantity(table, arg0, &index, arg2);
-    have -= equipmentGetLoadedConsumableQuantity(arg0, arg2);
-    if (slot->primaryItemId == arg2) {
-        have += slot->primaryQty;
+    stackRowIndex     = range->firstRow;
+    weaponLoad        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    availableQuantity = inventoryFindStackQuantity(inventoryRows, range, &stackRowIndex, consumableItemId);
+    // Loaded units remain in inventory totals; reclaim this weapon's eligible load below.
+    availableQuantity -= equipmentGetLoadedConsumableQuantity(range, consumableItemId);
+    if (weaponLoad->primaryItemId == consumableItemId) {
+        availableQuantity += weaponLoad->primaryQty;
     }
-    if (slot->secondaryItemId == arg2) {
-        have += slot->secondaryQty;
+    if (weaponLoad->secondaryItemId == consumableItemId) {
+        availableQuantity += weaponLoad->secondaryQty;
     }
-    if (have <= 0) {
-        return -1;
+    if (availableQuantity <= 0) {
+        return EQUIPMENT_WEAPON_LOAD_FAILED;
     }
-    limited = have < arg3;
-    if (arg3 != 0) {
-        used = limited ? have : arg3;
-        if (useSecond == 0) {
-            slot->primaryItemId = arg2;
-            slot->primaryQty    = used;
-        } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-            slot->secondaryItemId = arg2;
-            slot->secondaryQty    = used;
+    // Compute the stock clamp before the check-only branch.
+    stockLimited = availableQuantity < requestedQuantity;
+    if (requestedQuantity != 0) {
+        loadedQuantity = stockLimited ? availableQuantity : requestedQuantity;
+        if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+            weaponLoad->primaryItemId = consumableItemId;
+            weaponLoad->primaryQty    = loadedQuantity;
+        } else if (weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            weaponLoad->secondaryItemId = consumableItemId;
+            weaponLoad->secondaryQty    = loadedQuantity;
         }
     } else {
-        used = 0;
+        loadedQuantity = 0;
     }
-    if (used > 0) {
-        itemSetIdentified(arg2, 1);
+    // An unavailable secondary still reports this quantity without storing it.
+    if (loadedQuantity > 0) {
+        itemSetIdentified(consumableItemId, 1);
     }
-    return used;
+    return loadedQuantity;
 }
 
 u8 D_8010D318[8] = {
@@ -308,266 +347,271 @@ PlayerModeBaseStats Gp_StatRows[4] = {
 /* Count item `id` in saved rows 0..254 through a cleared range. */
 #define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
 
-s32 func_800B7420(s32 arg0)
+s32 inventoryIsItemLimitReached(s32 itemId)
 {
-    InventoryItemRange scan;
-    s32                i;
-    s32                id;
+    enum {
+        INVENTORY_ITEM_SMG_CLIP_HOLDER        = 0x9,
+        INVENTORY_ITEM_RIFLE_CLIP_HOLDER      = 0xA,
+        INVENTORY_ITEM_SNAIL_MAGAZINE         = 0xC,
+        INVENTORY_ITEM_HAMMER                 = 0x42,
+        INVENTORY_ITEM_PYKE                   = 0x43,
+        INVENTORY_ITEM_JAVELIN                = 0x44,
+        INVENTORY_ITEM_M203                   = 0x45,
+        INVENTORY_ITEM_M9                     = 0x46,
+        INVENTORY_ITEM_P08_SNAIL_MAGAZINE     = 0x80,
+        INVENTORY_ITEM_P08                    = 0x83,
+        INVENTORY_ITEM_M4A1                   = 0x8F,
+        INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER   = 0x93,
+        INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS  = 0x94,
+        INVENTORY_ITEM_M4A1_HAMMER            = 0x98,
+        INVENTORY_ITEM_M4A1_BAYONET           = 0x99,
+        INVENTORY_ITEM_M4A1_GRENADE           = 0x9A,
+        INVENTORY_ITEM_M4A1_PYKE              = 0x9B,
+        INVENTORY_ITEM_M4A1_JAVELIN           = 0x9C,
+        INVENTORY_ITEM_MP5A5                  = 0x9D,
+        INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER  = 0x9E,
+        INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS = 0x9F,
+        INVENTORY_SINGLE_COPY_ITEM_FIRST      = 0x60,
+        INVENTORY_SINGLE_COPY_ITEM_COUNT      = 0x40,
+        INVENTORY_CLIP_HOLDER_MAX             = 2
+    };
+    InventoryItemRange allSavedItems;
+    s32                variantIndex;
+    s32                variantItemId;
 
-    switch (arg0) {
-        case 0x8F:
-        case 0x93:
-        case 0x94:
-        case 0x98:
-        case 0x99:
-        case 0x9A:
-        case 0x9B:
-        case 0x9C:
-            for (i = 0; i < 8; i++) {
-                id = D_8010D318[i];
-                if (GP_TOTAL_QTY(scan, id)) {
+    // Weapon variants share a limit; mounted add-ons also consume their allowance.
+    switch (itemId) {
+        case INVENTORY_ITEM_M4A1:
+        case INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER:
+        case INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS:
+        case INVENTORY_ITEM_M4A1_HAMMER:
+        case INVENTORY_ITEM_M4A1_BAYONET:
+        case INVENTORY_ITEM_M4A1_GRENADE:
+        case INVENTORY_ITEM_M4A1_PYKE:
+        case INVENTORY_ITEM_M4A1_JAVELIN:
+            for (variantIndex = 0; variantIndex < ARRAY_SIZE(D_8010D318); variantIndex++) {
+                variantItemId = D_8010D318[variantIndex];
+                if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
                     return 1;
                 }
             }
             return 0;
 
-        case 0x80:
-        case 0x83:
-            for (i = 0; i < 2; i++) {
-                id = D_8010D320[i];
-                if (GP_TOTAL_QTY(scan, id)) {
+        case INVENTORY_ITEM_P08_SNAIL_MAGAZINE:
+        case INVENTORY_ITEM_P08:
+            for (variantIndex = 0; variantIndex < ARRAY_SIZE(D_8010D320); variantIndex++) {
+                variantItemId = D_8010D320[variantIndex];
+                if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
                     return 1;
                 }
             }
             return 0;
 
-        case 0x9D:
-        case 0x9E:
-        case 0x9F:
-            for (i = 0; i < 3; i++) {
-                id = D_8010D324[i];
-                if (GP_TOTAL_QTY(scan, id)) {
+        case INVENTORY_ITEM_MP5A5:
+        case INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER:
+        case INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS:
+            for (variantIndex = 0; variantIndex < ARRAY_SIZE(D_8010D324); variantIndex++) {
+                variantItemId = D_8010D324[variantIndex];
+                if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
                     return 1;
                 }
             }
             return 0;
 
-        case 0x9:
-            if (GP_TOTAL_QTY(scan, 0x9F)) {
+        case INVENTORY_ITEM_SMG_CLIP_HOLDER:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS)) {
                 return 1;
             }
-            if (GP_TOTAL_QTY(scan, 0x9E)) {
-                if (GP_TOTAL_QTY(scan, 0x9)) {
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER)) {
+                if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_SMG_CLIP_HOLDER)) {
                     return 1;
                 }
             }
-            return GP_TOTAL_QTY(scan, 0x9) >= 2;
+            return GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_SMG_CLIP_HOLDER) >= INVENTORY_CLIP_HOLDER_MAX;
 
-        case 0xA:
-            if (GP_TOTAL_QTY(scan, 0x94)) {
+        case INVENTORY_ITEM_RIFLE_CLIP_HOLDER:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS)) {
                 return 1;
             }
-            if (GP_TOTAL_QTY(scan, 0x93)) {
-                if (GP_TOTAL_QTY(scan, 0xA)) {
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER)) {
+                if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_RIFLE_CLIP_HOLDER)) {
                     return 1;
                 }
             }
-            return GP_TOTAL_QTY(scan, 0xA) >= 2;
+            return GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_RIFLE_CLIP_HOLDER) >= INVENTORY_CLIP_HOLDER_MAX;
 
-        case 0xC:
-            if (GP_TOTAL_QTY(scan, 0x80) || GP_TOTAL_QTY(scan, 0xC)) {
+        case INVENTORY_ITEM_SNAIL_MAGAZINE:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_P08_SNAIL_MAGAZINE) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_SNAIL_MAGAZINE)) {
                 return 1;
             }
             return 0;
 
-        case 0x42:
-            if (GP_TOTAL_QTY(scan, 0x98) || GP_TOTAL_QTY(scan, 0x42)) {
+        case INVENTORY_ITEM_HAMMER:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_HAMMER) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_HAMMER)) {
                 return 1;
             }
             return 0;
 
-        case 0x43:
-            if (GP_TOTAL_QTY(scan, 0x9B) || GP_TOTAL_QTY(scan, 0x43)) {
+        case INVENTORY_ITEM_PYKE:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_PYKE) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_PYKE)) {
                 return 1;
             }
             return 0;
 
-        case 0x44:
-            if (GP_TOTAL_QTY(scan, 0x9C) || GP_TOTAL_QTY(scan, 0x44)) {
+        case INVENTORY_ITEM_JAVELIN:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_JAVELIN) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_JAVELIN)) {
                 return 1;
             }
             return 0;
 
-        case 0x45:
-            if (GP_TOTAL_QTY(scan, 0x9A) || GP_TOTAL_QTY(scan, 0x45)) {
+        case INVENTORY_ITEM_M203:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_GRENADE) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M203)) {
                 return 1;
             }
             return 0;
 
-        case 0x46:
-            if (GP_TOTAL_QTY(scan, 0x99) || GP_TOTAL_QTY(scan, 0x46)) {
+        case INVENTORY_ITEM_M9:
+            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_BAYONET) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M9)) {
                 return 1;
             }
             return 0;
 
         default:
-            if ((u32)(arg0 - 0x60) < 0x40) {
-                return GP_TOTAL_QTY(scan, arg0);
+            if ((u32)(itemId - INVENTORY_SINGLE_COPY_ITEM_FIRST) < INVENTORY_SINGLE_COPY_ITEM_COUNT) {
+                return GP_TOTAL_QTY(allSavedItems, itemId);
             }
             return 0;
     }
 }
 
-void Gp_RecalcMaxMp(void)
+void equipmentRecalculateMaxMp(void)
 {
-    PlayerStatus*        cfg;
-    McSaveData*          save;
-    PlayerModeBaseStats* rows;
-    s8*                  levels;
-    s32                  acc;
-    s32                  i;
-    s32                  j;
+    PlayerStatus*              status;
+    const McSaveData*          save;
+    const PlayerModeBaseStats* modeStats;
+    const s8*                  spellLevels;
+    s32                        maximumMp;
+    s32                        spellIndex;
+    s32                        levelIndex;
 
-    cfg    = &gPlayerStatus;
-    acc    = 0;
-    levels = (s8*)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-    for (i = 0; i < 0xC; i++) {
-        if (*levels > 0) {
-            for (j = 0; j < *levels; j++) {
-                acc += Gp_IdParamHi.rows[i * 3 + j + 1].column.mpBonus;
+    status    = &gPlayerStatus;
+    maximumMp = 0;
+    // Preserve signed byte reads: nonpositive levels contribute no MP.
+    spellLevels = (const s8*)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
+    for (spellIndex = 0; spellIndex < ATTACHMENT_SPELL_COUNT; spellIndex++) {
+        if (*spellLevels > 0) {
+            for (levelIndex = 0; levelIndex < *spellLevels; levelIndex++) {
+                maximumMp += Gp_IdParamHi.rows[spellIndex * ATTACHMENT_AREA_LEVEL_COUNT + levelIndex + 1].column.mpBonus;
             }
         }
-        levels++;
+        spellLevels++;
     }
-    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        acc += Gp_ModStatAttrs[cfg->armor - 1].mpBonus;
+    if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+        maximumMp += Gp_ModStatAttrs[status->armor - 1].mpBonus;
     }
-    rows       = Gp_StatRows;
-    save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    acc       += rows[save->state.gameMode].baseMp;
-    acc       += save->state.mpBonus;
-    cfg->mpMax = acc;
-    if ((s16)acc >= PLAYER_STATUS_STAT_MAX + 1) {
-        cfg->mpMax = PLAYER_STATUS_STAT_MAX;
+    modeStats     = Gp_StatRows;
+    save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    maximumMp    += modeStats[save->state.gameMode].baseMp;
+    maximumMp    += save->state.mpBonus;
+    status->mpMax = maximumMp;
+    if ((s16)maximumMp >= PLAYER_STATUS_STAT_MAX + 1) {
+        status->mpMax = PLAYER_STATUS_STAT_MAX;
     }
-    if (cfg->mp > cfg->mpMax) {
-        cfg->mp = cfg->mpMax;
+    if (status->mp > status->mpMax) {
+        status->mp = status->mpMax;
     }
 }
 
-void Gp_EquipMod(s32 arg0)
+void equipmentEquipCarriedArmor(s32 armorItemId)
 {
-    PlayerStatus*       cfg;
-    InventoryItemRow*   rec;
-    InventoryItemRow*   tmp;
-    InventoryItemRange* scan;
-    s32                 i;
+    enum { EQUIPMENT_ARMOR_ITEM_FIRST             = 0x60,
+           EQUIPMENT_ARMOR_ITEM_COUNT_U           = 0x20U,
+           INVENTORY_ITEM_IDENTIFICATION_LIMIT_U  = 0x180U,
+           INVENTORY_IDENTIFICATION_BITS_PER_WORD = 32 };
+    PlayerStatus*       status;
+    InventoryItemRow*   inventoryRow;
+    InventoryItemRow*   inventoryRows;
+    InventoryItemRange* carriedRange;
+    s32                 rowIndex;
 
-    cfg = &gPlayerStatus;
-    if ((u32)(arg0 - 0x60) < 0x20U) {
-        if (cfg->armor != (arg0 - 0x5F)) {
-            InventoryItemRow* found;
+    status = &gPlayerStatus;
+    if ((u32)(armorItemId - EQUIPMENT_ARMOR_ITEM_FIRST) < EQUIPMENT_ARMOR_ITEM_COUNT_U) {
+        if (status->armor != (armorItemId - (EQUIPMENT_ARMOR_ITEM_FIRST - 1))) {
+            InventoryItemRow* armorRow;
 
-            found = inventoryFindLastCarriedItemRow(arg0);
-            if (found != NULL) {
-                found->attachSlot = INVENTORY_ATTACHMENT_EQUIPPED_ARMOR;
-                if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-                    found = inventoryFindLastCarriedItemRow(cfg->armor + 0x5F);
-                    if (found != NULL) {
-                        found->attachSlot = INVENTORY_ATTACHMENT_NONE;
+            armorRow = inventoryFindLastCarriedItemRow(armorItemId);
+            if (armorRow != NULL) {
+                armorRow->attachSlot = INVENTORY_ATTACHMENT_EQUIPPED_ARMOR;
+                if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+                    armorRow = inventoryFindLastCarriedItemRow(status->armor + (EQUIPMENT_ARMOR_ITEM_FIRST - 1));
+                    if (armorRow != NULL) {
+                        armorRow->attachSlot = INVENTORY_ATTACHMENT_NONE;
                     }
                 }
-                cfg->armor = arg0 - 0x5F;
+                status->armor = armorItemId - (EQUIPMENT_ARMOR_ITEM_FIRST - 1);
 
                 {
-                    PlayerStatus*        p;
-                    McSaveData*          save;
-                    PlayerModeBaseStats* table;
-                    u16                  val;
+                    PlayerStatus*              playerStatus;
+                    McSaveData*                save;
+                    const PlayerModeBaseStats* modeStats;
 
-                    p        = &gPlayerStatus;
-                    table    = Gp_StatRows;
-                    save     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-                    val      = table[save->state.gameMode].baseHp.hp;
-                    p->hpMax = val;
-                    val     += save->state.hpBonus;
-                    p->hpMax = val;
-                    if (p->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-                        val     += Gp_ModStatAttrs[p->armor - 1].hpBonus;
-                        p->hpMax = val;
-                    }
-                    if (p->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
-                        p->hpMax = PLAYER_STATUS_STAT_MAX;
-                    }
-                    if (p->hp > p->hpMax) {
-                        p->hp = p->hpMax;
-                    }
+                    playerStatus = &gPlayerStatus;
+                    modeStats    = Gp_StatRows;
+                    save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+                    _equipmentRecalculateMaxHp(playerStatus, modeStats, save);
 
-                    scan = &save->state.carriedItems;
-                    Gp_RecalcMaxMp();
-                    switch (scan->tableId) {
+                    carriedRange = &save->state.carriedItems;
+                    equipmentRecalculateMaxMp();
+                    switch (carriedRange->tableId) {
                         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-                            tmp = Gp_ItemTable2;
+                            inventoryRows = Gp_ItemTable2;
                             break;
                         case INVENTORY_ITEM_TABLE_INDIRECT:
-                            tmp = Gp_ItemTable1;
+                            inventoryRows = Gp_ItemTable1;
                             break;
                         default:
-                            tmp = save->state.itemRows;
+                            inventoryRows = save->state.itemRows;
                             break;
                     }
                 }
-                i   = 0;
-                rec = &tmp[scan->firstRow];
-                if (scan->rowCount != 0) {
+                // Changing armor releases its positive attachment slots and removable loads.
+                rowIndex     = 0;
+                inventoryRow = &inventoryRows[carriedRange->firstRow];
+                if (carriedRange->rowCount != 0) {
                     do {
-                        inventoryDetachItem(rec);
-                        i++;
-                        rec++;
-                    } while (i < scan->rowCount);
+                        inventoryDetachItem(inventoryRow);
+                        rowIndex++;
+                        inventoryRow++;
+                    } while (rowIndex < carriedRange->rowCount);
                 }
 
                 {
-                    McSaveData* p;
-                    s32         word;
-                    s32         bit;
+                    McSaveData* identificationSave;
+                    s32         identificationWordIndex;
+                    s32         identificationBit;
 
-                    word = arg0 / 32;
-                    bit  = 1 << (arg0 % 32);
-                    if ((u32)arg0 < 0x180U) {
-                        p                            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-                        p->state.itemSeenBits[word] |= bit;
+                    identificationWordIndex = armorItemId / INVENTORY_IDENTIFICATION_BITS_PER_WORD;
+                    identificationBit       = 1 << (armorItemId % INVENTORY_IDENTIFICATION_BITS_PER_WORD);
+                    if ((u32)armorItemId < INVENTORY_ITEM_IDENTIFICATION_LIMIT_U) {
+                        identificationSave                                               = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+                        identificationSave->state.itemSeenBits[identificationWordIndex] |= identificationBit;
                     }
                 }
             }
         }
-    } else if (arg0 == 0) {
-        McSaveData*          save;
-        PlayerModeBaseStats* table;
-        u16                  val;
+    } else if (armorItemId == 0) {
+        McSaveData*                save;
+        const PlayerModeBaseStats* modeStats;
 
-        table      = Gp_StatRows;
-        save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        val        = table[save->state.gameMode].baseHp.hp;
-        cfg->hpMax = val;
-        val       += save->state.hpBonus;
-        cfg->hpMax = val;
-        if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-            val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
-            cfg->hpMax = val;
-        }
-        if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
-            cfg->hpMax = PLAYER_STATUS_STAT_MAX;
-        }
-        if (cfg->hp > cfg->hpMax) {
-            cfg->hp = cfg->hpMax;
-        }
-        Gp_RecalcMaxMp();
+        modeStats = Gp_StatRows;
+        save      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        _equipmentRecalculateMaxHp(status, modeStats, save);
+        equipmentRecalculateMaxMp();
     } else {
         return;
     }
-    Gp_HpMpWork.hp = cfg->hp;
-    Gp_HpMpWork.mp = cfg->mp;
+    Gp_HpMpWork.hp = status->hp;
+    Gp_HpMpWork.mp = status->mp;
 }
 
 const char Gp_StrNotice2[8] = "Notice\0F";

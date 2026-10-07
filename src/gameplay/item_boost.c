@@ -448,7 +448,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
         if (save->state.mpBonus < 0xFA) {
             save->state.mpBonus = save->state.mpBonus + 1;
         }
-        Gp_RecalcMaxMp();
+        equipmentRecalculateMaxMp();
         cfg->mp = cfg->mpMax;
         _inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
         uiSpawnObject(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
@@ -632,11 +632,11 @@ void Gp_ResetInventory(void)
     _inventoryClearItems(&Gp_DefaultScan);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems = Gp_DefaultScan;
     inventoryAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x6C, 1);
-    Gp_EquipMod(0x6C);
+    equipmentEquipCarriedArmor(0x6C);
 
     gPlayerStatus.hp = gPlayerStatus.hpMax;
     gPlayerStatus.mp = gPlayerStatus.mpMax;
-    Gp_ApplyItemMap();
+    equipmentInitializeWeaponSupplies();
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 3; j++) {
@@ -671,7 +671,7 @@ void Gp_ClearInventory(void)
         if (rec->attachSlot == INVENTORY_ATTACHMENT_EQUIPPED_ARMOR && (u32)(rec->itemId - 0x60) < 0x20) {
             status->armor = rec->itemId - 0x5F;
             _equipmentRecalculateMaxHp();
-            Gp_RecalcMaxMp();
+            equipmentRecalculateMaxMp();
             break;
         }
     }
@@ -680,7 +680,7 @@ void Gp_ClearInventory(void)
     Gp_StateC08.activeIndex = 0;
     gPlayerStatus.hp        = gPlayerStatus.hpMax;
     gPlayerStatus.mp        = gPlayerStatus.mpMax;
-    Gp_ApplyItemMap();
+    equipmentInitializeWeaponSupplies();
 }
 
 void Gp_InitModeEquip(void)
@@ -739,7 +739,7 @@ void Gp_InitModeEquip(void)
         weaponItemId  = 0x81;
         primaryItemId = _equipmentGetWeaponLoad(weaponItemId)->primaryItemId;
         if ((primaryItemId == INVENTORY_ITEM_NONE) || (primaryItemId == 0xA0)) {
-            Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 0xA0, -1);
+            equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 0xA0, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
         }
     }
 }
@@ -1019,9 +1019,9 @@ s32 Gp_FillRelated(s32 arg0, s32 arg1)
     slot          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
     primaryItemId = &slot->primaryItemId;
     if (arg1 != 0) {
-        ret = Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, slot->secondaryItemId, -1);
+        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, slot->secondaryItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
     } else {
-        ret = Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, *primaryItemId, -1);
+        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, *primaryItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
     }
     return ret;
 }
@@ -1035,9 +1035,9 @@ s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
     slot          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
     secondaryLoad = slot;
     if (arg1 == 0) {
-        ret = Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, slot->primaryItemId, 0);
+        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, slot->primaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
     } else {
-        ret = Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, secondaryLoad->secondaryItemId, 0);
+        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, secondaryLoad->secondaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
     }
     return ret == 0;
 }

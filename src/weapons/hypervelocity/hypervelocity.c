@@ -975,7 +975,7 @@ void func_hypervelocity_8011F724(Task* arg0)
                     actor->statePhase++;
                     eff->spawnArg1.value = 0;
                     actor->stateTimer    = 0x15;
-                    Gp_ConsumeSlotQty(0x95, 1);
+                    equipmentConsumeWeaponLoad(0x95, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160007, 1);
                     playerActorResetChildSlots(arg0, 0xB);

@@ -1303,7 +1303,7 @@ static s32 _actor260400SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageI
 
 /// Message 0x7DB: the payload's halfword at 0x2 selects the action. Case 0
 /// starts a turn of 0x14 steps; case 1 enables and shows the revolver's model,
-/// but only while `func_800B7420(0x88)` returns 0; case 2 disables it and
+/// but only while `inventoryIsItemLimitReached(0x88)` returns 0; case 2 disables it and
 /// hides the model again (flags 0x84).
 s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
@@ -1318,7 +1318,7 @@ s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             _gScriptedWalkWork->turnFrames = 0x14;
             break;
         case 1:
-            if (func_800B7420(0x88) == 0) {
+            if (inventoryIsItemLimitReached(0x88) == 0) {
                 _gScriptedWalkWork->mongooseShown = mode;
                 obj->flags                        = 0;
             }

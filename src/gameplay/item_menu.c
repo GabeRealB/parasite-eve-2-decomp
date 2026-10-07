@@ -1650,11 +1650,11 @@ void Gp_PublishItemObj(Task* arg0)
     Gp_PubItemLoc = enemy->workType;
     if (enemy->workType < 0xA0) {
         if (Gp_PubItemLoc >= 0x60 && Gp_PubItemLoc < 0x80) {
-            if (func_800B7420(Gp_PubItemLoc) != 0) {
+            if (inventoryIsItemLimitReached(Gp_PubItemLoc) != 0) {
                 Gp_PubItemLoc = 0xD;
             }
         } else if (Gp_PubItemLoc >= 0x80 && Gp_PubItemLoc < 0xA0) {
-            if (func_800B7420(Gp_PubItemLoc) != 0) {
+            if (inventoryIsItemLimitReached(Gp_PubItemLoc) != 0) {
                 Gp_PubItemLoc = 0x3D;
             }
         }
