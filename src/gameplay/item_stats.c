@@ -795,7 +795,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
                         Gp_PreviewItems[i] = minusOne;
                     }
                 }
-                Gp_EnqueueItemPreviewCd(item, 0);
+                itemMenuEnqueuePreviewLoad(item, 0);
             }
             if (item == 0) {
                 uiSetPromptText(Gp_StrEmpty, 0, 0);

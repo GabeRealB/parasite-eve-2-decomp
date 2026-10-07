@@ -1364,7 +1364,7 @@ void func_800CCDC8(Task* arg0)
                     *table = -1;
                 }
             }
-            Gp_EnqueueItemPreviewCd(item, 0);
+            itemMenuEnqueuePreviewLoad(item, 0);
         }
         arg0->state = 2;
     }
@@ -1741,7 +1741,7 @@ static inline void _gpSetPreviewItem(s32 itemId, u8 slot)
                 Gp_PreviewItems[i] = -1;
             }
         }
-        Gp_EnqueueItemPreviewCd(itemId, slot);
+        itemMenuEnqueuePreviewLoad(itemId, slot);
     }
 }
 

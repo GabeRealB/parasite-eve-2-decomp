@@ -721,7 +721,23 @@ extern char Gp_StrRemoveAmmoHelp[];
 
 extern char Gp_StrChangeOrderHelp[36];
 
-void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1);
+/// Queues an item's display-resource load, replacing requests for the same profile.
+///
+/// The low byte of `loadProfile` must be `CD_COMMAND_DISPLAY_LOAD_MENU`,
+/// `CD_COMMAND_DISPLAY_LOAD_PREVIEW` or `CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW`
+/// (0..2); higher bits are ignored. The latest request matching each other
+/// profile's load policy and image offsets is requeued in profile order. The
+/// active head is retained; other tail requests are discarded. Matching inspects
+/// load arguments without checking the opcode and includes the head.
+///
+/// Item 0, negative ids and ids 0x180..0x2FF do nothing. Ordinary/key items below
+/// 0x180, packed PE ids 0x300..0x4FF and high display ids >=0x500 select separate
+/// resource groups; the final file index is narrowed to one byte. A completed
+/// scene payload, or debug mode -1 outside demo 12, suppresses all changes.
+/// Profiles 1 and 2 mark room resources for restoration when leaving the menu.
+/// Requires the scratch-stack and CD-ring capacity of `cdCmdEnqueueDisplayResource`.
+/// Saved requests are copied locally; no queue-entry pointer is retained.
+void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile);
 
 void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj);
 

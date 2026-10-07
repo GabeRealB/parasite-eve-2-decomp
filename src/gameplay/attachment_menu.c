@@ -38,22 +38,22 @@ static inline s32 _gpIsArmorItem(u8 id)
     return (u32)(id - 0x60) < 0x20U;
 }
 
-#define GP_SET_PREVIEW_ITEM(item, slot)          \
-    do {                                         \
-        s32* _p;                                 \
-        s32  _i;                                 \
-                                                 \
-        _p = Gp_PreviewItems;                    \
-        if ((item) != _p[slot]) {                \
-            for (_i = 0; _i < 3; _i++, _p++) {   \
-                if (_i == (slot)) {              \
-                    *_p = (item);                \
-                } else {                         \
-                    *_p = -1;                    \
-                }                                \
-            }                                    \
-            Gp_EnqueueItemPreviewCd(item, slot); \
-        }                                        \
+#define GP_SET_PREVIEW_ITEM(item, slot)             \
+    do {                                            \
+        s32* _p;                                    \
+        s32  _i;                                    \
+                                                    \
+        _p = Gp_PreviewItems;                       \
+        if ((item) != _p[slot]) {                   \
+            for (_i = 0; _i < 3; _i++, _p++) {      \
+                if (_i == (slot)) {                 \
+                    *_p = (item);                   \
+                } else {                            \
+                    *_p = -1;                       \
+                }                                   \
+            }                                       \
+            itemMenuEnqueuePreviewLoad(item, slot); \
+        }                                           \
     } while (0)
 #define GP_FIND_SPARE_ARMOR(found, index)                                               \
     do {                                                                                \

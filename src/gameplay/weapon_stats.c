@@ -358,7 +358,7 @@ static inline void _gpSetPreviewItem(s32 item, u8 slot)
                 Gp_PreviewItems[i] = -1;
             }
         }
-        Gp_EnqueueItemPreviewCd(item, slot);
+        itemMenuEnqueuePreviewLoad(item, slot);
     }
 }
 
@@ -378,7 +378,7 @@ static inline void _gpSetPreviewItemWalk(s32 item, u8 slot)
                 *p++ = -1;
             }
         }
-        Gp_EnqueueItemPreviewCd(item, slot);
+        itemMenuEnqueuePreviewLoad(item, slot);
     }
 }
 

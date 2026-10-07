@@ -323,16 +323,19 @@ often &lt; 1 KiB). The rest of the ~55 KiB is clip tables (pointers back
 into the same overlay, e.g. `10301` at `+0x774`) and keyframe-like
 halfwords. Fire / reload / inspect are per-gun.
 
-**Which package is which gun.** `Gp_EnqueueItemPreviewCd`
-(`src/gameplay/menu_armor.c`) maps an equipped item to its overlay:
+**Which package is which gun.** `itemMenuEnqueuePreviewLoad`
+(`src/gameplay/menu_armor.c`) uses a one-based weapon index for its display
+resource. That index also identifies the corresponding weapon overlay:
 
 ```c
-if ((u32)(arg0 - 0x80) < 0x20U) {   // the 32 weapon item ids
-    type  = 1;
-    index = arg0 - 0x7F;            // → file 10300 + index
+if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_PREVIEW_EQUIPMENT_ITEM_COUNT) {
+    fileIdHundreds = ITEM_MENU_PREVIEW_FILE_WEAPON;
+    fileIndex = itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+}
 ```
 
-so **item `0x80 + n` is package `10301 + n`**, and the name comes from
+The preview load selects file `20100 + fileIndex`; weapon overlays use
+`10300 + fileIndex`. Thus **item `0x80 + n` is package `10301 + n`**, and the name comes from
 `Gp_ItemDescs[id].textFields`. Three independent facts agree with that mapping,
 which is what rules out an off-by-one:
 

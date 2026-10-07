@@ -34,7 +34,9 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
 /// consumable selected in either firing mode of the equipped weapon.
 static inline s32 _gpIsEquippedItem(s32 id);
 
-static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1);
+static void _itemMenuSizeAttachmentPicker(UiList* list, UiObject* unused);
+
+static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 itemId);
 
 const char Gp_StrPEnergy[] = "P.Energy";
 
@@ -303,28 +305,38 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
     }
 }
 
-static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
+/// Sizes the armor attachment picker for carried candidates and its detach row.
+///
+/// Counts rows, including items already attached elsewhere, rather than quantities.
+/// Excludes empty rows, forbidden attachments and the equipped weapon; shows four
+/// rows at a time. `list` must be writable and the live carried range in bounds.
+/// Each row's itemId must index `Gp_ItemDescs`.
+/// `unused` is ignored.
+static void _itemMenuSizeAttachmentPicker(UiList* list, UiObject* unused)
 {
-    InventoryItemRow*   table;
-    s32                 i;
-    s32                 count;
-    InventoryItemRange* scan;
+    enum { ITEM_MENU_ATTACHMENT_PICKER_VISIBLE_ROWS = 4 };
 
-    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    table = inventoryGetRangeTable(scan);
-    count = 0;
-    table = &table[scan->firstRow];
-    for (i = 0; i < scan->rowCount; i++, table++) {
-        if ((Gp_ItemDescs[table->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (table->itemId == INVENTORY_ITEM_NONE)) {
+    InventoryItemRow*         row;
+    s32                       rowIndex;
+    s32                       candidateCount;
+    const InventoryItemRange* carriedItems;
+
+    carriedItems   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    row            = inventoryGetRangeTable(carriedItems);
+    candidateCount = 0;
+    row            = &row[carriedItems->firstRow];
+    for (rowIndex = 0; rowIndex < carriedItems->rowCount; rowIndex++, row++) {
+        if ((Gp_ItemDescs[row->itemId].flags & ITEM_FLAG_NO_ATTACHMENT) || (row->itemId == INVENTORY_ITEM_NONE)) {
             continue;
         }
-        if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {
+        if ((u8)(row->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems) && _gpIsEquippedItem(row->itemId)) {
             continue;
         }
-        count++;
+        candidateCount++;
     }
-    arg0->itemCount                     = count + 1;
-    arg0->visibleRowCount.unsignedValue = 4;
+    // The trailing command detaches the item from the selected armor slot.
+    list->itemCount                     = candidateCount + 1;
+    list->visibleRowCount.unsignedValue = ITEM_MENU_ATTACHMENT_PICKER_VISIBLE_ROWS;
 }
 
 void Gp_EquipSelectMenuTask(Task* arg0)
@@ -341,7 +353,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectTitle);
     val = 0;
     if (arg0->state == 0) {
-        Gp_CountEquippableRows(menu, obj);
+        _itemMenuSizeAttachmentPicker(menu, obj);
         uiFitPanelToList(menu, &(obj)->panel);
         menu->topInset                           += 0x4C;
         obj->panel.bounds.unsignedRect.h         += 0x4C;
@@ -376,25 +388,69 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     }
 }
 
-void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
+/// Maps the packed PE element, energy and level to a one-based preview file index.
+///
+/// Only two element bits are used; level zero selects the level-one image.
+static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 itemId)
 {
-    s32         flags[3];
-    CdCmdEntry  saved[3];
-    CdCmdQueue* queue;
-    CdCmdEntry* entry;
-    s32         type;
-    s32         index;
-    s32         nibble;
-    s32         hi;
-    s32         lo;
-    s32         i;
+    enum {
+        ITEM_MENU_PREVIEW_ELEMENT_MASK         = 0x30,
+        ITEM_MENU_PREVIEW_ENERGY_MASK          = 0x0C,
+        ITEM_MENU_PREVIEW_LEVEL_MASK           = 0x03,
+        ITEM_MENU_PREVIEW_ENERGIES_PER_ELEMENT = 3,
+        ITEM_MENU_PREVIEW_LEVELS_PER_ENERGY    = 3
+    };
+    s32 level;
+    s32 element;
+    s32 energyIndex;
+
+    level       = itemId & ITEM_MENU_PREVIEW_LEVEL_MASK;
+    element     = (itemId & ITEM_MENU_PREVIEW_ELEMENT_MASK) >> 4;
+    energyIndex = (itemId & ITEM_MENU_PREVIEW_ENERGY_MASK) >> 2;
+    if (level == 0) {
+        level = 1;
+    }
+    return (element * ITEM_MENU_PREVIEW_ENERGIES_PER_ELEMENT + energyIndex) * ITEM_MENU_PREVIEW_LEVELS_PER_ENERGY + level;
+}
+
+void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile)
+{
+    // Hundreds components of stage-zero category-2 display-resource file IDs.
+    enum {
+        ITEM_MENU_PREVIEW_FILE_WEAPON          = 1,
+        ITEM_MENU_PREVIEW_FILE_OTHER           = 2,
+        ITEM_MENU_PREVIEW_FILE_ITEM            = 3,
+        ITEM_MENU_PREVIEW_FILE_CONSUMABLE      = 4,
+        ITEM_MENU_PREVIEW_FILE_ARMOR           = 5,
+        ITEM_MENU_PREVIEW_FILE_HIGH_ID         = 6,
+        ITEM_MENU_PREVIEW_FILE_ENERGY          = 7,
+        ITEM_MENU_PREVIEW_ARMOR_ITEM_FIRST     = 0x60,
+        ITEM_MENU_PREVIEW_EQUIPMENT_ITEM_COUNT = 0x20,
+        ITEM_MENU_PREVIEW_ITEM_ID_END          = 0x180,
+        ITEM_MENU_PREVIEW_PROFILE_COUNT        = 3,
+        ITEM_MENU_PREVIEW_REQUEST_ABSENT       = -1,
+        ITEM_MENU_PREVIEW_REQUEST_SAVED        = 0,
+        ITEM_MENU_PREVIEW_MENU_X_PAGE_OFFSET   = -8,
+        ITEM_MENU_PREVIEW_MENU_Y_OFFSET        = -3,
+        ITEM_MENU_PREVIEW_IMAGE_Y_OFFSET       = -2,
+        ITEM_MENU_PREVIEW_DEBUG_DISABLED_MODE  = -1,
+        ITEM_MENU_PREVIEW_DEBUG_ALLOWED_DEMO   = 0xC
+    };
+
+    s32               savedRequestState[ITEM_MENU_PREVIEW_PROFILE_COUNT];
+    CdCmdEntry        savedRequests[ITEM_MENU_PREVIEW_PROFILE_COUNT];
+    const CdCmdQueue* queue;
+    const CdCmdEntry* entry;
+    s32               fileIdHundreds;
+    s32               fileIndex;
+    s32               profileIndex;
 
     queue = &gCdCmdQueue;
-    if (arg0 == 0) {
+    if (itemId == INVENTORY_ITEM_NONE) {
         return;
     }
-    if (gDisplayState.debugMode == -1) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xC) {
+    if (gDisplayState.debugMode == ITEM_MENU_PREVIEW_DEBUG_DISABLED_MODE) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ITEM_MENU_PREVIEW_DEBUG_ALLOWED_DEMO) {
             return;
         }
     }
@@ -402,68 +458,64 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
         return;
     }
 
-    if (arg0 >= 0x500) {
-        type  = 6;
-        index = arg0;
-    } else if (arg0 >= 0x300) {
-        type   = 7;
-        nibble = arg0 & 3;
-        hi     = (arg0 & 0x30) >> 4;
-        lo     = (arg0 & 0xC) >> 2;
-        if (nibble == 0) {
-            nibble = 1;
-        }
-        index = (hi * 3 + lo) * 3 + nibble;
-    } else if ((u32)arg0 >= 0x180U) {
+    if (itemId >= ITEM_TEXT_ENEMY_ID_FIRST) {
+        fileIdHundreds = ITEM_MENU_PREVIEW_FILE_HIGH_ID;
+        fileIndex      = itemId;
+    } else if (itemId >= ITEM_TEXT_PACKED_ID_FIRST) {
+        fileIdHundreds = ITEM_MENU_PREVIEW_FILE_ENERGY;
+        fileIndex      = _itemMenuDecodeEnergyPreviewIndex(itemId);
+    } else if ((u32)itemId >= ITEM_MENU_PREVIEW_ITEM_ID_END) {
         return;
-    } else if ((u32)(arg0 - 1) < 0x5FU) {
-        type  = 3;
-        index = arg0;
-    } else if ((u32)(arg0 - 0x60) < 0x20U) {
-        type  = 5;
-        index = arg0 - 0x5F;
-    } else if ((u32)(arg0 - 0x80) < 0x20U) {
-        type  = 1;
-        index = arg0 - 0x7F;
-    } else if ((u32)(arg0 - 0xA0) < 0x20U) {
-        type  = 4;
-        index = arg0 + 0x61;
+    } else if ((u32)(itemId - 1) < (ITEM_MENU_PREVIEW_ARMOR_ITEM_FIRST - 1)) {
+        fileIdHundreds = ITEM_MENU_PREVIEW_FILE_ITEM;
+        fileIndex      = itemId;
+    } else if ((u32)(itemId - ITEM_MENU_PREVIEW_ARMOR_ITEM_FIRST) < ITEM_MENU_PREVIEW_EQUIPMENT_ITEM_COUNT) {
+        fileIdHundreds = ITEM_MENU_PREVIEW_FILE_ARMOR;
+        fileIndex      = itemId - (ITEM_MENU_PREVIEW_ARMOR_ITEM_FIRST - 1);
+    } else if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_PREVIEW_EQUIPMENT_ITEM_COUNT) {
+        fileIdHundreds = ITEM_MENU_PREVIEW_FILE_WEAPON;
+        fileIndex      = itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+    } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        fileIdHundreds = ITEM_MENU_PREVIEW_FILE_CONSUMABLE;
+        fileIndex      = itemId + (0x100 - INVENTORY_CONSUMABLE_ITEM_FIRST + 1);
     } else {
-        type  = 2;
-        index = arg0;
+        fileIdHundreds = ITEM_MENU_PREVIEW_FILE_OTHER;
+        fileIndex      = itemId;
     }
 
-    if (arg1 & 0xFF) {
+    if (loadProfile & 0xFF) {
         D_80114D88 = 1;
     }
 
-    flags[2] = -1;
-    flags[1] = -1;
-    flags[0] = -1;
+    savedRequestState[CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW] = ITEM_MENU_PREVIEW_REQUEST_ABSENT;
+    savedRequestState[CD_COMMAND_DISPLAY_LOAD_PREVIEW]           = ITEM_MENU_PREVIEW_REQUEST_ABSENT;
+    savedRequestState[CD_COMMAND_DISPLAY_LOAD_MENU]              = ITEM_MENU_PREVIEW_REQUEST_ABSENT;
     cdCmdResetEntryIterator();
 
-    // Preserve requests for the other preview destinations before dropping work.
+    // Keep the latest request with each profile's load policy and image offsets.
+    // The iterator includes the head; these tests deliberately do not check opcodes.
     while ((entry = cdCmdNextQueuedEntry()) != NULL) {
-        if (entry->args.file.loadMode == CD_COMMAND_LOAD_RELOCATE_IMAGES && entry->args.file.imageXPageOffset == -8 && entry->args.file.imageYOffset == -3) {
-            saved[0] = *entry;
-            flags[0] = 0;
-        } else if (entry->args.file.loadMode == CD_COMMAND_LOAD_DEFAULT && entry->args.file.imageXPageOffset == 0 && entry->args.file.imageYOffset == -2) {
-            saved[1] = *entry;
-            flags[1] = 0;
-        } else if (entry->args.file.loadMode == CD_COMMAND_LOAD_RELOCATE_IMAGES && entry->args.file.imageXPageOffset == 0 && entry->args.file.imageYOffset == -2) {
-            saved[2] = *entry;
-            flags[2] = 0;
+        if (entry->args.file.loadMode == CD_COMMAND_LOAD_RELOCATE_IMAGES && entry->args.file.imageXPageOffset == ITEM_MENU_PREVIEW_MENU_X_PAGE_OFFSET && entry->args.file.imageYOffset == ITEM_MENU_PREVIEW_MENU_Y_OFFSET) {
+            savedRequests[CD_COMMAND_DISPLAY_LOAD_MENU]     = *entry;
+            savedRequestState[CD_COMMAND_DISPLAY_LOAD_MENU] = ITEM_MENU_PREVIEW_REQUEST_SAVED;
+        } else if (entry->args.file.loadMode == CD_COMMAND_LOAD_DEFAULT && entry->args.file.imageXPageOffset == 0 && entry->args.file.imageYOffset == ITEM_MENU_PREVIEW_IMAGE_Y_OFFSET) {
+            savedRequests[CD_COMMAND_DISPLAY_LOAD_PREVIEW]     = *entry;
+            savedRequestState[CD_COMMAND_DISPLAY_LOAD_PREVIEW] = ITEM_MENU_PREVIEW_REQUEST_SAVED;
+        } else if (entry->args.file.loadMode == CD_COMMAND_LOAD_RELOCATE_IMAGES && entry->args.file.imageXPageOffset == 0 && entry->args.file.imageYOffset == ITEM_MENU_PREVIEW_IMAGE_Y_OFFSET) {
+            savedRequests[CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW]     = *entry;
+            savedRequestState[CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW] = ITEM_MENU_PREVIEW_REQUEST_SAVED;
         }
     }
-    flags[arg1 & 0xFF] = -1;
+    // Replace this profile, discard the tail, then restore other profiles in order.
+    savedRequestState[loadProfile & 0xFF] = ITEM_MENU_PREVIEW_REQUEST_ABSENT;
     cdCmdDropQueuedTail();
-    for (i = 0; i < ARRAY_SIZE(saved); i++) {
-        if (flags[i] != -1) {
-            _cdCmdEnqueueEntry(&saved[i]);
+    for (profileIndex = 0; profileIndex < ARRAY_SIZE(savedRequests); profileIndex++) {
+        if (savedRequestState[profileIndex] != ITEM_MENU_PREVIEW_REQUEST_ABSENT) {
+            _cdCmdEnqueueEntry(&savedRequests[profileIndex]);
         }
     }
 
-    cdCmdEnqueueDisplayResource(type, index & 0xFF, arg1 & 0xFF);
+    cdCmdEnqueueDisplayResource(fileIdHundreds, fileIndex & 0xFF, loadProfile & 0xFF);
 }
 
 /// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the

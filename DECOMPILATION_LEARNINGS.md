@@ -35109,54 +35109,54 @@ if (j < n) {
 `addiu v1, t3, 4` stays after `addu a3, v1, v0`; `addu a3, a3, v1`
 fills the `beqz`. `inventorySortItems` is the example.
 
-## Shared `index = index` tail so type 6/3/2 emit `j` / `li` into `move s2, a0`
+## Shared `fileIndex = itemId` tail so type 6/3/2 emit `j` / `li` into `move s2, a0`
 
-Classifying an id into `(type, index)` wants types 6, 3, and 2 to share
-`index = index`. Writing `index = index` in each arm emits `li type` /
-`move index, a0` / `j join`. Jump to a shared assignment with `li type`
-in the delay, and skip that assignment when index is already packed:
+Classifying an id into `(fileIdHundreds, fileIndex)` wants types 6, 3, and 2 to share
+`fileIndex = itemId`. Writing `fileIndex = itemId` in each arm emits `li fileIdHundreds` /
+`move fileIndex, a0` / `j join`. Jump to a shared assignment with `li fileIdHundreds`
+in the delay, and skip that assignment when fileIndex is already packed:
 
 ```c
-if (arg0 >= 0x500) {
-    type = 6;
+if (itemId >= 0x500) {
+    fileIdHundreds = 6;
     goto set_index;
 }
-if (arg0 >= 0x300) {
-    type  = 7;
-    index = packed;
+if (itemId >= 0x300) {
+    fileIdHundreds = 7;
+    fileIndex = packed;
     goto after_index;
 }
-if ((u32)(arg0 - 1) < 0x5FU) {
-    type = 3;
+if ((u32)(itemId - 1) < 0x5FU) {
+    fileIdHundreds = 3;
     goto set_index;
 }
-type = 2;
+fileIdHundreds = 2;
 set_index:
-index = arg0;
+fileIndex = itemId;
 after_index:
 ```
 
-`Gp_EnqueueItemPreviewCd` is the example.
+`itemMenuEnqueuePreviewLoad` is the example.
 
 ## `idx = (x & 0xFF) << 2` before `p = arr` so `sll` precedes `addiu p`
 
 `p[slot] = -1` after a loop whose exit delay already has `andi v0, arg, 0xFF`
-wants `sll v0, 2` / `addiu s0, sp, flags` / `addu v0, s0, v0` / `jal` delay
+wants `sll v0, 2` / `addiu s0, sp, savedRequestState` / `addu v0, s0, v0` / `jal` delay
 `sw -1`. Assigning `p = arr` first emits `addiu` then `sll`. Compute the
 byte offset first so the already-live `$v0` is shifted immediately:
 
 ```c
-idx = (arg1 & 0xFF) << 2;
-p   = blk.flags;
+idx = (loadProfile & 0xFF) << 2;
+p   = savedRequestState;
 *(s32*)((s32)p + idx) = -1;
 cdCmdDropQueuedTail();
 ```
 
-`Gp_EnqueueItemPreviewCd` is the example.
+`itemMenuEnqueuePreviewLoad` is the example.
 
 ## Pin `off` to `$v1` as three adds so `base + i*8 + 0x10` is not strength-reduced
 
-`saved[i]` as `base + i*8 + 0x10` in a counted do-while becomes a walking
+`savedRequests[i]` as `base + i*8 + 0x10` in a counted do-while becomes a walking
 pointer (`sll v0` / `addu a0, s4, v0` / `addiu v1, a0, 0x10` / `lbu 0x10(a0)`).
 Three assignments into a `$v1` temp keep `sll v1, s1, 3` in the `beq == -1`
 delay, then `addu v1, s4` / `addiu v1, 0x10`:
@@ -35169,7 +35169,7 @@ off = off + 0x10;
 cur = (CdCmdEntry*)off;
 ```
 
-`Gp_EnqueueItemPreviewCd` is the example.
+`itemMenuEnqueuePreviewLoad` is the example.
 
 ## Join `uiSetPromptText` text in `$a0` and kill REG_EQUAL on the 0s
 
@@ -145184,18 +145184,18 @@ Operand order then depends on the spelling. `trackRecordOffset += base` and
 Only a conversion between the add and the parameter, here the truncation to
 the 16-bit index, keeps `base` first (`addu a1,v0,s3`).
 
-## A local struct bundling unrelated arrays plus a hand-built `i*8 + base + 0x10` is an inlined helper taking the element (Gp_EnqueueItemPreviewCd, 2026-09-26)
+## A local struct bundling unrelated arrays plus a hand-built `i*8 + base + 0x10` is an inlined helper taking the element (itemMenuEnqueuePreviewLoad, 2026-09-26)
 
 The seed packed a flag array, a saved-entry array and two parameter blocks
-into one local struct to fix their frame order, then built `&saved[i]` by hand
+into one local struct to fix their frame order, then built `&savedRequests[i]` by hand
 in the second loop so loop.c would not strength-reduce it: the target keeps
 `sll v1,s1,3; addu v1,v1,s4; addiu v1,v1,0x10` with `s4` a pre-loop copy of
 the flag pointer. That shape is a `static inline` helper called with
-`&saved[i]` whose own locals are the two parameter blocks: its parameter copy
+`&savedRequests[i]` whose own locals are the two parameter blocks: its parameter copy
 is hoisted out of the loop (the `move s4,s0`), only `i*8` remains a giv and is
 "not worth while", and an inlined function's locals are laid out after the
 caller's, which is the order the struct forced. Separately, `goto` into one
-shared `index = index` gave that pseudo too few refs to beat its sibling for
+shared `fileIndex = itemId` gave that pseudo too few refs to beat its sibling for
 `$s2`; an `if`/`else if` chain repeating the assignment in each arm adds the
 refs, and jump2 cross-jumps the copies back into the single target block.
 
