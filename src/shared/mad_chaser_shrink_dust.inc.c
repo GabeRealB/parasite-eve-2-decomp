@@ -10,7 +10,7 @@ void madChaserShrinkWithDust(Task* arg0)
     TmdObject*     obj;
     GfxCoord*      coord;
     VECTOR         scale;
-    GfxMatrix      m;
+    MATRIX         m;
     SVECTOR        ofs;
 
     work                = (MadChaserWork*)arg0->work;
@@ -21,9 +21,9 @@ void madChaserShrinkWithDust(Task* arg0)
     scale.vy            = (s16)work->shrinkScaleY;
     scale.vz            = 0x1000;
     coord->coord        = work->savedRootMtx;
-    gfxSetRotIdentity(&m.mat);
-    ScaleMatrix(&m.mat, &scale);
-    MulMatrix(&coord->coord, &m.mat);
+    gfxSetRotIdentity(&m);
+    ScaleMatrix(&m, &scale);
+    MulMatrix(&coord->coord, &m);
     if ((s16)++work->stateFrames == 4) {
         ofs.vx = 0;
         ofs.vy = 0;
