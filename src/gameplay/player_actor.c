@@ -2668,9 +2668,7 @@ void effectControlTaskAE(Task* task)
     EffectWork* work;
     GfxCoord*   coord;
     GfxCoord*   playerCoords;
-    MATRIX*     localMatrix;
     s32         entryState;
-    s32         fixedOne;
     s32         audioPan;
     s16         nextBrightness;
     s16         nextRadius;
@@ -2691,18 +2689,12 @@ void effectControlTaskAE(Task* task)
         case EFFECT_CHARGE_GLOW_STATE_NEW:
             playerCoords =
                 (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            fixedOne                         = ONE;
-            MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
-            coord->parent                    = playerCoords + EFFECT_CHARGE_GLOW_PLAYER_JOINT;
-            localMatrix                      = &coord->coord;
-            MATRIX_PAIR(localMatrix, 0, 2)   = 0;
-            MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
-            MATRIX_PAIR(localMatrix, 2, 0)   = 0;
-            localMatrix->m[2][2]             = fixedOne;
-            coord->coord.t[0]                = 0;
-            coord->coord.t[1]                = 0;
-            coord->coord.t[2]                = 0;
-            coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+            coord->parent = playerCoords + EFFECT_CHARGE_GLOW_PLAYER_JOINT;
+            gfxSetRotIdentity(&coord->coord);
+            coord->coord.t[0]   = 0;
+            coord->coord.t[1]   = 0;
+            coord->coord.t[2]   = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             task->state = EFFECT_CHARGE_GLOW_STATE_CHARGE;
             work->scale = 0;
