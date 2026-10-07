@@ -67770,7 +67770,7 @@ Rebuild each affected file by moving text, not by regenerating:
   the unit name inside each renamed file.
 
 `actor_146300` is the worked example of why: its new trailing unit contains
-`func_actor_146300_80132B14`, a matched two-line body that splat's skeleton
+`_actor146300IgnoreCommand`, a matched two-line body that splat's skeleton
 re-emitted as `INCLUDE_ASM`. `tools/check_lost_matches.py` does not catch this
 one, because the promoted overlay's `.s` moves under `matchings/`.
 
@@ -75606,7 +75606,7 @@ The next function in that TU, `func_actor_510900_8013C338`, is the same body wit
 a different callee (`worldCoordSetModelLighting(obj, &pos, 0, 3)`) and shows the same numbers:
 63.3% with `delete=5` from m2c's three scalars, 100% from the single `VECTOR`.
 
-`func_actor_146300_80132B1C` is a third instance, and the one that shows the
+`_actor146300AttachmentTask` is a third instance, and the one that shows the
 signature at its clearest: m2c's three scalars score 77.2% with `delete=7` (both
 `sp14`/`sp18` stores gone, 0x20 frame, `$ra` at `0x18`), and replacing them with
 one `VECTOR` — nothing else — is an exact match at 40/40 instructions. The
@@ -126854,7 +126854,7 @@ overlay-local callee" - and eleven actor overlays define it at eleven addresses
 in six sizes, sharing almost no code:
 
     USA/actors/actor_110300  0x68   jal func_actor_110300_801320C4, worldCoordSetModelLighting
-    USA/actors/actor_146300  0x7C   jal actorRenderComposeCoord, worldCoordSetModelLighting, func_actor_146300_801327CC
+    USA/actors/actor_146300  0x7C   jal actorRenderComposeCoord, worldCoordSetModelLighting, _actor146300UpdateAnimation
     USA/actors/actor_260400  0x84   jal actorRenderComposeCoord, worldCoordSetModelLighting, func_actor_260400_8014A200, ...
     USA/actors/actor_110800  0x304  jal func_actor_110800_80132368, sndEvtRequestScriptStart (x7), ...
 
@@ -130463,7 +130463,7 @@ is already dead - here a `SOFT_BARRIER()` in the tail, after `coord`'s last
 read:
 
 ```c
-    func_actor_146300_801327CC(task);
+    _actor146300UpdateAnimation(task);
     SOFT_BARRIER();
     task->state++;
 ```

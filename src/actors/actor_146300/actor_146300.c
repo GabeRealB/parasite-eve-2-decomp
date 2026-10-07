@@ -1,3 +1,5 @@
+#include "actors/actor_146300.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -83,7 +85,7 @@ static _Actor146300Work* _gScriptedWalkWork;
 
 /// The actor's own task, published by the spawn routine: the 0x7D3 handler
 /// runs the per-frame update on it, and the 0x7D5 handler and the companion's
-/// handler `func_actor_146300_80132B1C` reach the actor's model through its
+/// handler `_actor146300AttachmentTask` reach the actor's model through its
 /// `extra`.
 extern Task* gActorSelfTask;
 
@@ -95,7 +97,7 @@ extern Task* gActorHelperTask;
 
 /// Spawn table of the actor's two tasks: index 0 runs
 /// `func_actor_146300_801326CC`, index 1 the companion's
-/// `func_actor_146300_80132B1C`, which the spawn routine starts.
+/// `_actor146300AttachmentTask`, which the spawn routine starts.
 extern TaskDesc D_actor_146300_801427C8[];
 
 /// Animation stream the spawn routine binds into the work block's animation
@@ -120,17 +122,17 @@ extern EvsCommand           D_actor_146300_80138A38[];
 extern EvsCommand           D_actor_146300_80138AC8[];
 extern s32                  D_actor_146300_80142824;
 
-static void func_actor_146300_80132728(Enemy* enemy, Task* task);
-static void func_actor_146300_801327A4(Task* task);
-static void func_actor_146300_801327CC(Task* task);
+static void _actor146300UpdateModel(Enemy* unusedEnemy, Task* task);
+static void _actor146300Destroy(Task* task);
+static void _actor146300UpdateAnimation(Task* unusedTask);
 
 static TmdSource _gActor146300Model0895C;
 static TmdSource _gActor146300Actor113100Model07960;
 void             func_actor_146300_801326CC(Task*);
-void             func_actor_146300_80132B1C(Task*);
+static void      _actor146300AttachmentTask(Task* task);
 
-s32 func_actor_146300_8013299C(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_146300_80132B14(Task*, s32, s32, s32);
+static s32 _actor146300PlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32 _actor146300IgnoreCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument);
 
 extern AnimationPlayRequest     D_actor_146300_80137A20;
 extern AnimationPlayRequest     D_actor_146300_80137A34;
@@ -139,7 +141,7 @@ extern AnimationPlayRequest     D_actor_146300_80137B74;
 extern AnimationPlayRequest     D_actor_146300_80137B88;
 extern AnimationPlayRequest     D_actor_146300_80137BC4;
 extern AnimationBankCopyRequest D_actor_146300_80137BD8;
-void                            func_actor_146300_80132418(s32);
+static void                     _actor146300ApplyHandoverChoice(s32 phase);
 
 extern AnimationPlayRequest D_actor_146300_8013791C;
 extern AnimationPlayRequest D_actor_146300_80137930;
@@ -167,9 +169,29 @@ extern AnimationPlayRequest D_actor_146300_80137B9C;
 extern AnimationPlayRequest D_actor_146300_80137BB0;
 extern ActorTransform       D_actor_146300_80137BE0;
 extern ActorTransform       D_actor_146300_80137BF8;
-void                        func_actor_146300_801323E0(void);
+static void                 _actor146300BeginWaterTankEvent(void);
 
-void func_actor_146300_80131ECC(Task*);
+static void _actor146300IceBagHandoverTask(Task* task);
+
+// Progress counts the three bags consumed after the initial water-tank event.
+enum {
+    ACTOR146300_HANDOVER_AWAIT_FIRST_BAG  = 2,
+    ACTOR146300_HANDOVER_AWAIT_SECOND_BAG = 3,
+    ACTOR146300_HANDOVER_AWAIT_THIRD_BAG  = 4,
+    ACTOR146300_HANDOVER_COMPLETE         = 5,
+};
+
+// CAP slots and two-bit object records for successive handover conversations.
+enum {
+    ACTOR146300_CAP_NO_ICE_BAG             = 0x12,
+    ACTOR146300_CAP_FIRST_BAG              = 0x13,
+    ACTOR146300_CAP_SECOND_BAG             = 0x14,
+    ACTOR146300_CAP_FINAL_TALK             = 0x15,
+    ACTOR146300_FIRST_BAG_TALK_OBJECT      = 0x1F,
+    ACTOR146300_SECOND_BAG_TALK_OBJECT     = 0x20,
+    ACTOR146300_FINAL_TALK_OBJECT          = 0x21,
+    ACTOR146300_HANDOVER_OBJECT_TALK_READY = 1,
+};
 
 static AnimationPackedPose _gActor146300Animation01330Bank1[12] = {
 #include "assets/actor_146300_animation_01330_bank1.inc"
@@ -567,7 +589,7 @@ static AnimationSet _gActor146300Animation05A44 = {
     { NULL, _gActor146300Animation05A44Bank1, NULL, NULL, _gActor146300Animation05A44Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_146300_8013788C = { { { TASK_BODY_NONE, 192 } }, func_actor_146300_80131ECC, { .value = 0 } };
+TaskDesc D_actor_146300_8013788C = { { { TASK_BODY_NONE, 192 } }, _actor146300IceBagHandoverTask, { .value = 0 } };
 
 _Actor146300AnimationBankExtensionStorage D_actor_146300_80137898 = { .data = { { &_gActor146300Animation01330, &_gActor146300Animation016C8, &_gActor146300Animation01E30, &_gActor146300Animation021A8, &_gActor146300Animation028E4, &_gActor146300Animation02B6C, &_gActor146300Animation0300C, &_gActor146300Animation0352C, &_gActor146300Animation03804, &_gActor146300Animation03ACC, &_gActor146300Animation03FEC, &_gActor146300Animation04394, &_gActor146300Animation04758, &_gActor146300Animation049F0, &_gActor146300Animation04C7C, &_gActor146300Animation05354, &_gActor146300Animation0568C, &_gActor146300Animation05A44 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
 
@@ -650,7 +672,7 @@ ActorTransform D_actor_146300_80137BF8 = { { 1500, -0x2EE0, -1744, 0 }, { 0, 182
 ActorTransform D_actor_146300_80137C10 = { { 1110, -0x2EE0, -2000, 0 }, { 0, 682, 0, 0 } };
 
 EvsCommand D_actor_146300_80137C28[99] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_146300_801323E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor146300BeginWaterTankEvent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 16 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_146300_80137BD8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137BB0 }, { .value = 0 } },
@@ -788,10 +810,10 @@ EvsCommand D_actor_146300_801386C0[14] = {
 EvsCommand D_actor_146300_80138810[8] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_146300_80137A98 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_146300_80132418 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor146300ApplyHandoverChoice }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_146300_80132418 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor146300ApplyHandoverChoice }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4005 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1258,16 +1280,16 @@ static AnimationSet _gActor146300Animation10954 = {
 static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_146300_801427A0[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_146300_8013299C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor146300PlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_146300_80132B14 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor146300IgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_146300_801427C8[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_146300_801326CC, { .model = &_gActor146300Model0895C } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_146300_80132B1C, { .model = &_gActor146300Actor113100Model07960 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor146300AttachmentTask, { .model = &_gActor146300Actor113100Model07960 } },
 };
 
 u8 D_actor_146300_801427E0[68] = {
@@ -1347,63 +1369,94 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-void        func_actor_146300_8013224C(void);
 static void func_actor_146300_801324AC(Enemy* enemy, Task* task);
 
-void func_actor_146300_80131ECC(Task* task)
+/// Runs one ice-bag handover or follow-up conversation, then releases scripted control.
+///
+/// The room holds player control before spawning this bodyless task in state 0.
+/// Consumes the live-save collection bit only while advancing handover progress;
+/// expired bags are melted before the first check. The loaded CAP slots and event
+/// scripts must remain available until the scene ends. Event completion is the
+/// session's idle event state, not CAP selection alone. A final repeat conversation
+/// delegates control release to its script and kills this task immediately.
+static void _actor146300IceBagHandoverTask(Task* task)
 {
+    enum {
+        ACTOR146300_HANDOVER_CHECK                 = 0,
+        ACTOR146300_HANDOVER_RELEASE_CONTROL       = 1,
+        ACTOR146300_HANDOVER_START_BAG_SCENE       = 10,
+        ACTOR146300_HANDOVER_WAIT_BAG_SCENE        = 11,
+        ACTOR146300_HANDOVER_START_CHOICE_SCENE    = 20,
+        ACTOR146300_HANDOVER_WAIT_CHOICE_SCENE     = 21,
+        ACTOR146300_HANDOVER_START_FINAL_BAG_SCENE = 30,
+        ACTOR146300_HANDOVER_WAIT_FINAL_BAG_SCENE  = 31,
+        ACTOR146300_HANDOVER_START_FINAL_TALK      = 40,
+        ACTOR146300_HANDOVER_WAIT_FINAL_TALK       = 41,
+        ACTOR146300_CAP_HANDOVER_VARIANT           = 0,
+        ACTOR146300_CAP_CHOICE_VARIANT             = 1,
+    };
+
+    /// Consumes a bag, selects its CAP slot, advances progress and queues the scene.
+    ///
+    /// Each argument is evaluated once: captionIndex, nextProgress, then handoverTask,
+    /// after clearing the collection bit. Requires a live task, loaded CAP slot and
+    /// next handover progress. Captures the overlay's caption latch and this function's
+    /// start-scene state constant. Ends a block; use as a statement inside braces.
+#define ACTOR_146300_ACCEPT_ICE_BAG(handoverTask, captionIndex, nextProgress)    \
+    {                                                                            \
+        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);             \
+        D_actor_146300_80142824 = (captionIndex);                                \
+        gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, (nextProgress)); \
+        (handoverTask)->state = ACTOR146300_HANDOVER_START_BAG_SCENE;            \
+    }
+
     switch (task->state) {
-        case 0:
+        case ACTOR146300_HANDOVER_CHECK:
+            // Expiration must be applied before testing whether a bag can be handed over.
             inventoryMeltIceBagIfExpired();
             switch (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
-                case 2:
+                case ACTOR146300_HANDOVER_AWAIT_FIRST_BAG:
                     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
-                        capRunCommandWithTransition(0x12);
+                        capRunCommandWithTransition(ACTOR146300_CAP_NO_ICE_BAG);
                         task->state++;
                     } else {
-                        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
-                        D_actor_146300_80142824 = 0x13;
-                        gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 3);
-                        task->state = 0xA;
+                        ACTOR_146300_ACCEPT_ICE_BAG(task, ACTOR146300_CAP_FIRST_BAG, ACTOR146300_HANDOVER_AWAIT_SECOND_BAG);
                     }
                     break;
-                case 3:
+                case ACTOR146300_HANDOVER_AWAIT_SECOND_BAG:
                     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
-                        if (areaGetCurrentObjectState(0x1F) == 1) {
+                        if (areaGetCurrentObjectState(ACTOR146300_FIRST_BAG_TALK_OBJECT) == ACTOR146300_HANDOVER_OBJECT_TALK_READY) {
                             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-                            D_actor_146300_80142824 = 0x13;
-                            task->state             = 0x14;
+                            D_actor_146300_80142824 = ACTOR146300_CAP_FIRST_BAG;
+                            task->state             = ACTOR146300_HANDOVER_START_CHOICE_SCENE;
                         } else {
-                            capRunCommandWithTransition(0x12);
+                            capRunCommandWithTransition(ACTOR146300_CAP_NO_ICE_BAG);
+                            task->state++;
+                        }
+                    } else {
+                        ACTOR_146300_ACCEPT_ICE_BAG(task, ACTOR146300_CAP_SECOND_BAG, ACTOR146300_HANDOVER_AWAIT_THIRD_BAG);
+                    }
+                    break;
+                case ACTOR146300_HANDOVER_AWAIT_THIRD_BAG:
+                    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
+                        if (areaGetCurrentObjectState(ACTOR146300_SECOND_BAG_TALK_OBJECT) == ACTOR146300_HANDOVER_OBJECT_TALK_READY) {
+                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
+                            D_actor_146300_80142824 = ACTOR146300_CAP_SECOND_BAG;
+                            task->state             = ACTOR146300_HANDOVER_START_CHOICE_SCENE;
+                        } else {
+                            capRunCommandWithTransition(ACTOR146300_CAP_NO_ICE_BAG);
                             task->state++;
                         }
                     } else {
                         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
-                        D_actor_146300_80142824 = 0x14;
-                        gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 4);
-                        task->state = 0xA;
+                        gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, ACTOR146300_HANDOVER_COMPLETE);
+                        task->state = ACTOR146300_HANDOVER_START_FINAL_BAG_SCENE;
                     }
                     break;
-                case 4:
-                    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
-                        if (areaGetCurrentObjectState(0x20) == 1) {
-                            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-                            D_actor_146300_80142824 = 0x14;
-                            task->state             = 0x14;
-                        } else {
-                            capRunCommandWithTransition(0x12);
-                            task->state++;
-                        }
-                    } else {
-                        inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
-                        gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 5);
-                        task->state = 0x1E;
-                    }
-                    break;
-                case 5:
-                    if (areaGetCurrentObjectState(0x21) == 1) {
+                case ACTOR146300_HANDOVER_COMPLETE:
+                    if (areaGetCurrentObjectState(ACTOR146300_FINAL_TALK_OBJECT) == ACTOR146300_HANDOVER_OBJECT_TALK_READY) {
                         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-                        task->state = 0x28;
+                        task->state = ACTOR146300_HANDOVER_START_FINAL_TALK;
                     } else {
                         evsStartScript(D_actor_146300_80138AC8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                         taskKill(task);
@@ -1414,99 +1467,117 @@ void func_actor_146300_80131ECC(Task* task)
                     break;
             }
             break;
-        case 1:
+        case ACTOR146300_HANDOVER_RELEASE_CONTROL:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             break;
-        case 10:
-            capStartSequenceSlot((s16)D_actor_146300_80142824, 0, 0);
+        case ACTOR146300_HANDOVER_START_BAG_SCENE:
+            // The same CAP slot serves the handover and its later choice conversation.
+            capStartSequenceSlot((s16)D_actor_146300_80142824, CAP_PLAYBACK_IN_PLACE, ACTOR146300_CAP_HANDOVER_VARIANT);
             evsStartScript(D_actor_146300_801386C0, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 11:
+        case ACTOR146300_HANDOVER_WAIT_BAG_SCENE:
             if (gGameSession->eventState == 0) {
-                task->state = 0x14;
+                task->state = ACTOR146300_HANDOVER_START_CHOICE_SCENE;
             }
             break;
-        case 20:
-            capStartSequenceSlot((s16)D_actor_146300_80142824, 0, 1);
+        case ACTOR146300_HANDOVER_START_CHOICE_SCENE:
+            capStartSequenceSlot((s16)D_actor_146300_80142824, CAP_PLAYBACK_IN_PLACE, ACTOR146300_CAP_CHOICE_VARIANT);
             evsStartScript(D_actor_146300_80138810, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 30:
+        case ACTOR146300_HANDOVER_START_FINAL_BAG_SCENE:
             evsStartScript(D_actor_146300_801388D0, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 31:
+        case ACTOR146300_HANDOVER_WAIT_FINAL_BAG_SCENE:
             if (gGameSession->eventState == 0) {
-                task->state = 0x28;
+                task->state = ACTOR146300_HANDOVER_START_FINAL_TALK;
             }
             break;
-        case 40:
-            capStartSequenceSlot(0x15, 0, 1);
+        case ACTOR146300_HANDOVER_START_FINAL_TALK:
+            capStartSequenceSlot(ACTOR146300_CAP_FINAL_TALK, CAP_PLAYBACK_IN_PLACE, ACTOR146300_CAP_CHOICE_VARIANT);
             evsStartScript(D_actor_146300_80138A38, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 21:
-        case 41:
+        case ACTOR146300_HANDOVER_WAIT_CHOICE_SCENE:
+        case ACTOR146300_HANDOVER_WAIT_FINAL_TALK:
             if (gGameSession->eventState == 0) {
-                task->state = 1;
+                task->state = ACTOR146300_HANDOVER_RELEASE_CONTROL;
             }
             break;
     }
+#undef ACTOR_146300_ACCEPT_ICE_BAG
 }
 
-void func_actor_146300_8013224C(void)
+void actor146300RestoreHandoverPose(void)
 {
     switch (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
-        case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
+        case ACTOR146300_HANDOVER_AWAIT_FIRST_BAG:
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137B38, 0);
             break;
-        case 3:
+        case ACTOR146300_HANDOVER_AWAIT_SECOND_BAG:
             if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
-                if (areaGetCurrentObjectState(0x1F) == 1) {
-                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                if (areaGetCurrentObjectState(ACTOR146300_FIRST_BAG_TALK_OBJECT) == ACTOR146300_HANDOVER_OBJECT_TALK_READY) {
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137AAC, 0);
                 } else {
-                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137B38, 0);
                 }
             } else {
-                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137B38, 0);
             }
             break;
-        case 4:
+        case ACTOR146300_HANDOVER_AWAIT_THIRD_BAG:
             if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {
-                if (areaGetCurrentObjectState(0x20) == 1) {
-                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+                if (areaGetCurrentObjectState(ACTOR146300_SECOND_BAG_TALK_OBJECT) == ACTOR146300_HANDOVER_OBJECT_TALK_READY) {
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137AAC, 0);
                 } else {
-                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B38, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137B38, 0);
                 }
                 break;
             }
+            // A third bag already present restores the final pose before its handover.
             /* fallthrough */
-        case 5:
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_actor_146300_80137C10, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B60, 0);
+        case ACTOR146300_HANDOVER_COMPLETE:
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLACE, &D_actor_146300_80137C10, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137B60, 0);
             break;
     }
 }
 
-void func_actor_146300_801323E0(void)
+/// Cancels room effects and locks attachment actions for the water-tank event.
+///
+/// The opening script calls this before taking control of player presentation.
+static void _actor146300BeginWaterTankEvent(void)
 {
     roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-void func_actor_146300_80132418(s32 arg0)
+/// Applies the retained CAP choice at either cue of the handover conversation.
+///
+/// Phase 0 selects clip 10 for key 1; phase 1 selects clip 5 for key 2.
+/// Other phases and keys leave the actor alone. Requires the package's live
+/// initialized placement-0 actor and its loaded request records.
+static void _actor146300ApplyHandoverChoice(s32 phase)
 {
-    switch (arg0) {
-        case 0:
-            if (capGetVariantKey() == 1) {
-                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137B10, 0);
+    enum {
+        ACTOR146300_CHOICE_FIRST_CUE  = 0,
+        ACTOR146300_CHOICE_SECOND_CUE = 1,
+        ACTOR146300_CHOICE_FIRST_KEY  = 1,
+        ACTOR146300_CHOICE_SECOND_KEY = 2,
+    };
+
+    switch (phase) {
+        case ACTOR146300_CHOICE_FIRST_CUE:
+            if (capGetVariantKey() == ACTOR146300_CHOICE_FIRST_KEY) {
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137B10, 0);
             }
             break;
-        case 1:
-            if (capGetVariantKey() == 2) {
-                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_146300_80137AAC, 0);
+        case ACTOR146300_CHOICE_SECOND_CUE:
+            if (capGetVariantKey() == ACTOR146300_CHOICE_SECOND_KEY) {
+                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_146300_80137AAC, 0);
             }
             break;
     }
@@ -1544,7 +1615,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_146300_801327A4;
+    task->exitCallback               = _actor146300Destroy;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -1568,7 +1639,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
     _gScriptedWalkWork->st.animId = 0xB;
     _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable                = D_actor_146300_801427A0;
-    func_actor_146300_801327CC(task);
+    _actor146300UpdateAnimation(task);
     task->state++;
 }
 
@@ -1580,45 +1651,61 @@ void func_actor_146300_801326CC(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         func_actor_146300_801324AC,
-        func_actor_146300_80132728,
+        _actor146300UpdateModel,
     };
 
     _gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// State 1 of the task handler `func_actor_146300_801326CC`: refreshes the model
-/// root's world matrix, relights the model from a point 0x320 above its
-/// translation, then runs the per-frame update.
-static void func_actor_146300_80132728(Enemy* enemy, Task* task)
+/// Samples the full model lighting 800 world units above a composed actor root.
+///
+/// Root and output matrices must remain live and satisfy the lighting query's
+/// scratch and GTE requirements; the temporary point is borrowed only by the call.
+static inline void _actor146300RelightFromRoot(TmdObject* model, const GfxCoord* actorRoot)
 {
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
+    enum { ACTOR146300_LIGHT_SAMPLE_HEIGHT = 800 };
+    VECTOR lightPosition;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    actorRenderComposeCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x320;
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    func_actor_146300_801327CC(task);
+    lightPosition.vx = actorRoot->workm.t[0];
+    lightPosition.vy = actorRoot->workm.t[1] - ACTOR146300_LIGHT_SAMPLE_HEIGHT;
+    lightPosition.vz = actorRoot->workm.t[2];
+    worldCoordSetModelLighting(model, &lightPosition, 0, 3);
 }
 
-/// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
-/// (parked in `Task::spawnArg2`) back to `enemyDestroy`.
-static void func_actor_146300_801327A4(Task* task)
+/// Composes and relights the actor model before updating its child-part animation.
+///
+/// Running state 1 requires a live TMD task, a root parented to the view and the
+/// receiver's initialized work published in `_gScriptedWalkWork`. Samples all
+/// three lights 800 world units above the composed root. `unusedEnemy` is ignored.
+static void _actor146300UpdateModel(Enemy* unusedEnemy, Task* task)
+{
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    actorRenderComposeCoord(rootCoord);
+    _actor146300RelightFromRoot(model, rootCoord);
+    _actor146300UpdateAnimation(task);
+}
+
+/// Destroys this actor's enemy and begins task teardown when its task exits.
+///
+/// Requires the live enemy borrowed in `spawnArg2.pointer` and its owning task;
+/// destruction follows `enemyDestroy`. Task teardown owns the model and work.
+static void _actor146300Destroy(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-/// Per-frame update: reset mode 1 runs the reseed with the latched blend
-/// duration and mode 2 the plain reseed, each then switching to mode 3; mode 3
-/// ticks the animation. Steps 1 and 2 each return through their own copy of the
-/// switch to mode 3; the two are identical, so jump.c cross-jumps them and only
-/// the second survives.
-static void func_actor_146300_801327CC(Task* task)
+/// Reseeds or advances the published actor's child-part animation without moving its root.
+///
+/// Requires live initialized `_gScriptedWalkWork` and loaded clip data for its
+/// twenty-part rig. Blend/reset seed slots 1..19 and enter tick state without
+/// ticking again in that call; tick advances those slots. Blend uses the latched
+/// whole-frame duration. State 0 and other states do nothing. `unusedTask` is ignored.
+static void _actor146300UpdateAnimation(Task* unusedTask)
 {
     if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         _scriptedWalkBlendAnim();
@@ -1641,61 +1728,80 @@ static void func_actor_146300_801327CC(Task* task)
 
 #include "../../shared/scripted_walk_blend_anim.inc.c"
 
-/// Message 0x7D3 handler: adopts `preset`'s animation id when it is
-/// one of the first 0x11, latching the reset mode and the blend duration the
-/// reseed forwards, then hands the published task to the per-frame update. Ids
-/// past the range are rejected with -1 and leave the work block untouched.
-s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
+/// Applies an animation request immediately to the published stationary actor.
+///
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION`; borrows a readable word-aligned request
+/// through dispatch, retaining no request pointer. Requires the live initialized
+/// singleton work and its loaded rig/model/table. Playable IDs are 1..16: entry 0
+/// is NULL. The signed check rejects only IDs >=17; zero and negative IDs pass,
+/// so callers must enforce the playable range before the signed-halfword narrowing.
+/// Every nonzero blend value selects a blend and narrows whole normal-rate frames
+/// to s16 (0..2047 keeps its playback timer nonnegative); reset leaves that latch
+/// intact. Repeated clips restart. Source index and collision mode are ignored,
+/// as are the other callback arguments. Returns 0 after reseeding, -1 on rejection.
+static s32 _actor146300PlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    if (preset->animationId < 0x11) {
-        _gScriptedWalkWork->st.animId = preset->animationId;
-        if (preset->blend != ANIMATION_BLEND_RESET) {
+    enum {
+        ACTOR146300_ANIMATION_SET_COUNT = 17, // NULL at 0, loaded twenty-part clips at 1..16
+        ACTOR146300_ANIMATION_REJECTED  = -1,
+    };
+
+    if (request->animationId < ACTOR146300_ANIMATION_SET_COUNT) {
+        _gScriptedWalkWork->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            _gScriptedWalkBlendFrames    = preset->blendFrames;
+            _gScriptedWalkBlendFrames    = request->blendFrames;
         } else {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_6 = 0;
-        func_actor_146300_801327CC(gActorSelfTask);
+        _actor146300UpdateAnimation(gActorSelfTask);
         return 0;
     }
-    return -1;
+    return ACTOR146300_ANIMATION_REJECTED;
 }
 
 #include "../../shared/actor_messages_pair_visibility.inc.c"
 
 #include "../../shared/scripted_walk_place.inc.c"
 
-/// Message 0x7DB handler: accepts the message and does nothing.
-s32 func_actor_146300_80132B14(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Acknowledges `ACTOR_COMMAND_MESSAGE_APPLY` without changing this actor.
+///
+/// Returns 0 and ignores every argument, including the borrowed command pointer;
+/// the pointer need not address readable storage because it is never dereferenced.
+static s32 _actor146300IgnoreCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument)
 {
     return 0;
 }
 
-/// Task handler of the companion task: the first tick hangs the companion
-/// model's coordinate frame under part 4 of the actor's model, shows the model
-/// and steps to state 1; every later tick relights the companion model from a
-/// point 0x320 above the actor model's root translation.
-void func_actor_146300_80132B1C(Task* task)
+/// Attaches the companion model to actor part 4, then relights it from the actor root.
+///
+/// Requires this live TMD task and `gActorSelfTask` with its twenty coordinates;
+/// both models remain live while attached. State 0 replaces the companion root's
+/// parent, marks composition dirty, enables drawing and enters state 1. Later
+/// ticks sample all three lights 800 world units above the actor's cached world
+/// root, which the actor's frame state must compose; this task does not compose it.
+static void _actor146300AttachmentTask(Task* task)
 {
-    TmdObject* extra = task->extra.tmd;
-    GfxCoord*  coord = extra->coords;
-    GfxCoord*  parts = gActorSelfTask->extra.tmd->coords;
-    GfxCoord*  part  = parts + 4;
-    VECTOR     vec;
+    enum {
+        ACTOR146300_ATTACHMENT_ATTACH  = 0,
+        ACTOR146300_ATTACHMENT_RELIGHT = 1,
+        ACTOR146300_ATTACHMENT_PART    = 4,
+    };
+    TmdObject* attachmentModel = task->extra.tmd;
+    GfxCoord*  attachmentRoot  = attachmentModel->coords;
+    GfxCoord*  actorRoot       = gActorSelfTask->extra.tmd->coords;
+    GfxCoord*  attachmentPart  = actorRoot + ACTOR146300_ATTACHMENT_PART;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            extra->flags        = 0;
-            coord->parent       = part;
+        case ACTOR146300_ATTACHMENT_ATTACH:
+            attachmentRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+            attachmentModel->flags       = 0;
+            attachmentRoot->parent       = attachmentPart;
             task->state++;
             break;
-        case 1:
-            vec.vx = parts->workm.t[0];
-            vec.vy = parts->workm.t[1] - 0x320;
-            vec.vz = parts->workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
+        case ACTOR146300_ATTACHMENT_RELIGHT:
+            _actor146300RelightFromRoot(attachmentModel, actorRoot);
             break;
     }
 }
