@@ -2,17 +2,22 @@
 
 #ifndef SRC_SHARED_SCRIPTED_WALK_PLACE_ROOT_COORD
 #define SRC_SHARED_SCRIPTED_WALK_PLACE_ROOT_COORD
-/// Replaces a model root's parent-space transform with a yaw and XYZ placement.
+/// Places a scripted walker's model root at a parent-space position and yaw.
 ///
-/// Borrows a writable root and readable placement through the call; yaw uses
-/// 4096 units per turn and XYZ uses whole parent-coordinate units. Replaces
-/// pitch, roll and scale, preserves the parent and invalidates composition.
-static __inline__ void _scriptedWalkPlaceRootCoord(GfxCoord* rootCoord, const ActorTransform* placement, s16 yaw)
+/// Borrows a live, writable, word-aligned root and a readable, word-aligned
+/// position through the call; neither pointer is retained. XYZ uses signed
+/// whole units in the root's existing parent's space; the vector's fourth
+/// word is ignored. `yaw` is signed, in 4096 units per turn, without a
+/// normalization requirement. Replaces pitch, roll and scale with unit-scale
+/// yaw and marks composition dirty. Preserves the parent and stored Euler
+/// state; leaves the cached matrix stale for the next composition. Requires
+/// an initialized scratch stack with 0x24 free bytes, released before returning.
+static __inline__ void _scriptedWalkPlaceRootCoord(GfxCoord* rootCoord, const VECTOR* parentPosition, s16 yaw)
 {
     gfxRotMatrixY(&rootCoord->coord, yaw, GRAPHICS_ROTATION_REPLACE);
-    rootCoord->coord.t[0]   = placement->pos.vx;
-    rootCoord->coord.t[1]   = placement->pos.vy;
-    rootCoord->coord.t[2]   = placement->pos.vz;
+    rootCoord->coord.t[0]   = parentPosition->vx;
+    rootCoord->coord.t[1]   = parentPosition->vy;
+    rootCoord->coord.t[2]   = parentPosition->vz;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 #endif
@@ -35,6 +40,6 @@ static s32 SCRIPTED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* 
 
     rootCoord                  = task->extra.tmd->coords;
     SCRIPTED_WALK_WORK->st.yaw = yaw = placement->rot.vy;
-    _scriptedWalkPlaceRootCoord(rootCoord, placement, yaw);
+    _scriptedWalkPlaceRootCoord(rootCoord, &placement->pos, yaw);
     return 0;
 }
