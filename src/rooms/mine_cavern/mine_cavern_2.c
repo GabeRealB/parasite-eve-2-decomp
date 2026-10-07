@@ -2570,7 +2570,6 @@ static void func_mine_cavern_80182184(void)
 {
     VECTOR   unused;
     GfxCoord coord;
-    MATRIX*  m;
     SVECTOR* pos;
     s32      view;
     s32      flags;
@@ -2600,12 +2599,7 @@ static void func_mine_cavern_80182184(void)
             if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
                 continue;
             }
-            m                               = &coord.coord;
-            MATRIX_PAIR(&coord.coord, 0, 0) = 0x1000;
-            MATRIX_PAIR(&coord.coord, 0, 2) = 0;
-            MATRIX_PAIR(m, 1, 1)            = 0x1000;
-            MATRIX_PAIR(&coord.coord, 2, 0) = 0;
-            m->m[2][2]                      = 0x1000;
+            gfxSetRotIdentity(&coord.coord);
             coord.parent                    = &gGfxViewCoord;
             pos                             = &D_mine_cavern_8018E39C[i];
             coord.coord.t[0]                = pos->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
