@@ -1,10 +1,17 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
-/// Binds the published rig and queues the startup clip with movement and sound off.
+/// Binds the published sound walker's rig and queues clip 1 for a reset.
 ///
-/// `model` and `gFootstepWalkWork` must be live, with the carrier's clip table
-/// loaded. The context borrows the model, table and rig storage. This prepares
-/// a reset request; the caller must process it before ticking any slot.
+/// `model` must be a live nineteen-part object returned by `tmdCreateModel`,
+/// and `gFootstepWalkWork` must name its writable `FootstepWalkWork`. The
+/// carrier's `gFootstepWalkAnims` supplies a word-aligned native set-pointer
+/// table with clip 1 loaded and tracks 1 through 18 available. The context
+/// borrows the model allocation's coordinates, table, slots and encoded-pose
+/// buffer; keep their storage and the clip data live throughout playback.
+///
+/// Clears the travel and turn-update counts, forgets the last footstep record
+/// and disables step sounds. Slots and poses are left untouched: the caller
+/// must process the reset request before ticking driven slots 1 through 18.
 static __inline__ void _footstepWalkPrepareAnimation(TmdObject* model)
 {
     enum { FOOTSTEP_WALK_STARTUP_ANIM_ID = 1 };
