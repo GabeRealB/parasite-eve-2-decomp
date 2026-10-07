@@ -85,7 +85,7 @@ static void Actor04400_Fn07F04(Task* arg0);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void _madChaserDropDeathHold(Task* task);
 static void _madChaserShrinkDeathStart(Task* task);
-static void Actor04400_Fn08C08(Task* arg0);
+static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void Actor04400_Fn08DA4(Task* arg0);
 
 /* `D_800678F0` selects the model stream the next `effectSpawn` copies into
@@ -1226,7 +1226,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
     _madChaserBeginShrink,
-    Actor04400_Fn08C08,
+    _madChaserShrinkDeathTurnTranslucent,
     madChaserShrink,
     Actor04400_Fn08DA4,
 } };
@@ -1519,10 +1519,14 @@ static void _madChaserDropDeathHold(Task* task)
 
 #include "../../shared/mad_chaser_begin_shrink.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserDeathTurnTranslucent Actor04400_Fn08C08
+/// Selects the private translucency-delay state of scripted shrink death.
+///
+/// Names a statically declared void(Task*) callback for the following fragment.
+/// This identifier-only binding captures no runtime values; undefine it after
+/// inclusion to restore the ordinary-death definition.
+#define MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER _madChaserShrinkDeathTurnTranslucent
 #include "../../shared/mad_chaser_death_translucent.inc.c"
-#undef madChaserDeathTurnTranslucent
+#undef MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER
 
 #include "../../shared/mad_chaser_shrink.inc.c"
 

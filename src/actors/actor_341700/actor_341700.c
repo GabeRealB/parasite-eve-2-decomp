@@ -81,7 +81,7 @@ static void func_actor_341700_80169D54(Task* arg0);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void func_actor_341700_8016A8EC(Task* arg0);
 static void _madChaserShrinkDeathStart(Task* task);
-static void func_actor_341700_8016AA58(Task* arg0);
+static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void func_actor_341700_8016ABF4(Task* arg0);
 
 /// Six task-state handlers of the first enemy form, dispatched by
@@ -984,7 +984,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
     _madChaserBeginShrink,
-    func_actor_341700_8016AA58,
+    _madChaserShrinkDeathTurnTranslucent,
     madChaserShrink,
     func_actor_341700_8016ABF4,
 } };
@@ -1283,10 +1283,14 @@ static void func_actor_341700_8016A8EC(Task* arg0)
 
 #include "../../shared/mad_chaser_begin_shrink.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserDeathTurnTranslucent func_actor_341700_8016AA58
+/// Selects the private translucency-delay state of scripted shrink death.
+///
+/// Names a statically declared void(Task*) callback for the following fragment.
+/// This identifier-only binding captures no runtime values; undefine it after
+/// inclusion to restore the ordinary-death definition.
+#define MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER _madChaserShrinkDeathTurnTranslucent
 #include "../../shared/mad_chaser_death_translucent.inc.c"
-#undef madChaserDeathTurnTranslucent
+#undef MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER
 
 #include "../../shared/mad_chaser_shrink.inc.c"
 
