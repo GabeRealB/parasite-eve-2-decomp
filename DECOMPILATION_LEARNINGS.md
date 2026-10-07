@@ -1771,7 +1771,7 @@ before touching anything else.
 
 ## cse's copy survivor is the class *canonical*, and it rewrites the *other* register's uses: a third consumer of the first read decides which home the case bodies get
 
-`func_actor_310600_801625F0` is the twin of `func_actor_113100_80132790`: same
+`_actor310600SetModelDraw` is the twin of `func_actor_113100_80132790`: same
 four-mode switch, same walk, and the same `lw v1` / `move a1,v1` prologue, with
 the walks of modes 0..2 taking `$a1` (the copy) and mode 3's taking `$v1` (the
 load). Two reads of `task->work` reproduce that prologue exactly - but the three
@@ -1798,17 +1798,17 @@ but which register is left with the *latest* use. Consuming the load's pseudo in
 the entry block flips it:
 
 ```c
-work = (_Actor310600RupertBroderickWork*)task->work;
-ext  = task->extra;
-w    = (_Actor310600RupertBroderickWork*)task->work;   /* the second read: cse -> copy of work */
-obj  = &work->body;                     /* takes work's last use back to block 0 */
+work     = task->work;
+model    = task->extra.tmd;
+drawWork = work;                       /* the copy of work */
+body     = &work->body;                /* takes work's last use back to block 0 */
 ...
-    p = &w->body;                       /* modes 0..2: keep the copy's register */
+    bodyCursor = &drawWork->body;      /* modes 0..2: keep the copy's register */
 ...
-    p = obj;                            /* mode 3: reads the copy's home too, now */
+    bodyCursor = body;                /* mode 3: reads the copy's home too, now */
 ```
 
-`&work->body` written inside case 3 instead (i.e. no `obj` local) leaves the load's
+`&work->body` written inside case 3 instead (i.e. no `body` local) leaves the load's
 pseudo canonical, and the overlay comes out three instructions short - a `regs`
 penalty of 3 with `branch 0`: every instruction present and in order, only the
 `addiu` base register of three preheaders wrong. When a two-read CSE copy is
@@ -48576,7 +48576,7 @@ same-priority insns in that order. So this is a source question, not a
 scheduling one: do not reach for a scheduler barrier or a `do {} while (0)`
 wrapper. Both forms are in the tree, and the sibling whose disassembly has the
 load in the right place tells you which one to write - `enemyTeardownDelayTask`,
-`Actor00300_Fn04770` and `func_actor_310600_80162A7C` take the inline form,
+`Actor00300_Fn04770` and `_actor310600TickWalk` take the inline form,
 `Actor00400_Fn0793C` and `_actor311900RupertTask` the local. Matching the
 wrong sibling costs exactly the reorder and the missing `nop` (90.8% with
 `reorder=2 delete=1`, `regs=0`).
@@ -49427,7 +49427,7 @@ sw $a1,0x10($sp) ; sw $a2,0x14($sp) ; sw $a3,0x18($sp)
 lh $v0,0x47E($v1) ; sll $v0,$v0,2 ; addu $v0,$sp,$v0 ; lw $v0,0x10($v0) ; jalr $v0
 ```
 
-m2c read `func_actor_310600_80162A7C` as a six-argument indirect call and scored
+m2c read `_actor310600TickWalk` as a six-argument indirect call and scored
 52.83% at `insert=4 delete=6`. Two things identify it. The same words are both
 loaded *and* stored, and the store is to the caller's own frame — an argument
 needs one or the other, never both. And the count is checkable against a
@@ -49438,9 +49438,9 @@ there is no callee `.s` to count argument registers in, so recognising the copy
 is the only route:
 
 ```c
-work = (_Actor310600RupertBroderickWork*)task->work;
-fns  = D_actor_310600_80161E48;              /* TaskFuncTable3 fns; */
-fns.funcs[work->walkStep](task);
+work  = task->work;
+steps = D_actor_310600_80161E48;              /* TaskFuncTable3 steps; */
+steps.funcs[work->walkStep](task);
 ```
 
 Exact on the second build. Worth recognising on sight: the one shared body is
@@ -85230,7 +85230,7 @@ Inputs: `base_2.i` (two independent `if`s, each with the tail spelled out,
 `b5b01f73c0b461ef7addeb1befcfdf091c9da1059fa264a4bd35984b01642a72`.
 ## `overlay_dup_index.py find` cannot see a family body that differs by offsets and rodata
 
-**Problem:** `func_actor_310600_80162B98` is an actor state handler that rotates
+**Problem:** `_actor310600StartWalkVelocity` is an actor state handler that rotates
 a constant local-space offset through the root part's matrix into `work->walkVelocity`,
 opens the three per-axis stop thresholds to 0x7FFF and advances the handler
 counter. `func_actor_335800_80163CA0`, `ActorsShared80132920` and
@@ -85256,18 +85256,18 @@ scalar stack locals for an address-taken struct lose their dead stores", which
 is worth recognising before spending attempts on the seed.
 
 ```c
-    coord = ((TmdObject*)task->extra)->coords;
-    work  = (_Actor310600RupertBroderickWork*)task->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    vec = D_actor_310600_80161E54;
-    ApplyMatrixLV(&coord->coord, &vec, &work->walkVelocity);
+    localVelocity = D_actor_310600_80161E54;
+    ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walkVelocity);
     work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
     work->walkLastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
     work->walkStep++;
 ```
 
-Example: `func_actor_310600_80162B98` (50.156% -> 100.000%, one build).
+Example: `_actor310600StartWalkVelocity` (50.156% -> 100.000%, one build).
 
 Inputs: `base.i` (m2c seed, 50.156%)
 `b36941505d0d8b4235316cb2474c68d98c62426d77f2d088dcd015d6ac7cd250`.
@@ -101109,9 +101109,9 @@ installer `func_actor_350700_80162860` / `func_actor_350500_80162828`, so the
 two copies stay matched separately.
 
 Inputs: `base.c` (77.365%), `base_1.c` (100.000%).
-## A load written after a run of stores cannot be scheduled before them (func_actor_310600_80161E64, 2026-09-16)
+## A load written after a run of stores cannot be scheduled before them (_actor310600InitBody, 2026-09-16)
 
-`func_actor_310600_80161E64`'s m2c seed scored 95.000% with
+`_actor310600InitBody`'s m2c seed scored 95.000% with
 `regs=3 reorder=3 insert=1 delete=1`, and `base_diff` put the whole difference in
 one region: the target runs a `lw 0x2C` → `lw 8` → `addiu 0x50` → `sw 8` chain at
 the **head** of the block, ahead of seven stores to `0xC/0x18/0x1C/0x10/0x12/0x14/
@@ -101137,9 +101137,9 @@ insn 117's dep list is `(insn_list 90 (insn_list 95 … (insn_list 114 (insn_lis
 Moving the assignment before the stores in the C is the whole fix:
 
 ```c
-    obj           = &work->body;
-    obj->coords  = &((TmdObject*)task->extra)->coords[1];  /* was written last */
-    obj->field_C  = work->contacts;
+    body                   = &work->body;
+    body->coord            = &task->extra.tmd->coords[ACTOR_310600_BODY_SPHERE_PART];  /* was written last */
+    body->context.contacts = work->contacts;
 ```
 
 100.000% on the next build, every penalty zero. The register change is downstream
@@ -127228,20 +127228,20 @@ Same function: its jump table is the first word after the id in the leading
 rodata, so it needed `rodata_head = "0x4"` (deleting the id's `INCLUDE_RODATA`)
 *and* a trailing `const s32 ... = 0;` after the function, because the 15-entry
 table leaves a 4-byte `.align 3` gap that retail's object owned.
-## A `QImode` store to a pointer+offset drops *every* cse memory equivalence, so the order of two byte stores decides whether the next read is a reload (func_actor_310600_8016246C, 2026-09-17)
+## A `QImode` store to a pointer+offset drops *every* cse memory equivalence, so the order of two byte stores decides whether the next read is a reload (_actor310600PlayAnimation, 2026-09-17)
 
 The target stores a byte into a work block and immediately reads it back, and
 the read is a genuine load, not a reuse of the register that was stored:
 
 ```
-lbu   v1,0(s2)        # (u8)cmd->animId
+lbu   v1,0(s2)        # (u8)request->source.index
 sb    v0,0x475(s1)    # work->animId = -1
-sb    v1,0x476(s1)    # work->bank = cmd->animId
+sb    v1,0x476(s1)    # work->bank = request->source.index
 lb    v1,0x476(s1)    # <- reload
 sll   v1,v1,2         # ... index into the bank table
 ```
 
-The natural source (`work->animId = -1; work->bank = cmd->animId;` then
+The natural source (`work->animId = -1; work->bank = request->source.index;` then
 `D[work->bank]`) instead *forwards* the stored register — 93.2% with
 `regs=12`, the read coming out as `sll 0x18` / `sra 0x16` off the `lbu`
 register. Both come from the same three statements; only their order differs.

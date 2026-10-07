@@ -34,6 +34,24 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
+/// Draw policies of Rupert's body and its paired collision sphere.
+enum {
+    ACTOR_310600_DRAW_HIDE                  = 0,
+    ACTOR_310600_DRAW_SHOW                  = 1,
+    ACTOR_310600_DRAW_HIDE_AND_RELEASE      = 2,
+    ACTOR_310600_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+    ACTOR_310600_BUFFER_RELEASE_NONE        = -1,
+    ACTOR_310600_BUFFER_RELEASE_DELAY_TICKS = 2,
+};
+
+/// Body-bank selection and first walk step; retained walk clips are absent here.
+enum {
+    ACTOR_310600_BODY_ANIMATION_BANK   = 0,
+    ACTOR_310600_WALK_STEP_FACE_TARGET = 0,
+    ACTOR_310600_RETAINED_WALK_CLIP    = 12,
+    ACTOR_310600_RETAINED_ARRIVAL_CLIP = 13,
+};
+
 /// Work block of Rupert Broderick's body, the package's scripted actor.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
@@ -81,7 +99,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor310600RupertBroderickWork, 0x538);
 
 /// Spawn table entry 1 is this actor's `Task::state` dispatcher; the type-1
-/// setup entry it is spawned from is `func_actor_310600_80161E64`.
+/// setup entry it is spawned from is `_actor310600InitBody`.
 extern TaskDesc D_actor_310600_801796A4[];
 
 /// The overlay's `TaskMessageEntry` table, parked in `Task::msgTable`.
@@ -106,20 +124,20 @@ extern s8             D_actor_310600_80179644[];  // extra ticks owed to the ani
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
-static void func_actor_310600_80161E64(Task* task);
+static void _actor310600InitBody(Task* task);
 static void func_actor_310600_80161FA0(Task* task);
-static void func_actor_310600_8016231C(Task* arg0);
-s32         func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, s32 arg3);
-s32         func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
-static void func_actor_310600_801629C4(Task* task);
-static void func_actor_310600_80162A24(Task* arg0);
-static void func_actor_310600_80162A58(Task* arg0);
-static void func_actor_310600_80162A74(Task* task);
-static void func_actor_310600_80162A7C(Task* task);
-static void func_actor_310600_80162AD8(Task* task);
-static void func_actor_310600_80162B98(Task* task);
+static void _actor310600CheckWalkArrival(Task* task);
+static s32  _actor310600PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _actor310600SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static void _actor310600IdleAttachedPart(Task* task);
+static void _actor310600ExitBody(Task* task);
+static void _actor310600BindLighting(Task* task);
+static void _actor310600IdleMotion(Task* task);
+static void _actor310600TickWalk(Task* task);
+static void _actor310600FaceWalkTarget(Task* task);
+static void _actor310600StartWalkVelocity(Task* task);
 
-/// State handlers of the child part task, which `func_actor_310600_8016274C`
+/// State handlers of the child part task, which `_actor310600MongooseTask`
 /// runs by `Task::state`: setup, tick and exit.
 static const TaskFuncTable3 D_actor_310600_80161E24 = { {
     _modelPlacementAttachChild,
@@ -131,39 +149,37 @@ static const TaskFuncTable3 D_actor_310600_80161E24 = { {
 /// exit. No dispatcher in this package reads it.
 static const TaskFuncTable3 D_actor_310600_80161E30 = { {
     _modelPlacementAttachPartTask,
-    func_actor_310600_801629C4,
+    _actor310600IdleAttachedPart,
     taskKill,
 } };
 
-/// The actor's own state handlers, which `func_actor_310600_801629CC` runs by
+/// The actor's own state handlers, which `_actor310600BodyTask` runs by
 /// `Task::state`: spawn/setup, per-frame tick and teardown.
 static const TaskFuncTable3 D_actor_310600_80161E3C = { {
-    func_actor_310600_80161E64,
+    _actor310600InitBody,
     func_actor_310600_80161FA0,
-    func_actor_310600_80162A24,
+    _actor310600ExitBody,
 } };
 
-/// The actor's movement steps, which `func_actor_310600_80162A7C` runs by
+/// The actor's movement steps, which `_actor310600TickWalk` runs by
 /// `_Actor310600RupertBroderickWork::walkStep`: turn to face the target point,
 /// start moving, stop on arrival.
 static const TaskFuncTable3 D_actor_310600_80161E48 = { {
-    func_actor_310600_80162AD8,
-    func_actor_310600_80162B98,
-    func_actor_310600_8016231C,
+    _actor310600FaceWalkTarget,
+    _actor310600StartWalkVelocity,
+    _actor310600CheckWalkArrival,
 } };
 
-/// The constant local-space offset `func_actor_310600_80162B98` rotates,
+/// The constant local-space offset `_actor310600StartWalkVelocity` rotates,
 /// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z.
 static const VECTOR D_actor_310600_80161E54 = { 0, 0, 0x200000, 0 };
 
 static TmdSource _gActor310600RupertBroderickBody1;
 static TmdSource _gActor310600RupertBroderickMongoose;
-void             func_actor_310600_8016274C(Task*);
-void             func_actor_310600_801629CC(Task*);
+static void      _actor310600MongooseTask(Task* task);
+static void      _actor310600BodyTask(Task* task);
 
-s32 func_actor_310600_8016246C(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_310600_801625F0(Task*, s32, s32, s32);
-s32 func_actor_310600_80162C94(Task*, s32, VECTOR*, s32);
+static s32 _actor310600WalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
 
 static AnimationPackedPose _gActor310600Animation04ADCBank1[102] = {
 #include "assets/actor_310600_animation_04ADC_bank1.inc"
@@ -402,24 +418,37 @@ s32 D_actor_310600_8017969C = 0x60401;
 s32 D_actor_310600_801796A0 = 0x70401;
 
 TaskDesc D_actor_310600_801796A4[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_310600_801629CC, { .model = &_gActor310600RupertBroderickBody1 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_310600_8016274C, { .model = &_gActor310600RupertBroderickMongoose } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310600BodyTask, { .model = &_gActor310600RupertBroderickBody1 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor310600MongooseTask, { .model = &_gActor310600RupertBroderickMongoose } },
 };
 
 TaskMessageEntry D_actor_310600_801796BC[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_310600_8016246C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor310600PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_310600_801625F0 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_310600_80162C94 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor310600SetModelDraw },
+    { ACTOR_MESSAGE_WALK_TO, _actor310600WalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_actor_310600_80161E64(Task* task)
+/// Initializes Rupert's hidden body, attached Mongoose and collision sphere.
+///
+/// Requires a live twenty-part TMD task with its owned Enemy in
+/// `spawnArg2.pointer`. Allocates zeroed primary-heap work for the task's
+/// lifetime; allocation failure starts enemy teardown. The model borrows the
+/// work's lighting matrices, and the sphere borrows its single contact entry.
+/// Installs the message table and exit callback, then advances state 0 to 1.
+static void _actor310600InitBody(Task* task)
 {
-    _Actor310600RupertBroderickWork* work;
-    WorldCollisionBody*              obj;
+    enum {
+        ACTOR_310600_MONGOOSE_TASK_INDEX  = 1,
+        ACTOR_310600_MONGOOSE_PARENT_PART = 8,
+        ACTOR_310600_BODY_SPHERE_PART     = 1,
+    };
 
-    work = memCalloc(sizeof(_Actor310600RupertBroderickWork), 0);
+    _Actor310600RupertBroderickWork* work;
+    WorldCollisionBody*              body;
+
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -427,29 +456,31 @@ static void func_actor_310600_80161E64(Task* task)
     task->work              = work;
     work->animId            = ACTOR_MODEL_STATE_NONE;
     work->bank              = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown     = -1;
+    work->freeCountdown     = ACTOR_310600_BUFFER_RELEASE_NONE;
     work->walkMotion        = ACTOR_WALK_MOTION_IDLE;
-    work->walkStep          = 0;
+    work->walkStep          = ACTOR_310600_WALK_STEP_FACE_TARGET;
     work->walkCarry[0].word = 0;
     work->walkCarry[1].word = 0;
     work->walkCarry[2].word = 0;
-    taskSpawnFromTable(D_actor_310600_801796A4, 1, 8, task);
-    func_actor_310600_80162A58(task);
-    obj                   = &work->body;
-    obj->coord            = &task->extra.tmd->coords[1];
-    obj->context.contacts = work->contacts;
-    obj->key              = 0x30000;
-    obj->radius           = 0x100;
-    obj->pos.vx           = 0;
-    obj->pos.vy           = 0;
-    obj->pos.vz           = 0;
-    obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, obj);
-    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
+    // The one-part gun follows body coordinate 8 and joins its teardown tree.
+    taskSpawnFromTable(D_actor_310600_801796A4, ACTOR_310600_MONGOOSE_TASK_INDEX, ACTOR_310600_MONGOOSE_PARENT_PART, task);
+    _actor310600BindLighting(task);
+    // Link the body sphere before the initial hidden draw policy disables pairs.
+    body                   = &work->body;
+    body->coord            = &task->extra.tmd->coords[ACTOR_310600_BODY_SPHERE_PART];
+    body->context.contacts = work->contacts;
+    body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY;
+    body->radius           = 0x100;
+    body->pos.vx           = 0;
+    body->pos.vy           = 0;
+    body->pos.vz           = 0;
+    body->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
+    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->contacts), 0);
     task->msgTable = D_actor_310600_801796BC;
-    func_actor_310600_801625F0(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-    task->exitCallback = func_actor_310600_80162A24;
+    _actor310600SetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_310600_DRAW_HIDE, 0);
+    task->exitCallback = _actor310600ExitBody;
     task->state++;
 }
 
@@ -477,7 +508,7 @@ static void func_actor_310600_80161FA0(Task* task)
 {
     TmdObject*                       ext      = task->extra.tmd;
     _Actor310600RupertBroderickWork* work     = (_Actor310600RupertBroderickWork*)task->work;
-    TaskFunc                         funcs[2] = { func_actor_310600_80162A74, func_actor_310600_80162A7C };
+    TaskFunc                         funcs[2] = { _actor310600IdleMotion, _actor310600TickWalk };
     VECTOR3                          pos;
     GfxCoord*                        coord;
     s16*                             cues;
@@ -551,102 +582,112 @@ static void func_actor_310600_80161FA0(Task* task)
     }
 }
 
-/// Arrival handler of the actor's second state table (`walkStep`), reached once
-/// `func_actor_310600_80162B98` has laid down the per-frame `walkVelocity`: takes
-/// each horizontal axis' gap between the target point `walkTarget.vx` / `walkTarget.vz`
-/// and the root part's world translation -- the low 16 bits of the signed
-/// difference, as in `func_actor_310600_80162AD8` -- and compares it against the
-/// axis' stop threshold in `walkLastDistance`, which starts at
-/// `ACTOR_WALK_DISTANCE_NONE`. Both gaps past their
-/// threshold means the actor has stopped closing in: the arrival preset of
-/// message 0x7D3 is queued (animation bank 0, id 0xD, path 1, param 0xA), but
-/// only while `animId` still holds 0xC, and then `walkVelocity`, `walkMotion`
-/// and `walkStep` are cleared and the handler returns without re-arming. Otherwise each
-/// threshold is pulled down to the gap just measured, so the next tick that
-/// fails to shrink it is the one that fires.
-static void func_actor_310600_8016231C(Task* arg0)
+/// Measures an axis gap using the direction of the full-word difference.
+///
+/// Borrows two word-aligned coordinate components through the call. The signed
+/// difference must fit a word; its direction chooses which unsigned low
+/// halfwords to subtract. Returns that subtraction before signed-halfword
+/// truncation, preserving wrap at 65536 rather than taking a full-word absolute
+/// value. The caller narrows the result for the arrival comparison.
+static inline s32 _actor310600WalkAxisGap(const long* targetAxis, const long* rootAxis)
+{
+    s32 gap;
+
+    if (*targetAxis - *rootAxis >= 0) {
+        gap = (u16)*targetAxis - (u16)*rootAxis;
+    } else {
+        gap = (u16)*rootAxis - (u16)*targetAxis;
+    }
+    return gap;
+}
+
+/// Stops the retained walk once neither horizontal axis gets closer.
+///
+/// Requires live body work and coordinate 0. Distances use root-parent units,
+/// with the low 16 bits interpreted as signed before the stop comparison;
+/// the previous thresholds store their absolute values. Stops velocity and
+/// resets both walk selectors without snapping position or clearing fractions.
+/// Clip 12 additionally requests clip 13 with a ten-frame blend. These clips
+/// are absent here; cafeteria scripts never start this retained walk path.
+static void _actor310600CheckWalkArrival(Task* task)
 {
     _Actor310600RupertBroderickWork* work;
-    GfxCoord*                        coord;
-    SVECTOR                          d;
-    s32                              dx;
-    s32                              dz;
-    AnimationPlayRequest             cmd;
+    GfxCoord*                        rootCoord;
+    SVECTOR                          distance;
+    s32                              deltaX;
+    s32                              deltaZ;
+    AnimationPlayRequest             arrivalRequest;
 
-    work  = (_Actor310600RupertBroderickWork*)arg0->work;
-    coord = (arg0->extra.tmd)->coords;
-    if (work->walkTarget.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->walkTarget.vx - (u16)coord->coord.t[0];
-    } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->walkTarget.vx;
-    }
-    d.vx = dx;
-    if (work->walkTarget.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->walkTarget.vz - (u16)coord->coord.t[2];
-    } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->walkTarget.vz;
-    }
-    d.vz = dz;
-    if (d.vx >= work->walkLastDistance.vx && d.vz >= work->walkLastDistance.vz) {
-        if (work->animId == 0xC) {
-            cmd.source.index         = 0;
-            cmd.animationId          = 0xD;
-            cmd.blend                = ANIMATION_BLEND_INTERPOLATE;
-            cmd.blendFrames          = 0xA;
-            cmd.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            func_actor_310600_8016246C(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &cmd, 0);
+    enum { ACTOR_310600_ARRIVAL_BLEND_FRAMES = 10 };
+
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // Compare full words for direction, then retain only a signed halfword gap.
+    deltaX      = _actor310600WalkAxisGap(&work->walkTarget.vx, &rootCoord->coord.t[0]);
+    distance.vx = deltaX;
+    deltaZ      = _actor310600WalkAxisGap(&work->walkTarget.vz, &rootCoord->coord.t[2]);
+    distance.vz = deltaZ;
+    if (distance.vx >= work->walkLastDistance.vx && distance.vz >= work->walkLastDistance.vz) {
+        if (work->animId == ACTOR_310600_RETAINED_WALK_CLIP) {
+            arrivalRequest.source.index         = ACTOR_310600_BODY_ANIMATION_BANK;
+            arrivalRequest.animationId          = ACTOR_310600_RETAINED_ARRIVAL_CLIP;
+            arrivalRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+            arrivalRequest.blendFrames          = ACTOR_310600_ARRIVAL_BLEND_FRAMES;
+            arrivalRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            _actor310600PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &arrivalRequest, 0);
         }
         work->walkVelocity.vx = 0;
         work->walkVelocity.vy = 0;
         work->walkVelocity.vz = 0;
         work->walkMotion      = ACTOR_WALK_MOTION_IDLE;
-        work->walkStep        = 0;
+        work->walkStep        = ACTOR_310600_WALK_STEP_FACE_TARGET;
         return;
     }
-    work->walkLastDistance.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walkLastDistance.vz = d.vz < 0 ? -d.vz : d.vz;
+    work->walkLastDistance.vx = distance.vx < 0 ? -distance.vx : distance.vx;
+    work->walkLastDistance.vz = distance.vz < 0 ? -distance.vz : distance.vz;
 }
 
-/// Animation preset handler of message 0x7D3: re-seeds the slot array off bank
-/// table
-/// `D_actor_310600_80179640` when the preset's bank index changes -- clearing
-/// the latched id to -1 so the state below is re-applied -- then restarts or
-/// resets every slot and ticks them, repeating the tick pass `1 +
-/// D_actor_310600_80179644[state]` times.
+/// Selects and starts an animation on Rupert's body, preserving an unchanged clip.
 ///
-/// The two byte stores must stay in this order. The second one is a QImode
-/// store to a varying address, so cse treats it as aliasing everything and
-/// drops the equivalence the first one recorded; that is what keeps
-/// `work->bank` a reload instead of the register `cmd->source.index` arrived in.
-s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, s32 arg3)
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` for initialized body work and its
+/// twenty-part model. Borrows the request through dispatch and retains only
+/// its bank and clip selectors. Bank 0 clips 1..4 are the loaded choices;
+/// indices are unchecked and stored as signed bytes. Slots 1..19 reset when
+/// blend is zero, otherwise blend from their current poses for `blendFrames`
+/// normal-rate frames (0..2047). Applies one initial tick plus the clip's
+/// pre-roll, then clears cue counters and enables per-frame playback.
+/// Ignores message ID, second payload and requested world collision. Returns 0.
+static s32 _actor310600PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _Actor310600RupertBroderickWork* work;
-    TmdObject*                       ext;
-    s32                              i;
-    s32                              j;
+    TmdObject*                       model;
+    s32                              slotIndex;
+    s32                              preRollTick;
 
-    work = (_Actor310600RupertBroderickWork*)task->work;
-    ext  = task->extra.tmd;
-    if (cmd->source.index != work->bank) {
-        work->bank   = cmd->source.index;
+    work  = task->work;
+    model = task->extra.tmd;
+    // Changing banks forces the selected clip to be seeded again.
+    if (request->source.index != work->bank) {
+        work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->bank], ext, work->rig.poses,
+        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
-    if (cmd->animationId != work->animId) {
-        work->animId = cmd->animationId;
-        if (cmd->blend != ANIMATION_BLEND_RESET) {
-            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, cmd->blendFrames);
+    if (request->animationId != work->animId) {
+        work->animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, request->blendFrames);
             }
         } else {
-            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-                animationResetSlot(&work->rig.anim, i, work->animId);
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->animId);
             }
         }
-        for (j = 0; j <= D_actor_310600_80179644[work->animId]; j++) {
-            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-                animationTickSlot(&work->rig.anim, i);
+        // Include the first pose tick plus the clip-specific pre-roll.
+        for (preRollTick = 0; preRollTick <= D_actor_310600_80179644[work->animId]; preRollTick++) {
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationTickSlot(&work->rig.anim, slotIndex);
             }
         }
         work->ticking      = 1;
@@ -656,88 +697,91 @@ s32 func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, 
     return 0;
 }
 
-/// Mode handler for the actor's display object, called by the setup path
-/// (`func_actor_310600_80161E64` with message 0x7D5 and mode 0) with the mode in
-/// `arg2`. Modes 0 and 2 hide the model: bit 0x80 of `TmdObject.flags` goes on,
-/// the 0x8000 flag comes off the actor's own object, and 0x4 is cleared. Modes 1
-/// and 3 show it: 0x80 comes off, 0x8000 goes on, the buffers are reinstated
-/// through `tmdAllocPrimitiveBuffer`, and 0x4 is set. Mode 2 additionally latches
-/// `freeCountdown` to 2. Returns 1 for a mode outside 0..3.
+/// Sets body drawing, sphere-pair participation and primitive-buffer policy.
 ///
-/// `work` and `w` are the same block on purpose. cse turns the second load of
-/// `task->work` into a copy of the first and keeps the copy's register for the
-/// mode 0..2 walks, because the only later use of the first load's register is
-/// the `obj` assignment in the entry block -- so mode 3's walk reads the first
-/// load's register and the other three read the copy's, the split the target
-/// has. Writing `&work->body` inside case 3 instead leaves cse canonicalizing the
-/// walks the other way, and the overlay comes out three instructions short.
-s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` with initialized body work.
+/// Modes 0/2 hide the model and disable sphere pairs; 1/3 show and enable them.
+/// Modes 0/1 permit automatic buffers, with 1 requesting a missing buffer now.
+/// Mode 2 suppresses automatic buffers and seeds a two-tick release countdown;
+/// buffers are freed on the tick that reads zero. Mode 3 suppresses automatic
+/// buffers without allocating. Existing release
+/// countdowns are retained by the other modes. Ignores message ID and second
+/// payload. Returns 0 for modes 0..3, or 1 without changes for another mode.
+static s32 _actor310600SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
     _Actor310600RupertBroderickWork* work;
-    _Actor310600RupertBroderickWork* w;
-    TmdObject*                       ext;
-    WorldCollisionBody*              p;
-    WorldCollisionBody*              obj;
-    s32                              i;
-    s32                              ret;
+    _Actor310600RupertBroderickWork* drawWork;
+    TmdObject*                       model;
+    WorldCollisionBody*              bodyCursor;
+    WorldCollisionBody*              body;
+    s32                              bodyIndex;
+    s32                              result;
 
-    work = (_Actor310600RupertBroderickWork*)task->work;
-    ext  = task->extra.tmd;
-    w    = (_Actor310600RupertBroderickWork*)task->work;
-    obj  = &work->body;
-    ret  = 0;
-    switch (arg2) {
-        case 0:
-            ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            p           = &w->body;
-            for (i = 0; i <= 0; i++) {
-                p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                p++;
+    enum { ACTOR_310600_COLLISION_BODY_COUNT = 1 };
+
+    work     = task->work;
+    model    = task->extra.tmd;
+    drawWork = work;
+    body     = &work->body;
+    result   = 0;
+    switch (mode) {
+        case ACTOR_310600_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = &drawWork->body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_310600_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                bodyCursor++;
             }
-            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            p           = &w->body;
-            for (i = 0; i <= 0; i++) {
-                p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                p++;
+        case ACTOR_310600_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = &drawWork->body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_310600_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                bodyCursor++;
             }
-            tmdAllocPrimitiveBuffer(ext);
-            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            ext->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            p           = &w->body;
-            for (i = 0; i <= 0; i++) {
-                p->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                p++;
+        case ACTOR_310600_DRAW_HIDE_AND_RELEASE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = &drawWork->body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_310600_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                bodyCursor++;
             }
-            w->freeCountdown = 2;
-            ext->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            drawWork->freeCountdown = ACTOR_310600_BUFFER_RELEASE_DELAY_TICKS;
+            model->flags           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            p           = obj;
-            for (i = 0; i <= 0; i++) {
-                p->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                p++;
+        case ACTOR_310600_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_310600_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                bodyCursor++;
             }
-            ext->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-void func_actor_310600_8016274C(Task* task)
+/// Dispatches the attached Mongoose's setup, draw-policy tick or teardown.
+///
+/// Requires a live TMD task and state 0..2. Setup borrows the body task from
+/// `spawnArg2.pointer` and attaches to coordinate index `spawnArg1.value`;
+/// the parent, coordinate and lighting must outlive the child. No result or
+/// bounds check; the selected state callback may destroy the task.
+static void _actor310600MongooseTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_310600_80161E24;
-    sp.funcs[task->state](task);
+    states = D_actor_310600_80161E24;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach.inc.c"
@@ -746,109 +790,138 @@ void func_actor_310600_8016274C(Task* task)
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// Tick state of the second child handler triple `D_actor_310600_80161E30`:
-/// does nothing.
-static void func_actor_310600_801629C4(Task* task)
+/// Leaves an attached part unchanged during its idle state.
+///
+/// Retained in the unused part-attachment state table; the task is not read.
+static void _actor310600IdleAttachedPart(Task* task)
 {
 }
 
-void func_actor_310600_801629CC(Task* task)
+/// Dispatches Rupert's body initialization, per-frame update or teardown.
+///
+/// Requires a live twenty-part TMD task, its owned Enemy in `spawnArg2.pointer`
+/// and state 0..2. State 1/2 require successfully initialized work. No bounds
+/// check; the selected callback may destroy the task.
+static void _actor310600BodyTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_310600_80161E3C;
-    sp.funcs[task->state](task);
+    states = D_actor_310600_80161E3C;
+    states.funcs[task->state](task);
 }
 
-static void func_actor_310600_80162A24(Task* arg0)
+/// Unlinks Rupert's sphere before releasing the enemy and body task.
+///
+/// Requires successfully initialized work whose body remains linked. Task
+/// teardown owns child, work and model release; borrowed lighting and contact
+/// storage cease to be valid when that work is released.
+static void _actor310600ExitBody(Task* task)
 {
-    worldCollisionUnlinkBody(&((_Actor310600RupertBroderickWork*)arg0->work)->body);
-    enemyTaskExit(arg0);
+    _Actor310600RupertBroderickWork* work = task->work;
+
+    worldCollisionUnlinkBody(&work->body);
+    enemyTaskExit(task);
 }
 
-static void func_actor_310600_80162A58(Task* arg0)
+/// Lends the body's work-owned lighting matrices to its model.
+///
+/// Requires live body work and a TMD model; work must outlive all model and
+/// attached-child uses of these pointers. Does not initialize the matrices.
+static void _actor310600BindLighting(Task* task)
 {
-    TmdObject*                       ext;
+    TmdObject*                       model;
     _Actor310600RupertBroderickWork* work;
 
-    work          = (_Actor310600RupertBroderickWork*)arg0->work;
-    ext           = arg0->extra.tmd;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    work            = task->work;
+    model           = task->extra.tmd;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
 }
 
-/// Entry 0 of the two-entry stack table `func_actor_310600_80161FA0` dispatches
-/// through by `walkMotion`: the idle handler, which does nothing. Entry 1 is
-/// `func_actor_310600_80162A7C`; both receive the current task.
-static void func_actor_310600_80162A74(Task* task)
+/// Leaves the body stationary when the motion selector is idle.
+///
+/// The task is not read; normal animation and rendering continue in the tick.
+static void _actor310600IdleMotion(Task* task)
 {
 }
 
-/// Runs the entry of the actor's second state table that `walkStep` selects -
-/// the counter `func_actor_310600_80162AD8` and `func_actor_310600_80162B98`
-/// bump as they finish, so the table steps through the handlers in turn. Copies
-/// the table onto the stack first, the same dispatch `func_actor_310600_801629CC`
-/// performs over `state`.
-static void func_actor_310600_80162A7C(Task* task)
-{
-    _Actor310600RupertBroderickWork* work;
-    TaskFuncTable3                   fns;
-
-    work = (_Actor310600RupertBroderickWork*)task->work;
-    fns  = D_actor_310600_80161E48;
-    fns.funcs[work->walkStep](task);
-}
-
-/// Turns the actor's root part to face the work block's stored point: normalises
-/// the offset from the part's own translation, takes its yaw with `ratan2`, and
-/// rebuilds the local matrix from that yaw alone. Clearing `composeStamp` makes
-/// `actorRenderComposeCoordChain` recompute the composed matrix from it, and bumping
-/// `walkStep` moves the actor on to the next handler of its state table.
-static void func_actor_310600_80162AD8(Task* task)
+/// Dispatches the retained walk's facing, velocity or arrival step.
+///
+/// Requires initialized body work with `walkStep` in 0..2 and live model
+/// coordinate 0. Does not itself integrate movement or check the selector.
+/// Cafeteria scripts never select this motion path.
+static void _actor310600TickWalk(Task* task)
 {
     _Actor310600RupertBroderickWork* work;
-    GfxCoord*                        coord;
-    VECTOR                           delta;
-    SVECTOR                          dir;
-    SVECTOR                          rot;
+    TaskFuncTable3                   steps;
 
-    work  = (_Actor310600RupertBroderickWork*)task->work;
-    coord = task->extra.tmd->coords;
+    work  = task->work;
+    steps = D_actor_310600_80161E48;
+    steps.funcs[work->walkStep](task);
+}
 
-    delta.vx = work->walkTarget.vx - coord->coord.t[0];
-    delta.vy = work->walkTarget.vy - coord->coord.t[1];
-    delta.vz = work->walkTarget.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
+/// Replaces root Euler rotation and invalidates its composed transform.
+///
+/// The writable root and borrowed angle vector must be live through the call.
+/// Reads XYZ only, in 4096 units per turn. Leaves the root Euler vector's
+/// fourth halfword, translation and parent unchanged. Uses Rx * Ry * Rz.
+static inline void _actor310600SetRootFacing(GfxCoord* rootCoord, const SVECTOR* angles)
+{
+    rootCoord->param.rot.vx = angles->vx;
+    rootCoord->param.rot.vy = angles->vy;
+    rootCoord->param.rot.vz = angles->vz;
+    RotMatrix(&rootCoord->param.rot, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
 
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
+/// Faces the body's root toward the retained walk target and advances the step.
+///
+/// Requires initialized body work and coordinate 0. The target and root
+/// translation use the root parent's frame. Replaces root Euler rotation
+/// with yaw in 4096 units per turn, zeroing pitch and roll, and invalidates
+/// composition. Cafeteria scripts never select this retained walk path.
+static void _actor310600FaceWalkTarget(Task* task)
+{
+    _Actor310600RupertBroderickWork* work;
+    GfxCoord*                        rootCoord;
+    VECTOR                           targetOffset;
+    SVECTOR                          direction;
+    SVECTOR                          facingAngles;
 
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+
+    targetOffset.vx = work->walkTarget.vx - rootCoord->coord.t[0];
+    targetOffset.vy = work->walkTarget.vy - rootCoord->coord.t[1];
+    targetOffset.vz = work->walkTarget.vz - rootCoord->coord.t[2];
+    VectorNormalS(&targetOffset, &direction);
+
+    facingAngles.vx = 0;
+    facingAngles.vy = ratan2(direction.vx, direction.vz);
+    facingAngles.vz = 0;
+
+    _actor310600SetRootFacing(rootCoord, &facingAngles);
     work->walkStep++;
 }
 
-/// State handler reached by the `walkStep` advance `func_actor_310600_80162AD8`
-/// ends with: rotates the constant local-space offset
-/// `D_actor_310600_80161E54` through the root part's matrix into `work->walkVelocity`,
-/// opens the per-axis stop threshold `walkLastDistance` to
-/// `ACTOR_WALK_DISTANCE_NONE`, which disables it for the update
-/// loop, and advances `walkStep` again so the dispatcher runs the next handler.
-static void func_actor_310600_80162B98(Task* task)
+/// Starts the retained walk's forward velocity and arms its arrival check.
+///
+/// Requires initialized body work and the root rotation set by the facing
+/// step. Rotates a local +Z speed of 32 world units per tick into signed
+/// 16.16 `walkVelocity`, seeds distance thresholds with
+/// `ACTOR_WALK_DISTANCE_NONE` and advances to step 2. No position is changed
+/// here. Cafeteria scripts never select this retained walk path.
+static void _actor310600StartWalkVelocity(Task* task)
 {
     _Actor310600RupertBroderickWork* work;
-    GfxCoord*                        coord;
-    VECTOR                           vec;
+    GfxCoord*                        rootCoord;
+    VECTOR                           localVelocity;
 
-    coord = task->extra.tmd->coords;
-    work  = (_Actor310600RupertBroderickWork*)task->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    vec = D_actor_310600_80161E54;
-    ApplyMatrixLV(&coord->coord, &vec, &work->walkVelocity);
+    localVelocity = D_actor_310600_80161E54;
+    ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walkVelocity);
     work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
     work->walkLastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
@@ -857,27 +930,32 @@ static void func_actor_310600_80162B98(Task* task)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// Sends the actor walking to the point `arg2`: stores it as the target the
-/// movement steps of `D_actor_310600_80161E48` turn toward and close in on,
-/// switches the tick onto those steps (`walkMotion`), and starts animation 0xC
-/// of bank 0 through `func_actor_310600_8016246C`. `arg1` is unused.
-s32 func_actor_310600_80162C94(Task* arg0, s32 arg1, VECTOR* arg2, s32 arg3)
+/// Records a destination and starts the retained scripted walk.
+///
+/// Handles `ACTOR_MESSAGE_WALK_TO` for initialized body work and coordinate 0.
+/// Borrows a word-aligned transform through dispatch, copying only its XYZ
+/// position in the root parent's frame; rotation and the vector's fourth word
+/// are ignored. Sets walking motion without resetting a walk already in
+/// progress, then requests bank 0 clip 12. That clip is absent here, and no
+/// cafeteria script or companion actor sends this message. The message ID and
+/// second payload are ignored. Returns the animation handler's result (0).
+static s32 _actor310600WalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg)
 {
     _Actor310600RupertBroderickWork* work;
-    AnimationPlayRequest             cmd;
+    AnimationPlayRequest             walkRequest;
 
-    work = (_Actor310600RupertBroderickWork*)arg0->work;
+    work = task->work;
 
     work->walkMotion    = ACTOR_WALK_MOTION_WALKING;
-    work->walkTarget.vx = arg2->vx;
-    work->walkTarget.vy = arg2->vy;
-    work->walkTarget.vz = arg2->vz;
+    work->walkTarget.vx = target->pos.vx;
+    work->walkTarget.vy = target->pos.vy;
+    work->walkTarget.vz = target->pos.vz;
 
-    cmd.source.index         = 0;
-    cmd.animationId          = 0xC;
-    cmd.blend                = ANIMATION_BLEND_RESET;
-    cmd.blendFrames          = 0;
-    cmd.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    walkRequest.source.index         = ACTOR_310600_BODY_ANIMATION_BANK;
+    walkRequest.animationId          = ACTOR_310600_RETAINED_WALK_CLIP;
+    walkRequest.blend                = ANIMATION_BLEND_RESET;
+    walkRequest.blendFrames          = 0;
+    walkRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
 
-    func_actor_310600_8016246C(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &cmd, 0);
+    return _actor310600PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &walkRequest, 0);
 }
