@@ -2365,7 +2365,7 @@ five-line standalone `.c` that reproduces the construct and run
 `dump.sh` on it, then diff `.rtl` against `.jump`; the transformation
 shows up there in isolation.
 
-Second example, `func_actor_356100_8016A834` (actors): m2c's
+Second example, `_actor356100FallFront` (actors): m2c's
 `var_v0 = 0x15; if (field_40 > 0) { var_v0 = 4; if (field_B3A <= 0) var_v0 = 0x11; }`
 scored 99.636% with `regs=4` — only the three `li` and the `sh` differed,
 `$v1` for `$v0`. Rewriting it as the nested `if`/`else` chain above changed
@@ -97246,7 +97246,7 @@ register-served use, and do not restructure the source to even them out.
 example -- 60 instructions, exact on the first build.
 ## A load sitting above an `if` is source order, not scheduling: sched1's region ends at the block boundary
 
-`func_actor_356100_8016A5DC` matched at 89% with one instruction in the wrong
+`_actor356100RiseFront` matched at 89% with one instruction in the wrong
 place. The reference loads the enemy pointer in the *entry* block, in the slot
 before the branch, and stores through it seven instructions later:
 
@@ -97293,7 +97293,7 @@ first, and the hoisted load fills the slot before the `beqz` (taking `$v1`
 there because `$v0` carries the condition and the constants). 100% first try,
 all penalties zero, preprocessed input `base_1.i` sha256 `6406c2d25b9cebe8…`.
 
-`func_actor_356100_8016A468`, the neighbouring state handler in the same file,
+`_actor356100GrabStrike`, the neighbouring state handler in the same file,
 and the matched sibling `Actor01900_Fn0AA78`
 (`src/actors/lib/actor_101900_text_tail.c`) both carry the hoisted-local form
 and the same `lh` → `lw 0x20(a0)` → `beqz` order. When a pointer field is read
@@ -97880,7 +97880,7 @@ playerAnimation->animationId = 2;
 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FF, (s32)playerAnimation, 0);
 ```
 
-The fix came from the matched sibling `func_actor_356100_8016A468`
+The fix came from the matched sibling `_actor356100GrabStrike`
 (`src/actors/actor_356100/actor_356100_2.c`), whose object is the same 5-word
 `AnimationPlayRequest` and whose asm block is instruction-for-instruction this one. Neither
 `overlay_dup_index.py find` (reporting the body as its own only copy) nor
@@ -99586,7 +99586,7 @@ store. So the signature is a `j` over exactly one instruction that is a copy
 into the call's argument register, with that same copy at the head of the
 fall-through path.
 
-This is the house idiom of the actor state handlers: `func_actor_356100_8016A21C`
+This is the house idiom of the actor state handlers: `_actor356100PlayWalk`
 and `Actor00100_Fn0B52C` both call their tick function from both arms, and
 `overlay_dup_index.py similar <fn>` lists them for this shape. Read a matched
 sibling before rewriting the control flow - finishing this one took one edit
@@ -112788,7 +112788,7 @@ m2c seed at 87.57% (`regs=36` - the whole penalty was the seed's `M2C_FIELD` tem
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
 input `base_1.i` SHA256 `a32c8ba0831d91f4eb0c5d8ec62b874b5b1a8b68b999cb9e9bad8afac64d1113`.
 
-## Three direct stores to one field beat m2c's joined temp: the arms merge in the delay-slot pass and keep `$v0` (func_actor_356100_8016A710, 2026-09-16)
+## Three direct stores to one field beat m2c's joined temp: the arms merge in the delay-slot pass and keep `$v0` (_actor356100FallBack, 2026-09-16)
 
 **Symptom.** The m2c seed sits at 99.73% with `regs=4` and nothing else: blocks 13/13,
 instructions 73/73, predicates and calls equal. The whole penalty is the value stored to
@@ -112812,7 +112812,7 @@ That temp is **one** allocno live from the first arm through the store, and `.gr
 hard-conflicting with `$v0` (`;; 83 conflicts: 81 83 2 29`): the two field loads
 (`lh $v0,0x40($s2)`, `lh $v0,0xB3A($s0)`) are block-local pseudos that local-alloc put in
 `$v0`, and each is live at one of the temp's defs. Writing the store per arm instead - the
-shape the matched sibling `func_actor_356100_8016A834` uses for the identical 0x15/4/0x11
+shape the matched sibling `_actor356100FallFront` uses for the identical 0x15/4/0x11
 choice - makes each arm's value its own block-local HImode pseudo, so all three land in
 `$v0` and the target reproduces at 100.00% on the next build.
 
@@ -112879,7 +112879,7 @@ sub-code read is an `s32` local rather than a `u16` (an HImode pseudo kept alive
 default; two, with the tree's default jumps split from the `if`'s exit, means the switch
 carries `default: return 0;`.
 
-## A two-case `switch` branches forward to out-of-line bodies; the same choice as `if/else if` falls through (func_actor_356100_8016A668, 2026-09-16)
+## A two-case `switch` branches forward to out-of-line bodies; the same choice as `if/else if` falls through (_actor356100Down, 2026-09-16)
 
 **Symptom.** The two arms assign the same field and the target merges them into one store -
 which is the "several branches converging on one store" signature of the entry above - so the
@@ -113107,7 +113107,7 @@ matching input `base_5.i` SHA256
 `4044e198377abc8678ebeaf403c5fd0d9d8994c5b5bb47fc7a0254122348f93f`, is the
 97.778% one).
 
-## An `lhu` read out of a 32-bit field is the `short` destination narrowing the expression, not a `u16` view (func_actor_356100_80168E44, 2026-09-16)
+## An `lhu` read out of a 32-bit field is the `short` destination narrowing the expression, not a `u16` view (_actor356100HeadTurn, 2026-09-16)
 
 **Symptom.** The target computes a player-to-actor offset with `lhu` load pairs
 out of `MATRIX::t[]` — a `long t[3]`, `0x14` in a bare `MATRIX` and `0x18` in a
@@ -113165,7 +113165,7 @@ operand in HImode too, so no sign extension is asked for. It matches as
 `vec.vx = arg1->vx - coord->coord.t[0]` on a plain `SVECTOR*`; an unsigned
 `u16` overlay of the point, with a cast at each caller, was this mistake.
 
-The match needed nothing else: `func_actor_356100_80168E44` is
+The match needed nothing else: `_actor356100HeadTurn` is
 `func_actor_401300_8013AE48`'s body with this overlay's field names, five
 constants and the `lookYawTarget` step-clamp, and lifting the sibling's
 `AimScratch` + `PositionYaw` + `NormalizeYaw` + `RescaleYaw` inlines wholesale
@@ -113689,7 +113689,7 @@ above the caller. The related entry "A `static __inline__` called above its
 definition is a `jal`, not an expansion" covers the same ordering rule from
 the caller's side.
 
-## A scratch reserve written as `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1` is what produces the `addiu`/`move` temp-and-copy pair (func_actor_356100_8016804C, 2026-09-16)
+## A scratch reserve written as `*(T**)SCRATCH_STACK_CURSOR_SLOT -= 1` is what produces the `addiu`/`move` temp-and-copy pair (_actor356100Slide, 2026-09-16)
 
 **Problem.** This tick takes a 0xC-byte turn block and, inside it, a 0x14-byte
 `ActorContactPushScratch`. The turn block matched immediately; the delta block was
@@ -113768,7 +113768,7 @@ Inputs: `base_6.i` (100.000%) SHA256
 SHA256 `b3302290c7f0bb26674ea62d8b0d8da8e10ddda0293df687832ca57f641a6c62`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
-`nonmatchings/func_actor_356100_8016804C-vacuum`; matching candidate `base_6.c`.
+`nonmatchings/_actor356100Slide-vacuum`; matching candidate `base_6.c`.
 
 ## A `SCRATCH_STACK_CURSOR_SLOT` reservation must be written as the read-modify-write it is, or the target's `move $sN, $v0` copy never appears
 

@@ -89,6 +89,16 @@ enum {
 /// Parent-coordinate Y offset added by the movement states' contact correction.
 enum { ACTOR_356100_CONTACT_HEIGHT_OFFSET = 16 };
 
+/// Animation sets and radius-slot values used by the playback and recovery states.
+enum {
+    ACTOR_356100_ANIM_GRAB_STRIKE = 6,
+    ACTOR_356100_ANIM_RISE_BACK   = 8,
+    ACTOR_356100_ANIM_FALL_BACK   = 10,
+    ACTOR_356100_ANIM_SLIDE       = 18,
+    ACTOR_356100_ANIM_RISE_FRONT  = 22,
+    ACTOR_356100_HIT_RADIUS       = 0x180
+};
+
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 /// Values of `_Actor356100Work::state`: the index of the handler the per-frame
@@ -238,7 +248,7 @@ STATIC_ASSERT_SIZEOF(_Actor356100TransformStorage, 32);
 static TmdSource _gActor356100HornedStrangerBody;
 static s32       _actor356100IgnoreAnimationMessage(Task* task, s32 messageId, s32 unusedPayload, s32 unusedResponse);
 static s32       _actor356100ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused);
-void             func_actor_356100_8016A910(Task*);
+static void      _actor356100Task(Task* task);
 
 #include "../../shared/actor_contacts.h"
 
@@ -607,7 +617,7 @@ TaskMessageEntry D_actor_356100_80173258[7] = {
 
 u16 D_actor_356100_80173290 = 0;
 
-TaskDesc D_actor_356100_80173294 = { { { TASK_BODY_TMD, 96 } }, func_actor_356100_8016A910, { .model = &_gActor356100HornedStrangerBody } };
+TaskDesc D_actor_356100_80173294 = { { { TASK_BODY_TMD, 96 } }, _actor356100Task, { .model = &_gActor356100HornedStrangerBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -659,7 +669,7 @@ extern GameActorButtonPressHold D_actor_356100_801732D0;
 /// the second block when it is 1, the first otherwise.
 extern AnimationSet* D_actor_356100_80173228[7];
 
-/// Free-running scroll `func_actor_356100_80164ACC` accumulates `runStep`
+/// Free-running scroll `_actor356100Circle` accumulates `runStep`
 /// into each frame, and zeroes on the live-actor entry. Same role as
 /// `Actor01900_D172FC`.
 extern u16 D_actor_356100_80173290;
@@ -712,42 +722,24 @@ static void func_actor_356100_80167818(Task* arg0);
 
 static void _actor356100Exit(Task* task);
 
-/// When the work block's `stateEntered` flag is set, flags the enemy's link node
-/// and raises bit 0x80 of the model's `field_C`. Same shape as
-/// `ActorsShared80164c20` / `_actor00100HideState` without extra flag masks.
-static void func_actor_356100_8016A1D8(Task* arg0);
+static void _actor356100Hide(Task* actor);
 
-/// When the work block's `stateEntered` flag is set, clears the enemy's link node,
-/// reallocates the model buffers and writes the animation request
-/// fields; otherwise clears the model's root `composeStamp`. Same shape as
-/// `Actor01900_Fn0A7C0` without the two `WorldCollisionBody` flag masks.
-static void func_actor_356100_8016A21C(Task* arg0);
+static void _actor356100PlayWalk(Task* actor);
 
-/// Same shape as `func_actor_356100_8016A21C` with `animId = 3`.
-static void func_actor_356100_8016A2AC(Task* arg0);
+static void _actor356100PlayRun(Task* actor);
 
-/// Same shape as `func_actor_356100_8016A21C` with `animId = 0xB`.
-static void func_actor_356100_8016A340(Task* arg0);
+static void _actor356100PlayDown(Task* actor);
 
-/// Same shape as `func_actor_356100_8016A21C` with `animId = 0xB`.
-static void func_actor_356100_8016A3D4(Task* arg0);
+static void _actor356100PlayDownAlternate(Task* actor);
 
-/// Message 0x3FF payload `func_actor_356100_8016A468` sends the slot-3 task.
+/// Message 0x3FF payload `_actor356100GrabStrike` sends the slot-3 task.
 /// `field_0` points at `D_actor_356100_80173228`; the function overwrites
 /// `field_4` with 2 before the dispatch.
 extern AnimationPlayRequest D_actor_356100_80173244;
 
-/// When the work block's `stateEntered` flag is set, writes the animation request
-/// fields, sends message 0x3FF then 0x3F9 at slot 3, and snapshots
-/// `field_5A & 0x3FF` into `grabAnimFrame`. Bit 1 of `field_68` forces `state`
-/// to 0xE.
-static void func_actor_356100_8016A468(Task* arg0);
+static void _actor356100GrabStrike(Task* actor);
 
-/// When the work block's `stateEntered` flag is set, clears the model's `field_C`,
-/// clears the enemy's link node and writes the animation request fields
-/// with `hitRadius` forced to 0x180. Bit 0 of `field_68` forces `state` to 7.
-/// Same shape as `Actor01900_Fn0AA78` without its two `WorldCollisionBody` flag masks.
-static void func_actor_356100_8016A5DC(Task* arg0);
+static void _actor356100RiseFront(Task* actor);
 
 static void _actor356100StatusHold(Task* actor);
 
@@ -763,9 +755,7 @@ static void _actor356100Alert(Task* actor);
 /// plus the contact and movement helpers' temporary blocks.
 static void _actor356100Chase(Task* actor);
 
-/// Turn-aim tick of the state-8 clip run, the 356100 twin of
-/// `_actor01900StateCircle`.
-static void func_actor_356100_80164ACC(Task* arg0);
+static void _actor356100Circle(Task* actor);
 
 /// Turns through twice the entry bearing, then resumes circling or grabs.
 ///
@@ -882,12 +872,9 @@ static __inline__ void _actorContactPushRootFromSave(McSaveData* save, GfxCoord*
 /// to the movement and contact helpers.
 static void _actor356100GrabRelease(Task* actor);
 
-/// Tick that dispatches message 0x3F1 and clears the `playerHeld` latch.
-static void func_actor_356100_8016A550(Task* arg0);
+static void _actor356100RiseBack(Task* actor);
 
-/// Tick that decrements `stateTimer` and reloads it from `downFramesBase` plus a
-/// 4-bit `gRandomLcgState` draw.
-static void func_actor_356100_8016A668(Task* arg0);
+static void _actor356100Down(Task* actor);
 
 /// Approaches at half-rate run playback and grabs a player within 900 units.
 ///
@@ -899,12 +886,9 @@ static void func_actor_356100_8016A668(Task* arg0);
 /// storage. This handler has a dispatch slot but no recovered transition in.
 static void _actor356100Approach(Task* actor);
 
-/// Tick of the state-0x13 clip run.
-static void func_actor_356100_8016A710(Task* arg0);
+static void _actor356100FallBack(Task* actor);
 
-/// Tick that picks clip 4 or 0x11 off `field_B3A` once the enemy is still
-/// alive.
-static void func_actor_356100_8016A834(Task* arg0);
+static void _actor356100FallFront(Task* actor);
 
 /// Per-frame tick of the state-0x15 clip run.
 static void func_actor_356100_80167358(Task* arg0);
@@ -938,9 +922,7 @@ static void _actor356100Patrol(Task* actor);
 /// storage. No recovered transition selects this dispatch slot.
 static void _actor356100BackOff(Task* actor);
 
-/// Tick that pushes the actor off any collision record and turns it onto the
-/// player.
-static void func_actor_356100_8016804C(Task* arg0);
+static void _actor356100Slide(Task* actor);
 
 /// Turns toward the player for eleven ticks or an animation boundary, then grabs.
 ///
@@ -952,9 +934,7 @@ static void func_actor_356100_8016804C(Task* arg0);
 /// transition selects this dispatch slot.
 static void _actor356100GrabWindup(Task* actor);
 
-/// Turn tick that slews the root yaw onto the player in one step and rescales
-/// the root coordinate to 0x1194.
-static void func_actor_356100_80168E44(Task* arg0);
+static void _actor356100HeadTurn(Task* actor);
 
 /// The death-throes tick: runs the per-frame clip, walks part 1's coordinate
 /// and fires the 0x600FB effect burst over the model's part coordinates.
@@ -1387,18 +1367,19 @@ static void _actor356100StatusHold(Task* actor)
     }
 }
 
-/// Adds a relative turn to the current yaw and rebuilds the uniformly scaled root.
+/// Adds a relative yaw to the root heading and restores this actor's uniform scale.
 ///
-/// The live writable halfword uses 4096 units per turn and receives the absolute
-/// yaw, narrowed to its low 16 bits. Requires initialized live model coordinates
-/// disjoint from the turn. Translation survives; pitch and roll are discarded.
+/// `*relativeYaw` is a writable signed halfword in 4096ths of a turn; it receives
+/// the absolute yaw with halfword truncation. The task must have initialized live
+/// model coordinates disjoint from that halfword. Translation survives, pitch
+/// and roll are discarded and composition is invalidated. No storage is retained.
 static __inline__ void _actor356100ApplyRootTurn(Task* actor, s16* relativeYaw)
 {
     GfxCoord* rootCoord;
 
     rootCoord     = actor->extra.tmd->coords;
     *relativeYaw += ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
-    gfxRotMatrixY(&actor->extra.tmd->coords->coord, *relativeYaw, 1);
+    gfxRotMatrixY(&actor->extra.tmd->coords->coord, *relativeYaw, GRAPHICS_ROTATION_REPLACE);
     _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
 }
 
@@ -1655,146 +1636,175 @@ static void _actor356100Chase(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Turn-aim state body, the 356100 twin of `_actor01900StateCircle`: take a 0x10
-/// chase scratch off the scratch stack and, on the live-actor flag, key the
-/// animation nodes, the frame counter and the `circleRateStep` clip phase. Once
-/// `stateCounter` has counted 7 frames the arm aims at the player — the player's
-/// own facing yaw goes in `playerYaw`, the wrapped yaw from the player back to
-/// the actor in `yawFromPlayer` — and the root is turned by the facing
-/// yaw plus a +-0x60 clamp of the turn's 1000 bias. The forward draw
-/// `runStep` is the doubled frame parameter (halved while `blendActive` is
-/// up, forced to 2 while the frame counter runs), and the actor slides along
-/// it unless movement is frozen. `circleRateStep` walks 8 -> -1 -> 0 as `animRate`
-/// passes 0x18 and 0x12, and the 0 arm runs the five-frame exit window that
-/// re-aims once more and picks state 0xB when the actor faces away from the
-/// player, else state 0x1A.
-static void func_actor_356100_80164ACC(Task* arg0)
-{
-    _Actor356100Work*      work;
-    ActorChaseScratch*     head;
-    ActorChaseScratch*     chase;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    GfxCoord*              facing;
-    GfxCoord*              pushCoord;
-    s32                    turn;
-    s32                    diffPos;
-    s32                    diffNeg;
-    s32                    yaw;
-    WorldCollisionContact* records;
-    s32                    hit;
-    s32                    paused;
+/// Clamps the circle turn on the current side without changing its player bearing.
+///
+/// All arguments are evaluated repeatedly and must be side-effect-free.
+/// `circleTurn` is a live `ActorChaseScratch*`; `bearingBias` and `turnLimit`
+/// are nonnegative signed-word yaw units (4096 per turn). A nonnegative turn
+/// selects the positive bias, a negative one the negative bias. The borrowed
+/// block receives the relative step in `heading`; no root is changed.
+#define ACTOR_356100_BIAS_CIRCLE_TURN(circleTurn, bearingBias, turnLimit)                           \
+    {                                                                                               \
+        s32 playerTurn;                                                                             \
+        s32 positiveBiasError;                                                                      \
+        s32 negativeBiasError;                                                                      \
+                                                                                                    \
+        playerTurn = (circleTurn)->turn;                                                            \
+        if (playerTurn >= 0) {                                                                      \
+            positiveBiasError = playerTurn - (bearingBias);                                         \
+            if (((positiveBiasError < 0) ? -positiveBiasError : positiveBiasError) < (turnLimit)) { \
+                (circleTurn)->heading = (circleTurn)->turn - (bearingBias);                         \
+            } else if (positiveBiasError > 0) {                                                     \
+                (circleTurn)->heading = (turnLimit);                                                \
+            } else {                                                                                \
+                (circleTurn)->heading = -(turnLimit);                                               \
+            }                                                                                       \
+        } else {                                                                                    \
+            negativeBiasError = playerTurn + (bearingBias);                                         \
+            if (((negativeBiasError < 0) ? -negativeBiasError : negativeBiasError) < (turnLimit)) { \
+                (circleTurn)->heading = (circleTurn)->turn + (bearingBias);                         \
+            } else if (negativeBiasError > 0) {                                                     \
+                (circleTurn)->heading = (turnLimit);                                                \
+            } else {                                                                                \
+                (circleTurn)->heading = -(turnLimit);                                               \
+            }                                                                                       \
+        }                                                                                           \
+    }
 
-    work = arg0->work;
+/// Circles the player with a changing run rate, then grabs or slides forward.
+///
+/// Entry requests the run set at the inherited rate and begins an 8/-1/0 rate
+/// ramp. Later ticks steer toward a signed 1000-unit bearing offset, with at
+/// most 96 yaw units per turn, and step eight times the playback rate, halved
+/// during blending or reduced to two units after any horizontal contact push.
+/// Seven pushed ticks select slide; the five-tick coast can override that with
+/// grab when the unwrapped player-facing difference exceeds a quarter turn.
+/// Requires live initialized work, model, enemy and player in one parent frame.
+/// Angles use 4096ths of a turn, steps use parent-coordinate units and rates
+/// sixteenths of a frame. Uses 16 scratch bytes plus contact/movement storage;
+/// actor freeze suppresses contact correction and translation, but not steering.
+static void _actor356100Circle(Task* actor)
+{
+    enum { CIRCLE_HIT_RADIUS        = 0xC0,
+           PUSH_EXIT_COUNT          = 7,
+           BEARING_BIAS             = 1000,
+           ROOT_TURN_STEP           = 0x60,
+           PUSHED_STEP              = 2,
+           RATE_ACCELERATION        = 8,
+           RATE_DECELERATION        = -1,
+           RATE_COAST               = 0,
+           PEAK_RATE                = 0x18,
+           COAST_RATE               = 0x12,
+           COAST_TICKS              = 5,
+           PLAYER_BACK_TURNED_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 4,
+           REENTER_STATE            = -1 };
+    _Actor356100Work*      work;
+    ActorChaseScratch*     scratchEnd;
+    ActorChaseScratch*     chase;
+    Enemy*                 enemy;
+    TmdObject*             model;
+    GfxCoord*              bearingCoord;
+    GfxCoord*              pushCoord;
+    s32                    playerBearing;
+    s32                    playerFacingDifference;
+    WorldCollisionContact* pushContacts;
+    s32                    wasPushed;
+    s32                    actorsFrozen;
+
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitRadius   = 0xC0;
+        model                         = actor->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitRadius   = CIRCLE_HIT_RADIUS;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
         work->blendActive = 0;
-        work->animId      = 3;
-        _actor356100UpdateAnimation(arg0);
-        work->circleRateStep    = 8;
+        work->animId      = ACTOR_356100_ANIM_RUN;
+        _actor356100UpdateAnimation(actor);
+        work->circleRateStep    = RATE_ACCELERATION;
         work->stateTimer        = 0;
         work->stateCounter      = 0;
         D_actor_356100_80173290 = 0;
         work->circleCount++;
         return;
     }
-    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    chase                                   = head - 1;
-    arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
-    _actor356100UpdateAnimation(arg0);
-    paused    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
-    pushCoord = arg0->extra.tmd->coords;
-    records   = work->pushContacts;
-    if (paused == 1) {
-        hit = 0;
+    scratchEnd                              = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = scratchEnd - 1;
+    chase                                   = scratchEnd - 1;
+    actor->extra.tmd->coords->composeStamp  = GRAPHICS_COORD_DIRTY;
+    _actor356100UpdateAnimation(actor);
+    actorsFrozen = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen;
+    pushCoord    = actor->extra.tmd->coords;
+    pushContacts = work->pushContacts;
+    if (actorsFrozen == ACTOR_MOVEMENT_FROZEN) {
+        wasPushed = 0;
     } else {
-        hit = _actorContactPushRootAlways(pushCoord, records, ARRAY_SIZE(work->pushContacts), 0x10);
+        wasPushed = _actorContactPushRootAlways(pushCoord, pushContacts, ARRAY_SIZE(work->pushContacts), ACTOR_356100_CONTACT_HEIGHT_OFFSET);
     }
-    if (hit != 0) {
+    if (wasPushed != 0) {
         work->stateCounter++;
     }
-    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
-    if (work->stateCounter >= 7) {
+    _actorPositionDeltaToPlayer(&gPlayerStatus, actor->extra.tmd->coords, &chase->delta);
+    if (work->stateCounter >= PUSH_EXIT_COUNT) {
         chase->playerYaw     = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-        chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
+        chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
         chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
         work->state          = ACTOR_356100_STATE_SLIDE;
     }
-    coord       = arg0->extra.tmd->coords;
-    chase->turn = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    turn        = chase->turn;
-    if (turn >= 0) {
-        diffPos = turn - 1000;
-        if (((diffPos < 0) ? -diffPos : diffPos) < 0x60) {
-            chase->heading = chase->turn - 1000;
-        } else if (diffPos > 0) {
-            chase->heading = 0x60;
-        } else {
-            chase->heading = -0x60;
-        }
-    } else {
-        diffNeg = turn + 1000;
-        if (((diffNeg < 0) ? -diffNeg : diffNeg) < 0x60) {
-            chase->heading = chase->turn + 1000;
-        } else if (diffNeg > 0) {
-            chase->heading = 0x60;
-        } else {
-            chase->heading = -0x60;
-        }
-    }
-    facing          = arg0->extra.tmd->coords;
-    chase->heading += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->heading, 1);
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
-    coord                                 = arg0->extra.tmd->coords;
-    work->lookYawTarget                   = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->runStep                         = work->animRate * 8;
+    // Bias the root toward a nearly tangential path around the player.
+    bearingCoord = actor->extra.tmd->coords;
+    chase->turn  = _actorAngleTurnToOffset(bearingCoord, chase->delta.vx, chase->delta.vz);
+    ACTOR_356100_BIAS_CIRCLE_TURN(chase, BEARING_BIAS, ROOT_TURN_STEP);
+    _actor356100ApplyRootTurn(actor, &chase->heading);
+    bearingCoord                           = actor->extra.tmd->coords;
+    work->lookYawTarget                    = _actorAngleTurnToOffset(bearingCoord, chase->delta.vx, chase->delta.vz);
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->runStep                          = work->animRate * 8;
     if (work->blendActive != 0) {
         work->runStep = work->runStep >> 1;
     }
     if (work->stateCounter != 0) {
-        work->runStep = 2;
+        work->runStep = PUSHED_STEP;
     }
-    _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->runStep);
+    _actorMovementTranslateForwardNonzero(actor->extra.tmd->coords, work->runStep);
     D_actor_356100_80173290 += work->runStep;
-    if (work->circleRateStep == 8 && work->animRate >= 0x18) {
-        work->circleRateStep = -1;
+    // Accelerate, ease down, then choose grab or slide after five coast ticks.
+    if (work->circleRateStep == RATE_ACCELERATION && work->animRate >= PEAK_RATE) {
+        work->circleRateStep = RATE_DECELERATION;
     }
-    if (work->circleRateStep == -1 && work->animRate == 0x12) {
-        work->circleRateStep = 0;
+    if (work->circleRateStep == RATE_DECELERATION && work->animRate == COAST_RATE) {
+        work->circleRateStep = RATE_COAST;
         work->stateTimer     = 0;
     }
-    if (work->circleRateStep == 0) {
-        if (++work->stateTimer == 5) {
+    if (work->circleRateStep == RATE_COAST) {
+        if (++work->stateTimer == COAST_TICKS) {
             chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                                       (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-            _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
-            chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-            yaw                  = _actorAngleNormalizeYaw(chase->yawFromPlayer);
-            chase->yawFromPlayer = yaw;
-            yaw                  = yaw - chase->playerYaw;
-            if (yaw < 0) {
-                yaw = -yaw;
+            _actorPositionDeltaToPlayer(&gPlayerStatus, actor->extra.tmd->coords, &chase->delta);
+            chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+            playerBearing        = _actorAngleNormalizeYaw(chase->yawFromPlayer);
+            chase->yawFromPlayer = playerBearing;
+            // Preserve the unwrapped facing difference at the half-turn seam.
+            playerFacingDifference = playerBearing - chase->playerYaw;
+            if (playerFacingDifference < 0) {
+                playerFacingDifference = -playerFacingDifference;
             }
-            if (yaw >= 0x401) {
+            if (playerFacingDifference >= PLAYER_BACK_TURNED_LIMIT + 1) {
                 work->state = ACTOR_356100_STATE_GRAB;
             } else {
                 work->state     = ACTOR_356100_STATE_SLIDE;
-                work->prevState = -1;
+                work->prevState = REENTER_STATE;
             }
         }
     }
     work->animRate += (u16)work->circleRateStep;
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
+
+#undef ACTOR_356100_BIAS_CIRCLE_TURN
 
 static void _actor356100TurnAround(Task* actor)
 {
@@ -2467,62 +2477,66 @@ static void _actor356100Patrol(Task* actor)
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Turn-and-push tick, the sibling of `_actor356100Alert` above it and
-/// the same body as `func_actor_401300_8013A208`. The live branch resets the
-/// model and starts clip 1 at speed 0x10 with the 0x12 state parked in
-/// `animId`; otherwise the turn scratch takes the player offset,
-/// `_actorAngleTurnToPlayer` gives the wrapped turn, `lookYawTarget` snapshots it,
-/// it is clamped to [-0x40, 0x40] and the root yaw is re-derived from it. The
-/// root is then pushed out of the `pushContacts` collision records and one
-/// normalised unit along its own Y column scaled by `runStep`, which decays
-/// by 0xA per frame — once it reaches zero, or bit 0 of `field_68` is set, the
-/// state moves to 9 and the turn scratch is given back.
-static void func_actor_356100_8016804C(Task* arg0)
+/// Coasts toward the player on the inherited forward step, then turns around.
+///
+/// Entry requests the slide set at 30 sixteenths of a frame per tick. Every
+/// tick, including entry, turns at most 64 units of a 4096-unit yaw, corrects
+/// contacts and steps along normalized local Z. Positive `runStep` loses ten
+/// parent-coordinate units after movement, clamped at zero after halfword
+/// truncation. Zero step or a playback boundary selects turn-around.
+/// Requires live initialized work, model, enemy and player in one parent frame,
+/// with 12 free scratch bytes plus helper storage. Actor freeze skips correction
+/// and translation; yaw rebuilding discards pitch, roll and the old root scale.
+static void _actor356100Slide(Task* actor)
 {
+    enum { ROOT_TURN_STEP = 0x40,
+           SLIDE_RATE     = 0x1E,
+           STEP_DECAY     = 10 };
     _Actor356100Work* work;
     Enemy*            enemy;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    ActorTurnScratch* turn;
-    u16               next;
+    TmdObject*        model;
+    GfxCoord*         headingCoord;
+    ActorTurnScratch* slideTurn;
+    u16               nextStep;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        enemy             = arg0->spawnArg2.pointer;
-        obj               = arg0->extra.tmd;
-        work->animId      = 0x12;
+        enemy             = actor->spawnArg2.pointer;
+        model             = actor->extra.tmd;
+        work->animId      = ACTOR_356100_ANIM_SLIDE;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
-        obj->flags        = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitRadius               = 0x180;
+        model->flags      = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitRadius               = ACTOR_356100_HIT_RADIUS;
         enemy->node.state.parts.flags = 0;
         work->lookYaw                 = 0;
-        work->animRate                = 0x1E;
+        work->animRate                = SLIDE_RATE;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    turn                = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle         = _actorAngleTurnToPlayer(arg0, &turn->delta, &gPlayerStatus);
-    work->lookYawTarget = turn->angle;
-    if (turn->angle > 0x40) {
-        turn->angle = 0x40;
+    slideTurn           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    slideTurn->angle    = _actorAngleTurnToPlayer(actor, &slideTurn->delta, &gPlayerStatus);
+    work->lookYawTarget = slideTurn->angle;
+    if (slideTurn->angle > ROOT_TURN_STEP) {
+        slideTurn->angle = ROOT_TURN_STEP;
     }
-    if (turn->angle < -0x40) {
-        turn->angle = -0x40;
+    if (slideTurn->angle < -ROOT_TURN_STEP) {
+        slideTurn->angle = -ROOT_TURN_STEP;
     }
-    coord        = arg0->extra.tmd->coords;
-    turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
-    _actorContactPushRoot(arg0->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), 0x10);
-    _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->runStep);
+    headingCoord      = actor->extra.tmd->coords;
+    slideTurn->angle += ratan2(-headingCoord->coord.m[2][0], headingCoord->coord.m[2][2]);
+    gfxRotMatrixY(&actor->extra.tmd->coords->coord, slideTurn->angle, GRAPHICS_ROTATION_REPLACE);
+    _actorContactPushRoot(actor->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), ACTOR_356100_CONTACT_HEIGHT_OFFSET);
+    _actorMovementTranslateForwardNonzero(actor->extra.tmd->coords, work->runStep);
+    // Decay after taking the inherited step; retain halfword wrap before clamping.
     if (work->runStep > 0) {
-        next          = work->runStep - 0xA;
-        work->runStep = next;
-        if ((s16)next < 0) {
+        nextStep      = work->runStep - STEP_DECAY;
+        work->runStep = nextStep;
+        if ((s16)nextStep < 0) {
             work->runStep = 0;
         }
     }
-    _actor356100UpdateAnimation(arg0);
-    if ((work->rig.slots[1].status.fields.flags & 1) || work->runStep == 0) {
+    _actor356100UpdateAnimation(actor);
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || work->runStep == 0) {
         work->state = ACTOR_356100_STATE_TURN_AROUND;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -2654,63 +2668,71 @@ static void _actor356100GrabWindup(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Turn the actor's facing onto the player in 0x28 steps and rescale the root
-/// coordinate to 0x1194: the live branch resets the model and starts clip 2 at
-/// speed 0x10 with the 0x13 state parked in `animId`, otherwise the aim
-/// scratch takes the player offset, `_actorAngleTurnToPlayer` gives the wrapped
-/// turn, `lookYawTarget` walks toward it by at most 0x28 and the state flips to 0xB
-/// once it has caught up. Same body as `func_actor_401300_8013AE48`.
-static void func_actor_356100_80168E44(Task* arg0)
+/// Eases the upper-body look toward the player while standing still, then grabs.
+///
+/// Entry makes the enemy unlockable, restarts the windup set and advances it
+/// twice. Later ticks move `lookYawTarget` by at most 40 units of a 4096-unit
+/// turn; equality with the current bearing selects grab. The root keeps its
+/// heading and uniform scale while the animation driver applies joint yaw.
+/// Every later tick restarts the animation again. Requires initialized live
+/// work, enemy, model and player in one parent frame, and 16 scratch bytes.
+/// No recovered transition selects this handler.
+static void _actor356100HeadTurn(Task* actor)
 {
+    enum { LOOK_TARGET_STEP = 0x28 };
     _Actor356100Work*  work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    ActorChaseScratch* aim;
+    Enemy*             enemy;
+    TmdObject*         model;
+    GfxCoord*          headingCoord;
+    ActorChaseScratch* headTurn;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitRadius   = 0x180;
+        model                         = actor->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitRadius   = ACTOR_356100_HIT_RADIUS;
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
-        work->animRate    = 0x10;
+        work->animRate    = ANIMATION_RATE_ONE;
         work->blendActive = 0;
-        work->animId      = 0x13;
-        _actor356100UpdateAnimation(arg0);
-        _actor356100UpdateAnimation(arg0);
+        work->animId      = ACTOR_356100_ANIM_GRAB_WINDUP;
+        // The second update advances the newly reset pose again on entry.
+        _actor356100UpdateAnimation(actor);
+        _actor356100UpdateAnimation(actor);
         work->stateTimer = 0;
         work->lookYaw    = 0;
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
-    if (work->lookYawTarget < aim->turn) {
-        if (aim->turn - work->lookYawTarget > 0x28) {
-            work->lookYawTarget += 0x28;
+    headTurn       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    headTurn->turn = _actorAngleTurnToPlayer(actor, &headTurn->delta, &gPlayerStatus);
+    if (work->lookYawTarget < headTurn->turn) {
+        if (headTurn->turn - work->lookYawTarget > LOOK_TARGET_STEP) {
+            work->lookYawTarget += LOOK_TARGET_STEP;
         } else {
-            work->lookYawTarget = aim->turn;
+            work->lookYawTarget = headTurn->turn;
         }
-    } else if (work->lookYawTarget - aim->turn > 0x28) {
-        work->lookYawTarget -= 0x28;
+    } else if (work->lookYawTarget - headTurn->turn > LOOK_TARGET_STEP) {
+        work->lookYawTarget -= LOOK_TARGET_STEP;
     } else {
-        work->lookYawTarget = aim->turn;
+        work->lookYawTarget = headTurn->turn;
     }
-    if (work->lookYawTarget == aim->turn) {
+    if (work->lookYawTarget == headTurn->turn) {
         work->state = ACTOR_356100_STATE_GRAB;
     }
-    coord     = arg0->extra.tmd->coords;
-    aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
+    // Preserve root facing while the animation driver applies the joint look.
+    headingCoord   = actor->extra.tmd->coords;
+    headTurn->turn = ratan2(-headingCoord->coord.m[2][0], headingCoord->coord.m[2][2]);
+    gfxRotMatrixY(&actor->extra.tmd->coords->coord, headTurn->turn, GRAPHICS_ROTATION_REPLACE);
+    _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
     work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
-    _actor356100UpdateAnimation(arg0);
+    _actor356100UpdateAnimation(actor);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// The overlay's death-throes tick, the sibling of `func_actor_356100_80168E44`:
+/// The overlay's death-throes tick, the sibling of `_actor356100HeadTurn`:
 /// going live re-seeds the model (the enemy's link node, `obj->field_C`, the
 /// animation request fields) and queues sound 0x550B0007 against the root
 /// part, whose coordinate the live arm clears outright. Each frame then bumps
@@ -2827,41 +2849,41 @@ static void func_actor_356100_80169180(Task* arg0)
 /// 0x1E) are its live entries. Same role as `Actor01900_D1728C`.
 static const _Actor356100StateTable D_actor_356100_80161EC4 = {
     {
-        func_actor_356100_8016A1D8,
-        func_actor_356100_8016A21C,
-        func_actor_356100_8016A2AC,
-        func_actor_356100_8016A340,
+        _actor356100Hide,
+        _actor356100PlayWalk,
+        _actor356100PlayRun,
+        _actor356100PlayDown,
         _actor356100StatusHold,
-        func_actor_356100_8016A3D4,
+        _actor356100PlayDownAlternate,
         _actor356100Alert,
         _actor356100Chase,
-        func_actor_356100_80164ACC,
+        _actor356100Circle,
         _actor356100TurnAround,
         _actor356100Sidestep,
         func_actor_356100_80166018,
         _actor356100GrabPull,
-        func_actor_356100_8016A468,
+        _actor356100GrabStrike,
         _actor356100GrabRelease,
-        func_actor_356100_8016A550,
-        func_actor_356100_8016A5DC,
-        func_actor_356100_8016A668,
+        _actor356100RiseBack,
+        _actor356100RiseFront,
+        _actor356100Down,
         _actor356100Approach,
-        func_actor_356100_8016A710,
-        func_actor_356100_8016A834,
+        _actor356100FallBack,
+        _actor356100FallFront,
         func_actor_356100_80167358,
         _actor356100Dormant,
         func_actor_356100_80167818,
         _actor356100Patrol,
         _actor356100BackOff,
-        func_actor_356100_8016804C,
+        _actor356100Slide,
         _actor356100GrabWindup,
-        func_actor_356100_80168E44,
+        _actor356100HeadTurn,
         NULL,
         func_actor_356100_80169180,
     }
 };
 
-/// The enemy's three task-state handlers, which `func_actor_356100_8016A910`
+/// The enemy's three task-state handlers, which `_actor356100Task`
 /// runs by `Task::state`: setup, per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_actor_356100_80161F40 = {
     _actor356100Initialize,
@@ -3030,196 +3052,262 @@ static void _actor356100Exit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_356100_8016A1D8(Task* arg0)
+/// Hides the model and prevents target locks on state entry.
+///
+/// Requires a live work block, enemy and model. Later ticks do nothing; entry
+/// preserves model flags other than the active-draw skip bit.
+static void _actor356100Hide(Task* actor)
 {
-    TmdObject*        obj;
+    Enemy*            enemy;
+    TmdObject*        model;
     _Actor356100Work* work;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model                         = actor->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
-static void func_actor_356100_8016A21C(Task* arg0)
+/// Plays the walk animation in place at normal speed.
+///
+/// Entry enables drawing and targeting, allocates primitives and restarts the
+/// selected set with blending disabled. Later ticks invalidate the root and
+/// advance playback without changing state. Requires initialized live work,
+/// enemy and model; no recovered transition selects this handler.
+static void _actor356100PlayWalk(Task* actor)
 {
-    TmdObject*        obj;
+    Enemy*            enemy;
+    TmdObject*        model;
     _Actor356100Work* work;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model                         = actor->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
         work->blendActive = 0;
-        work->animRate    = 0x10;
-        work->animId      = 2;
-        _actor356100UpdateAnimation(arg0);
+        work->animRate    = ANIMATION_RATE_ONE;
+        work->animId      = ACTOR_356100_ANIM_WALK;
+        _actor356100UpdateAnimation(actor);
     } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        _actor356100UpdateAnimation(arg0);
+        actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        _actor356100UpdateAnimation(actor);
     }
 }
 
-static void func_actor_356100_8016A2AC(Task* arg0)
+/// Plays the run animation in place at normal speed.
+///
+/// Entry enables drawing and targeting, allocates primitives and restarts the
+/// selected set with blending disabled. Later ticks invalidate the root and
+/// advance playback without changing state. Requires initialized live work,
+/// enemy and model; no recovered transition selects this handler.
+static void _actor356100PlayRun(Task* actor)
 {
-    TmdObject*        obj;
+    Enemy*            enemy;
+    TmdObject*        model;
     _Actor356100Work* work;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model                         = actor->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
-        work->animRate    = 0x10;
+        work->animRate    = ANIMATION_RATE_ONE;
         work->blendActive = 0;
-        work->animId      = 3;
-        _actor356100UpdateAnimation(arg0);
+        work->animId      = ACTOR_356100_ANIM_RUN;
+        _actor356100UpdateAnimation(actor);
     } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        _actor356100UpdateAnimation(arg0);
+        actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        _actor356100UpdateAnimation(actor);
     }
 }
 
-static void func_actor_356100_8016A340(Task* arg0)
+/// Plays the back-down pose in place at normal speed.
+///
+/// Entry enables drawing and targeting, allocates primitives and restarts the
+/// selected set with blending disabled. Later ticks invalidate the root and
+/// advance playback without changing state. Requires initialized live work,
+/// enemy and model; no recovered transition selects this handler.
+static void _actor356100PlayDown(Task* actor)
 {
-    TmdObject*        obj;
+    Enemy*            enemy;
+    TmdObject*        model;
     _Actor356100Work* work;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model                         = actor->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
-        work->animRate    = 0x10;
+        work->animRate    = ANIMATION_RATE_ONE;
         work->blendActive = 0;
-        work->animId      = 0xB;
-        _actor356100UpdateAnimation(arg0);
+        work->animId      = ACTOR_356100_ANIM_DOWN_BACK;
+        _actor356100UpdateAnimation(actor);
     } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        _actor356100UpdateAnimation(arg0);
+        actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        _actor356100UpdateAnimation(actor);
     }
 }
 
-static void func_actor_356100_8016A3D4(Task* arg0)
+/// Plays the back-down pose in the alternate playback state in place at normal speed.
+///
+/// Entry enables drawing and targeting, allocates primitives and restarts the
+/// selected set with blending disabled. Later ticks invalidate the root and
+/// advance playback without changing state. Requires initialized live work,
+/// enemy and model; no recovered transition selects this handler.
+static void _actor356100PlayDownAlternate(Task* actor)
 {
-    TmdObject*        obj;
+    Enemy*            enemy;
+    TmdObject*        model;
     _Actor356100Work* work;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
+        model                         = actor->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
         work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
-        work->animRate    = 0x10;
+        work->animRate    = ANIMATION_RATE_ONE;
         work->blendActive = 0;
-        work->animId      = 0xB;
-        _actor356100UpdateAnimation(arg0);
+        work->animId      = ACTOR_356100_ANIM_DOWN_BACK;
+        _actor356100UpdateAnimation(actor);
     } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        _actor356100UpdateAnimation(arg0);
+        actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        _actor356100UpdateAnimation(actor);
     }
 }
 
-static void func_actor_356100_8016A468(Task* arg0)
+/// Strikes the held player and enters release when playback follows a control jump.
+///
+/// Requires initialized live work, enemy and model and the player task from the
+/// preceding grab states. Entry requests player animation 2 and attack index 0;
+/// the shared animation request is borrowed only during synchronous dispatch.
+/// The cue index is saved before this tick's animation update, as is the jump
+/// test. No hold is released here.
+static void _actor356100GrabStrike(Task* actor)
 {
+    enum { PLAYER_STRIKE_ANIMATION = 2,
+           GRAB_ATTACK_INDEX       = 0 };
     _Actor356100Work*     work;
     Enemy*                enemy;
-    AnimationPlayRequest* msg;
+    AnimationPlayRequest* playerAnimation;
     Task*                 playerTask;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
+    // Start both strike animations and apply the enemy's first attack once.
     if (work->stateEntered != 0) {
-        work->animRate    = 0x10;
-        work->animId      = 6;
-        work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
-        msg               = &D_actor_356100_80173244;
-        msg->animationId  = 2;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
+        work->animRate               = ANIMATION_RATE_ONE;
+        work->animId                 = ACTOR_356100_ANIM_GRAB_STRIKE;
+        work->animRequest            = ACTOR_356100_ANIM_REQUEST_RESET;
+        playerAnimation              = &D_actor_356100_80173244;
+        playerAnimation->animationId = PLAYER_STRIKE_ANIMATION;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, playerAnimation, 0);
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
+        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, GRAB_ATTACK_INDEX), 0);
     }
-    if (work->rig.slots[1].status.fields.flags & 2) {
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
         work->state = ACTOR_356100_STATE_GRAB_RELEASE;
     }
-    work->grabAnimFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-    _actor356100UpdateAnimation(arg0);
+    work->grabAnimFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    _actor356100UpdateAnimation(actor);
 }
 
-static void func_actor_356100_8016A550(Task* arg0)
+/// Plays the rise from the back down pose, then resumes chasing.
+///
+/// Entry enables drawing and targeting, resets look yaw and requests the rise
+/// set at `baseRate`, in sixteenths of a frame per tick. Completion is tested
+/// after advancing playback. Requires initialized live work, enemy and model.
+static void _actor356100RiseBack(Task* actor)
 {
     _Actor356100Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitRadius               = 0x180;
+        actor->extra.tmd->flags       = 0;
+        work->hitRadius               = ACTOR_356100_HIT_RADIUS;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ACTOR_356100_ANIM_REQUEST_RESET;
-        work->animId                  = 8;
+        work->animId                  = ACTOR_356100_ANIM_RISE_BACK;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         work->animRate                = work->baseRate;
     }
-    _actor356100UpdateAnimation(arg0);
-    if (work->rig.slots[1].status.fields.flags & 1) {
+    _actor356100UpdateAnimation(actor);
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_356100_STATE_CHASE;
     }
 }
 
-static void func_actor_356100_8016A5DC(Task* arg0)
+/// Plays the rise from the front down pose, then resumes chasing.
+///
+/// Entry enables drawing and targeting, resets look yaw and requests the rise
+/// set at `baseRate`, in sixteenths of a frame per tick. Completion is tested
+/// after advancing playback. Requires initialized live work, enemy and model.
+static void _actor356100RiseFront(Task* actor)
 {
     _Actor356100Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitRadius               = 0x180;
+        actor->extra.tmd->flags       = 0;
+        work->hitRadius               = ACTOR_356100_HIT_RADIUS;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ACTOR_356100_ANIM_REQUEST_RESET;
-        work->animId                  = 0x16;
+        work->animId                  = ACTOR_356100_ANIM_RISE_FRONT;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         work->animRate                = work->baseRate;
     }
-    _actor356100UpdateAnimation(arg0);
-    if (work->rig.slots[1].status.fields.flags & 1) {
+    _actor356100UpdateAnimation(actor);
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_356100_STATE_CHASE;
     }
 }
 
-static void func_actor_356100_8016A668(Task* arg0)
+/// Waits in the existing down pose, then selects its matching rise or corpse burn.
+///
+/// Entry seeds a signed-halfword timer from `downFramesBase` plus 0..15 random
+/// ticks and decrements it immediately. A negative timer selects the back/front
+/// rise only for the corresponding down set; other sets retain the state.
+/// HP <= 0 overrides that choice with corpse burn. Requires live work and enemy;
+/// this handler does not advance animation or allocate scratch storage.
+static void _actor356100Down(Task* actor)
 {
+    enum { EXTRA_DOWN_TICKS_MASK = 0xF };
     _Actor356100Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->stateTimer = work->downFramesBase + ((gRandomLcgState >> 16) & 0xF);
+        work->stateTimer = work->downFramesBase + ((gRandomLcgState >> 16) & EXTRA_DOWN_TICKS_MASK);
     }
     if ((s16)--work->stateTimer < 0) {
         switch (work->animId) {
-            case 0xB:
+            case ACTOR_356100_ANIM_DOWN_BACK:
                 work->state = ACTOR_356100_STATE_RISE_BACK;
                 break;
-            case 0xC:
+            case ACTOR_356100_ANIM_DOWN_FRONT:
                 work->state = ACTOR_356100_STATE_RISE_FRONT;
                 break;
         }
@@ -3229,34 +3317,43 @@ static void func_actor_356100_8016A668(Task* arg0)
     }
 }
 
-static void func_actor_356100_8016A710(Task* arg0)
+/// Plays the backward fall and chooses a resting state or corpse burn.
+///
+/// Requires initialized live work, enemy and model. Entry enables drawing and
+/// targeting, resets look yaw and starts normal-rate playback; negative HP also
+/// raises the enemy alert. The fall set leads into the back-down set.
+/// At the down boundary, positive HP selects down unless the unproven work halfword is
+/// positive, which selects status hold; nonpositive HP selects corpse burn.
+/// No recovered transition selects this handler.
+static void _actor356100FallBack(Task* actor)
 {
     _Actor356100Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitRadius               = 0x180;
+        actor->extra.tmd->flags       = 0;
+        work->hitRadius               = ACTOR_356100_HIT_RADIUS;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ACTOR_356100_ANIM_REQUEST_BLEND;
-        work->animId                  = 0xA;
-        work->animRate                = 0x10;
+        work->animId                  = ACTOR_356100_ANIM_FALL_BACK;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
             sceneSetEnemyAlert(1);
         }
     }
-    _actor356100UpdateAnimation(arg0);
-    if (work->rig.slots[1].status.fields.flags & 1) {
-        if (work->animId == 0xA) {
-            work->animId      = 0xB;
+    _actor356100UpdateAnimation(actor);
+    // Reach the back-down set before choosing the resting or death state.
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        if (work->animId == ACTOR_356100_ANIM_FALL_BACK) {
+            work->animId      = ACTOR_356100_ANIM_DOWN_BACK;
             work->animRequest = ACTOR_356100_ANIM_REQUEST_RESET;
-            _actor356100UpdateAnimation(arg0);
+            _actor356100UpdateAnimation(actor);
         }
-        if ((work->rig.slots[1].status.fields.flags & 1) && (work->animId == 0xB)) {
+        if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && (work->animId == ACTOR_356100_ANIM_DOWN_BACK)) {
             if (enemy->hp > 0) {
                 if (work->field_B3A <= 0) {
                     work->state = ACTOR_356100_STATE_DOWN;
@@ -3270,28 +3367,35 @@ static void func_actor_356100_8016A710(Task* arg0)
     }
 }
 
-static void func_actor_356100_8016A834(Task* arg0)
+/// Plays the forward fall and chooses a resting state or corpse burn.
+///
+/// Requires initialized live work, enemy and model. Entry enables drawing and
+/// targeting, resets look yaw and starts normal-rate playback; negative HP also
+/// raises the enemy alert. At the down boundary, positive HP selects down unless the unproven work halfword is
+/// positive, which selects status hold; nonpositive HP selects corpse burn.
+/// No recovered transition selects this handler.
+static void _actor356100FallFront(Task* actor)
 {
     _Actor356100Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitRadius               = 0x180;
+        actor->extra.tmd->flags       = 0;
+        work->hitRadius               = ACTOR_356100_HIT_RADIUS;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ACTOR_356100_ANIM_REQUEST_BLEND;
-        work->animId                  = 0xC;
-        work->animRate                = 0x10;
+        work->animId                  = ACTOR_356100_ANIM_DOWN_FRONT;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
             sceneSetEnemyAlert(1);
         }
     }
-    _actor356100UpdateAnimation(arg0);
-    if (work->rig.slots[1].status.fields.flags & 1) {
+    _actor356100UpdateAnimation(actor);
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         if (enemy->hp > 0) {
             if (work->field_B3A <= 0) {
                 work->state = ACTOR_356100_STATE_DOWN;
@@ -3304,12 +3408,16 @@ static void func_actor_356100_8016A834(Task* arg0)
     }
 }
 
-/// Runs the handler for the task's current state, copying the table onto the
-/// stack before the call.
-void func_actor_356100_8016A910(Task* task)
+/// Dispatches this enemy task's setup, frame update or destruction callback.
+///
+/// `Task::state` must be in 0..2 and `spawnArg2.pointer` must be the live enemy.
+/// The three-entry table is copied by value before dispatch. Setup creates the
+/// work block; destruction ends the enemy and task lifetimes. No bounds are
+/// checked, and the callback retains no pointer beyond the task's own storage.
+static void _actor356100Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = D_actor_356100_80161F40;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    stateHandlers = D_actor_356100_80161F40;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
