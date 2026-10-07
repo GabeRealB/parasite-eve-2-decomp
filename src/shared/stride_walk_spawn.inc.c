@@ -49,6 +49,6 @@ void strideWalkSpawn(Enemy* enemy, Task* task)
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = gStrideWalkMessages;
-    strideWalkUpdate(task);
+    _strideWalkUpdate(task);
     task->state += 1;
 }

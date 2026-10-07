@@ -1646,17 +1646,17 @@ static AnimationSet _gActor460200Animation162A0 = {
 };
 
 TaskMessageEntry gStrideWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, strideWalkPlay },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, strideWalkSetVisibility },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _strideWalkPlayAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _strideWalkSetModelDraw },
     { ACTOR_MESSAGE_PLACE, func_actor_460200_801334F0 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133568 },
-    { ACTOR_MESSAGE_WALK_TO, strideWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _strideWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc gStrideWalkTasks[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_460200_801330C8, { .model = &_gActor460200SoldierBBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, strideWalkSubModelTask, { .model = &_gActor460200SoldierBRifle } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _strideWalkSubModelTask, { .model = &_gActor460200SoldierBRifle } },
 };
 
 u8 gStrideWalkAnimParams[48] = {
@@ -2330,7 +2330,7 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args, s32 arg
 
 void func_actor_460200_801330C8(Task* task)
 {
-    EnemyTaskFunc fns[2] = { strideWalkSpawn, strideWalkFrame };
+    EnemyTaskFunc fns[2] = { strideWalkSpawn, _strideWalkFrame };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }

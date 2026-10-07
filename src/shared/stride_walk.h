@@ -25,6 +25,11 @@
 
 #include "main/task_types.h"
 
+#include "actor_messages.h"
+
+/// Parent-coordinate units per attempted travel update and per target-distance step.
+enum { STRIDE_WALK_STEP_DISTANCE = 30 };
+
 /// What the walker's head does each frame, kept in `StrideWalkWork::turnMode`:
 /// the value the turn command last carried. The talk scripts send
 /// `STRIDE_WALK_TURN_PLAYER` when a scene opens and `STRIDE_WALK_TURN_RELEASE`
@@ -59,13 +64,13 @@ typedef struct {
 } StrideWalkWork;
 STATIC_ASSERT_SIZEOF(StrideWalkWork, 0x4FC);
 
-void strideWalkSpawn(Enemy* enemy, Task* task);
-void strideWalkUpdate(Task* task);
-void strideWalkFrame(Enemy* enemy, Task* task);
-s32  strideWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
-s32  strideWalkSetVisibility(Task* task, s32 arg1, s32 flags, s32 arg3);
-s32  strideWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
-void strideWalkSubModelTask(Task* task);
+void        strideWalkSpawn(Enemy* enemy, Task* task);
+static void _strideWalkUpdate(Task* task);
+static void _strideWalkFrame(Enemy* enemy, Task* task);
+static s32  _strideWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 secondArg);
+static s32  _strideWalkSetModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 secondArg);
+static s32  _strideWalkSetWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 secondArg);
+static void _strideWalkSubModelTask(Task* task);
 
 /* Defined by each package. */
 void strideWalkExit(Task* task);

@@ -125165,7 +125165,7 @@ be true - in this session, `include/gameplay/gameplay.h` referencing `VECTOR`
 with no definition anywhere, and `libgs.h` using `VECTOR` while `libgte.h`
 appeared not to declare it, were both wrapper artefacts rather than facts.
 
-## An inlined GTE block is usually a `static __inline__` in a shared actors header - call it (func_actor_161500_8013252C, 2026-09-17)
+## An inlined GTE block is usually a `static __inline__` in a shared actors header - call it (_strideWalkUpdate, 2026-09-17)
 
 m2c renders the block below as a wall of `M2C_ERROR`, and it is opaque enough that
 re-deriving it by hand is the obvious (wrong) move:
@@ -125189,9 +125189,9 @@ RTPS-style op with `sf=1` and bit 19 set, which gas spells that way; there is no
 need to model it.
 
 Where the twin is a whole *body* rather than a fragment, transcribe the matched
-C the way entry [38] describes. `func_actor_161500_8013252C` is the
+C the way entry [38] describes. `_strideWalkUpdate` is the
 `ActorsShared8014c874` step body with `amount` 0x1E instead of 0xC and one extra
-`work->state = 1` in the travel-exhausted branch, and copying that body plus
+`work->st.state = 1` in the travel-exhausted branch, and copying that body plus
 calling the helper scored 100.000% with every penalty zero on the first
 candidate (`base_1.c`). The brief's similarity classes pick the twin out: this
 one scored 1.00 in `shape`, `calls` and `cflow` together, which for a body whose
@@ -125199,11 +125199,12 @@ callees are all `ActorsShared*` means "same body", not merely "similar".
 
 **A field's signedness is not what selects the load.** The twin's
 `ActorsShared8014c874Work` declares `s16 animId` while this overlay's
-`StrideWalkWork` declares `u16 animId`, and the target loads it with `lh`. That
+`StrideWalkWork::st.animId` was declared `u16` in the measured variant, and
+the target loads it with `lh`. That
 looks like a retype, but it is not: a controlled variant (`base_2.c`) with the
 field left `u16` compiled to a byte-identical object, 100.000%. The
 sign-extending load comes from the *local* the value is assigned to
-(`s16 animId = work->animId;`), not from the field, so the shared struct's field
+(`s16 requestedAnimId = work->st.animId;`), not from the field, so the shared struct's field
 types are not part of the template to copy. Prefer the smaller diff.
 
 Inputs: `base_1.i` (100.000%) SHA256
@@ -127201,7 +127202,7 @@ drop its constant:
 
 The `(set (reg:SI 110) (const_int 1))` is deleted and
 `(ne (reg 109) (reg 110))` is rewritten to `(eq (reg 109) (reg 86))`, where 86
-is the dispatcher's 1. `ActorsShared8014c874` and `func_actor_460200_80132F0C`
+is the dispatcher's 1. `ActorsShared8014c874` and `_strideWalkUpdate`
 are the same body and pin it with an empty `do { } while (0);` at the head of
 the state-3 arm, which is worth a `NOTE_INSN_LOOP_BEG`/`LOOP_CONT`/`LOOP_END`
 triple; cse then processes the arm as a block of its own:
@@ -130383,7 +130384,7 @@ was itself evidence the missing value was a pointer the source never spelled.
 `ASM: asm/USA/actors/nonmatchings/actor_161500/actor_161500_2/...` but
 `C file: src/actors/actor_535700/actor_535700_7.c`, and quoted the latter's
 INCLUDE_ASM site. Those are two *different* functions: actor_161500's body is
-0x110 bytes (extra `func_actor_161500_8013252C` call plus a `field_4F0` ramp
+0x110 bytes (extra `_strideWalkUpdate` call plus a `turnWeight` ramp
 feeding `animationAimHeadAtTask`), actor_535700's is 0x84.
 
 **Why.** The generated per-overlay `symbol_name_format` guarantees that

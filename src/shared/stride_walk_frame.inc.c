@@ -6,38 +6,65 @@
 #error "Bind ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW before including this fragment"
 #endif
 
-/// Per-frame state of the walker: relights the model from a point 0x320 above
-/// its root, runs the animation update, then turns the head toward the player
-/// by the work block's `turnWeight`, which rises 0x200 a frame to
-/// `STRIDE_WALK_TURN_WEIGHT_FULL` while `turnMode` is `STRIDE_WALK_TURN_PLAYER`
-/// and falls 0x200 a frame to 0 otherwise, and draws the shadow.
-void strideWalkFrame(Enemy* enemy, Task* task)
+/// Ramps the head-aim weight toward the selected endpoint or back to zero.
+///
+/// Borrows writable `work` with weight in 0..`STRIDE_WALK_TURN_WEIGHT_FULL`.
+/// Each call changes the Q12 weight by one eighth of full weight, saturating
+/// at the selected endpoint. Any mode other than TURN_PLAYER releases the aim.
+static __inline__ void _strideWalkStepHeadTurnWeight(StrideWalkWork* work)
 {
-    StrideWalkWork* work;
-    GfxCoord*       coord;
-    TmdObject*      obj;
-    VECTOR          vec;
+    enum { STRIDE_WALK_TURN_WEIGHT_STEP = STRIDE_WALK_TURN_WEIGHT_FULL / 8 };
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = task->work;
-    actorRenderComposeCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1] - 0x320;
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    strideWalkUpdate(task);
     if (work->turnMode == STRIDE_WALK_TURN_PLAYER) {
-        work->turnWeight += 0x200;
+        work->turnWeight += STRIDE_WALK_TURN_WEIGHT_STEP;
         if (work->turnWeight > STRIDE_WALK_TURN_WEIGHT_FULL) {
             work->turnWeight = STRIDE_WALK_TURN_WEIGHT_FULL;
         }
     } else {
-        work->turnWeight -= 0x200;
+        work->turnWeight -= STRIDE_WALK_TURN_WEIGHT_STEP;
         if (work->turnWeight < 0) {
             work->turnWeight = 0;
         }
     }
-    animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
+}
+
+/// Updates the soldier's lighting, scripted walk, player-facing head and shadow.
+///
+/// `task` owns the spawned TMD walker and `StrideWalkWork`; the player slot
+/// must contain a live model with its root-to-head parts 0..4. The walker rig,
+/// borrowed model/clip storage and scratch/GTE state must remain initialized.
+/// Samples lighting 800 world units above the composed root before moving it,
+/// then applies the animation update before head aim. Aim weight changes by
+/// 512/4096 per call; nominal yaw/pitch limits are 512/256 angle units (4096
+/// per turn), widened by the aim helper to preserve an existing extreme pose.
+/// `enemy` is the unused enemy-state callback argument. No pointer is retained.
+static void _strideWalkFrame(Enemy* enemy, Task* task)
+{
+    enum {
+        STRIDE_WALK_LIGHT_SAMPLE_HEIGHT = 800,
+        STRIDE_WALK_LIGHT_COUNT         = 3,
+        STRIDE_WALK_HEAD_YAW_LIMIT      = 0x200,
+        STRIDE_WALK_HEAD_PITCH_LIMIT    = 0x100,
+    };
+
+    StrideWalkWork* work;
+    GfxCoord*       rootCoord;
+    TmdObject*      model;
+    VECTOR          lightSamplePosition;
+
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    work      = task->work;
+    // Lighting samples the root before this frame's movement and pose changes.
+    actorRenderComposeCoord(rootCoord);
+    lightSamplePosition.vx = rootCoord->workm.t[0];
+    lightSamplePosition.vy = rootCoord->workm.t[1] - STRIDE_WALK_LIGHT_SAMPLE_HEIGHT;
+    lightSamplePosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightSamplePosition, 0, STRIDE_WALK_LIGHT_COUNT);
+    _strideWalkUpdate(task);
+    // Apply head aim to the pose produced by the animation update.
+    _strideWalkStepHeadTurnWeight(work);
+    animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), STRIDE_WALK_HEAD_YAW_LIMIT,
+                           STRIDE_WALK_HEAD_PITCH_LIMIT, work->turnWeight);
     ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW(task);
 }

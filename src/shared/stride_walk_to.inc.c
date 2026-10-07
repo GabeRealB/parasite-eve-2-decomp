@@ -1,25 +1,32 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
-/// Script opcode "walk to": aims the actor's root coordinate at `target` by
-/// taking the yaw of the horizontal offset from the coordinate's own
-/// translation, caches that yaw in the work block and rebuilds the local
-/// matrix from it, then records the distance, in steps of 30, for the walk
-/// that follows.
-s32 strideWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3)
+/// Faces the model root toward a target and records its attempted travel steps.
+///
+/// Requires the spawned TMD walker and writable `StrideWalkWork`. Borrows only
+/// target X/Z in the root parent's coordinate frame, ignoring height and angles.
+/// Replaces root rotation with unit-scale yaw (4096 units per turn), preserving
+/// translation and the existing composition stamp. Divides the integer horizontal
+/// distance estimate by 30 and stores its low signed halfword as the travel
+/// count, discarding a short remainder. Offsets and their squared sum must fit
+/// the nonnegative signed 32-bit square-root input. No target pointer is
+/// retained. Does not select a clip or request a reseed; movement
+/// requires a separate WALK play request. Ignores message ID and second payload
+/// and returns 0. Rotation requires initialized scratch/GTE state.
+static s32 _strideWalkSetWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 secondArg)
 {
-    GfxCoord*       coord;
+    GfxCoord*       rootCoord;
     StrideWalkWork* work;
-    s32             dx;
-    s32             dz;
-    u16             yaw;
+    s32             deltaX;
+    s32             deltaZ;
+    s16             yaw;
 
-    coord        = task->extra.tmd->coords;
+    rootCoord    = task->extra.tmd->coords;
     work         = task->work;
-    dx           = target->pos.vx - coord->coord.t[0];
-    dz           = target->pos.vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
+    deltaX       = target->pos.vx - rootCoord->coord.t[0];
+    deltaZ       = target->pos.vz - rootCoord->coord.t[2];
+    yaw          = ratan2(deltaX, deltaZ);
     work->st.yaw = yaw;
-    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 30;
+    gfxRotMatrixY(&rootCoord->coord, yaw, GRAPHICS_ROTATION_REPLACE);
+    work->st.travel = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ) / STRIDE_WALK_STEP_DISTANCE;
     return 0;
 }

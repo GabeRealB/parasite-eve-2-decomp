@@ -1,33 +1,37 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
-/// Script opcode: set the visibility flags of this actor's model and of the
-/// carried sub-model, whose task its spawn routine parked in `pairTask`. `flags`
-/// bit 0 hides both models (`TmdObject::flags` = 0) and its absence restores
-/// the default 0x80; bit 1 additionally ORs in 0x4. With no sub-model spawned
-/// (`Task::spawnArg1` == 0) the actor drives its own model twice.
-s32 strideWalkSetVisibility(Task* task, s32 arg1, s32 flags, s32 arg3)
+/// Replaces draw and automatic-buffer flags on the walker and its carried model.
+///
+/// Requires a live TMD walker and `StrideWalkWork`. A nonzero spawn argument
+/// requires a live carried-model task in `pairTask`; otherwise both references
+/// name the walker itself. `ACTOR_MESSAGE_PAIR_SHOW` clears all model flags;
+/// without it only active-draw exclusion is set. `ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER`
+/// additionally suppresses automatic missing-buffer allocation. Other input
+/// bits are ignored. Neither allocates nor releases buffers. Message ID and
+/// second payload are ignored. Returns 0.
+static s32 _strideWalkSetModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 secondArg)
 {
     StrideWalkWork* work;
-    TmdObject*      self;
-    TmdObject*      other;
+    TmdObject*      model;
+    TmdObject*      carriedModel;
 
-    self = task->extra.tmd;
-    work = task->work;
+    model = task->extra.tmd;
+    work  = task->work;
     if (task->spawnArg1.value != 0) {
-        other = work->pairTask->extra.tmd;
+        carriedModel = work->pairTask->extra.tmd;
     } else {
-        other = self;
+        carriedModel = model;
     }
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
+    if (drawFlags & ACTOR_MESSAGE_PAIR_SHOW) {
+        model->flags        = 0;
+        carriedModel->flags = 0;
     } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        carriedModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+        model->flags        |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        carriedModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
