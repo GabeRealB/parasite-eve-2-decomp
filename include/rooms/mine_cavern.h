@@ -64,6 +64,12 @@ void mineCavernRoomVisualEffectsHaloTask(Task* task);
 
 void func_mine_cavern_80181730(Task* arg0);
 
-void func_mine_cavern_8017DF54(Task* task);
+/// Runs the cavern's room controller: initialization, event polling, then teardown.
+///
+/// The live task's state must be 0..2, initially 0; dispatch copies the three
+/// handlers by value and does not check bounds. Requires the cavern's scripts
+/// and room resources to remain loaded, together with the live session and
+/// gameplay APIs. State 2 releases the task.
+void mineCavernRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_CAVERN_H

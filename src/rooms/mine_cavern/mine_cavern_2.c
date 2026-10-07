@@ -189,16 +189,16 @@ void        func_mine_cavern_8017E360(void);
 
 TaskMessageEntry D_mine_cavern_80183C6C[7] = {
     { 5102, func_mine_cavern_8017D908 },
-    { 5105, func_mine_cavern_8017DC50 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, mineCavernRefuseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_cavern_8017DC58 },
     { ROOM_MESSAGE_COMMAND, func_mine_cavern_8017DAA0 },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_mine_cavern_8017DC9C },
-    { ROOM_MESSAGE_SOUND, func_mine_cavern_8017DD38 },
+    { ROOM_MESSAGE_ACTOR_EVENT, mineCavernAdvanceEvent },
+    { ROOM_MESSAGE_SOUND, mineCavernHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_cavern_80183CA4[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_mine_cavern_8017DD6C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, mineCavernCommitCaptionProgressTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -554,7 +554,7 @@ static AnimationSet _gMineCavernAnimation0A38C = {
     { NULL, _gMineCavernAnimation0A38CBank1, NULL, NULL, _gMineCavernAnimation0A38CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_mine_cavern_80187974 = { { { TASK_BODY_NONE, 192 } }, func_mine_cavern_8017E18C, { .value = 0 } };
+TaskDesc D_mine_cavern_80187974 = { { { TASK_BODY_NONE, 192 } }, mineCavernTimedSoundTask, { .value = 0 } };
 
 AnimationSet* D_mine_cavern_80187980[17] = {
     NULL,
@@ -663,7 +663,7 @@ ActorCommand D_mine_cavern_80187C6C = { { .loc = { 4, 2 } }, 12 };
 ActorCommand D_mine_cavern_80187C70 = { { .loc = { 4, 2 } }, 13 };
 
 EvsCommand D_mine_cavern_80187C74[41] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B34 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
@@ -696,8 +696,8 @@ EvsCommand D_mine_cavern_80187C74[41] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C4C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BFC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
@@ -707,7 +707,7 @@ EvsCommand D_mine_cavern_80187C74[41] = {
 };
 
 EvsCommand D_mine_cavern_8018804C[19] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B4C } }, { .value = 0 } },
@@ -715,13 +715,13 @@ EvsCommand D_mine_cavern_8018804C[19] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A44 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C4C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BFC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
@@ -729,12 +729,12 @@ EvsCommand D_mine_cavern_8018804C[19] = {
 };
 
 EvsCommand D_mine_cavern_80188214[60] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E2D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernFadeOutMusic }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017DFAC }, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernReleaseEventBattleHold }, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B64 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
@@ -777,10 +777,10 @@ EvsCommand D_mine_cavern_80188214[60] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x401E0016 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_mine_cavern_8017E150 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = mineCavernSetSceneMusicEvent }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -792,10 +792,10 @@ EvsCommand D_mine_cavern_80188214[60] = {
 };
 
 EvsCommand D_mine_cavern_801887B4[27] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017E0F4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B94 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B20 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187C14 } }, { .value = 0 } },
@@ -803,7 +803,7 @@ EvsCommand D_mine_cavern_801887B4[27] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C50 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C54 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C68 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017DFAC }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernReleaseEventBattleHold }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -811,10 +811,10 @@ EvsCommand D_mine_cavern_801887B4[27] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_mine_cavern_8017E088 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_mine_cavern_8017E150 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_mine_cavern_8017E180 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = mineCavernSetSceneMusicEvent }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E0B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
@@ -822,11 +822,11 @@ EvsCommand D_mine_cavern_801887B4[27] = {
 };
 
 EvsCommand D_mine_cavern_80188A3C[31] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017E0F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E2D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernFadeOutMusic }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187BAC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
@@ -847,8 +847,8 @@ EvsCommand D_mine_cavern_80188A3C[31] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineCavernScriptNoop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017DFAC }, { .value = 95 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E15C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernReleaseEventBattleHold }, { .value = 95 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernApplyPostEventAreaUpdates }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C60 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -856,10 +856,10 @@ EvsCommand D_mine_cavern_80188A3C[31] = {
 };
 
 EvsCommand D_mine_cavern_80188D24[24] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017E0F4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E2FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187BAC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
@@ -872,8 +872,8 @@ EvsCommand D_mine_cavern_80188D24[24] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mine_cavern_8017DFAC }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E15C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernReleaseEventBattleHold }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernApplyPostEventAreaUpdates }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

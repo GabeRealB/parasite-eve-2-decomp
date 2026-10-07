@@ -68585,7 +68585,7 @@ result into `s32`, not `s8`" above. `_actor503500LargeOrbEmitterEnterState` went
 Widening to `s32` beats widening to the *unsigned* narrow type, which is the
 nearby trap: `u8 index` also removes the `sll`/`sra` pair, but the comparison
 then needs its own zero-extension and comes back as an `andi` + `sltu` pair
-instead. In `func_mine_cavern_8017DFAC` the target tail is a bare
+instead. In `mineCavernReleaseEventBattleHold` the target tail is a bare
 `slt v0,s0,v0` against an `lbu`, so both narrow types are wrong; `s32 index`
 scored 100% where `s8` scored 86.9% and `u8` 92.4%. The `sll` does not have to
 appear as a lone extra instruction, either — here reorg duplicated it into

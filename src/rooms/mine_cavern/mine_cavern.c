@@ -219,6 +219,13 @@ u16 D_mine_cavern_8018EB5C;
 static void func_mine_cavern_8017DDFC(Task* arg0);
 static void func_mine_cavern_8017DEE4(Task* task);
 
+// Persistent stages shared by the event message and its battle-release callback.
+enum {
+    MINE_CAVERN_EVENT_NOT_STARTED  = 0,
+    MINE_CAVERN_EVENT_FIRST_STAGE  = 1,
+    MINE_CAVERN_EVENT_SECOND_STAGE = 2
+};
+
 s32 func_mine_cavern_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
@@ -303,10 +310,9 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Room script callback that does nothing and reports 0.
-s32 func_mine_cavern_8017DC50(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 mineCavernRefuseKeyItem(Task* task, s32 msgId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
@@ -317,42 +323,52 @@ s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* req
     return 0;
 }
 
-/// Advances the cavern's collapse sequence one step: flag 0xE6 goes 0 -> 1
-/// (bit 0 of `Gp_StateC08.flags` set) and 1 -> 2 (quake shake, then camera
-/// pan), each step writing `D_mine_cavern_8018EB50` to the step number.
-s32 func_mine_cavern_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 mineCavernAdvanceEvent(Task* task, s32 msgId, s32 unusedEventId, s32 unusedArg)
 {
-    if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 0) {
+    enum { MINE_CAVERN_POST_EVENT_OBJECTIVE = 0x3D };
+
+    if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_NOT_STARTED) {
+        // Let the room tick start the first scene after the attachment wheel closes.
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
-        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 1);
-        D_mine_cavern_8018EB50 = 1;
-    } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3D);
+        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, MINE_CAVERN_EVENT_FIRST_STAGE);
+        D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_FIRST_STAGE;
+    } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_FIRST_STAGE) {
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MINE_CAVERN_POST_EVENT_OBJECTIVE);
         evsStartScriptWithSkip(D_mine_cavern_80188A3C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_80188D24);
-        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 2);
+        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, MINE_CAVERN_EVENT_SECOND_STAGE);
     }
     return 0;
 }
 
-s32 func_mine_cavern_8017DD38(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 mineCavernHandleSoundMessage(Task* task, s32 msgId, s32 soundCommand, s32 unusedArg)
 {
-    if (arg2 == 0xD) {
-        sndEvtRequestScriptStart(0x54020000 | 0xD, 0, 0);
+    enum { MINE_CAVERN_SOUND_COMMAND_EVENT = 0xD };
+
+    if (soundCommand == MINE_CAVERN_SOUND_COMMAND_EVENT) {
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, MINE_CAVERN_SOUND_COMMAND_EVENT), 0, 0);
     }
     return 0;
 }
 
-void func_mine_cavern_8017DD6C(Task* task)
+void mineCavernCommitCaptionProgressTask(Task* task)
 {
+    enum {
+        MINE_CAVERN_CAP_KEY_POWER_PANEL  = 0xB,
+        MINE_CAVERN_CAP_KEY_OPEN_PASSAGE = 0x15,
+        MINE_CAVERN_POWER_PANEL_COMPLETE = 2,
+        MINE_CAVERN_PASSAGE_OPEN         = 1
+    };
+
     if (capIsBusy() == 0) {
-        if (capGetVariantKey() == 0xB) {
+        // CAP retains its final choice after playback releases its selection.
+        if (capGetVariantKey() == MINE_CAVERN_CAP_KEY_POWER_PANEL) {
             gameFlagSetNibble(GAME_FLAG_0C4, 1);
-            gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 2);
+            gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, MINE_CAVERN_POWER_PANEL_COMPLETE);
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 0);
         }
-        if (capGetVariantKey() == 0x15) {
-            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, 1);
+        if (capGetVariantKey() == MINE_CAVERN_CAP_KEY_OPEN_PASSAGE) {
+            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, MINE_CAVERN_PASSAGE_OPEN);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_MINE_CAVERN, 0);
         }
         taskKill(task);
@@ -391,33 +407,41 @@ static void func_mine_cavern_8017DEE4(Task* task)
     }
 }
 
-/// The room task's state handlers, run by `func_mine_cavern_8017DF54`.
+/// The room task's state handlers, run by `mineCavernRoomTask`.
 static const TaskFuncTable3 D_mine_cavern_8017D5C4 = {
     { func_mine_cavern_8017DDFC, func_mine_cavern_8017DEE4, taskKill },
 };
 
-/// Runs the room task's current state handler from the room's three-entry
-/// table, copying the table onto the stack before the call.
-void func_mine_cavern_8017DF54(Task* task)
+void mineCavernRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_mine_cavern_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_mine_cavern_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
-void func_mine_cavern_8017DFAC(s32 arg0)
+/// Credits one event-stage battle release and schedules weapon restoration.
+///
+/// The placed actor in slot 0 supplies rewards; the delay store keeps its low byte.
+static inline void _mineCavernCreditEventBattleRelease(s32 endDelayFrames)
 {
-    if ((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1 && D_mine_cavern_8018EB54 == 0) ||
-        (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 2 && D_mine_cavern_8018EB54 == 1)) {
-        sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x1E);
-        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
-        gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        D_mine_cavern_8018EB54                        += 1;
+    sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x1E);
+    gSceneCombatState.signals.bytes.endDelayFrames = endDelayFrames;
+    gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+    D_mine_cavern_8018EB54                        += 1;
+}
+
+void mineCavernReleaseEventBattleHold(s32 endDelayFrames)
+{
+    // Each persistent event stage consumes at most one scripted battle hold.
+    if ((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_FIRST_STAGE && D_mine_cavern_8018EB54 == 0) ||
+        (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_SECOND_STAGE && D_mine_cavern_8018EB54 == 1)) {
+        _mineCavernCreditEventBattleRelease(endDelayFrames);
         return;
     }
-    if (arg0 < gSceneCombatState.signals.bytes.endDelayFrames) {
-        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
+    // Compare the full signed argument before the byte store truncates it.
+    if (endDelayFrames < gSceneCombatState.signals.bytes.endDelayFrames) {
+        gSceneCombatState.signals.bytes.endDelayFrames = endDelayFrames;
     }
 }
 
@@ -426,76 +450,83 @@ void func_mine_cavern_8017E088(s16 arg0)
     capStartSequenceSlot(arg0, 1, 1);
 }
 
-void func_mine_cavern_8017E0B4(void)
+void mineCavernEngageScriptedBattle(void)
 {
     gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
     if (gSceneCombatState.battleRefs == 0) {
-        (sceneAcquireBattleRef)(0);
+        sceneAcquireBattleRef(0);
     }
     sceneEngageBattle(1);
 }
 
-void func_mine_cavern_8017E0F4(s32 arg0)
+void mineCavernSetAreaMusicEnabled(s32 enabled)
 {
-    if (arg0 != 0) {
-        gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
+    if (enabled != 0) {
+        gGameSession->flowFlags &= ~GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
         return;
     }
     gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
     gGameSession->flowFlags |= GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
 }
 
-/// Room script callback: stores its argument into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent`.
-void func_mine_cavern_8017E150(s8 arg0)
+void mineCavernSetSceneMusicEvent(s8 sceneEvent)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-void func_mine_cavern_8017E15C(void)
+void mineCavernApplyPostEventAreaUpdates(void)
 {
     areaApplySavedUpdates(D_mine_cavern_8018E32C);
 }
 
-/// Room script callback: selects its argument as the scene music entry
-/// (`gStageSceneMusicEntry`).
-void func_mine_cavern_8017E180(u8 arg0)
+void mineCavernSelectCountdownMusicEntry(u8 countdownEntry)
 {
-    gStageSceneMusicEntry = arg0;
+    gStageSceneMusicEntry = countdownEntry;
 }
 
-void func_mine_cavern_8017E18C(Task* task)
+void mineCavernTimedSoundTask(Task* task)
 {
+    enum {
+        MINE_CAVERN_TIMED_SOUND_A              = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3A,
+        MINE_CAVERN_TIMED_SOUND_B              = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x39,
+        MINE_CAVERN_TIMED_SOUND_ATTENUATION    = 0x30,
+        MINE_CAVERN_TIMED_SOUND_DURATION_TICKS = 537
+    };
+
+    // The signed callback counter is elapsed ticks, rather than a teardown countdown.
     task->killCountdown++;
     switch (task->killCountdown) {
-        case 0x21:
-        case 0x6:
-        case 0x40:
-        case 0x7C:
-        case 0x60:
-        case 0x8C:
-            sndEvtRequestScriptStart(0x1000003A, 0, 0x30);
+        case 33:
+        case 6:
+        case 64:
+        case 124:
+        case 96:
+        case 140:
+            sndEvtRequestScriptStart(MINE_CAVERN_TIMED_SOUND_A, 0, MINE_CAVERN_TIMED_SOUND_ATTENUATION);
             break;
-        case 0x50:
-        case 0x12:
-        case 0x30:
-        case 0x70:
-        case 0x87:
-        case 0x218:
-            sndEvtRequestScriptStart(0x10000039, 0, 0x30);
+        case 80:
+        case 18:
+        case 48:
+        case 112:
+        case 135:
+        case 536:
+            sndEvtRequestScriptStart(MINE_CAVERN_TIMED_SOUND_B, 0, MINE_CAVERN_TIMED_SOUND_ATTENUATION);
             break;
     }
-    if ((gGameSession->evtSkipped != 0) || (task->killCountdown >= 0x219)) {
+    if ((gGameSession->evtSkipped != 0) || (task->killCountdown >= MINE_CAVERN_TIMED_SOUND_DURATION_TICKS)) {
         taskKill(task);
     }
 }
 
-void func_mine_cavern_8017E2D8(void)
+void mineCavernFadeOutMusic(void)
 {
-    sndEvtRequestMidiStop(0, 0x64);
+    enum { MINE_CAVERN_MUSIC_ALL_SEQUENCES = 0,
+           MINE_CAVERN_MUSIC_FADE_TICKS    = 100 };
+
+    sndEvtRequestMidiStop(MINE_CAVERN_MUSIC_ALL_SEQUENCES, MINE_CAVERN_MUSIC_FADE_TICKS);
 }
 
-/// Sets bit 0 of `Gp_StateC08.flags` and requests all-effect cancellation on `gRoomEffectState`.
-void func_mine_cavern_8017E2FC(void)
+void mineCavernLockAttachmentsAndCancelEffects(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();

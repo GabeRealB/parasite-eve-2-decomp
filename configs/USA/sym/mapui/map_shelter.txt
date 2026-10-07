@@ -13,7 +13,7 @@ D_mine_mesa_80186558 = 0x80186558; // absolute:True owner=mine_mesa
 D_mine_mesa_80187030 = 0x80187030; // absolute:True owner=mine_mesa
 D_mine_mesa_80188744 = 0x80188744; // absolute:True owner=mine_mesa shared=rooms
 D_mine_mesa_80189A60 = 0x80189A60; // absolute:True owner=mine_mesa
-func_mine_cavern_8017DF54 = 0x8017DF54; // type:func absolute:True owner=mine_cavern
+mineCavernRoomTask = 0x8017DF54; // type:func absolute:True owner=mine_cavern
 D_mine_cavern_80188FE0 = 0x80188FE0; // absolute:True owner=mine_cavern
 D_mine_cavern_80189010 = 0x80189010; // absolute:True owner=mine_cavern
 D_mine_cavern_80189060 = 0x80189060; // absolute:True owner=mine_cavern
