@@ -1479,8 +1479,12 @@ static s32 _actor401000ApplyGridPushback(GfxCoord* root, const WorldCollisionCon
 
 /// Reads the player's facing and the bearing from the player to this actor.
 ///
-/// Angles are 4096 per turn; the reverse bearing is normalized to +/-2048.
-static __inline__ void _actor401000ReadPlayerBearings(Task* task, ActorChaseScratch* chase)
+/// Requires live actor and player model roots in the same parent frame and
+/// writable caller-owned chase scratch. Refreshes the signed-halfword XYZ
+/// offset to the player, the player's matrix yaw and the reverse XZ bearing.
+/// Angles use 4096 units per turn; the reverse bearing retains both +/-2048
+/// endpoints. Reads local transforms without composing them; retains no pointer.
+static __inline__ void _actor401000ReadPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
     chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
                               gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);

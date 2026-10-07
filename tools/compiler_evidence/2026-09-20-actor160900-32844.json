@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_160900_80132844",
+  "function": "_actor160900AdvanceKyleAnimChain",
   "date": "2026-09-20",
   "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
   "inputs": {
@@ -20,6 +20,6 @@
     "Unscoped build-and-verify.sh: all 7420 matched functions retained; BUILD SUCCEEDED"
   ],
   "limits": "No GDB trace captured; precise scheduler ready-list/hazard selection remains untraced. No claim that empty asm or added references improve codegen generally.",
-  "scratch": "nonmatchings/func_actor_160900_80132844-vacuum",
+  "scratch": { "root": "nonmatchings", "basename_format": "func_{package}_{vram}-vacuum", "package": "actor_160900", "vram": "80132844" },
   "search": "Router ran once, no discovery; successful candidates are manual experiments."
 }

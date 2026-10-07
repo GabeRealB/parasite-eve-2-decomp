@@ -31,6 +31,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_motion.h"
+#include "../../shared/actor_motion_play_helpers.h"
 #include "../../shared/actor_messages.h"
 
 /// Work block of Kyle Madigan's body, the package's scripted walker.
@@ -1033,37 +1034,6 @@ static void _actor120400UpdateKyleMadiganWalker(Task* task)
 
 #include "../../shared/actor_motion_arrive.inc.c"
 
-/// Applies the walk's start clip to slots 1..19 and enables subsequent ticking.
-///
-/// Borrows a live body, writable work and a readable request through the call.
-/// The bank and clip must exist in `gActorMotionAnimBanks`. A bank change binds
-/// the rig; a ticking rig blends when requested, otherwise its slots reset.
-static inline void _actor120400ApplyWalkStartAnimation(_Actor120400KyleMadiganWork* work, TmdObject* bodyModel,
-                                                       const AnimationPlayRequest* request)
-{
-    s32 slotIndex;
-
-    if (request->source.index != work->model.bank) {
-        work->model.bank = request->source.index;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], bodyModel, work->rig.poses,
-                             work->rig.slots);
-    }
-    work->model.animId = request->animationId;
-    if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
-            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
-        }
-    } else {
-        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
-            animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
-        }
-    }
-    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
-        animationTickSlot(&work->rig.anim, slotIndex);
-    }
-    work->model.ticking = 1;
-}
-
 /// Starts Kyle's four-step scripted walk toward a borrowed destination.
 ///
 /// Requires a live TMD body and `_Actor120400KyleMadiganWork`. Copies XYZ
@@ -1083,7 +1053,7 @@ static s32 _actor120400StartKyleMadiganWalk(Task* task, s32 msgId, const ActorTr
         ACTOR_120400_KYLE_WALK_CLOSING_CLIP = 1,
         ACTOR_120400_KYLE_WALK_BLEND_FRAMES = 5,
     };
-    _Actor120400KyleMadiganWork* animationWork;
+    ActorMotionPlayWork*         animationWork;
     _Actor120400KyleMadiganWork* walkWork;
     AnimationPlayRequest         startRequest;
 
@@ -1110,7 +1080,7 @@ static s32 _actor120400StartKyleMadiganWalk(Task* task, s32 msgId, const ActorTr
 
     // Apply the request after latching the destination and closing clip.
     animationWork = task->work;
-    _actor120400ApplyWalkStartAnimation(animationWork, task->extra.tmd, &startRequest);
+    _actorMotionApplyAnimationRequest(animationWork, task->extra.tmd, &startRequest);
     return 0;
 }
 

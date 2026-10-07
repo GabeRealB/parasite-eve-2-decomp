@@ -121,3 +121,5 @@ D_actor_143400_801350BC = 0x801350BC; // size:0x918 defined:True
 D_actor_143400_801359D4 = 0x801359D4; // size:0x1E0 defined:True
 
 D_shelter_r47_8018A638 = 0x8018A638; // absolute:True owner=shelter_r47
+_actor143400SelectSceneCaptions = 0x80131e24; // type:func
+_actor143400SetSceneEvent = 0x80131e90; // type:func

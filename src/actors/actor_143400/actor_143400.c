@@ -12,9 +12,9 @@
 
 #include "rooms/shelter_r47.h"
 
-void func_actor_143400_80131E24(s32);
-void func_actor_143400_80131E6C(void);
-void func_actor_143400_80131E90(s8);
+static void _actor143400SelectSceneCaptions(s32 enable);
+void        func_actor_143400_80131E6C(void);
+static void _actor143400SetSceneEvent(s8 sceneEvent);
 
 static AnimationPackedPose _gActor143400Animation00358Bank1[6] = {
 #include "assets/actor_143400_animation_00358_bank1.inc"
@@ -498,7 +498,7 @@ EvsCommand D_actor_143400_801350BC[97] = {
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_143400_80131E24 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor143400SelectSceneCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_143400_80134F7C } }, { .value = 0 } },
@@ -516,7 +516,7 @@ EvsCommand D_actor_143400_801350BC[97] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542F0009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_143400_80131E90 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor143400SetSceneEvent }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143400_80134EF0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -581,7 +581,7 @@ EvsCommand D_actor_143400_801350BC[97] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143400_80134FEC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_143400_80131E24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor143400SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143400_80131E6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0007 }, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -603,24 +603,31 @@ EvsCommand D_actor_143400_801359D4[20] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_143400_80131E90 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor143400SetSceneEvent }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_143400_80131E24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor143400SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143400_80131E6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0007 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
-}; /// With a non-zero `arg0`, clears `Gp_CapFile`, loads capture file 2 and
-/// passes (0x140, 0x100) to `capSetTexturePage`; with zero, resets the capture
-/// state instead. Reached only through the function pointers in the actor's
-/// data.
-void func_actor_143400_80131E24(s32 arg0)
+};
+
+/// Selects this scene's CAP resources, or restores the bundle's default resources.
+///
+/// Nonzero `enable` selects data resource ordinal 2 and a VRAM text origin of
+/// (320, 256) pixels; zero resets CAP selection after playback has stopped.
+/// The selected resource must be loaded, writable and live through playback.
+static void _actor143400SelectSceneCaptions(s32 enable)
 {
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(2);
-        capSetTexturePage(0x140, 0x100);
+    enum { SCENE_CAP_RESOURCE  = 2,
+           SCENE_CAP_TEXTURE_X = 320,
+           SCENE_CAP_TEXTURE_Y = 256 };
+
+    if (enable != 0) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(SCENE_CAP_RESOURCE);
+        capSetTexturePage(SCENE_CAP_TEXTURE_X, SCENE_CAP_TEXTURE_Y);
         return;
     }
     capReset();
@@ -634,9 +641,11 @@ void func_actor_143400_80131E6C(void)
     areaApplySavedUpdates(D_shelter_r47_8018A638);
 }
 
-/// Stores `arg0` in the gameplay byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent`. Reached only through the
-/// function pointers in the actor's data.
-void func_actor_143400_80131E90(s8 arg0)
+/// Sets the live save's scene-event selector for stage music.
+///
+/// Both event-script paths supply event 15. Stores the signed byte unchanged;
+/// this does not start playback or select an area music track itself.
+static void _actor143400SetSceneEvent(s8 sceneEvent)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }

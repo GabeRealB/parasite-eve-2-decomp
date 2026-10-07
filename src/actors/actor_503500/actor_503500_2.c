@@ -1757,8 +1757,11 @@ void func_actor_503500_80132778(Task* task)
 
 /// Queues a centred 320x240 subtractive tile and its blend command at OT slot 3.
 ///
-/// Channels are byte intensities. The current frame arena must have room for
-/// both packets and remain live until GPU drawing completes.
+/// Channels are byte subtraction intensities. Requires centred screen coordinates,
+/// a writable ordering-table slot 3 and arena space for a TILE and DR_TPAGE.
+/// Both packets borrow the current arena until GPU drawing completes. The draw
+/// command enables drawing into the displayed area, disables dithering and
+/// leaves subtractive blending active afterward.
 static inline void _actor503500DrawBlackOverlay(u8 red, u8 green, u8 blue)
 {
     enum { BLACK_OVERLAY_WIDTH          = 320,
@@ -1781,6 +1784,7 @@ static inline void _actor503500DrawBlackOverlay(u8 red, u8 green, u8 blue)
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
     setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, BLACK_OVERLAY_TEXTURE_PAGE_X, 0));
+    // OT insertion prepends the blend command so it executes before the tile.
     addPrim(gGpuCurrentOt + BLACK_OVERLAY_OT_SLOT, drawMode);
 }
 

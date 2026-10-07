@@ -123,7 +123,7 @@ static AnimationSet         _gActor136300Animation08A84;
 static AnimationSet         _gActor136300Animation08D9C;
 static AnimationSet         _gActor136300Animation08F98;
 static AnimationSet         _gActor136300Animation092D4;
-void                        func_actor_136300_801328D4(s8);
+static void                 _actor136300SetSceneEvent(s8 sceneEvent);
 void                        func_actor_136300_801328E0(s32);
 void                        func_actor_136300_80132910(s32);
 void                        func_actor_136300_80132998(void);
@@ -1320,7 +1320,7 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B1B8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_136300_801328D4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor136300SetSceneEvent }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1339,7 +1339,7 @@ EvsCommand D_actor_136300_8013C388[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_136300_801328D4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor136300SetSceneEvent }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136300_8013B570 } }, { .value = 0 } },
@@ -1500,9 +1500,13 @@ void func_actor_136300_80132854(Task* arg0)
     arg0->spawnArg1.value = var_v0;
 }
 
-void func_actor_136300_801328D4(s8 arg0)
+/// Sets the live save's scene-event selector for stage music.
+///
+/// The event script supplies event 7 on both normal completion and skipping.
+/// This stores the signed byte unchanged; it does not start playback itself.
+static void _actor136300SetSceneEvent(s8 sceneEvent)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
 void func_actor_136300_801328E0(s32 arg0)

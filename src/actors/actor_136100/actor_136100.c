@@ -1559,9 +1559,12 @@ static void _actor136100RifleTask(Task* task)
 
 /// Places the player at a scene entrance and starts its scripted walk.
 ///
-/// Requires the live player and two borrowed placements: start and destination.
-/// Dispatch copies the destination before the entrance wait counters are reset.
-static inline void _actor136100BeginPlayerEntrance(_Actor136100Work* work, const ActorTransform* path)
+/// Requires live controller work and its borrowed player task. `path` contains
+/// two placements: the immediate start and the scripted-walk destination, in
+/// the player's root-parent frame, with Euler angles in 4096 units per turn.
+/// Synchronous messages copy both records; the path need only survive the call.
+/// Clears the entrance delay and advances request step 0 to the walk wait.
+static inline void _actor136100BeginPlayerEntrance(_Actor136100Work* work, const ActorTransform path[2])
 {
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &path[0], 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &path[1], 0);

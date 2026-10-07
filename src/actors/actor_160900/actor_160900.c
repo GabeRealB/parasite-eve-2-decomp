@@ -18,6 +18,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/effect_tasks.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -152,7 +153,7 @@ extern u8       D_actor_160900_8013F210[];
 extern u8       D_actor_160900_8013F228[];
 extern TaskDesc D_actor_160900_8013F17C[];
 
-/// Point lists `func_actor_160900_8013418C` hands `func_actor_160900_80133758`
+/// Point lists `func_actor_160900_8013418C` hands `_actor160900SpawnDriftingSprites`
 /// for `_Actor160900CutsceneWork::effectCue` ids 1-5.
 extern SVECTOR D_actor_160900_8013F258[];
 extern SVECTOR D_actor_160900_8013F2E0[];
@@ -971,13 +972,13 @@ extern TaskMessageEntry D_actor_160900_8013F200[2];
 
 static s32         _actor160900AdvancePlayerAnimChain(Task* task);
 static inline void _actor160900BlendKyleAnim(Task* task, u16 animationId);
-static s32         func_actor_160900_80132844(Task* arg0);
-static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj);
-static inline void func_actor_160900_SetAnim(Task* task, u16 anim);
-static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim);
+static s32         _actor160900AdvanceKyleAnimChain(Task* task);
+static inline void _actor160900InitKyleAnimation(Task* task, TmdObject* bodyModel);
+static inline void _actor160900BlendPlayerAnim(Task* task, u16 animationId);
+static inline void _actor160900ResetPlayerAnim(Task* task, u16 animationId);
 static void        func_actor_160900_80133238(Task* arg0);
-static void        func_actor_160900_8013358C(Task* arg0);
-static void        func_actor_160900_80133758(SVECTOR* pts);
+static void        _actor160900UpdateKyleCue(Task* task);
+static void        _actor160900SpawnDriftingSprites(const SVECTOR* points);
 
 #include "../../shared/screen_wave.inc.c"
 
@@ -1081,42 +1082,51 @@ static inline void _actor160900BlendKyleAnim(Task* task, u16 animationId)
     }
 }
 
-static s32 func_actor_160900_80132844(Task* arg0)
+/// Ticks Kyle's visible body and advances its two-clip animation chain.
+///
+/// Requires live model work, a bound twenty-part rig and clip id 0..1. A hidden
+/// body leaves slots and hold time unchanged and returns 0. Slots 1..19 tick;
+/// a zero-duration link advances only when all are settled, otherwise its hold
+/// counter counts callback updates. Successors use a ten-frame blend. Returns
+/// 1 when a reached link has no successor, otherwise 0; the last clip remains
+/// selected. The work, model, chain and clip resources stay borrowed throughout.
+static s32 _actor160900AdvanceKyleAnimChain(Task* task)
 {
     _Actor160900KyleModelWork* work;
-    ActorAnimChainLink*        table;
-    u16                        i;
-    u16                        done;
+    ActorAnimChainLink*        chain;
+    u16                        slotIndex;
+    u16                        allSettled;
 
-    work = arg0->work;
-    if (arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
+    work = task->work;
+    if (task->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
         return 0;
     }
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationTickSlot(&work->rig.anim, i);
+    // Tick every driven part before testing whether the whole clip has settled.
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
-    i    = 1;
-    done = 1;
-    for (; i < ARRAY_SIZE(work->rig.slots); i++) {
-        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
-            done = 0;
+    slotIndex  = 1;
+    allSettled = 1;
+    for (; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        if (!(work->rig.slots[slotIndex].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+            allSettled = 0;
             break;
         }
     }
-    table = work->animChain;
-    if (table[work->animId].holdFrames != 0) {
-        if (work->animHold >= table[work->animId].holdFrames) {
-            if (table[work->animId].nextAnimId >= 0) {
-                _actor160900BlendKyleAnim(arg0, table[work->animId].nextAnimId);
+    chain = work->animChain;
+    if (chain[work->animId].holdFrames != 0) {
+        if (work->animHold >= chain[work->animId].holdFrames) {
+            if (chain[work->animId].nextAnimId >= 0) {
+                _actor160900BlendKyleAnim(task, chain[work->animId].nextAnimId);
             } else {
                 return 1;
             }
         } else {
             work->animHold++;
         }
-    } else if (done) {
-        if (table[work->animId].nextAnimId >= 0) {
-            _actor160900BlendKyleAnim(arg0, table[work->animId].nextAnimId);
+    } else if (allSettled) {
+        if (chain[work->animId].nextAnimId >= 0) {
+            _actor160900BlendKyleAnim(task, chain[work->animId].nextAnimId);
         } else {
             return 1;
         }
@@ -1202,14 +1212,18 @@ static inline void _actor160900ResetKyleAnimSlots(Task* task)
     }
 }
 
-/// Binds the child's animation context and resets slots 1-19. Taking the model
-/// as a parameter is what schedules its load after the work-block load.
-static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
+/// Binds Kyle's body rig and starts clip zero at normal playback rate.
+///
+/// Requires live model work and the twenty-part body model. The context borrows
+/// the work's pose/slot arrays, model coordinates and two loaded animation sets
+/// through playback; its clip chain has two entries. Resets slots 1..19 and the
+/// hold counter, retaining the placed root in slot 0. Does not allocate storage.
+static inline void _actor160900InitKyleAnimation(Task* task, TmdObject* bodyModel)
 {
     _Actor160900KyleModelWork* work;
 
     work = task->work;
-    animationInitContext(&work->rig.anim, D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_160900_8013F1C4, bodyModel, work->rig.poses, work->rig.slots);
     work->animChain = D_actor_160900_8013F1F8;
     _actor160900ResetKyleAnimSlots(task);
 }
@@ -1250,10 +1264,10 @@ void func_actor_160900_80132C08(Task* task)
             taskKill(task);
             return;
         }
-        func_actor_160900_InitAnim(task, task->extra.tmd);
+        _actor160900InitKyleAnimation(task, task->extra.tmd);
         task->state++;
     }
-    func_actor_160900_80132844(task);
+    _actor160900AdvanceKyleAnimChain(task);
     if (gGameSession->location.loc.view == 0x2E) {
         gfxRotMatrixZ(&task->extra.tmd->coords[18].coord, 0x800, GRAPHICS_ROTATION_REPLACE);
     } else {
@@ -1270,7 +1284,7 @@ void func_actor_160900_80132C08(Task* task)
 ///
 /// quad must be writable; task's first spawn argument is 0..5. Writes only RGB
 /// bytes, retaining packet metadata and coordinates. Neither pointer is retained.
-static inline void _actor160900ShadeLightQuad(POLY_G4* quad, Task* task)
+static inline void _actor160900ShadeLightQuad(POLY_G4* quad, const Task* task)
 {
     enum {
         ACTOR_160900_LIGHT_WHITE_CORNER_3    = 0,
@@ -1441,42 +1455,50 @@ static void _actor160900DrawLightQuadTask(Task* task)
     addPrim(&gGpuCurrentOt[originDepth >> ACTOR_160900_LIGHT_DEPTH_SHIFT], drawMode);
 }
 
-static inline void func_actor_160900_SetAnim(Task* task, u16 anim)
+/// Restarts a cutscene player clip with a ten-frame pose blend.
+///
+/// `task` owns live cutscene work; clip id 0..10 selects its loaded player set
+/// and successor-chain entry. An absent borrowed player is a no-op. Dispatch
+/// synchronously borrows the request, enables world collision and resets hold
+/// time; the player and set resources must stay live throughout playback.
+static inline void _actor160900BlendPlayerAnim(Task* task, u16 animationId)
 {
     _Actor160900CutsceneWork* work;
-    AnimationPlayRequest      msg;
-    AnimationPlayRequest*     p;
+    AnimationPlayRequest      request;
 
     work = task->work;
-    p    = &msg;
     if (work->player != NULL) {
-        p->source.sets          = _gActor160900PlayerAnimationSets;
-        work->playerAnimId      = anim;
-        p->animationId          = anim;
-        p->blend                = ANIMATION_BLEND_INTERPOLATE;
-        p->blendFrames          = 10;
-        p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+        request.source.sets          = _gActor160900PlayerAnimationSets;
+        work->playerAnimId           = animationId;
+        request.animationId          = animationId;
+        request.blend                = ANIMATION_BLEND_INTERPOLATE;
+        request.blendFrames          = ACTOR_160900_ANIM_BLEND_FRAMES;
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
         work->playerAnimHold = 0;
     }
 }
 
-static inline void func_actor_160900_SetAnimZ(Task* task, u16 anim)
+/// Restarts a cutscene player clip immediately, without blending from its pose.
+///
+/// Requires live cutscene work and a valid player clip id 0..10. A NULL player
+/// is a no-op. Synchronous dispatch installs the loaded player sets, enables
+/// world collision and resets hold time. The request lasts only through dispatch;
+/// the borrowed player and animation data must stay live throughout playback.
+static inline void _actor160900ResetPlayerAnim(Task* task, u16 animationId)
 {
     _Actor160900CutsceneWork* work;
-    AnimationPlayRequest      msg;
-    AnimationPlayRequest*     p;
+    AnimationPlayRequest      request;
 
     work = task->work;
-    p    = &msg;
     if (work->player != NULL) {
-        p->source.sets          = _gActor160900PlayerAnimationSets;
-        work->playerAnimId      = anim;
-        p->animationId          = anim;
-        p->blend                = ANIMATION_BLEND_RESET;
-        p->blendFrames          = 0;
-        p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+        request.source.sets          = _gActor160900PlayerAnimationSets;
+        work->playerAnimId           = animationId;
+        request.animationId          = animationId;
+        request.blend                = ANIMATION_BLEND_RESET;
+        request.blendFrames          = 0;
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
         work->playerAnimHold = 0;
     }
 }
@@ -1560,35 +1582,42 @@ static void func_actor_160900_80133238(Task* arg0)
             work->wave.state = SCREEN_WAVE_RAMP_FINISHED;
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_2:
-            func_actor_160900_SetAnimZ(arg0, 2);
+            _actor160900ResetPlayerAnim(arg0, 2);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_6:
-            func_actor_160900_SetAnim(arg0, 6);
+            _actor160900BlendPlayerAnim(arg0, 6);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_7:
-            func_actor_160900_SetAnim(arg0, 7);
+            _actor160900BlendPlayerAnim(arg0, 7);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_8:
-            func_actor_160900_SetAnim(arg0, 8);
+            _actor160900BlendPlayerAnim(arg0, 8);
             break;
         case ACTOR_160900_PLAYER_CUE_CLIP_9:
-            func_actor_160900_SetAnim(arg0, 9);
+            _actor160900BlendPlayerAnim(arg0, 9);
             break;
     }
     work->playerCue.id = 0;
 }
 
-static void func_actor_160900_8013358C(Task* arg0)
+/// Applies and consumes one posted Kyle cue for the cutscene.
+///
+/// Requires live cutscene work and Kyle's body and two hand tasks. Cue ids 1..4
+/// hide/place him, show his models and spawn a decal, restart clip 1, or spawn
+/// another decal. The optional handgun may be NULL. Decal offsets are signed
+/// game-coordinate units in Kyle's model-root frame; spawns copy them. Clears
+/// the cue id after handling, including zero or an unsupported id; step is kept.
+static void _actor160900UpdateKyleCue(Task* task)
 {
-    _Actor160900CutsceneWork*  work;
-    _Actor160900KyleModelWork* child;
-    SVECTOR                    ofs;
-    SVECTOR                    ofs2;
-    s32                        i;
+    enum { KYLE_CUE_CLIP        = 1,
+           KYLE_DECAL_HALF_SIDE = 256 };
+    _Actor160900CutsceneWork* work;
+    SVECTOR                   appearDecalOffset;
+    SVECTOR                   secondDecalOffset;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->kyleCue.id) {
-        case 0:
+        case ACTOR_160900_CUE_NONE:
             break;
         case ACTOR_160900_KYLE_CUE_HIDE_AND_PLACE:
             taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
@@ -1601,54 +1630,65 @@ static void func_actor_160900_8013358C(Task* arg0)
                 taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             }
             taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-            ofs.vx = -100;
-            ofs.vy = 100;
-            ofs.vz = -1200;
-            effectSpawn(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs);
+            appearDecalOffset.vx = -100;
+            appearDecalOffset.vy = 100;
+            appearDecalOffset.vz = -1200;
+            effectSpawn(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords,
+                        EFFECT_GROUND_DECAL_START_FULL_BRIGHT | KYLE_DECAL_HALF_SIDE, &appearDecalOffset);
             break;
         case ACTOR_160900_KYLE_CUE_CLIP_1:
-            child           = work->kyle->work;
-            child->animId   = 1;
-            child->animHold = 0;
-            do {
-            } while (0);
-            for (i = 1; (u16)i < ARRAY_SIZE(child->rig.slots); i++) {
-                animationSeekSlotWithBlend(&child->rig.anim, (u16)i, 1, 0, 10);
-            }
+            _actor160900BlendKyleAnim(work->kyle, KYLE_CUE_CLIP);
             break;
         case ACTOR_160900_KYLE_CUE_GROUND_DECAL:
-            ofs2.vx = -200;
-            ofs2.vy = 100;
-            ofs2.vz = -400;
-            effectSpawn(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs2);
+            secondDecalOffset.vx = -200;
+            secondDecalOffset.vy = 100;
+            secondDecalOffset.vz = -400;
+            effectSpawn(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords,
+                        EFFECT_GROUND_DECAL_START_FULL_BRIGHT | KYLE_DECAL_HALF_SIDE, &secondDecalOffset);
             break;
     }
-    work->kyleCue.id = 0;
+    work->kyleCue.id = ACTOR_160900_CUE_NONE;
 }
 
-/// Spawn effect 0x601B4 at each point of a `pad == -1` terminated list, x
-/// jittered by up to +-700; runs one frame in eight.
-static void func_actor_160900_80133758(SVECTOR* pts)
+/// Emits drifting sprites over a point list every eighth display frame.
+///
+/// `points` must reach a `pad == -1` terminator within readable storage. XYZ
+/// are signed game coordinates in the input frame of `GsWSMATRIX`;
+/// X receives jitter in 100-unit steps from -700 through +700 and narrows to a
+/// halfword. Each point consumes two LCG samples. Uses perspective-size numerator
+/// 1024, three running updates per cell, speed 32 coordinate units per update,
+/// upward random drift and the alternate sprite sheet.
+/// Spawning borrows the local offset only for placement; this sprite callback
+/// uses the copied coordinates. Failed spawns are ignored and still consume RNG.
+static void _actor160900SpawnDriftingSprites(const SVECTOR* points)
 {
-    SVECTOR pos;
-    s32     x;
+    enum {
+        ACTOR_160900_DRIFT_FRAME_MASK     = 7,
+        ACTOR_160900_DRIFT_LIST_END       = -1,
+        ACTOR_160900_DRIFT_JITTER_MASK    = 7,
+        ACTOR_160900_DRIFT_JITTER_STEP    = 100,
+        ACTOR_160900_DRIFT_SPAWN_ARGUMENT = 0x81203400,
+    };
+    SVECTOR spawnOffset;
+    s32     jitteredX;
     u32     seed;
-    s32     flags;
+    s32     spawnArgument;
 
-    if (!(gDisplayState.animFrame & 7) && pts->pad != -1) {
-        flags = 0x81203400;
+    if (!(gDisplayState.animFrame & ACTOR_160900_DRIFT_FRAME_MASK) && points->pad != ACTOR_160900_DRIFT_LIST_END) {
+        spawnArgument = ACTOR_160900_DRIFT_SPAWN_ARGUMENT;
         do {
+            // Draw sign and magnitude separately; the LCG and sum wrap as unsigned words.
             seed            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = seed;
-            x               = pts->vx + (((seed >> 16) & 1) ? ((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7
-                                                            : -(((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7)) *
-                              100;
-            pos.vx = x;
-            pos.vy = pts->vy;
-            pos.vz = pts->vz;
-            effectSpawn(EFFECT_1B4, NULL, flags, &pos);
-            pts++;
-        } while (pts->pad != -1);
+            jitteredX       = points->vx + (((seed >> 16) & 1) ? ((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_160900_DRIFT_JITTER_MASK
+                                                               : -(((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_160900_DRIFT_JITTER_MASK)) *
+                                         ACTOR_160900_DRIFT_JITTER_STEP;
+            spawnOffset.vx = jitteredX;
+            spawnOffset.vy = points->vy;
+            spawnOffset.vz = points->vz;
+            effectSpawn(EFFECT_1B4, NULL, spawnArgument, &spawnOffset);
+            points++;
+        } while (points->pad != ACTOR_160900_DRIFT_LIST_END);
     }
 }
 
@@ -2008,23 +2048,23 @@ void func_actor_160900_8013418C(Task* arg0)
             break;
     }
     func_actor_160900_80133238(arg0);
-    func_actor_160900_8013358C(arg0);
+    _actor160900UpdateKyleCue(arg0);
     data = arg0->work;
     switch (data->effectCue.id) {
         case 1:
-            func_actor_160900_80133758(D_actor_160900_8013F258);
+            _actor160900SpawnDriftingSprites(D_actor_160900_8013F258);
             break;
         case 2:
-            func_actor_160900_80133758(D_actor_160900_8013F2E0);
+            _actor160900SpawnDriftingSprites(D_actor_160900_8013F2E0);
             break;
         case 3:
-            func_actor_160900_80133758(D_actor_160900_8013F3B0);
+            _actor160900SpawnDriftingSprites(D_actor_160900_8013F3B0);
             break;
         case 4:
-            func_actor_160900_80133758(D_actor_160900_8013F400);
+            _actor160900SpawnDriftingSprites(D_actor_160900_8013F400);
             break;
         case 5:
-            func_actor_160900_80133758(D_actor_160900_8013F458);
+            _actor160900SpawnDriftingSprites(D_actor_160900_8013F458);
             break;
         case 0:
         default:

@@ -74,3 +74,5 @@ _actionPromptOutlineRectDefault = 0x80133334; // type:func
 _actionPromptMoveCursorsDefault = 0x80131F80; // type:func
 _actionPromptDrawCursorDefault = 0x801323E0; // type:func
 _actionPromptResetDefault = 0x80133C90; // type:func
+_actor143000ResetSceneCaptions = 0x8013450c; // type:func
+_actor143000SetActorControl = 0x8013452c; // type:func

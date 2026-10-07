@@ -121989,7 +121989,7 @@ Inputs: scratch `nonmatchings/func_neo_ark_island_8017EB68-vacuum`, `base_1.c`
 (copy of `src/rooms/lib/rooms_shared_8017f4a0.c` minus `actorRenderComposeCoord(coord)`),
 0 differences.
 
-### A signed LCG jitter written as a ternary, not if/else, keeps the draw's shift chain in one register (func_actor_160900_80133758, 2026-09-17)
+### A signed LCG jitter written as a ternary, not if/else, keeps the draw's shift chain in one register (_actor160900SpawnDriftingSprites, 2026-09-17)
 
 **Symptom.** `r = ±((next >> 16) & 7)` drawn in both arms of an `if/else`, then
 `pos.vx = pts->vx + r * 100`: target keeps `seed` in `a0` and runs each arm as
@@ -122005,7 +122005,7 @@ built into `a2` in the loop), and the `sh` of `pos.vx` only lands after the
 argument setup when the sum goes into an `s32` temp first (`pos.vx = x;`), which
 the permuter found; writing `pos.vx = ...` directly schedules the store too early.
 
-### sched1 hoists a loop's counter init above the constant stores before it; a barrier after the stores, then an `s32` counter so reload CSE keeps `li` (func_actor_160900_8013358C, 2026-09-17)
+### sched1 hoists a loop's counter init above the constant stores before it; a barrier after the stores, then an `s32` counter so reload CSE keeps `li` (_actor160900UpdateKyleCue, 2026-09-17)
 
 **Symptom:** target preheader in source order - `li v0,1; sh v0,0x4B8(s1); sh zero,0x4BA(s1); li s0,1; li s3,10` -
 but every plain spelling (`for`/`while`/`do`, `u16`/`s16`/`s32` counter) put `li s0,1` and the loop-hoisted
@@ -137855,7 +137855,7 @@ also passed. Final scratch and integration evidence are preserved in
 `tools/permuter_findings/_actor141000BuildRingBeamPoints/sessions/5c4f47d0e4554bffabe46aeeb773071a/cdf68c94da0eb0773bb9`.
 
 
-### A post-store tied asm preserves both the original store register and the saved loop copy (func_actor_160900_80132844, 2026-09-20)
+### A post-store tied asm preserves both the original store register and the saved loop copy (_actor160900AdvanceKyleAnimChain, 2026-09-20)
 
 The target reseed preheader copies `a2` to `s2` but still stores `a2`. A plain
 `u16` copy lets CSE substitute the longer-lived loop ID into the store. Keeping
@@ -152944,7 +152944,7 @@ store earlier or later frees the cycle for the leftover.
 
 **Was.** `TOUCH_REG_USE2(id, work, work)` after the two stores of the Kyle
 model's clip reseed, with a `u16 id` copy of the inline's parameter and `i = 1`
-written first. Image, at both inlined sites of `func_actor_160900_80132844`:
+written first. Image, at both inlined sites of `_actor160900AdvanceKyleAnimChain`:
 
 ```
 bltz v0,L ; li s0,1          # i = 1 in the delay slot
@@ -153527,9 +153527,9 @@ initializers. `SpriteView::sources.empty` looked unused that way and is the
 member 905 room-table initializers name (`{ .empty = <batch list> }`), so that
 union stays; dropping it would put a cast on every one of them.
 
-## A base pointer loaded twice from the task is a second-level inline; its flattened copy carried three fitted spellings that were never needed (func_actor_160900_InitAnim, 2026-10-07)
+## A base pointer loaded twice from the task is a second-level inline; its flattened copy carried three fitted spellings that were never needed (_actor160900InitKyleAnimation, 2026-10-07)
 
-**Was.** The inline `func_actor_160900_InitAnim` (expanded in
+**Was.** The inline `_actor160900InitKyleAnimation` (expanded in
 `func_actor_160900_80132C08`) ended in a hand-flattened tail: `work =
 task->work` a second time, `i = 1` written above the two stores, an `s32 i`
 with `(u16)` casts at every use, and a `do`/`while`. Image:

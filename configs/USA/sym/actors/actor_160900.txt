@@ -126,3 +126,6 @@ _actor160900SkipCutscene = 0x801347f0; // type:func
 _actor160900StageSceneAudioStart = 0x80134830; // type:func
 _actor160900EnqueueScenePlayback = 0x80134850; // type:func
 _actor160900FinishScenePlayback = 0x80134870; // type:func
+_actor160900AdvanceKyleAnimChain = 0x80132844; // type:func
+_actor160900UpdateKyleCue = 0x8013358c; // type:func
+_actor160900SpawnDriftingSprites = 0x80133758; // type:func
