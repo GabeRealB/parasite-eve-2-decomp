@@ -71,8 +71,6 @@
 #include "../../shared/bridge_model.h"
 #include "../../shared/acropolis_glows.h"
 
-#define D_acropolis_promenade_80181AFC (D_acropolis_promenade_80181AF4 + 1)
-
 extern EvsCommand   D_acropolis_promenade_80180F00[];
 extern EvsCommand   D_acropolis_promenade_80181068[];
 extern s32          D_acropolis_promenade_80181140;
@@ -2176,10 +2174,10 @@ void func_acropolis_promenade_8017E03C(Task* task)
     }
     mask = 1 << (view - 1);
     if (D_acropolis_promenade_80181B74 & mask) {
-        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[0]);
-        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[1]);
+        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AF4[1]);
+        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AF4[2]);
         effectSpawn(EFFECT_ACROPOLIS_PROMENADE_GROUND_GLOW, coord, (s32)(work->age), &D_acropolis_promenade_80181B0C[0]);
-        glowDrawTintedDiscNoBias(&D_acropolis_promenade_80181AFC[-1], 0x100, 0x5C40);
+        glowDrawTintedDiscNoBias(&D_acropolis_promenade_80181AF4[0], 0x100, 0x5C40);
     }
     for (i = 0; i < 3; i++) {
         if (D_acropolis_promenade_80181B78[i] & mask) {
