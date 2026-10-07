@@ -9,28 +9,28 @@ void madChaserDangleSway(Task* arg0)
 {
     MadChaserWork* work;
     GfxCoord*      coord;
-    GfxMatrix      rot;
-    GfxMatrix*     src;
+    MATRIX         rot;
+    MATRIX*        src;
     MATRIX*        dst;
     s16            pitch;
 
     work  = (MadChaserWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
     src   = &rot;
-    gfxSetRotIdentity(&src->mat);
+    gfxSetRotIdentity(src);
     pitch = ((rsin(work->frameCount << 6) * 0x10) >> 7) - 0x400;
-    RotMatrixX(pitch, &src->mat);
-    RotMatrixY(work->rotation.vy, &src->mat);
+    RotMatrixX(pitch, src);
+    RotMatrixY(work->rotation.vy, src);
     dst          = &coord->coord;
-    dst->m[0][0] = src->mat.m[0][0];
-    dst->m[0][1] = src->mat.m[0][1];
-    dst->m[0][2] = src->mat.m[0][2];
-    dst->m[1][0] = src->mat.m[1][0];
-    dst->m[1][1] = src->mat.m[1][1];
-    dst->m[1][2] = src->mat.m[1][2];
-    dst->m[2][0] = src->mat.m[2][0];
-    dst->m[2][1] = src->mat.m[2][1];
-    dst->m[2][2] = src->mat.m[2][2];
+    dst->m[0][0] = src->m[0][0];
+    dst->m[0][1] = src->m[0][1];
+    dst->m[0][2] = src->m[0][2];
+    dst->m[1][0] = src->m[1][0];
+    dst->m[1][1] = src->m[1][1];
+    dst->m[1][2] = src->m[1][2];
+    dst->m[2][0] = src->m[2][0];
+    dst->m[2][1] = src->m[2][1];
+    dst->m[2][2] = src->m[2][2];
     if (work->hitTaken == 1) {
         work->hitTaken  = 0;
         work->anchored  = 0;
