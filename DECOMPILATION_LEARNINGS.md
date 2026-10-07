@@ -399,7 +399,7 @@ Target: `lw s2,0x1c(a0)` / `li v0,2` / `sh v0,0x4a0(s2)` / `li s0,1` / `li s3,0x
 
 Writing the store as a one-statement macro, `#define SET_ANIM_ID(w, a) do { (w)->animSet = (a); } while (0)`, matches with no barrier. The macro's loop notes make everything after them depend on everything before, so sched1 keeps the source order. The mechanism is the same fence as the `func_actor_104900_8013279C` entry above. Its loop-weighted refs on the work pointer and the animation id did not move the allocation here, but check `.lreg` where they might. A `static inline` setter does *not* work, because its return label is deleted before sched1.
 
-## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (func_actor_420700_80132644, 2026-09-20)
+## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (_actor420700HandleAnimationMessage, 2026-09-20)
 
 The retry seed used a ternary store and a volatile first read of the actor
 work pointer. It scored 86.159%. Earlier notes inferred that the target's
@@ -85178,7 +85178,7 @@ CSE keeps `field_44F` in `$a0`; `== work->field_44F` reloads the byte.
 
 ## The chain's exit block sitting *between* two arms means the arms each carry the tail
 
-`func_actor_420700_80132478` (29 insns) dispatches on a step field three times
+`_actor420700UpdateAnimation` (29 insns) dispatches on a step field three times
 and stores 3 into it on the first two paths. The target reads as an if/else-if
 chain whose second arm falls into the store, with the third test and its body
 *after* that store:
@@ -85204,7 +85204,7 @@ It is two *separate* `if`s, each written out with its own copy of the tail, and
 the pre-regalloc cross-jump merges them keeping the later copy:
 
 ```c
-if (w->field_4B4 == 1) { func_actor_420700_801325C8(); w->field_4B4 = 3; return; }
+if (w->field_4B4 == 1) { _actor420700BlendAnimation(); w->field_4B4 = 3; return; }
 if (w->field_4B4 == 2) { ActorsShared80132538();       w->field_4B4 = 3; return; }
 if (w->field_4B4 == 3) { func_actor_420700_801324EC(); }
 ```
@@ -103079,7 +103079,7 @@ Inputs: `base.i` `27652b9f3cfc34e8e50986ebc8e4ace5544f64c76b2c67b2fcf1b4f61f683a
 (98.065%), `base_1.i`
 `2418e34c51ae5635ae7033309bb5d78ade138360f1f9e32a7b0dd15c8feb8762` (0 differences).
 
-## An empty case node changes the switch decision tree (func_actor_420700_80132784, 2026-09-16)
+## An empty case node changes the switch decision tree (_actor420700HandleHeadTurnCommand, 2026-09-16)
 
 The target dispatch for this message handler is a chain no three-case switch can
 produce:
@@ -103153,7 +103153,7 @@ the three-case form), `c6.i`
 `066afd547b32cdb028c8663b1a46e38017c6655b7aebcd17cef48239b5232e0b` (0
 differences, with `case 0` added).
 
-## The model-task `-0x320` part handler: copy the matched sibling, and check whether the part index is a constant (func_actor_420700_801323D8, 2026-09-16)
+## The model-task `-0x320` part handler: copy the matched sibling, and check whether the part index is a constant (_actor420700HeadHatTask, 2026-09-16)
 
 A 40-instruction two-state handler recurs across the model actors. State 0
 clears the task's own root coordinate frame and the model's `field_C` and parents
@@ -103161,7 +103161,7 @@ that root to a part of the actor's model, then bumps `task->state`; state 1 hand
 the actor model's root translation, y dropped by 0x320, to `worldCoordSetModelLighting`:
 
 ```c
-void func_actor_420700_801323D8(Task* task)
+void _actor420700HeadHatTask(Task* task)
 {
     TmdObject*     extra = task->extra;
     GfxCoord* coord = extra->coords;

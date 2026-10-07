@@ -14,6 +14,7 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -80,21 +81,27 @@ static _Actor420700Work* _gScriptedWalkWork;
 
 /// The actor's own task, the `task` the state-0 handler
 /// `func_actor_420700_80131E24` is entered with. Its `Task::extra` holds the
-/// `TmdObject` whose trailing coordinate array `func_actor_420700_801323D8`
+/// `TmdObject` whose trailing coordinate array `_actor420700HeadHatTask`
 /// hangs the model task's own root off, at frame 4.
 extern Task* D_actor_420700_8013EFE4;
 
 /// The first task the state-0 handler spawns, the frame-4 model task
-/// `func_actor_420700_801323D8`; the actor's exit callback kills it.
+/// `_actor420700HeadHatTask`; the actor's exit callback kills it.
 extern Task* D_actor_420700_8013EFE8;
 
 /// The second task the state-0 handler spawns, the frame-8 model task
-/// `func_actor_420700_801327EC`.
+/// `_actor420700ShotgunTask`.
 extern Task* D_actor_420700_8013EFEC;
 
-static void func_actor_420700_8013239C(Task* task);
-static void func_actor_420700_80132478(Task* task);
-static void func_actor_420700_801325C8(void);
+static void _actor420700Exit(Task* task);
+static void _actor420700UpdateAnimation(Task* task);
+static void _actor420700BlendAnimation(void);
+
+enum {
+    ACTOR_420700_ATTACHMENT_INIT     = 0,
+    ACTOR_420700_ATTACHMENT_LIGHTING = 1,
+    ACTOR_420700_LIGHTING_Y_OFFSET   = -800,
+};
 
 // Message-table callbacks use the argument views required by this TU.
 
@@ -108,12 +115,27 @@ static TmdSource _gActor420700GaryDouglasBody;
 static TmdSource _gActor420700GaryDouglasHeadHat;
 static TmdSource _gActor420700GaryDouglasShotgun;
 void             func_actor_420700_80132340(Task*);
-void             func_actor_420700_801323D8(Task*);
-void             func_actor_420700_801327EC(Task*);
+static void      _actor420700HeadHatTask(Task* task);
+static void      _actor420700ShotgunTask(Task* task);
 
-s32 func_actor_420700_80132644(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_420700_801326F4(Task*, s32, s32, s32);
-s32 func_actor_420700_80132784(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
+static s32 _actor420700HandleAnimationMessage(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32 _actor420700HandleModelDrawMessage(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg);
+static s32 _actor420700HandleHeadTurnCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+
+/// Advances automatic head-turn weight, narrowing to its stored halfword before clamping.
+///
+/// Requires the published live work block. The signed step is in 1/4096 units;
+/// automatic mode supplies +64 or -128 and keeps the result between 0 and `ONE`.
+static inline void _actor420700AdvanceAutoHeadTurn(void)
+{
+    _gScriptedWalkWork->st.turnWeight += D_actor_420700_8013EFF0;
+    if (_gScriptedWalkWork->st.turnWeight > ONE) {
+        _gScriptedWalkWork->st.turnWeight = ONE;
+    }
+    if (_gScriptedWalkWork->st.turnWeight < 0) {
+        _gScriptedWalkWork->st.turnWeight = 0;
+    }
+}
 
 static AnimationPackedPose _gActor420700Animation00DE0Bank1[7] = {
 #include "assets/actor_420700_animation_00DE0_bank1.inc"
@@ -916,16 +938,16 @@ static AnimationSet _gActor420700Animation0D100 = {
 };
 
 TaskMessageEntry D_actor_420700_8013EF48[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_420700_80132644 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_420700_801326F4 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_420700_80132784 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor420700HandleAnimationMessage },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor420700HandleModelDrawMessage },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor420700HandleHeadTurnCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_420700_8013EF68[3] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_420700_80132340, { .model = &_gActor420700GaryDouglasBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_420700_801323D8, { .model = &_gActor420700GaryDouglasHeadHat } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_420700_801327EC, { .model = &_gActor420700GaryDouglasShotgun } },
+    { { { TASK_BODY_TMD, 192 } }, _actor420700HeadHatTask, { .model = &_gActor420700GaryDouglasHeadHat } },
+    { { { TASK_BODY_TMD, 192 } }, _actor420700ShotgunTask, { .model = &_gActor420700GaryDouglasShotgun } },
 };
 
 u8 D_actor_420700_8013EF8C[84] = {
@@ -1026,7 +1048,7 @@ s32 D_actor_420700_8013EFF0;
 s32 D_actor_420700_8013EFF4;
 
 static void func_actor_420700_80131E24(Enemy* enemy, Task* task);
-static void func_actor_420700_80132064(Enemy* enemy, Task* task);
+static void _actor420700Update(Enemy* enemy, Task* task);
 
 /// Step 0 of the `func_actor_420700_80132340` dispatcher: allocate and publish the
 /// work block, spawn the two model tasks, texture the first from the placement
@@ -1048,7 +1070,7 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_420700_8013239C;
+    task->exitCallback               = _actor420700Exit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -1073,95 +1095,99 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     _gScriptedWalkWork->st.animId = 5;
     _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable                = D_actor_420700_8013EF48;
-    func_actor_420700_80132478(task);
+    _actor420700UpdateAnimation(task);
     task->state++;
 }
 
-/// Step 1 of the `func_actor_420700_80132340` dispatcher: refresh the model's third
-/// coordinate and colour the actor from its world translation, run
-/// `func_actor_420700_80132478`, then step the `st.turnWeight` ramp by the mode in
-/// `st.turnMode` and pass it as the weight of `animationAimHeadAtTask` aimed at the
-/// slot-3 task (modes 0, 1 and 2) or of `animationAimHeadAtPoint` aimed at a fixed
-/// world point (mode 3).
+/// Updates Gary Douglas's lighting, animation and head turn once per actor tick.
 ///
-/// Mode 0 chooses its own step each frame: +0x40 while the actor lies behind
-/// the slot-3 actor's `field_52` heading, -0x80 otherwise or while an event
-/// is running. In that mode the animation slots after the first are held
-/// (rate 0) once the ramp is off zero; otherwise they run at one frame per
-/// tick.
-static void func_actor_420700_80132064(Enemy* enemy, Task* task)
+/// Requires the published live work block, twenty-part body and live player model.
+/// Head-turn weights use 1/4096 units and angles use 4096 units per turn.
+/// `ACTOR_420700_TURN_AUTO` raises the weight while the player faces away,
+/// releases it otherwise or during events, and holds slots 1..19 when the
+/// pre-step weight is nonzero outside events. Explicit player/point modes raise
+/// the weight; release and unrecognized modes lower it. Only point mode aims
+/// at the fixed room focus; all other modes aim at the player.
+static void _actor420700Update(Enemy* enemy, Task* task)
 {
-    VECTOR     pos;
-    GfxCoord   target[2];
-    GfxCoord*  coords;
-    GfxCoord*  player;
-    GfxCoord*  part;
-    GameActor* actor;
+    enum {
+        ACTOR_420700_LIGHTING_PART  = 2,
+        ACTOR_420700_HEAD_MAX_YAW   = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+        ACTOR_420700_HEAD_MAX_PITCH = ACTOR_TRANSFORM_ANGLE_TURN / 16,
+        ACTOR_420700_HEAD_TURN_RISE = ONE / 64,
+        ACTOR_420700_HEAD_TURN_STEP = ONE / 32,
+        ACTOR_420700_ROOM_FOCUS_X   = 4467,
+        ACTOR_420700_ROOM_FOCUS_Y   = 0,
+        ACTOR_420700_ROOM_FOCUS_Z   = -1843,
+    };
+    VECTOR     lightingPosition;
+    GfxCoord   roomFocus;    // Only the translation carries a world point for the head-aim API
+    byte       unused[0x50]; // Untouched frame storage; its original role is unproven
+    GfxCoord*  bodyCoords;
+    GfxCoord*  playerCoords;
+    GfxCoord*  lightingPart;
+    GameActor* playerActor;
     s32        dx;
     s32        dz;
-    s32        c;
-    s32        i;
-    u8         rate;
+    s32        playerCosYaw;
+    s32        slotIndex;
+    u8         animationRate;
 
-    coords = task->extra.tmd->coords;
-    part   = &coords[2];
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    actorRenderComposeCoord(part);
-    pos.vx = part->workm.t[0];
-    pos.vy = part->workm.t[1];
-    pos.vz = part->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
-    func_actor_420700_80132478(task);
-    rate = 0x10;
+    bodyCoords   = task->extra.tmd->coords;
+    lightingPart = &bodyCoords[ACTOR_420700_LIGHTING_PART];
+    playerCoords = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    actorRenderComposeCoord(lightingPart);
+    lightingPosition.vx = lightingPart->workm.t[0];
+    lightingPosition.vy = lightingPart->workm.t[1];
+    lightingPosition.vz = lightingPart->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
+    _actor420700UpdateAnimation(task);
+    animationRate = ANIMATION_RATE_ONE;
+    // The head adjustment follows the clip tick, and its weight persists between ticks.
     if (_gScriptedWalkWork->st.turnMode != ACTOR_420700_TURN_AUTO) {
         if (_gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_PLAYER ||
             _gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
-            _gScriptedWalkWork->st.turnWeight += 0x80;
+            _gScriptedWalkWork->st.turnWeight += ACTOR_420700_HEAD_TURN_STEP;
             if (_gScriptedWalkWork->st.turnWeight > ONE) {
                 _gScriptedWalkWork->st.turnWeight = ONE;
             }
         } else {
-            _gScriptedWalkWork->st.turnWeight -= 0x80;
+            _gScriptedWalkWork->st.turnWeight -= ACTOR_420700_HEAD_TURN_STEP;
             if (_gScriptedWalkWork->st.turnWeight < 0) {
                 _gScriptedWalkWork->st.turnWeight = 0;
             }
         }
         if (_gScriptedWalkWork->st.turnMode == ACTOR_420700_TURN_POINT) {
-            target[0].coord.t[0] = 0x1173;
-            target[0].coord.t[1] = 0;
-            target[0].coord.t[2] = -0x733;
-            animationAimHeadAtPoint(task, target, 0x200, 0x100, _gScriptedWalkWork->st.turnWeight);
+            roomFocus.coord.t[0] = ACTOR_420700_ROOM_FOCUS_X;
+            roomFocus.coord.t[1] = ACTOR_420700_ROOM_FOCUS_Y;
+            roomFocus.coord.t[2] = ACTOR_420700_ROOM_FOCUS_Z;
+            animationAimHeadAtPoint(task, &roomFocus, ACTOR_420700_HEAD_MAX_YAW, ACTOR_420700_HEAD_MAX_PITCH, _gScriptedWalkWork->st.turnWeight);
         } else {
-            animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, _gScriptedWalkWork->st.turnWeight);
+            animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_420700_HEAD_MAX_YAW, ACTOR_420700_HEAD_MAX_PITCH, _gScriptedWalkWork->st.turnWeight);
         }
     } else {
         if (gGameSession->eventState == 0) {
-            dx    = coords->coord.t[0] - player->coord.t[0];
-            dz    = coords->coord.t[2] - player->coord.t[2];
-            actor = (GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-            c     = rcos(actor->rotation.vy);
-            if (dx * rsin(actor->rotation.vy) + dz * c < 0) {
-                D_actor_420700_8013EFF0 = 0x40;
+            dx           = bodyCoords->coord.t[0] - playerCoords->coord.t[0];
+            dz           = bodyCoords->coord.t[2] - playerCoords->coord.t[2];
+            playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+            playerCosYaw = rcos(playerActor->rotation.vy);
+            // A negative forward projection places Gary behind the player's facing.
+            if (dx * rsin(playerActor->rotation.vy) + dz * playerCosYaw < 0) {
+                D_actor_420700_8013EFF0 = ACTOR_420700_HEAD_TURN_RISE;
             } else {
-                D_actor_420700_8013EFF0 = -0x80;
+                D_actor_420700_8013EFF0 = -ACTOR_420700_HEAD_TURN_STEP;
             }
             if (_gScriptedWalkWork->st.turnWeight != 0) {
-                rate = 0;
+                animationRate = 0;
             }
         } else {
-            D_actor_420700_8013EFF0 = -0x80;
+            D_actor_420700_8013EFF0 = -ACTOR_420700_HEAD_TURN_STEP;
         }
-        _gScriptedWalkWork->st.turnWeight += D_actor_420700_8013EFF0;
-        if (_gScriptedWalkWork->st.turnWeight > ONE) {
-            _gScriptedWalkWork->st.turnWeight = ONE;
-        }
-        if (_gScriptedWalkWork->st.turnWeight < 0) {
-            _gScriptedWalkWork->st.turnWeight = 0;
-        }
-        animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, _gScriptedWalkWork->st.turnWeight);
+        _actor420700AdvanceAutoHeadTurn();
+        animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_420700_HEAD_MAX_YAW, ACTOR_420700_HEAD_MAX_PITCH, _gScriptedWalkWork->st.turnWeight);
     }
-    for (i = 1; i < 0x14; i++) {
-        _gScriptedWalkWork->rig.slots[i].rate = rate;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(_gScriptedWalkWork->rig.slots); slotIndex++) {
+        _gScriptedWalkWork->rig.slots[slotIndex].rate = animationRate;
     }
 }
 
@@ -1169,63 +1195,68 @@ static void func_actor_420700_80132064(Enemy* enemy, Task* task)
 /// `_gScriptedWalkWork`, so the rest of the overlay can reach it without
 /// the task, then runs the handler for the task's state from a two-entry table
 /// built on the stack -- the spawn step `func_actor_420700_80131E24` or the
-/// per-frame step `func_actor_420700_80132064`.
+/// per-frame step `_actor420700Update`.
 void func_actor_420700_80132340(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         func_actor_420700_80131E24,
-        func_actor_420700_80132064,
+        _actor420700Update,
     };
 
     _gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Exit callback of the actor's task: kills the frame-4 model task and
-/// destroys the enemy.
-static void func_actor_420700_8013239C(Task* arg0)
+/// Releases the head-and-hat attachment, enemy record and body task at actor exit.
+///
+/// The head-and-hat task must still be live. The shotgun task is not explicitly
+/// killed here; both task globals and the borrowed work pointer are left intact.
+static void _actor420700Exit(Task* task)
 {
     taskKill(D_actor_420700_8013EFE8);
-    enemyDestroy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-/// State handler of the frame-4 model task: the spawn tick clears its root
-/// coordinate's `composeStamp` and the model's flags, which leaves it visible, and hangs
-/// the root off frame 4 of the actor's own model, stepping to state 1; every
-/// later tick hands the actor model's root translation, dropped by 0x320 in y,
-/// to `worldCoordSetModelLighting` for the model's colour matrix.
-void func_actor_420700_801323D8(Task* task)
+/// Attaches Gary's head-and-hat model to body part 4 and refreshes its lighting.
+///
+/// The body task and its coordinates must outlive this task. Initialization
+/// enables drawing and enters the lighting state; later ticks sample the body
+/// root's composed translation with a -800 world-unit Y offset. Other states
+/// do nothing. Lighting uses the model's borrowed default matrices.
+static void _actor420700HeadHatTask(Task* task)
 {
-    TmdObject* extra = task->extra.tmd;
-    GfxCoord*  coord = extra->coords;
-    GfxCoord*  parts = D_actor_420700_8013EFE4->extra.tmd->coords;
-    GfxCoord*  part  = parts + 4;
-    VECTOR     vec;
+    enum { ACTOR_420700_HEAD_ATTACHMENT_PART = 4 };
+    TmdObject* headModel  = task->extra.tmd;
+    GfxCoord*  headRoot   = headModel->coords;
+    GfxCoord*  bodyCoords = D_actor_420700_8013EFE4->extra.tmd->coords;
+    GfxCoord*  headPart   = bodyCoords + ACTOR_420700_HEAD_ATTACHMENT_PART;
+    VECTOR     lightingPosition;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            extra->flags        = 0;
-            coord->parent       = part;
+        case ACTOR_420700_ATTACHMENT_INIT:
+            headRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+            headModel->flags       = 0;
+            headRoot->parent       = headPart;
             task->state++;
             break;
-        case 1:
-            vec.vx = parts->workm.t[0];
-            vec.vy = parts->workm.t[1] - 0x320;
-            vec.vz = parts->workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
+        case ACTOR_420700_ATTACHMENT_LIGHTING:
+            lightingPosition.vx = bodyCoords->workm.t[0];
+            lightingPosition.vy = bodyCoords->workm.t[1] + ACTOR_420700_LIGHTING_Y_OFFSET;
+            lightingPosition.vz = bodyCoords->workm.t[2];
+            worldCoordSetModelLighting(headModel, &lightingPosition, 0, ARRAY_SIZE(headModel->colorMtx->m[0]));
             break;
     }
 }
 
-/// Runs the body the actor's step selects and then leaves it in step 3, the
-/// running state. Steps 1 and 2 each return through their own copy of the
-/// advance; the two are identical, so jump.c cross-jumps them and only the
-/// second survives.
-static void func_actor_420700_80132478(Task* task)
+/// Applies a pending animation reset/blend or ticks the actor's playing slots.
+///
+/// Uses the published work block; `task` is unused. Reset and blend requests
+/// enter `ACTOR_ENEMY_ANIM_TICK` without a further playback tick. Other states
+/// leave playback unchanged. The body, rig and selected clip must remain live.
+static void _actor420700UpdateAnimation(Task* task)
 {
     if (_gScriptedWalkWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        func_actor_420700_801325C8();
+        _actor420700BlendAnimation();
         _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
@@ -1243,104 +1274,122 @@ static void func_actor_420700_80132478(Task* task)
 
 #include "../../shared/scripted_walk_reset_anim.inc.c"
 
-/// Reseeds animation slots 1..0x13 from the current animation id and records
-/// that id as the one now playing.
-static void func_actor_420700_801325C8(void)
+/// Blends slots 1..19 from their current poses to the requested clip over eight frames.
+///
+/// The published rig must be bound to a live body and a non-null loaded set
+/// at `st.animId`, with tracks for all driven slots. Captures each slot's ticked
+/// pose and seeks its existing track to record offset zero, retaining its rate.
+/// Leaves slot 0 and the animation state unchanged, and records `appliedAnimId`.
+static void _actor420700BlendAnimation(void)
 {
-    s32 i;
+    enum { ACTOR_420700_ANIMATION_BLEND_FRAMES = 8 };
+    s32 slotIndex;
 
-    i = 1;
+    slotIndex = 1;
     do {
-        animationSeekSlotWithBlend(&_gScriptedWalkWork->rig.anim, i, _gScriptedWalkWork->st.animId, 0, 8);
-        i++;
-    } while (i < 0x14);
+        animationSeekSlotWithBlend(&_gScriptedWalkWork->rig.anim, slotIndex, _gScriptedWalkWork->st.animId, 0, ACTOR_420700_ANIMATION_BLEND_FRAMES);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(_gScriptedWalkWork->rig.slots));
     _gScriptedWalkWork->st.appliedAnimId = _gScriptedWalkWork->st.animId;
 }
 
-/// Starts the requested local clip, translating its bank selector to a clip offset.
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` by immediately resetting or blending the body clip.
 ///
-/// Selectors 1 and 2 add 10 and 17 respectively; other selectors add zero.
-/// Rejects clip ids 21 and above. A nonzero blend request selects an
-/// eight-frame transition; the requested duration is unused.
-s32 func_actor_420700_80132644(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Borrows `request` through dispatch; the published work and body must be live.
+/// Selector 1 adds 10, selector 2 adds 17, and every other selector adds zero.
+/// Valid ids for non-null local sets are 0..10 for selector 1, 0..3 for selector
+/// 2, and 1..20 otherwise. Only the signed raw id < 21 is checked; negative ids
+/// and offset sums are not validated. Returns -1 for raw ids >= 21, else 0.
+/// Nonzero `blend` uses eight frames regardless of `blendFrames`; collision
+/// participation, `task`, `messageId` and the second payload are unused.
+static s32 _actor420700HandleAnimationMessage(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    s32               offset;
+    enum {
+        ACTOR_420700_ANIMATION_REQUEST_LIMIT = 21,
+        ACTOR_420700_ANIMATION_BANK_1        = 1,
+        ACTOR_420700_ANIMATION_BANK_2        = 2,
+        ACTOR_420700_ANIMATION_BANK_1_BASE   = 10,
+        ACTOR_420700_ANIMATION_BANK_2_BASE   = 17,
+    };
+    s32               setOffset;
     _Actor420700Work* work;
 
-    if (args->animationId < 0x15) {
-        switch (args->source.index) {
-            case 1:
-                offset = 0xA;
+    if (request->animationId < ACTOR_420700_ANIMATION_REQUEST_LIMIT) {
+        switch (request->source.index) {
+            case ACTOR_420700_ANIMATION_BANK_1:
+                setOffset = ACTOR_420700_ANIMATION_BANK_1_BASE;
                 break;
-            case 2:
-                offset = 0x11;
+            case ACTOR_420700_ANIMATION_BANK_2:
+                setOffset = ACTOR_420700_ANIMATION_BANK_2_BASE;
                 break;
             default:
-                offset = 0;
+                setOffset = 0;
                 break;
         }
         work            = _gScriptedWalkWork;
-        work->st.animId = (u16)args->animationId + offset;
-        if (args->blend != ANIMATION_BLEND_RESET) {
+        work->st.animId = request->animationId + setOffset;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             work->st.state = ACTOR_ENEMY_ANIM_BLEND;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_A = 0;
-        func_actor_420700_80132478(D_actor_420700_8013EFE4);
+        _actor420700UpdateAnimation(D_actor_420700_8013EFE4);
         return 0;
     }
     return -1;
 }
 
-/// Message 0x7D5 handler: rewrites the flags of the actor's three models -- its
-/// own and those of the frame-4 and frame-8 model tasks. Bit 0 of the argument
-/// shows all three (flags 0) when set and hides them (0x80) when clear; bit 1
-/// then ORs 0x4 into all three. Always returns 0.
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` for the body, head-and-hat and shotgun models.
 ///
-/// The argument is the handler table's third slot, not the second, so the three
-/// objects it loads land in `$a3` / `$a0` / `$v1` rather than shifted one down.
-s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// All three tasks/models must be live. Bit 0 of `drawFlags` enables active
+/// drawing; bit 1 disables automatic buffer allocation. Replaces all prior
+/// flags, ignores other input bits and allocates/releases no buffers. Always
+/// returns 0; the receiver, message id and second payload are unused.
+static s32 _actor420700HandleModelDrawMessage(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg)
 {
-    TmdObject* actor = D_actor_420700_8013EFE4->extra.tmd;
-    TmdObject* model = D_actor_420700_8013EFE8->extra.tmd;
-    TmdObject* twin  = D_actor_420700_8013EFEC->extra.tmd;
+    enum {
+        ACTOR_420700_DRAW_VISIBLE        = 1 << 0,
+        ACTOR_420700_DRAW_NO_AUTO_BUFFER = 1 << 1,
+    };
+    TmdObject* bodyModel    = D_actor_420700_8013EFE4->extra.tmd;
+    TmdObject* headHatModel = D_actor_420700_8013EFE8->extra.tmd;
+    TmdObject* shotgunModel = D_actor_420700_8013EFEC->extra.tmd;
 
-    if (arg2 & 1) {
-        actor->flags = 0;
-        model->flags = 0;
-        twin->flags  = 0;
+    if (drawFlags & ACTOR_420700_DRAW_VISIBLE) {
+        bodyModel->flags    = 0;
+        headHatModel->flags = 0;
+        shotgunModel->flags = 0;
     } else {
-        actor->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        twin->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        bodyModel->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        headHatModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        shotgunModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
-        actor->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        twin->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_420700_DRAW_NO_AUTO_BUFFER) {
+        bodyModel->flags    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        headHatModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        shotgunModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
 
-/// Message 0x7DB handler: records the `st.turnMode` mode the ramp
-/// `func_actor_420700_80132064` runs and seeds `st.turnWeight` at the end that mode
-/// walks away from -- 0 for the rising modes 1 and 3, `ONE` for the falling
-/// mode 2. Mode 0 is accepted as a no-op, and a block whose leading id is not
-/// 0x1B02 is rejected with -1 without touching the work block.
+/// Applies a trailer-coach head-turn command delivered by `ACTOR_COMMAND_MESSAGE_APPLY`.
 ///
-/// The empty `case 0` is what the decision tree is built from: with the three
-/// live cases alone GCC balances the list at the middle node and comes out one
-/// test short, and adding the fourth node is what makes it split at the first
-/// case instead. See DECOMPILATION_LEARNINGS.md, "An empty case node changes
-/// the switch decision tree".
-s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
+/// Borrows `command` through dispatch. Only stage 2/area 27 commands are accepted;
+/// a different namespace returns -1 without touching work. Player/point modes
+/// start at weight 0, release starts at `ONE`, and auto keeps the current weight.
+/// Stores other commands too, leaving their weight unchanged; the update treats
+/// them as release. Returns 0 on acceptance. Requires the published live work;
+/// the receiver, message id and second payload are unused.
+static s32 _actor420700HandleHeadTurnCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
-    if (args->context.key != 0x1B02) {
+    enum { ACTOR_420700_HEAD_TURN_COMMAND_CONTEXT = (GAME_AREA_DRYFIELD_TRAILER_COACH << 8) | GAME_STAGE_DRYFIELD };
+
+    if (command->context.key != ACTOR_420700_HEAD_TURN_COMMAND_CONTEXT) {
         return -1;
     }
-    _gScriptedWalkWork->st.turnMode = args->command;
-    switch (args->command) {
+    _gScriptedWalkWork->st.turnMode = command->command;
+    switch (command->command) {
         case ACTOR_420700_TURN_AUTO:
             break;
         case ACTOR_420700_TURN_PLAYER:
@@ -1354,31 +1403,38 @@ s32 func_actor_420700_80132784(Task* task, s32 arg1, ActorCommand* args, s32 arg
     return 0;
 }
 
-/// State handler of the frame-8 model task: the same as the frame-4 one,
-/// `func_actor_420700_801323D8`, except that it hangs its root off frame 8 of
-/// the actor's own model and its spawn tick also sets the model's `otOffset` to
-/// -2.
-void func_actor_420700_801327EC(Task* task)
+/// Attaches Gary's shotgun to body part 8 and refreshes its lighting.
+///
+/// The body task and its coordinates must outlive this task. Initialization
+/// enables drawing, gives the model an ordering-table bias of -2 and enters
+/// the lighting state. Later ticks sample the body root's composed translation
+/// with a -800 world-unit Y offset. Other states do nothing. Lighting uses
+/// the model's borrowed default matrices.
+static void _actor420700ShotgunTask(Task* task)
 {
-    TmdObject* extra = task->extra.tmd;
-    GfxCoord*  coord = extra->coords;
-    GfxCoord*  parts = D_actor_420700_8013EFE4->extra.tmd->coords;
-    GfxCoord*  part  = parts + 8;
-    VECTOR     vec;
+    enum {
+        ACTOR_420700_SHOTGUN_ATTACHMENT_PART = 8,
+        ACTOR_420700_SHOTGUN_OT_BIAS         = -2,
+    };
+    TmdObject* shotgunModel   = task->extra.tmd;
+    GfxCoord*  shotgunRoot    = shotgunModel->coords;
+    GfxCoord*  bodyCoords     = D_actor_420700_8013EFE4->extra.tmd->coords;
+    GfxCoord*  attachmentPart = bodyCoords + ACTOR_420700_SHOTGUN_ATTACHMENT_PART;
+    VECTOR     lightingPosition;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            extra->flags        = 0;
-            extra->otOffset     = -2;
-            coord->parent       = part;
+        case ACTOR_420700_ATTACHMENT_INIT:
+            shotgunRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+            shotgunModel->flags       = 0;
+            shotgunModel->otOffset    = ACTOR_420700_SHOTGUN_OT_BIAS;
+            shotgunRoot->parent       = attachmentPart;
             task->state++;
             break;
-        case 1:
-            vec.vx = parts->workm.t[0];
-            vec.vy = parts->workm.t[1] - 0x320;
-            vec.vz = parts->workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
+        case ACTOR_420700_ATTACHMENT_LIGHTING:
+            lightingPosition.vx = bodyCoords->workm.t[0];
+            lightingPosition.vy = bodyCoords->workm.t[1] + ACTOR_420700_LIGHTING_Y_OFFSET;
+            lightingPosition.vz = bodyCoords->workm.t[2];
+            worldCoordSetModelLighting(shotgunModel, &lightingPosition, 0, ARRAY_SIZE(shotgunModel->colorMtx->m[0]));
             break;
     }
 }
