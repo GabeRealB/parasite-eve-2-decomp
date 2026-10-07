@@ -16,24 +16,32 @@ enum {
     ACTION_PROMPT_CURSOR_HOTSPOT_CLUT  = getClut(112, 242)
 };
 
-/// Places the cursor quad around its point in screen pixels, narrowing each edge to s16.
-static inline void _actionPromptSetCursorVertices(POLY_FT4* cursorQuad, s32 x, s32 y)
+/// Sets the action cursor's screen-space rectangle in a writable textured quad.
+///
+/// `cursorX` and `cursorY` are pixels from the screen center, with Y increasing
+/// downward. The 16-by-23 rectangle starts two pixels above and left of that
+/// point. Each edge is narrowed to s16; callers supply X in [-160, 159] and
+/// Y in [-110, 110]. `cursorQuad` must point to one writable `POLY_FT4`;
+/// this helper writes its vertex coordinates and retains no pointer to it.
+static inline void _actionPromptSetCursorVertices(POLY_FT4* cursorQuad, s32 cursorX, s32 cursorY)
 {
-    s16 edgeX;
-    s16 edgeY;
+    s16 leftX;
+    s16 rightX;
+    s16 topY;
+    s16 bottomY;
 
-    edgeX          = x - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET;
-    cursorQuad->x2 = edgeX;
-    cursorQuad->x0 = edgeX;
-    edgeX          = x + (ACTION_PROMPT_CURSOR_WIDTH - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET);
-    cursorQuad->x3 = edgeX;
-    cursorQuad->x1 = edgeX;
-    edgeY          = y - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET;
-    cursorQuad->y1 = edgeY;
-    cursorQuad->y0 = edgeY;
-    edgeY          = y + (ACTION_PROMPT_CURSOR_HEIGHT - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET);
-    cursorQuad->y3 = edgeY;
-    cursorQuad->y2 = edgeY;
+    leftX          = cursorX - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET;
+    cursorQuad->x2 = leftX;
+    cursorQuad->x0 = leftX;
+    rightX         = cursorX + (ACTION_PROMPT_CURSOR_WIDTH - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET);
+    cursorQuad->x3 = rightX;
+    cursorQuad->x1 = rightX;
+    topY           = cursorY - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET;
+    cursorQuad->y1 = topY;
+    cursorQuad->y0 = topY;
+    bottomY        = cursorY + (ACTION_PROMPT_CURSOR_HEIGHT - ACTION_PROMPT_CURSOR_ORIGIN_OFFSET);
+    cursorQuad->y3 = bottomY;
+    cursorQuad->y2 = bottomY;
 }
 #endif
 
