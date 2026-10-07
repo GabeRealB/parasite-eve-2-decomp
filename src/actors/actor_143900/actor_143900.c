@@ -29,10 +29,6 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_r49.h"
-/// Selects the first walker's writable signed-halfword approach mode.
-///
-/// Only element zero is a mode; the remaining halfword has an unproven role.
-#define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 // The scripted walk's update and walk-to handler run on the first walker's
 // block; the second walker's copies of the two rebind the type to its own.
 #define SCRIPTED_WALK_WORK_T _Actor143900Work
@@ -57,13 +53,7 @@ enum {
     ACTOR_143900_WALKER_LIGHT_COUNT    = 3,
 };
 
-static s16 _gScriptedWalkModeStorage[2];
-
-/// Signed-halfword approach mode at the start of the first walker's storage.
-///
-/// Values are `SCRIPTED_WALK_MODE_*`. The scalar view retains the access
-/// shape required by the walk-to handler; the trailing halfword is not read.
-extern s16 gScriptedWalkModeValue __asm__("_gScriptedWalkModeStorage");
+static s16 _gScriptedWalkMode;
 
 /// Work block of the package's first walker, allocated zeroed by the walker's
 /// spawn state and kept both at `Task::work` and in `_gScriptedWalkWork`.
@@ -1190,15 +1180,11 @@ static _Actor143900Work* _gScriptedWalkWork = NULL;
 
 Task* D_actor_143900_801496BC = NULL;
 
-/// Halfword storage containing the first walker's approach mode.
-///
-/// Element zero is the writable signed mode selected by the walk-to message
-/// (`SCRIPTED_WALK_MODE_*`). Element one is never accessed; its role is
-/// unproven. Keep both halfwords, including the second's original contents.
-static s16 _gScriptedWalkModeStorage[2] = {
-    0,
-    0x49E7,
-};
+/// Signed approach mode of the first walker's last walk-to message (`SCRIPTED_WALK_MODE_*`).
+static s16 _gScriptedWalkMode = 0;
+
+/// A halfword stored after the mode; nothing references it.
+u16 D_actor_143900_801496C2 = 0x49E7;
 
 /// Borrowed work block of the second scripted walker and its two model attachments.
 ///
@@ -1535,7 +1521,7 @@ static void _actor143900SpawnSecondScriptedWalker(Enemy* enemy, Task* task)
 #undef SCRIPTED_WALK_BLEND_FRAMES
 #define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkBlendFrames)
 #undef SCRIPTED_WALK_MODE
-#define SCRIPTED_WALK_MODE gScriptedWalkModeValue
+#define SCRIPTED_WALK_MODE (_gScriptedWalkMode)
 #undef SCRIPTED_WALK_WORK_T
 #define SCRIPTED_WALK_WORK_T _Actor143900Work
 
@@ -1815,6 +1801,6 @@ static s32 _actor143900SelectSecondScriptedWalkerAttachment(Task* unusedTask, s3
 #undef SCRIPTED_WALK_TO
 #define SCRIPTED_WALK_TO _scriptedWalkTo
 #undef SCRIPTED_WALK_MODE
-#define SCRIPTED_WALK_MODE gScriptedWalkModeValue
+#define SCRIPTED_WALK_MODE (_gScriptedWalkMode)
 #undef SCRIPTED_WALK_WORK_T
 #define SCRIPTED_WALK_WORK_T _Actor143900Work

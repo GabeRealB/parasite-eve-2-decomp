@@ -17,9 +17,6 @@
  *
  * The defaults select `_gScriptedWalkWork`, `_gScriptedWalkMode` and
  * `_gScriptedWalkBlendFrames`.
- * actor_143900 and actor_461800 bind the mode to `gScriptedWalkModeValue`,
- * a scalar view of the first halfword in `_gScriptedWalkModeStorage`.
- * Nothing accesses the other halfword, whose role remains unproven.
  * A file with a second walker, as actor_143900 has, includes the fragments
  * again with the bindings selecting that walker's functions and state.
  *
