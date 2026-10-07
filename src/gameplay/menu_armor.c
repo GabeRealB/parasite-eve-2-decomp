@@ -212,7 +212,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             y     = prompt->rowTextY.signedValue;
             color = prompt->colorRgb;
             if ((u32)(item - 0xA0) < 0x20U) {
-                qty            = rec->qty - Gp_CountEquippedRelated(scan, item);
+                qty            = rec->qty - equipmentGetLoadedConsumableQuantity(scan, item);
                 req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
                 req.y          = obj->panel.contentOriginY.unsignedValue + (y - 3);
                 req.otIndex    = obj->panel.otIndex.signedValue + 1;

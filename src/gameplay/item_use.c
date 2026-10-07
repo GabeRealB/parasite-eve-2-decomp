@@ -193,8 +193,8 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
 
             if (relId != INVENTORY_ITEM_NONE && relId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
                 scanQty = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                qty     = Gp_ScanStackQty(scanQty, relId);
-                qty    -= Gp_CountEquippedRelated(scanQty, relId);
+                qty     = inventoryGetConsumableStackQuantity(scanQty, relId);
+                qty    -= equipmentGetLoadedConsumableQuantity(scanQty, relId);
             }
             if (qty > 0) {
                 scanRel = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -383,7 +383,7 @@ static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1)
             ret = 0;
         } else if ((u32)(arg0 - 0xA0) < 0x20U) {
             scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            val  = arg1->qty - Gp_CountEquippedRelated(scan, arg0);
+            val  = arg1->qty - equipmentGetLoadedConsumableQuantity(scan, arg0);
             if (val > 0) {
                 if (Gp_EquipRelatedItem(scan, cfg->weapon + 0x7F, arg0, 0) == 0) {
                     ret = 0;

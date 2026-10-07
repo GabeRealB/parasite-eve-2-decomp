@@ -1262,7 +1262,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
         color = arg0->colorRgb;
         if (sel != NULL) {
             if ((u32)(sel->itemId - 0xA0) < 0x20U) {
-                qty            = sel->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, sel->itemId);
+                qty            = sel->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, sel->itemId);
                 req.x          = arg1->panel.contentOriginX.unsignedValue + 0x84 + x;
                 baseY          = arg1->panel.contentOriginY.unsignedValue - 3;
                 req.y          = baseY + y;
@@ -2069,7 +2069,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         y     = prompt->rowTextY.signedValue;
         color = prompt->colorRgb;
         if ((u32)(id - 0xA0) < 0x20U) {
-            count                   = rec->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id);
+            count                   = rec->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id);
             draw.qty.req.x          = obj->panel.contentOriginX.unsignedValue + 0x84 + x;
             off                     = obj->panel.contentOriginY.unsignedValue - 3;
             draw.qty.req.y          = off + y;

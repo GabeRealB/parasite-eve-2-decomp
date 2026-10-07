@@ -40,7 +40,7 @@ UiObjectTaskFunc D_8010D3A0[96] = {
     func_800CB6FC,
     Gp_UiBoostMp,
     func_800CB6FC,
-    Gp_UiBoostAttach,
+    itemMenuApplyPouchPanel,
     NULL,
     func_800CFAA8,
     func_800CFAA8,

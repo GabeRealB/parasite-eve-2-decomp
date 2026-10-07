@@ -242,6 +242,25 @@ static inline void _itemMenuDrawPrefixedItemName(const UiObject* object, s32 x, 
     itemNameOffsetX = textMeasureLineWidth(prefixText) + 4;
     textDrawUiLine(object, x + itemNameOffsetX, y, itemGetText(itemId, ITEM_TEXT_NAME, 0), ITEM_MENU_ITEM_NAME_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
 }
+/// Fits the two-line pouch success notice and centers it above the screen midpoint.
+///
+/// Borrows a live UI object with writable panel bounds; armorItemId selects
+/// the item name under `itemGetText`'s catalogue contract. Sizes are in pixels.
+static inline void _itemMenuSizePouchNotice(UiObject* object, s32 armorItemId)
+{
+    s32 contentWidth;
+    s32 secondLineWidth;
+
+    contentWidth    = textMeasureLineWidth(itemGetText(armorItemId, ITEM_TEXT_NAME, 0)) + textMeasureLineWidth(Gp_StrMore) + 4;
+    secondLineWidth = textMeasureLineWidth(Gp_StrAttachAvail);
+    if (contentWidth < secondLineWidth) {
+        contentWidth = secondLineWidth;
+    }
+    uiSetPanelContentSize(&object->panel, contentWidth + 5, uiGetTextRowsHeight(2) + 1);
+    object->panel.bounds.rect.x = (-object->panel.bounds.rect.w) >> 1;
+    object->panel.bounds.rect.y = ((-object->panel.bounds.rect.h) >> 1) - 20;
+}
+
 /// Returns whether a carried row of `itemId` occupies a positive armour slot.
 ///
 /// Searches the carried range's selected table. Quantity is not tested; the
@@ -373,64 +392,68 @@ static inline void _areaSeedObjectStates(const AreaObjectRoom* rooms, u32* objec
         place = rooms->places.list;
     } while (rooms->places.sentinel != AREA_OBJECT_ROOM_END);
 }
-void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
+void itemMenuApplyPouchPanel(UiObject* object, Task* task)
 {
-    s32 item;
-    s32 width;
-    s32 other;
-    s32 saved;
-    s32 x;
-    s32 y;
-    s32 color;
-    s32 row;
+    enum {
+        ITEM_MENU_POUCH_STATE_INIT          = 0,
+        ITEM_MENU_POUCH_STATUS_APPLIED      = 0xFF,
+        ITEM_MENU_POUCH_NOTICE_NO_MORE_MODS = 0x1A,
+        ITEM_MENU_POUCH_ARMOR_ITEM_FIRST    = 0x60,
+        ITEM_MENU_POUCH_DISPLAY_UPDATES     = 188,
+        ITEM_MENU_POUCH_COMPLETED_COUNTDOWN = 0x7FFF,
+        ITEM_MENU_POUCH_TEXT_COLOR_RGB      = 0x606060,
+        ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS  = 15
+    };
+    s32 armorItemId;
+    s32 savedSpawnArg;
+    s32 textX;
+    s32 contentTop;
+    u32 textColorRgb;
+    s32 lineY;
 
-    item = gPlayerStatus.armor + 0x5F;
-    if (arg1->state == 0) {
-        arg1->status = 0xFF;
-        if (_equipmentGetArmorAttachmentSlotCount(item) < ARMOR_ATTACHMENT_SLOT_MAX) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[item - 0x60]++;
+    armorItemId = gPlayerStatus.armor + (ITEM_MENU_POUCH_ARMOR_ITEM_FIRST - 1);
+    // Apply the permanent bonus once, consuming the pouch only below the cap.
+    if (task->state == ITEM_MENU_POUCH_STATE_INIT) {
+        task->status = ITEM_MENU_POUCH_STATUS_APPLIED;
+        if (_equipmentGetArmorAttachmentSlotCount(armorItemId) < ARMOR_ATTACHMENT_SLOT_MAX) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[armorItemId - ITEM_MENU_POUCH_ARMOR_ITEM_FIRST]++;
         } else {
-            arg1->status = 0x1A;
+            task->status = ITEM_MENU_POUCH_NOTICE_NO_MORE_MODS;
         }
-        if (arg1->status == 0xFF) {
-            width = textMeasureLineWidth(itemGetText(item, ITEM_TEXT_NAME, 0)) + textMeasureLineWidth(Gp_StrMore) + 4;
-            other = textMeasureLineWidth(Gp_StrAttachAvail);
-            if (width < other) {
-                width = other;
-            }
-            uiSetPanelContentSize(&(arg0)->panel, width + 5, uiGetTextRowsHeight(2) + 1);
-            (&(arg0)->panel)->bounds.rect.x = (-(&(arg0)->panel)->bounds.rect.w) >> 1;
-            (&(arg0)->panel)->bounds.rect.y = ((-(&(arg0)->panel)->bounds.rect.h) >> 1) - 0x14;
+        if (task->status == ITEM_MENU_POUCH_STATUS_APPLIED) {
+            _itemMenuSizePouchNotice(object, armorItemId);
             _inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
-            arg1->killCountdown = 0xBC;
-            arg1->state++;
+            task->killCountdown = ITEM_MENU_POUCH_DISPLAY_UPDATES;
+            task->state++;
         }
     }
-    if (arg1->status != 0xFF) {
-        saved                 = arg1->spawnArg1.value;
-        arg1->spawnArg1.value = arg1->status;
-        itemMenuNoticeTask(arg1);
-        arg1->spawnArg1.value = saved;
+    if (task->status != ITEM_MENU_POUCH_STATUS_APPLIED) {
+        // Temporarily replace the item-id payload with the failure notice id.
+        savedSpawnArg         = task->spawnArg1.value;
+        task->spawnArg1.value = task->status;
+        itemMenuNoticeTask(task);
+        task->spawnArg1.value = savedSpawnArg;
         return;
     }
 
-    x = arg0->panel.contentLeft.signedValue + 2;
-    y = arg0->panel.contentTop.signedValue;
-    uiDrawPanelLabel(&(arg0)->panel, Gp_StrNotice2);
-    color = 0x606060;
-    row   = y + 0xF;
-    _itemMenuDrawPrefixedItemName(arg0, x, row, Gp_StrMore, item, color, TEXT_DRAW_OUTLINED);
-    row += 0xF;
-    textDrawUiLine(arg0, x, row, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
+    textX      = object->panel.contentLeft.signedValue + 2;
+    contentTop = object->panel.contentTop.signedValue;
+    uiDrawPanelLabel(&object->panel, Gp_StrNotice2);
+    textColorRgb = ITEM_MENU_POUCH_TEXT_COLOR_RGB;
+    lineY        = contentTop + ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
+    _itemMenuDrawPrefixedItemName(object, textX, lineY, Gp_StrMore, armorItemId, textColorRgb, TEXT_DRAW_OUTLINED);
+    lineY += ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
+    textDrawUiLine(object, textX, lineY, Gp_StrAttachAvail, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
-    if (arg0->panel.control.word == 1) {
-        arg1->killCountdown--;
-        if ((arg1->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            arg0->result        = USER_INTERFACE_RESULT_DISMISS;
-            arg1->killCountdown = 0x7FFF;
+    // Opening and inactive panels draw the notice without advancing its timeout.
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        task->killCountdown--;
+        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            object->result      = USER_INTERFACE_RESULT_DISMISS;
+            task->killCountdown = ITEM_MENU_POUCH_COMPLETED_COUNTDOWN;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            arg0->result        = USER_INTERFACE_RESULT_CANCEL;
-            arg1->killCountdown = 0x7FFF;
+            object->result      = USER_INTERFACE_RESULT_CANCEL;
+            task->killCountdown = ITEM_MENU_POUCH_COMPLETED_COUNTDOWN;
         }
     }
 }
@@ -855,46 +878,34 @@ s32 inventoryCountCollectedBits(void)
     return collectedCount;
 }
 
-s32 Gp_CountScanItems(InventoryItemRange* arg0)
+s32 inventoryCountOccupiedRows(const InventoryItemRange* range)
 {
-    InventoryItemRow* tmp;
-    InventoryItemRow* table;
-    InventoryItemRow* row;
-    s32               i;
-    s32               ret;
-    s32               count;
-    s32               start;
-    s32               limit;
+    InventoryItemRow*       table;
+    const InventoryItemRow* row;
+    s32                     rangeIndex;
+    s32                     occupiedRows;
+    s32                     rowCount;
+    s32                     firstRow;
+    s32                     rowLimit;
 
-    switch (arg0->tableId) {
-        case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            tmp = Gp_ItemTable2;
-            break;
-        case INVENTORY_ITEM_TABLE_INDIRECT:
-            tmp = Gp_ItemTable1;
-            break;
-        default:
-            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-            break;
-    }
-    table = tmp;
-    i     = 0;
-    count = arg0->rowCount;
-    start = arg0->firstRow;
-    ret   = i;
-    if (count != 0) {
-        limit = count;
+    table        = _gpScanTable(range);
+    rangeIndex   = 0;
+    rowCount     = range->rowCount;
+    firstRow     = range->firstRow;
+    occupiedRows = rangeIndex;
+    if (rowCount != 0) {
+        rowLimit = rowCount;
 
-        row = gpItemRowAt(table, start);
+        row = gpItemRowAt(table, firstRow);
         do {
             if (row->itemId != INVENTORY_ITEM_NONE) {
-                ret++;
+                occupiedRows++;
             }
-            i++;
+            rangeIndex++;
             row++;
-        } while (i < limit);
+        } while (rangeIndex < rowLimit);
     }
-    return ret;
+    return occupiedRows;
 }
 
 EquipmentWeaponLoad* equipmentGetWeaponLoad(s32 weaponItemId)
@@ -902,37 +913,37 @@ EquipmentWeaponLoad* equipmentGetWeaponLoad(s32 weaponItemId)
     return &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
 }
 
-s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
+s32 equipmentGetLoadedConsumableQuantity(const InventoryItemRange* range, s32 consumableItemId)
 {
-    InventoryItemRow*    table;
-    EquipmentWeaponLoad* weaponLoad;
-    s32                  count;
-    s32                  i;
-    s32                  end;
-    s32                  weaponItemId;
+    const InventoryItemRow*    table;
+    const EquipmentWeaponLoad* weaponLoad;
+    s32                        loadedQuantity;
+    s32                        rowIndex;
+    s32                        endRow;
+    s32                        weaponItemId;
 
-    table = inventoryGetRangeTable(arg0);
-    count = 0;
-    if ((u32)(arg1 - 0xA0) < 0x20) {
-        i   = arg0->firstRow;
-        end = i + arg0->rowCount;
-        if (i < end) {
-            for (; i < arg0->firstRow + arg0->rowCount; i++) {
-                weaponItemId = table[i].itemId;
+    table          = inventoryGetRangeTable(range);
+    loadedQuantity = 0;
+    if ((u32)(consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        rowIndex = range->firstRow;
+        endRow   = rowIndex + range->rowCount;
+        if (rowIndex < endRow) {
+            for (; rowIndex < range->firstRow + range->rowCount; rowIndex++) {
+                weaponItemId = table[rowIndex].itemId;
                 if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) {
                     weaponLoad = _equipmentGetWeaponLoad(weaponItemId);
-                    if (weaponLoad->primaryItemId == arg1) {
-                        count += weaponLoad->primaryQty;
+                    if (weaponLoad->primaryItemId == consumableItemId) {
+                        loadedQuantity += weaponLoad->primaryQty;
                     }
-                    if (weaponLoad->secondaryItemId == arg1) {
-                        count += weaponLoad->secondaryQty;
+                    if (weaponLoad->secondaryItemId == consumableItemId) {
+                        loadedQuantity += weaponLoad->secondaryQty;
                     }
                 }
             }
-            return count;
+            return loadedQuantity;
         }
     }
-    return count;
+    return loadedQuantity;
 }
 
 void equipmentClearRemovableLoads(s32 weaponItemId)
@@ -1002,20 +1013,20 @@ void equipmentClearSelectedRemovableLoads(s32 weaponItemId, s32 loadSelection)
     }
 }
 
-s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1)
+s32 inventoryGetConsumableStackQuantity(const InventoryItemRange* range, s32 consumableItemId)
 {
-    s32               index;
-    s32               ret;
-    InventoryItemRow* table;
+    s32                     rowIndex;
+    s32                     quantity;
+    const InventoryItemRow* table;
 
-    index = arg0->firstRow;
-    table = inventoryGetRangeTable(arg0);
-    if ((u32)(arg1 - 0xA0) < 0x20) {
-        ret = inventoryFindStackQuantity(table, arg0, &index, arg1);
+    rowIndex = range->firstRow;
+    table    = inventoryGetRangeTable(range);
+    if ((u32)(consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        quantity = inventoryFindStackQuantity(table, range, &rowIndex, consumableItemId);
     } else {
-        ret = 0;
+        quantity = 0;
     }
-    return ret;
+    return quantity;
 }
 
 void inventoryConsumeFirstStack(InventoryItemRange* range, s32 itemId, s32 quantity)

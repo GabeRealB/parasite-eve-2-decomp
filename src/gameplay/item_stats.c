@@ -553,7 +553,7 @@ void func_800C5F70(Task* arg0)
                     req110.alignment  = TEXT_ALIGNMENT_LEFT;
                     req110.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
                     textDrawString(&req110, bufC0);
-                    textItoaSigned(bufC0, Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item));
+                    textItoaSigned(bufC0, inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item));
                     textItoaSigned(bufE0, Gp_StackLimits[idx].maxHeld);
                     textAppendString(bufC0, Gp_StrSlash);
                     textAppendString(bufC0, bufE0);

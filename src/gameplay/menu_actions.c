@@ -752,8 +752,8 @@ static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
         do {
             temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);
             item = table0[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
-            qty  = Gp_ScanStackQty(arg0, item);
-            qty -= Gp_CountEquippedRelated(arg0, item);
+            qty  = inventoryGetConsumableStackQuantity(arg0, item);
+            qty -= equipmentGetLoadedConsumableQuantity(arg0, item);
             if (qty > 0) {
                 arg1--;
                 if (arg1 < 0) {
@@ -772,8 +772,8 @@ static s32 Gp_NthStockRelated(InventoryItemRange* arg0, s32 arg1, s32 arg2)
             do {
                 temp = i + idx * (s32)sizeof(EquipmentWeaponLoadOptions);
                 item = table1[temp + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)];
-                qty  = Gp_ScanStackQty(arg0, item);
-                qty -= Gp_CountEquippedRelated(arg0, item);
+                qty  = inventoryGetConsumableStackQuantity(arg0, item);
+                qty -= equipmentGetLoadedConsumableQuantity(arg0, item);
                 if (qty > 0) {
                     arg1--;
                     if (arg1 < 0) {
@@ -2123,7 +2123,7 @@ void Gp_DiscardWarnTask(Task* arg0)
     mode        = 0x10;
     if (Gp_ItemDescs[id].flags & ITEM_FLAG_NO_DISCARD) {
         mode = 1;
-    } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id) > 0)) {
+    } else if (((u32)(id - 0xA0) < 0x20U) && (equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id) > 0)) {
         mode = 3;
     } else if (Gp_IsEquippedItem(id) != 0) {
         mode = 2;

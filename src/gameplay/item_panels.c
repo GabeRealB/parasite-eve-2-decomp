@@ -234,7 +234,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                if ((arg3->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
+                if ((arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawMovePrompt;
@@ -278,7 +278,7 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
                 Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
-                if ((arg3->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
+                if ((arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = Gp_DrawLoadCmd;
                 }
                 Gp_ItemCmdFns[n++] = Gp_DrawDiscardCmd;
@@ -1254,7 +1254,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     memset(&buf[1], 0, 0x1F);
     color = 0x606060;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    cur   = Gp_CountScanItems(scan);
+    cur   = inventoryCountOccupiedRows(scan);
     cap   = inventoryGetRangeCapacity(scan);
     textItoaUnsigned(buf, cur);
     textAppendString(buf, (const u8*)Gp_StrSlash);
@@ -1722,7 +1722,7 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
 
     if (arg3 != NULL) {
         if ((u32)(arg3->itemId - 0xA0) < 0x20U) {
-            count          = arg3->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg3->itemId);
+            count          = arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg3->itemId);
             req.x          = arg0->panel.contentOriginX.unsignedValue + 0x84 + arg1;
             y              = arg0->panel.contentOriginY.unsignedValue - 3;
             req.y          = y + arg2;

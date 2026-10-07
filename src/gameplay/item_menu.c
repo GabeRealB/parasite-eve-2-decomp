@@ -311,7 +311,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
         case USER_INTERFACE_RESULT_CANCEL:
             flag = 0;
             if (work->panes[0]->owner->status != 0) {
-                flag = Gp_CountScanItems(&Gp_MoveScanSrc) > 0;
+                flag = inventoryCountOccupiedRows(&Gp_MoveScanSrc) > 0;
             }
             work->panes[work->focusedPane]->owner->state     = 1;
             work->panes[work->focusedPane ^ 1]->owner->state = 1;
@@ -652,7 +652,7 @@ void Gp_ItemPaneTask(Task* arg0)
 
     scan  = _gpItemPaneScan(arg0);
     count = scan->rowCount;
-    count = count < Gp_CountScanItems(scan);
+    count = count < inventoryCountOccupiedRows(scan);
     if (count != 0) {
         obj->panel.style |= USER_INTERFACE_PANEL_SCREEN_BRIGHTEN;
     } else {
@@ -1000,13 +1000,13 @@ void func_800BDF6C(Task* task)
             return;
         }
         task->work                 = split;
-        srcTotal                   = Gp_ScanStackQty(&Gp_MoveScanSrc, task->spawnArg1.value);
+        srcTotal                   = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc, task->spawnArg1.value);
         split->containerQty        = srcTotal;
         split->containerInitialQty = srcTotal;
-        dstTotal                   = Gp_ScanStackQty(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
+        dstTotal                   = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
         split->carriedQty          = dstTotal;
         split->carriedInitialQty   = dstTotal;
-        split->loadedQty           = Gp_CountEquippedRelated(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
+        split->loadedQty           = equipmentGetLoadedConsumableQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
         uiSetPromptText(Gp_StrSetAmmoHelp, 0, 0);
         split->stackLimit = Gp_StackLimits[task->spawnArg1.value - 0xA0].maxHeld;
         task->state       = task->state + 1;

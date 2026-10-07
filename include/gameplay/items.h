@@ -83,7 +83,12 @@ void areaSetCurrentObjectState(s32 objectId, u8 state);
 /// valid while their table remains available, but their contents become empty.
 void inventoryClearItems(const InventoryItemRange* range);
 
-s32 Gp_CountScanItems(InventoryItemRange* arg0);
+/// Counts occupied row slots in an inventory range, independently of quantity.
+///
+/// Only a nonzero item id marks an occupied row, including zero-quantity rows.
+/// The descriptor must select rows within its readable backing table; zero
+/// rows returns zero. The result is 0..rowCount. Inputs are borrowed unchanged.
+s32 inventoryCountOccupiedRows(const InventoryItemRange* range);
 
 /// Borrows the live save's writable load record for a weapon item id.
 ///
@@ -92,7 +97,14 @@ s32 Gp_CountScanItems(InventoryItemRange* arg0);
 /// Loading or resetting the live save can replace its contents.
 EquipmentWeaponLoad* equipmentGetWeaponLoad(s32 weaponItemId);
 
-s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1);
+/// Returns the first matching consumable stack's quantity as a signed count.
+///
+/// Consumable ids 0xA0..0xBF search the range; other ids or no match return zero.
+/// The stored u16 narrows to s16 before promotion to s32. Duplicate stacks are
+/// not summed, unlike `inventoryGetItemQuantity`. Loaded ammunition remains in
+/// the row's total; no weapon loads are subtracted. The readable descriptor
+/// must select rows within its backing table. Inputs are borrowed unchanged.
+s32 inventoryGetConsumableStackQuantity(const InventoryItemRange* range, s32 consumableItemId);
 
 /// Returns one packed two-bit object state from the session's current stage.
 ///

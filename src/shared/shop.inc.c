@@ -805,7 +805,7 @@ static void Shop_BalanceTask(Task* task)
 
     p        = total;
     scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    count    = Gp_CountScanItems(scan);
+    count    = inventoryCountOccupiedRows(scan);
     capacity = scan->rowCount;
     textItoaUnsigned(p, count);
     while (*(const s8*)p != 0) {
@@ -1010,7 +1010,7 @@ static inline s32 Shop_AddItemCount(s32 item, s32 count)
     InventoryItemRange* scan;
 
     if ((u32)(item - 0xA0) < 0x20U) {
-        count += Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
+        count += inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
     } else {
         scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         rec  = inventoryGetRangeTable(scan) + scan->firstRow;
@@ -1103,7 +1103,7 @@ static void Shop_QuantityTask(Task* task)
         InventoryConsumableStack* stock = gpItemStock(itemId);
 
         if (stock->packQty != 0) {
-            held = Gp_ScanStackQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
+            held = inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
             // The image keeps the held count in a register of its own
             // (`move v1,v0`) and loads the ceiling into `$v0`, which needs a
             // block boundary between the call and the subtraction that is
@@ -1127,7 +1127,7 @@ static void Shop_QuantityTask(Task* task)
             }
         }
     } else {
-        maxQty = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount - Gp_CountScanItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems);
+        maxQty = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount - inventoryCountOccupiedRows(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems);
     }
 
     afford = gPlayerStatus.bp / price;

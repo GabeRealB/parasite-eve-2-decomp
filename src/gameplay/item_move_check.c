@@ -87,9 +87,9 @@ s32 Gp_CanMoveItems(void)
     ret     = 0;
     table   = inventoryGetRangeTable(src);
     row     = src->firstRow;
-    count   = Gp_CountScanItems(src + 1);
+    count   = inventoryCountOccupiedRows(src + 1);
     blocked = 0; /* nothing sets it, yet the original still tests it */
-    if (Gp_CountScanItems(src) > 0) {
+    if (inventoryCountOccupiedRows(src) > 0) {
         for (i = 0; i < src->rowCount; i++, row++) {
             if (table[row].itemId != INVENTORY_ITEM_NONE) {
                 /* 0xA0-0xBF items need no new row if the destination already holds one */

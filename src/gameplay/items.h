@@ -8,6 +8,7 @@
 
 #include "main/mc_types.h"
 #include "main/task_types.h"
+#include "main/ui_types.h"
 
 // Inventory contents, collection flags, quantities, sorting and equipment.
 
@@ -23,8 +24,6 @@ extern const char Gp_StrNotice2[8];
 
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
-struct UiObject;
-
 /// Quantity request that consumes the whole first matching stack.
 enum { INVENTORY_REMOVE_WHOLE_STACK = -1 };
 
@@ -38,11 +37,16 @@ enum { INVENTORY_REMOVE_WHOLE_STACK = -1 };
 /// range must fit its writable table. Weapon loads are left intact. Returns 0.
 s32 inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32 quantity);
 
-/// Confirmation UI for raising `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus` of the equipped
-/// 0x60–0x7F item (`gPlayerStatus.armor`). If the clamped level is
-/// already 10, `itemMenuNoticeTask` is shown with spawnArg1 0x1A. Otherwise
-/// consumes `Gp_SelItemRec` and draws "More <item> attachments available."
-void Gp_UiBoostAttach(struct UiObject* arg0, Task* arg1);
+/// Applies a Belt Pouch to the equipped armor and shows the attachment-slot notice.
+///
+/// The equipped armor selector must be 1..32 and remain unchanged while open;
+/// object and its owner task must remain live. State 0 adds one permanent bonus
+/// slot below the ten-slot cap and consumes the selected writable pouch row in
+/// `Gp_SelItemRec`. At the cap it shows "No further modifications" without consuming.
+/// Success counts down 188 active updates; timeout or Confirm/Cancel yields
+/// DISMISS, and Menu yields CANCEL. The capped path uses `itemMenuNoticeTask`'s
+/// countdown contract. The task's item-id spawn argument is preserved.
+void itemMenuApplyPouchPanel(UiObject* object, Task* task);
 
 void Gp_UiBoostMp(struct UiObject* arg0, Task* arg1);
 
@@ -102,7 +106,14 @@ void areaSeedStageObjectStates(s32 stageId);
 /// Counts item-related event bits as well as key-item possession bits.
 s32 inventoryCountCollectedBits(void);
 
-s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1);
+/// Sums a consumable's primary and secondary loads in the range's weapon rows.
+///
+/// Consumable ids 0xA0..0xBF count rounds or supply units; other ids return zero.
+/// Every weapon row counts, independently of attachment or equipped selection;
+/// duplicate weapon ids count the same saved load again. Loads come from the
+/// live save even for indirect or area-grant ranges. The readable descriptor
+/// must select rows within its backing table. No input is changed or retained.
+s32 equipmentGetLoadedConsumableQuantity(const InventoryItemRange* range, s32 consumableItemId);
 
 /// Clears removable weapon loads while preserving any built-in Battery or Fuel.
 ///

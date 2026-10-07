@@ -753,7 +753,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 
     if (item != 0) {
         rec = inventoryFindLastCarriedItemRow(item);
-        qty = rec->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
+        qty = rec->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
         if (Gp_ReloadMode == 0) {
             load = equipmentGetWeaponLoad(spawnArg);
             if (load->primaryItemId == item) {
@@ -857,8 +857,8 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
             item = Gp_RelatedQty0.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i];
             if (item != INVENTORY_ITEM_NONE) {
-                qty  = Gp_ScanStackQty(scan, item);
-                qty -= Gp_CountEquippedRelated(scan, item);
+                qty  = inventoryGetConsumableStackQuantity(scan, item);
+                qty -= equipmentGetLoadedConsumableQuantity(scan, item);
                 if (mode == 0 && slot->primaryItemId == item) {
                     qty += slot->primaryQty;
                 }
@@ -873,8 +873,8 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
         for (i = 0; i < ARRAY_SIZE(Gp_RelatedQty0.rows[0].acceptedItemIds); i++) {
             item = Gp_RelatedQty1.rows[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[i];
             if (item != INVENTORY_ITEM_NONE) {
-                qty  = Gp_ScanStackQty(scan, item);
-                qty -= Gp_CountEquippedRelated(scan, item);
+                qty  = inventoryGetConsumableStackQuantity(scan, item);
+                qty -= equipmentGetLoadedConsumableQuantity(scan, item);
                 if (mode == 0 && slot->secondaryItemId == item) {
                     qty += slot->secondaryQty;
                 }

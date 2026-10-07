@@ -26343,7 +26343,7 @@ addu  v1, v0, a3  /* rec = off + table */
 frees `$v1` for the walk, and keep `off + (s32)table` so dest is a new `rec`.
 Pin the base with `register GpItemRec* table asm("a3")` via the same
 tmp/switch as `inventoryClearItems`. `ret = i` (or `ret = 0` after `i = 0`) fills
-the `beqz` delay with `move a2, a1`. `Gp_CountScanItems` is the example.
+the `beqz` delay with `move a2, a1`. `inventoryCountOccupiedRows` is the example.
 
 ## `jalr` with the iterator left in `$a1` is a 2-arg callback
 
@@ -28880,7 +28880,7 @@ return must be reached by two paths (range test and empty-range test) - with
 only one, cse follows the jump, sees `count == 0`, and emits `move v0,zero`.
 The loop condition re-evaluates `firstRow + rowCount`; loop hoists it into a new
 pseudo that cse finds equal to `end`, which is the `move t0,v1`. Writing
-`i < end` there instead drops the copy. `Gp_CountEquippedRelated`; this replaces
+`i < end` there instead drops the copy. `equipmentGetLoadedConsumableQuantity`; this replaces
 a `$v0` pin with `asm volatile("" : "+r")` and a hand-made `limit = end` copy.
 
 ## Share `state++` with `else { goto epilogue; }` after a 3-way dispatch
@@ -34405,13 +34405,13 @@ example.
 
 ## `count = count < func()` emits `slt s0, s0, v0` / `beqz s0`
 
-`if (count < Gp_CountScanItems(scan))` keeps the compare in `$v0`
+`if (count < inventoryCountOccupiedRows(scan))` keeps the compare in `$v0`
 (`slt v0, s0, v0` / `beqz v0`). Reusing the saved count for the boolean
 writes the `slt` onto `$s0`:
 
 ```c
 count = scan->rowCount;
-count = count < Gp_CountScanItems(scan);
+count = count < inventoryCountOccupiedRows(scan);
 if (count != 0) {
     obj->field_4 |= 0x20000;
 } else {
@@ -36326,7 +36326,7 @@ same block, and after reload the shift reuses the register. Where the
 parameter is only used inside a branch, the original usually passed it
 on to a second inline helper called in that branch. That puts the copy
 in the branch's own block, where sched1 cannot move it, and delay-slot
-filling then drops it into the `beqz` delay slot. `Gp_UiBoostAttach` is
+filling then drops it into the `beqz` delay slot. `itemMenuApplyPouchPanel` is
 the example: `_inventoryRemoveItemRow` hands its else branch to
 `_inventoryConsumeFirstStack`, which removed a `USE_REG` and six register pins.
 
@@ -36350,7 +36350,7 @@ text  = itemGetText(a0item, za, zb);
 ```
 
 `volatile` on the call args themselves blocks delay-slot filling
-(see above) and leaves `nop`. `Gp_UiBoostAttach` is the example.
+(see above) and leaves `nop`. `itemMenuApplyPouchPanel` is the example.
 
 ## Copy `p` to `$s0` but keep pad stores on `$v1`
 
@@ -142443,7 +142443,7 @@ rank. A `do { } while` under `if (count != 0)` rewritten as
 zero-extended `u8`), and indexing `table[i]` instead of walking `table++` adds
 more through `loop.c`'s giv setup, all with byte-identical output.
 
-## An inline parameter the body assigns is copied at the call site; copy it into a local where it is used instead (Gp_UiBoostAttach)
+## An inline parameter the body assigns is copied at the call site; copy it into a local where it is used instead (itemMenuApplyPouchPanel)
 
 **Symptom.** A helper called with a constant (`removeItem(scan, rec, 1)`) and
 containing `if (n < 0) n = qty;` emits its `li a3,1` at the head of the block
@@ -148472,11 +148472,11 @@ source.
   the released mask's extension before the first call.
   *2026-10-07: resolved without a pin, by live length (246). See "A register
   that has to rank lower with nothing to remove" at the end of this file.*
-- **Gp_UiBoostAttach**, `row` pinned to `$s1`. All of block 33's call-crossing
-  values are local quantities: the string address 6250, the width 2000, `x`
-  1714 (it is tied to its `lh`), the `1` 1612, `row` 714 (3 refs over 42
-  half-insns), `y` 454, the colour 375. The target allocates `row` before
-  `x`, which needs a fourth reference. The `1` and the colour are shared by
+- **itemMenuApplyPouchPanel**, `lineY` pinned to `$s1`. All of block 33's call-crossing
+  values are local quantities: the string address 6250, the width 2000, `textX`
+  1714 (it is tied to its `lh`), the `1` 1612, `lineY` 714 (3 refs over 42
+  half-insns), `contentTop` 454, the colour 375. The target allocates `lineY` before
+  `textX`, which needs a fourth reference. The `1` and the colour are shared by
   cse and `reload_cse_regs` from literals; the `one` local was not needed.
   *2026-10-06: resolved without a pin. The row is a cursor advanced between
   the two lines; see "A row cursor advanced with `+=` keeps the references
@@ -148950,7 +148950,7 @@ a block boundary" at the end of this file.
 ## Measured and left (2026-10-05)
 
 - `Shop_QuantityTask` (`register s32 maxHeld asm("v0")`). The image has
-  `jal Gp_ScanStackQty; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`. Unpinned,
+  `jal inventoryGetConsumableStackQuantity; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`. Unpinned,
   combine substitutes the return register into the subtraction
   (`subu s6,v1,v0`, no move). Keeping the copy needs `$v0` set between it and
   the subtraction, or a second use of the held count; then the count must also
@@ -151723,35 +151723,35 @@ is why the pointer ends with one reader.
 - Not checked in other functions: the same shape may explain other pins on a
   short-lived pointer that takes a parameter's call-saved register.
 
-## A row cursor advanced with `+=` keeps the references combine merged away (Gp_UiBoostAttach, 2026-10-06)
+## A row cursor advanced with `+=` keeps the references combine merged away (itemMenuApplyPouchPanel, 2026-10-06)
 
-**Symptom.** `row = y + 0xF; draw(x, row); draw(x, y + 0x1E);` put `x` in
-`$s1` and `row` in `$s3`; the target has `row` in `$s1`, `x` in `$s2`, and
-was held with `register s32 row asm("s1")`. All of the block's call-crossing
+**Symptom.** `lineY = contentTop + 0xF; draw(textX, lineY); draw(textX, contentTop + 0x1E);` put `textX` in
+`$s1` and `lineY` in `$s3`; the target has `lineY` in `$s1`, `textX` in `$s2`, and
+was held with `register s32 lineY asm("s1")`. All of the block's call-crossing
 values are local-alloc quantities, ordered by
-`floor_log2(refs) * refs / (death - birth)`: `row` had 3 references (714),
-`x` 6 (1714), so `x` chose first.
+`floor_log2(refs) * refs / (death - birth)`: `lineY` had 3 references (714),
+`textX` 6 (1714), so `textX` chose first.
 
 **Mechanism.** `reg_n_refs` is counted by flow and combine does not keep it
-current: when it merges `(set row ...)` into the insn that uses it, it
+current: when it merges `(set lineY ...)` into the insn that uses it, it
 decrements `reg_n_sets` and zeroes the reference count only if no set is
 left (`try_combine`, "If the reg formerly set in I2 died only once"). A
 variable set twice therefore keeps the two references of the pair that was
 merged. Written as a cursor,
 
 ```c
-row = y + 0xF;
-_itemMenuDrawPrefixedItemName(arg0, x, row, Gp_StrMore, item, color, 1);
-row += 0xF;
-textDrawUiLine(arg0, x, row, Gp_StrAttachAvail, color, 1, TEXT_ALIGNMENT_LEFT);
+lineY = contentTop + ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
+_itemMenuDrawPrefixedItemName(object, textX, lineY, Gp_StrMore, armorItemId, textColorRgb, TEXT_DRAW_OUTLINED);
+lineY += ITEM_MENU_POUCH_LINE_HEIGHT_PIXELS;
+textDrawUiLine(object, textX, lineY, Gp_StrAttachAvail, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 ```
 
-cse folds the second assignment to `row = y + 30` (`fold_rtx` associates
-`(plus (plus y 15) 15)` through the register's equivalence), flow counts
-5 references, and combine merges that set into `a2 = y + 30` -
+cse folds the second assignment to `lineY = contentTop + 30` (`fold_rtx` associates
+`(plus (plus contentTop 15) 15)` through the register's equivalence), flow counts
+5 references, and combine merges that set into `a2 = contentTop + 30` -
 `addiu a2,s4,0x1E`, the instruction the target has - leaving `.lreg` with
 `Register 89 used 5 times` for a pseudo with three visible references.
-2 * 5 / 42 half-insns = 2380, above `x`, and `row` takes `$s1`.
+2 * 5 / 42 half-insns = 2380, above `textX`, and `lineY` takes `$s1`.
 
 **Use.** When a block-local value needs one or two more references than its
 instructions show, and a later argument in the same block is the same base
@@ -151921,7 +151921,7 @@ boundary).
 
 ### A call result kept in a register of its own, the next load in `$v0`: a block boundary after the call that left no branch (Shop_QuantityTask, 2026-10-07)
 
-**Symptom.** `jal Gp_ScanStackQty; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`,
+**Symptom.** `jal inventoryGetConsumableStackQuantity; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`,
 matched only with `register s32 maxHeld asm("v0")`. Plain
 `maxQty = stock->maxHeld - held` gives `lhu v1,2(s0); subu s6,v1,v0`.
 
@@ -152200,7 +152200,7 @@ read off the allocation and the order of the two `lh`; the names are not known.
 **Use.** When a global needs two more references than its instructions show
 and it is `other + K` of a value loaded just before, try loading into it and
 copying out, with one unrelated statement between. Check for
-`used N times` two above the visible count. This is the Gp_UiBoostAttach
+`used N times` two above the visible count. This is the itemMenuApplyPouchPanel
 mechanism (combine keeps the references of a set it merges away while another
 set remains) applied to the first set instead of the second. Before working
 on the cursor's own length, check whether sched1 leaves the set where the
@@ -152958,7 +152958,7 @@ half-insns, 4*20/22 = 3.64) must be ranked at or above the blue pair (load
 and `<<1`: 3*8/6 = 4.0) to take `$v1` first. The insns are the target's, so
 the span cannot change; the chain needs references that no insn shows.
 
-**Mechanism.** The one already recorded for `Gp_UiBoostAttach`: combine does
+**Mechanism.** The one already recorded for `itemMenuApplyPouchPanel`: combine does
 not maintain `reg_n_refs`, and zeroes it only when the merged set was the
 register's last. So a chain variable with two sets, one of which combine
 merges into its use, keeps that pair's count. The pair has to reach combine,
