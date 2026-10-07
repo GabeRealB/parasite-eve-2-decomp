@@ -119,19 +119,8 @@ typedef struct {
 } _DirectionWarpPhaseTable;
 STATIC_ASSERT_SIZEOF(_DirectionWarpPhaseTable, 0x18);
 
-/// `Gp_AreaTables[1]`, `[2]`, `[4]`, `[5]`. Splat labels the later slots as
-/// their own symbols; `Gp_ApplyNewGameAreaFlags` loads each as an `AreaRecord*`.
-#define Gp_AreaTableStg1 Gp_AreaTables[1]
-
-#define Gp_AreaTableStg2 Gp_AreaTables[2]
-
-#define Gp_AreaTableStg4 Gp_AreaTables[4]
-
-#define Gp_AreaTableStg5 Gp_AreaTables[5]
-
 /// `AREA_MAP_MARK_END`-terminated `_AreaMapMarkRec` lists applied by `Gp_ApplyNewGameAreaFlags` to
-/// `Gp_AreaTableStg1` / `Gp_AreaTableStg2` / `Gp_AreaTableStg4` / `Gp_AreaTableStg5` (stages 1, 2,
-/// 4, 5 of `Gp_AreaTables`).
+/// `Gp_AreaTables[1]`, `[2]`, `[4]` and `[5]`.
 extern _AreaMapMarkRec Gp_NewGameFlagsStg1[];
 
 extern _AreaMapMarkRec Gp_NewGameFlagsStg2[];
@@ -342,7 +331,7 @@ void Gp_ApplyNewGameAreaFlags(void)
         _AreaMapMarkRec* entry;
 
         entry = Gp_NewGameFlagsStg1;
-        tbl   = Gp_AreaTableStg1;
+        tbl   = Gp_AreaTables[1];
         if (tbl != NULL) {
             for (; entry->area != AREA_MAP_MARK_END; entry++) {
                 if (entry->setMapMark != 0) {
@@ -360,7 +349,7 @@ void Gp_ApplyNewGameAreaFlags(void)
         _AreaMapMarkRec* entry;
 
         entry = Gp_NewGameFlagsStg2;
-        tbl   = Gp_AreaTableStg2;
+        tbl   = Gp_AreaTables[2];
         if (tbl != NULL) {
             for (; entry->area != AREA_MAP_MARK_END; entry++) {
                 if (entry->setMapMark != 0) {
@@ -378,7 +367,7 @@ void Gp_ApplyNewGameAreaFlags(void)
         _AreaMapMarkRec* entry;
 
         entry = Gp_NewGameFlagsStg4;
-        tbl   = Gp_AreaTableStg4;
+        tbl   = Gp_AreaTables[4];
         if (tbl != NULL) {
             for (; entry->area != AREA_MAP_MARK_END; entry++) {
                 if (entry->setMapMark != 0) {
@@ -396,7 +385,7 @@ void Gp_ApplyNewGameAreaFlags(void)
         _AreaMapMarkRec* entry;
 
         entry = Gp_NewGameFlagsStg5;
-        tbl   = Gp_AreaTableStg5;
+        tbl   = Gp_AreaTables[5];
         if (tbl != NULL) {
             for (; entry->area != AREA_MAP_MARK_END; entry++) {
                 if (entry->setMapMark != 0) {
