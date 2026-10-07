@@ -153459,3 +153459,28 @@ What is left in `common.h` is `SOFT_TOUCH_REG`, `SOFT_USE_REG` and `CSE_STEER`,
 for the sites that still need them. Do not define a deleted name again or add a
 new steering macro: `tools/check_hack_sites.py` keeps matching the deleted
 names, so one reappearing counts as an added hack site.
+
+## A `GfxMatrix` used only through `.mat` is a `MATRIX`: 74 objects retyped, no code moved (2026-10-07)
+
+**Question.** After the identity sweep, almost every `GfxMatrix` (the union of
+`MATRIX mat` and `GfxRotationWords rotationWords`) was reached through `.mat`
+alone. Same size and alignment, but a union frame local could plausibly get a
+different stack slot or a different `MEM_IN_STRUCT_P`/alias treatment.
+
+**Result.** It does not. 52 locals, 13 pointer locals and 9 struct fields
+(`ActorScaleScratch::matrix` among them, with its 15 users) became `MATRIX`,
+dropping every `.mat` hop, and all 130 recompiled objects are byte-identical
+files - no function needed its union kept. The same held for the Glutton's
+`GluttonCoord` (a `GfxCoord` unioned with a packed view), now plain `GfxCoord`.
+The build compiles with `-w`, so the retype was also checked by running `cc1`
+without it on every rebuilt `.i` before and after: no new pointer-type warning.
+
+**What is left.** `GfxMatrix` remains for six locals that still store through
+`rotationWords` by hand: `matrix`/`identity` in `func_actor_403100_80132064`
+and `rot`/`src` in `func_actor_400500_8013973C` and `_8013A0B8`. Do not
+declare a new matrix as `GfxMatrix` unless it needs that view.
+
+**Survey caveat.** A libclang member-access scan does not see designated
+initializers. `SpriteView::sources.empty` looked unused that way and is the
+member 905 room-table initializers name (`{ .empty = <batch list> }`), so that
+union stays; dropping it would put a cast on every one of them.
