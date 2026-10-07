@@ -3170,21 +3170,13 @@ void Gp_EffCtlTaskAC(Task* arg0)
 static inline void _effectInitStatusBurstCoord(GfxCoord* coord, GfxCoord* playerCoords)
 {
     enum { EFFECT_STATUS_BURST_PARENT_PART = 8 };
-    MATRIX* localMatrix;
-    s32     fixedOne;
 
-    fixedOne                         = ONE;
-    MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
-    coord->parent                    = playerCoords + EFFECT_STATUS_BURST_PARENT_PART;
-    localMatrix                      = &coord->coord;
-    MATRIX_PAIR(localMatrix, 0, 2)   = 0;
-    MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
-    MATRIX_PAIR(localMatrix, 2, 0)   = 0;
-    localMatrix->m[2][2]             = fixedOne;
-    coord->coord.t[0]                = 0;
-    coord->coord.t[1]                = 0;
-    coord->coord.t[2]                = 0;
-    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    coord->parent = playerCoords + EFFECT_STATUS_BURST_PARENT_PART;
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[0]   = 0;
+    coord->coord.t[1]   = 0;
+    coord->coord.t[2]   = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void effectControlTask0E(Task* task)
