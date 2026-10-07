@@ -3079,8 +3079,6 @@ static void func_actor_400500_80135770(Task* arg0)
     _Actor400500GrayStalkerWork* work_pos;
     _Actor400500GrayStalkerWork* work_dead;
     _Actor400500GrayStalkerWork* work_rot;
-    GfxMatrix*                   src;
-    s32                          one;
     s16                          ang;
     s16                          ang_z;
     s16                          ang_y;
@@ -3158,7 +3156,6 @@ static void func_actor_400500_80135770(Task* arg0)
                 work_pos->playerPrevPos.vy = player->coord.t[1];
                 work_pos->playerPrevPos.vz = player->coord.t[2];
             }
-            src                       = &rot;
             work_rot                  = (_Actor400500GrayStalkerWork*)arg0->work;
             rot_root                  = arg0->extra.tmd->coords;
             ang                       = work_rot->pitch;
@@ -3167,16 +3164,11 @@ static void func_actor_400500_80135770(Task* arg0)
             ang_z                     = work_rot->roll;
             work_rot->yaw             = ang_y & 0xFFF;
             work_rot->roll            = ang_z & 0xFFF;
-            one                       = ONE;
-            rot.rotationWords.m00M01  = one;
-            rot.rotationWords.m02M10  = 0;
-            src->rotationWords.m11M12 = one;
-            rot.rotationWords.m20M21  = 0;
-            src->rotationWords.m22    = one;
-            RotMatrixZ(work_rot->roll, &src->mat);
-            RotMatrixX(work_rot->pitch, &src->mat);
-            RotMatrixY(work_rot->yaw, &src->mat);
-            _actor400500CopyRotation(&src->mat, &rot_root->coord);
+            gfxSetRotIdentity(&rot.mat);
+            RotMatrixZ(work_rot->roll, &rot.mat);
+            RotMatrixX(work_rot->pitch, &rot.mat);
+            RotMatrixY(work_rot->yaw, &rot.mat);
+            _actor400500CopyRotation(&rot.mat, &rot_root->coord);
             func_actor_400500_80132E94(arg0);
             if (work->attackCooldown > 0) {
                 work->attackCooldown = (u16)work->attackCooldown - 1;
