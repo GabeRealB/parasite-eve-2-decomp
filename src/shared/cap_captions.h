@@ -5,7 +5,9 @@
  * overlay defines its own schedule descriptor and caption work at their data
  * positions. Cross-TU work declarations belong in the overlay's private header;
  * exported schedule declarations belong in its public header. Retained caret
- * bytes stay with that instance's storage. No configuration switches are needed.
+ * bytes stay with that instance's storage. CAP_CAPTION_DRAW_CURRENT selects the
+ * current-caption drawer; its default is private to each carrier. A carrier
+ * exporting its drawer binds the name and leaves its linkage binding empty.
  *
  * Include this header in the prologue and the _settings and _schedule storage
  * fragments at their data positions. At the function run, include
@@ -46,6 +48,20 @@ typedef struct {
     s32 key;          // Variant key of the line shown, matched against `CapSequenceRecord.key`.
 } CapCaptionScheduleWindow;
 STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
+
+/// Selects the current-caption void(void) function defined by the shared source.
+///
+/// Bind a function identifier before this header and retain it through
+/// cap_captions.inc.c. Room carriers use the default static instance; actor_215100
+/// binds its public export and an empty CAP_CAPTION_DRAW_CURRENT_LINKAGE.
+/// The alias has no arguments, captures or token construction.
+#ifndef CAP_CAPTION_DRAW_CURRENT
+#define CAP_CAPTION_DRAW_CURRENT _capCaptionDrawCurrent
+#endif
+#ifndef CAP_CAPTION_DRAW_CURRENT_LINKAGE
+#define CAP_CAPTION_DRAW_CURRENT_LINKAGE static
+#endif
+CAP_CAPTION_DRAW_CURRENT_LINKAGE void CAP_CAPTION_DRAW_CURRENT(void);
 
 static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2);
 static inline void _capCaptionLoadResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex);

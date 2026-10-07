@@ -16,6 +16,7 @@ s32 D_mist_shooting_gallery_8018E0C0;
 
 #include "mist_shooting_gallery_private.h"
 
+#include "actors/actor_215100.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/display.h"
@@ -138,7 +139,6 @@ extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// and jumps to the state-9 shutdown banner.
 extern void   func_actor_215100_8014A908(void);
 extern void   func_actor_215100_8014A9A0(void);
-extern void   actor215100CapCaptionDrawCurrent(void);
 static void   func_mist_shooting_gallery_80184A80(Task* arg0);
 static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
 static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);

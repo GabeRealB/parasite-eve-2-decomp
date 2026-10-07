@@ -227,7 +227,7 @@ shelterB3DumpingHoleGluttonRainParticleTask = 0x80186218; // type:func
 
 func_shelter_b3_dumping_hole_80186D4C = 0x80186D4C; // type:func
 CapCaption_RunSchedule = 0x80181B64; // type:func
-CapCaption_DrawCurrent = 0x80181C8C; // type:func
+_capCaptionDrawCurrent = 0x80181C8C; // type:func
 _capCaptionRelocateFile = 0x80181D68; // type:func
 CapCaption_SelectScript = 0x80181E70; // type:func
 _capCaptionDrawText = 0x80181F80; // type:func

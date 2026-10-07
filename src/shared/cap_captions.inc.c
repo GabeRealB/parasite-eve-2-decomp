@@ -44,11 +44,7 @@ enum { CAP_CAPTION_CARET_PULSE_MIN = 8,
 
 static void CapCaption_RunSchedule(Task* task);
 
-#ifndef CAP_CAPTION_DRAW_CURRENT_LINKAGE
-#define CAP_CAPTION_DRAW_CURRENT_LINKAGE static
-#endif
-CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void);
-static bool                           _capCaptionRelocateFile(CapFile* file);
+static bool _capCaptionRelocateFile(CapFile* file);
 /* The script selector and the caption drawer are file-local unless another
  * image calls this copy: a carrier whose copy is called from outside binds the
  * linkage to nothing and the name to its own exported one. */
@@ -98,7 +94,7 @@ static void CapCaption_RunSchedule(Task* task)
             }
             if (script != 0) {
                 CapCaption_SelectScript(script, key, (s16)task->spawnArg1.value);
-                CapCaption_DrawCurrent();
+                CAP_CAPTION_DRAW_CURRENT();
             }
             if ((capIsBusy() == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
                 gGameSession->sceneClock = (u16)gGameSession->sceneClock - 1;
@@ -107,14 +103,22 @@ static void CapCaption_RunSchedule(Task* task)
     }
 }
 
-CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void)
+CAP_CAPTION_DRAW_CURRENT_LINKAGE void CAP_CAPTION_DRAW_CURRENT(void)
 {
+    enum {
+        CAP_CAPTION_RETAINED_DRAW_ARG            = 0x80,
+        CAP_CAPTION_RETAINED_REVEAL_ARG          = 1,
+        CAP_CAPTION_TITLE_BANK_TO_SELECTOR_SCALE = 0x10
+    };
+
     if ((CapCaption_Data_8015E658 != NULL) &&
         (CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.offset != CAP_TEXT_REF_END) &&
         (capIsBusy() == 0)) {
-        _capCaptionDrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text, 0x80, 1,
+        // The two retained arguments and title selector's bank bit are ignored.
+        _capCaptionDrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text,
+                            CAP_CAPTION_RETAINED_DRAW_ARG, CAP_CAPTION_RETAINED_REVEAL_ARG,
                             CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.title |
-                                ((CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * 0x10));
+                                ((CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * CAP_CAPTION_TITLE_BANK_TO_SELECTOR_SCALE));
         if (!(CapCaption_Data_8015E658[CapCaption_Data_8015E662].trigger.soundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
             _capCaptionDrawContinueCaret();
         }
@@ -231,7 +235,7 @@ static bool _capCaptionRelocateFile(CapFile* file)
 
 /// Starts playing the caption script `arg0` picks out of
 /// `CapCaption_Data_8015E650`, keyed on `arg1`, and parks its per-line metrics in
-/// the globals `CapCaption_DrawCurrent` reads. Returns 1 when there is no
+/// the globals `CAP_CAPTION_DRAW_CURRENT` reads. Returns 1 when there is no
 /// such script, 0 once it is playing; `arg2` is the line delay.
 CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
 {
@@ -718,7 +722,7 @@ static void CapCaption_TimedTask(Task* task)
     if (remaining <= 0) {
         taskKill(task);
     }
-    CapCaption_DrawCurrent();
+    CAP_CAPTION_DRAW_CURRENT();
 }
 
 static void CapCaption_CancelableTask(Task* task)
@@ -740,7 +744,7 @@ static void CapCaption_CancelableTask(Task* task)
             }
             break;
     }
-    CapCaption_DrawCurrent();
+    CAP_CAPTION_DRAW_CURRENT();
 }
 
 static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2)

@@ -10,4 +10,21 @@
 /// do nothing. The event script hides the HUD and restores it on completion.
 void actor215100StartPierceConversation(void);
 
+/// Queues the actor's selected caption, background, title and continuation caret.
+///
+/// Does nothing without a selected sequence, at its terminal record, or while
+/// resident CAP playback is busy. The selected slot must be in 1..32767 within
+/// a live relocated sequence. Keep this actor overlay and its caption file,
+/// glyph metrics, textures and palettes loaded; selection must already have
+/// established the block metrics. Text must end within 32768 u16 words, use
+/// valid glyph indices and icon selectors 0..3, and provide a line break for
+/// the caret position. OT entries 2 and 3 and enough primitive storage must
+/// remain writable and live through GPU completion.
+///
+/// Draws all text without advancing the sequence. Title 0 means none; 1..255
+/// selects glyph 0..254. The title-bank flag is passed through but ignored by
+/// this drawer. Instant-text records suppress the caret; other drawing calls
+/// step its initial thirty-call delay, then emit and pulse it.
+void actor215100CapCaptionDrawCurrent(void);
+
 #endif // INCLUDE_ACTORS_ACTOR_215100_H

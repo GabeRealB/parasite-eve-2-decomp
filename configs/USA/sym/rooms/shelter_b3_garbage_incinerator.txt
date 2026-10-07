@@ -211,7 +211,7 @@ shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed = 0x80182368; // type:func
 
 shelterB3GarbageIncineratorEffectSpriteDebrisTask = 0x80183364; // type:func
 CapCaption_RunSchedule = 0x8017FA58; // type:func
-CapCaption_DrawCurrent = 0x8017FB80; // type:func
+_capCaptionDrawCurrent = 0x8017FB80; // type:func
 _capCaptionRelocateFile = 0x8017FC5C; // type:func
 CapCaption_SelectScript = 0x8017FD64; // type:func
 _capCaptionDrawText = 0x8017FE74; // type:func

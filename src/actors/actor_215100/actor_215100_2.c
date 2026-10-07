@@ -73,7 +73,12 @@ void        func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
 #define CAP_CAPTION_SELECT_SCRIPT_LINKAGE
 #define CapCaption_SelectScript actor215100CapCaptionSelectScript
 #define CAP_CAPTION_DRAW_CURRENT_LINKAGE
-#define CapCaption_DrawCurrent actor215100CapCaptionDrawCurrent
+/// Binds shared caption drawing to this actor's exported void(void) instance.
+///
+/// Define before cap_captions.h and retain through cap_captions.inc.c. The
+/// empty linkage binding exports the copy called by mist_shooting_gallery.
+/// This object-like alias captures no arguments and constructs no tokens.
+#define CAP_CAPTION_DRAW_CURRENT actor215100CapCaptionDrawCurrent
 #include "../../shared/cap_captions.h"
 #include "../../shared/walker.h"
 
