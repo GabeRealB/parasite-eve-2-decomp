@@ -240,7 +240,7 @@ extern ActorTransform D_actor_560800_80175614[];
 /// and read by the sub-task handlers.
 extern Task* D_actor_560800_8017578C;
 
-/// Animation block `func_actor_560800_80136378` points the `source.sets` of its
+/// Animation block `_actor560800BlendScenePlayerAnimation` points the `source.sets` of its
 /// `AnimationPlayRequest` at when it sends message 0x3F4 - the same role
 /// `D_actor_400600_80151A48` plays in that overlay.
 extern AnimationSet* D_actor_560800_8016EA40[13];
@@ -254,7 +254,7 @@ extern ActorTransform     D_actor_560800_8016F1CC[6];
 extern AnimationSet* D_actor_560800_801752F0[];
 
 /// Elapsed frames, one per phase id 1..3, written by
-/// `func_actor_560800_80135AEC` as the frames since that phase's timestamp.
+/// `_actor560800FinishScenePhase` as the frames since that phase's timestamp.
 /// The counter has wrapped if the timestamp is ahead of `gDisplayState.frameCount`,
 /// which is the one case the elapsed count is short by one.
 extern s32 D_actor_560800_80175790;
@@ -263,7 +263,7 @@ extern s32 D_actor_560800_80175798;
 
 /// Phase timestamps, one per phase id 1..3: `func_actor_560800_80136930`
 /// stamps `gDisplayState.frameCount` (the frame counter) into the slot its argument
-/// selects, and `func_actor_560800_80135AEC` reads it back per phase and stores
+/// selects, and `_actor560800FinishScenePhase` reads it back per phase and stores
 /// the elapsed frames in the matching slot of `D_actor_560800_80175790`.
 extern s32 D_actor_560800_8017579C;
 extern s32 D_actor_560800_801757A0;
@@ -429,26 +429,26 @@ void                func_actor_560800_80132A14(Task*);
 void                func_actor_560800_80132C60(Task*);
 void                func_actor_560800_80132F64(Task*);
 void                func_actor_560800_80133204(void);
-void                func_actor_560800_80133648(u32);
-void                func_actor_560800_80133750(s32);
+static void         _actor560800HideCastMember(u32 memberId);
+static void         _actor560800PlaceCastForCut(s32 cutId);
 void                func_actor_560800_80134B14(s32);
-void                func_actor_560800_80135AEC(s32);
+static void         _actor560800FinishScenePhase(s32 phaseId);
 void                func_actor_560800_80135D54(Task*);
 static void         _actor560800FadeOutTask(Task* task);
 static void         _actor560800FadeInTask(Task* task);
 static void         _actor560800SetCastModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 void                func_actor_560800_80136280(s32);
 void                func_actor_560800_801362B0(s32);
-void                func_actor_560800_801362E0(s16);
-void                func_actor_560800_8013631C(s16);
-void                func_actor_560800_80136358(s16);
-void                func_actor_560800_80136378(s16);
-void                func_actor_560800_801363F8(u16);
-void                func_actor_560800_801364A0(u16);
-void                func_actor_560800_80136548(void);
-void                func_actor_560800_801365B0(s16);
-void                func_actor_560800_801365D0(u16);
-void                func_actor_560800_80136678(s32);
+static void         _actor560800SendChainCommand(s16 commandId);
+static void         _actor560800SendCarrierCommand(s16 commandId);
+static void         _actor560800PostPlayerCue(s16 cueId);
+static void         _actor560800BlendScenePlayerAnimation(s16 animationId);
+static void         _actor560800BlendEveAnimation(u16 animationId);
+static void         _actor560800BlendNo9Animation(u16 animationId);
+static void         _actor560800SwapSceneTextureStrip(void);
+static void         _actor560800PostKyleCue(s16 cueId);
+static void         _actor560800BlendKyleAnimation(u16 animationId);
+static void         _actor560800StartSoundCue(s32 cueId);
 void                func_actor_560800_801366B0(Task*);
 void                func_actor_560800_801367C0(s16);
 void                func_actor_560800_801367E0(s16);
@@ -462,8 +462,8 @@ void                func_actor_560800_80136A20(void);
 void                func_actor_560800_80136A54(void);
 static void         _actor560800DiscardTask(Task* task);
 
-void func_actor_560800_801321A0(Task*);
-void func_actor_560800_80135F50(Task*);
+static void _actor560800MovieTask(Task* task);
+void        func_actor_560800_80135F50(Task*);
 
 static TmdBone _gActor560800EveBreaMaskedBodySkeleton[19] = {
 #include "assets/eve_brea_masked_body_skeleton.inc"
@@ -2747,7 +2747,7 @@ static AnimationSet _gActor560800Animation3CBE0 = {
 
 TaskDesc D_actor_560800_8016EA28[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_560800_80135F50, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_560800_801321A0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor560800MovieTask, { .value = 0 } },
 };
 
 AnimationSet* D_actor_560800_8016EA40[13] = {
@@ -3283,8 +3283,8 @@ EvsSceneKey D_actor_560800_8016F5D8 = { 6, 8, 31 };
 
 EvsCommand D_actor_560800_8016F5E0[364] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_560800_8016F5C8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80136910 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3295,219 +3295,219 @@ EvsCommand D_actor_560800_8016F5E0[364] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136280 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136678 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801365B0 }, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800StartSoundCue }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostKyleCue }, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801365B0 }, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostKyleCue }, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_801362B0 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80135AEC }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800FinishScenePhase }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_801369A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80136A20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_560800_8016F5D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80136910 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136280 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80136548 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor560800SwapSceneTextureStrip }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136930 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_80136358 }, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostPlayerCue }, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_80136378 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800BlendScenePlayerAnimation }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 34 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801365B0 }, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostKyleCue }, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_80136378 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800BlendScenePlayerAnimation }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_80136378 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800BlendScenePlayerAnimation }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80135AEC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800FinishScenePhase }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_801369A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3519,131 +3519,131 @@ EvsCommand D_actor_560800_8016F5E0[364] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80136910 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136930 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801365B0 }, { .value = 36 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostKyleCue }, { .value = 36 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801363F8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendEveAnimation }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80134B14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801362E0 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_801362B0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367C0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_actor_560800_80133648 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _actor560800HideCastMember }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136280 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_8013631C }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendCarrierCommand }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801364A0 }, { .value = 39 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendNo9Animation }, { .value = 39 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_801362B0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_actor_560800_80133648 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _actor560800HideCastMember }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80136280 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801365B0 }, { .value = 39 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostKyleCue }, { .value = 39 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801363F8 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendEveAnimation }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801363F8 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendEveAnimation }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80133750 }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80133204 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_560800_801367E0 }, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = func_actor_560800_801365D0 }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU16 = _actor560800BlendKyleAnimation }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_801362B0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_560800_80135AEC }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800FinishScenePhase }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -3652,7 +3652,7 @@ EvsCommand D_actor_560800_80171800[10] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80136878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_560800_80136548 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor560800SwapSceneTextureStrip }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -4157,7 +4157,7 @@ static inline void Actor560800_PlaySe(s16 arg4);
 static inline void _actor560800BlendPlayerWeaponAnimation(s32 animationId);
 static inline void Actor560800_SpawnSparksA(Task* task);
 static inline void Actor560800_SpawnSparksB(Task* task);
-static inline void Actor560800_ResetAnimSlots(_Actor560800CastWork* anim, s16 clip);
+static inline void _actor560800RestartCastAnimation(_Actor560800CastWork* work, u16 animationId);
 static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate);
 static void        func_actor_560800_80135BD8(Task* arg0);
 static void        func_actor_560800_80136AA8(Task* arg0);
@@ -4165,36 +4165,53 @@ static void        _actor560800InitChainModel(Task* task);
 static void        _actor560800RaiseCarrier(Task* task);
 static void        _actor560800CarryNo9Away(Task* task);
 
-void func_actor_560800_801321A0(Task* task)
+/// Plays the scene movie, permits START to skip it, then restores game presentation.
+///
+/// A zero spawn argument selects movie 100; nonzero selects movie 101. The
+/// selected movie must be loaded for the current room before state 1. Owns the
+/// movie workspace and saved VRAM until restoration finishes and kills the task.
+/// Restoration reloads sprite images before resuming the game loop.
+static void _actor560800MovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    CdCmdQueue* queue = &gCdCmdQueue;
+    enum {
+        ACTOR_560800_MOVIE_PREPARE      = 0,
+        ACTOR_560800_MOVIE_QUEUE        = 1,
+        ACTOR_560800_MOVIE_WAIT_READY   = 2,
+        ACTOR_560800_MOVIE_PLAY         = 3,
+        ACTOR_560800_MOVIE_WAIT_STOP    = 4,
+        ACTOR_560800_MOVIE_RESTORE      = 5,
+        ACTOR_560800_MOVIE_DEFAULT_ID   = 0x64,
+        ACTOR_560800_MOVIE_ALTERNATE_ID = 0x65,
+    };
+    u8          streamArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc     movieLocation;
+    CdCmdQueue* cdQueue = &gCdCmdQueue;
 
     switch (task->state) {
-        case 0:
+        case ACTOR_560800_MOVIE_PREPARE:
             SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
+            streamPrepareMovieWorkspace(true);
             task->state++;
             break;
-        case 1:
-            key = gGameSession->location;
+        case ACTOR_560800_MOVIE_QUEUE:
+            movieLocation = gGameSession->location;
             if (task->spawnArg1.value != 0) {
-                key.loc.view = 0x65;
+                movieLocation.loc.view = ACTOR_560800_MOVIE_ALTERNATE_ID;
             } else {
-                key.loc.view = 0x64;
+                movieLocation.loc.view = ACTOR_560800_MOVIE_DEFAULT_ID;
             }
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            // Only the slot byte is interpreted; enqueue copies the full argument block.
+            streamArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state++;
             break;
-        case 2:
-            if (queue->movieReady != 0) {
+        case ACTOR_560800_MOVIE_WAIT_READY:
+            if (cdQueue->movieReady != 0) {
                 SetDispMask(1);
                 task->state++;
             }
             break;
-        case 3:
+        case ACTOR_560800_MOVIE_PLAY:
             if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state++;
@@ -4204,14 +4221,15 @@ void func_actor_560800_801321A0(Task* task)
                 task->state++;
             }
             break;
-        case 4:
+        // Wait for playback or cancellation to release the CD channel before restoring.
+        case ACTOR_560800_MOVIE_WAIT_STOP:
             if (cdCmdIsIdle()) {
                 streamResetGameRestore();
                 task->state++;
             }
             break;
-        case 5:
-            if (streamPollGameRestore(0, 1)) {
+        case ACTOR_560800_MOVIE_RESTORE:
+            if (streamPollGameRestore(false, true)) {
                 taskKill(task);
                 displayResumeGameLoop();
             }
@@ -4286,16 +4304,11 @@ static s32 func_actor_560800_80132340(Task* arg0)
         }                                                                         \
     } while (0)
 
-/// Restarts the animation clip's hold counter.
+/// Clears a cast clip's timed-chain hold count.
 ///
-/// FITTED: the two arms are the same store. The image has one `sh zero` here
-/// and no test, but everything after it was compiled as a new basic block: the
-/// blend loop that follows opens with a fresh `li v0,1` although its case
-/// label is reached knowing `step == 1` (the neighbouring cases store `step`'s
-/// register for a 1), and the slot count it reads is not scheduled above the
-/// stores before it. A branch whose arms jump2 merges leaves exactly that. The
-/// original condition is unknown; `work` is used because testing it costs no
-/// instruction.
+/// Requires live, non-NULL cast work. The identical branch arms retain a
+/// compiled block boundary before subsequent slot playback; the original
+/// condition is unproven.
 static inline void _actor560800ResetAnimHold(_Actor560800CastWork* work)
 {
     if (work != NULL) {
@@ -4854,92 +4867,105 @@ static void _actor560800ShowCastMember(u32 memberId)
     }
 }
 
-void func_actor_560800_80133648(u32 arg0)
+/// Hides a scene cast group and excludes its models from automatic buffering.
+///
+/// Accepts ACTOR_560800_CAST_* selectors; other values do nothing. Requires a
+/// published scene and a live selected group, including Kyle's two hands. The
+/// gun and gunblade are optional. Hiding the player also releases its primitive
+/// buffer; the package model handlers only change draw flags.
+static void _actor560800HideCastMember(u32 memberId)
 {
     _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
 
-    switch (arg0) {
-        case 0:
-            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+    switch (memberId) {
+        case ACTOR_560800_CAST_PLAYER:
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
             break;
-        case 1:
-            taskMessageDispatch(work->eve, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case ACTOR_560800_CAST_EVE:
+            taskMessageDispatch(work->eve, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             break;
-        case 2:
-            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case ACTOR_560800_CAST_KYLE:
+            taskMessageDispatch(work->kyle, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
+            taskMessageDispatch(work->kyleGunHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
+            taskMessageDispatch(work->kyleFreeHand, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             if (work->kyleGun != NULL) {
-                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                taskMessageDispatch(work->kyleGun, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             }
             break;
-        case 3:
-            taskMessageDispatch(work->no9, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case ACTOR_560800_CAST_NO9:
+            taskMessageDispatch(work->no9, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             if (work->no9Gunblade != NULL) {
-                taskMessageDispatch(work->no9Gunblade, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                taskMessageDispatch(work->no9Gunblade, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             }
             break;
-        case 4:
-            taskMessageDispatch(work->chainGroup, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case ACTOR_560800_CAST_CHAINS:
+            taskMessageDispatch(work->chainGroup, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             break;
-        case 5:
-            taskMessageDispatch(work->carrierModel, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+        case ACTOR_560800_CAST_CARRIER:
+            taskMessageDispatch(work->carrierModel, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             break;
     }
 }
 
-void func_actor_560800_80133750(s32 arg0)
+/// Places or hides each live cast group for a cut, cancelling effects unless retained.
+///
+/// Requires the published scene and a cut id in 1..33; table entry 0 is NULL.
+/// Nonzero placement X means show and place in the receiver's coordinate frame;
+/// zero means hide. The chain group reuses the last placement selected for a
+/// live body, so at least one body must exist when the chain group is present.
+static void _actor560800PlaceCastForCut(s32 cutId)
 {
+    enum { ACTOR_560800_PLACEMENT_HIDDEN_X = 0 };
     _Actor560800CutsceneWork* work;
-    ActorTransform*           msg;
+    ActorTransform*           placement;
 
     work = D_actor_560800_8017578C->work;
     if (work->keepEffects == 0) {
         roomEffectRequestCancelAll();
     }
     if (work->player != NULL) {
-        msg = D_actor_560800_8016F35C[arg0];
-        if (msg->pos.vx != 0) {
+        placement = D_actor_560800_8016F35C[cutId];
+        if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_PLAYER);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, placement, 0);
         } else {
-            func_actor_560800_80133648(0);
+            _actor560800HideCastMember(ACTOR_560800_CAST_PLAYER);
         }
     }
     if (work->kyle != NULL) {
-        msg = D_actor_560800_8016F46C[arg0];
-        if (msg->pos.vx != 0) {
+        placement = D_actor_560800_8016F46C[cutId];
+        if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_KYLE);
-            TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, placement, 0);
         } else {
-            func_actor_560800_80133648(2);
+            _actor560800HideCastMember(ACTOR_560800_CAST_KYLE);
         }
     }
     if (work->no9 != NULL) {
-        msg = D_actor_560800_8016F3E4[arg0];
-        if (msg->pos.vx != 0) {
+        placement = D_actor_560800_8016F3E4[cutId];
+        if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_NO9);
-            TASK_MESSAGE_DISPATCH_POINTER(work->no9, ACTOR_MESSAGE_PLACE, msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->no9, ACTOR_MESSAGE_PLACE, placement, 0);
         } else {
-            func_actor_560800_80133648(3);
+            _actor560800HideCastMember(ACTOR_560800_CAST_NO9);
         }
     }
     if (work->eve != NULL) {
-        msg = D_actor_560800_8016F4F4[arg0];
-        if (msg->pos.vx != 0) {
+        placement = D_actor_560800_8016F4F4[cutId];
+        if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_EVE);
-            TASK_MESSAGE_DISPATCH_POINTER(work->eve, ACTOR_MESSAGE_PLACE, msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->eve, ACTOR_MESSAGE_PLACE, placement, 0);
         } else {
-            func_actor_560800_80133648(1);
+            _actor560800HideCastMember(ACTOR_560800_CAST_EVE);
         }
     }
     if (work->chainGroup != NULL) {
-        // No table of its own: reuses the payload picked for `eve`.
-        if (msg->pos.vx != 0) {
+        // The chains reuse the last live body's placement, normally Eve's.
+        if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_CHAINS);
-            TASK_MESSAGE_DISPATCH_POINTER(work->chainGroup, ACTOR_MESSAGE_PLACE, msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->chainGroup, ACTOR_MESSAGE_PLACE, placement, 0);
         } else {
-            func_actor_560800_80133648(4);
+            _actor560800HideCastMember(ACTOR_560800_CAST_CHAINS);
         }
     }
 }
@@ -5225,22 +5251,25 @@ static void func_actor_560800_80134258(Task* task)
     work->eveCue.id = 0;
 }
 
-static inline void Actor560800_ResetAnimSlots(_Actor560800CastWork* anim, s16 clip)
+/// Restarts a cast body's non-root tracks at normal playback speed.
+///
+/// Requires initialized cast work and a loaded clip whose tracks cover slots
+/// 1..slotCount - 1, with slotCount 19 for Eve/No. 9 and 20 for Kyle.
+/// Records the clip and normal rate in sixteenths of a frame, clears the hold
+/// count, and applies that rate to every restarted slot; slot 0 is untouched.
+static inline void _actor560800RestartCastAnimation(_Actor560800CastWork* work, u16 animationId)
 {
-    u16 i;
-    u16 rate;
+    u16 slotIndex;
+    u16 animationRate;
 
-    anim->animId   = clip;
-    i              = 1;
-    rate           = ANIMATION_RATE_ONE;
-    anim->animRate = rate;
-    anim->animHold = 0;
-    if (i < anim->slotCount) {
-        do {
-            anim->rig.slots[i].rate = rate;
-            animationResetSlot(&anim->rig.anim, i, clip);
-            i++;
-        } while (i < anim->slotCount);
+    work->animId   = animationId;
+    slotIndex      = 1;
+    animationRate  = ANIMATION_RATE_ONE;
+    work->animRate = animationRate;
+    work->animHold = 0;
+    for (; slotIndex < work->slotCount; slotIndex++) {
+        work->rig.slots[slotIndex].rate = animationRate;
+        animationResetSlot(&work->rig.anim, slotIndex, animationId);
     }
 }
 
@@ -5257,37 +5286,37 @@ static void func_actor_560800_80134384(Task* task)
         case 38:
             break;
         case 2:
-            Actor560800_ResetAnimSlots(work->no9->work, 1);
+            _actor560800RestartCastAnimation(work->no9->work, 1);
             break;
         case 4:
-            Actor560800_ResetAnimSlots(work->no9->work, 5);
+            _actor560800RestartCastAnimation(work->no9->work, 5);
             break;
         case 6:
-            Actor560800_ResetAnimSlots(work->no9->work, 0xc);
+            _actor560800RestartCastAnimation(work->no9->work, 0xc);
             break;
         case 8:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x28);
+            _actor560800RestartCastAnimation(work->no9->work, 0x28);
             break;
         case 10:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x17);
+            _actor560800RestartCastAnimation(work->no9->work, 0x17);
             break;
         case 11:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x18);
+            _actor560800RestartCastAnimation(work->no9->work, 0x18);
             break;
         case 13:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x19);
+            _actor560800RestartCastAnimation(work->no9->work, 0x19);
             break;
         case 15:
-            Actor560800_ResetAnimSlots(work->no9->work, 0xc);
+            _actor560800RestartCastAnimation(work->no9->work, 0xc);
             break;
         case 17:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x29);
+            _actor560800RestartCastAnimation(work->no9->work, 0x29);
             break;
         case 22:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x1f);
+            _actor560800RestartCastAnimation(work->no9->work, 0x1f);
             break;
         case 23:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x1d);
+            _actor560800RestartCastAnimation(work->no9->work, 0x1d);
             break;
         case 24:
             switch (work->no9Cue.step) {
@@ -5325,11 +5354,11 @@ static void func_actor_560800_80134384(Task* task)
             }
             break;
         case 26:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x21);
+            _actor560800RestartCastAnimation(work->no9->work, 0x21);
             ((_Actor560800CastWork*)work->no9->work)->floorQuadHidden = 1;
             break;
         case 27:
-            Actor560800_ResetAnimSlots(work->no9->work, 0x24);
+            _actor560800RestartCastAnimation(work->no9->work, 0x24);
             break;
     }
     work->no9Cue.id = 0;
@@ -5654,27 +5683,41 @@ static void func_actor_560800_80134BFC(Task* arg0)
     work->kyleCue.id = 0;
 }
 
-void func_actor_560800_80135AEC(s32 arg0)
+/// Records a phase's elapsed display ticks and finishes its streamed scene.
+///
+/// Phase ids 1..3 select the matching saved timestamp and elapsed counter.
+/// Other ids skip timing but still cancel and finish the stream. Timestamps
+/// must have been recorded for the selected phase. A wrapped counter retains
+/// the original result, one tick shorter than unsigned modular subtraction.
+static void _actor560800FinishScenePhase(s32 phaseId)
 {
-    if (arg0 == 1) {
-        if ((u32)D_actor_560800_8017579C > (u32)gDisplayState.frameCount) {
-            D_actor_560800_80175790 = gDisplayState.frameCount - (D_actor_560800_8017579C + 1);
-        } else {
-            D_actor_560800_80175790 = gDisplayState.frameCount - D_actor_560800_8017579C;
-        }
-    } else if (arg0 == 2) {
-        if ((u32)D_actor_560800_801757A0 > (u32)gDisplayState.frameCount) {
-            D_actor_560800_80175794 = gDisplayState.frameCount - (D_actor_560800_801757A0 + 1);
-        } else {
-            D_actor_560800_80175794 = gDisplayState.frameCount - D_actor_560800_801757A0;
-        }
-    } else if (arg0 == 3) {
-        if ((u32)D_actor_560800_801757A4 > (u32)gDisplayState.frameCount) {
-            D_actor_560800_80175798 = gDisplayState.frameCount - (D_actor_560800_801757A4 + 1);
-        } else {
-            D_actor_560800_80175798 = gDisplayState.frameCount - D_actor_560800_801757A4;
-        }
+    enum {
+        ACTOR_560800_SCENE_PHASE_FIRST  = 1,
+        ACTOR_560800_SCENE_PHASE_SECOND = 2,
+        ACTOR_560800_SCENE_PHASE_THIRD  = 3,
+    };
+    /// Records elapsed display ticks, retaining the extra subtraction after wrap.
+    ///
+    /// Counter must be a writable signed word; timestamp a side-effect-free word.
+    /// Evaluates counter once and timestamp twice. Reads the live display counter
+    /// for comparison and subtraction. Used only for this phase update.
+#define ACTOR_560800_RECORD_PHASE_TICKS(counter, timestamp)           \
+    {                                                                 \
+        if ((u32)(timestamp) > (u32)gDisplayState.frameCount) {       \
+            (counter) = gDisplayState.frameCount - ((timestamp) + 1); \
+        } else {                                                      \
+            (counter) = gDisplayState.frameCount - (timestamp);       \
+        }                                                             \
     }
+    if (phaseId == ACTOR_560800_SCENE_PHASE_FIRST) {
+        ACTOR_560800_RECORD_PHASE_TICKS(D_actor_560800_80175790, D_actor_560800_8017579C);
+    } else if (phaseId == ACTOR_560800_SCENE_PHASE_SECOND) {
+        ACTOR_560800_RECORD_PHASE_TICKS(D_actor_560800_80175794, D_actor_560800_801757A0);
+    } else if (phaseId == ACTOR_560800_SCENE_PHASE_THIRD) {
+        ACTOR_560800_RECORD_PHASE_TICKS(D_actor_560800_80175798, D_actor_560800_801757A4);
+    }
+#undef ACTOR_560800_RECORD_PHASE_TICKS
+    // Completion also restores the random generators saved by scene playback.
     cdCmdCancelScene();
     streamFinishScene();
 }
@@ -5912,142 +5955,159 @@ void func_actor_560800_801362B0(s32 arg0)
     taskSpawnFromTable(D_actor_560800_801718F0, 3, arg0, 0);
 }
 
-void func_actor_560800_801362E0(s16 arg0)
+/// Sends a synchronous action command to the scene's chain group.
+///
+/// Requires a published scene and live chain group. Only the low halfword
+/// of commandId is sent; the receiver ignores the uninitialized context word.
+/// Commands: 0 relight, 1 target Eve/second pose, 2 extend, 3 third pose,
+/// 4 first pose, 5 detached clip playback, 6 carrier pose, 7 target No. 9,
+/// 8 burst the next remaining chain.
+static void _actor560800SendChainCommand(s16 commandId)
 {
     _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
-    ActorCommand              msg;
+    ActorCommand              command;
 
-    msg.command = arg0;
-    TASK_MESSAGE_DISPATCH_POINTER(work->chainGroup, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+    command.command = commandId;
+    TASK_MESSAGE_DISPATCH_POINTER(work->chainGroup, ACTOR_COMMAND_MESSAGE_APPLY, &command, 0);
 }
 
-void func_actor_560800_8013631C(s16 arg0)
+/// Sends a synchronous action command to the scene's carrier.
+///
+/// Requires a published scene and live carrier. Only the low halfword
+/// of commandId is sent; the receiver ignores the uninitialized context word.
+/// Commands: 0 relight, 1 hide, 2 first descent, 3 slow descent,
+/// 4 accelerated rise, 5 second descent, 6 carry No. 9.
+static void _actor560800SendCarrierCommand(s16 commandId)
 {
     _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
-    ActorCommand              msg;
+    ActorCommand              command;
 
-    msg.command = arg0;
-    TASK_MESSAGE_DISPATCH_POINTER(work->carrierModel, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+    command.command = commandId;
+    TASK_MESSAGE_DISPATCH_POINTER(work->carrierModel, ACTOR_COMMAND_MESSAGE_APPLY, &command, 0);
 }
 
-void func_actor_560800_80136358(s16 arg0)
+/// Posts a cue and restarts its sequence, leaving its counter for the handler.
+static inline void _actor560800PostCue(ActorCutsceneCue* cue, s16 cueId)
+{
+    cue->id   = cueId;
+    cue->step = 0;
+}
+
+/// Posts the player's next scene cue, replacing any pending cue.
+///
+/// Requires the published scene. Stores cueId's halfword and restarts the
+/// sequence step; its counter is left for the selected cue's handler to reset.
+/// Cue 0 clears the request; other ids are interpreted by that actor's handler.
+static void _actor560800PostPlayerCue(s16 cueId)
 {
     _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
 
-    work->playerCue.id   = arg0;
-    work->playerCue.step = 0;
+    _actor560800PostCue(&work->playerCue, cueId);
 }
 
-/// Latches the animation id in `playerAnimId` and plays that animation on the
-/// task at `player`: message 0x3F4 with `field_8` 1, `field_C` 0xA and
-/// `field_10` 1. The zero-extended id goes into the message while the store
-/// keeps the raw halfword argument, so the two uses do not share a register.
-void func_actor_560800_80136378(s16 arg0)
+/// Blends the scene's player into a package clip over ten normal-rate frames.
+///
+/// Requires the published scene and loaded clip data; an absent player is a
+/// no-op. Records the low halfword clip id for chaining, zero-extends it in the
+/// request, clears the hold count and enables player world collision. The
+/// player borrows the package's animation bank for subsequent playback.
+static void _actor560800BlendScenePlayerAnimation(s16 animationId)
 {
-    _Actor560800CutsceneWork* work;
-    AnimationPlayRequest      msg;
-    u16                       anim;
-
-    work = D_actor_560800_8017578C->work;
-    if (work->player != NULL) {
-        anim                     = arg0;
-        msg.source.sets          = D_actor_560800_8016EA40;
-        work->playerAnimId       = arg0;
-        msg.animationId          = anim;
-        msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-        msg.blendFrames          = 0xA;
-        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-        work->playerAnimHold = 0;
-    }
+    _actor560800BlendPlayerAnimation(D_actor_560800_8017578C, animationId, ACTOR_560800_ANIMATION_BLEND_FRAMES);
 }
 
-/// The same animation reseed as `func_actor_560800_801364A0`, reached through
-/// `eve` instead of `no9`: the id goes to `animId` with `ANIMATION_RATE_ONE`
-/// in `animRate`, `animHold` is cleared, and slots 1..`slotCount` - 1 are
-/// blended through `animationSeekSlotWithBlend`.
-void func_actor_560800_801363F8(u16 arg0)
+/// Blends Eve's non-root tracks into a scene clip over ten frames.
+///
+/// Requires the published scene, a live initialized body and a loaded clip
+/// covering slots 1..slotCount - 1. Clears the hold count and records normal
+/// chain speed in sixteenths of a frame; the slots keep their current rates.
+static void _actor560800BlendEveAnimation(u16 animationId)
 {
-    _Actor560800CutsceneWork* work;
-    _Actor560800CastWork*     anim;
+    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
 
-    work = D_actor_560800_8017578C->work;
-    anim = work->eve->work;
-
-    anim->animId   = arg0;
-    anim->animRate = ANIMATION_RATE_ONE;
-    anim->animHold = 0;
-    _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
+    _actor560800BlendCastAnimation(work->eve, animationId, ANIMATION_RATE_ONE);
 }
 
-/// Reseeds the animation slots of the sub-task at `no9` from `arg0`: the
-/// id goes to `animId` with `ANIMATION_RATE_ONE` in `animRate`,
-/// `animHold` is cleared, and slots 1..`slotCount` - 1 are blended through
-/// `animationSeekSlotWithBlend`. `func_actor_560800_801363F8` is the same body reached
-/// through `eve`.
-void func_actor_560800_801364A0(u16 arg0)
+/// Blends No. 9's non-root tracks into a scene clip over ten frames.
+///
+/// Requires the published scene, a live initialized body and a loaded clip
+/// covering slots 1..slotCount - 1. Clears the hold count and records normal
+/// chain speed in sixteenths of a frame; the slots keep their current rates.
+static void _actor560800BlendNo9Animation(u16 animationId)
 {
-    _Actor560800CutsceneWork* work;
-    _Actor560800CastWork*     anim;
+    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
 
-    work = D_actor_560800_8017578C->work;
-    anim = work->no9->work;
-
-    anim->animId   = arg0;
-    anim->animRate = ANIMATION_RATE_ONE;
-    anim->animHold = 0;
-    _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
+    _actor560800BlendCastAnimation(work->no9, animationId, ANIMATION_RATE_ONE);
 }
 
-/// Copies a 64x256 strip of VRAM to (0x280, 0x100), then re-loads the chunk at
-/// `D_8006C338[35].data` with `D5B498_8006C234` set to 5 for the duration (that byte is
-/// the signed row shift `fsUploadImageChunk` applies to source Y in 245..255),
-/// restoring it to 0 afterwards.
-void func_actor_560800_80136548(void)
+/// Moves a scene texture strip into its saved VRAM region and uploads its replacement.
+///
+/// Copies 64 VRAM words by 256 rows from (960,0) to (640,256). Requires the
+/// source strip and image chunk in resource slot 35 to be loaded. Palette
+/// headers at Y=245..255 shift down five rows during upload. Ignores the GPU
+/// time limit and upload result, then resets the row shift to zero.
+static void _actor560800SwapSceneTextureStrip(void)
 {
-    RECT rect;
+    enum {
+        ACTOR_560800_TEXTURE_STRIP_SOURCE_X        = 0x3C0,
+        ACTOR_560800_TEXTURE_STRIP_DESTINATION_X   = 0x280,
+        ACTOR_560800_TEXTURE_STRIP_DESTINATION_Y   = 0x100,
+        ACTOR_560800_TEXTURE_STRIP_WIDTH_WORDS     = 0x40,
+        ACTOR_560800_TEXTURE_STRIP_HEIGHT_ROWS     = 0x100,
+        ACTOR_560800_REPLACEMENT_IMAGE_SLOT        = 35,
+        ACTOR_560800_REPLACEMENT_PALETTE_ROW_SHIFT = 5,
+    };
+    RECT sourceRect;
 
-    rect.x = 0x3C0;
-    rect.y = 0;
-    rect.w = 0x40;
-    rect.h = 0x100;
-    MoveImage(&rect, 0x280, 0x100);
-    D5B498_8006C234 = 5;
-    fsUploadImageChunk(D_8006C338[35].data, 1);
+    sourceRect.x = ACTOR_560800_TEXTURE_STRIP_SOURCE_X;
+    sourceRect.y = 0;
+    sourceRect.w = ACTOR_560800_TEXTURE_STRIP_WIDTH_WORDS;
+    sourceRect.h = ACTOR_560800_TEXTURE_STRIP_HEIGHT_ROWS;
+    MoveImage(&sourceRect, ACTOR_560800_TEXTURE_STRIP_DESTINATION_X, ACTOR_560800_TEXTURE_STRIP_DESTINATION_Y);
+    D5B498_8006C234 = ACTOR_560800_REPLACEMENT_PALETTE_ROW_SHIFT;
+    fsUploadImageChunk(D_8006C338[ACTOR_560800_REPLACEMENT_IMAGE_SLOT].data, true);
     D5B498_8006C234 = 0;
 }
 
-void func_actor_560800_801365B0(s16 arg0)
+/// Posts Kyle's next scene cue, replacing any pending cue.
+///
+/// Requires the published scene. Stores cueId's halfword and restarts the
+/// sequence step; its counter is left for the selected cue's handler to reset.
+/// Cue 0 clears the request; other ids are interpreted by that actor's handler.
+static void _actor560800PostKyleCue(s16 cueId)
 {
     _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
 
-    work->kyleCue.id   = arg0;
-    work->kyleCue.step = 0;
+    _actor560800PostCue(&work->kyleCue, cueId);
 }
 
-void func_actor_560800_801365D0(u16 arg0)
+/// Blends Kyle's non-root tracks into a scene clip over ten frames.
+///
+/// Requires the published scene, a live initialized body and a loaded clip
+/// covering slots 1..slotCount - 1. Clears the hold count and records normal
+/// chain speed in sixteenths of a frame; the slots keep their current rates.
+static void _actor560800BlendKyleAnimation(u16 animationId)
 {
-    _Actor560800CutsceneWork* work;
-    _Actor560800CastWork*     anim;
+    _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
 
-    work = D_actor_560800_8017578C->work;
-    anim = work->kyle->work;
-
-    anim->animId   = arg0;
-    anim->animRate = ANIMATION_RATE_ONE;
-    anim->animHold = 0;
-    _ACTOR560800_BLEND_SLOTS(anim, arg0, 10);
+    _actor560800BlendCastAnimation(work->kyle, animationId, ANIMATION_RATE_ONE);
 }
 
-void func_actor_560800_80136678(s32 arg0)
+/// Starts the scene sound script selected by cueId.
+///
+/// Requires cueId in 1..18 and the scene's sound bank to be loaded. The table
+/// maps each cue to its complete script id; no bounds or availability check
+/// occurs. Queues zero pan offset and no extra attenuation; ignores admission
+/// failure.
+static void _actor560800StartSoundCue(s32 cueId)
 {
-    sndEvtRequestScriptStart(D_actor_560800_8016F57C[arg0], 0, 0);
+    sndEvtRequestScriptStart(D_actor_560800_8016F57C[cueId], 0, 0);
 }
 
 /// Task state handler for the second spawn mode: states 1 and 2 — and state 0,
 /// which first parks `gDisplayState.control.flags.flipMode` at 2 — only step the state, and state 3 runs
 /// the hand-off. That hand-off copies a 64x256 VRAM strip from (0x380, 0) to
-/// (0x200, 0x100), the same shape `func_actor_560800_80136548` uses for the
+/// (0x200, 0x100), the same shape `_actor560800SwapSceneTextureStrip` uses for the
 /// other strip, then re-loads the chunk at `D_8006C338[36].data` with
 /// `D5B498_8006C234` at 8 for the duration, kills this task, restores session
 /// image memory and game-loop presentation, and spawns `D_actor_560800_801718F0` index 0xB into the work

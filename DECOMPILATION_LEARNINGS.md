@@ -1222,7 +1222,7 @@ insn 40: reg98 = reg97 - reg96
 The fold cannot be suppressed from the source side (a cast is stripped by
 `split_tree` when the modes match), so write the row the compiler would have
 produced — `X - (Y + 1)`, or the equivalent `X + (-1 - Y)` — and it comes out as
-the target's two-instruction chain. `func_actor_560800_80135AEC`: 97.2% with the
+the target's two-instruction chain. `_actor560800FinishScenePhase`: 97.2% with the
 m2c spelling, 98.5% with this one.
 
 ## A comparison's operand order picks which side's address and load are expanded first — and with them the register homes
@@ -1246,7 +1246,7 @@ the `sltu` with the operands in canonical order regardless, so the emitted
 compare is unchanged — only the expansion order and the resulting homes move.
 Writing `D_actor_560800_8017579C > gDisplayState.frameCount` instead of
 `gDisplayState.frameCount < D_actor_560800_8017579C` was the last 1.5% of
-`func_actor_560800_80135AEC` (98.5% → 100%). When a `regs=` penalty shows both
+`_actor560800FinishScenePhase` (98.5% → 100%). When a `regs=` penalty shows both
 loads right but *swapped*, and both same-order spellings of the compare are
 available, try the swap before reaching for pins.
 ## A lone `arg2` in the seed is an arity undercount, and it reads as a register problem
@@ -23505,7 +23505,7 @@ arms - and the join label starts a new, shorter block, `sched2` leaves the `sb`
 in source order, and reorg fills the `jal` delay with `addiu a2, sp, N`
 instead. Score 98.8% with `reorder=2` and everything else zero. The pin block
 above is the fix; the permuter has nothing to permute.
-`func_actor_560800_801321A0` is that case, `func_actor_120500_80131E58` the
+`_actor560800MovieTask` is that case, `func_actor_120500_80131E58` the
 unconditional twin that needs nothing.
 
 ## `s32` temps for preserved `s8` loads (`lb`, not `lbu`)
@@ -68840,13 +68840,13 @@ frame against the locals in the C: if the C declares N scalars and the target
 writes N slots but the build writes one, the block needs to be one object.
 
 The same cause also has a **minimal, one-store form that does not move the
-frame**. `func_actor_560800_801362E0` fills only `msg.field_2` of a 4-byte
+frame**. `_actor560800SendChainCommand` fills only `command.command` of a 4-byte
 payload, so m2c's `s16 sp12` is a local written and never read while the
 address it passes, `&sp10`, belongs to a *different* local. The score is
 `stack=0 branch=0 regs=0 reorder=0 insert=0 delete=1` at 93.33% - a single
 instruction short, the `sh` gone, `stack_accesses` 2 against the target's 3, and
 the frame identical. A clean frame with one missing store is still this cause
-and not a pass artifact: write `ActorCommand msg; msg.command = index;` and the
+and not a pass artifact: write `ActorCommand command; command.command = commandId;` and the
 missing store returns with no other change.
 
 **Which dump shows it.** `.rtl` — the first one — not `.flow`. Expansion itself
@@ -68860,9 +68860,9 @@ deletes them:
 (insn 12 10 13 (set (reg/v:HI 82) (const_int 64)) -1 (nil))       <- plain pseudo: no store
 ```
 
-`func_actor_560800_80136548` is the same shape with a `RECT` for `MoveImage`
+`_actor560800SwapSceneTextureStrip` is the same shape with a `RECT` for `MoveImage`
 (`delete=5`, 80.577%): three of the four `sh` stores never exist, and the one
-belonging to the escaped local lands in the `jal`'s delay slot. `RECT rect;`
+belonging to the escaped local lands in the `jal`'s delay slot. `RECT sourceRect;`
 with its four field stores takes it to 100.000%.
 
 ## Comparing a `u8` global against a constant gives `sltiu`; an `s32` local gives `slti`
@@ -75963,7 +75963,7 @@ minimal functions; `func_actor_800200_80165B84` is the worked example (both
 casts, exact on the first attempt after the m2c seed scored 60.9%).
 ## A leading stack store is scheduled early: give the callee pointer its own statement
 
-**Symptom.** `func_actor_560800_8013631C` (a 0x7DB `taskMessageDispatch` send that
+**Symptom.** `_actor560800SendCarrierCommand` (a 0x7DB `taskMessageDispatch` send that
 builds a 4-byte payload on the stack) scored 96% with `reorder=1`: the
 `sh $a0,0x12($sp)` came straight after the prologue, while retail has it after
 the `lw 0x1C($v0)` that fetches the work block and the `addiu $a2,$sp,0x10`
@@ -75980,14 +75980,14 @@ call's first argument does not change that: the store still expands first.
 
 ```c
 _Actor560800CutsceneWork* work = D_actor_560800_8017578C->work;
-ActorCommand              msg;
+ActorCommand              command;
 
-msg.command = arg0;
-taskMessageDispatch(work->carrierModel, 0x7DB, (s32)&msg, 0);
+command.command = commandId;
+taskMessageDispatch(work->carrierModel, 0x7DB, (s32)&command, 0);
 ```
 
 The `sh` now expands *after* the `lw 0x1C` (uid 19 vs 16 in `.sched`), and the
-emitted order matches retail: 96% → 100%. `func_actor_560800_801362E0` is the
+emitted order matches retail: 96% → 100%. `_actor560800SendChainCommand` is the
 same body with 0x20 for the target slot and the same target order. This is the
 statement-order lever of §10.6 in its "load or store sched1 keeps in place"
 case, applied to the payload of a message send.
@@ -76137,7 +76137,7 @@ before touching registers.
 
 ## A missing `move` beside an `andi` is a second variable, not a second use of the parameter
 
-**Problem.** `func_actor_560800_80136378` sat at 96.688% with one instruction
+**Problem.** `_actor560800BlendScenePlayerAnimation` sat at 96.688% with one instruction
 left (`regs=1 delete=1`): retail copies the argument before masking it —
 `move v1,a0` in the `beqz` delay slot, then `andi v0,v1,0xffff` — while ours ran
 `andi v0,a0,0xffff`, and the halfword store to `0x60($s0)` also read `$a0`.
@@ -100384,11 +100384,11 @@ out; a sibling overlay is faster than re-deriving the labels from the tree.
 reads a local whose address was never taken, and three `sh` plus two `li`
 vanish from the object (the `delete=14`). One `RECT rect;` with
 `MoveImage(&rect, ...)`, written exactly as the matched
-`func_actor_560800_80136548` in the same TU writes it, restores all four. The
+`_actor560800SwapSceneTextureStrip` in the same TU writes it, restores all four. The
 four separate locals never had a chance: only the aggregate makes the other
 three stores observable.
 
-### A loop init that belongs in the guard's delay slot needs an empty asm before it (func_actor_560800_801364A0, 2026-09-16)
+### A loop init that belongs in the guard's delay slot needs an empty asm before it (_actor560800BlendNo9Animation, 2026-09-16)
 
 The target reseeds animation slots in a rotated loop whose entry test is a copy
 of the loop's own test:
@@ -148646,7 +148646,7 @@ preceded by a BARRIER), records `step == 1`, and the fresh `1` of the
 duplicated loop test then canonicalizes to the older pseudo, `step`. Measured
 in the dumps: cse1 leaves the test alone when a `do { } while (0)` sits before
 it (the path stops at `NOTE_INSN_LOOP_END` while `after_loop` is 0, which is
-what the `_actor560800ResetAnimHold` macro does), and cse2, which crosses the
+what the `_actor560800ResetAnimHold` helper does), and cse2, which crosses the
 note, makes the replacement. The `__asm__("" : "=r"(first) : "0"((u16)1))`
 of `Actor560800_BlendSlotsFirst` and the two `SOFT_BARRIER`s exist to stop it.
 
