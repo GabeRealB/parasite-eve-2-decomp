@@ -1865,13 +1865,13 @@ static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, 
         scratch->vector.vy = scale;
         scratch->vector.vx = scale;
         node               = &coords[6];
-        gfxScaleMatrixColumns(&node->parent->coord, &scratch->vector);
+        _gfxScaleMatrixColumns(&node->parent->coord, &scratch->vector);
         node->parent->composeStamp = GRAPHICS_COORD_DIRTY;
         inv                        = 0x01000000 / scale;
         scratch->vector.vz         = inv;
         scratch->vector.vy         = inv;
         scratch->vector.vx         = inv;
-        gfxScaleMatrixColumns(&node->coord, &scratch->vector);
+        _gfxScaleMatrixColumns(&node->coord, &scratch->vector);
     }
 
     if (work->leftShoulderSwell != 0) {
@@ -1884,13 +1884,13 @@ static void Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, 
         scratch->vector.vy = scale;
         scratch->vector.vx = scale;
         node               = &coords[10];
-        gfxScaleMatrixColumns(&node->parent->coord, &scratch->vector);
+        _gfxScaleMatrixColumns(&node->parent->coord, &scratch->vector);
         node->parent->composeStamp = GRAPHICS_COORD_DIRTY;
         inv                        = 0x01000000 / scale;
         scratch->vector.vz         = inv;
         scratch->vector.vy         = inv;
         scratch->vector.vx         = inv;
-        gfxScaleMatrixColumns(&node->coord, &scratch->vector);
+        _gfxScaleMatrixColumns(&node->coord, &scratch->vector);
     }
 
     if (work->rightArmStretch != 0) {
@@ -3306,7 +3306,7 @@ static void Actor01100_Fn05678(
     if (enemy->spawnState == 3) {
         coords = task->extra.tmd->coords;
         scale  = Actor01100_D000CC;
-        gfxScaleMatrixColumns(&coords[3].coord, &scale);
+        _gfxScaleMatrixColumns(&coords[3].coord, &scale);
         coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
         if ((enemy->spawnState == 3) && !(extra->flags & TMD_OBJECT_SEMI_TRANS)) {
             return;

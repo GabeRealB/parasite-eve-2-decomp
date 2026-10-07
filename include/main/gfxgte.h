@@ -49,33 +49,46 @@ static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR
     gte_ldv0(&input);
 }
 
-/// Scales column `n` of `m`'s rotation by the matching component of `scale`
-/// (4.12 fixed point) with the GTE's `gpf 12`. Each column is gathered into an
-/// `SVECTOR` borrowed from the scratch-pad stack, scaled and written back; the
-/// block is returned before leaving.
-static __inline__ void gfxScaleMatrixColumns(MATRIX* m, VECTOR* scale)
+/// Scales a matrix's three basis columns in place by per-axis Q12 factors.
+///
+/// Column 0 uses `scale->vx`, column 1 `vy`, and column 2 `vz`: this applies
+/// scale along the matrix's local axes. Each factor's low signed 16 bits are
+/// used (`ONE` is unit scale). Coefficients are signed Q12; products are shifted
+/// right by 12 and saturated to -32768..32767. Translation is unchanged, and
+/// the result is not normalized. The scale vector's fourth word is not read.
+///
+/// Borrows both inputs until return: the matrix's nine halfword coefficients
+/// must be halfword-aligned, readable and writable. The scale's three words
+/// must be readable and word-aligned. Keep both inputs disjoint from each other
+/// and from the scratch reservation. Requires an initialized stack with room for one
+/// aligned `SVECTOR` (8 bytes); releases it before return without clearing it.
+/// Overwrites GTE IR0..3, MAC1..3, RGB0..2 and FLAG. GTE rotation and translation
+/// registers are unchanged; callers invalidate coordinate caches themselves.
+static __inline__ void _gfxScaleMatrixColumns(MATRIX* matrix, const VECTOR* scale)
 {
-    SVECTOR* sv;
+    SVECTOR* column;
 
-    sv = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    gte_ReadMatrixColumn(m, 0, sv);
-    gte_lddp(scale->vx);
-    gte_ldsv(sv);
-    gte_gpf12();
-    gte_stsv(sv);
-    gte_WriteMatrixColumn(sv, m, 0);
-    gte_ReadMatrixColumn(m, 1, sv);
-    gte_lddp(scale->vy);
-    gte_ldsv(sv);
-    gte_gpf12();
-    gte_stsv(sv);
-    gte_WriteMatrixColumn(sv, m, 1);
-    gte_ReadMatrixColumn(m, 2, sv);
-    gte_lddp(scale->vz);
-    gte_ldsv(sv);
-    gte_gpf12();
-    gte_stsv(sv);
-    gte_WriteMatrixColumn(sv, m, 2);
+    /// Gathers, Q12-scales and scatters one basis column using an `SVECTOR`.
+    ///
+    /// `axis` is a constant in 0..2. Pointer arguments are evaluated repeatedly
+    /// and must have no side effects; `factor` is evaluated once after gathering
+    /// the column. Captures no caller identifiers; used only in this function.
+#define GRAPHICS_SCALE_MATRIX_COLUMN(matrix, column, axis, factor) \
+    {                                                              \
+        gte_ReadMatrixColumn((matrix), (axis), (column));          \
+        gte_lddp(factor);                                          \
+        gte_ldsv(column);                                          \
+        gte_gpf12();                                               \
+        gte_stsv(column);                                          \
+        gte_WriteMatrixColumn((column), (matrix), (axis));         \
+    }
+
+    // Reuse one scratch column while preserving the gather/scale/store order.
+    column = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    GRAPHICS_SCALE_MATRIX_COLUMN(matrix, column, 0, scale->vx);
+    GRAPHICS_SCALE_MATRIX_COLUMN(matrix, column, 1, scale->vy);
+    GRAPHICS_SCALE_MATRIX_COLUMN(matrix, column, 2, scale->vz);
+#undef GRAPHICS_SCALE_MATRIX_COLUMN
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 

@@ -124590,10 +124590,10 @@ Three smaller ones from the same function:
 
 **Superseded for the same idiom in `func_actor_342000_801625D8`:** moving the
 push, the three gather/`gpf 12`/scatter columns and the pop into one
-`static __inline__` helper (`gfxScaleMatrixColumns(MATRIX*, VECTOR*)` in `include/main/gfxgte.h`,
+`static __inline__` helper (`_gfxScaleMatrixColumns(MATRIX*, const VECTOR*)` in `include/main/gfxgte.h`,
 written with `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
-absolute and the helper's own `sv` stops the `-8(head)` fold. So try the helper
+absolute and the helper's own `column` stops the `-8(head)` fold. So try the helper
 before reaching for the pins above. The same helper later removed every pin
 from `func_actor_342000_801628C8` itself, unchanged, with the `ang` local
 still needed: calling the three `Gfx_RotMatrix*` on `work->field_27x` directly

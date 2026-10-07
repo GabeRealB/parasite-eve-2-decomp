@@ -659,7 +659,7 @@ void func_actor_342000_801625D8(Task* arg0)
         case 1:
             sc = &((_Actor342000GluttonModelWork*)work->parent->work)->scale;
             gfxSetRotIdentity(&work->coord.coord);
-            gfxScaleMatrixColumns(&work->coord.coord, sc);
+            _gfxScaleMatrixColumns(&work->coord.coord, sc);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
@@ -700,7 +700,7 @@ void func_actor_342000_801628C8(Task* arg0)
             gfxRotMatrixY(&work->coord.coord, ang[1], 1);
             gfxRotMatrixX(&work->coord.coord, ang[0], GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&work->coord.coord, ang[2], GRAPHICS_ROTATION_COMPOSE);
-            gfxScaleMatrixColumns(&work->coord.coord, &work->scale);
+            _gfxScaleMatrixColumns(&work->coord.coord, &work->scale);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         default:

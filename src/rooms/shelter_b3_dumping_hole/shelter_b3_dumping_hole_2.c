@@ -3558,7 +3558,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                             work->part3Scale.vz                   -= 10;
                             gfxSetRotIdentity(&task->extra.tmd->coords[3].coord);
 
-                            gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->part3Scale);
+                            _gfxScaleMatrixColumns(&task->extra.tmd->coords[3].coord, &work->part3Scale);
                         } else if (work->timer < 0x20) {
                             task->extra.tmd->coords[2].coord.t[1] += 0x20;
                             gfxSetRotIdentity(&task->extra.tmd->coords[3].coord);
