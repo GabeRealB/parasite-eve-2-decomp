@@ -1,12 +1,12 @@
 // Overlay-local symbols for neo_ark_forest_zone.
-gRoamerCooldown = 0x80182D62; // size:0x2 defined:True
-gRoamerSpawnRequest = 0x80182D66; // size:0x2 defined:True
+_gRoamerCooldownFrames = 0x80182D62; // size:0x2 defined:True
+_gRoamerPendingSpawnPoint = 0x80182D66; // size:0x2 defined:True
 gRoamerReleasePending = 0x80182D6A; // size:0x2 defined:True
 gRoomEventLatched = 0x80182E48; // size:0xC defined:True
 gRoamerArmCountsB = 0x80182D44; // size:0x10 defined:True
 gRoamerArmCountsA = 0x80182D54; // size:0xE defined:True
 gRoamerReserveCount = 0x80182D64; // size:0x2 defined:True
-gRoamerLastRequest = 0x80182D68; // size:0x2 defined:True
+_gRoamerLastActionId = 0x80182D68; // size:0x2 defined:True
 gRoamerCommand = 0x80182E44; // size:0x4 defined:True
 gRoamerMsgTableA = 0x80182D6C; // size:0x20 defined:True
 gRoamerSpawnPointsA = 0x80182D8C; // size:0x38 defined:True
@@ -124,7 +124,7 @@ roamerArmPoolA = 0x801804B0; // type:func
 roamerTickPoolA = 0x80180620; // type:func
 roamerAmbushMsg = 0x80180A60; // type:func
 roamerArmPoolB = 0x80180BB4; // type:func
-roamerLatchRequest = 0x801813C4; // type:func
+_roamerLatchSpawnRequestPoolA = 0x801813C4; // type:func
 _roamerLatchSpawnRequestPoolB = 0x801814B0; // type:func
 neoArkForestZoneRejectKeyItemMessage = 0x8017d7dc; // type:func
 neoArkForestZoneIgnoreCommandMessage = 0x8017d950; // type:func

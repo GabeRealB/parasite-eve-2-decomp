@@ -51,19 +51,6 @@
 
 /// The distance between `a` and `b`, spelled as a conditional subtraction.
 
-/// The room's frame countdown at `gRoamerCooldown`. Signed,
-/// although the arithmetic reads compile as `lhu` (`func_...8018154C` adds to
-/// it, `func_...80180DDC` counts it down): a load whose result is truncated by
-/// the following `sh` only has to supply the low half, so GCC picks the
-/// unsigned form by itself, while the `lh` comparisons and the -1 the 0x7DB
-/// handler stores need the signed declaration. A union offering both views
-/// compiles the same instructions but marks every access `in_struct`, and that
-/// flag decides the scheduler's dependence analysis - it pinned a load after a
-/// store in `roamerArmPoolB`. See
-/// `DECOMPILATION_LEARNINGS.md`, "A union that only names a view costs
-/// `in_struct`".
-extern s16 gRoamerCooldown;
-
 extern ActorCommand gRoamerCommand;
 
 /// The room's five spawn slots: `roamerBankRetreat` fills the
@@ -112,7 +99,7 @@ extern u8 gRoamerArmCountsA[];
 
 /// `func_...80180568`'s own message-handler table, parked in `Task::msgTable`
 /// as `D_...849F4` is by `func_...80180C6C`: the same three ids, answered by
-/// the placement request `roamerLatchRequest`, the spawn-slot
+/// the placement request `_roamerLatchSpawnRequestPoolA`, the spawn-slot
 /// filler `roamerBankRetreat` and a 0x7DB handler that
 /// ignores the message.
 extern TaskMessageEntry gRoamerMsgTableA[];
@@ -120,22 +107,11 @@ extern TaskMessageEntry gRoamerMsgTableA[];
 /// Set once a spawn slot has been armed, read by the room's other states.
 extern s16 gRoamerReleasePending;
 
-/// Spawn point requested by the room's 0x13EF handlers (the message's third
-/// byte, taken only while `D_...8498E` has run out and the byte differs from
-/// the previous request). One-based index into the placement table of the
-/// running sequence; zero means no request, and the per-frame states clear it
-/// every frame whether or not they placed a spawn.
-extern s16 gRoamerSpawnRequest;
-
-/// The byte the last 0x13EF message carried, kept so that a repeated request
-/// is dropped rather than placed again.
-extern s16 gRoamerLastRequest;
-
-/// The room's spawn placements, indexed by `D_...80184992 - 1`.
+/// The room's spawn placements, indexed by `_gRoamerPendingSpawnPoint - 1`.
 extern RoamerSpawnPoint gRoamerSpawnPointsA[];
 
 /// The second arming sequence's spawn placements, which
-/// `func_...80180DDC` picks from by `D_...80184992 - 1`. Five of them; any
+/// `func_...80180DDC` picks from by `_gRoamerPendingSpawnPoint - 1`. Five of them; any
 /// request past the fourth takes the last.
 extern RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5];
 
@@ -145,6 +121,7 @@ extern s16 gRoamerPrevBattleRefs;
 
 static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 s32        func_neo_ark_woodland_path_8018154C(Task*, s32, s32, s32);
+static s32 _roamerLatchSpawnRequestPoolA(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _roamerLatchSpawnRequestPoolB(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
@@ -204,18 +181,34 @@ u8 gRoamerArmCountsA[14] = {
     0,
 };
 
-s16 gRoamerCooldown = 30;
+/// Signed countdown shared by the pools, gating spawn requests and battle reset.
+///
+/// Active per-frame states decrement positive values; zero is ready and -1
+/// pauses the countdown. Arming or ambush restart sets 90 frames, spawning or
+/// retreat adds 90, and battle completion sets 150. Arithmetic stores narrow
+/// back to a signed halfword.
+static s16 _gRoamerCooldownFrames = ROAMER_INITIAL_COOLDOWN_FRAMES;
 
 s16 gRoamerReserveCount = 0;
 
-s16 gRoamerSpawnRequest = 0;
+/// One-based spawn-point selector pending for the next active pool tick.
+///
+/// Zero means none. Room actions select 1..6 here; pool A uses that table row,
+/// while pool B uses its fifth row for selectors above four. Each active tick
+/// clears the selector even if no enemy was revived. The latch also clears it
+/// for repeated actions or while the cooldown is not zero.
+static s16 _gRoamerPendingSpawnPoint = ROAMER_SPAWN_POINT_NONE;
 
-s16 gRoamerLastRequest = 0;
+/// Last room-action ID observed by either pool's spawn-request latch.
+///
+/// Starts at zero and records the borrowed request's byte even when cooldown
+/// suppresses it, so the same action must change before it can request a spawn.
+static s16 _gRoamerLastActionId = ROAMER_SPAWN_POINT_NONE;
 
 s16 gRoamerReleasePending = 0;
 
 TaskMessageEntry gRoamerMsgTableA[4] = {
-    { DIRECTION_MESSAGE_ROOM_ACTION, roamerLatchRequest },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolA },
     { ROOM_MESSAGE_ACTOR_EVENT, roamerBankRetreat },
     { ACTOR_COMMAND_MESSAGE_APPLY, _neoArkWoodlandPathIgnoreRoamerCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -396,8 +389,8 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
         return;
     }
-    if (gRoamerCooldown > 0) {
-        gRoamerCooldown--;
+    if (_gRoamerCooldownFrames > ROAMER_COOLDOWN_READY) {
+        _gRoamerCooldownFrames--;
     }
     if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         b     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
@@ -425,10 +418,10 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         }
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, count);
         areaSyncLocationVariant(&gGameSession->location.loc);
-        gRoamerCooldown = 0x96;
+        _gRoamerCooldownFrames = ROAMER_POST_BATTLE_COOLDOWN_FRAMES;
     }
     gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
-    if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
+    if (gGameSession->battleResetPending == 1 && _gRoamerCooldownFrames == ROAMER_COOLDOWN_READY) {
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
         gSceneCombatState.peTargetCount             = 0;
         gSceneCombatState.battleRefs                = 0;
@@ -437,7 +430,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
         gSceneCombatState.mpReward                  = 0;
         gGameSession->battleResetPending            = 0;
     }
-    if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
+    if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && _gRoamerPendingSpawnPoint != ROAMER_SPAWN_POINT_NONE) {
         gRoamerCommand.context.loc.stage = 5;
         gRoamerCommand.context.loc.area  = 0xB;
         gRoamerCommand.command           = 0xB;
@@ -460,9 +453,9 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                 }
                 if (obj->hp > 0) {
                     sceneAcquireBattleRef(0);
-                    gRoamerCooldown += 0x5A;
+                    _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
                     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
-                    switch ((s16)(gRoamerSpawnRequest - 1)) {
+                    switch ((s16)(_gRoamerPendingSpawnPoint - 1)) {
                         case 0:
                             sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[0].x;
                             sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
@@ -510,7 +503,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
             }
         }
     }
-    gRoamerSpawnRequest = 0;
+    _gRoamerPendingSpawnPoint = ROAMER_SPAWN_POINT_NONE;
 }
 
 /// State handlers of the second arming sequence's entry task
@@ -534,7 +527,7 @@ static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, con
 ///
 /// The callback type and inclusion requirements are documented in
 /// `roaming_enemies_latch_request.inc.c`.
-#define ROAMER_LATCH_SPAWN_REQUEST roamerLatchRequest
+#define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolA
 #include "../../shared/roaming_enemies_latch_request.inc.c"
 #undef ROAMER_LATCH_SPAWN_REQUEST
 
@@ -560,7 +553,7 @@ void func_neo_ark_woodland_path_801814E8(Task* task)
 
 s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    gRoamerCooldown += 0x5A;
+    _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
     return 1;
 }
 

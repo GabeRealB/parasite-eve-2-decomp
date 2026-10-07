@@ -4026,15 +4026,15 @@ only the temporary carrying the decremented value is `s16`.
 
 The section above fixes an `lh`/`lhu` mismatch by correcting the declaration.
 That is not on the table when two bodies already matched in the *same* unit
-read one object both ways. `func_neo_ark_forest_zone_801813C4` tests
-`D_neo_ark_forest_zone_80182D62` with `lh` while its neighbour
+read one object both ways. `_roamerLatchSpawnRequestPoolA` tests
+`_gRoamerCooldownFrames` with `lh` while its neighbour
 `func_neo_ark_forest_zone_80181494` reads the same halfword with `lhu` (a plain
 `u16 D += 0x5A`), and `func_...80180620` does both four instructions apart -
 `lh` for the `if (D > 0)` test, `lhu` for the decrement in the body. The unit's
 declaration is `u16` with signed *reads*; the body that wants `lh` has to ask
 for it.
 
-A cast inside the comparison does not ask. `(s16)D_...80182D62 == 0` is folded
+A cast inside the comparison does not ask. `(s16)_gRoamerCooldownFrames == 0` is folded
 by the front end into an unsigned compare of the halfword, because the
 extension cannot change whether the value is zero, so the load stays `lhu` -
 that line is in the m2c seed and scores 90.64%. Assigning to a signed temp
@@ -4043,7 +4043,7 @@ first keeps the conversion and emits `lh`:
 ```c
 s16 counter;
 
-counter = D_neo_ark_forest_zone_80182D62;  /* lh $v0 - the read the target has */
+counter = _gRoamerCooldownFrames;  /* lh $v0 - the read the target has */
 if (counter == 0) { ... }                  /* bnez */
 ```
 
@@ -74102,7 +74102,7 @@ cross-jump merges the two copies back into one:
     } else {
         D_neo_ark_woodland_path_80184996 = 1;
     }
-    D_neo_ark_woodland_path_8018498E.u += 0x5A;   /* on both paths */
+    _gRoamerCooldownFrames += 0x5A;   /* on both paths */
     return;
 ```
 
@@ -94668,7 +94668,7 @@ case 2:
     ...
     if (sceneFindPlacedActor(0) != 0) {
         ...
-        D_neo_ark_woodland_path_8018498E = 0x5A;
+        _gRoamerCooldownFrames = 0x5A;
         return 1;
     }
     return var_v0;
@@ -94687,7 +94687,7 @@ assignment to 1 already sits in the branch's delay slot:
 ```c
     if (sceneFindPlacedActor(0) != 0) {
         ...
-        D_neo_ark_woodland_path_8018498E.s = 0x5A;
+        _gRoamerCooldownFrames = 0x5A;
     }
     return result;      /* result >= 1 was set before the branch */
 ```
@@ -119197,7 +119197,7 @@ and it decided two things here:
   `!MEM_IN_STRUCT_P (store)`, so neither fired. With a scalar load (clause 1:
   in-struct varying store, non-struct fixed load) there is no dependence and
   loop.c hoists it to the preheader, exactly as in the seed.
-* A `task->state` load was pinned after the `D_...8498E` store in sched1, with
+* A `task->state` load was pinned after the `_gRoamerCooldownFrames` store in sched1, with
   `insn_list:REG_DEP_OUTPUT 226 (insn_list 228 ...)` on the load in `.sched2`.
   That store was a union member too (`mem/s:HI (lo_sum (reg) (symbol))`,
   in-struct *and* fixed); clause 2 needs the store non-in-struct, so the

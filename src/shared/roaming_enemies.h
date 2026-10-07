@@ -22,8 +22,23 @@
 
 #include "types.h"
 
-#include "gameplay/direction.h"
 #include "gameplay/message.h"
+
+/// Shared pool timing in per-frame state calls; zero enables requests and reset.
+///
+/// Positive values count down; -1 pauses until another pool action changes it.
+enum {
+    ROAMER_COOLDOWN_PAUSED             = -1,
+    ROAMER_COOLDOWN_READY              = 0,
+    ROAMER_INITIAL_COOLDOWN_FRAMES     = 30,
+    ROAMER_ACTION_COOLDOWN_FRAMES      = 90,
+    ROAMER_POST_BATTLE_COOLDOWN_FRAMES = 150,
+};
+
+/// No pending one-based spawn-point selector.
+enum {
+    ROAMER_SPAWN_POINT_NONE = 0,
+};
 
 /// A fixed point at which a pool places an enemy it revives.
 ///
@@ -45,6 +60,5 @@ void roamerArmPoolA(Task* task);
 void roamerTickPoolA(Task* task);
 s32  roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3);
 void roamerArmPoolB(Task* task);
-s32  roamerLatchRequest(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 #endif /* SRC_SHARED_ROAMING_ENEMIES_H */

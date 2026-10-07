@@ -20,18 +20,18 @@ void roamerTickPoolA(Task* task)
     if (gRoamerArmCountsA[gGameSession->location.loc.variant] == 0) {
         return;
     }
-    if (gRoamerCooldown > 0) {
-        gRoamerCooldown--;
+    if (_gRoamerCooldownFrames > ROAMER_COOLDOWN_READY) {
+        _gRoamerCooldownFrames--;
     }
     if (gRoamerReleasePending == 1 && gSceneCombatState.battleRefs >= 2) {
         gRoamerReleasePending = 0;
         sceneReleaseBattleRef(task, 0xD);
     }
     if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
-        gRoamerCooldown = 0x96;
-        a               = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A);
-        b               = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
-        count           = 0;
+        _gRoamerCooldownFrames = ROAMER_POST_BATTLE_COOLDOWN_FRAMES;
+        a                      = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A);
+        b                      = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
+        count                  = 0;
         for (k = 0; k < 5; k++) {
             if (((s16*)gRoamerReserveHp)[k] > 0) {
                 count++;
@@ -48,7 +48,7 @@ void roamerTickPoolA(Task* task)
         areaSyncLocationVariant(&gGameSession->location.loc);
     }
     gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
-    if (gGameSession->battleResetPending == 1 && gRoamerCooldown == 0) {
+    if (gGameSession->battleResetPending == 1 && _gRoamerCooldownFrames == ROAMER_COOLDOWN_READY) {
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
         gSceneCombatState.peTargetCount             = 0;
         gSceneCombatState.battleRefs                = 0;
@@ -57,7 +57,7 @@ void roamerTickPoolA(Task* task)
         gSceneCombatState.mpReward                  = 0;
         gGameSession->battleResetPending            = 0;
     }
-    if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && gRoamerSpawnRequest != 0) {
+    if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && _gRoamerPendingSpawnPoint != ROAMER_SPAWN_POINT_NONE) {
         gRoamerCommand.context.loc.stage = 5;
         gRoamerCommand.context.loc.area  = 0x1D;
         gRoamerCommand.command           = 0xB;
@@ -80,18 +80,18 @@ void roamerTickPoolA(Task* task)
                 }
                 if (obj->hp > 0) {
                     sceneAcquireBattleRef(0);
-                    gRoamerCooldown += 0x5A;
+                    _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
                     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
-                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].x;
+                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].x;
                     sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
-                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].z;
+                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].z;
                     sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                     gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
-                                  gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].yaw, 1);
+                                  gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].yaw, 1);
                 }
                 break;
             }
         }
     }
-    gRoamerSpawnRequest = 0;
+    _gRoamerPendingSpawnPoint = ROAMER_SPAWN_POINT_NONE;
 }

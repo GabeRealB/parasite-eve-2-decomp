@@ -1371,7 +1371,7 @@ shelterR48SpriteDriftTask = 0x80180210; // type:func absolute:True owner=shelter
 
 func_shelter_r48_801810B0 = 0x801810B0; // type:func absolute:True owner=shelter_r48
 
-shelterR48ShockwaveRingsTask = 0x8018147C; // type:func absolute:True owner=shelter_r48 shared=rooms
+shelterR48ShockwaveRingsTask = 0x8018147C; // type:func absolute:True owner=shelter_r48
 
 shelterR48PinkRingFlashTask = 0x80181704; // type:func absolute:True owner=shelter_r48
 

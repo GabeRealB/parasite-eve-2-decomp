@@ -30,6 +30,6 @@ void roamerArmPoolB(Task* task)
             gRoamerReserveHp[i] = 0;
         }
     }
-    gRoamerCooldown = 0x5A;
-    task->state     = task->state + 1;
+    _gRoamerCooldownFrames = ROAMER_ACTION_COOLDOWN_FRAMES;
+    task->state            = task->state + 1;
 }

@@ -1,12 +1,12 @@
 // Overlay-local symbols for neo_ark_woodland_path.
-gRoamerCooldown = 0x8018498E; // size:0x2 defined:True
-gRoamerSpawnRequest = 0x80184992; // size:0x2 defined:True
+_gRoamerCooldownFrames = 0x8018498E; // size:0x2 defined:True
+_gRoamerPendingSpawnPoint = 0x80184992; // size:0x2 defined:True
 gRoamerReleasePending = 0x80184996; // size:0x2 defined:True
 D_neo_ark_woodland_path_80181680 = 0x80181680; // size:0x4 defined:True
 gRoamerArmCountsB = 0x80184970; // size:0x10 defined:True
 gRoamerArmCountsA = 0x80184980; // size:0xE defined:True
 gRoamerReserveCount = 0x80184990; // size:0x2 defined:True
-gRoamerLastRequest = 0x80184994; // size:0x2 defined:True
+_gRoamerLastActionId = 0x80184994; // size:0x2 defined:True
 D_neo_ark_woodland_path_80181650 = 0x80181650; // size:0x30 defined:True
 D_neo_ark_woodland_path_80181684 = 0x80181684; // size:0x10 defined:True
 D_neo_ark_woodland_path_80181694 = 0x80181694; // size:0x4 defined:True
@@ -97,7 +97,7 @@ roamerArmPoolA = 0x80180568; // type:func
 roamerTickPoolA = 0x801806D8; // type:func
 roamerAmbushMsg = 0x80180B18; // type:func
 roamerArmPoolB = 0x80180C6C; // type:func
-roamerLatchRequest = 0x8018147C; // type:func
+_roamerLatchSpawnRequestPoolA = 0x8018147C; // type:func
 _roamerLatchSpawnRequestPoolB = 0x80181568; // type:func
 _neoArkWoodlandPathIgnoreRoamerCommand = 0x80181474; // type:func
 _neoArkWoodlandPathAdvanceRoamerPoolAState = 0x801814d4; // type:func

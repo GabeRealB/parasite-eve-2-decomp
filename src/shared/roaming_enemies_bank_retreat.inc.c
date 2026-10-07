@@ -23,11 +23,11 @@ void roamerBankRetreat(Task* task, s32 arg1, s32 arg2, s32 arg3)
                 } else {
                     gRoamerReleasePending = 1;
                 }
-                gRoamerCooldown += 0x5A;
+                _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
                 return;
             }
         }
         return;
     }
-    gRoamerCooldown += 0x5A;
+    _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
 }

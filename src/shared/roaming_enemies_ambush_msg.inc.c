@@ -16,8 +16,8 @@ s32 roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3)
         cmd = msg->command;
         switch (cmd) {
             case 0:
-                gRoamerCooldown = -1;
-                result          = 0;
+                _gRoamerCooldownFrames = ROAMER_COOLDOWN_PAUSED;
+                result                 = 0;
                 return result;
             case 2:
                 gRoamerCommand.context.loc.stage = 5;
@@ -38,7 +38,7 @@ s32 roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3)
                     }
                     gfxRotMatrixY(&sceneFindPlacedActor(0)->extra.tmd->coords->coord,
                                   0x400, 1);
-                    gRoamerCooldown = 0x5A;
+                    _gRoamerCooldownFrames = ROAMER_ACTION_COOLDOWN_FRAMES;
                 }
                 return result;
             default:
