@@ -4266,11 +4266,10 @@ static void func_actor_503500_80142980(Task* arg0)
     GfxMatrix            m;
     s8                   param1[8];
     s8                   param2[8];
-    GfxRotationWords*    ident;
     _Actor503500ArmWork* work;
     Enemy*               enemy;
-    GfxCoord*            coord;
     GfxCoord*            src;
+    GfxCoord*            coord;
     TmdObject*           tmd;
     s32*                 in;
     s32*                 out;
@@ -4429,12 +4428,7 @@ static void func_actor_503500_80142980(Task* arg0)
     rot.vx                 = work->spin.fixed.vx.word >> 16;
     rot.vy                 = work->spin.fixed.vy.word >> 16;
     rot.vz                 = work->spin.fixed.vz.word >> 16;
-    m.rotationWords.m00M01 = ONE;
-    m.rotationWords.m02M10 = 0;
-    ident                  = &m.rotationWords;
-    ident->m11M12          = ONE;
-    m.rotationWords.m20M21 = 0;
-    ident->m22             = ONE;
+    gfxSetRotIdentity(&m.mat);
     RotMatrix(&rot, &m.mat);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&m.mat);
