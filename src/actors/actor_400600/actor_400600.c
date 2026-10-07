@@ -3832,16 +3832,10 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
 static inline void _actor400600SetCoordRotation(GfxCoord* coord, s16 angle)
 {
     GfxMatrix  rot;
-    GfxMatrix* m;
     MATRIX*    dst;
 
-    rot.rotationWords.m00M01 = ONE;
-    rot.rotationWords.m02M10 = 0;
-    m                        = &rot;
-    m->rotationWords.m11M12  = ONE;
-    rot.rotationWords.m20M21 = 0;
-    m->rotationWords.m22     = ONE;
-    RotMatrixY(angle, &m->mat);
+    gfxSetRotIdentity(&rot.mat);
+    RotMatrixY(angle, &rot.mat);
     dst          = &coord->coord;
     dst->m[0][0] = rot.mat.m[0][0];
     dst->m[0][1] = rot.mat.m[0][1];
