@@ -4260,13 +4260,11 @@ static void func_actor_400500_8013771C(Task* arg0)
     SVECTOR                      in;
     SVECTOR                      out;
     GfxMatrix                    rot;
-    GfxMatrix*                   src;
     _Actor400500GrayStalkerWork* work;
     _Actor400500GrayStalkerWork* hit;
     GameActor*                   player;
     void*                        spawn;
     s16                          vz;
-    s32                          ident;
     s32                          r;
     s32                          cond;
 
@@ -4275,20 +4273,14 @@ static void func_actor_400500_8013771C(Task* arg0)
     spawn             = arg0->spawnArg2.pointer;
     work->stateFrames = work->stateFrames + 1;
     _actor400500TickAnim(arg0);
-    src = &rot;
     if ((s16)work->stateFrames < 0xF) {
         in.vx                     = (u16)work->toTarget.vx;
         in.vy                     = 0;
         vz                        = (u16)work->toTarget.vz;
-        ident                     = ONE;
-        rot.rotationWords.m00M01  = ident;
-        rot.rotationWords.m02M10  = 0;
         in.vz                     = vz;
-        src->rotationWords.m11M12 = ident;
-        rot.rotationWords.m20M21  = 0;
-        src->rotationWords.m22    = ident;
-        RotMatrixY(work->yaw, &src->mat);
-        ApplyMatrixSV(&src->mat, &in, &out);
+        gfxSetRotIdentity(&rot.mat);
+        RotMatrixY(work->yaw, &rot.mat);
+        ApplyMatrixSV(&rot.mat, &in, &out);
         r                    = ratan2(out.vx, work->toTarget.vy - 0x6A0);
         work->armReachAngle += ((-r - (u16)work->armReachAngle) << 20) >> 23;
     } else {
