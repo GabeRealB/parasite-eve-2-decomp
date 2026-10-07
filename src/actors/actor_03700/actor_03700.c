@@ -119,7 +119,7 @@ STATIC_ASSERT_SIZEOF(_Actor03700Work, 0x270);
 
 extern u16 Actor03700_D07F7C[];
 
-/// Halfword tables `Actor03700_Fn018C8` indexes by a 4-bit LCG draw:
+/// Halfword tables `_actor03700Retreat` indexes by a 4-bit LCG draw:
 /// the countdowns of `ACTION_RETREAT`, seeded into `retreatTimer` and `timer`.
 extern u16 Actor03700_D07F3C[];
 extern u16 Actor03700_D07F5C[];
@@ -136,7 +136,7 @@ extern s16 Actor03700_D07F1C[];
 /// coordinate's Y translation, so it is the amplitude of an idle bob.
 extern s16 Actor03700_D07F98[];
 
-/// Halfword wave table `Actor03700_Fn03320` indexes by `swayPhase`.
+/// Halfword wave table `_actor03700StepSway` indexes by `swayPhase`.
 extern s16 Actor03700_D07FD4[];
 
 /// One segment of the path a perched actor leaves its perch along.
@@ -193,34 +193,75 @@ extern void* D_80067704[1];
 static TmdSource _gActor03700BatBurstWingRight;
 static TmdSource _gActor03700BatBurstWingLeft;
 
-static void Actor03700_Fn000A4(Enemy* arg0, Task* task);
-static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2);
-static s32  Actor03700_Fn008D0(Task* task);
-static void Actor03700_Fn00ABC(Task* task);
-static void Actor03700_Fn00D5C(Task* task);
-static void Actor03700_Fn00F88(Task* task);
-static void Actor03700_Fn011B4(Task* task);
-static void Actor03700_Fn01550(Task* task);
-static void Actor03700_Fn018C8(Task* task);
-static void Actor03700_Fn01C94(Task* task);
-static s32  Actor03700_Fn01DFC(Task* task);
-static void Actor03700_Fn01F48(Task* task);
-static void Actor03700_Fn020D4(Enemy* enemy, Task* task);
-static void Actor03700_Fn025C8(Task* task);
-static void Actor03700_Fn027DC(Task* task);
-static void Actor03700_Fn029C0(Task* task);
-static void Actor03700_Fn03004(Enemy* enemy, Task* task);
-static s32  Actor03700_Fn03130(Task* task);
-static void Actor03700_Fn0321C(Task* task);
-static void Actor03700_Fn032BC(Task* task, s32 arg1, s32 arg2);
-static void Actor03700_Fn03320(Task* task, s32 arg1);
-static void Actor03700_Fn033F0(Task* task);
-static void Actor03700_Fn034A0(Task* task);
-static void Actor03700_Fn0355C(Task* task);
+/// Task states used by this actor's three-entry enemy dispatcher.
+enum {
+    ACTOR_03700_TASK_ACTIVE = 1,
+    ACTOR_03700_TASK_DYING  = 2
+};
+
+/// Flight-wave indexing and fixed-point translation scales.
+///
+/// Bob selects a 15-entry starting offset, then reads through the inclusive
+/// period; row 0's long cycle therefore also uses entries 15 to 21.
+/// Sway uses only the first 15 samples of its 16-entry table, scaled by 4096.
+enum {
+    ACTOR_03700_BOB_ROW_STRIDE       = 15,
+    ACTOR_03700_BOB_NORMAL_PERIOD    = 14,
+    ACTOR_03700_BOB_LONG_PERIOD      = 21,
+    ACTOR_03700_SWAY_CYCLE_TICKS     = 15,
+    ACTOR_03700_SWAY_RANDOM_MASK     = 0x3F,
+    ACTOR_03700_SWAY_WAVE_RESCALE    = 16,
+    ACTOR_03700_SWAY_WAVE_SHIFT      = 16,
+    ACTOR_03700_MATRIX_FRACTION_BITS = 12
+};
+
+/// Stages shared by the two perch departures; animation ticks include tick zero.
+enum {
+    ACTOR_03700_PERCH_WAIT_FOR_ALERT = 0,
+    ACTOR_03700_PERCH_DELAY_TAKEOFF  = 1,
+    ACTOR_03700_PERCH_TAKEOFF        = 2,
+    ACTOR_03700_TAKEOFF_LAST_TICK    = 50
+};
+
+/// Release stage of the held-player attack action.
+enum { ACTOR_03700_ATTACK_START_RELEASE = 3 };
+
+/// Lifetime of the placement-mode-10 wave director.
+enum {
+    ACTOR_03700_WAVE_DIRECTOR_ACTIVE   = 1,
+    ACTOR_03700_WAVE_DIRECTOR_FINISHED = 2
+};
+
+static inline void _actor03700ApplyBobStep(Task* task, s32 row, s32 period);
+static inline void _actor03700ApplySwayStep(Task* task, s32 baseAmplitude);
+static void        _actor03700InitEnemy(Enemy* enemy, Task* task);
+static void        Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2);
+static s32         Actor03700_Fn008D0(Task* task);
+static void        _actor03700Wander(Task* task);
+static void        _actor03700DropFromPerch(Task* task);
+static void        _actor03700BackOffPerch(Task* task);
+static void        Actor03700_Fn011B4(Task* task);
+static void        Actor03700_Fn01550(Task* task);
+static void        _actor03700Retreat(Task* task);
+static void        _actor03700ReleasePlayer(Task* task);
+static s32         _actor03700NoticePlayer(Task* task);
+static void        _actor03700TurnTowardTarget(Task* task);
+static void        Actor03700_Fn020D4(Enemy* enemy, Task* task);
+static void        _actor03700WaitForWave(Task* task);
+static void        _actor03700EnterWave(Task* task);
+static void        Actor03700_Fn029C0(Task* task);
+static void        Actor03700_Fn03004(Enemy* enemy, Task* task);
+static s32         Actor03700_Fn03130(Task* task);
+static void        Actor03700_Fn0321C(Task* task);
+static void        _actor03700StepBob(Task* task, s32 row, s32 period);
+static void        _actor03700StepSway(Task* task, s32 baseAmplitude);
+static void        Actor03700_Fn033F0(Task* task);
+static void        Actor03700_Fn034A0(Task* task);
+static void        _actor03700AdvanceWave(Task* task);
 
 static void Actor03700_Fn02FA8(Task*);
 
-s32 Actor03700_Fn034F8(Task*, s32, s32, s32);
+static s32 _actor03700ReleaseHoldMsg(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2);
 
 static TmdBone _gActor03700BatBodySkeleton[6] = {
 #include "assets/bat_body_skeleton.inc"
@@ -695,18 +736,20 @@ AnimationSet* Actor03700_D080FC[3] = {
 };
 
 TaskMessageEntry Actor03700_D08108[2] = {
-    { 2014, Actor03700_Fn034F8 },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor03700ReleaseHoldMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static inline void Actor03700_BobInline(Task* task, s32 arg1, s32 arg2);
-static inline void Actor03700_SwayInline(Task* task, s32 arg1);
 static inline void _actor03700UpdateColor(Task* task);
 static inline void _actor03700SpawnRemains(Task* task);
 
-/// The bob step of `Actor03700_Fn032BC`, which `Actor03700_Fn029C0` carries
-/// expanded in place rather than as a call.
-static inline void Actor03700_BobInline(Task* task, s32 arg1, s32 arg2)
+/// Adds the next vertical flight-bob displacement to the model root.
+///
+/// `period` is the inclusive last phase, so a cycle has period + 1 ticks.
+/// Supported pairs are (row 0, period 14 or 21) and (row 1, period 14);
+/// their table indices are 0..14, 0..21 and 15..29. The phase advances
+/// before sampling and persists between actions. Positive Y is down.
+static inline void _actor03700ApplyBobStep(Task* task, s32 row, s32 period)
 {
     _Actor03700Work* work;
     GfxCoord*        coord;
@@ -714,91 +757,109 @@ static inline void Actor03700_BobInline(Task* task, s32 arg1, s32 arg2)
     work  = task->work;
     coord = task->extra.tmd->coords;
 
-    if (arg2 < ++work->bobPhase) {
+    if (period < ++work->bobPhase) {
         work->bobPhase = 0;
     }
-    coord->coord.t[1] += Actor03700_D07F98[(arg1 * 15) + work->bobPhase];
+    coord->coord.t[1] += Actor03700_D07F98[(row * ACTOR_03700_BOB_ROW_STRIDE) + work->bobPhase];
 }
 
-/// The sway step of `Actor03700_Fn03320`, expanded in place the same way.
-static inline void Actor03700_SwayInline(Task* task, s32 arg1)
+/// Adds the next sideways flight-sway displacement along the root's local X axis.
+///
+/// The 15-tick cycle advances before sampling. On wrapping it chooses an
+/// amplitude of baseAmplitude + 0..63 in root-coordinate units, stored as
+/// a signed halfword. The table and rotation basis both use 4096 = 1.0.
+/// Current callers pass base amplitudes 20, 40 or 80.
+static inline void _actor03700ApplySwayStep(Task* task, s32 baseAmplitude)
 {
     _Actor03700Work* work;
     GfxCoord*        coord;
-    s32              amp;
+    s32              displacement;
 
     work  = task->work;
     coord = task->extra.tmd->coords;
 
-    if (++work->swayPhase >= 15) {
+    if (++work->swayPhase >= ACTOR_03700_SWAY_CYCLE_TICKS) {
         work->swayPhase     = 0;
         gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->swayAmplitude = arg1 + ((gRandomLcgState >> 16) & 0x3F);
+        work->swayAmplitude = baseAmplitude + ((gRandomLcgState >> 16) & ACTOR_03700_SWAY_RANDOM_MASK);
     }
-    amp                = (work->swayAmplitude * Actor03700_D07FD4[work->swayPhase] * 16) >> 16;
-    coord->coord.t[0] += (amp * coord->coord.m[0][0]) >> 12;
-    coord->coord.t[2] += (amp * coord->coord.m[2][0]) >> 12;
+    displacement       = (work->swayAmplitude * Actor03700_D07FD4[work->swayPhase] * ACTOR_03700_SWAY_WAVE_RESCALE) >> ACTOR_03700_SWAY_WAVE_SHIFT;
+    coord->coord.t[0] += (displacement * coord->coord.m[0][0]) >> ACTOR_03700_MATRIX_FRACTION_BITS;
+    coord->coord.t[2] += (displacement * coord->coord.m[2][0]) >> ACTOR_03700_MATRIX_FRACTION_BITS;
 }
 
 /// The enemy's state handlers, run by `Actor03700_Fn02FA8` for the task's
 /// state: spawn, per-frame tick and death.
 static const EnemyTaskFuncTable3 Actor03700_D00004 = {
-    { Actor03700_Fn000A4, Actor03700_Fn03004, Actor03700_Fn020D4 },
+    { _actor03700InitEnemy, Actor03700_Fn03004, Actor03700_Fn020D4 },
 };
 
-/// Spawn handler. Allocates the work block onto the task, points the
-/// model at its light/colour matrices and links the enemy node. The placement's
-/// mode (`AreaPlacement::mode`) picks the first action: tens digit 0 allocates
-/// the model buffers and takes the units digit (0..2) as the action, nudging the
-/// root coordinate for the two perches; 1 and 2 set `TMD_OBJECT_SKIP_AUTO_BUFFER`
-/// and `ACTION_WAVE_WAIT`, 3 the same flag and `ACTION_SCRIPTED_ENTRY`. Mode 10
-/// also makes the actor the wave director.
-/// The animation slots then get a shared random rate offset, and the collision body
-/// is linked with its four contacts before the task moves to state 1.
-static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
+/// Initializes the placed bat enemy, its animation rig and collision sphere.
+///
+/// `task` owns a live TMD model and receives a zeroed work block; failure
+/// destroys the enemy. `enemy` is the live record in spawnArg2.pointer.
+/// Placement modes 0..2 select wander or either perch; other single-digit
+/// modes wander. Tens 1 and 2 defer the model buffers for wave entry, with
+/// mode 10 directing the wave; tens 3 defer them for scripted entry.
+/// The five driven slots start at 16..19 sixteenths of a frame per tick.
+/// The task acquires one battle hold and enters its active state.
+static void _actor03700InitEnemy(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
+    enum {
+        ACTOR_03700_SPAWN_MODE_TENS     = 10,
+        ACTOR_03700_SPAWN_NORMAL        = 0,
+        ACTOR_03700_SPAWN_FIRST_WAVE    = 1,
+        ACTOR_03700_SPAWN_LATER_WAVE    = 2,
+        ACTOR_03700_SPAWN_SCRIPTED      = 3,
+        ACTOR_03700_SPAWN_ACTION_COUNT  = 3,
+        ACTOR_03700_SPAWN_DIRECTOR_MODE = 10,
+        ACTOR_03700_BODY_ID             = 37,
+        ACTOR_03700_HIT_EFFECT_REPEATS  = 1
+    };
+
+    TmdObject*       model;
     GfxCoord*        coord;
     _Actor03700Work* work;
-    s32              kind;
-    s32              i;
+    s32              modeOrRateOffset;
+    s32              slotIndex;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(_Actor03700Work), 0);
+    model = task->extra.tmd;
+    coord = model->coords;
+    work  = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
-        enemyDestroy(arg0, task);
+        enemyDestroy(enemy, task);
         return;
     }
     task->work          = work;
-    obj->flags          = 0;
+    model->flags        = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    worldTargetLinkNode(&arg0->node);
-    arg0->param                   = &Actor03700_D07F0C;
-    arg0->coord                   = coord;
-    arg0->node.state.parts.flags  = 0;
-    arg0->bodyPos.vx              = 0;
-    arg0->bodyPos.vy              = 0;
-    arg0->bodyPos.vz              = 0;
-    arg0->recs                    = work->contacts;
+    model->lightMtx     = &work->lightMtx;
+    model->colorMtx     = &work->colorMtx;
+    enemy->field_4      = &coord->coord;
+    enemy->field_48     = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->param                  = &Actor03700_D07F0C;
+    enemy->coord                  = coord;
+    enemy->node.state.parts.flags = 0;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->recs                   = work->contacts;
     work->hitEffectArg.coord      = &task->extra.tmd->coords[1];
     work->hitEffectArg.spawnArgLo = 0x100;
-    work->hitEffectArg.spawnArgHi = 1;
-    work->yaw                     = arg0->place->yaw;
-    kind                          = arg0->place->mode;
-    switch (kind / 10) {
-        case 0:
-            tmdAllocPrimitiveBuffer(obj);
-            if (kind < 3) {
-                work->action = kind;
+    work->hitEffectArg.spawnArgHi = ACTOR_03700_HIT_EFFECT_REPEATS;
+    work->yaw                     = enemy->place->yaw;
+    modeOrRateOffset              = enemy->place->mode;
+    // Placement tens select normal, wave-wait or scripted entrance spawning.
+    switch (modeOrRateOffset / ACTOR_03700_SPAWN_MODE_TENS) {
+        case ACTOR_03700_SPAWN_NORMAL:
+            tmdAllocPrimitiveBuffer(model);
+            if (modeOrRateOffset < ACTOR_03700_SPAWN_ACTION_COUNT) {
+                work->action = modeOrRateOffset;
             } else {
                 work->action = ACTOR_03700_ACTION_WANDER;
             }
-            work->anim = kind < 3 ? kind + 1 : ACTOR_03700_ANIM_FLY;
+            work->anim = modeOrRateOffset < ACTOR_03700_SPAWN_ACTION_COUNT ? modeOrRateOffset + 1 : ACTOR_03700_ANIM_FLY;
             switch (work->action) {
                 case ACTOR_03700_ACTION_PERCH_DROP:
                     work->anim         = ACTOR_03700_ANIM_PERCH_DROP;
@@ -813,34 +874,37 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
                     break;
             }
             break;
-        case 1:
-        case 2:
-            obj->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->action = ACTOR_03700_ACTION_WAVE_WAIT;
-            work->anim   = ACTOR_03700_ANIM_FLY;
-            if (kind == 10) {
-                work->waveDirector = 1;
+        case ACTOR_03700_SPAWN_FIRST_WAVE:
+        case ACTOR_03700_SPAWN_LATER_WAVE:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->action  = ACTOR_03700_ACTION_WAVE_WAIT;
+            work->anim    = ACTOR_03700_ANIM_FLY;
+            if (modeOrRateOffset == ACTOR_03700_SPAWN_DIRECTOR_MODE) {
+                work->waveDirector = ACTOR_03700_WAVE_DIRECTOR_ACTIVE;
             }
             break;
-        case 3:
-            obj->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->action = ACTOR_03700_ACTION_SCRIPTED_ENTRY;
-            work->anim   = ACTOR_03700_ANIM_FLY;
+        case ACTOR_03700_SPAWN_SCRIPTED:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->action  = ACTOR_03700_ACTION_SCRIPTED_ENTRY;
+            work->anim    = ACTOR_03700_ANIM_FLY;
             break;
     }
-    arg0->hp          = Actor03700_D07F0C.hpMax;
+    // All driven parts start at one randomly offset animation rate.
+    enemy->hp         = Actor03700_D07F0C.hpMax;
     work->playingAnim = work->anim;
     task->msgTable    = Actor03700_D08108;
-    animationInitContext(&work->rig.anim, Actor03700_D080E4, obj, work->rig.poses, work->rig.slots);
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationResetSlot(&work->rig.anim, i, work->anim);
+    animationInitContext(&work->rig.anim, Actor03700_D080E4, model, work->rig.poses, work->rig.slots);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationResetSlot(&work->rig.anim, slotIndex, work->anim);
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    kind            = (gRandomLcgState >> 16) & 3;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        work->rig.slots[i].rate += kind;
+    // The scalar is reused for rate jitter to retain the target register allocation.
+    modeOrRateOffset = (gRandomLcgState >> 16) & 3;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate += modeOrRateOffset;
     }
-    (sceneAcquireBattleRef)(0);
+    sceneAcquireBattleRef(0);
+    // The task owns the battle hold and collision sphere until death teardown.
     work->homePos.vx            = coord->coord.t[0];
     work->homePos.vy            = coord->coord.t[1];
     work->homePos.vz            = coord->coord.t[2];
@@ -850,12 +914,12 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = 0x30025;
+    work->body.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_03700_BODY_ID;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->state       = 1;
+    task->state       = ACTOR_03700_TASK_ACTIVE;
 }
 
 /// Collision step. Applies the `worldCollisionResolvePushback` push-back to the root coordinate
@@ -994,7 +1058,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
 /// two entrances, and `SCRIPTED_ENTRY` once `actionStep` is set - also count
 /// `flightSoundTimer` up and replay the flight sound from the placement's
 /// sound bank every 16 frames. `DIE` clears `actionStep`, `WAVE_WAIT` releases the
-/// contacts and runs the wait in `Actor03700_Fn025C8`; both report 1,
+/// contacts and runs the wait in `_actor03700WaitForWave`; both report 1,
 /// which tells the caller to skip this frame's movement.
 static s32 Actor03700_Fn008D0(Task* task)
 {
@@ -1010,7 +1074,7 @@ static s32 Actor03700_Fn008D0(Task* task)
     /* Each sound block needs separate locals to preserve the call scheduling. */
     switch (state) {
         case ACTOR_03700_ACTION_WANDER:
-            Actor03700_Fn00ABC(task);
+            _actor03700Wander(task);
             soundWork = task->work;
             object    = task->extra.tmd->coords;
             if (++soundWork->flightSoundTimer < 0x10) {
@@ -1029,10 +1093,10 @@ static s32 Actor03700_Fn008D0(Task* task)
             }
             return ret;
         case ACTOR_03700_ACTION_PERCH_DROP:
-            Actor03700_Fn00D5C(task);
+            _actor03700DropFromPerch(task);
             return ret;
         case ACTOR_03700_ACTION_PERCH_BACK:
-            Actor03700_Fn00F88(task);
+            _actor03700BackOffPerch(task);
             return ret;
         case ACTOR_03700_ACTION_CHASE:
             Actor03700_Fn011B4(task);
@@ -1073,7 +1137,7 @@ static s32 Actor03700_Fn008D0(Task* task)
             }
             return ret;
         case ACTOR_03700_ACTION_RETREAT:
-            Actor03700_Fn018C8(task);
+            _actor03700Retreat(task);
             soundWork = task->work;
             object    = task->extra.tmd->coords;
             if (++soundWork->flightSoundTimer < 0x10) {
@@ -1098,16 +1162,16 @@ static s32 Actor03700_Fn008D0(Task* task)
         case ACTOR_03700_ACTION_WAVE_WAIT:
             worldCollisionClearContacts(work->contacts);
             if (work->waveDirector != 0) {
-                Actor03700_Fn0355C(task);
+                _actor03700AdvanceWave(task);
             }
-            Actor03700_Fn025C8(task);
+            _actor03700WaitForWave(task);
             ret = 1;
             break;
         case ACTOR_03700_ACTION_ENTER_LOW:
             if (work->waveDirector != 0) {
-                Actor03700_Fn0355C(task);
+                _actor03700AdvanceWave(task);
             }
-            Actor03700_Fn027DC(task);
+            _actor03700EnterWave(task);
             soundWork = task->work;
             object    = task->extra.tmd->coords;
             if (++soundWork->flightSoundTimer < 0x10) {
@@ -1126,7 +1190,7 @@ static s32 Actor03700_Fn008D0(Task* task)
             }
             return ret;
         case ACTOR_03700_ACTION_ENTER_HIGH:
-            Actor03700_Fn027DC(task);
+            _actor03700EnterWave(task);
             soundWork = task->work;
             object    = task->extra.tmd->coords;
             if (++soundWork->flightSoundTimer < 0x10) {
@@ -1166,57 +1230,66 @@ static s32 Actor03700_Fn008D0(Task* task)
             }
             return ret;
         case ACTOR_03700_ACTION_RELEASE:
-            Actor03700_Fn01C94(task);
+            _actor03700ReleasePlayer(task);
             break;
     }
     return ret;
 }
 
-static void Actor03700_Fn00ABC(Task* task)
+/// Flies between random waypoints around the spawn position until alerted.
+///
+/// Selects speed 20..35 and a waypoint within 511 horizontal units of
+/// home, with Y offset 0..511. Reaching within 120 horizontal units
+/// selects another waypoint. Alert detection switches to chase and
+/// latches the group alert; movement and turning run later in the tick.
+/// The placement's turn-rate row must be 0..7. Waypoint offsets and the
+/// arrival-distance test retain signed-halfword narrowing.
+static void _actor03700Wander(Task* task)
 {
+    enum { ACTOR_03700_WANDER_PICK_TARGET   = 0,
+           ACTOR_03700_WANDER_FOLLOW_TARGET = 1 };
+
     _Actor03700Work* work;
     GfxCoord*        coord;
-    SVECTOR*         head;
-    SVECTOR*         vec;
-    s16              angle;
-    s32              dist;
+    SVECTOR*         targetOffset;
+    s16              waypointYaw;
+    s32              waypointRadius;
 
-    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-    vec                           = head - 1;
-    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-    work                          = task->work;
-    coord                         = task->extra.tmd->coords;
+    targetOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    work         = task->work;
+    coord        = task->extra.tmd->coords;
 
     switch (work->actionStep) {
-        case 0:
+        // Pick a nearby waypoint around the spawn position.
+        case ACTOR_03700_WANDER_PICK_TARGET:
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->speed        = ((gRandomLcgState >> 16) & 0xF) + 20;
             work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            angle              = (gRandomLcgState >> 16) & 0xFFF;
+            waypointYaw        = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            dist               = (gRandomLcgState >> 16) & 0x1FF;
-            work->targetPos.vx = work->homePos.vx + ((dist * rsin(angle)) >> 12);
+            waypointRadius     = (gRandomLcgState >> 16) & 0x1FF;
+            work->targetPos.vx = work->homePos.vx + ((waypointRadius * rsin(waypointYaw)) >> ACTOR_03700_MATRIX_FRACTION_BITS);
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->targetPos.vy = work->homePos.vy + ((gRandomLcgState >> 16) & 0x1FF);
-            work->targetPos.vz = work->homePos.vz + ((dist * rcos(angle)) >> 12);
-            vec->vx            = work->targetPos.vx - coord->coord.t[0];
-            vec->vy            = 0;
-            vec->vz            = work->targetPos.vz - coord->coord.t[2];
-            work->targetYaw    = ratan2(vec->vx, vec->vz) & 0xFFF;
-            work->actionStep   = 1;
+            work->targetPos.vz = work->homePos.vz + ((waypointRadius * rcos(waypointYaw)) >> ACTOR_03700_MATRIX_FRACTION_BITS);
+            targetOffset->vx   = work->targetPos.vx - coord->coord.t[0];
+            targetOffset->vy   = 0;
+            targetOffset->vz   = work->targetPos.vz - coord->coord.t[2];
+            work->targetYaw    = ratan2(targetOffset->vx, targetOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->actionStep   = ACTOR_03700_WANDER_FOLLOW_TARGET;
             break;
-        case 1:
-            vec->vx = work->targetPos.vx - coord->coord.t[0];
-            vec->vz = work->targetPos.vz - coord->coord.t[2];
-            if ((s16)SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz) < 120) {
-                work->actionStep = 0;
+        case ACTOR_03700_WANDER_FOLLOW_TARGET:
+            targetOffset->vx = work->targetPos.vx - coord->coord.t[0];
+            targetOffset->vz = work->targetPos.vz - coord->coord.t[2];
+            if ((s16)SquareRoot0(targetOffset->vx * targetOffset->vx + targetOffset->vz * targetOffset->vz) < 120) {
+                work->actionStep = ACTOR_03700_WANDER_PICK_TARGET;
             }
             break;
     }
-    Actor03700_Fn032BC(task, 0, 14);
-    Actor03700_Fn03320(task, 20);
-    if (Actor03700_Fn01DFC(task) != 0) {
+    _actor03700StepBob(task, 0, ACTOR_03700_BOB_NORMAL_PERIOD);
+    _actor03700StepSway(task, 20);
+    if (_actor03700NoticePlayer(task) != 0) {
         work->action                       = ACTOR_03700_ACTION_CHASE;
         work->actionStep                   = 0;
         gSceneCombatState.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
@@ -1224,43 +1297,61 @@ static void Actor03700_Fn00ABC(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-static void Actor03700_Fn00D5C(Task* task)
+/// Integrates the path segment covering the current takeoff animation tick.
+///
+/// The first covering segment wins. Divisions truncate per-tick Y and forward
+/// movement; table entries have positive frame counts and ordered last ticks.
+/// `segments` borrows `segmentCount` elements for this call; it is not retained.
+static inline void _actor03700StepTakeoffPath(_Actor03700Work* work, GfxCoord* coord, const _Actor03700TakeoffSegment* segments, s32 segmentCount)
+{
+    s32 segmentIndex;
+    s32 advancePerTick;
+
+    for (segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++) {
+        if (segments[segmentIndex].lastFrame >= work->animFrame) {
+            coord->coord.t[1] += segments[segmentIndex].deltaY / segments[segmentIndex].frameCount;
+            advancePerTick     = segments[segmentIndex].advance / segments[segmentIndex].frameCount;
+            coord->coord.t[0] += (rsin(work->yaw) * advancePerTick) >> ACTOR_03700_MATRIX_FRACTION_BITS;
+            coord->coord.t[2] += (rcos(work->yaw) * advancePerTick) >> ACTOR_03700_MATRIX_FRACTION_BITS;
+            break;
+        }
+    }
+}
+
+/// Leaves its perch after an alert and a random 0..63-tick delay.
+///
+/// The takeoff drops and swoops forward along the placement yaw.
+/// Each animation tick uses the first covering path segment; integer
+/// division truncates its vertical and forward increments. At tick 50
+/// the actor requests the flying animation and starts chasing.
+static void _actor03700DropFromPerch(Task* task)
 {
     _Actor03700Work* work;
     GfxCoord*        coord;
-    s32              dist;
-    s32              i;
 
     work  = task->work;
     coord = task->extra.tmd->coords;
 
     switch (work->actionStep) {
-        case 0:
-            if (Actor03700_Fn01DFC(task) != 0) {
+        case ACTOR_03700_PERCH_WAIT_FOR_ALERT:
+            if (_actor03700NoticePlayer(task) != 0) {
                 gSceneCombatState.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
                 gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->actionStep                   = 1;
+                work->actionStep                   = ACTOR_03700_PERCH_DELAY_TAKEOFF;
                 work->timer                        = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
-        case 1:
+        case ACTOR_03700_PERCH_DELAY_TAKEOFF:
             if (--work->timer <= 0) {
-                work->actionStep = 2;
+                work->actionStep = ACTOR_03700_PERCH_TAKEOFF;
                 work->timer      = 0;
                 work->anim       = ACTOR_03700_ANIM_TAKEOFF_DROP;
             }
             break;
-        case 2:
-            for (i = 0; i < 7; i++) {
-                if (Actor03700_D07FF4[i].lastFrame >= work->animFrame) {
-                    coord->coord.t[1] += Actor03700_D07FF4[i].deltaY / Actor03700_D07FF4[i].frameCount;
-                    dist               = Actor03700_D07FF4[i].advance / Actor03700_D07FF4[i].frameCount;
-                    coord->coord.t[0] += (rsin(work->yaw) * dist) >> 12;
-                    coord->coord.t[2] += (rcos(work->yaw) * dist) >> 12;
-                    break;
-                }
-            }
-            if (work->animFrame >= 50) {
+        // Integrate the first segment that still covers this animation tick.
+        case ACTOR_03700_PERCH_TAKEOFF:
+            _actor03700StepTakeoffPath(work, coord, Actor03700_D07FF4, ARRAY_SIZE(Actor03700_D07FF4));
+            if (work->animFrame >= ACTOR_03700_TAKEOFF_LAST_TICK) {
                 work->anim                         = ACTOR_03700_ANIM_FLY;
                 work->action                       = ACTOR_03700_ACTION_CHASE;
                 work->actionStep                   = 0;
@@ -1270,43 +1361,40 @@ static void Actor03700_Fn00D5C(Task* task)
     }
 }
 
-static void Actor03700_Fn00F88(Task* task)
+/// Leaves its perch after an alert and a random 0..63-tick delay.
+///
+/// The takeoff pushes off backwards along the placement yaw.
+/// Each animation tick uses the first covering path segment; integer
+/// division truncates its vertical and forward increments. At tick 50
+/// the actor requests the flying animation and starts chasing.
+static void _actor03700BackOffPerch(Task* task)
 {
     _Actor03700Work* work;
     GfxCoord*        coord;
-    s32              dist;
-    s32              i;
 
     work  = task->work;
     coord = task->extra.tmd->coords;
 
     switch (work->actionStep) {
-        case 0:
-            if (Actor03700_Fn01DFC(task) != 0) {
+        case ACTOR_03700_PERCH_WAIT_FOR_ALERT:
+            if (_actor03700NoticePlayer(task) != 0) {
                 gSceneCombatState.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
                 gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->actionStep                   = 1;
+                work->actionStep                   = ACTOR_03700_PERCH_DELAY_TAKEOFF;
                 work->timer                        = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
-        case 1:
+        case ACTOR_03700_PERCH_DELAY_TAKEOFF:
             if (--work->timer <= 0) {
-                work->actionStep = 2;
+                work->actionStep = ACTOR_03700_PERCH_TAKEOFF;
                 work->timer      = 0;
                 work->anim       = ACTOR_03700_ANIM_TAKEOFF_BACK;
             }
             break;
-        case 2:
-            for (i = 0; i < 9; i++) {
-                if (Actor03700_D0802C[i].lastFrame >= work->animFrame) {
-                    coord->coord.t[1] += Actor03700_D0802C[i].deltaY / Actor03700_D0802C[i].frameCount;
-                    dist               = Actor03700_D0802C[i].advance / Actor03700_D0802C[i].frameCount;
-                    coord->coord.t[0] += (rsin(work->yaw) * dist) >> 12;
-                    coord->coord.t[2] += (rcos(work->yaw) * dist) >> 12;
-                    break;
-                }
-            }
-            if (work->animFrame >= 50) {
+        // Integrate the first segment that still covers this animation tick.
+        case ACTOR_03700_PERCH_TAKEOFF:
+            _actor03700StepTakeoffPath(work, coord, Actor03700_D0802C, ARRAY_SIZE(Actor03700_D0802C));
+            if (work->animFrame >= ACTOR_03700_TAKEOFF_LAST_TICK) {
                 work->anim                         = ACTOR_03700_ANIM_FLY;
                 work->action                       = ACTOR_03700_ACTION_CHASE;
                 work->actionStep                   = 0;
@@ -1345,7 +1433,7 @@ static void Actor03700_Fn011B4(Task* task)
                 work->dashDone = 0;
             }
             work->turnRate = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
-            Actor03700_Fn03320(task, 20);
+            _actor03700StepSway(task, 20);
             if (work->yaw == work->targetYaw) {
                 work->actionStep = 1;
                 work->speed      = Actor03700_D07F1C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
@@ -1364,7 +1452,7 @@ static void Actor03700_Fn011B4(Task* task)
             }
             break;
         case 1:
-            Actor03700_Fn03320(task, 40);
+            _actor03700StepSway(task, 40);
             if (--work->timer <= 0) {
                 work->actionStep = 0;
                 work->timer      = 0;
@@ -1386,7 +1474,7 @@ static void Actor03700_Fn011B4(Task* task)
             }
             break;
     }
-    Actor03700_Fn032BC(task, 0, 14);
+    _actor03700StepBob(task, 0, ACTOR_03700_BOB_NORMAL_PERIOD);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
@@ -1460,35 +1548,53 @@ static void Actor03700_Fn01550(Task* task)
             }
             break;
     }
-    Actor03700_Fn032BC(task, 1, 14);
+    _actor03700StepBob(task, 1, ACTOR_03700_BOB_NORMAL_PERIOD);
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
-static void Actor03700_Fn018C8(Task* task)
+/// Backs away and returns to chase, or recoils after a repelling hit.
+///
+/// Normal entry resets the strike count and sets all five animation rates
+/// to 10..13, backs away at 50 units per tick, then approaches at 5 units
+/// per tick for 91 ticks. Entry at step 3 recoils at 125 units per tick
+/// without turning, then hovers until a table-selected 245..310-tick
+/// countdown expires; that countdown includes the recoil.
+/// Both paths add bob and sway; the recoil path uses a 22-tick bob.
+/// The placement's turn-rate row must be 0..7.
+static void _actor03700Retreat(Task* task)
 {
-    _Actor03700Work* work;
-    GfxCoord*        obj;
-    s32              period;
-    s32              i;
-    s32              slot;
-    s32              sound;
+    enum {
+        ACTOR_03700_RETREAT_BEGIN       = 0,
+        ACTOR_03700_RETREAT_BACK_AWAY   = 1,
+        ACTOR_03700_RETREAT_RETURN      = 2,
+        ACTOR_03700_RETREAT_BEGIN_REPEL = 3,
+        ACTOR_03700_RETREAT_REPEL_HOVER = 4,
+        ACTOR_03700_RETREAT_SOUND       = SOUND_CHARACTER(0x25, 3)
+    };
 
-    work   = task->work;
-    obj    = task->extra.tmd->coords;
-    period = 14;
+    _Actor03700Work* work;
+    GfxCoord*        coord;
+    s32              bobPeriod;
+    s32              slotIndex;
+    s32              animationRate;
+    s32              soundId;
+
+    work      = task->work;
+    coord     = task->extra.tmd->coords;
+    bobPeriod = ACTOR_03700_BOB_NORMAL_PERIOD;
 
     switch (work->actionStep) {
-        case 0:
-            work->actionStep   = 1;
+        case ACTOR_03700_RETREAT_BEGIN:
+            work->actionStep   = ACTOR_03700_RETREAT_BACK_AWAY;
             work->timer        = 30;
             work->retreatTimer = Actor03700_D07F3C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             work->attackCount  = 0;
-            slot               = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 10;
-            for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-                work->rig.slots[i].rate = slot;
+            animationRate      = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 10;
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                work->rig.slots[slotIndex].rate = animationRate;
             }
             break;
-        case 1:
+        case ACTOR_03700_RETREAT_BACK_AWAY:
             work->targetPos.vx = gPlayerStatus.coordMtx->t[0];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
@@ -1498,37 +1604,38 @@ static void Actor03700_Fn018C8(Task* task)
                 work->speed = -50;
             } else {
                 work->speed = 0;
-                Actor03700_Fn03320(task, 20);
+                _actor03700StepSway(task, 20);
             }
             if (--work->timer <= 0) {
-                work->actionStep = 2;
+                work->actionStep = ACTOR_03700_RETREAT_RETURN;
                 work->timer      = 0;
                 work->speed      = 0;
             }
             break;
-        case 2:
+        case ACTOR_03700_RETREAT_RETURN:
             work->targetPos.vx = gPlayerStatus.coordMtx->t[0];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x1FF) + 800);
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
             work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             work->speed        = 5;
-            Actor03700_Fn03320(task, 20);
+            _actor03700StepSway(task, 20);
             if (++work->timer >= 91) {
                 work->timer      = 0;
                 work->action     = ACTOR_03700_ACTION_CHASE;
                 work->actionStep = 0;
             }
             break;
-        case 3:
+        // Repelling hits enter here and keep the existing heading.
+        case ACTOR_03700_RETREAT_BEGIN_REPEL:
             work->timer        = Actor03700_D07F5C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             work->retreatTimer = 15;
-            work->actionStep   = 4;
+            work->actionStep   = ACTOR_03700_RETREAT_REPEL_HOVER;
             work->turnRate     = 0;
-            sound              = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250003;
-            sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
+            soundId            = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_03700_RETREAT_SOUND;
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             break;
-        case 4:
+        case ACTOR_03700_RETREAT_REPEL_HOVER:
             if (--work->retreatTimer > 0) {
                 work->speed = -125;
             } else {
@@ -1539,44 +1646,52 @@ static void Actor03700_Fn018C8(Task* task)
                 work->action     = ACTOR_03700_ACTION_CHASE;
                 work->actionStep = 0;
             }
-            Actor03700_Fn03320(task, 80);
-            period = 21;
+            _actor03700StepSway(task, 80);
+            bobPeriod = ACTOR_03700_BOB_LONG_PERIOD;
             break;
     }
-    Actor03700_Fn032BC(task, 0, period);
+    _actor03700StepBob(task, 0, bobPeriod);
 }
 
-static void Actor03700_Fn01C94(Task* task)
+/// Releases a held player after a repelling hit, then starts retreating.
+///
+/// Installs the package's player-release animation once and keeps the hold
+/// until playback ends. The request is borrowed only during synchronous
+/// dispatch and its scratch storage is released before returning.
+static void _actor03700ReleasePlayer(Task* task)
 {
+    enum {
+        ACTOR_03700_RELEASE_START_ANIMATION    = 0,
+        ACTOR_03700_RELEASE_WAIT_FOR_ANIMATION = 1,
+        ACTOR_03700_PLAYER_RELEASE_ANIMATION   = 2
+    };
+
     _Actor03700Work*      work;
-    GfxCoord*             obj;
+    GfxCoord*             coord;
     Task*                 player;
-    void*                 head;
-    AnimationPlayRequest* arg;
-    s32                   sound;
+    AnimationPlayRequest* releaseRequest;
+    s32                   soundId;
     s32                   pan;
 
-    work                       = task->work;
-    obj                        = task->extra.tmd->coords;
-    player                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(AnimationPlayRequest);
-    arg                        = SCRATCH_STACK_CURSOR(AnimationPlayRequest);
+    work           = task->work;
+    coord          = task->extra.tmd->coords;
+    player         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    releaseRequest = SCRATCH_STACK_RESERVE_BLOCK(AnimationPlayRequest);
 
     switch (work->actionStep) {
-        case 0:
-            arg->source.sets          = Actor03700_D080FC;
-            arg->animationId          = 2;
-            arg->blend                = ANIMATION_BLEND_RESET;
-            arg->blendFrames          = 0;
-            arg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, arg, 0);
-            sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
-            pan   = (s8)worldCoordGetOriginAudioPan(obj);
-            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
-            work->actionStep = 1;
+        case ACTOR_03700_RELEASE_START_ANIMATION:
+            releaseRequest->source.sets          = Actor03700_D080FC;
+            releaseRequest->animationId          = ACTOR_03700_PLAYER_RELEASE_ANIMATION;
+            releaseRequest->blend                = ANIMATION_BLEND_RESET;
+            releaseRequest->blendFrames          = 0;
+            releaseRequest->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, releaseRequest, 0);
+            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_PLAYER_STRUCK;
+            pan     = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            work->actionStep = ACTOR_03700_RELEASE_WAIT_FOR_ANIMATION;
             break;
-        case 1:
+        case ACTOR_03700_RELEASE_WAIT_FOR_ANIMATION:
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 work->holdingPlayer = 0;
@@ -1585,115 +1700,123 @@ static void Actor03700_Fn01C94(Task* task)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(AnimationPlayRequest));
+    SCRATCH_STACK_RELEASE_BLOCK(AnimationPlayRequest);
 }
 
-/// Tests whether the actor has noticed the player: true when the player is
-/// under 0x708 units away on the XZ plane (the offset is staged on the
-/// scratchpad stack), mid-action (`gSceneCombatState.signals.bytes.actionFlags` low nibble) or holding
-/// the aim button (`field_19` bit 0). On noticing, it arms `gSceneCombatState` and
-/// plays the alert cue from the placement's sound bank. Returns 1 when noticed.
-static s32 Actor03700_Fn01DFC(Task* task)
+/// Detects a player stimulus and queues the bat's alert cue.
+///
+/// Returns 1 when the player is less than 1800 units away in X/Z, makes
+/// noise or uses PE, or the group alert is already latched; otherwise 0.
+/// Offsets narrow to signed halfwords in the roots' common parent frame.
+/// A positive result engages the battle and queues the cue each call;
+/// the caller latches the group alert. Borrows one scratch vector.
+static s32 _actor03700NoticePlayer(Task* task)
 {
-    void**    scratch;
-    u8*       head;
-    SVECTOR*  vec;
+    enum { ACTOR_03700_NOTICE_RADIUS = 1800 };
+
+    void**    cursorSlot;
+    SVECTOR*  scratchTop;
+    SVECTOR*  playerOffset;
     GfxCoord* coord;
-    s16       dx;
-    s16       dz;
-    s32       ret;
+    s16       offsetX;
+    s16       offsetZ;
+    s32       noticed;
     u32       soundId;
     s32       pan;
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    vec                            = (SVECTOR*)(head - 8);
-    coord                          = task->extra.tmd->coords;
-    vec->vx                        = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    dz                             = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = vec;
-    vec->vz                        = dz;
-    dx                             = ((SVECTOR*)(head - 8))->vx;
-    ret                            = 0;
-    if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x708) || (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_MASK)) || (gSceneCombatState.actor03700Flags & SCENE_COMBAT_ACTOR03700_ALERT)) {
-        ret = 1;
-        sceneEngageBattle(ret);
+    cursorSlot                           = SCRATCH_HEAD_ADDR;
+    scratchTop                           = SCRATCH_HEAD_AT(cursorSlot, SVECTOR);
+    playerOffset                         = scratchTop - 1;
+    coord                                = task->extra.tmd->coords;
+    playerOffset->vx                     = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    offsetZ                              = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
+    SCRATCH_HEAD_AT(cursorSlot, SVECTOR) = playerOffset;
+    playerOffset->vz                     = offsetZ;
+    offsetX                              = (scratchTop - 1)->vx;
+    noticed                              = 0;
+    if ((SquareRoot0((offsetX * offsetX) + (offsetZ * offsetZ)) < ACTOR_03700_NOTICE_RADIUS) || (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_ACTIVE | SCENE_COMBAT_ACTION_PE_CAST_MASK)) || (gSceneCombatState.actor03700Flags & SCENE_COMBAT_ACTOR03700_ALERT)) {
+        noticed = 1;
+        sceneEngageBattle(noticed);
         soundId   = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-        soundId >>= 0xC;
+        soundId >>= ENEMY_PLACE_INDEX_SHIFT;
         soundId <<= 8;
-        soundId  |= 0x40250000 | ret;
+        soundId  |= SOUND_CHARACTER(0x25, 0) | noticed;
         pan       = (s8)worldCoordGetOriginAudioPan(coord);
         sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
-    return ret;
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+    return noticed;
 }
 
-/// Turns the root coordinate towards the target position `targetPos`:
-/// `targetYaw` becomes the heading to the target, and `yaw` steps from
-/// the matrix's current heading towards it by at most `turnRate`, taking the
-/// short way round. The result is written back as a Y rotation.
-static void Actor03700_Fn01F48(Task* task)
+/// Turns the model root toward its target by at most the requested turn rate.
+///
+/// Angles use 4096 units per turn. The X/Z target offset narrows to signed
+/// halfwords before measuring its bearing. The heading is read from the
+/// root matrix and replaced with a pure Y rotation; translation remains.
+/// The shortest turn is chosen, with the wrapped branch used at exactly
+/// half a turn. Callers supply a nonnegative turn rate (0 keeps heading).
+static void _actor03700TurnTowardTarget(Task* task)
 {
     _Actor03700Work* work;
     GfxCoord*        coord;
-    SVECTOR*         rot;
-    u16              want;
-    s16              ang;
-    s16              diff;
-    s32              adiff;
-    s32              step;
-    s32              cur;
-    s32              next;
-    s32              wrapStep;
+    SVECTOR*         targetOffsetAndRotation;
+    u16              targetYaw;
+    s16              currentYaw;
+    s16              yawDelta;
+    s32              angleDistance;
+    s32              turnLimit;
+    s32              storedYaw;
+    s32              nextYaw;
+    s32              wrappedTurnLimit;
 
-    coord           = task->extra.tmd->coords;
-    work            = task->work;
-    rot             = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    rot->vx         = work->targetPos.vx - coord->coord.t[0];
-    rot->vy         = 0;
-    rot->vz         = work->targetPos.vz - coord->coord.t[2];
-    work->targetYaw = ratan2(rot->vx, rot->vz) & 0xFFF;
-    ang             = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-    want            = work->targetYaw;
-    ang            &= 0xFFF;
-    diff            = want - ang;
-    adiff           = diff >= 0 ? diff : -diff;
+    coord                       = task->extra.tmd->coords;
+    work                        = task->work;
+    targetOffsetAndRotation     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    targetOffsetAndRotation->vx = work->targetPos.vx - coord->coord.t[0];
+    targetOffsetAndRotation->vy = 0;
+    targetOffsetAndRotation->vz = work->targetPos.vz - coord->coord.t[2];
+    work->targetYaw             = ratan2(targetOffsetAndRotation->vx, targetOffsetAndRotation->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+    currentYaw                  = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+    targetYaw                   = work->targetYaw;
+    currentYaw                 &= ACTOR_TRANSFORM_ANGLE_MASK;
+    yawDelta                    = targetYaw - currentYaw;
+    angleDistance               = yawDelta >= 0 ? yawDelta : -yawDelta;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    work->yaw = currentYaw;
+    // Retain the opposite half-turn choice when the headings differ by exactly 2048.
+    if (angleDistance < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnLimit = work->turnRate;
+        if (turnLimit >= angleDistance) {
+            work->yaw = targetYaw;
         } else {
-            next = ang;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = currentYaw;
+            if (yawDelta <= 0) {
+                nextYaw -= turnLimit;
             } else {
-                next += step;
+                nextYaw += turnLimit;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnRate;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        turnLimit = work->turnRate;
+        if (yawDelta > 0 ? turnLimit >= ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : turnLimit >= ACTOR_TRANSFORM_ANGLE_TURN + yawDelta) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                next = cur - wrapStep;
+            wrappedTurnLimit = work->turnRate;
+            storedYaw        = work->yaw;
+            if (yawDelta > 0) {
+                nextYaw = storedYaw - wrappedTurnLimit;
             } else {
-                next = cur + wrapStep;
+                nextYaw = storedYaw + wrappedTurnLimit;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     }
-    rot->vx = 0;
-    rot->vy = work->yaw;
-    rot->vz = 0;
-    RotMatrix(rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    targetOffsetAndRotation->vx = 0;
+    targetOffsetAndRotation->vy = work->yaw;
+    targetOffsetAndRotation->vz = 0;
+    RotMatrix(targetOffsetAndRotation, &coord->coord);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Relights the actor for the world position of its root coordinate.
@@ -1785,7 +1908,7 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             if (work->waveDirector != 0) {
-                Actor03700_Fn0355C(task);
+                _actor03700AdvanceWave(task);
             }
             switch (work->actionStep) {
                 case 0:
@@ -1857,49 +1980,60 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
     }
 }
 
-/// `ACTION_WAVE_WAIT`: keeps the actor hidden, unlockable and out of the
-/// contact passes until `gSceneCombatState.actor03700Wave` reaches the placement's `mode - 9`, then
-/// counts `timer` down from 5 and picks a target position `targetPos` above
-/// the root coordinate from `gRandomLcgState` - a lower one and `ACTION_ENTER_LOW`
-/// where `mode - 9` is below 10, a higher one and `ACTION_ENTER_HIGH` otherwise -
-/// before re-enabling the body, rearming a random countdown and allocating the
-/// model buffers.
-static void Actor03700_Fn025C8(Task* task)
+/// Keeps a wave enemy hidden until its placement's activation counter is reached.
+///
+/// The threshold is placement mode - 9. After five ticks it enables the
+/// collision sphere, allocates model buffers and selects a randomized
+/// entrance target: 850..1361 units above for thresholds below 10, or
+/// 1850..2361 above otherwise, with X/Z offsets 0..255. The entrance
+/// receives a fresh 0..31-tick delay. Y is down; packed target components
+/// retain signed-halfword truncation. Drawing resumes on the next tick.
+static void _actor03700WaitForWave(Task* task)
 {
-    TmdObject*       obj;
-    TmdObject*       ext;
-    _Actor03700Work* work;
-    Enemy*           spawn;
-    GfxCoord*        coord;
-    s32              diff;
+    enum { ACTOR_03700_WAVE_WAIT_FOR_COUNTER = 0,
+           ACTOR_03700_WAVE_DELAY_ENTRY      = 1,
+           ACTOR_03700_WAVE_MODE_OFFSET      = 9,
+           ACTOR_03700_WAVE_HIGH_THRESHOLD   = 10,
+           ACTOR_03700_WAVE_START_DELAY      = 5,
+           ACTOR_03700_WAVE_LOW_RISE         = 850,
+           ACTOR_03700_WAVE_HIGH_RISE        = 1850 };
 
-    ext                           = task->extra.tmd;
-    work                          = task->work;
-    coord                         = ext->coords;
-    spawn                         = (Enemy*)task->spawnArg2.pointer;
-    obj                           = ext;
+    TmdObject*       model;
+    TmdObject*       taskModel;
+    _Actor03700Work* work;
+    Enemy*           enemy;
+    GfxCoord*        coord;
+    s32              activationWave;
+
+    taskModel = task->extra.tmd;
+    work      = task->work;
+    coord     = taskModel->coords;
+    enemy     = (Enemy*)task->spawnArg2.pointer;
+    // Both pointers refer to one model; separate uses retain instruction scheduling.
+    model                         = taskModel;
     work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    obj->flags                   |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-    spawn->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    model->flags                 |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
 
     switch (work->actionStep) {
-        case 0:
-            diff = spawn->place->mode - 9;
-            if (gSceneCombatState.actor03700Wave >= diff) {
-                work->actionStep = 1;
-                work->timer      = 5;
+        case ACTOR_03700_WAVE_WAIT_FOR_COUNTER:
+            activationWave = enemy->place->mode - ACTOR_03700_WAVE_MODE_OFFSET;
+            if (gSceneCombatState.actor03700Wave >= activationWave) {
+                work->actionStep = ACTOR_03700_WAVE_DELAY_ENTRY;
+                work->timer      = ACTOR_03700_WAVE_START_DELAY;
             }
             break;
-        case 1:
-            diff = spawn->place->mode - 9;
+        case ACTOR_03700_WAVE_DELAY_ENTRY:
+            activationWave = enemy->place->mode - ACTOR_03700_WAVE_MODE_OFFSET;
             if (--work->timer <= 0) {
+                // Choose an arrival point above the root before enabling contact and buffers.
                 work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                if (diff < 10) {
+                if (activationWave < ACTOR_03700_WAVE_HIGH_THRESHOLD) {
                     work->action       = ACTOR_03700_ACTION_ENTER_LOW;
                     gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->targetPos.vx = (u16)coord->coord.t[0] + ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vy = (u16)coord->coord.t[1] - (((gRandomLcgState >> 16) & 0x1FF) + 0x352);
+                    work->targetPos.vy = (u16)coord->coord.t[1] - (((gRandomLcgState >> 16) & 0x1FF) + ACTOR_03700_WAVE_LOW_RISE);
                     gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->targetPos.vz = (u16)coord->coord.t[2] + ((gRandomLcgState >> 16) & 0xFF);
                 } else {
@@ -1907,56 +2041,66 @@ static void Actor03700_Fn025C8(Task* task)
                     gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->targetPos.vx = (u16)coord->coord.t[0] + ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vy = (u16)coord->coord.t[1] - (((gRandomLcgState >> 16) & 0x1FF) + 0x73A);
+                    work->targetPos.vy = (u16)coord->coord.t[1] - (((gRandomLcgState >> 16) & 0x1FF) + ACTOR_03700_WAVE_HIGH_RISE);
                     gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->targetPos.vz = (u16)coord->coord.t[2] + ((gRandomLcgState >> 16) & 0xFF);
                 }
                 work->actionStep = 0;
                 gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->timer      = (gRandomLcgState >> 16) & 0x1F;
-                tmdAllocPrimitiveBuffer(obj);
-                obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+                tmdAllocPrimitiveBuffer(model);
+                model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
     }
 }
 
-/// `ACTION_ENTER_LOW` and `ACTION_ENTER_HIGH`, the entrance after the wave wait:
-/// counts `timer` down, then moves the root coordinate towards the target position
-/// `targetPos` by 75/2048 of the unit direction per frame until it is within 150
-/// on Y, then counts 30 frames and hands over to `ACTION_CHASE`, arming
-/// `gSceneCombatState`.
-static void Actor03700_Fn027DC(Task* task)
+/// Flies a wave enemy to its arrival height and starts chasing after a hover.
+///
+/// After the entry delay it takes approximately 150 root-coordinate units
+/// per tick along a normalized 3D target offset. Arrival tests only Y,
+/// within 150 units; it then waits 30 ticks, starts chase and engages
+/// the battle. The scratch block is released on every return.
+static void _actor03700EnterWave(Task* task)
 {
+    enum {
+        ACTOR_03700_ENTRY_DELAY            = 0,
+        ACTOR_03700_ENTRY_FLY              = 1,
+        ACTOR_03700_ENTRY_HOVER            = 2,
+        ACTOR_03700_ENTRY_DIRECTION_FACTOR = 75,
+        ACTOR_03700_ENTRY_DIRECTION_SHIFT  = 11,
+        ACTOR_03700_ENTRY_HEIGHT_TOLERANCE = 150,
+        ACTOR_03700_ENTRY_HOVER_TICKS      = 30
+    };
+
     _Actor03700EntryScratch* scratch;
     _Actor03700Work*         work;
     GfxCoord*                coord;
-    s32                      d;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor03700EntryScratch);
     work    = task->work;
     coord   = task->extra.tmd->coords;
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_03700_ENTRY_DELAY:
             if (--work->timer <= 0) {
-                work->actionStep = 1;
+                work->actionStep = ACTOR_03700_ENTRY_FLY;
             }
             break;
-        case 1:
+        // Normalized components use 4096 = 1.0, giving a 150-unit step.
+        case ACTOR_03700_ENTRY_FLY:
             scratch->toTarget.vx = work->targetPos.vx - coord->coord.t[0];
             scratch->toTarget.vy = work->targetPos.vy - coord->coord.t[1];
             scratch->toTarget.vz = work->targetPos.vz - coord->coord.t[2];
             VectorNormalS(&scratch->toTarget, &scratch->direction);
-            coord->coord.t[0] += (scratch->direction.vx * 75) >> 11;
-            coord->coord.t[1] += (scratch->direction.vy * 75) >> 11;
-            coord->coord.t[2] += (scratch->direction.vz * 75) >> 11;
-            d                  = (s32)work->targetPos.vy - coord->coord.t[1];
-            if ((d < 0 ? -d : d) < 150) {
-                work->actionStep = 2;
-                work->timer      = 30;
+            coord->coord.t[0] += (scratch->direction.vx * ACTOR_03700_ENTRY_DIRECTION_FACTOR) >> ACTOR_03700_ENTRY_DIRECTION_SHIFT;
+            coord->coord.t[1] += (scratch->direction.vy * ACTOR_03700_ENTRY_DIRECTION_FACTOR) >> ACTOR_03700_ENTRY_DIRECTION_SHIFT;
+            coord->coord.t[2] += (scratch->direction.vz * ACTOR_03700_ENTRY_DIRECTION_FACTOR) >> ACTOR_03700_ENTRY_DIRECTION_SHIFT;
+            if (abs(work->targetPos.vy - coord->coord.t[1]) < ACTOR_03700_ENTRY_HEIGHT_TOLERANCE) {
+                work->actionStep = ACTOR_03700_ENTRY_HOVER;
+                work->timer      = ACTOR_03700_ENTRY_HOVER_TICKS;
             }
             break;
-        case 2:
+        case ACTOR_03700_ENTRY_HOVER:
             if (--work->timer <= 0) {
                 work->action     = ACTOR_03700_ACTION_CHASE;
                 work->actionStep = 0;
@@ -2016,10 +2160,10 @@ static void Actor03700_Fn029C0(Task* task)
             coord->coord.t[1] += (scratch->direction.vy * 5) >> 9;
             coord->coord.t[2] += (scratch->direction.vz * 5) >> 9;
             work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
-            Actor03700_Fn01F48(task);
+            _actor03700TurnTowardTarget(task);
 
-            Actor03700_BobInline(task, 0, 21);
-            Actor03700_SwayInline(task, 80);
+            _actor03700ApplyBobStep(task, 0, ACTOR_03700_BOB_LONG_PERIOD);
+            _actor03700ApplySwayStep(task, 80);
 
             if (abs(work->targetPos.vy - coord->coord.t[1]) < 40) {
                 work->actionStep = 3;
@@ -2033,10 +2177,10 @@ static void Actor03700_Fn029C0(Task* task)
             work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
             work->turnRate     = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
-            Actor03700_Fn01F48(task);
+            _actor03700TurnTowardTarget(task);
 
-            Actor03700_BobInline(task, 0, 21);
-            Actor03700_SwayInline(task, 80);
+            _actor03700ApplyBobStep(task, 0, ACTOR_03700_BOB_LONG_PERIOD);
+            _actor03700ApplySwayStep(task, 80);
 
             if (work->timer == 30) {
                 gSceneCombatState.actor03700Wave = 2;
@@ -2094,13 +2238,13 @@ static void Actor03700_Fn03004(Enemy* enemy, Task* task)
         return;
     }
     if (work->turnRate != 0) {
-        Actor03700_Fn01F48(task);
+        _actor03700TurnTowardTarget(task);
     }
     if (work->speed != 0) {
         Actor03700_Fn0321C(task);
     }
     if (work->waveDirector != 0) {
-        Actor03700_Fn0355C(task);
+        _actor03700AdvanceWave(task);
     }
     Actor03700_Fn033F0(task);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2167,37 +2311,20 @@ static void Actor03700_Fn0321C(Task* task)
     coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> 12;
 }
 
-static void Actor03700_Fn032BC(Task* task, s32 arg1, s32 arg2)
+/// Adds a vertical flight-bob step to the model root.
+///
+/// `row` and `period` have the same inclusive-phase contract as that helper.
+static void _actor03700StepBob(Task* task, s32 row, s32 period)
 {
-    _Actor03700Work* work;
-    GfxCoord*        coord;
-
-    work  = task->work;
-    coord = task->extra.tmd->coords;
-
-    if (arg2 < ++work->bobPhase) {
-        work->bobPhase = 0;
-    }
-    coord->coord.t[1] += Actor03700_D07F98[(arg1 * 15) + work->bobPhase];
+    _actor03700ApplyBobStep(task, row, period);
 }
 
-static void Actor03700_Fn03320(Task* task, s32 arg1)
+/// Adds a sideways flight-sway step along the model root's local X axis.
+///
+/// `baseAmplitude` is in root-coordinate units and receives a 0..63 jitter.
+static void _actor03700StepSway(Task* task, s32 baseAmplitude)
 {
-    _Actor03700Work* work;
-    GfxCoord*        coord;
-    s32              amp;
-
-    work  = task->work;
-    coord = task->extra.tmd->coords;
-
-    if (++work->swayPhase >= 15) {
-        work->swayPhase     = 0;
-        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->swayAmplitude = arg1 + ((gRandomLcgState >> 16) & 0x3F);
-    }
-    amp                = (work->swayAmplitude * Actor03700_D07FD4[work->swayPhase] * 16) >> 16;
-    coord->coord.t[0] += (amp * coord->coord.m[0][0]) >> 12;
-    coord->coord.t[2] += (amp * coord->coord.m[2][0]) >> 12;
+    _actor03700ApplySwayStep(task, baseAmplitude);
 }
 
 /// Drives the five animation slots from the requested animation `anim`.
@@ -2238,12 +2365,13 @@ static void Actor03700_Fn034A0(Task* task)
     worldCoordUpdateActorColor(task->spawnArg2.pointer, &vec, 0, 0);
 }
 
-/// Handler for message 0x7DE. Ignored unless the actor is in one of its
-/// active actions (below `ACTION_WAVE_WAIT`) and the task is in its tick state.
-/// While the actor holds the player (`holdingPlayer`) it moves the hold to its
-/// release stage (`actionStep` = 3); otherwise it drops to `ACTION_RETREAT` with
-/// the flying animation requested. Always answers 0.
-s32 Actor03700_Fn034F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Requests release of an active bat's player hold, or retreat when it holds none.
+///
+/// Handles `ACTOR_MESSAGE_RELEASE_HOLD` without payload and always returns
+/// 0. Active actions below wave-wait respond only in the task's active
+/// state. A held player is released by the attack action's animation
+/// stage; an unheld actor starts normal retreat with the flying animation.
+static s32 _actor03700ReleaseHoldMsg(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2)
 {
     _Actor03700Work* work;
 
@@ -2251,11 +2379,11 @@ s32 Actor03700_Fn034F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (work->action >= ACTOR_03700_ACTION_WAVE_WAIT) {
         return 0;
     }
-    if (task->state != 1) {
+    if (task->state != ACTOR_03700_TASK_ACTIVE) {
         return 0;
     }
     if (work->holdingPlayer != 0) {
-        work->actionStep = 3;
+        work->actionStep = ACTOR_03700_ATTACK_START_RELEASE;
     } else {
         work->action     = ACTOR_03700_ACTION_RETREAT;
         work->anim       = ACTOR_03700_ANIM_FLY;
@@ -2264,37 +2392,55 @@ s32 Actor03700_Fn034F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-static void Actor03700_Fn0355C(Task* task)
+/// Advances the bat encounter's wave counter as scene battle holds are released.
+///
+/// The placement-mode-10 director changes counter 1 to 2, then advances
+/// to 3, 4 and 5 below 17, 14 and 10 outstanding battle references.
+/// Each call advances at most once. At counter 5, a dying director with
+/// no battle references marks itself finished so death teardown may end it.
+static void _actor03700AdvanceWave(Task* task)
 {
+    enum {
+        ACTOR_03700_WAVE_DORMANT          = 0,
+        ACTOR_03700_WAVE_ACTIVATED        = 1,
+        ACTOR_03700_WAVE_FIRST            = 2,
+        ACTOR_03700_WAVE_SECOND           = 3,
+        ACTOR_03700_WAVE_THIRD            = 4,
+        ACTOR_03700_WAVE_FINAL            = 5,
+        ACTOR_03700_SECOND_WAVE_REF_LIMIT = 17,
+        ACTOR_03700_THIRD_WAVE_REF_LIMIT  = 14,
+        ACTOR_03700_FINAL_WAVE_REF_LIMIT  = 10
+    };
+
     _Actor03700Work* work = task->work;
 
     switch (gSceneCombatState.actor03700Wave) {
-        case 0:
+        case ACTOR_03700_WAVE_DORMANT:
             break;
-        case 1:
-            gSceneCombatState.actor03700Wave = 2;
+        case ACTOR_03700_WAVE_ACTIVATED:
+            gSceneCombatState.actor03700Wave = ACTOR_03700_WAVE_FIRST;
             return;
-        case 2:
-            if (gSceneCombatState.battleRefs < 0x11) {
-                gSceneCombatState.actor03700Wave = 3;
+        case ACTOR_03700_WAVE_FIRST:
+            if (gSceneCombatState.battleRefs < ACTOR_03700_SECOND_WAVE_REF_LIMIT) {
+                gSceneCombatState.actor03700Wave = ACTOR_03700_WAVE_SECOND;
                 return;
             }
             break;
-        case 3:
-            if (gSceneCombatState.battleRefs < 0xE) {
-                gSceneCombatState.actor03700Wave = 4;
+        case ACTOR_03700_WAVE_SECOND:
+            if (gSceneCombatState.battleRefs < ACTOR_03700_THIRD_WAVE_REF_LIMIT) {
+                gSceneCombatState.actor03700Wave = ACTOR_03700_WAVE_THIRD;
                 return;
             }
             break;
-        case 4:
-            if (gSceneCombatState.battleRefs < 0xA) {
-                gSceneCombatState.actor03700Wave = 5;
+        case ACTOR_03700_WAVE_THIRD:
+            if (gSceneCombatState.battleRefs < ACTOR_03700_FINAL_WAVE_REF_LIMIT) {
+                gSceneCombatState.actor03700Wave = ACTOR_03700_WAVE_FINAL;
                 return;
             }
             break;
-        case 5:
-            if (task->state == 2 && gSceneCombatState.battleRefs == 0) {
-                work->waveDirector = 2;
+        case ACTOR_03700_WAVE_FINAL:
+            if (task->state == ACTOR_03700_TASK_DYING && gSceneCombatState.battleRefs == 0) {
+                work->waveDirector = ACTOR_03700_WAVE_DIRECTOR_FINISHED;
             }
             break;
     }
