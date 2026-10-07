@@ -764,7 +764,7 @@ static void _actor356100Alert(Task* actor);
 static void _actor356100Chase(Task* actor);
 
 /// Turn-aim tick of the state-8 clip run, the 356100 twin of
-/// `Actor01900_Fn04D14`.
+/// `_actor01900StateCircle`.
 static void func_actor_356100_80164ACC(Task* arg0);
 
 /// Turns through twice the entry bearing, then resumes circling or grabs.
@@ -775,6 +775,7 @@ static void func_actor_356100_80164ACC(Task* arg0);
 /// contacts. Completion is tested before that tick's turn, with a grab chosen
 /// only after two circles and within 900 units. Requires live initialized
 /// work, model and player state, with 16 scratch bytes plus helper storage.
+/// Shares the reflected-heading turn with `_actor01900StateTurnAround`.
 static void _actor356100TurnAround(Task* actor);
 
 /// Hops along an alternating oblique direction toward the player, then chases.
@@ -786,6 +787,7 @@ static void _actor356100TurnAround(Task* actor);
 /// 12..21 move the root; the increment reaching 30 selects chase. Requires
 /// live work, model and player in a common parent frame, 16 scratch bytes and
 /// contact-helper storage. The direct X/Z step does not check actor freeze.
+/// Shares the alternating-hop sequence with `_actor01900StateSidestep`.
 static void _actor356100Sidestep(Task* actor);
 
 /// Tick of the state-0xB aim run.
@@ -1653,7 +1655,7 @@ static void _actor356100Chase(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Turn-aim state body, the 356100 twin of `Actor01900_Fn04D14`: take a 0x10
+/// Turn-aim state body, the 356100 twin of `_actor01900StateCircle`: take a 0x10
 /// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// animation nodes, the frame counter and the `circleRateStep` clip phase. Once
 /// `stateCounter` has counted 7 frames the arm aims at the player — the player's

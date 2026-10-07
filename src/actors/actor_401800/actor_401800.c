@@ -1136,7 +1136,7 @@ static void            func_actor_401800_8013BB10(Task* arg0);
 #include "../../shared/odd_stranger_drive.inc.c"
 
 /// Binds the work block's light and color matrices onto the model object.
-/// Same body as `Actor01900_BindMatrices` / `_actor401300BindLightingMatrices`.
+/// Same body as `_actor01900BindLightingMatrices` / `_actor401300BindLightingMatrices`.
 static __inline__ void Actor401800_BindMatrices(Task* actor)
 {
     OddStrangerWork* work;
@@ -1151,7 +1151,7 @@ static __inline__ void Actor401800_BindMatrices(Task* actor)
 /// Enemy init: allocates the work block, binds the model matrices, sets up both
 /// animation contexts and the three hit/body `WorldCollisionBody` nodes, then picks the
 /// starting state and tint row from the spawn flags and rescales the model.
-/// Same body as `Actor01900_Fn02018` / `func_actor_401300_80134454`.
+/// Same body as `_actor01900Initialize` / `func_actor_401300_80134454`.
 static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 {
     SVECTOR             dir;

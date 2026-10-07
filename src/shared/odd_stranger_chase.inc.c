@@ -1,6 +1,6 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Turn-aim state body, as in `Actor01900_Fn04D14`: take a 0x10
+/// Turn-aim state body, as in `_actor01900StateCircle`: take a 0x10
 /// chase scratch off the scratch stack and, on the live-actor flag, key the
 /// two animation nodes, the frame counter and the `dashRateStep` clip phase.
 /// Once `exitCounter` has counted 7 frames the arm aims at the player - the

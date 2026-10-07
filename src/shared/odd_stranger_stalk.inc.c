@@ -1,7 +1,7 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
 /// State-2 aim body, as in the Horned Stranger's `func_actor_401300_8013CBAC` and
-/// `Actor01900_Fn042BC`: on the live-actor flag it resets the effect node, forks
+/// `_actor01900StateChase`: on the live-actor flag it resets the effect node, forks
 /// the first clip and seeds the animation slots, then walks both obstacle tables
 /// and aims the actor at the player with `gfxRotMatrixY` / `_actorRenderRescaleYaw`.
 /// `stateTimer` and `exitCounter` then count up under the `_playerDetectionSightBlocked`

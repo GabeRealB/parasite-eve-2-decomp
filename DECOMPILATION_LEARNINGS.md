@@ -1149,6 +1149,8 @@ offset, a scale, a magic constant — and, when the brief's similar-body list
 names a candidate, read its source first. `grep -rn 0x171 src/` found
 `Actor01900_Fn05B4C` in `src/actors/lib/actor_101900_text.c` for
 `_actor356100Sidestep`; the two were instruction-for-instruction
+`_actor01900StateSidestep` in `src/actors/lib/actor_101900_text.c` for
+`func_actor_356100_80165B30`; the two were instruction-for-instruction
 identical (314 instructions, only the field offsets differing), so every
 codegen question the diff left open — which register a halfword lands in,
 whether a load hoists above an intervening store — was already answered.
@@ -2111,7 +2113,7 @@ This is the unpinned form of "Pin the wrap dest so `temp = delta` is
 temps were `s32`. Same shape as `func_acropolis_bridge_80185104`
 (`s16 diff, t`).
 
-`Actor01900_Fn03854` is the example. Controlled `base_9.c` reproduced the
+`_actor01900StateAlert` is the example. Controlled `base_9.c` reproduced the
 permuter a6 wrap object (98.75%). Inputs: `base_9.i`
 `1e77b681081642aeef04df2d7f056f2e00c0e6bb82879891898eb65a8e21fd7b`,
 assembly `756eecb8f6991d1057b4afbfdee70864317b7481586cc8990f5f17bdcb137ff4`.
@@ -2132,7 +2134,7 @@ keeps `model` in `$v0` and orders the `lui` after that load. Assigning the
 same pointer into a longer-lived name (the then-branch's `obj`) put
 `field_2C` in `$a0` and inserted a nop.
 
-`Actor01900_Fn03854` `base_11.c` (99.661%). Inputs: `base_11.i`
+`_actor01900StateAlert` `base_11.c` (99.661%). Inputs: `base_11.i`
 `2ed06392880968e696c8979c58fa8bac1b3a12904e77d48ee813ac2318a098c6`,
 assembly `cc92dcc0a02e4a854ddffbcc551f4934fb6c4b196b3520df4e34096972a318b7`.
 
@@ -44068,7 +44070,7 @@ shared pseudo's live range spans both arms, so it is ordered against the yaw
 temp differently than two per-arm temps would be, and takes `$v1` first.
 
 Declaring `s32 diffPos; s32 diffNeg;` and using one per arm — the form the
-`Actor01900_Fn04D14` sibling is already written in — moved the yaw temp to
+`_actor01900StateCircle` sibling is already written in — moved the yaw temp to
 `$v1` and the arm temp to `$a0` for 100%, with no other edit. When the leftover
 is a two-register swap whose operands are all correct against each other, check
 whether one of them is a temp shared by two symmetric arms before touching the
@@ -44855,7 +44857,7 @@ header and the blank line, and the resulting `target.o` has no `T` symbol, so
 `build.sh` aborts with "Compiled object has no text symbols" before it ever
 scores. Use `1,2d` for the **first** block and `1,3d` for the interior ones —
 `mips-linux-gnu-nm target.o` should show the `Fn` symbol as `T` and each
-interior label as `t`. `Actor01900_Fn0A6CC` (0xA6CC..0xA764, three interior
+interior label as `t`. `_actor01900Exit` (0xA6CC..0xA764, three interior
 labels) is the small worked example.
 
 ## `%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction
@@ -84364,7 +84366,7 @@ on the state access. Inputs: `base_2.i`
 ## A ported `similar` sibling's struct starts at offset 0 — the leading pad is part of the layout
 
 `_oddStrangerExit` (USA/actors/actor_401800) is the case sections 26
-and 27 describe: BRIEF listed `Actor01900_Fn0A6CC` at 1.00 in `shape` and
+and 27 describe: BRIEF listed `_actor01900Exit` at 1.00 in `shape` and
 `calls`, `overlay_dup_index.py find` reported a single copy — itself — and the
 sibling's matched C in `src/actors/lib/actor_101900_text.c` is the whole control
 flow. Only the work struct differs: the three `WorldCollisionBody` nodes are at the same
@@ -88120,7 +88122,7 @@ instructions, 96.8%); as `s32` it stays `lh`, which gives 100%.
 
 ## A lone store cannot win `potential_hazard`: it needs a second memory insn in its sched block
 
-`Actor01900_Fn03C98` stalled at 95.995% with a single `reorder`: the target has
+`_actor01900ApplyCappedGridPushback` stalled at 95.995% with a single `reorder`: the target has
 `move a0,s0 / move a1,s0 / jal VectorNormalSS / sh zero,0x12(s1)` and the build
 put the `sh` first, leaving `move a1` in the delay slot. The source store was
 already right before the call; arg moves, store, and the call's other
@@ -88163,7 +88165,7 @@ or store. Look for a statement that follows the arm and could be copied into it.
 
 ## A clamp that recomputes `x - k` instead of reusing `diff`: test a reload, store from the field
 
-`Actor01900_Fn04D14` (actors/actor_101900) clamps a wrapped turn toward ±0x60
+`_actor01900StateCircle` (actors/actor_101900) clamps a wrapped turn toward ±0x60
 around ±1000. The ROM computes `diff = turn - 1000` into `$a0` for the abs and
 sign tests, then *recomputes* `addiu v0, v1, -1000` in the delay slot of the
 `abs < 0x60` branch rather than storing `$a0`. Every form with one `turn`
@@ -88237,7 +88239,7 @@ In the same function a `RescaleYaw` inline releases its block
 `SVECTOR` (`head = *G; vec = head - 1`). CSE equates `head` with the released
 value, and the address fold for `head[-1].vx` chose that pseudo (`-8($s2)`),
 keeping it alive in a callee-saved register. The target reads `0x2C($s2)` off the
-*pre-release* pointer; `vec->vx` produced it. Actor01900_MoveForward's
+*pre-release* pointer; `vec->vx` produced it. actorMoveForwardNonzero's
 `head[-1].vx` still matches where no release precedes it, so this is context,
 not a rule: try both spellings when the base register of the first component
 read is the only regs diff.
@@ -88289,7 +88291,7 @@ cost**, which is `(plus x 44)`, so `vec->vx` becomes `0x2C(x)`. A
 `(plus head -8)` address only has equal-cost `(plus x 44)` alternatives and is
 left alone. `vec->vy` / `vec->vz` (`(plus vec 2)`) stay on `vec` for the same
 reason. Fix in `Actor01900_Fn06100`: `actorStepForward` (reads `vec->vx`)
-instead of `Actor01900_StepForwardHead`.
+instead of `_actorMovementStepForward`.
 
 ## A base-register + displacement residual at ≥99%: grep the corpus for the address, not the mechanism
 
@@ -103361,7 +103363,7 @@ the discriminator: 55 unmatched functions under `asm/USA/actors` open with the
 same `addu $a1` + `lui`, and 5 of them carry this table-copy shape.
 
 Name the type from the whole table, not from the call: `Actor01900_D0023C`'s
-four words point at `Actor01900_Fn02018`, `Actor01900_Fn0ABA0`,
+four words point at `_actor01900Initialize`, `Actor01900_Fn0ABA0`,
 `Actor01900_Fn09D3C` and `enemyDestroy`, which is `EnemyTaskFuncTable4`
 (gameplay/enemy.h). The three-entry `EnemyTaskFuncTable3` and five-entry
 `EnemyTaskFuncTable5` forms are the same idiom with a different count, so a
@@ -107273,9 +107275,9 @@ function the same `*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT` first forces the addre
 pseudo (`li $r,0x1F800000` / `ori $r,$r,0x3FC`) and nothing later takes it out.
 
 So a move block whose scratch accesses are folded is an inlined helper, not a
-statement sequence: this one is the same body as `Actor01900_MoveForward` /
+statement sequence: this one is the same body as `actorMoveForwardNonzero` /
 `_actorMovementStepForward`, which is why those live in headers and why
-`Actor01900_MoveForward` carries a `SOFT_TOUCH_REG`. Moving the body into
+`actorMoveForwardNonzero` carries a `SOFT_TOUCH_REG`. Moving the body into
 `_actorMovementStepForward(coord, 0x14)` took the score 84.892% -> 100.000%, every
 penalty zero, with no other edit - and the helper's own live `actorsFrozen != ACTOR_MOVEMENT_FROZEN` check
 is what puts the pause test after the caller's coordinate load, exactly as the
@@ -108560,7 +108562,7 @@ HImode, and on the little-endian R3000 a HImode load at the field's own address
 justify the load — write the plain `long` arithmetic and it comes out. Three
 overlays reproduce it from the same helper with no cast anywhere:
 `oddStrangerTurnAround` (100.000%, all-zero penalties),
-`func_actor_401300_801376E4` and `Actor01900_Fn0551C`.
+`func_actor_401300_801376E4` and `_actor01900StateTurnAround`.
 
 The narrowing is also why the same field shows up as a signed `lh` elsewhere in
 the same function: the scratch block's `delta.vx` is an `s16` that a later
@@ -108570,7 +108572,7 @@ tracks the destination, not the field.
 ## A reused pointer local: give the last short-lived use its own name (`oddStrangerStalk`, 2026-09-16)
 
 `oddStrangerStalk`, the walk body of actor 401800 and the twin of
-`Actor01900_Fn042BC`, stalled at 98.339% with `blocks=58/58`,
+`_actor01900StateChase`, stalled at 98.339% with `blocks=58/58`,
 `instructions=557/557`, `predicates_match=True`, `calls_match=True` and every
 penalty but `regs` at zero: one `coord = index->field_2C->field_8` sat in `$s0`
 where the target has it in `$v0`.
@@ -109856,7 +109858,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 needed a scheduling or allocation experiment, and the thing that made it cheap is
 worth copying: the function is the 401000 twin of `func_actor_401300_8013CBAC`
 (`overlay_dup_index.py similar` ranked it 0.84 shape) and of
-`Actor01900_Fn042BC` (0.89, starred in two classes). `overlay_dup_index.py find`
+`_actor01900StateChase` (0.89, starred in two classes). `overlay_dup_index.py find`
 reported no cross-overlay copies, so no promotion was involved — the twin's value
 here is entirely as a *source* to copy from.
 
@@ -131933,7 +131935,7 @@ longer live range and therefore the lower priority.
 `base_7` 97.627% from 96.894%, no asm helper involved. Input hash
 `d44719096c55b6cdfce0b00b4c486b4937d82bf58b26e322cd9bbc6a170eff3d` (`base_7.i`).
 
-## `x = y; if (...) x = -x;` comes out as `neg x, y` — invalidate the quantity *after* the branch (Actor01900_Fn02664, 2026-09-18)
+## `x = y; if (...) x = -x;` comes out as `neg x, y` — invalidate the quantity *after* the branch (_actor01900SpawnHitEffect, 2026-09-18)
 
 A copy followed by an in-place operation on the copy is the natural way to write
 an absolute value:
@@ -131974,7 +131976,7 @@ if (yaw < 0) {
 This generalises to any in-place update of a copy — `x = -x`, `x = ~x`, `x >>= n`
 — whose operand the object dump shows as the copy's source.
 
-## sched ties on priority are broken by insn order, so hoist the compare to put it first (Actor01900_Fn02664, 2026-09-18)
+## sched ties on priority are broken by insn order, so hoist the compare to put it first (_actor01900SpawnHitEffect, 2026-09-18)
 
 A block holding a compare, an unrelated load and the branch schedules the load
 first even though the branch depends on the compare. Both candidates carry
@@ -131997,7 +131999,7 @@ extra local costs nothing — it only moves where the `slt` is generated. Reach
 for this whenever two independent instructions in one block come out in the
 wrong order and the dump shows them tied on priority.
 
-## A `self = index` copy moves the address constant ahead of the register save (Actor01900_Fn02664, 2026-09-18)
+## A `self = index` copy moves the address constant ahead of the register save (_actor01900SpawnHitEffect, 2026-09-18)
 
 Copying a parameter into a local for readability is not free at the top of a
 function. With `self = index;` the copy is an ordinary insn late in the chain,
@@ -132008,7 +132010,7 @@ leaves the copy as the entry copy from the argument register, at the head of the
 chain, and the two instructions swap back into ROM order. The rest of the
 function was unchanged; this was the last reorder between 99.5% and 100%.
 
-## When a local-alloc priority cannot be inverted, look for the TU's inline helper (Actor01900_Fn03854, 2026-09-18)
+## When a local-alloc priority cannot be inverted, look for the TU's inline helper (_actor01900StateAlert, 2026-09-18)
 
 Two values loaded in the same block and subtracted came out of the wrong
 registers: the ROM reuses each pointer in place (`lw v0,0x1c(v0)` /
