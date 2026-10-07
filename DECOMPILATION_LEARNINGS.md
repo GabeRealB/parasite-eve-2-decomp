@@ -148819,6 +148819,9 @@ address add is placed directly in front of the load that reads it.
   the chain's span, or `lh b` one insn earlier in sched1 (24/8). Twenty-nine
   spellings (locals or not, `*=` steps, `+=` chain, the store before or after,
   a block-local score) either keep 3.64 or move the instructions.
+  *Note 2026-10-07:* now none. The missing references were stale ones: a
+  `score` assigned twice with the store between its last assignment and the
+  `return`. See the section at the end of this file with this function's name.
 
 **`Gp_EquipRelatedItem`, `asm("" : "=r"(arg3)); arg3 = 0;`.** cse1 deletes
 `arg3 = 0` in the arm reached by `beqz arg3` (a `switch` and an inline wrapper
@@ -152919,3 +152922,58 @@ sched1; not used.
 insn sitting in the preceding branch's delay slot would have been first in the
 fall-through thread. If the image has it in the slot *and* the store reads the
 copy's source, it was below the copy before reorg.
+
+### A block-local chain one rank short: the result variable assigned twice, with a store before `return` (_worldCoordScoreDirectionalLight, 2026-10-07)
+
+**Was.** `USE_REG3(weightedRgb, weightedRgb, weightedRgb);` in the inline's
+tail, for `lh v1,r` / `lh a0,g` ... `sra v1,v1,8` / `addiu a1,v1,0xF00` in
+`worldCoordSetModelLighting`. Plain C swapped `$v1` and `$a0` through the block.
+
+**Required state.** Everything in the block is a local-alloc quantity. The red
+chain (load, `<<3`, two sums, `>>8`: 20 weighted references over 22
+half-insns, 4*20/22 = 3.64) must be ranked at or above the blue pair (load
+and `<<1`: 3*8/6 = 4.0) to take `$v1` first. The insns are the target's, so
+the span cannot change; the chain needs references that no insn shows.
+
+**Mechanism.** The one already recorded for `Gp_UiBoostAttach`: combine does
+not maintain `reg_n_refs`, and zeroes it only when the merged set was the
+register's last. So a chain variable with two sets, one of which combine
+merges into its use, keeps that pair's count. The pair has to reach combine,
+and cse1 is what normally prevents that: for `score += BASE; return score;`
+it swaps the copy (`93 = score + BASE; score = 93`), flow deletes the dead
+half and counts nothing. cse only swaps when the copy directly follows the
+set. With the attenuation store in between,
+
+```c
+score = (light->color.r * RW + light->color.g * GW + light->color.b * BW) >> SHIFT;
+score += BASE;
+light->transform.lighting.attenuation = ONE;
+return score;
+```
+
+flow sees `score = score + 3840` and `result = score` as two insns (12
+weighted references on `score`), combine merges them into
+`result = score + 3840`, and `.lreg` reports `used 12 times across 3 insns`
+for a pseudo with four visible references: 4*24/22 = 4.36, above blue.
+`score = sum; score = (score >> SHIFT) + BASE;` matches as well; one
+assignment (`score = (sum >> SHIFT) + BASE; store; return score;`) does not,
+because a single-set `score` is zeroed by the merge.
+
+**Evidence that this is the source.** The same four statements, pasted into
+the out-of-line twin `_worldCoordScoreDirectionalLightOutOfLine`, compile to
+that function's target too (checked in a scratch build; the committed twin
+still has its older one-expression body). The store-last order is also what
+puts the loop's address giv on the attenuation field (`addiu s0,s1,74`):
+loop.c combines the address givs into the last one in insn order, and the
+store-first order of the twin's old body gives 84 when inlined.
+
+**What is fitted.** Where the expression is split into two assignments; the
+image only says that there were at least two and that the store came after
+the last.
+
+**Use.** When a block-local value needs a few more references than its insns
+show, look for a merge combine could have made at the *end* of the chain: a
+result variable updated in place and then returned or copied out, with any
+unrelated statement between the last update and the copy. Check with
+`used N times` in `.lreg`. A side-effect store written after the value is
+computed and before `return` is an ordinary shape and is enough.
