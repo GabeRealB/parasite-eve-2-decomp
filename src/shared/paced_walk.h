@@ -51,7 +51,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 
 #ifndef PACED_WALK_WORK_T
-/// Type `_pacedWalkTickAnim`, `PACED_WALK_RESET_ANIM`, `pacedWalkBlendAnim` and
+/// Type `_pacedWalkTickAnim`, `PACED_WALK_RESET_ANIM`, `PACED_WALK_BLEND_ANIM` and
 /// `pacedWalkPlace` take the block at `Task::work` as.
 ///
 /// Walkers whose work block is a type of their own carry some of those four,
@@ -99,10 +99,26 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #define PACED_WALK_RESET_ANIM _pacedWalkResetAnim
 #endif
 
+#ifndef PACED_WALK_BLEND_ANIM
+/// Function identifier shared by a walker's blended clip reseed and update calls.
+///
+/// The default is `pacedWalkBlendAnim`, with signature `void (Task* task)`.
+/// Bind before this header or around a further blend fragment's inclusion,
+/// using the same identifier at its definition and update calls. Declare
+/// additional private instances `static` in the carrier's prologue before
+/// their callers; the fragment's definition inherits that linkage.
+/// Bind `PACED_WALK_WORK_T` to the walker's allocated type at the definition;
+/// it must provide `rig`, `st` and an `s16 blendFrames`.
+/// Undefine before rebinding: the header guard selects the default only on
+/// the first inclusion. This object-like alias evaluates no arguments and
+/// captures no local identifiers; it uses no stringification or token pasting.
+#define PACED_WALK_BLEND_ANIM pacedWalkBlendAnim
+#endif
+
 void        pacedWalkUpdate(Task* task);
 static void PACED_WALK_TICK_ANIM(Task* task);
 static void PACED_WALK_RESET_ANIM(Task* task);
-void        pacedWalkBlendAnim(Task* task);
+void        PACED_WALK_BLEND_ANIM(Task* task);
 s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 
 s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);

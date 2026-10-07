@@ -12,7 +12,7 @@ void strideWalkUpdate(Task* task)
 
     work = task->work;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        pacedWalkBlendAnim(task);
+        PACED_WALK_BLEND_ANIM(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }

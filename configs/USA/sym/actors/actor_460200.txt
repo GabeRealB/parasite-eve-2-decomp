@@ -401,3 +401,5 @@ _pacedWalkTickSoldierBAnim = 0x801332E0; // type:func
 _pacedWalkTickSoldierCAnim = 0x80133B3C; // type:func
 _pacedWalkResetSoldierBAnim = 0x8013332C; // type:func
 _pacedWalkResetSoldierCAnim = 0x80133B88; // type:func
+_pacedWalkBlendSoldierBAnim = 0x801333A4; // type:func
+_pacedWalkBlendSoldierCAnim = 0x80133C00; // type:func
