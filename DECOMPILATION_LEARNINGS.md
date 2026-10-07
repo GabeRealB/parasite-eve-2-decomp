@@ -3057,7 +3057,7 @@ false path so it fills the `beqz` delay as `move v0, zero`:
 workA = (_Actor400500GrayStalkerWork*)arg0->work;
 if (workA->knockdownPending != 0) {
     workA->knockdownPending = 0;
-    func_actor_400500_8013DB64(arg0, 5);
+    _actor400500EnterState(arg0, 5);
     skip = 1;
 } else {
     skip = 0;
@@ -3175,7 +3175,7 @@ lands in `$a2` (`move a2, zero` in the first delay, `li a2, 1; move v0, a2`
 after the call). Leaving `ret` uninitialized makes jump opt treat `ret = 1`
 as the only reaching def, so `sub == mode` lands on that `li` and the delay
 fills. Gotos keep the zero-both tail *before* the hit-flag check. Example:
-`func_actor_400500_80133358`. Inputs: `base_1.i`
+`_actor400500HandleHeavyHitReaction`. Inputs: `base_1.i`
 `55bac32e574291f44f0bd7261392f434ff6de88a394053dfa8328f0b0dd44d99`,
 `base_4.i`
 `2b32af2f96b9f17d60b06219f5a56052d6a6462e262accce2ac6d005adf99b95`,
@@ -3463,7 +3463,7 @@ A call-free first loop plus a call-crossing second loop, both using the same
 counter `i` and pointer `work`, can leave `work` in `$s0` and `i` in `$s1`
 when the target is the reverse: `work` has the extra compare loads, which
 push it over `floor_log2` 4 while `i` stays at 3 (18/31 vs 15/24 on
-`func_actor_400500_8013DCD4`).
+`_actor400500BlendAnimSlots`).
 
 A `do { } while (0)` around the `if`/`else` raises every ref *inside* it by
 one depth. That is not enough if the compare stays inside — both `work` and
@@ -3685,18 +3685,18 @@ jr    ra
 move  v0, zero
 ```
 
-`if (scale != 0) { return expr; } return 0;` is inverted by jump/dbr into
+`if (rateSixteenths != 0) { return expr; } return 0;` is inverted by jump/dbr into
 `bnez` plus an early `jr` / `move v0, zero` (86.5%, `branch=3 insert=1
 delete=1`). GCC inverts from the other polarity:
 
 ```c
-if (scale == 0) {
+if (rateSixteenths == 0) {
     return 0;
 }
-return (((arg1 << 0x10) >> 8) / scale << 0xC) >> 0x10;
+return (s16)((frames * (ANIMATION_RATE_ONE * ANIMATION_RATE_ONE) / rateSixteenths) >> 4);
 ```
 
-`func_actor_400500_8013DD8C` (`base.c` 86.5%, `base_2.c` 100%; preprocessed
+`_actor400500RescaleAnimFrames` (`base.c` 86.5%, `base_2.c` 100%; preprocessed
 `29af23378570f40437573e4b1dbc1cc56a3490080f64c3463381314ae1745bfb`).
 `s16` vs `s32` for `value` is the same object.
 
@@ -71516,7 +71516,7 @@ false path so it fills the `beqz` delay as `move v0, zero`:
 workA = (_Actor400500GrayStalkerWork*)arg0->work;
 if (workA->knockdownPending != 0) {
     workA->knockdownPending = 0;
-    func_actor_400500_8013DB64(arg0, 5);
+    _actor400500EnterState(arg0, 5);
     skip = 1;
 } else {
     skip = 0;
@@ -71634,7 +71634,7 @@ lands in `$a2` (`move a2, zero` in the first delay, `li a2, 1; move v0, a2`
 after the call). Leaving `ret` uninitialized makes jump opt treat `ret = 1`
 as the only reaching def, so `sub == mode` lands on that `li` and the delay
 fills. Gotos keep the zero-both tail *before* the hit-flag check. Example:
-`func_actor_400500_80133358`. Inputs: `base_1.i`
+`_actor400500HandleHeavyHitReaction`. Inputs: `base_1.i`
 `55bac32e574291f44f0bd7261392f434ff6de88a394053dfa8328f0b0dd44d99`,
 `base_4.i`
 `2b32af2f96b9f17d60b06219f5a56052d6a6462e262accce2ac6d005adf99b95`,
@@ -71753,7 +71753,7 @@ A call-free first loop plus a call-crossing second loop, both using the same
 counter `i` and pointer `work`, can leave `work` in `$s0` and `i` in `$s1`
 when the target is the reverse: `work` has the extra compare loads, which
 push it over `floor_log2` 4 while `i` stays at 3 (18/31 vs 15/24 on
-`func_actor_400500_8013DCD4`).
+`_actor400500BlendAnimSlots`).
 
 A `do { } while (0)` around the `if`/`else` raises every ref *inside* it by
 one depth. That is not enough if the compare stays inside — both `work` and
@@ -71869,18 +71869,18 @@ jr    ra
 move  v0, zero
 ```
 
-`if (scale != 0) { return expr; } return 0;` is inverted by jump/dbr into
+`if (rateSixteenths != 0) { return expr; } return 0;` is inverted by jump/dbr into
 `bnez` plus an early `jr` / `move v0, zero` (86.5%, `branch=3 insert=1
 delete=1`). GCC inverts from the other polarity:
 
 ```c
-if (scale == 0) {
+if (rateSixteenths == 0) {
     return 0;
 }
-return (((arg1 << 0x10) >> 8) / scale << 0xC) >> 0x10;
+return (s16)((frames * (ANIMATION_RATE_ONE * ANIMATION_RATE_ONE) / rateSixteenths) >> 4);
 ```
 
-`func_actor_400500_8013DD8C` (`base.c` 86.5%, `base_2.c` 100%; preprocessed
+`_actor400500RescaleAnimFrames` (`base.c` 86.5%, `base_2.c` 100%; preprocessed
 `29af23378570f40437573e4b1dbc1cc56a3490080f64c3463381314ae1745bfb`).
 `s16` vs `s32` for `value` is the same object.
 
@@ -72082,7 +72082,7 @@ block split by a call rather than two `case`s.
 
 ### An action phi sinks `move a0` into the jal delay and collapses the 2/3 diamond
 
-`func_actor_400500_80132D74` has three arms that call the same helper with
+`_actor400500TryStartAttack` has three arms that call the same helper with
 `a1 = 1/2/3` and return 1. An `s16 action` phi plus one call scored 94.7%:
 `move a0, a2` landed in the jal delay, so the flag `bnez` delay took `li a1, 3`
 and the `a1 = 2` arm fell through with no `j`. Target occupies that `bnez`
@@ -72092,7 +72092,7 @@ delay with `move a0, a2`, which forces `li a1, 3` into its own block and the
 Duplicate the call in each arm and let `jump.c` merge the jal+return tails.
 Path 1 keeps `move a0` / `j` / `li a1, 1`; the 2/3 diamond keeps `bnez` /
 `move a0` / `j` / `li a1, 2` / `li a1, 3` / `jal` / `nop`. Same overlay's
-`func_actor_400500_8013DB78` already shows the distance/angle test this
+`_actor400500TryTurnOverNearTarget` already shows the distance/angle test this
 function extends. `attackCooldown` is `s16` so the second group is `lh`; the first
 group's `>> 3` needs `(u16)` for `lhu` / `srl`.
 
@@ -150014,7 +150014,7 @@ attempts; left as it was.
   with `work = task->work;` and cse makes the copy. All five matched on the
   first build that had them. `actor_400500` had the same blocks as existing inlines
   that three functions simply did not call (`_actor400500TickAnim`,
-  `_actor400500SetAnim`, `_actor400500SampleView`, `_actor400500HitFlagged`);
+  `_actor400500SetAnim`, `_actor400500ReadPartWorldXZ`, `_actor400500HasAnimBoundary`);
   its `flag = 1 / flag = 0; if (flag == 0)` around the knockdown request is an
   inline returning 1/0 (`_actor400500TakeKnockdown`), tested unfolded as in
   the image.
