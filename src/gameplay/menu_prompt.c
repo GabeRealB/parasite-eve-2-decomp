@@ -1853,6 +1853,20 @@ static inline void _itemMenuSetWeaponRows(UiList* list)
     }
 }
 
+/// Caps a list selection at the last visible row and last item.
+///
+/// visibleEndIndex is exclusive. This applies upper limits only; an empty
+/// list can select -1, and negative selections are left intact.
+static inline void _itemMenuClampArmorSelection(UiList* list, s32 visibleEndIndex)
+{
+    if (list->selectedItemIndex >= visibleEndIndex) {
+        list->selectedItemIndex = visibleEndIndex - 1;
+    }
+    if (list->selectedItemIndex >= list->itemCount) {
+        list->selectedItemIndex = list->itemCount - 1;
+    }
+}
+
 void Gp_WeaponMenuTask(Task* arg0)
 {
     UiObject*        obj;
@@ -1901,9 +1915,6 @@ void Gp_WeaponMenuTask(Task* arg0)
             if (parent != 0) {
                 UiList* other;
                 s16     row;
-                s32     sel;
-                s32     row9;
-                s32     vis;
 
                 parentObj = parent->spawnArg2.pointer;
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
@@ -1911,16 +1922,8 @@ void Gp_WeaponMenuTask(Task* arg0)
                 other                    = &D_8010E854;
                 row                      = cursor.y.unsignedValue - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
                 row                      = row / other->rowHeight;
-                vis                      = other->visibleRowCount.signedValue;
-                row9                     = other->firstVisibleItemIndex.signedValue;
-                sel                      = row + row9;
-                other->selectedItemIndex = sel;
-                if (sel >= row9 + vis) {
-                    other->selectedItemIndex = row9 + vis - 1;
-                }
-                if (other->selectedItemIndex >= other->itemCount) {
-                    other->selectedItemIndex = other->itemCount - 1;
-                }
+                other->selectedItemIndex = row + other->firstVisibleItemIndex.signedValue;
+                _itemMenuClampArmorSelection(other, other->firstVisibleItemIndex.signedValue + other->visibleRowCount.signedValue);
                 parentObj->panel.control.word = status;
                 obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
             }
@@ -2168,20 +2171,6 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                 }
             }
         }
-    }
-}
-
-/// Caps armor selection at the last visible row and last item.
-///
-/// visibleEndIndex is exclusive. This applies upper limits only; an empty
-/// list can select -1, and negative selections are left intact.
-static inline void _itemMenuClampArmorSelection(UiList* list, s32 visibleEndIndex)
-{
-    if (list->selectedItemIndex >= visibleEndIndex) {
-        list->selectedItemIndex = visibleEndIndex - 1;
-    }
-    if (list->selectedItemIndex >= list->itemCount) {
-        list->selectedItemIndex = list->itemCount - 1;
     }
 }
 
@@ -2457,9 +2446,6 @@ void Gp_ArmorMenuTask(Task* arg0)
                 if (parent != 0) {
                     UiList* other;
                     s16     row;
-                    s32     sel;
-                    s32     row9;
-                    s32     vis;
 
                     parentObj             = parent->spawnArg2.pointer;
                     *(s32*)&locals.cursor = uiGetCursorPositionWord();
@@ -2467,16 +2453,8 @@ void Gp_ArmorMenuTask(Task* arg0)
                     other                    = &D_8010E854;
                     row                      = locals.cursor.y.unsignedValue - (parentObj->panel.contentOriginY.unsignedValue + parentObj->panel.contentTop.unsignedValue);
                     row                      = row / other->rowHeight;
-                    vis                      = other->visibleRowCount.signedValue;
-                    row9                     = other->firstVisibleItemIndex.signedValue;
-                    sel                      = row + row9;
-                    other->selectedItemIndex = sel;
-                    if (sel >= row9 + vis) {
-                        other->selectedItemIndex = row9 + vis - 1;
-                    }
-                    if (other->selectedItemIndex >= other->itemCount) {
-                        other->selectedItemIndex = other->itemCount - 1;
-                    }
+                    other->selectedItemIndex = row + other->firstVisibleItemIndex.signedValue;
+                    _itemMenuClampArmorSelection(other, other->firstVisibleItemIndex.signedValue + other->visibleRowCount.signedValue);
                     parentObj->panel.control.word = st;
                     obj->panel.control.word       = USER_INTERFACE_PANEL_INACTIVE;
                 }

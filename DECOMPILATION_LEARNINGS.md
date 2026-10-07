@@ -153239,3 +153239,34 @@ what cse and the schedulers make of the inline.
   cells, is describing the output. Try the inline with the parent store first.
 - The rest of the tree has 51 more sites spelled with `MATRIX_PAIR` (some mixed
   with `rotationWords` fields); all 51 set the full identity. None was tried.
+### `lb a0,5` / `lb v1,9` / `addu v0,v0,v1` / `addu v1,v1,a0` / `sw v0,16`: one load of the field is still the field read twice (Gp_WeaponMenuTask, Gp_ArmorMenuTask, 2026-10-07)
+
+**Symptom.** The cursor-row blocks of both tasks held `vis`, `row9` and `sel`
+locals and a written-out clamp. The image loads the first visible row once,
+keeps the selection in `$v0` across its store and compares the register, which
+reads like three locals.
+
+**Finding.** None of them is in the source. The block is the same call as the
+other `Gp_ArmorMenuTask` site, without the `+ 1`:
+
+```c
+row                      = row / other->rowHeight;
+other->selectedItemIndex = row + other->firstVisibleItemIndex.signedValue;
+_itemMenuClampArmorSelection(other, other->firstVisibleItemIndex.signedValue + other->visibleRowCount.signedValue);
+```
+
+- The inline's first `list->selectedItemIndex` read is the value just stored,
+  so the compare uses the register; only the second clamp reloads it (`lw`
+  after the conditional store).
+- Without a `+ 1` between the reads there is no `move`: the second read of the
+  first-visible field becomes the first one's register and the count is added
+  to it in place (`addu v1,v1,a0`). So the `move a0,v0` of the entry above is
+  the sign of the `+ 1` site, not of field reads in general; a single load does
+  not show a local.
+- The clamps written out with the fields at each use give the same bytes. The
+  inline was chosen because the file already has it.
+
+**Gotcha.** The inline was defined after `Gp_WeaponMenuTask`. GCC 2.8.1 then
+emits it out of line and calls it (296 instructions against 305, with a `jal`),
+despite the forward `static inline` declaration. The definition moved above
+its first caller.
