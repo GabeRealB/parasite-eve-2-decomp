@@ -68255,9 +68255,9 @@ one still has to be written out locally.
 A `~` copy can also sit *inside a single overlay*, in a different unit, and then
 it is the overlay's second actor variant rather than a cross-overlay duplicate.
 `func_actor_461800_801329B0` (`actor_461800.c`) and
-`func_actor_461800_80133554` (`actor_461800_2.c`) are the same body differing
+`_actor461800FootstepWalkerTask` (`actor_461800_2.c`) are the same body differing
 only in the two handler symbols and the global they publish
-(`D_actor_461800_80143894` / `D_actor_461800_801438A0`, the two work blocks).
+(`_gScriptedWalkWork` / `_gFootstepWalkWork`, the two work blocks).
 `find` prints both under one overlay name, so treat the second address as a
 function to write again with its own symbols, not as something `promote` can
 fold away.
@@ -77733,13 +77733,13 @@ expression is the report: the table is a local, its base is `sp + 0x10`, and the
 index is the task's state. The reconstruction is the ordinary local array:
 
 ```c
-void (*fns[2])(Enemy*, Task*) = {
-    func_actor_461800_8013307C,
+EnemyTaskFunc stateHandlers[] = {
+    _footstepWalkSpawn,
     _actorRenderWalkerFrameSecond,
 };
 
-D_actor_461800_801438A0 = (Actor461800Work2*)task->work;
-fns[task->state](task->spawnArg2, task);
+_gFootstepWalkWork = task->work;
+stateHandlers[task->state](task->spawnArg2.pointer, task);
 ```
 
 Note the form of the initializer is the *opposite* of the one "Local jump table
@@ -77757,7 +77757,7 @@ names. Reading the sibling rather than the seed took it from a 55% baseline to
 100% in one build. When the dispatcher is *not* already in the lib unit, this is
 the shape to write.
 
-Example: `func_actor_461800_80133554`, 55.38% -> 100.00% on the second build.
+Example: `_actor461800FootstepWalkerTask`, 55.38% -> 100.00% on the second build.
 Preprocessed SHA256: `base_1.i`
 `05c1a5582cd216fdfec2c12058cd153e0ffdbc492b634922cf60e8b9625813d5`.
 

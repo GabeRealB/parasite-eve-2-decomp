@@ -110,7 +110,7 @@ static s32  _actor461800SetFootstepWalkerModelDraw(Task* unusedTask, s32 message
 static s32  _actor461800ApplyFootstepWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument);
 void        func_actor_461800_801329B0(Task*);
 static void _actor461800ScriptedWalkerAttachmentTask(Task* task);
-void        func_actor_461800_80133554(Task*);
+static void _actor461800FootstepWalkerTask(Task* task);
 
 static void _actor461800SceneDistortionTask(Task* task);
 static void _actor461800SceneFadeTask(Task* task);
@@ -874,7 +874,7 @@ TaskMessageEntry gFootstepWalkMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_461800_801437EC = { { { TASK_BODY_TMD, 192 } }, func_actor_461800_80133554, { .model = &_gActor461800AyaBreaBody } };
+TaskDesc D_actor_461800_801437EC = { { { TASK_BODY_TMD, 192 } }, _actor461800FootstepWalkerTask, { .model = &_gActor461800AyaBreaBody } };
 
 AnimationSet* gFootstepWalkAnims[35] = {
     NULL,
@@ -1044,11 +1044,16 @@ static void _actor461800SceneDistortionTask(Task* task)
     D_neo_ark_r31_8017DC54 = D_actor_461800_80143884 / ACTOR_461800_SCENE_DISTORTION_RAMP_PER_PIXEL + ACTOR_461800_SCENE_DISTORTION_BASE_SHIFT_PIXELS;
 }
 
-/// Queues the scene's subtractive tile from its live task's current ramp level.
+/// Queues the scene's centered 320x256 subtractive fade at its current intensity.
 ///
-/// Borrows the task and current frame arena under `_actor461800SceneFadeTask`'s
-/// packet-capacity and GPU lifetime requirements. No state is advanced here.
-static __inline__ void _actor461800QueueSceneFade(Task* task)
+/// `fadeTask->killCountdown` must be in 0..90 ramp updates; scaling to 0..255
+/// truncates to a colour byte without clamping. The task is borrowed and unchanged.
+/// Requires tag 5 in the current OT and word-aligned frame-arena space for
+/// `sizeof(TILE) + sizeof(DR_TPAGE)`, reserved without a capacity check.
+/// Packets must remain live until GPU completion. The command precedes the tile
+/// and leaves subtractive blending and dithering enabled, with displayed-area
+/// drawing disabled. Its texture page at VRAM (0, 0) is unused by the tile.
+static __inline__ void _actor461800QueueSceneFade(const Task* fadeTask)
 {
     enum {
         ACTOR_461800_SCENE_FADE_MAX_INTENSITY      = 255,
@@ -1058,12 +1063,12 @@ static __inline__ void _actor461800QueueSceneFade(Task* task)
         ACTOR_461800_SCENE_FADE_TEXTURE_DEPTH_4BIT = 0,
     };
     TILE*     tile;
-    DR_TPAGE* drawMode;
+    DR_TPAGE* blendCommand;
     u8        intensity;
 
     tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
-    intensity      = (task->killCountdown * ACTOR_461800_SCENE_FADE_MAX_INTENSITY) / ACTOR_461800_SCENE_FADE_RAMP_UPDATES;
+    intensity      = (fadeTask->killCountdown * ACTOR_461800_SCENE_FADE_MAX_INTENSITY) / ACTOR_461800_SCENE_FADE_RAMP_UPDATES;
     setTile(tile);
     setSemiTrans(tile, true);
     tile->x0 = -ACTOR_461800_SCENE_FADE_WIDTH_PIXELS / 2;
@@ -1076,10 +1081,10 @@ static __inline__ void _actor461800QueueSceneFade(Task* task)
     addPrim(gGpuCurrentOt + ACTOR_461800_SCENE_FADE_OT_TAG, tile);
 
     // OT insertion prepends the draw mode so it executes before the tile.
-    drawMode       = gGpuPrimCursor;
-    gGpuPrimCursor = drawMode + 1;
-    setDrawTPage(drawMode, false, true, getTPage(ACTOR_461800_SCENE_FADE_TEXTURE_DEPTH_4BIT, GPU_BLEND_SUBTRACT, 0, 0));
-    addPrim(gGpuCurrentOt + ACTOR_461800_SCENE_FADE_OT_TAG, drawMode);
+    blendCommand   = gGpuPrimCursor;
+    gGpuPrimCursor = blendCommand + 1;
+    setDrawTPage(blendCommand, false, true, getTPage(ACTOR_461800_SCENE_FADE_TEXTURE_DEPTH_4BIT, GPU_BLEND_SUBTRACT, 0, 0));
+    addPrim(gGpuCurrentOt + ACTOR_461800_SCENE_FADE_OT_TAG, blendCommand);
 }
 
 /// Queues the scene's 320x256 subtractive fade tile and advances its intensity.
@@ -1309,15 +1314,20 @@ static void _actor461800ExitScriptedWalker(Task* task)
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-/// Initializes a model root as a drawable child of a live walker part.
+/// Attaches a model root to a borrowed walker part and clears all model flags.
 ///
-/// model owns root; parentPart is borrowed for the attachment's lifetime.
-/// Both coordinates must remain live through the task's model teardown.
-static __inline__ void _actor461800AttachWalkerModel(TmdObject* model, GfxCoord* root, GfxCoord* parentPart)
+/// `attachmentRoot` is the preloaded `attachmentModel->coords` of a live model.
+/// `walkerPart` must be live and its parent chain must not reach that root.
+/// The root's local transform is retained in the walker's part space; its cached
+/// composition is marked stale. Clearing every flag permits active drawing and
+/// automatic buffer allocation, retaining any existing primitive buffer.
+/// No lighting or teardown ownership is transferred. The borrowed parent must
+/// remain live whenever the attachment root is composed.
+static __inline__ void _actor461800AttachWalkerModel(TmdObject* attachmentModel, GfxCoord* attachmentRoot, GfxCoord* walkerPart)
 {
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    model->flags       = 0;
-    root->parent       = parentPart;
+    attachmentRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    attachmentModel->flags       = 0;
+    attachmentRoot->parent       = walkerPart;
 }
 
 /// Parents a hand model to the scripted walker and updates its room lighting.
@@ -1443,18 +1453,28 @@ static s32 _actor461800ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageI
 
 #include "../../shared/footstep_walk_update.inc.c"
 
-/// Two-state dispatcher whose handler table is built on the stack, publishing
-/// the task's work block in `_gFootstepWalkWork` on the way through so the
-/// rest of the overlay can reach it without the task.
-void func_actor_461800_80133554(Task* task)
+/// Dispatches the scene's footstep walker through initialization or its frame update.
+///
+/// `task` must own a live nineteen-part TMD model and an `Enemy` in
+/// `spawnArg2.pointer`. State 0 requires no existing work allocation, allocates
+/// and publishes `FootstepWalkWork`, binds playback and messages, and enters
+/// state 1; allocation failure tears it down.
+/// State 1 requires that initialized work and refreshes lighting, movement,
+/// animation and the ground shadow. Other state indices are out of bounds.
+/// Work is published before dispatch for singleton animation and message handlers;
+/// it remains borrowed from the task and must not be used after teardown.
+/// Required model, clip, room-light, scratch and GTE state must remain available
+/// during the selected handler. Initialization may invalidate the task or enemy;
+/// neither is accessed after dispatch.
+static void _actor461800FootstepWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[] = {
         _footstepWalkSpawn,
         _actorRenderWalkerFrameSecond,
     };
 
     _gFootstepWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
