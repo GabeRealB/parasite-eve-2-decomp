@@ -75,13 +75,17 @@ _HazardEnemyDamage Gp_IdField1[11] = {
 /// Unreferenced nonzero halfword following the ID-field table.
 u16 D_80114096 = 0x3430;
 
-/// Draws the next 83..98-frame pulse delay from the shared random sequence.
+/// Restarts the countdown to an enemy's next damage-over-time pulse.
 ///
-/// Updates the live enemy's byte delay and advances the shared state once.
+/// `enemy` must be non-NULL, live and writable. Consumes one shared random draw,
+/// advancing `gRandomLcgState` with unsigned 32-bit wraparound before taking
+/// bits 16..19. Overwrites the byte delay with 83..98 ticks, inclusive; one
+/// tick is one call to `damageTickEnemyDamageOverTime`.
+/// Callers own reaction activation, pulse counting and expiry.
 static inline void _damageReseedEnemyDamageOverTimeDelay(Enemy* enemy)
 {
     gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    enemy->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+    enemy->damageOverTimeDelay = ((gRandomLcgState >> 16) & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
 }
 
 s32 damageGetHazardDamage(s32 hazardKey, s32 victim)
