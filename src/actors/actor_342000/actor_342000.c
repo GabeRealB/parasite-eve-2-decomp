@@ -530,7 +530,6 @@ void func_actor_342000_8016201C(Task* arg0)
 static inline void Actor342000_InitCoord(Task* arg0, _Actor342000GluttonModelWork* w)
 {
     GfxCoord*  coord;
-    GfxMatrix* mtx;
 
     coord                                 = &w->coord;
     coord->parent                         = ((_Actor342000GluttonModelWork*)arg0->work)->parentCoord;
@@ -538,12 +537,7 @@ static inline void Actor342000_InitCoord(Task* arg0, _Actor342000GluttonModelWor
     coord->coord.t[0]                     = 0;
     coord->coord.t[1]                     = 0;
     coord->coord.t[2]                     = 0;
-    mtx                                   = (GfxMatrix*)&w->coord.coord;
-    mtx->rotationWords.m00M01             = ONE;
-    mtx->rotationWords.m02M10             = 0;
-    mtx->rotationWords.m11M12             = ONE;
-    mtx->rotationWords.m20M21             = 0;
-    mtx->rotationWords.m22                = ONE;
+    gfxSetRotIdentity(&w->coord.coord);
     w->coord.composeStamp                 = GRAPHICS_COORD_DIRTY;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
