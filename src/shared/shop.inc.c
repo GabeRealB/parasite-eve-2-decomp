@@ -353,7 +353,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->selectedItemIndex == prompt->currentItemIndex) {
                 Gp_SetHolderItemText(itemId);
-                Gp_SetPreviewItem(itemId, 0);
+                itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
             }
         }
     }

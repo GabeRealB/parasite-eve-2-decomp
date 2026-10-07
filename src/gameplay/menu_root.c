@@ -693,7 +693,7 @@ const u16 D_80096F88[12] = {
         } else {                                                                        \
             uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
         }                                                                               \
-        Gp_SetPreviewItem((item), 0);                                                   \
+        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
     } while (0)
 
 /// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the

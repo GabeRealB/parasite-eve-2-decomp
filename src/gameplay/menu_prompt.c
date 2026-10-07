@@ -26,6 +26,7 @@
 #define D_8010EFD8 D_8010EAB4[47]
 
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -1209,7 +1210,7 @@ static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryI
         } else {                                                                        \
             uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
         }                                                                               \
-        Gp_SetPreviewItem((item), 0);                                                   \
+        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
     } while (0)
 
 void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
@@ -1582,7 +1583,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
             } else {
                 uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
-            Gp_SetPreviewItem(item, 0);
+            itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
         } else {
             uiSetPromptText(Gp_StrSelectDest, 0, 0);
         }
@@ -1726,7 +1727,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
                 uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
-                Gp_SetPreviewItem(item, 0);
+                itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
             } else {
                 uiSetPromptText(Gp_StrAmmoNone, 0, 0);
             }
@@ -2048,7 +2049,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
         if (Gp_ItemOrderMode == 0) {
             if (item != 0) {
                 uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
-                Gp_SetPreviewItem(item, 0);
+                itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
             } else {
                 uiSetPromptText(Gp_StrAttachNone, 0, 0);
             }
@@ -2281,7 +2282,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     } else {
                         uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                     }
-                    Gp_SetPreviewItem(item, 0);
+                    itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
                 } else {
                     uiSetPromptText(Gp_StrSelectDest, 0, 0);
                 }

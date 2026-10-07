@@ -24,6 +24,7 @@
 #define GAME_LOCATION_STAGE_AREA_VIEW_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0xFF)
 
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -514,7 +515,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Gp_SetPreviewItem(item, 0);
+            itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
             Gp_SetHolderItemText(item);
         }
     }

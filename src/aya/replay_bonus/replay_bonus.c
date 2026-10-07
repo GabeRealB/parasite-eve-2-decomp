@@ -750,7 +750,7 @@ void func_replay_bonus_80116AC0(Task* arg0)
         }
         arg0->extraState.value = arg0->spawnArg1.value;
         arg0->killCountdown    = 0xBC;
-        Gp_SetPreviewItem(_replayBonusShopItem(arg0->extraState.value), 0);
+        itemMenuSetPreviewItem(_replayBonusShopItem(arg0->extraState.value), CD_COMMAND_DISPLAY_LOAD_MENU);
         arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState.value) + 0x20000;
     }
     func_800C5F70(arg0);

@@ -27322,7 +27322,7 @@ if (arg2 != 0) {
 The `+r` barrier on `tmp` is the existing "delay slot ahead of `lui`"
 trick: without it, `lui %hi(table)` steals the `beq` delay instead of
 `move a1, a3`. `Gp_ItemRowSelect` is the example (same 3-slot table loop as
-`Gp_SetPreviewItem`).
+`itemMenuSetPreviewItem`).
 
 ## Incoming-arg copies use arg order; explicit locals use register order
 
@@ -35174,7 +35174,7 @@ cur = (CdCmdEntry*)off;
 
 ## Join `uiSetPromptText` text in `$a0` and kill REG_EQUAL on the 0s
 
-`uiSetPromptText(text, 0, 0)` immediately followed by `Gp_SetPreviewItem(item, 0)`
+`uiSetPromptText(text, 0, 0)` immediately followed by `itemMenuSetPreviewItem(item, 0)`
 with `item` in `$s0` copy-props both 0s: `move a1, zero` / `jal` /
 `move a2, zero`. The target reuses the first 0 as `move a2, a1` in the delay
 and still has `li a1, 1` in the `bnez item` delay of the empty-slot path.
@@ -35195,7 +35195,7 @@ if (item == 0) {
 a1v = 0;
 asm("" : "+r"(a1v));
 uiSetPromptText(t, a1v, a1v);
-Gp_SetPreviewItem(item, 0);
+itemMenuSetPreviewItem(item, 0);
 ```
 
 `Gp_DrawItemOrderRow` is the example.
@@ -142803,7 +142803,7 @@ slot variable copied (`move a3,fp`), narrowed into a second register
 (`move a1,v1`); the table address held in a register for `lw 0(a2)` instead
 of `lw %lo(T)(v0)`; and the compare and the queued call using a literal slot 0.
 
-**Cause.** The body is a real function (`Gp_SetPreviewItem(item, slot)`)
+**Cause.** The body is a real function (`itemMenuSetPreviewItem(item, slot)`)
 inlined with a `u8 slot` parameter and a *variable* argument. The argument copy
 and the parameter's narrowing are the first two pseudos; `table[slot]` with the
 narrowed pseudo folds to offset 0 without CSE substituting `%lo(T)`, which is

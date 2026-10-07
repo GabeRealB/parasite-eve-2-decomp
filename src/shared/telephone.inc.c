@@ -447,7 +447,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     uiDrawBeveledRect(&(arg1)->panel, barX, arg0->rowTextY.signedValue - 0xC, barW, 9, 0, one);
     if (((arg1->panel.control.word >> 16) == one) || (arg1->panel.control.word == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Gp_SetPreviewItem(item, 0);
+            itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
             Gp_SetHolderItemText(item);
         }
     }

@@ -167,7 +167,7 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
         } else {                                                                        \
             uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
         }                                                                               \
-        Gp_SetPreviewItem((item), 0);                                                   \
+        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
     } while (0)
 
 /// Whether item `id` is the equipped weapon, the equipped armour, or a

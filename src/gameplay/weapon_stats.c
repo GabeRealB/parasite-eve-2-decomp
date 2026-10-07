@@ -129,7 +129,7 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
         } else {                                                                        \
             uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
         }                                                                               \
-        Gp_SetPreviewItem((item), 0);                                                   \
+        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
     } while (0)
 
 void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)

@@ -46,7 +46,15 @@ void itemMenuDrawItemRow(const UiObject* object, s32 x, s32 y, s32 itemId, s32 c
 /// Requires text textures and writable GPU primitive and ordering-table storage.
 void itemMenuDrawQuantity(const UiObject* object, s32 x, s32 y, s32 quantity, s32 colorRgb);
 
-void Gp_SetPreviewItem(s32 arg0, s32 arg1);
+/// Selects a requested item preview and queues its display-resource load if changed.
+///
+/// The low byte of loadProfile selects slot/profile 0 (menu), 1 (preview) or
+/// 2 (relocated preview); it must be in 0..2. When that slot's id changes,
+/// records itemId verbatim and marks the other two slots empty (-1), then
+/// requests the load. Slots 3/4 are untouched. An unchanged id does nothing.
+/// The loader may ignore the id (including 0 and -1) or suppress the request;
+/// the recorded id still changes. Resource readiness must be checked separately.
+void itemMenuSetPreviewItem(s32 itemId, s32 loadProfile);
 
 /// Marks all five requested item-preview slots empty (-1).
 ///

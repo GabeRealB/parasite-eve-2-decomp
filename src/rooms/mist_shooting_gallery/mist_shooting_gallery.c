@@ -1021,7 +1021,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
     status = arg1->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            Gp_SetPreviewItem(item, 0);
+            itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
         }
     }
     selected = arg0->rowInputEnabled;

@@ -2061,7 +2061,7 @@ void Gp_PeCommandMenuTask(Task* arg0)
         menu->visibleRowCount.unsignedValue = two;
         menu->itemCount                     = two;
         if ((arg0->spawnArg1.value & 3) != 3) {
-            Gp_SetPreviewItem(arg0->spawnArg1.value + 1, 0);
+            itemMenuSetPreviewItem(arg0->spawnArg1.value + 1, CD_COMMAND_DISPLAY_LOAD_MENU);
         }
     }
     owner       = obj->owner;
@@ -2228,7 +2228,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
         }
     }
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        Gp_SetPreviewItem(item, 0);
+        itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             one = 1;
             obj = uiSpawnObject(&D_8010F670, item, one, one, arg1);

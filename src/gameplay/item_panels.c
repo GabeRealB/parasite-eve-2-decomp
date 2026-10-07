@@ -213,7 +213,7 @@ static void _itemPickupInventoryFullTask(Task* task);
 
 static void _itemPickupObtainedNoticeTask(Task* task);
 
-static inline void _gpSetPreviewItem(s32 itemId, u8 slot);
+static inline void _itemMenuSetPreviewItem(s32 itemId, u8 loadProfile);
 
 void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRow* arg3)
 {
@@ -573,9 +573,10 @@ void Gp_ItemCmdMenuTask(Task* arg0)
     }
 }
 
-/// Caps restored HP and MP at their maxima without changing their lower bounds.
+/// Caps the healing panel's stored HP and MP at their respective maxima.
 ///
-/// player must be the live writable status record used by the healing panel.
+/// Borrows the live writable status record after the effect has been applied.
+/// Comparisons use the stored signed 16-bit values; negative values are retained.
 static inline void _itemMenuClampHealedStats(PlayerStatus* player)
 {
     if (player->hp > player->hpMax) {
@@ -1453,16 +1454,20 @@ void Gp_PickupTitleTask(Task* arg0)
     }
 }
 
-/// Creates a child dialog at the parent's lower-right content corner.
+/// Creates a child choice dialog anchored at the parent's lower-right content corner.
 ///
-/// parent must be a live UiObject and layout an ITEM_MENU_DIALOG_* layout.
-/// The task owns the returned child. On success clears the parent's answer
-/// and transfers input; allocation failure returns NULL with parent unchanged.
-static inline UiObject* _itemMenuSpawnDialog(UiObject* parent, s32 layout)
+/// parent must be a live task-owned object with current content bounds.
+/// dialogOptions carries an `ITEM_MENU_DIALOG_*` layout in its low nibble and
+/// optionally `ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND`. The child's task owns it
+/// until teardown. It starts active with a two-tick opening delay; its initial
+/// right edge is ten pixels past the parent's content edge. Coordinates narrow
+/// to 16 bits. Success clears the parent's command value and makes it inactive;
+/// allocation failure returns NULL with parent unchanged.
+static inline UiObject* _itemMenuSpawnDialog(UiObject* parent, s32 dialogOptions)
 {
     UiObject* dialog;
 
-    dialog = uiSpawnObject(&D_8010EA98, layout, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_DIALOG_OPEN_DELAY_TICKS, parent);
+    dialog = uiSpawnObject(&D_8010EA98, dialogOptions, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_DIALOG_OPEN_DELAY_TICKS, parent);
     if (dialog != NULL) {
         dialog->panel.bounds.unsignedRect.x = (parent->panel.contentOriginX.unsignedValue + parent->panel.contentRight.unsignedValue + 0xA) - dialog->panel.bounds.unsignedRect.w;
         dialog->panel.bounds.unsignedRect.y = parent->panel.contentOriginY.unsignedValue + parent->panel.contentBottom.unsignedValue;
@@ -1655,9 +1660,12 @@ UiObject* itemMenuSpawnYesNoMenuDefaultNo(UiObject* parent)
     return _itemMenuSpawnDialog(parent, ITEM_MENU_DIALOG_NO_SELECTED);
 }
 
-/// Draws a visible item's name, equipment mark, P.E. level and icon.
+/// Draws a visible item row's name and icon with optional status and P.E. marks.
 ///
-/// Uses `itemMenuDrawItemRow`'s coordinates, catalogue and GPU-storage contract.
+/// Borrows object for this draw, using `itemMenuDrawItemRow`'s panel-relative
+/// pixels and catalogue/GPU-storage contract. colorRgb is packed 24-bit RGB.
+/// Attachment state 0 omits status; 1 enables E/L, and 2 also allows A.
+/// Only ordinary P.E. item ids 15..50 draw a level. Hidden panels draw nothing.
 static inline void _itemMenuDrawItemRowContents(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState)
 {
     TextDrawReq nameRequest;
@@ -1729,19 +1737,29 @@ void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3
     }
 }
 
-static inline void _gpSetPreviewItem(s32 itemId, u8 slot)
+/// Replaces one of the three requested display-profile ids and queues its load.
+///
+/// loadProfile must be 0..2. The byte parameter also supplies the public
+/// setter's low-byte narrowing. Uses `itemMenuSetPreviewItem`'s request and
+/// readiness contract, publishing all three ids before calling the loader.
+static inline void _itemMenuSetPreviewItem(s32 itemId, u8 loadProfile)
 {
-    s32 i;
+    enum {
+        ITEM_MENU_PREVIEW_PROFILE_COUNT = 3,
+        ITEM_MENU_PREVIEW_EMPTY         = -1
+    };
+    s32 profileIndex;
 
-    if (itemId != Gp_PreviewItems[slot]) {
-        for (i = 0; i < 3; i++) {
-            if (i == slot) {
-                Gp_PreviewItems[i] = itemId;
+    if (itemId != Gp_PreviewItems[loadProfile]) {
+        // Publish the selection before requesting resources, even if no load is queued.
+        for (profileIndex = 0; profileIndex < ITEM_MENU_PREVIEW_PROFILE_COUNT; profileIndex++) {
+            if (profileIndex == loadProfile) {
+                Gp_PreviewItems[profileIndex] = itemId;
             } else {
-                Gp_PreviewItems[i] = -1;
+                Gp_PreviewItems[profileIndex] = ITEM_MENU_PREVIEW_EMPTY;
             }
         }
-        itemMenuEnqueuePreviewLoad(itemId, slot);
+        itemMenuEnqueuePreviewLoad(itemId, loadProfile);
     }
 }
 
@@ -1752,7 +1770,7 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
     flags = arg3 + 0x10;
     if (arg2 != 0) {
         if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-            _gpSetPreviewItem(arg2, arg3);
+            _itemMenuSetPreviewItem(arg2, arg3);
         }
         if ((cdCmdIsIdle() & 0xFFFF) == 0) {
             flags |= 0x100;
@@ -1763,9 +1781,9 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
     func_800C7AE8(arg1, arg1->panel.contentLeft.signedValue + 2, arg1->panel.contentTop.signedValue + 2, flags);
 }
 
-void Gp_SetPreviewItem(s32 arg0, s32 arg1)
+void itemMenuSetPreviewItem(s32 itemId, s32 loadProfile)
 {
-    _gpSetPreviewItem(arg0, arg1);
+    _itemMenuSetPreviewItem(itemId, loadProfile);
 }
 
 void itemMenuClearPreviewItems(void)
