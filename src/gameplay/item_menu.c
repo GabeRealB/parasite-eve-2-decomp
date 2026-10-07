@@ -866,7 +866,7 @@ static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
             count    = 2;
         }
         if (((u32)(item - 1) < 3U) || (item == 5) || (item == 6) || (item == 7) || (item == 0x3C) || (item == 0x3D)) {
-            Gp_ItemActionFns[count] = Gp_DrawUsePrompt;
+            Gp_ItemActionFns[count] = itemMenuDrawUseRow;
             count                   = count + 1;
         }
     }

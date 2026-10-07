@@ -6363,7 +6363,7 @@ shapeTables = (keep, Gp_MapMarkTables);
 ```
 
 `volatile` asm barriers also order the `lui`s but split the block and
-emit the remaining `s`-saves first. `Gp_DrawMapMarks` is the example.
+emit the remaining `s`-saves first. `_menuMapDrawAreas` is the example.
 
 ## Force a 3-input OR into the last load's register with `c |= a | b`
 
@@ -7170,7 +7170,7 @@ if (names != NULL) {
 ```
 
 `arr[i - 1]` on a 0x20-byte struct is `sll 5` / `addiu -0x20` / `addu`
-in the `bnez state` delay slot. `Gp_DrawMapName` is the example.
+in the `bnez state` delay slot. `menuMapAreaNameTask` is the example.
 
 ## Index each table in its `if` arm so `la` lands in `$v1`
 
@@ -24765,9 +24765,9 @@ A 7-case sparse switch on stage-id high words wants `slt` (the constants
 are all positive). Use a signed mask so the AND result stays SImode:
 
 ```c
-val = *(s32*)&D_8007216C;
-switch (val & ~0xFFFF) { /* not val & 0xFFFF0000 */
-    case 0x1130000:
+locationWord = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
+    case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):
         /* ... */
 }
 ```
@@ -24776,7 +24776,7 @@ A cast on the switch operand (`switch ((s32)(val & 0xFFFF0000))`) is not
 enough: the unsigned AND is still CSE'd and the compares stay `sltu`, or
 the load is rescheduled next to the AND.
 
-`func_800D4D2C` is the example.
+`shopOpenSession` is the example.
 
 ## Volatile load+store pair pins `lw` before an independent `sw zero`
 
@@ -24796,15 +24796,15 @@ A lone volatile load does not stop the non-volatile store from moving
 before it. Mark both accesses volatile so they stay in source order:
 
 ```c
-val = *(volatile s32*)&src;
-*(volatile s32*)&dst = 0;
-switch (val & ~0xFFFF) {
+locationWord = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+*(UiObject* volatile*)&Wip_UiHolder = NULL;
+switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
 ```
 
 `do { val = src; } while (0)` also pins the load first but then parks
 `sw ra` in the prologue instead of the first `beq` delay.
 
-`func_800D4D2C` is the example (`D_8007216C` then `Wip_UiHolder`).
+`shopOpenSession` is the example (the live save's location prefix, then `Wip_UiHolder`).
 
 ## Overlay imports of main functions may pass a dummy extra arg
 
@@ -25751,18 +25751,18 @@ the index, so the `lui` cannot move above the `lbu`, and `$v0` is reused for
 the table base:
 
 ```c
-UiObjectTaskFunc* slot;
+UiObjectTaskFunc* useHandlerSlot;
 
-id   = *Gp_SelItemRec;
-slot = &D_8010D3A0[id];
-if (*slot != NULL) {
+itemId = Gp_SelItemRec->itemId;
+useHandlerSlot = &D_8010D3A0[itemId];
+if (*useHandlerSlot != NULL) {
     ...
 }
 ```
 
-`if (D_8010D3A0[id] != NULL)` and `fn = D_8010D3A0[id]; if (fn != NULL)` both
+`if (D_8010D3A0[itemId] != NULL)` and `useHandler = D_8010D3A0[itemId]; if (useHandler != NULL)` both
 stuck at ~92% with the table `lui` hoisted and the stack adjust first.
-`Gp_SpawnItemUsePrompt` is the example.
+`_itemMenuOpenUsePanel` is the example.
 
 ## Reassign `(u16)arg` after a narrower store so `andi` reuses the arg reg
 
@@ -29131,7 +29131,7 @@ param2[0] = stage;
 cdCmdEnqueue(0x21, param1, param2);
 ```
 
-`Gp_EnqueueMapRoomCd` is the example. The fused
+`_menuMapLoadPage` is the example. The fused
 `param2[0] = gGameSession->location.loc.stage` stuck at 97.4% with only those
 three `sb zero` moved before the `addu`.
 
@@ -39012,7 +39012,7 @@ A scan loop that loads one table byte, tests it twice and passes it on:
 id = flagIds[(u8)i];            /* wrong: addu v0,s6,a0 ; lbu a1,0(v0) ; nop delay slot */
 if (id == 0)    break;
 if (id == 0xFF) break;
-ret = func_800D1434((u8)i, id);
+ret = _menuMapPageIsAvailable((u8)i, id);
 ```
 
 gives the load one pseudo whose only non-compare use is the call argument, so
@@ -39026,7 +39026,7 @@ preference and pushes it to `$v1`:
 ```c
 if (flagIds[(u8)i] == 0)    break;
 if (flagIds[(u8)i] == 0xFF) break;
-ret = func_800D1434((u8)i, flagIds[(u8)i]);
+ret = _menuMapPageIsAvailable((u8)i, flagIds[(u8)i]);
 ```
 
 `func_800D15D0`'s two scan loops went from 93.7% to 95.4% with this alone.
@@ -44509,7 +44509,7 @@ lw   $20, 0($3)
 sw   $18, 0($3)
 ```
 
-`gfxMakeRelativeTransform` and `Gp_DrawMapCursor` want that register form and write
+`gfxMakeRelativeTransform` and `_menuMapDrawPlayerCursor` want that register form and write
 `scratch = SCRATCH_STACK_CURSOR_SLOT; head = *scratch; ... *scratch = blk;`. When
 the target keeps both absolute, an earlier `playerActorAimYawToLock`
 implementation hid the load's address from CSE and left the store as the plain
@@ -65731,7 +65731,7 @@ checks, `u8` room `for` loops, and duplicated successful-room/close-menu tails
 matched 100% on the first structured attempt, without pins or barriers.
 The forward loop falls through to the backward-button check on exhaustion;
 a successful room test returns even when the selected room is unchanged.
-Write `if (func_800D1434(room, flags[room]) == 1)` and `task->state = 1`
+Write `if (_menuMapPageIsAvailable(room, flags[room]) == 1)` and `task->state = 1`
 inside that arm: CSE keeps the sign-extended result across calls and reuses it
 for the store. A separate m2c `s8` result local added moves and conversions.
 Likewise, preserve `if (displayFlag) displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM); else
@@ -85325,7 +85325,7 @@ Inputs: `base.i` (m2c seed, 50.156%)
 
 ```
 lui  v0,%hi(gGameSession)      li   a0,0x30        <- in the bne delay slot
-lw   v0,%lo(gGameSession)(v0)  jal  func_800D4D2C
+lw   v0,%lo(gGameSession)(v0)  jal  shopOpenSession
 addiu sp,sp,-0x18              lw   ra,0x10(sp)
 sw   ra,0x10(sp)               jr   ra
 lbu  v1,0x9(v0)                  addiu sp,sp,0x18
@@ -85359,7 +85359,7 @@ void func_actor_161500_801320B4(void)
 
     session = gGameSession;
     do {
-        func_800D4D2C((session->field_9 == 1) ? 0x31 : 0x30);
+        shopOpenSession((session->location.loc.variant == 1) ? 0x31 : 0x30);
     } while (0);
 }
 ```
@@ -143811,7 +143811,7 @@ complex operand the rule puts first, so baseY leads. The out-of-line `itemMenuDr
 same body, so it became a wrapper over the helper. When an inlined sum has
 its operands swapped, look at how many insns combine merged before changing
 the expression's order - reordering `textBaseY + y` / `y + textBaseY` did nothing here.
-## `move sN,v0` after a scratch carve with the head store *late*, and `v0`/`v1` pins on two parallel conversions (Gp_DrawMapCursor, 2026-09-26)
+## `move sN,v0` after a scratch carve with the head store *late*, and `v0`/`v1` pins on two parallel conversions (_menuMapDrawPlayerCursor, 2026-09-26)
 
 **Carve.** Target: `lw v0,0(a1); addiu v0,v0,-0x1C; move s1,v0`, field stores
 through `s1`, and `sw s1,0(a1)` only after the first computed field. That late
@@ -143825,10 +143825,10 @@ with no copy, wherever the store is placed.
 
 **Two conversions.** `x = base_x - (a - m.t[0]) / sx; y = base_y + (b - m.t[2]) / sy`
 needed pins to keep each quotient's chain in `v0`. Reusing two locals for both
-halves (`off = (...) / sx; base = rec->x0; pos->x = base - off;` then the same
-for `y`) makes `off` and `base` die twice, so they are global, local-alloc cannot
+halves (`mapOffset = (...) / sx; mapBase = area->mapX; centre->x = mapBase - mapOffset;` then the same
+for `y`) makes `mapOffset` and `mapBase` die twice, so they are global, local-alloc cannot
 tie the add/sub result to the field load, and the chain keeps `v0`. Writing
-`off = base + off` instead flips the `addu` operands (expand swaps a commutative
+`mapOffset = mapBase + mapOffset` instead flips the `addu` operands (expand swaps a commutative
 op whose second operand is the target).
 ## `lui` of the scratch head *before* the parameter's `move tN,a0`: an alias of the parameter's first member (_worldCoordScoreTransientPointLight, 2026-09-26)
 

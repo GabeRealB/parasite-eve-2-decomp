@@ -1469,7 +1469,7 @@ void func_actor_161500_801320B4(void)
 
     session = gGameSession;
     do {
-        func_800D4D2C((session->location.loc.variant == 1) ? 0x31 : 0x30);
+        shopOpenSession((session->location.loc.variant == 1) ? 0x31 : 0x30);
     } while (0);
 }
 
@@ -1490,9 +1490,9 @@ void func_actor_161500_80132110(void)
 void func_actor_161500_80132150(void)
 {
     if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
-        func_800D4D2C((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != 2) ? 0x31 : 0x33);
+        shopOpenSession((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != 2) ? 0x31 : 0x33);
     } else {
-        func_800D4D2C((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) ? 0x32 : 0x30);
+        shopOpenSession((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 2) ? 0x32 : 0x30);
     }
 }
 

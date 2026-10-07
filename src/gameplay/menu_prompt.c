@@ -1209,7 +1209,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
 
     sel = _inventoryFindNthReorderableRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0->currentItemIndex);
     if (sel == NULL) {
-        Gp_DrawSortCmd(arg0, arg1);
+        itemMenuDrawSortRow(arg0, arg1);
         return;
     }
 

@@ -594,7 +594,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             return;
         case 1:
             if (capIsBusy() == 0) {
-                func_800D4D2C(0x20);
+                shopOpenSession(0x20);
                 arg0->state++;
             }
             return;

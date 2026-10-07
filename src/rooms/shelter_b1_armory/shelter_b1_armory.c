@@ -277,7 +277,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             if (capIsBusy() != 0) {
                 break;
             }
-            func_800D4D2C(0x40);
+            shopOpenSession(0x40);
             task->state = task->state + 1;
             break;
         case 2:

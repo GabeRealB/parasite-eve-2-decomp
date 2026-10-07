@@ -746,7 +746,7 @@ enum {
     /// switch scripts and routes on it.
     GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED = 0x0DF,
     /// Set to 1 when the Dryfield-night trailer coach plays its one-time scene
-    /// (requires 0x7A >= 4); also picks 0x20/0x21 for func_800D4D2C.
+    /// (requires 0x7A >= 4); also picks 0x20/0x21 for shopOpenSession.
     GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN = 0x0E0,
     /// Unidentified. One-shot Neo Ark observatory event (actionId 2): sets 1, sets
     /// 0x155=6, sceneEvent 0x15 and plays a scene; selects a room variant (value+1) in

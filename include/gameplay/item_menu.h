@@ -185,7 +185,17 @@ enum {
 /// NULL. The notice starts active with a one-tick opening delay.
 UiObject* itemMenuSpawnNotice(UiObject* parent, s32 noticeId, s32 unused, s32 returnConfirmation);
 
-s32 func_800D4D2C(s32 arg0);
+/// Queues the current saved area's shop session with a stock selector.
+///
+/// Selects the loaded room's descriptor from the live save's stage and area,
+/// ignoring its room and view. The room must stay loaded through the queued
+/// task's use of its descriptor. The selector is forwarded unchanged: low
+/// 16 bits choose the stock set, high 16 bits choose category 0..3; room callers
+/// use 0x10, 0x20/0x21, 0x30..0x33 or 0x40 with the initial category zero.
+/// Clears the shared UI holder even in unsupported areas. Returns 0 for an
+/// unsupported area, 1 after requesting a supported shop; 1 does not prove that
+/// the display-mode queue accepted the request.
+s32 shopOpenSession(s32 stockSelector);
 
 /// Returns whether the most recently started hotspot menu's action row was accepted.
 ///

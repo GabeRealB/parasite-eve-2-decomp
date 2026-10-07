@@ -310,12 +310,12 @@ UiListRowCallback D_8010E9F0[1] = { Gp_DrawArmorSelectRow };
 UiList D_8010E9F4 = { D_8010E9F0, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
 UiListRowCallback Gp_ItemCmdFns[6] = {
-    Gp_DrawUsePrompt,
-    Gp_DrawMovePrompt,
-    Gp_DrawMovePrompt,
-    Gp_DrawMovePrompt,
-    Gp_DrawDiscardCmd,
-    Gp_DrawSortCmd,
+    itemMenuDrawUseRow,
+    itemMenuDrawMoveRow,
+    itemMenuDrawMoveRow,
+    itemMenuDrawMoveRow,
+    itemMenuDrawDiscardRow,
+    itemMenuDrawSortRow,
 };
 
 UiList D_8010EA30 = { Gp_ItemCmdFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
@@ -368,7 +368,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 48, 1 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemCmdMenuTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -80, 198, 158 }, 8, 0, TASK_BODY_NONE, 192, func_800CFA60, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -80, 198, 158 }, 8, 0, TASK_BODY_NONE, 192, itemMenuUseItemTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 144 }, 56, 0, TASK_BODY_NONE, 192, uiUpdateOptionsAfterLoadTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { -100, -80, 144, 78 }, 12, 0, TASK_BODY_NONE, 192, Gp_AmmoListTask, 0 },

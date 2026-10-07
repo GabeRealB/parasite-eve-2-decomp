@@ -56,7 +56,7 @@ void Gp_ItemMenuTask(Task* arg0);
 extern MenuMapArea* Gp_MapRecTables[];
 
 /// Per-stage table of `MenuMapAreaName` arrays. Index is `GameSession.location.loc.stage - 1`.
-/// A NULL entry skips the name draw (`Gp_DrawMapName`).
+/// A NULL entry skips the name draw (`menuMapAreaNameTask`).
 extern MenuMapAreaName* Gp_MapNameTables[];
 
 /// Per-stage table of `MenuMapAreaShape` arrays. Index is `GameSession.location.loc.stage - 1`.
@@ -84,7 +84,7 @@ extern u8 Gp_MapMarkCounts[];
 /// Current room id copied from `MenuMapArea.page` by `Gp_GetMapRoomId`.
 extern u8 Gp_MapRoomId;
 
-/// Room-id offset applied by `Gp_EnqueueMapRoomCd` (0, or 1 / 3 for two flagged rooms).
+/// Room-id offset applied by `_menuMapLoadPage` (0, or 1 / 3 for two flagged rooms).
 extern u8 Gp_MapRoomOff;
 
 /// Shared row callback and the fire/wind/water/earth panel captions.
@@ -344,7 +344,11 @@ void Gp_KeyItemMenuTask(Task* arg0);
 /// vertical moves select its first/last row. Child acceptance restores input.
 void itemMenuPeElementTask(Task* task);
 
-void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1);
+/// Draws Use and opens the selected ordinary item's use panel on active Confirm.
+///
+/// Borrows the selected carried row with an item id in 1..95. The command panel
+/// becomes inactive even if spawning fails; the list reports input consumed.
+void itemMenuDrawUseRow(UiList* list, UiObject* object);
 
 /// Releases an item-information panel and clears its published holder if still current.
 ///
@@ -406,7 +410,12 @@ void itemMenuEquipNoticeTask(Task* task);
 /// Borrows the live object's panel and queues text and bar primitives this frame.
 void itemMenuDrawAbilityDescription(UiObject* object, s32 abilityId);
 
-void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1);
+/// Draws Sort and sorts the live carried range on active Confirm.
+///
+/// While choosing a manual reorder destination, the selected Sort row is dimmed
+/// and skipped. Otherwise selection supplies the reorder help text. Coordinates
+/// are list-row pixels relative to the panel content.
+void itemMenuDrawSortRow(UiList* list, UiObject* object);
 
 void func_800CF148(UiObject* arg0, Task* arg1);
 
@@ -435,7 +444,10 @@ void itemMenuDrawDescriptionRow(UiList* list, UiObject* object);
 
 void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1);
 
-void Gp_DrawMovePrompt(UiList* arg0, UiObject* arg1);
+/// Draws Move and publishes the list's MOVE action on active Confirm.
+///
+/// The parent resolves the transfer; this row only publishes the command.
+void itemMenuDrawMoveRow(UiList* list, UiObject* object);
 
 void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1);
 
@@ -446,9 +458,20 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1);
 /// object == task->spawnArg2.pointer and task == object->owner.
 void itemMenuApplySelectedHealingItem(UiObject* object, Task* task);
 
-void func_800CFA60(Task* arg0);
+/// Dispatches each use-panel update to the selected ordinary item's handler.
+///
+/// `spawnArg1.value` is an item id in 0..95, used without narrowing or a bounds
+/// check. `spawnArg2.pointer` borrows the live panel object; the handler receives
+/// that object and its owner. A NULL handler leaves the panel untouched. The
+/// selected inventory row must remain valid for handlers that consume it.
+void itemMenuUseItemTask(Task* task);
 
-void func_800CFAA8(UiObject* arg0, Task* arg1);
+/// Applies the task-selected ordinary PE item through its use panel.
+///
+/// `spawnArg1.value` is 15..50, selecting one of twelve abilities at level 1..3.
+/// Requires the live owned object and selected row under
+/// `itemMenuInvokeParasiteEnergyItem`'s consumption and lifetime contract.
+void itemMenuApplyParasiteEnergyItem(UiObject* object, Task* task);
 
 /// Draws OK and publishes the list's OK command when its active row is confirmed.
 void itemMenuDrawOkRow(UiList* list, UiObject* object);
@@ -464,9 +487,21 @@ void itemMenuDrawNoRow(UiList* list, UiObject* object);
 
 void Gp_MapTaskState2(Task* arg0);
 
-void Gp_HelpPanelTask(Task* arg0);
+/// Loads the map help text, opens the current area's name panel and handles closing input.
+///
+/// `spawnArg2.pointer` is the live owned help object; state starts at zero.
+/// The global text chunk must remain loaded through state 2. Active Cancel or
+/// Triangle reports CONFIRM with resultValue 1; Menu reports CANCEL. The name
+/// panel borrows the same stage/area tables as `menuMapAreaNameTask`.
+void menuMapHelpTask(Task* task);
 
-void Gp_DrawMapName(Task* arg0);
+/// Fits and draws the current area's name above the map picture.
+///
+/// Requires stage 1..5 and a nonzero area within that stage's loaded name table;
+/// `spawnArg2.pointer` is the live owned object. State zero measures the large
+/// text and gives the panel four pixels of horizontal padding. Each update draws
+/// outlined text at the content origin; a NULL stage table suppresses the draw.
+void menuMapAreaNameTask(Task* task);
 
 void Gp_MapTask(Task* arg0);
 
@@ -544,7 +579,11 @@ void itemMenuDrawPeCancelRow(UiList* list, UiObject* object);
 
 void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1);
 
-void Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1);
+/// Draws Discard and opens the selected stack's discard dialog on active Confirm.
+///
+/// Borrows the stable selected carried row. The dialog applies restrictions and
+/// asks for confirmation; this command panel becomes inactive even if spawning fails.
+void itemMenuDrawDiscardRow(UiList* list, UiObject* object);
 
 /// Draws a PE ability's next-level preview, parameter comparisons and descriptions.
 ///
