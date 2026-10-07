@@ -148937,6 +148937,9 @@ a block boundary" at the end of this file.
   `&scratch->rows[j]`, `rows[j + 1]` or a `next` pointer changes which givs are
   spilled (21 to 50 differing hunks). The loop header
   `rowIndex += 2, j++, rowIndex--` there is a steering form of its own.
+  *Note 2026-10-07:* still there; the last section of this file ("The barrier
+  that pays for a split increment") has what each of the two forms stands for
+  and which replacements were measured.
 - `func_shelter_b3_garbage_incinerator_8017E158` (two `DEF_REG`). Nothing new
   beyond the entry of 2026-09-24: the 5-class has to be gone at the else arm
   while the `(s8)actionId == 1` class survives, so the break is between the two
@@ -152507,3 +152510,81 @@ order with each one alone before reading them as one mechanism: one may only
 be paying for the other's extra insn. And a variable that is set in two
 places can pick up references from a load that is copied straight out of it,
 whichever of its sets that is.
+
+### The barrier that pays for a split increment: giv creation order, and why no chained assignment reaches `p` (screenWaveGridTask, 2026-10-07, unchanged)
+
+**State.** `SOFT_USE_REG(p);` at the end of the row loop is still there. It
+and the loop header `rowIndex += 2, j++, rowIndex--` are one pair: the split
+header gives the row pointer's reduced giv four references nothing in the
+image accounts for, and the barrier gives `p` two back.
+
+`.greg`, the two pseudos that swap `$s4`/`$s5` (50 differing lines; nothing
+else moves):
+
+| | `p` (85) | row giv (731) | `j` (88), next above |
+|---|---|---|---|
+| with barrier | 27 / 169 = 6390, `$s4` | 29 / 187 = 6203, `$s5` | 37 / 261 = 7088 |
+| no barrier | 25 / 168 = 5952, `$s5` | 29 / 186 = 6236, `$s4` | 7115 |
+
+`p`'s 25 are all visible (flow weights a reference 1 + loop depth). The row
+giv has 25 visible: loop.c emits `row += 16` and `row -= 8` for the two
+halves of the split, flow counts both, combine merges them into the image's
+`addiu s5,s5,8`. So `p` needs 27 references (range up to 173 insns), 28 (179)
+or 29 (185); 31 already passes `j` and takes `$s3`.
+
+**Why the header is split** (read from the `.loop` dump; these rules are the
+reusable part).
+- Within one biv class `bl->giv` is built by prepending, and reduced registers
+  are created walking it: reverse scan order, each group of identical givs
+  under the one scanned *last*. Initialisers go before the loop in that order,
+  updates before the biv's increment in that order.
+- Classes are walked in reverse order of each biv's first `possible biv`
+  insn.
+- A `DEST_REG` giv inside a nested loop is not a giv of the outer loop (an
+  invariant the inner loop declined to hoist is simply not listed); a bare
+  `(mem (reg giv))` in the nested loop is a `DEST_ADDR` giv of the outer one,
+  and `(mem (plus (reg giv) c))` is not found at all.
+- sched1/sched2 keep the order of independent updates; reorg takes the last
+  one that the compare does not need for the delay slot.
+
+The image initialises `(j+1)*8`, `(j+1)<<9`, row in that order and updates
+them in the same order (row in the delay slot). One class gives equal orders,
+but the row's leader is then the bare `row->phase` read in the inner loop,
+scanned after the two hoisted `(j+1)` terms, so the row comes first
+(`rowBack = -j`: 6 lines differ). Two classes give opposite orders:
+`rowIndex++, j++` has the initialisers right and the updates wrong (4 lines),
+`j++, rowIndex++` the reverse (2 lines; `p` wins its register there with no
+help, 25 against 25 references). Only an increment of the row index on each
+side of `j++` satisfies both, and that is the two phantom sets.
+
+A row *cursor* (`row++` in the header, with or without `next`) is not the
+image either: the address givs of a pointer biv are reduced to a new register
+at the last-scanned displacement (`row + 8` or `row + 10`) and the biv itself
+stays, in the frame, for the bare read (45 lines).
+
+**What was tried for two more references on `p`**, all without the barrier:
+- `p = grid[0]; p += j * 8;` and `base = p = GRID[buf][1]; p = &base[j * 8];`:
+  29 references and the right order, but the first sum is formed in `p`'s
+  register (`addu s4,v1,v0; addu s4,s4,v0` for the image's `addu v1,v1,v0;
+  addu s4,v1,v0`). combine cannot merge a set of `p` into `p = p + x` unless
+  its source is a single register, and after a copy cse rewrites the base to
+  `p` itself, the longer-lived of the two. A chained assignment therefore only
+  works when the second variable's reader comes after `p` is set again, and
+  here that reader is the insn that sets it.
+- `q = p++` as the body's quad pointer, `p++` at the end of the body or first
+  in the header: `q` takes the references, or nothing changes.
+- The trailing `stp` shares `$s4`; its first block written through `p`
+  (with casts, as a measurement only) is 31 / 191 = 6492, inside the window,
+  and `p` is allocated ahead of the row giv - but it then takes `$s5`, the
+  other `stp` block's local-alloc register being in the way (104 lines).
+
+The permuter (600 s, 4 threads, from the barrier-free body at score 173)
+found nothing better.
+
+**Use.** Before reading a keep-live barrier as a missing use, compare `used N
+times` with the visible references of the *rival*: a surplus there means the
+barrier is paying for another fitted form, and the pair has to be replaced
+together. And when a loop's giv initialisers and updates come out in the same
+order, look for one biv; here the image contradicts that through the bare
+read, which is the open question (a tail statement recomputing the `(j+1)`
+terms would settle it, and would be a dead store).
