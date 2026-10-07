@@ -296,7 +296,7 @@ void Gp_AttachListTask(Task* task)
     obj->result = USER_INTERFACE_RESULT_NONE;
     state       = task->state;
     if (state == 0) {
-        Gp_BuildAttachList(menu, val);
+        itemMenuBuildConsumableChoiceList(menu, val);
         uiFitPanelToList(menu, &(obj)->panel);
         menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         menu->selectedItemIndex                   = 0;
@@ -436,7 +436,7 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
         uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
         val = Gp_AttachListIds[menu->selectedItemIndex];
         if (val != 0) {
-            func_800C7DA8(obj, val, 1, 0);
+            itemMenuDrawEquipmentStats(obj, val, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
         }
         flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
         if (val == 0) {
@@ -569,7 +569,7 @@ void Gp_SelectArmorMenuTask(Task* arg0)
 
     GP_FIND_SPARE_ARMOR(found, menu->selectedItemIndex);
     item = found;
-    func_800C7DA8(obj, item, 1, 0);
+    itemMenuDrawEquipmentStats(obj, item, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
 
     flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
     if (item == 0) {

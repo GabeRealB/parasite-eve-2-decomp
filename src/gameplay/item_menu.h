@@ -1038,18 +1038,77 @@ extern char Gp_StrSwitch[];
 
 s32 Gp_CanMoveItems(void);
 
-void Gp_AmmoListTask(Task* arg0);
+/// Runs the carried-weapon choice list, optionally filtered by a consumable.
+///
+/// spawnArg1 is 0 for equipment selection or a consumable id 0xA0..0xBF for
+/// loading; spawnArg2 borrows the live task-owned UiObject. State zero sizes
+/// the singleton list, state one updates it and resolves child results. An
+/// empty list shows a notice for 188 callback ticks. Menu returns CANCEL;
+/// Cancel returns CONFIRM from the list, while empty-notice acceptance returns
+/// DISMISS. The carried range and menu resources must remain live.
+void itemMenuWeaponChoiceListTask(Task* task);
 
-void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Layout and comparison modes for `itemMenuDrawEquipmentStats`.
+enum {
+    ITEM_MENU_EQUIPMENT_STATS_SUMMARY = 0,
+    ITEM_MENU_EQUIPMENT_STATS_COMPARE = 1
+};
+
+/// Draws an equipment item's values, optionally compared with equipped values.
+///
+/// Weapon ids 0x80..0x9F show range/rate/weight, consumables 0xA0..0xBF show
+/// power, and armor 0x60..0x7F shows HP/MP bonuses and attachment slots; other
+/// ids draw nothing. SUMMARY begins 28 pixels below the content top; COMPARE
+/// begins eight pixels below it and adds colors and increase/decrease/equal
+/// icons. Lower weapon weight is better; other increases are better. Other
+/// mode values use the upper layout without comparison. `unused` is ignored.
+/// Requires a live object, loaded menu textures and writable GPU/OT storage;
+/// panel visibility does not suppress drawing. Armor requires an equipped
+/// armor selector 1..32. Consumables require an equipped weapon selector 1..32
+/// and a selected load id 0 or 0xA0..0xBF; reload mode 2 selects secondary.
+/// No pointers are retained; the shared caption-table pointer is replaced.
+void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayMode, s32 unused);
 
 void Gp_EquipSummaryTask(Task* arg0);
 
-void Gp_DrawAmmoRow(UiList* prompt, UiObject* obj);
+/// Draws and handles a carried-weapon choice for equipment or consumable loading.
+///
+/// The owner's spawnArg1 is 0 to equip, or a consumable id 0xA0..0xBF to load.
+/// The list index must select a row counted by `itemMenuSetWeaponChoiceRows`;
+/// filtered rows can repeat a weapon for its two compatible loads. Selection
+/// updates help text and the filtered preview. Active-row Confirm equips and
+/// opens load-slot selection, or packs weapon/consumable ids for the reload
+/// notice. Triangle opens specifications. Publishes the weapon resultValue
+/// and deactivates input after opening a child. Borrows the live list/object,
+/// carried range and menu resources; no input pointer is retained.
+void itemMenuDrawWeaponChoiceRow(UiList* list, UiObject* object);
 
 void Gp_SelectWeaponMenuTask(Task* arg0);
 
-void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj);
+/// Draws and handles a weapon's consumable choice or its Remove Ammo row.
+///
+/// Uses `Gp_AttachListIds` built by `itemMenuBuildConsumableChoiceList`; the
+/// index must be below that list's itemCount. The owner's spawnArg1 low
+/// halfword is weapon id 0x80..0x9F. Nonzero rows require a carried item row
+/// and display available rounds/supply units, adding back this weapon's load
+/// in reload mode 0. Zero is the removal command. Active-row Confirm packs
+/// weapon/consumable ids for the reload notice; Triangle opens specifications
+/// for nonzero rows. Both suspend parent input. Borrows the live object/list,
+/// range and menu resources; no input pointer is retained.
+void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object);
 
-void Gp_BuildAttachList(UiList* arg0, s32 arg1);
+/// Builds the shared choices of consumables a weapon can load or remove.
+///
+/// weaponItemId must be 0x80..0x9F, reload mode must be 0..2, and the live
+/// carried range must fit its table.
+/// Reload mode 0 searches both loads and adds back this weapon's current
+/// quantity; mode 1 searches primary and mode 2 secondary using only unloaded
+/// stock. Keeps positive quantities in catalogue order without deduplication.
+/// Single-load modes append item id 0 (Remove Ammo) only after a positive
+/// choice. Both-load mode writes at most six ids; a single load writes at most
+/// three ids plus the command. Sets itemCount and visibleRowCount, narrowing
+/// them to bytes. Saved inventory and loads are unchanged; unused id slots
+/// remain intact and no pointer is retained.
+void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId);
 
 #endif // GAMEPLAY_PRIVATE_ITEM_MENU_H

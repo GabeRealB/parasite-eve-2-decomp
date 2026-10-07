@@ -146,7 +146,7 @@ segments:
       - [0x2CAA0, c, menu_prompt] # Gp_UiPromptDispatch
       - [0x31B28, c, menu_armor] # Gp_DrawRemoveArmorRow
       - [0x32770, c, item_stats] # itemMenuInfoTask
-      - [0x345A8, c, weapon_stats] # func_800C7DA8
+      - [0x345A8, c, weapon_stats] # itemMenuDrawEquipmentStats
       - [0x35E54, c, attachment_menu] # Gp_AttachListTask
       - [0x375FC, c, item_panels] # item command lists and panels
       - [0x3AA2C, c, pickup_dispatch] # func_800CE22C

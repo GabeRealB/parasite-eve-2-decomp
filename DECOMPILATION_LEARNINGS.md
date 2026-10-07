@@ -7031,7 +7031,7 @@ bnez   v1, not_zero
  addiu  s0, v0, 0xE9CC     # %lo
 ```
 
-Dest `$s1`/`$s2` naturally uses `$v0` as the `lui` temp (`Gp_AmmoListTask`).
+Dest `$s1`/`$s2` naturally uses `$v0` as the `lui` temp (`itemMenuWeaponChoiceListTask`).
 Dest `$s0` does not. `asm("addiu %0, %1, %%lo(...)")` will not fill a
 delay slot; a C add will.
 
@@ -32327,7 +32327,7 @@ emits two `j cont / sh` tails. GCC 2.8.1's cross-jump merges them into
 the one store after the `bne 9` fall-through, while `-1` stays an
 immediate in the `slti` delay slot. Reuse the `1` temp for the pivot
 (`one = 6` before the loop) so that load overwrites `$s2` instead of
-allocating `$s4`. `Gp_AmmoListTask` is the example.
+allocating `$s4`. `itemMenuWeaponChoiceListTask` is the example.
 
 ## `i = count` after a count barrier fills the `beqz` delay slot
 
@@ -34045,9 +34045,9 @@ if (mode != 2) {
     off = (arg1 - 0x80) * 4;
 ```
 
-`Gp_BuildAttachList` is the example.
+`itemMenuBuildConsumableChoiceList` is the example.
 
-**2026-10-06.** Superseded: `Gp_BuildAttachList` needs no asm. `i = n` was never written; it is what cse makes of a second `i = 0`. See "A register zeroed twice" at the end of this file.
+**2026-10-06.** Superseded: `itemMenuBuildConsumableChoiceList` needs no asm. `i = n` was never written; it is what cse makes of a second `i = 0`. See "A register zeroed twice" at the end of this file.
 
 ## Pin a late `addiu` to a just-loaded value so it cannot hoist
 
@@ -34079,7 +34079,7 @@ A pair of loops that both compute `(id - 0x80) * 4` then
 `table[i + off + OFFSET_OF(EquipmentWeaponLoadOptions, acceptedItemIds)]` will keep `off` in `$s8`
 (clobbering a live scan pointer) or reuse one stack slot if they share
 one local. Separate `off` / `off2` gives `sw 0x10(sp)` / `sw 0x14(sp)`
-and the `lw a2` / `nop` / `addu v0, s2, a2` form. `Gp_BuildAttachList` is the
+and the `lw a2` / `nop` / `addu v0, s2, a2` form. `itemMenuBuildConsumableChoiceList` is the
 example.
 
 ## Split `lui`/`lbu` of a global byte around an `lhu` from a live `$v0`
@@ -35514,7 +35514,7 @@ pattern as a single-`gte_ldv3` handler (`tmdDrawStreamPrimFt3`).
 
 ## Volatile `move` after a chained load so it does not fill the first delay
 
-*2026-10-07: not needed. `Gp_DrawAmmoRow` matches with the parameter used directly and no asm; the copy is the parameter's own entry copy, held below the loads by a basic block that later disappears. See "A parameter's entry copy below a chained load" at the end of this file.*
+*2026-10-07: not needed. `itemMenuDrawWeaponChoiceRow` matches with the parameter used directly and no asm; the copy is the parameter's own entry copy, held below the loads by a basic block that later disappears. See "A parameter's entry copy below a chained load" at the end of this file.*
 
 `s = p->owner->spawnArg1` then `prompt = index` lets `-fschedule-insns2` put
 `move s5, a0` in the `lw owner` delay. The target wants consecutive loads
@@ -35523,12 +35523,12 @@ the copy as a volatile `move` that lists the second load's result as an
 input so it cannot rise into the first delay:
 
 ```c
-spawnArg = obj->owner->spawnArg1;
+spawnArg = object->owner->spawnArg1.value;
 asm volatile("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg));
 ```
 
 `%0` is the `s5` dest, `%1` is the `+r` `obj` operand, `%2` is `index`.
-`Gp_DrawAmmoRow` is the example. Same “pin the copy so `lui` cannot float
+`itemMenuDrawWeaponChoiceRow` is the example. Same “pin the copy so `lui` cannot float
 above it” idea as `func_8009AA5C`.
 
 ## Pin `5` to `$v1` so `mode != 5` is `lw v0` / `beq v0, v1`
@@ -35544,7 +35544,7 @@ five = 5;
 if (obj->mode != five) {
 ```
 
-`Gp_DrawAmmoRow` is the example.
+`itemMenuDrawWeaponChoiceRow` is the example.
 
 ## Block-scope `/ k` temps so two loops do not share a function-level `val`
 
@@ -35846,7 +35846,7 @@ t = (s32)str;
 }
 ```
 
-`Gp_DrawRemoveAmmoRow` is the example.
+`itemMenuDrawConsumableChoiceRow` is the example.
 
 ## 4-arg cast so a C store fills the shared-`jal` jump delay
 
@@ -35866,7 +35866,7 @@ slot = slot - 8;
 
 Split `slot = (char*)&draw; slot = slot - 8` so the linter does not see
 a cast in the same `+/-`. Pin `$a0`–`$a3` with `+r` before the store so
-the `j` delay is free for the `sw`. `Gp_DrawRemoveAmmoRow` is the example.
+the `j` delay is free for the `sw`. `itemMenuDrawConsumableChoiceRow` is the example.
 
 ## maspsx inline-asm displacements must be decimal
 
@@ -66777,7 +66777,7 @@ prologue shape; here two were in the same TU.
 
 ## A two-store constant (`p->w = 8; p->h = 8`) is hoisted at span 2; reuse the local for a later constant to keep `li` in the loop
 
-`func_800C7DA8`'s sprite loop writes `w` and `h` from one register:
+`itemMenuDrawEquipmentStats`'s sprite loop writes `w` and `h` from one register:
 
 ```
 lhu   v0,0x22(s3)
@@ -68424,7 +68424,7 @@ overlap in the original build is unresolved.
 
 ## A pinned local fed by a parameter deletes the copy; `USE_REG` on the parameter brings it back
 
-*2026-10-07: not needed. `Gp_DrawAmmoRow` matches with the parameter used directly and no asm; the copy is the parameter's own entry copy, held below the loads by a basic block that later disappears. See "A parameter's entry copy below a chained load" at the end of this file.*
+*2026-10-07: not needed. `itemMenuDrawWeaponChoiceRow` matches with the parameter used directly and no asm; the copy is the parameter's own entry copy, held below the loads by a basic block that later disappears. See "A parameter's entry copy below a chained load" at the end of this file.*
 
 `register T x asm("s5"); ... x = index;` does not reliably give a `move s5, a0`
 where the assignment stands. local-alloc propagates the hard register backwards
@@ -68454,7 +68454,7 @@ USE_REG(arg0);                  /* arg0 still live -> real move s5, a0 */
 `USE_REG` emits nothing, so this replaces a hand-written
 `asm("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(index), "r"(spawnArg))` with
 an equivalent that keeps the R_MIPS relocations and the register names the
-compiler chose (`Gp_DrawAmmoRow`). The barrier is separately required: dropping
+compiler chose (`itemMenuDrawWeaponChoiceRow`). The barrier is separately required: dropping
 it lets the copy schedule back into the delay slot, and dropping the `"+r"(obj)`
 half lets cse rewrite later uses of the pinned `obj` as the argument pseudo,
 which costs an extra `move`.
@@ -142898,7 +142898,7 @@ function-scope locals became one global pseudo; and `u16_field % 10` needs no
 `(u16)` cast to keep its `andi 0xffff` - the front end shortens the modulo to
 `unsigned short` and widens the result back.
 
-### A pinned local passed to an inline helper is copied into a fresh pseudo (Gp_DrawAmmoRow, 2026-09-26)
+### A pinned local passed to an inline helper is copied into a fresh pseudo (itemMenuDrawWeaponChoiceRow, 2026-09-26)
 
 **Symptom.** Replacing a hand-expanded draw block with the TU's existing
 `static inline` helper added `move v0,s5` before each field read of the
@@ -142913,7 +142913,7 @@ variable is substituted and costs nothing.
 **Fix.** While a variable has to stay pinned, call the helper's variant that
 takes the loaded fields (`_gpDrawItemNameAt(obj, p->rowTextX.signedValue, ...)`) rather than
 the pointer, so the reads happen in the caller against the pinned register.
-### A call whose 5th-argument `sw` comes first, then jumps into a shared `jal`: an if/else with identical arms (Gp_DrawRemoveAmmoRow, 2026-09-26)
+### A call whose 5th-argument `sw` comes first, then jumps into a shared `jal`: an if/else with identical arms (itemMenuDrawConsumableChoiceRow, 2026-09-26)
 
 **Symptom.** Two arms each spawn a dialog with a stack argument and clear a
 field afterwards. After cross-jumping, arm 1 does `…; move a3,a2; j L` with
@@ -146407,7 +146407,7 @@ A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else i
 
 ## A pin on a value stored to a global and returned is `g = x; return g;` (Gp_GetMapRoomId, 2026-09-27)
 The target loads a record byte into `v1`, stores it to a `u8` global and returns `andi v0,v1,0xff`. Holding the byte in a `u8` local (`val = rec->f; g = val; return val;`, or `return g = rec->f;`) puts the load in `v0` and a `register u8 val asm("v1")` pin had been fixing that. Writing the natural `g = rec->f; return g;` matches: the return reads the global's value through CSE, which ties the return copy to the stored pseudo differently from a named local. When a pin sits on a "store then return it" local, try returning the global itself.
-## A `move` from a register that was itself filled by a copy is a real RTL copy, never a `reload_cse` fold (Gp_BuildAttachList, 2026-09-27)
+## A `move` from a register that was itself filled by a copy is a real RTL copy, never a `reload_cse` fold (itemMenuBuildConsumableChoiceList, 2026-09-27)
 
 **Shape.** `count = 0` before a call, then `move s3,s5` (`n = count`) and
 `move s2,s3` (the loop index starting from `n`). Written as plain C
@@ -148264,7 +148264,7 @@ threshold at that insn. A count that is off by two is one narrow local: an
 `s16`/`s8` invariant used in arithmetic contributes a hoisted extension pair
 that is invisible in the output. Try the type of each invariant local before
 any construct that changes cse's blocks.
-## Unresolved, with the mechanism measured: a counter's zero that the loop pre-test still reads from a register (itemMenuSetWeaponChoiceRows, Gp_BuildAttachList, itemMenuDrawPlayerStats, Gp_DrawAmmoRow, 2026-10-05)
+## Unresolved, with the mechanism measured: a counter's zero that the loop pre-test still reads from a register (itemMenuSetWeaponChoiceRows, itemMenuBuildConsumableChoiceList, itemMenuDrawPlayerStats, itemMenuDrawWeaponChoiceRow, 2026-10-05)
 
 A second dehack pass removed nothing from these four, but it replaced "the pin
 is needed" with what each pin stands for. Nothing below is a fix; each is the
@@ -148313,7 +148313,7 @@ depth (1 outside, 2 in the outer loop, 3 in the inner):
 |---|---|---|---|
 | `itemMenuSetWeaponChoiceRows` | the reduced `&table[idx]` giv (`$a3`) | 15 refs / 52 = 0.865 | hoisted `(id - 0x80) * 4`, 5 / 9 = 1.11; `count`, 20 / 69 = 1.16 |
 | `itemMenuDrawPlayerStats` | `x` (`$s0`) | 10 refs / 180 = 0.167 | `y2`, 7 / 71 = 0.197 |
-| `Gp_DrawAmmoRow` | `spawnArg` (`$s4`) before the list (`$s5`) | 6 / 190 = 0.063 | list 13 / 396 = 0.098 |
+| `itemMenuDrawWeaponChoiceRow` | `spawnArg` (`$s4`) before the list (`$s5`) | 6 / 190 = 0.063 | list 13 / 396 = 0.098 |
 
 One more weighted reference to the giv (16 refs: `floor_log2` steps to 4, 1.23)
 orders all three `itemMenuSetWeaponChoiceRows` registers as the target has them, with no
@@ -148739,9 +148739,9 @@ set in the same block as the compare and after the `lh`, yet unknown to cse2.
 
 **2026-10-06, `itemMenuSetWeaponChoiceRows` resolved.** The read of `count` that keeps the `slt` is not needed: a basic-block boundary between `count = 0` and the pre-test does it, and the giv's missing reference is a second `idx++`. See "A conditional block that is empty by local-alloc" at the end of this file. The other three functions are unchanged.
 
-**2026-10-06, `Gp_BuildAttachList` resolved, and `itemMenuSetWeaponChoiceRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
+**2026-10-06, `itemMenuBuildConsumableChoiceList` resolved, and `itemMenuSetWeaponChoiceRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
 
-**2026-10-07, `Gp_DrawAmmoRow` resolved without pins or barriers.** The table row above is right about the list pointer but treats it as a two-way contest, and the inlined colour pseudo (937) has to rank below both: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
+**2026-10-07, `itemMenuDrawWeaponChoiceRow` resolved without pins or barriers.** The table row above is right about the list pointer but treats it as a two-way contest, and the inlined colour pseudo (937) has to rank below both: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
 
 **2026-10-07, `itemMenuDrawPlayerStats` resolved without the pin.** The table row above has the contest right (`x` 10 / 180 against `y2` 7 / 71) but looked for the answer on `y2`'s side. sched1 recounts live lengths, so `y2`'s 71 is fixed by the target's layout; what moves is `x`, which needs 12 references. See "A value loaded into one variable and copied to another" at the end of this file.
 ## A local reused for the value loaded through it keeps both reference counts (_actor02100ScanEnemyTargets, 2026-10-05)
@@ -151225,9 +151225,9 @@ twice or more it floats to the top of the block whenever the stores between
 are fed by loads. Then test the hypothesis by deleting the other sets in a
 scratch copy: if the function matches, the constant was never the problem.
 
-## A register zeroed twice: cse turns the second `i = 0` into a copy from the longest-lived zero (Gp_BuildAttachList, itemMenuSetWeaponChoiceRows, 2026-10-06)
+## A register zeroed twice: cse turns the second `i = 0` into a copy from the longest-lived zero (itemMenuBuildConsumableChoiceList, itemMenuSetWeaponChoiceRows, 2026-10-06)
 
-**Was.** `Gp_BuildAttachList` held `n = count; if (mode != 2) { SOFT_TOUCH_REG(n); i = n; do { ... } while (i < 3); }`
+**Was.** `itemMenuBuildConsumableChoiceList` held `n = count; if (mode != 2) { SOFT_TOUCH_REG(n); i = n; do { ... } while (i < 3); }`
 for `move s3,s5` / `move s2,s3`, and three entries concluded that the copy
 `i = n` had to be hidden from cse (`reload_cse` cannot produce it: a
 `CONST_INT` is `VOIDmode`, so a zero is not forwarded through `move s3,s5`).
@@ -151910,14 +151910,14 @@ priority it then needs can come from `v = call(); if (v & mask)` pairs, which
 cost nothing. Check `Register N used K times across L insns` in `.lreg`
 against the pointer it has to outrank.
 
-### A parameter's entry copy below a chained load: a block that ended on a branch reading the loaded value, then disappeared (Gp_DrawAmmoRow, 2026-10-07)
+### A parameter's entry copy below a chained load: a block that ended on a branch reading the loaded value, then disappeared (itemMenuDrawWeaponChoiceRow, 2026-10-07)
 
 **Was.** `register UiList* prompt asm("s5")`, `register s32 spawnArg asm("s4")`
 and two `USE_REG` barriers, for
 
 ```
 sw   s0,40(sp)          # end of the prologue
-lw   v0,40(s1)          # obj->owner
+lw   v0,40(s1)          # object->owner
 nop
 lw   s4,52(v0)          # ->spawnArg1.value
 move s5,a0              # first parameter, only now
@@ -151954,20 +151954,20 @@ put it where it is:
 **Fix (fitted, see below).**
 
 ```c
-void Gp_DrawAmmoRow(UiList* prompt, UiObject* obj)
+void itemMenuDrawWeaponChoiceRow(UiList* list, UiObject* object)
 {
-    spawnArg = obj->owner->spawnArg1.value;
-    if (spawnArg > 0) {
-        item = inventoryGetNthWeaponForConsumable(..., prompt->currentItemIndex, spawnArg);
+    consumableItemId = object->owner->spawnArg1.value;
+    if (consumableItemId > 0) {
+        weaponItemId = inventoryGetNthWeaponForConsumable(..., list->currentItemIndex, consumableItemId);
     } else {
-        item = inventoryGetNthWeaponForConsumable(..., prompt->currentItemIndex, spawnArg);
+        weaponItemId = inventoryGetNthWeaponForConsumable(..., list->currentItemIndex, consumableItemId);
     }
 ```
 
 The condition must not let cse learn the value: with `spawnArg == 0` or
 `!= 0` the zero arm passes `move a2,zero` and the arms no longer merge (280
 insns). `spawnArg > 0`, `(u16)spawnArg != 0` and `(spawnArg & 0xFF) != 0` all
-match. `Gp_DrawRemoveAmmoRow`, written from this function, has the same
+match. `itemMenuDrawConsumableChoiceRow`, written from this function, has the same
 identical-arms shape at its dialog call.
 
 **What is fitted.** The block boundary and the two extra references are
