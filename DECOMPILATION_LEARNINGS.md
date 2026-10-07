@@ -153329,3 +153329,23 @@ a second variant. That includes the cases the old comments called load-bearing:
 None was tried; expect the same. A multi-package source (`actor_01600` is
 `actor_101600`/`_201600`/`_301600`) is not a valid `--only` selector under its
 source name: the scoped build exits 1 with no output; name the packages.
+## A shared fragment's new inline needs its header in every including TU (gfxSetRotIdentity, 2026-10-07)
+
+Replacing the identity word stores in the six `src/shared/factory_*.inc.c`
+fragments with `gfxSetRotIdentity` matched in `dryfield_factory` and failed in
+`dryfield_night_factory`, from identical source. The night TU did not include
+`main/gfx.h`: GCC 2.8.1 accepts the call as an implicit declaration without an
+error, so the object carries `jal gfxSetRotIdentity` (an `R_MIPS_26` against an
+undefined symbol) where the day object has the five inlined stores, and every
+later function in the object shifts. Symptom to look for: a fragment that
+matches in one includer and not another, with a `jal` to the inline's name in
+the diff. Fix: include the inline's header in the carrier `.c` that lacks it,
+and compare every including object, not one.
+
+The rooms and shared sweep itself (45 sites) needed nothing new: every block
+became `gfxSetRotIdentity(<matrix>)` on its first build, including the two
+hand-ordered `ONE, ONE, ONE, 0, 0` blocks in `dryfield_breezeway_2.c` and the
+`one = ONE` constant-local blocks in `dryfield_night_gas_station.c`. The one
+choice that mattered: where the function's matrix pointer is a real local that
+later code reads through (`madChaserDangleFall`/`Sway`'s `src`), keep the local
+and pass `&src->mat`; replacing its uses by `&rot` moved registers.
