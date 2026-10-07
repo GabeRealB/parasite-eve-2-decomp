@@ -71,11 +71,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b1_pod_access_tunnel_80184D0C[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_shelter_b1_pod_access_tunnel_80184D0C_value __asm__("D_shelter_b1_pod_access_tunnel_80184D0C");
+extern u8 D_shelter_b1_pod_access_tunnel_80184D0C;
 
 enum {
     SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_DELAY_FRAMES = 46,  // Frames the lower image is held still before the scroll starts
@@ -972,12 +968,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b1_pod_access_tunnel_80184D0C[4] = {
-    0,
-    63,
-    253,
-    225,
-};
+u8 D_shelter_b1_pod_access_tunnel_80184D0C = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_b1_pod_access_tunnel_80184D0D = 63;
+
+u8 D_shelter_b1_pod_access_tunnel_80184D0E = 253;
+
+u8 D_shelter_b1_pod_access_tunnel_80184D0F = 225;
 
 RoomLatchedEvent gRoomEventLatched;
 
@@ -989,7 +987,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 
 static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b1_pod_access_tunnel_80184D0C_value = 0;
+    D_shelter_b1_pod_access_tunnel_80184D0C = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -998,7 +996,7 @@ static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, Roo
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_b1_pod_access_tunnel_801810CC, 0, 0, 0);
-            D_shelter_b1_pod_access_tunnel_80184D0C_value = 1;
+            D_shelter_b1_pod_access_tunnel_80184D0C = 1;
         }
         return 2;
     }
