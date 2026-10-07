@@ -643,15 +643,9 @@ static AnimationSet* _gActor160900PlayerAnimationSets[11] = {
     &_gActor160900Animation0AB80,
 };
 
-u8 D_actor_160900_8013F1C4[8] = {
-    20,
-    236,
-    19,
-    128,
-    84,
-    241,
-    19,
-    128,
+AnimationSet* D_actor_160900_8013F1C4[2] = {
+    &_gActor160900Animation0CDF4,
+    &_gActor160900Animation0D334,
 };
 
 ActorAnimChainLink D_actor_160900_8013F1CC[11] = {
@@ -964,7 +958,7 @@ extern u8 D_actor_160900_8013F240[];
 /// Animation-set table `animationInitContext` binds to the child's context, the table
 /// published as `_Actor160900KyleModelWork::animChain`, and the message table
 /// published as `Task::msgTable`.
-extern u8 D_actor_160900_8013F1C4[];
+extern AnimationSet* D_actor_160900_8013F1C4[];
 
 extern ActorAnimChainLink D_actor_160900_8013F1F8[];
 
@@ -1173,25 +1167,31 @@ void func_actor_160900_80132A14(Task* arg0)
     }
 }
 
+/// Clears the model's clip id and hold counter and resets slots 1-19 to unit rate.
+static inline void func_actor_160900_ResetAnimSlots(Task* task)
+{
+    _Actor160900KyleModelWork* work;
+    u16                        i;
+
+    work           = task->work;
+    work->animId   = 0;
+    work->animHold = 0;
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        work->rig.slots[i].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&work->rig.anim, i, 0);
+    }
+}
+
 /// Binds the child's animation context and resets slots 1-19. Taking the model
 /// as a parameter is what schedules its load after the work-block load.
 static inline void func_actor_160900_InitAnim(Task* task, TmdObject* obj)
 {
     _Actor160900KyleModelWork* work;
-    s32                        i;
 
     work = task->work;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, D_actor_160900_8013F1C4, obj, work->rig.poses, work->rig.slots);
     work->animChain = D_actor_160900_8013F1F8;
-    work            = task->work;
-    i               = 1;
-    work->animId    = 0;
-    work->animHold  = 0;
-    do {
-        work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work->rig.anim, (u16)i, 0);
-        i++;
-    } while ((u16)i < ARRAY_SIZE(work->rig.slots));
+    func_actor_160900_ResetAnimSlots(task);
 }
 
 void func_actor_160900_80132C08(Task* task)

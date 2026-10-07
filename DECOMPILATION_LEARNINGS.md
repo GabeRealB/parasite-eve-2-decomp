@@ -153486,3 +153486,42 @@ declare a new matrix as `GfxMatrix` unless it needs that view.
 initializers. `SpriteView::sources.empty` looked unused that way and is the
 member 905 room-table initializers name (`{ .empty = <batch list> }`), so that
 union stays; dropping it would put a cast on every one of them.
+
+## A base pointer loaded twice from the task is a second-level inline; its flattened copy carried three fitted spellings that were never needed (func_actor_160900_InitAnim, 2026-10-07)
+
+**Was.** The inline `func_actor_160900_InitAnim` (expanded in
+`func_actor_160900_80132C08`) ended in a hand-flattened tail: `work =
+task->work` a second time, `i = 1` written above the two stores, an `s32 i`
+with `(u16)` casts at every use, and a `do`/`while`. Image:
+
+```
+li s1,1 ; lw s0,28(s2) ; ... jal animationInitContext ; sw v0,1204(s0)
+lw s0,28(s2) ; li s3,16 ; sh zero,1208(s0) ; sh zero,1210(s0)
+andi a1,s1,0xffff ...          # s1 never masked in place
+```
+
+**Measured, on the caller.** Only the second load is real. With it kept, the
+natural `u16 i; for (i = 1; i < ARRAY_SIZE(slots); i++)` gives the same bytes
+in place (0 lines): `li 1` rises to the top of the block through the call by
+itself, and the unmasked counter with `andi` at each use is what a `u16`
+counter compiles to here, not evidence of an `s32`. Without the second
+`work = task->work` the hoisted `li s3,16` moves up beside `li s1,1` and one
+`lw` goes (3 lines). The reload is what a nested `static inline` taking the
+`Task*` leaves, so the tail is now `func_actor_160900_ResetAnimSlots(task)`.
+
+**Not the Reseed shape.** The sibling `func_actor_160900_Reseed` needs
+`func_actor_160900_ResetAnimHold(work)` (a block boundary) between the stores
+and the loop. Here the same helper is wrong by 21 lines: it holds `li 1` below
+the stores, and this image has it above the first load. The two inlines differ
+in that helper as well as in the loop body, so they are not one function with
+a selector.
+
+**Also.** `D_actor_160900_8013F1C4` was `u8[8]` holding two little-endian
+addresses and was cast to `AnimationSet**` at the call; it is
+`AnimationSet*[2] = { &..0CDF4, &..0D334 }`, same bytes, no cast.
+
+**Use.** Before keeping `(u16)i` casts on an `s32` counter, a `do`/`while`, or
+a loop start written early, try the plain `u16` `for`: these three came from
+copying m2c's reading of the image and none was load-bearing. A second load of
+the same field through the same base, after a call, is the one thing to keep,
+and a helper taking the outer pointer explains it.
