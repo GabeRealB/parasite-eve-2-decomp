@@ -54,9 +54,6 @@
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/g_r_kitchen.h"
 
-#define D_dryfield_g_r_kitchen_8017EBF0 (D_dryfield_g_r_kitchen_8017EBE8 + 1)
-#define D_dryfield_g_r_kitchen_8017EC08 (D_dryfield_g_r_kitchen_8017EBE8 + 4)
-
 extern RoomEventActiveBytes gRoomEventActive;
 
 /// The event message and request the gate latched for the event task, and the

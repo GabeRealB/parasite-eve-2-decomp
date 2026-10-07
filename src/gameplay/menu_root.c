@@ -683,24 +683,3 @@ const u16 D_80096F88[12] = {
     0x0000,
     0x0000,
 };
-
-/// Shows `item`'s name in the holder (the empty-slot text for item 0) and
-/// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
-    do {                                                                                \
-        if ((item) == 0) {                                                              \
-            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
-        } else {                                                                        \
-            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                               \
-        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
-    } while (0)
-
-/// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
-/// item preview, while the CD queue is still busy loading it.
-#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
-    do {                                     \
-        if (cdCmdIsIdle() == 0) {            \
-            (flags) |= 0x100;                \
-        }                                    \
-    } while (0)

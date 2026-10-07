@@ -9,36 +9,6 @@
 #include "gameplay/player_state.h"
 #include "gameplay/scene_combat.h"
 
-/// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
-/// the prompt's left edge.
-#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                            \
-    {                                                                           \
-        req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
-        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        req.colorRgb   = (color);                                               \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
-        req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
-        req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
-        textDrawString(&req, (str));                                            \
-    }
-
-/// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
-#define DRAW_PROMPT_COUNT(req, line, count)                                     \
-    {                                                                           \
-        req.colorRgb   = 0x606060;                                              \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
-        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
-        req.drawMode   = TEXT_DRAW_FILL_ONLY;                                   \
-        req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
-        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        textDrawString(&req, textItoaSigned(buf, (count)));                     \
-        if ((count) == 0) {                                                     \
-            flag = 1;                                                           \
-        }                                                                       \
-    }
-
 #include "main/wipsys.h"
 #include <psyq/rand.h>
 
@@ -46,9 +16,6 @@ s32 D_80114F28;
 
 /// Inline copy of `sceneIsBattleActive`.
 static __inline__ s32 isStateF0Active_(void);
-
-#undef DRAW_PROMPT_LABEL
-#undef DRAW_PROMPT_COUNT
 
 /// Inline copy of `sceneIsBattleActive`.
 static __inline__ s32 isStateF0Active_(void)

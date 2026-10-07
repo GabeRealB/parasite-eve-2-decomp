@@ -70,8 +70,6 @@ u8 D_dryfield_night_motel_lobby_801844D8[7];
 
 #include "rooms/room_common.h"
 
-#define D_dryfield_night_motel_lobby_801828E8 (D_dryfield_night_motel_lobby_801828E0 + 1)
-
 /// Task descriptor of the examine child task `func_dryfield_night_motel_lobby_80180E98`
 /// spawns.
 extern TaskDesc D_dryfield_night_motel_lobby_80182814[];

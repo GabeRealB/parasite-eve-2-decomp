@@ -173,31 +173,7 @@ u16 Gp_CollectedIds[41] = {
 /// Unreferenced nonzero halfword after the collected-item terminator.
 u16 D_80114B32 = 0x1131;
 
-/* Count item `id` in saved rows 0..254 through a cleared range. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
-
 /* Item names and descriptions shared by the inventory tables. */
-
-/* Gives `scan` one `weapon` and loads it with `ammo`. */
-#define GP_GIVE_LOADED(scan, weapon, ammo)           \
-    do {                                             \
-        inventoryGiveItem(scan, weapon, 1);          \
-        Gp_EquipRelatedItem(scan, weapon, ammo, -1); \
-    } while (0)
-
-/* Clears the carried inventory, equips the starting armour, restores HP/MP,
- * and gives the initial supplies and their attachment slots. */
-#define _gpInitStartingItems(scan, cfg)                      \
-    do {                                                     \
-        inventoryClearItems(scan);                           \
-        inventoryGiveItem(scan, 0x60, 1);                    \
-        Gp_EquipMod(0x60);                                   \
-        (cfg)->hp = (cfg)->hpMax;                            \
-        (cfg)->mp = (cfg)->mpMax;                            \
-        inventoryGiveItem(scan, 0x92, 1);                    \
-        inventoryGiveItem(scan, 0x40, 1)->attachSlot    = 1; \
-        inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
-    } while (0)
 
 /* Item table a scan window lies in. */
 

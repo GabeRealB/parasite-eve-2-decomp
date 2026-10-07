@@ -35,13 +35,10 @@
 #error "define DESERT_CHASER_BUILD (DESERT_CHASER_CUTSCENE, _REGULAR or _WATER_TOWER) before including desert_chaser.h"
 #endif
 
-/// Clips per row of the clip start-frame table, and the slot flag that ends
-/// the blend context's cross-fade.
+/// The slot flag that ends the blend context's cross-fade.
 #if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
-#define DESERT_CHASER_CLIP_COUNT 0x2D
 #define DESERT_CHASER_BLEND_DONE ANIMATION_SLOT_REACHED_BOUNDARY
 #else
-#define DESERT_CHASER_CLIP_COUNT 0x19
 #define DESERT_CHASER_BLEND_DONE ANIMATION_SLOT_SETTLED
 #endif
 

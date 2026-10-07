@@ -2575,12 +2575,3 @@ InventoryItemRow* inventoryFindNthAttachmentCandidate(const InventoryItemRange* 
     }
     return foundRow;
 }
-
-/// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
-/// item preview, while the CD queue is still busy loading it.
-#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
-    do {                                     \
-        if (cdCmdIsIdle() == 0) {            \
-            (flags) |= 0x100;                \
-        }                                    \
-    } while (0)

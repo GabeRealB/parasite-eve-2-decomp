@@ -19,36 +19,6 @@
 #include "gameplay/scene.h"
 #include "world_targets.h"
 
-/// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
-/// the prompt's left edge.
-#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                            \
-    {                                                                           \
-        req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
-        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        req.colorRgb   = (color);                                               \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
-        req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
-        req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
-        textDrawString(&req, (str));                                            \
-    }
-
-/// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
-#define DRAW_PROMPT_COUNT(req, line, count)                                     \
-    {                                                                           \
-        req.colorRgb   = 0x606060;                                              \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
-        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
-        req.drawMode   = TEXT_DRAW_FILL_ONLY;                                   \
-        req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
-        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        textDrawString(&req, textItoaSigned(buf, (count)));                     \
-        if ((count) == 0) {                                                     \
-            flag = 1;                                                           \
-        }                                                                       \
-    }
-
 #include "gameplay/damage.h"
 #include "main/display.h"
 #include "main/gfx.h"
@@ -97,9 +67,6 @@ static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val);
 
 /// Draws the "HP" and "MP" captions relative to `obj`'s origin and draw order.
 static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color);
-
-#undef DRAW_PROMPT_LABEL
-#undef DRAW_PROMPT_COUNT
 
 void func_800A4904(s32 arg0)
 {

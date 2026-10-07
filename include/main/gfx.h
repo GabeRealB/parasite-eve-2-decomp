@@ -11,11 +11,6 @@
 #include "main/coord.h"
 #include "main/gfx_types.h"
 
-/// Two neighbouring elements of a matrix's rotation, `m[r][c]` and the one after
-/// it, written or read as one word; code sets and copies rotations this way.
-/// Build a value with `MATRIX_PAIR_VALUE`.
-#define MATRIX_PAIR(mat, r, c) (*(s32*)&(mat)->m[r][c])
-
 /// A matrix's translation as a vector.
 #define MATRIX_TRANS(mat) ((VECTOR3*)(mat)->t)
 

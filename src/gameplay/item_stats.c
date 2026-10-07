@@ -93,18 +93,6 @@ WeaponAttackRow Gp_IdParamLo[47] = {
     { 100, 0, 7, 3, 1 },
 };
 
-/// Shows `item`'s name in the holder (the empty-slot text for item 0) and
-/// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
-    do {                                                                                \
-        if ((item) == 0) {                                                              \
-            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
-        } else {                                                                        \
-            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                               \
-        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
-    } while (0)
-
 /// Draws `item` as `_gpDrawItemNameUnmarkedAt` does, but fills the caller's
 /// `req` instead of a request of its own.
 static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, s32 x, s32 y, s32 color,
@@ -1007,12 +995,3 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     uiDrawRecessedRect(&arg0->panel, (arg1 - 1), (arg2 - 1), ((s16)size.width + 1),
                        ((s16)size.height + 1), 0x81008);
 }
-
-/// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
-/// item preview, while the CD queue is still busy loading it.
-#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
-    do {                                     \
-        if (cdCmdIsIdle() == 0) {            \
-            (flags) |= 0x100;                \
-        }                                    \
-    } while (0)

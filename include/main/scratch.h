@@ -151,9 +151,7 @@ STATIC_ASSERT_SIZEOF(ScratchStackCursor, 0x4);
 
 #define SCRATCH_POP_AT(head, type) (*(type**)(head) += 1)
 
-/// `SCRATCH_STACK_RESERVE_BYTES` / `SCRATCH_STACK_RELEASE_BYTES` through such a local.
-#define SCRATCH_PUSH_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) - (n))
-
+/// `SCRATCH_STACK_RELEASE_BYTES` through such a local.
 #define SCRATCH_POP_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) + (n))
 
 #endif // MAIN_SCRATCH_H

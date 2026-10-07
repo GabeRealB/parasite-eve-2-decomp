@@ -43,11 +43,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-#define D_dryfield_night_r08_801805BC (D_dryfield_night_r08_801805AC + 2)
-#define D_dryfield_night_r08_801805CC (D_dryfield_night_r08_801805AC + 4)
-#define D_dryfield_night_r08_801805DC (D_dryfield_night_r08_801805AC + 6)
-#define D_dryfield_night_r08_80180664 (D_dryfield_night_r08_801805AC + 23)
-
 extern SVECTOR D_dryfield_night_r08_8018056C[];
 
 extern WorldCollisionGrid   D_dryfield_night_r08_80181474[1];

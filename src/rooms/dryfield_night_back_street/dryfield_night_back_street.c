@@ -52,10 +52,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/back_street.h"
 
-#define D_dryfield_night_back_street_8018036C (D_dryfield_night_back_street_8018034C + 4)
-#define D_dryfield_night_back_street_8018037C (D_dryfield_night_back_street_8018034C + 6)
-#define D_dryfield_night_back_street_8018038C (D_dryfield_night_back_street_8018034C + 8)
-
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_night_back_street_80180324[];
 

@@ -3,17 +3,14 @@
 
 #include "common.h"
 
-/// Column numbers of `AttachmentLevelRow`, in stored order. Column
-/// `ATTACHMENT_LEVEL_HIT_REACTION` is `outcome`: the victim's reaction for an
-/// attack, the upper heal amount for a heal.
+/// Column numbers of `AttachmentLevelRow`, in stored order. Columns 5 to 7
+/// (`outcome`, `effectId` and `hitCooldown`) are read only through their
+/// fields and have no constant.
 #define ATTACHMENT_LEVEL_EXP_COST     0
 #define ATTACHMENT_LEVEL_MP_BONUS     1
 #define ATTACHMENT_LEVEL_CAST_COST    2
 #define ATTACHMENT_LEVEL_ATP_LOSS     3
 #define ATTACHMENT_LEVEL_AMOUNT       4
-#define ATTACHMENT_LEVEL_HIT_REACTION 5
-#define ATTACHMENT_LEVEL_EFFECT_ID    6
-#define ATTACHMENT_LEVEL_HIT_COOLDOWN 7
 #define ATTACHMENT_LEVEL_COLUMN_COUNT 8
 
 /// Parameters of one attachment ability at one level, one row of

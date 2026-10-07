@@ -120,18 +120,6 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
     }
 }
 
-/// Shows `item`'s name in the holder (the empty-slot text for item 0) and
-/// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
-    do {                                                                                \
-        if ((item) == 0) {                                                              \
-            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
-        } else {                                                                        \
-            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                               \
-        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
-    } while (0)
-
 void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u8                   buf[8];

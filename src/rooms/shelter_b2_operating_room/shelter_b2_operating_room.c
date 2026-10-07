@@ -67,12 +67,6 @@
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
 
-#define D_shelter_b2_operating_room_80180ABC (D_shelter_b2_operating_room_801809BC + 32)
-#define D_shelter_b2_operating_room_80180ADC (D_shelter_b2_operating_room_801809BC + 36)
-#define D_shelter_b2_operating_room_80180B44 (D_shelter_b2_operating_room_801809BC + 49)
-#define D_shelter_b2_operating_room_80180B5C (D_shelter_b2_operating_room_801809BC + 52)
-#define D_shelter_b2_operating_room_80180B6C (D_shelter_b2_operating_room_801809BC + 54)
-
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_shelter_b2_operating_room_80184234[4];
