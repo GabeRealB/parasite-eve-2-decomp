@@ -1481,7 +1481,7 @@ static s32 func_actor_207200_8014CE20(GfxCoord* arg0, u32* arg1)
 
     other         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     blk           = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
-    angle         = actorBearingInFrame(blk, arg0, other);
+    angle         = _actorAngleBearingInFrame(blk, arg0, other);
     blk->delta.vx = other->coord.t[0] - arg0->coord.t[0];
     blk->delta.vz = other->coord.t[2] - arg0->coord.t[2];
     *arg1         = SquareRoot0(blk->delta.vx * blk->delta.vx + blk->delta.vz * blk->delta.vz);

@@ -435,6 +435,10 @@ use 4096 units per turn; signed wrapping retains both half-turn endpoints and
 narrows the input to 16 bits before wrapping. The player turn also writes the
 translation offset in signed 16-bit game coordinates and requires both roots
 in the same parent coordinate frame; it does not compose or rotate them.
+The cached-frame bearing helper also belongs to `actorAngle`: it takes a target
+offset through the transpose of the reference's composed basis, then measures
+its X/Z yaw. Both caches must already describe the same composition frame;
+the helper borrows caller-owned scratch storage and does not refresh them.
 
 Shared implementation interfaces live beside their source in `src/shared/`,
 including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,

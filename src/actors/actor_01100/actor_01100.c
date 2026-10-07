@@ -2364,7 +2364,7 @@ static __inline__ s32 _actor01100BearingToPlayer(GfxCoord* self)
     } else {
         other = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
         blk   = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
-        angle = actorBearingInFrame(blk, self, other);
+        angle = _actorAngleBearingInFrame(blk, self, other);
         SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     }
     return angle;
@@ -3738,7 +3738,7 @@ static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
     }
     coord = actor->extra.tmd->coords;
     blk   = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
-    angle = actorBearingInFrame(blk, arg0, coord);
+    angle = _actorAngleBearingInFrame(blk, arg0, coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     return angle;
 }

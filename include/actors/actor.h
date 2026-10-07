@@ -964,25 +964,50 @@ typedef struct {
 } KyleMadiganWalkerWork;
 STATIC_ASSERT_SIZEOF(KyleMadiganWalkerWork, 0x50C);
 
-/// Bearing of `other` from `self`, measured in `self`'s own frame and folded
-/// into -0x800..0x800. The offset between the two world positions is written
-/// to `blk->delta` and rotated there through `blk->inverseRotation`, the
-/// transpose of `self`'s world matrix; the caller owns `blk` and may reuse it
-/// afterwards.
-static __inline__ s32 actorBearingInFrame(ActorBearingScratch* blk, GfxCoord* self, GfxCoord* other)
+/// Measures the cached-frame yaw before the caller applies angle wrapping.
+///
+/// Shares `_actorAngleBearingInFrame`'s coordinate and scratch requirements.
+/// Leaves the transformed offset in `scratch->delta` and returns `ratan2`'s
+/// signed 32-bit result without narrowing it or storing it through an output.
+static __inline__ s32 _actorAngleMeasureBearingInFrame(ActorBearingScratch* scratch, const GfxCoord* referenceCoord,
+                                                       const GfxCoord* targetCoord)
+{
+    // Bring the narrowed position difference into the reference's cached axes.
+    scratch->delta.vx = targetCoord->workm.t[0] - referenceCoord->workm.t[0];
+    scratch->delta.vy = targetCoord->workm.t[1] - referenceCoord->workm.t[1];
+    scratch->delta.vz = targetCoord->workm.t[2] - referenceCoord->workm.t[2];
+    // Psy-Q's declaration lacks const; transposition only reads its source.
+    TransposeMatrix((MATRIX*)&referenceCoord->workm, &scratch->inverseRotation);
+    _gfxRotateSv(&scratch->inverseRotation, &scratch->delta);
+    return ratan2(scratch->delta.vx, scratch->delta.vz);
+}
+
+/// Returns the target's yaw about the reference coordinate's cached axes.
+///
+/// Both live coordinates must have initialized `workm` caches in the same frame;
+/// this does not compose either hierarchy. The translation difference narrows
+/// to signed 16-bit game coordinates before multiplication by the transpose of
+/// the reference's Q12 basis. Rotated components saturate to signed 16 bits.
+/// Scale and shear are retained; the transpose is an inverse for an orthonormal
+/// basis. Yaw is taken from the resulting X/Z offset: zero along +Z, positive
+/// toward +X, in 4096 units per turn, wrapped to [-2048, 2048]. A zero X/Z
+/// offset returns zero; both half-turn endpoints are retained.
+///
+/// The caller supplies a live, word-aligned writable `scratch`, separate from
+/// both coordinates. Its XYZ delta and rotation coefficients are overwritten;
+/// other bytes stay intact. No scratch storage is reserved or released here,
+/// and the caller may reuse the block immediately. Coordinates stay unchanged;
+/// GTE rotation working registers are overwritten.
+static __inline__ s32 _actorAngleBearingInFrame(ActorBearingScratch* scratch, const GfxCoord* referenceCoord,
+                                                const GfxCoord* targetCoord)
 {
     s32 angle;
 
-    blk->delta.vx = other->workm.t[0] - self->workm.t[0];
-    blk->delta.vy = other->workm.t[1] - self->workm.t[1];
-    blk->delta.vz = other->workm.t[2] - self->workm.t[2];
-    TransposeMatrix(&self->workm, &blk->inverseRotation);
-    _gfxRotateSv(&blk->inverseRotation, &blk->delta);
-    angle = ratan2(blk->delta.vx, blk->delta.vz);
-    if (angle >= 0x801) {
-        angle -= 0x1000;
-    } else if (angle < -0x800) {
-        angle += 0x1000;
+    angle = _actorAngleMeasureBearingInFrame(scratch, referenceCoord, targetCoord);
+    if (angle >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+        angle -= ACTOR_TRANSFORM_ANGLE_TURN;
+    } else if (angle < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        angle += ACTOR_TRANSFORM_ANGLE_TURN;
     }
     return angle;
 }

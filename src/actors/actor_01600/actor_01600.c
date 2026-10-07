@@ -3567,7 +3567,7 @@ static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     other              = gPlayerActorTasks[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
     coord              = arg0->extra.tmd->coords;
     scratch            = SCRATCH_STACK_RESERVE_BLOCK(ActorRangeBearingScratch);
-    angle              = actorBearingInFrame(&scratch->bearing, coord, other);
+    angle              = _actorAngleBearingInFrame(&scratch->bearing, coord, other);
     scratch->offset.vx = other->coord.t[0] - coord->coord.t[0];
     scratch->offset.vy = other->coord.t[1] - coord->coord.t[1];
     scratch->offset.vz = other->coord.t[2] - coord->coord.t[2];
