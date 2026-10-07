@@ -1318,7 +1318,7 @@ static const EnemyTaskFuncTable3 Actor05700_D00080 = {
 
 #include "../../shared/golem_pawn_rook_silence_scream.inc.c"
 
-/// `actorTintModel` for a spawned enemy's model.
+/// `_actorRenderApplyPlacementTextureOffsets` for a spawned enemy's model.
 #include "../../shared/golem_pawn_rook_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_inlines.inc.c"

@@ -1224,13 +1224,13 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
     spawned1 = taskSpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         _gScriptedWalkWork->attachment1 = spawned1;
-        actorTintModel(spawned1->extra.tmd, (Enemy*)task->spawnArg2.pointer);
+        _actorRenderApplyPlacementTextureOffsets(spawned1->extra.tmd, task->spawnArg2.pointer);
     }
 
     spawned2 = taskSpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         _gScriptedWalkWork->attachment2 = spawned2;
-        actorTintModel(spawned2->extra.tmd, (Enemy*)task->spawnArg2.pointer);
+        _actorRenderApplyPlacementTextureOffsets(spawned2->extra.tmd, task->spawnArg2.pointer);
     }
 
     _gScriptedWalkWork->st.travel  = 0;

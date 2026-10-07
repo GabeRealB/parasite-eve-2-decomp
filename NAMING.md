@@ -413,6 +413,9 @@ The included world-yaw joint update in
 `src/shared/actor_contacts_turn_joint.inc.c` belongs to the same subsystem;
 `src/shared/actor_contacts.h` declares its static per-carrier interface beside
 the contact routines it is carried with.
+The inline area-placement texture binding in `include/actors/actor.h` also
+belongs to `actorRender`: it applies texture-page and CLUT-row offsets to a
+model and rebuilds both halves of an existing primitive buffer.
 
 The coordinate fragments `src/shared/coord_math_local_to_world.inc.c` and
 `src/shared/coord_math_yaw_scale.inc.c` also belong to `actorRender`, with

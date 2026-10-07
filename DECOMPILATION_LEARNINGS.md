@@ -143791,7 +143791,7 @@ matched here and in `actorTintEffect` with the `SOFT_BARRIER(); keyp = &key;
 TOUCH_REG(keyp);` recipe of the entries above, because a caller-scope key at a
 non-zero offset gives one merged, call-crossing pseudo. Declaring the key
 inside a `static inline` helper that does the whole lookup
-(`actorTintModel(model, enemy)` in `include/actors/actor.h`) matches with no
+(`_actorRenderApplyPlacementTextureOffsets(model, enemy)` in `include/actors/actor.h`) matches with no
 barrier. The helper's RTL is expanded in its own frame, where `key` sits at
 offset 0, so each argument is a direct `(set a0 (reg fp))` with no pseudo;
 integration copies those insns and only remaps the frame base to the caller's
@@ -144272,7 +144272,7 @@ width constrains the source: `lhu` needed the field declared `u16`.
 
 ## An inline helper's arguments are loaded before its body: a caller-side load the target puts after the helper's own loads means the helper took the container (func_actor_146300_801324AC, 2026-09-26)
 
-**Symptom.** Calling the existing `actorTintModel(spawned->extra.tmd, enemy)`
+**Symptom.** Calling the existing `_actorRenderApplyPlacementTextureOffsets(spawned->extra.tmd, enemy)`
 matched to one pair: the target loads `enemy->placeKey` before `task->extra.tmd`,
 ours the other way round. The seed held the order with `SOFT_BARRIER` and a
 `TOUCH_REG` on `&key`.

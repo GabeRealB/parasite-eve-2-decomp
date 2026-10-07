@@ -29,7 +29,7 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
     spawned                          = enemySpawnFromTable(gPairWalkTasks, 1, 0, enemy);
-    actorTintModel(spawned->task->extra.tmd, enemy);
+    _actorRenderApplyPlacementTextureOffsets(spawned->task->extra.tmd, enemy);
     taskReparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;

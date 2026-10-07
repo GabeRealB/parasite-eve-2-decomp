@@ -1476,26 +1476,42 @@ static __inline__ AreaVariant* actorGetCurrentAreaRec(void)
     return areaGetVariant(&key);
 }
 
-/// Gives `model` the texture page and palette of the enemy's placement in the
-/// current area, and reprocesses its stream when it already has one.
-static __inline__ void actorTintModel(TmdObject* model, Enemy* enemy)
+/// Applies an actor's current area-placement texture offsets to a model.
+///
+/// `placementOwner` supplies only the placement index in its `placeKey`
+/// (0..15). The session's stage and area select the layout, and its saved
+/// variant selects the placement table; the key's stage/area bits and
+/// `placementOwner->place` are not used. Resolving an unset saved variant
+/// initializes it to the default and requests a saved-pose reset.
+/// The current layout and its borrowed placement table must be loaded, and
+/// the extracted index must address a live record before the terminator.
+/// Both arguments must be non-NULL and remain live for this call.
+///
+/// Copies signed texture-page displacements (64-word VRAM columns) and CLUT
+/// row displacements into `model`. A present primitive buffer has both halves
+/// rebuilt, preserving `nextBufferHalf`; its source, capacities, scratch-stack
+/// space and GPU lifetime must satisfy `tmdBuildBufferHalf`. With no buffer,
+/// only the offsets are stored for a later build. No resource is allocated
+/// and no pointer is retained.
+static __inline__ void _actorRenderApplyPlacementTextureOffsets(TmdObject* model, const Enemy* placementOwner)
 {
-    AreaVariant*   layout;
-    AreaPlacement* place;
-    s32            idx;
+    const AreaVariant*   areaVariant;
+    const AreaPlacement* placement;
+    s32                  placementIndex;
 
-    idx                      = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    layout                   = actorGetCurrentAreaRec();
-    place                    = gpAreaPlaceAt(layout->placements, idx);
-    model->texturePageOffset = place->texturePageOffset;
-    model->clutRowOffset     = place->clutRowOffset;
+    placementIndex           = placementOwner->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    areaVariant              = actorGetCurrentAreaRec();
+    placement                = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    model->texturePageOffset = placement->texturePageOffset;
+    model->clutRowOffset     = placement->clutRowOffset;
     if (model->buffer != NULL) {
+        // Refresh both packet halves with the new VRAM offsets.
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
 }
 
-/// `actorTintModel` for the model carried by the spawned task `spawned`.
+/// `_actorRenderApplyPlacementTextureOffsets` for the model carried by the spawned task `spawned`.
 static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
 {
     GameLocationKey  key;
@@ -1523,11 +1539,11 @@ static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
     }
 }
 
-/// `actorTintModel` for a freshly spawned effect, when the spawn succeeded.
+/// `_actorRenderApplyPlacementTextureOffsets` for a freshly spawned effect, when the spawn succeeded.
 static __inline__ void actorTintEffect(EffectWork* eff, Enemy* enemy)
 {
     if (eff != NULL) {
-        actorTintModel(eff->task->extra.tmd, enemy);
+        _actorRenderApplyPlacementTextureOffsets(eff->task->extra.tmd, enemy);
     }
 }
 

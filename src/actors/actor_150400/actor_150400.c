@@ -471,7 +471,7 @@ static void func_actor_150400_80132014(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
     spawned                          = enemySpawnFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
-    actorTintModel(spawned->task->extra.tmd, enemy);
+    _actorRenderApplyPlacementTextureOffsets(spawned->task->extra.tmd, enemy);
     taskReparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;

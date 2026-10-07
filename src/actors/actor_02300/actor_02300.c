@@ -1277,9 +1277,9 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
     }
 
     eff = enemySpawnFromTable(Actor02300_D15C98, 2, 0, enemy);
-    actorTintModel(eff->task->extra.tmd, enemy);
+    _actorRenderApplyPlacementTextureOffsets(eff->task->extra.tmd, enemy);
     eff2 = enemySpawnFromTable(Actor02300_D15C98, 1, 0, enemy);
-    actorTintModel(eff2->task->extra.tmd, enemy);
+    _actorRenderApplyPlacementTextureOffsets(eff2->task->extra.tmd, enemy);
 
     switch (enemy->spawnState) {
         case 0:

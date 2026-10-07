@@ -1562,7 +1562,7 @@ static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
     spawned                          = enemySpawnFromTable(D_actor_160700_801416A8, 1, 0, enemy);
-    actorTintModel(spawned->task->extra.tmd, enemy);
+    _actorRenderApplyPlacementTextureOffsets(spawned->task->extra.tmd, enemy);
     taskReparent(task, spawned->task);
     work->pairTask  = spawned->task;
     work->st.animId = 1;
