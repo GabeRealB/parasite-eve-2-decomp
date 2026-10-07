@@ -317,16 +317,25 @@ SVECTOR ActorContact_ScratchPosition;
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Restarts slots 1..18 on the requested clip and records it as applied.
+/// Restarts the primary rig's part tracks and records the requested clip as applied.
 ///
-/// Requires a bound primary rig and a loaded animation id in 1..4.
-static __inline__ void _actor312200ResetRig(_Actor312200Work* work)
+/// Requires live work with `rig.anim` bound to `rig.slots` and a loaded
+/// `animId` in 1..4 whose track table covers slots 1..18. The borrowed set
+/// table and clip data must remain live throughout playback. Slot 0 is the
+/// separately placed root. Each driven slot starts at its track's first record
+/// with cleared boundary state and normal rate (`ANIMATION_RATE_ONE`).
+/// Subsequent ticks produce the poses; the caller settles the request and
+/// resets its frame counters.
+static __inline__ void _actor312200RestartPrimaryAnimation(_Actor312200Work* work)
 {
-    s32 slot;
+    enum { ACTOR_312200_FIRST_ANIMATED_SLOT = 1 };
 
-    for (slot = 1; slot < ARRAY_SIZE(work->rig.slots); slot++) {
-        work->rig.slots[slot].rate = work->animRate;
-        animationResetSlot(&work->rig.anim, slot, work->animId);
+    s32 slotIndex;
+
+    // Slot reset replaces the requested rate; the driver reapplies it before ticking.
+    for (slotIndex = ACTOR_312200_FIRST_ANIMATED_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->animRate;
+        animationResetSlot(&work->rig.anim, slotIndex, work->animId);
     }
     work->appliedAnim = work->animId;
 }
@@ -367,7 +376,7 @@ static void _actor312200DriveAnimation(Task* task)
         work->lastCueFrame    = 0;
     } else if (work->animRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
         resetWork = task->work;
-        _actor312200ResetRig(resetWork);
+        _actor312200RestartPrimaryAnimation(resetWork);
         work->animRequest  = ACTOR_312200_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
