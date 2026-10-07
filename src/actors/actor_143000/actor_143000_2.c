@@ -232,12 +232,14 @@ s32 D_actor_143000_80135C04 = 0;
 
 ScreenFade D_actor_143000_80135C08 = { 0 };
 
-u8 D_actor_143000_80135C0C[4] = {
-    0,
-    101,
-    2,
-    57,
-};
+u8 D_actor_143000_80135C0C = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_actor_143000_80135C0D = 101;
+
+u8 D_actor_143000_80135C0E = 2;
+
+u8 D_actor_143000_80135C0F = 57;
 
 char D_actor_143000_80135C20[24];
 

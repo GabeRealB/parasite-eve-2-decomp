@@ -54,7 +54,10 @@ D_actor_143000_80135AE0 = 0x80135AE0; // size:0x120 defined:True
 D_actor_143000_80135C00 = 0x80135C00; // size:0x4 defined:True
 D_actor_143000_80135C04 = 0x80135C04; // size:0x4 defined:True
 D_actor_143000_80135C08 = 0x80135C08; // size:0x4 defined:True
-D_actor_143000_80135C0C = 0x80135C0C; // size:0x4 defined:True
+D_actor_143000_80135C0C = 0x80135C0C; // size:0x1 defined:True
+D_actor_143000_80135C0D = 0x80135C0D; // size:0x1 defined:True
+D_actor_143000_80135C0E = 0x80135C0E; // size:0x1 defined:True
+D_actor_143000_80135C0F = 0x80135C0F; // size:0x1 defined:True
 D_actor_143000_801350B0 = 0x801350B0; // size:0x18 defined:True
 D_actor_143000_801350C8 = 0x801350C8; // size:0xC defined:True
 

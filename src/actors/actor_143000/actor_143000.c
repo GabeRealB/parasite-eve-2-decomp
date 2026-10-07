@@ -35,11 +35,7 @@
 #include "main/task_types.h"
 #include "../../shared/action_prompt.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_actor_143000_80135C0C[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_actor_143000_80135C0C_value __asm__("D_actor_143000_80135C0C");
+extern u8 D_actor_143000_80135C0C;
 
 /// Most characters the keypad's entry line holds.
 #define ACTOR_143000_KEYPAD_CODE_CAPACITY 20
@@ -282,7 +278,7 @@ static void func_actor_143000_801324C8(Task* arg0)
     arg0->work                                                 = work;
     temp_a0                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
-    D_actor_143000_80135C0C_value                              = temp_a0;
+    D_actor_143000_80135C0C                                    = temp_a0;
     arg0->state                                               += 1;
     work->field_4                                              = 0;
     displayAcquireMenuHold();
@@ -778,7 +774,7 @@ static void func_actor_143000_80133800(Task* arg0)
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_143000_80135C0C_value;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_143000_80135C0C;
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     } else {
         taskSpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
