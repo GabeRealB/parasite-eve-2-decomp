@@ -70438,6 +70438,11 @@ ident->m22      = 0x1000;
 Whichever store is written through `ident->` is the one that comes out on the
 argument register; match them to the target one by one.
 
+*2026-10-07:* the mixed bases need no `ident` pointer. `gfxSetRotIdentity(&m.mat)`
+on the local union gives the same `$sp` / argument-register split in every
+function tried (see the last section of this file); the per-store spelling was
+describing the output.
+
 ### A promotion that renumbers units must carry the manifest `rodata` key along
 Promoting a span into the middle of `actor_341700_23` made splat renumber
 `_24` -> `_25` and `_25` -> `_26`, but the manifest's
@@ -153293,3 +153298,34 @@ pointer locals went too: `RotMatrix(&aimAngles, headRotation)` is
 **Rule.** A stack matrix "reached two ways" in an identity block is not
 evidence of a union or of a second pointer in the source; try the inline on
 the plain expression before modelling one.
+
+### Identity matrices in the actor sources: 57 more blocks, all `gfxSetRotIdentity` (2026-10-07)
+
+**Problem.** Thirteen actor files (`actor_503500`, `_560800`, `_206100`,
+`_135600`, `_403600`, `_403000`, `_107600`, `_01600`, `_356100`, `_361100`)
+spelled identity blocks with `MATRIX_PAIR`, `GfxRotationWords` fields, or both,
+through helper pointers (`ident`, `ia`/`ib`/`ic`/`ir`, `mtx`, `workRotation`,
+`(GfxMatrix*)&coord->coord`), with comments saying which store went through
+which pointer was load-bearing.
+
+**Result.** All 57 blocks, plus `actor_503500`'s private identity inline and
+its three callers, build to identical objects with one
+`gfxSetRotIdentity(<matrix>)` at the position of the first store. No site needed
+a second variant. That includes the cases the old comments called load-bearing:
+
+- a local `GfxMatrix` union whose target stores split between `$sp` and the
+  register holding the call argument (`actor_206100`, `actor_503500_3/_4`):
+  pass `&m.mat`; the split is cse reusing the argument's address;
+- a pointer local assigned *before* an unrelated store and used only by the
+  cells (`matrix2 = &coord->coord; coord->parent = ...; cells`): delete it;
+- a `parts = parent->extra.tmd->coords` temporary read before the first cell
+  with `coord->parent = &parts[n]` after it: write
+  `coord->parent = &parent->extra.tmd->coords[n];` then the inline;
+- a pointer local also passed to a later call (`gfxRotMatrixZ(mtx, ...)`,
+  `RotMatrixY(yaw, m)`): pass the plain `&x->coord` / `&mat` there too.
+
+**Use.** `src/actors` has 77 more blocks in 23 files that never used
+`MATRIX_PAIR` (pure `rotationWords` spellings; `actor_00400` alone has 20).
+None was tried; expect the same. A multi-package source (`actor_01600` is
+`actor_101600`/`_201600`/`_301600`) is not a valid `--only` selector under its
+source name: the scoped build exits 1 with no output; name the packages.
