@@ -1649,11 +1649,7 @@ static void Actor02400_Fn03278(Task* task)
     blk->scale.vy                    = work->scale.vy;
     blk->scale.vz                    = ONE;
     coord->coord                     = work->baseMatrix;
-    blk->matrix.rotationWords.m00M01 = ONE;
-    blk->matrix.rotationWords.m02M10 = 0;
-    blk->matrix.rotationWords.m11M12 = ONE;
-    blk->matrix.rotationWords.m20M21 = 0;
-    blk->matrix.rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&blk->matrix.mat);
     ScaleMatrix(&blk->matrix.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
