@@ -146001,7 +146001,7 @@ sites. Making the function one call to the helper matched at once: compiled
 out of line, the helper's `for (i = 1; ...)` loops produce the shared `1`
 register and the `addu` with it on their own. Before steering a function's
 body, grep its file for an inline helper that does the same thing.
-## Keep a copy's negate from folding onto its source without a barrier: load the narrow variable, widen a copy, copy before the test (Actor04000_Fn04FA4, 2026-09-27)
+## Keep a copy's negate from folding onto its source without a barrier: load the narrow variable, widen a copy, copy before the test (_actor04000StateDrop, 2026-09-27)
 
 Target: `lh v1; beqz v1; move s0,v1` then `abs(v1)`, `negu s0,s0`, `bgez v1` -
 an abs/sign clamp on the loaded value and a negate of its *copy*. Every
