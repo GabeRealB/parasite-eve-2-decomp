@@ -43,6 +43,13 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
+/// Loaded CAP resource and texture origin used by this package's event scripts.
+enum {
+    ACTOR_443500_EVENT_CAP_FILE_ORDINAL   = 1,
+    ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_X = 576,
+    ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_Y = 256,
+};
+
 /// Tick of each pass of the default clip on which the clip's sound is started.
 enum { ACTOR_443500_PIERCE_CARRADINE_LOOP_SOUND_TICK = 15 };
 
@@ -70,12 +77,13 @@ STATIC_ASSERT_SIZEOF(_Actor443500PierceCarradineWork, 0x4C4);
 
 static void func_actor_443500_80132078(Task* task);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
-static void func_actor_443500_801321F0(Task* task);
-static void func_actor_443500_801327A4(Task* arg0);
-static void func_actor_443500_801327C4(Task* task);
-s32         func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3);
-s32         func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3);
-static void func_actor_443500_80132A68(s32 arg0);
+static void _actor443500TickPierce(Task* task);
+static void _actor443500ExitPierce(Task* task);
+static void _actor443500BindModelLighting(Task* task);
+static s32  _actor443500PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _actor443500SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
+static void _actor443500InstallPierceCollision(s32 shiftY);
+static void _actor443500ChildModelTask(Task* task);
 
 /// State table of the actor's child task (`TaskDesc` entry 1): setup, the
 /// per-frame active-draw and buffer-flag mirror and `taskKill`.
@@ -86,7 +94,7 @@ static const TaskFuncTable3 D_actor_443500_80131E24 = {
 /// State table of the actor's main task (`TaskDesc` entry 0): the spawn
 /// handler, the per-frame tick and the exit callback.
 static const TaskFuncTable3 D_actor_443500_80131E30 = {
-    { func_actor_443500_80132078, func_actor_443500_801321F0, func_actor_443500_801327A4 }
+    { func_actor_443500_80132078, _actor443500TickPierce, _actor443500ExitPierce }
 };
 
 extern TaskDesc D_actor_443500_80140E38;
@@ -104,8 +112,8 @@ extern TaskDesc D_actor_443500_8015873C[];
 
 extern TaskMessageEntry D_actor_443500_80158754[4];
 
-/// The bank table `func_actor_443500_801327E0` re-seeds the work block's slot
-/// array off: one entry, the animation bank the default preset's `field_0` of
+/// The bank table `_actor443500PlayAnimation` re-seeds the work block's slot
+/// array off: one entry, the animation bank the default preset's `source.index` of
 /// zero selects.
 extern AnimationSet*  D_actor_443500_80158694[36];
 extern AnimationSet** D_actor_443500_80158724[1];
@@ -113,7 +121,7 @@ extern AnimationSet** D_actor_443500_80158724[1];
 extern WorldCollisionGrid D_actor_443500_801587D8;
 
 static TmdSource _gActor443500PierceCarradineBody;
-void             func_actor_443500_80132738(Task*);
+static void      _actor443500PierceTask(Task* task);
 
 static WorldCollisionGridFace _gActor443500Collision269B8Faces[2];
 static SVECTOR                _gActor443500Collision269B8Normals[2];
@@ -157,14 +165,14 @@ extern ActorTransform           D_actor_443500_80140F54;
 extern ActorTransform           D_actor_443500_80140F6C;
 extern ActorTransform           D_actor_443500_801411E4;
 extern ActorTransform           D_actor_443500_801411FC;
-void                            func_actor_443500_80131E3C(s32);
-void                            func_actor_443500_80131E84(s32);
-void                            func_actor_443500_80131EE4(void);
-void                            func_actor_443500_80131F18(void);
-void                            func_actor_443500_80131F58(void);
-void                            func_actor_443500_8013201C(s16);
+static void                     _actor443500SelectEventCap(s32 useEventCap);
+static void                     _actor443500SelectEventCapAfterPowerPlantClear(s32 useEventCap);
+static void                     _actor443500RunPowerPlantProgressCap(void);
+static void                     _actor443500OpenTimedMapTerminal(void);
+static void                     _actor443500StartFadeFromBlack(void);
+static void                     _actor443500StartCapCommand5(s16 variantKey);
 void                            func_actor_443500_80132048(void);
-void                            func_actor_443500_8013206C(s8);
+static void                     _actor443500SetSceneEvent(s8 sceneEvent);
 
 static AnimationSet _gActor443500Animation010D0;
 static AnimationSet _gActor443500Animation026FC;
@@ -191,7 +199,7 @@ static AnimationSet _gActor443500Animation0E690;
 static AnimationSet _gActor443500Animation0EC10;
 static AnimationSet _gActor443500Animation0EFF0;
 
-void func_actor_443500_80131F88(Task*);
+static void _actor443500FadeFromBlackTask(Task* task);
 
 static AnimationPackedPose _gActor443500Animation010D0Bank1[6] = {
 #include "assets/actor_443500_animation_010D0_bank1.inc"
@@ -919,7 +927,7 @@ static AnimationSet _gActor443500Animation0EFF0 = {
     { NULL, _gActor443500Animation0EFF0Bank1, NULL, NULL, _gActor443500Animation0EFF0Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_443500_80140E38 = { { { TASK_BODY_NONE, 192 } }, func_actor_443500_80131F88, { .value = 0 } };
+TaskDesc D_actor_443500_80140E38 = { { { TASK_BODY_NONE, 192 } }, _actor443500FadeFromBlackTask, { .value = 0 } };
 
 AnimationSet* D_actor_443500_80140E44[11] = {
     NULL,
@@ -1133,7 +1141,7 @@ EvsCommand D_actor_443500_8014152C[74] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0001 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542F0006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1197,7 +1205,7 @@ EvsCommand D_actor_443500_8014152C[74] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1216,19 +1224,19 @@ EvsCommand D_actor_443500_80141C1C[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_443500_80141D9C[137] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80131F58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor443500StartFadeFromBlack }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0001 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_443500_8013206C }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor443500SetSceneEvent }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_443500_801411E4 } }, { .value = 0 } },
@@ -1307,7 +1315,7 @@ EvsCommand D_actor_443500_80141D9C[137] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80131F18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor443500OpenTimedMapTerminal }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1357,7 +1365,7 @@ EvsCommand D_actor_443500_80141D9C[137] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1365,7 +1373,7 @@ EvsCommand D_actor_443500_80142A74[18] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0001 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_443500_8013206C }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor443500SetSceneEvent }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_443500_801411FC } }, { .value = 0 } },
@@ -1375,19 +1383,19 @@ EvsCommand D_actor_443500_80142A74[18] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_443500_8013201C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor443500StartCapCommand5 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_443500_80142C24[73] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80131F58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor443500StartFadeFromBlack }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_443500_801411FC } }, { .value = 0 } },
@@ -1450,7 +1458,7 @@ EvsCommand D_actor_443500_80142C24[73] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_443500_80141444 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80132048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1471,7 +1479,7 @@ EvsCommand D_actor_443500_801432FC[17] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80132048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1482,10 +1490,10 @@ EvsCommand D_actor_443500_80143494[10] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_443500_80140FE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_443500_80141004 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_443500_80141458 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E84 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_443500_80131EE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCapAfterPowerPlantClear }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor443500RunPowerPlantProgressCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_443500_80131E3C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor443500SelectEventCap }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_443500_8014146C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -2370,22 +2378,17 @@ AnimationSet** D_actor_443500_80158724[1] = {
 
 AnimationPlayRequest D_actor_443500_80158728 = { { .sets = NULL }, 28, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
 
-void             func_actor_443500_8013253C(Task*);
-void             func_actor_443500_80132738(Task*);
 static TmdSource _gActor443500Actor113100Model07960;
 
 TaskDesc D_actor_443500_8015873C[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_443500_80132738, { .model = &_gActor443500PierceCarradineBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_443500_8013253C, { .model = &_gActor443500Actor113100Model07960 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor443500PierceTask, { .model = &_gActor443500PierceCarradineBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor443500ChildModelTask, { .model = &_gActor443500Actor113100Model07960 } },
 };
 
-s32 func_actor_443500_801327E0(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_443500_8013297C(Task*, s32, s32, s32);
-
 TaskMessageEntry D_actor_443500_80158754[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_443500_801327E0 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor443500PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_443500_8013297C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor443500SetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2413,64 +2416,107 @@ static s16* _gActor443500Collision269B8Table[1] = {
 
 WorldCollisionGrid D_actor_443500_801587D8 = { NULL, _gActor443500Collision269B8Normals, _gActor443500Collision269B8Verts, _gActor443500Collision269B8Faces, _gActor443500Collision269B8Table, -0x3EF8, -5156, 1, 1, 4000, 2 };
 
-void func_actor_443500_80131E3C(s32 arg0)
+/// Selects the event CAP resource, or restores ordinary room CAP selection.
+///
+/// Nonzero `useEventCap` clears the current selection before selecting loaded
+/// data resource 1 and its texture origin (576, 256) in VRAM pixels. Zero resets
+/// CAP to its default resource. Playback must be stopped and the selected CAP
+/// data and glyph texture must stay loaded while in use; this performs no I/O.
+static void _actor443500SelectEventCap(s32 useEventCap)
 {
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(1);
-        capSetTexturePage(0x240, 0x100);
+    if (useEventCap != 0) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(ACTOR_443500_EVENT_CAP_FILE_ORDINAL);
+        capSetTexturePage(ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_X, ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_Y);
         return;
     }
     capReset();
 }
 
-void func_actor_443500_80131E84(s32 arg0)
+/// Selects or resets event CAP only after Neo Ark power plant 2 has been cleared.
+///
+/// Otherwise leaves CAP untouched. Selection and resource lifetime requirements
+/// follow `_actor443500SelectEventCap`; zero resets and nonzero selects event CAP.
+static void _actor443500SelectEventCapAfterPowerPlantClear(s32 useEventCap)
 {
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) > 0) {
-        if (arg0 != 0) {
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x240, 0x100);
+        if (useEventCap != 0) {
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(ACTOR_443500_EVENT_CAP_FILE_ORDINAL);
+            capSetTexturePage(ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_X, ACTOR_443500_EVENT_CAP_TEXTURE_VRAM_Y);
             return;
         }
         capReset();
     }
 }
 
-void func_actor_443500_80131EE4(void)
+/// Runs CAP command 6 before power plant 2 is cleared, or command 9 afterwards.
+///
+/// Starts in the current display. The active CAP resource must contain the
+/// selected slot and remain loaded through playback; busy CAP does not restart.
+static void _actor443500RunPowerPlantProgressCap(void)
 {
-    capRunCommand(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0 ? 6 : 9, CAP_PLAYBACK_IN_PLACE);
+    enum {
+        ACTOR_443500_CAP_BEFORE_POWER_PLANT_CLEAR = 6,
+        ACTOR_443500_CAP_AFTER_POWER_PLANT_CLEAR  = 9,
+    };
+    capRunCommand(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0 ? ACTOR_443500_CAP_BEFORE_POWER_PLANT_CLEAR : ACTOR_443500_CAP_AFTER_POWER_PLANT_CLEAR,
+                  CAP_PLAYBACK_IN_PLACE);
 }
 
-void func_actor_443500_80131F18(void)
+/// Starts the room's timed map-terminal display and holds the hidden player.
+///
+/// Shelter room 47 and the player task must be live. The room task owns the
+/// terminal's lifetime and later restores player control and presentation.
+/// The player is hidden and held even if the terminal task cannot be allocated.
+static void _actor443500OpenTimedMapTerminal(void)
 {
-    taskSpawnFromTable(&D_shelter_r47_80187618, 0, 1, 0);
+    enum { ACTOR_443500_MAP_TERMINAL_TIMED = 1 };
+    taskSpawnFromTable(&D_shelter_r47_80187618, 0, ACTOR_443500_MAP_TERMINAL_TIMED, 0);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
 }
 
-void func_actor_443500_80131F58(void)
+/// Starts this package's 30-tick fade from black, if a task can be allocated.
+///
+/// Keep the actor overlay loaded until the spawned callback finishes.
+static void _actor443500StartFadeFromBlack(void)
 {
     taskSpawnFromTable(&D_actor_443500_80140E38, 0, 0, 0);
 }
 
-void func_actor_443500_80131F88(Task* arg0)
+/// Draws a subtractive black overlay that fades away over 30 task ticks.
+///
+/// Requires a zero-initialized bodyless task and the current GPU packet arena.
+/// `killCountdown` counts elapsed ticks here: the last draw uses tick 29, then
+/// the callback kills its task. The signed counter retains 16-bit wrap behavior.
+static void _actor443500FadeFromBlackTask(Task* task)
 {
-    s16 temp_v0;
-    s32 temp_a0;
+    enum { ACTOR_443500_FADE_TICKS    = 30,
+           ACTOR_443500_FULL_DARKNESS = 255 };
+    s16 nextTick;
+    s32 darkness;
 
-    temp_a0 = (((0x1E - arg0->killCountdown) * 0xFF) / 30) & 0xFF;
-    fadeDrawOverlay(temp_a0, temp_a0, temp_a0, GPU_BLEND_SUBTRACT);
-    temp_v0             = (u16)arg0->killCountdown + 1;
-    arg0->killCountdown = temp_v0;
-    if (temp_v0 >= 0x1E) {
-        taskKill(arg0);
+    darkness = (((ACTOR_443500_FADE_TICKS - task->killCountdown) * ACTOR_443500_FULL_DARKNESS) /
+                ACTOR_443500_FADE_TICKS) &
+               0xFF;
+    fadeDrawOverlay(darkness, darkness, darkness, GPU_BLEND_SUBTRACT);
+    nextTick            = (u16)task->killCountdown + 1;
+    task->killCountdown = nextTick;
+    if (nextTick >= ACTOR_443500_FADE_TICKS) {
+        taskKill(task);
     }
 }
 
-void func_actor_443500_8013201C(s16 arg0)
+/// Starts CAP command slot 5 with the supplied variant and a display transition.
+///
+/// `variantKey` is a signed halfword; 0..255 can match CAP record keys. Requires
+/// a live relocated command table containing slot 5 and its playback resources.
+/// Busy CAP does nothing; the start result is discarded.
+static void _actor443500StartCapCommand5(s16 variantKey)
 {
-    capStartSequenceSlot(5, 1, arg0);
+    enum { ACTOR_443500_CAP_VARIANT_COMMAND = 5 };
+    capStartSequenceSlot(ACTOR_443500_CAP_VARIANT_COMMAND, CAP_PLAYBACK_DISPLAY_TRANSITION, variantKey);
 }
 
 /// Applies the 0xFF-terminated area record list at `D_shelter_r47_8018A638` through
@@ -2481,9 +2527,13 @@ void func_actor_443500_80132048(void)
     Gp_ApplyAreaRecs(D_shelter_r47_8018A638);
 }
 
-void func_actor_443500_8013206C(s8 arg0)
+/// Stores the saved scene-event byte used to select stage music.
+///
+/// The event scripts pass 15. This only updates the live save; music selection
+/// reads the event later. The signed-byte callback preserves its argument width.
+static void _actor443500SetSceneEvent(s8 sceneEvent)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
 /// Spawn handler: allocates the work block, seeds its head from the parent
@@ -2536,280 +2586,319 @@ static void func_actor_443500_80132078(Task* task)
             tmdBuildBufferHalf(model);
         }
     }
-    func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-    func_actor_443500_801327E0(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);
-    func_actor_443500_801327C4(task);
+    _actor443500SetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
+    _actor443500PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);
+    _actor443500BindModelLighting(task);
     task->msgTable     = D_actor_443500_80158754;
-    task->exitCallback = func_actor_443500_801327A4;
+    task->exitCallback = _actor443500ExitPierce;
     task->state++;
 }
 
-/// Per-frame tick: while the view is live and idle, views 0..3 hide the model
-/// (saving `TmdObject::flags` into `savedModelFlags`) and views 4..5 restore that
-/// saved word, showing the model through message 0x7D5 when flag 0x83 is set.
-/// Ticks animation slots 1..0x13 once `model.ticking` is latched, restarting 0x7D3
-/// when slot 1 reports the clip ended. The `model.animId == 0x1C` path is the
-/// default clip's sound: `loopTicks` counts to 0xF for a Type6 (views 4/5) or
-/// Type7 (view 3) cue, queues `sndEvtRequestScriptMix` in views 4/5 between cues
-/// while the view is ready, and resets when
-/// slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`. A visible model gets a ground
-/// shadow and a rebuilt child-part matrix; `freeCountdown` then counts down to free
-/// the buffers.
-static void func_actor_443500_801321F0(Task* task)
+/// Advances Pierce's view-dependent presentation, animation and buffer lifetime.
+///
+/// Requires the initialized twenty-part TMD task, its allocated work, live clip
+/// data and shelter room 47's writable collision grid. Idle ready views 0..3
+/// save and hide the model; views 4..5 restore its saved flags and, when flag
+/// `GAME_FLAG_083` is nonzero, install its collision and request visible drawing.
+/// Slots 1..19 tick after a play request. Outside an event, a slot-1 boundary
+/// restarts the default request. Clip 28 drives a sound at loop tick 15 and
+/// resets that counter on a slot-1 control jump. Visible models receive a
+/// ground shadow and updated lighting; pending buffer release continues even
+/// while the model is hidden. The room overlay and sound bank must stay loaded.
+static void _actor443500TickPierce(Task* task)
 {
+    enum {
+        ACTOR_443500_DEFAULT_ANIMATION       = 28,
+        ACTOR_443500_DEFAULT_CLIP_SOUND      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1),
+        ACTOR_443500_LOOP_SOUND_FADE_UPDATES = 30,
+        ACTOR_443500_SHADOW_HALF_SIZE        = 768,
+    };
     _Actor443500PierceCarradineWork* work;
-    TmdObject*                       extra;
-    VECTOR3                          pos;
-    s32                              i;
+    TmdObject*                       model;
+    VECTOR3                          groundPoint;
+    s32                              slotIndex;
     u8                               view;
 
-    extra = task->extra.tmd;
+    model = task->extra.tmd;
     work  = task->work;
+    // Camera visibility changes are suspended while an event holds the scene.
     if (gGameSession->viewReady != 0 && gGameSession->eventState == 0 &&
         gGameSession->cutsceneHold == 0) {
         view = gGameSession->location.loc.view;
         if (view < 4) {
-            work->savedModelFlags = extra->flags;
-            extra->flags          = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->savedModelFlags = model->flags;
+            model->flags          = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else if (view < 6) {
             if (gameFlagGetNibble(GAME_FLAG_083) > 0) {
-                func_actor_443500_80132A68(0);
-                func_actor_443500_8013297C(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+                _actor443500InstallPierceCollision(0);
+                _actor443500SetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             }
-            extra->flags = work->savedModelFlags;
+            model->flags = work->savedModelFlags;
         }
     }
     if (work->model.ticking != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
         if (gGameSession->eventState == 0 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-            func_actor_443500_801327E0(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);
+            _actor443500PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_443500_80158728, 0);
         }
     }
-    if (work->model.animId == 0x1C) {
+    // The cue follows animation loop timing; camera views select its audible mix.
+/// Queues the default clip's start or mix request for the current camera view.
+///
+/// `queueSound` must be the start or mix function identifier; it is called at
+/// most once, in views 4 or 5. View 3 instead fades the sound script. Captures
+/// `gGameSession` and this block's sound ID/fade constants, requires the live
+/// shelter room 47 sound bank, and is undefined after the two uses. Expands to
+/// a standalone switch statement; no caller expression is evaluated twice.
+#define ACTOR_443500_QUEUE_DEFAULT_CLIP_SOUND(queueSound)                                                   \
+    switch (gGameSession->location.loc.view) {                                                              \
+        case 5:                                                                                             \
+            (queueSound)(ACTOR_443500_DEFAULT_CLIP_SOUND, 9, 0);                                            \
+            break;                                                                                          \
+        case 4:                                                                                             \
+            (queueSound)(ACTOR_443500_DEFAULT_CLIP_SOUND, -10, 64);                                         \
+            break;                                                                                          \
+        case 3:                                                                                             \
+            sndEvtRequestScriptStop(ACTOR_443500_DEFAULT_CLIP_SOUND, ACTOR_443500_LOOP_SOUND_FADE_UPDATES); \
+            break;                                                                                          \
+    }
+    if (work->model.animId == ACTOR_443500_DEFAULT_ANIMATION) {
         work->loopTicks++;
         if (work->loopTicks == ACTOR_443500_PIERCE_CARRADINE_LOOP_SOUND_TICK) {
-            switch (gGameSession->location.loc.view) {
-                case 5:
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
-                    break;
-                case 4:
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
-                    break;
-                case 3:
-                    sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 0x1E);
-                    break;
-            }
+            ACTOR_443500_QUEUE_DEFAULT_CLIP_SOUND(sndEvtRequestScriptStart);
         } else if (gGameSession->viewReady != 0) {
-            switch (gGameSession->location.loc.view) {
-                case 5:
-                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 9, 0);
-                    break;
-                case 4:
-                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
-                    break;
-                case 3:
-                    sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), 0x1E);
-                    break;
-            }
+            ACTOR_443500_QUEUE_DEFAULT_CLIP_SOUND(sndEvtRequestScriptMix);
         }
+#undef ACTOR_443500_QUEUE_DEFAULT_CLIP_SOUND
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
             work->loopTicks = 0;
         }
     }
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
+    // Keep shadow projection before the current coordinate composition.
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, ACTOR_443500_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         if (gGameSession->viewReady != 0) {
             actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-            worldCoordSetModelLighting(extra, task->extra.tmd->coords[1].workm.t, 0, 3);
+            worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, 3);
         }
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(extra);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
 
-/// Dispatcher of the actor's child task: runs its current state handler from
-/// `D_actor_443500_80131E24`, copying the table onto the stack before the call.
-void func_actor_443500_8013253C(Task* task)
+/// Dispatches the attached child model's setup, flag-mirroring or kill state.
+///
+/// Requires a live TMD child with `state` in 0..2. Setup borrows its parent task
+/// from `spawnArg2.pointer` and the parent part index from `spawnArg1.value`;
+/// the parent model and its selected part must outlive the child's drawing.
+static void _actor443500ChildModelTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_443500_80131E24;
-    sp.funcs[task->state](task);
+    states = D_actor_443500_80131E24;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach.inc.c"
 
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
-/// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
-/// from `D_actor_443500_80131E30`, skipping the frame while `gSceneCombatState.actorControl` is
-/// set.
-void func_actor_443500_80132738(Task* task)
+/// Dispatches Pierce's setup, frame update or exit while scene actors are running.
+///
+/// Requires a live TMD task with `state` in 0..2 and this overlay loaded.
+/// Setup and exit require the live enemy record in `spawnArg2.pointer`.
+/// Paused actor control skips every state, including setup and exit.
+static void _actor443500PierceTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_443500_80131E30;
+    states = D_actor_443500_80131E30;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        states.funcs[task->state](task);
     }
 }
 
-/// Exit callback the spawn handler installs, and the third state of the main
-/// task: hands the task to `enemyTaskExit`.
-static void func_actor_443500_801327A4(Task* arg0)
-{
-    enemyTaskExit(arg0);
-}
-
-/// Points the model's `TmdObject::lightMtx` / `colorMtx` at the work block's
-/// own `model.light` / `model.color` matrices, so the actor draws with its own lighting.
-static void func_actor_443500_801327C4(Task* task)
-{
-    TmdObject*                       ext;
-    _Actor443500PierceCarradineWork* work;
-
-    ext           = task->extra.tmd;
-    work          = task->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
-}
-
-/// Applies the requested animation bank and clip to this actor's rig.
+/// Releases Pierce's task through the enemy-task teardown path.
 ///
-/// A changed bank installs its set table. The requested clip is applied to the slots.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3)
+/// Serves both exit state 2 and the installed exit callback; task and owned
+/// work must still be live on entry; `spawnArg2.pointer` must be its live enemy
+/// record. Neither may be used afterwards.
+static void _actor443500ExitPierce(Task* task)
 {
-    _Actor443500PierceCarradineWork* work;
-    TmdObject*                       ext;
-    s32                              i;
+    enemyTaskExit(task);
+}
 
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (params->source.index != work->model.bank) {
-        work->model.bank = params->source.index;
-        animationInitContext(&work->rig.anim, D_actor_443500_80158724[work->model.bank], ext, work->rig.poses,
+/// Lends the work block's lighting matrices to Pierce's model.
+///
+/// Requires allocated work and a live TMD object. Its borrowed matrix pointers
+/// remain valid only for that work block's lifetime.
+static void _actor443500BindModelLighting(Task* task)
+{
+    TmdObject*                       model;
+    _Actor443500PierceCarradineWork* work;
+
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
+}
+
+/// Applies a clip request to the actor rig and restarts its loop cue.
+///
+/// Borrows live work, model coordinates and loaded bank data through playback;
+/// the read-only request is consumed during this call and must not overlap work.
+/// Bank 0 and clips 1..35 are valid. Blend duration counts whole frames.
+static inline void _actor443500ApplyAnimationRequest(_Actor443500PierceCarradineWork* work, TmdObject* model,
+                                                     const AnimationPlayRequest* request)
+{
+    s32 slotIndex;
+
+    if (request->source.index != work->model.bank) {
+        work->model.bank = request->source.index;
+        animationInitContext(&work->rig.anim, D_actor_443500_80158724[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
-    work->model.animId = params->animationId;
-    if (params->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, params->blendFrames);
+    work->model.animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
         }
     } else {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationResetSlot(&work->rig.anim, i, work->model.animId);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
         }
     }
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationTickSlot(&work->rig.anim, i);
+    // Seed the new pose before the next frame and restart its synchronized cue.
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
     work->model.ticking = 1;
     work->loopTicks     = 0;
+}
+
+/// Starts the requested clip and restarts Pierce's animation-loop sound timing.
+///
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` on initialized twenty-part work.
+/// `request` is borrowed read-only through dispatch and must not overlap the rig.
+/// Bank index must be 0 and clip index 1..35; their data, model coordinates and
+/// work-owned slots/poses stay borrowed through playback. Initialize bank to
+/// `ACTOR_MODEL_STATE_NONE` before the first request. Slots 1..19 blend when
+/// already ticking and requested, using `blendFrames` in whole frames (normally
+/// 0..2047), or reset otherwise, then tick once. Even a repeated clip restarts.
+/// Ignores message ID, collision choice and fourth argument. Returns 0.
+static s32 _actor443500PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
+{
+    _Actor443500PierceCarradineWork* work;
+    TmdObject*                       model;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    _actor443500ApplyAnimationRequest(work, model, request);
     return 0;
 }
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// Message-0x7D5 handler: the four-way switch on `mode` over the `TmdObject`
-/// parked in `Task::extra`. `mode` drives `TmdObject::flags`: bit 0x80 marks
-/// the actor hidden, and `TMD_OBJECT_SKIP_AUTO_BUFFER` opts it out of
-/// missing-buffer recovery.
+/// Sets Pierce's model visibility and automatic-buffer policy.
 ///
-///   mode 0  hide, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 1  show, `tmdAllocPrimitiveBuffer`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 2  hide, latch `mode` in the work block's `freeCountdown`, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 3  show, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///
-/// Any other mode returns 1; the four known ones return 0. Either way the
-/// resulting flags are mirrored onto the work block's `savedModelFlags`, the slot
-/// the spawn handler seeds from the model's own flags. `freeCountdown` is the word
-/// the spawn handler seeds to -1 and the tick counts down to free the buffers.
-/// `anim` and `arg3` are unused -- the dispatch passes four arguments.
-s32 func_actor_443500_8013297C(Task* task, s32 anim, s32 mode, s32 arg3)
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` on a live TMD task with allocated work.
+/// Modes: 0 hide with automatic buffering; 1 show and request a buffer; 2 hide,
+/// disable automatic buffering and start a two-tick countdown; 3 show with
+/// automatic buffering disabled. The tick observing countdown zero frees the
+/// buffer. Later show requests do not cancel a pending release. Mode 1 returns
+/// 0 even if allocation fails. Known modes return 0, others 1; every request
+/// saves the resulting flags for camera-view restoration. Ignores message ID
+/// and fourth argument. Unrelated flags and existing buffers remain intact.
+static s32 _actor443500SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject*                       obj;
-    s32                              ret;
+    enum { ACTOR_443500_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject*                       model;
+    s32                              result;
     _Actor443500PierceCarradineWork* work;
 
-    obj  = task->extra.tmd;
-    work = task->work;
-    ret  = 0;
-    switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+    model  = task->extra.tmd;
+    work   = task->work;
+    result = 0;
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = drawMode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_443500_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    work->savedModelFlags = obj->flags;
-    return ret;
+    work->savedModelFlags = model->flags;
+    return result;
 }
 
-/// Copy the overlay's layout template `D_actor_443500_801587D8` into the live
-/// table at `D_shelter_r47_8018828C`. When `arg0` is nonzero, shift the six live target
-/// positions by `(0, 0x7D0, 0)` afterwards. The per-frame tick calls this
-/// with 0 before showing the model.
-static void func_actor_443500_80132A68(s32 arg0)
+/// Installs Pierce's two collision faces into shelter room 47's live grid.
+///
+/// Both overlays must be loaded and the destination arrays writable. Replaces
+/// the first two normals/faces and six vertices, retaining the room grid's
+/// other geometry, cell indexing and SDK vector pad words. Nonzero `shiftY`
+/// adds 2000 world-coordinate units to these vertices' Y after installation;
+/// zero uses the template position. Vertex additions narrow to signed 16 bits.
+/// The room grid must remain loaded while collision queries use the result.
+static void _actor443500InstallPierceCollision(s32 shiftY)
 {
-    WorldCollisionGrid* dst;
-    WorldCollisionGrid* src;
-    SVECTOR             d;
-    s32                 i;
+    enum { ACTOR_443500_COLLISION_Y_DISPLACEMENT = 2000 };
+    WorldCollisionGrid*       roomGrid;
+    const WorldCollisionGrid* actorGrid;
+    SVECTOR                   displacement;
+    s32                       elementIndex;
 
-    dst = &D_shelter_r47_8018828C;
-    src = &D_actor_443500_801587D8;
+    roomGrid  = &D_shelter_r47_8018828C;
+    actorGrid = &D_actor_443500_801587D8;
 
-    for (i = 0; i < 2; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
+    // The room reserves its leading geometry entries for this actor's faces.
+    for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gActor443500Collision269B8Faces); elementIndex++) {
+        roomGrid->normals[elementIndex].vx = actorGrid->normals[elementIndex].vx;
+        roomGrid->normals[elementIndex].vy = actorGrid->normals[elementIndex].vy;
+        roomGrid->normals[elementIndex].vz = actorGrid->normals[elementIndex].vz;
+        roomGrid->faces[elementIndex]      = actorGrid->faces[elementIndex];
     }
 
-    for (i = 0; i < 6; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
+    for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gActor443500Collision269B8Verts); elementIndex++) {
+        roomGrid->vertices[elementIndex].vx = actorGrid->vertices[elementIndex].vx;
+        roomGrid->vertices[elementIndex].vy = actorGrid->vertices[elementIndex].vy;
+        roomGrid->vertices[elementIndex].vz = actorGrid->vertices[elementIndex].vz;
     }
 
-    if (arg0 == 0) {
-        d.vx = 0;
-        d.vy = 0;
+    if (shiftY == 0) {
+        displacement.vx = 0;
+        displacement.vy = 0;
     } else {
-        d.vx = 0;
-        d.vy = 0x7D0;
+        displacement.vx = 0;
+        displacement.vy = ACTOR_443500_COLLISION_Y_DISPLACEMENT;
     }
-    d.vz = 0;
+    displacement.vz = 0;
 
-    for (i = 0; i < 6; i++) {
-        dst->vertices[i].vx += d.vx;
-        dst->vertices[i].vy += d.vy;
-        dst->vertices[i].vz += d.vz;
+    for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gActor443500Collision269B8Verts); elementIndex++) {
+        roomGrid->vertices[elementIndex].vx += displacement.vx;
+        roomGrid->vertices[elementIndex].vy += displacement.vy;
+        roomGrid->vertices[elementIndex].vz += displacement.vz;
     }
 }

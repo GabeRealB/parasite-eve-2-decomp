@@ -128819,12 +128819,12 @@ commits stay code-only and keep the attempt counts `fit_difficulty_model.py`
 trains on. `actor_260400`'s landing: a wholesale copy would have reverted four
 includes and a paragraph trunk had added to `actor_110800.c`.
 
-### Two locals tie for one callee-saved register: the *declaration* order picks the winner (func_actor_443500_8013297C, 2026-09-17)
+### Two locals tie for one callee-saved register: the *declaration* order picks the winner (_actor443500SetModelDraw, 2026-09-17)
 
-`func_actor_443500_8013297C` is `ActorsShared80162bc4`'s four-way 0x7D5 switch
+`_actor443500SetModelDraw` is `ActorsShared80162bc4`'s four-way 0x7D5 switch
 with a work block instead of a second `TmdObject`. Taken straight from the
 matched sibling it scored 99.068%, `regs=11`, with everything else zero - the
-whole diff being that `work` and `ret` had swapped `$s1`/`$s2`:
+whole diff being that `work` and `result` had swapped `$s1`/`$s2`:
 
 ```
 - sw    s1,0x14(sp)   lw s2,0x1c(a0) ... sw a2,0x4bc(s2)   move v0,s1
@@ -128841,13 +128841,13 @@ regno** is allocated first, and `find_reg` gives the first acceptable register
 in `reg_alloc_order`, so the lower pseudo takes `$s1`.
 
 **The pseudo regno comes from the declaration, not the statement.** Swapping
-the two assignments (`work = ...; ret = 0;` → `ret = 0; work = ...;`) produced a
+the two assignments (`work = ...; result = 0;` → `result = 0; work = ...;`) produced a
 *byte-identical* object with the same numbers, because `expand_decl`
 (`stmt.c:3611`) runs `DECL_RTL (decl) = gen_reg_rtx (...)` for every
 non-addressable automatic variable as its declaration is reached. Reordering
-the *declarations* - `TmdObject* obj; s32 ret; _Actor443500PierceCarradineWork* work;` - numbers
-`ret` 85 and `work` 86 and lands 100.000%, with the statement order left exactly
-as the sibling writes it (`obj`, `work`, `ret = 0`).
+the *declarations* - `TmdObject* model; s32 result; _Actor443500PierceCarradineWork* work;` - numbers
+`result` 85 and `work` 86 and lands 100.000%, with the statement order left exactly
+as the sibling writes it (`model`, `work`, `result = 0`).
 
 Symptom to recognise: a `regs`-only diff in which two locals that both cross a
 call sit in adjacent `$s` registers, and `.lreg` gives them the same
@@ -128856,7 +128856,7 @@ call sit in adjacent `$s` registers, and `.lreg` gives them the same
 take the lower register first. A `register ... asm("")` pin is not needed and
 would not help: the tie is decided before any pin could apply.
 
-Inputs: scratch `nonmatchings/func_actor_443500_8013297C-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_actor443500SetModelDraw-vacuum`, `base_1.c`
 99.068% (`regs=11`), `base_2.c` same object (statement order), `base_3.c`
 100.000%, preprocessed base_1 SHA256
 `ac4da102e34470bfbdc9f6d5b0d889ce055ab475f0a8376ebdffff2550306087`, base_2
