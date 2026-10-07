@@ -665,7 +665,7 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
     SVECTOR   farWorldPoint;
     SVECTOR   itemWorldPosition;
     SVECTOR   screenCorners[4];
-    GfxMatrix matrix;
+    MATRIX    matrix;
     long      nearScreenXY;
     long      depthCue;
     long      projectionFlags;
@@ -682,17 +682,17 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
 
     // Project two points on the held model's forward axis into the current view.
     actorRenderComposeCoord(itemRoot);
-    _actor135600ComposeWorldTransform(itemRoot, &matrix.mat, &itemWorldPosition);
+    _actor135600ComposeWorldTransform(itemRoot, &matrix, &itemWorldPosition);
 
     nearWorldPoint.vx = 0;
     nearWorldPoint.vy = 0;
     nearWorldPoint.vz = ACTOR_135600_HELD_QUAD_ORIGIN_Z;
-    ApplyMatrixSV(&matrix.mat, &nearWorldPoint, &nearWorldPoint);
+    ApplyMatrixSV(&matrix, &nearWorldPoint, &nearWorldPoint);
 
     farWorldPoint.vx = 0;
     farWorldPoint.vy = 0;
     farWorldPoint.vz = lengthScale12 * ACTOR_135600_HELD_QUAD_FULL_SPAN / ONE + ACTOR_135600_HELD_QUAD_ORIGIN_Z;
-    ApplyMatrixSV(&matrix.mat, &farWorldPoint, &farWorldPoint);
+    ApplyMatrixSV(&matrix, &farWorldPoint, &farWorldPoint);
 
     nearWorldPoint.vx += itemWorldPosition.vx;
     nearWorldPoint.vy += itemWorldPosition.vy;
@@ -714,11 +714,11 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
     screenAngle = ratan2((s16)farScreenXY - (s16)nearScreenXY, nearScreenY - farScreenY);
 
     // Rotate the near vertex pair in screen space; the far pair stays horizontal.
-    gfxSetRotIdentity(&matrix.mat);
-    RotMatrixZ(screenAngle, &matrix.mat);
+    gfxSetRotIdentity(&matrix);
+    RotMatrixZ(screenAngle, &matrix);
 
     for (pairIndex = 0; pairIndex < (s32)ARRAY_SIZE(screenCorners) / 2; pairIndex++) {
-        ApplyMatrixSV(&matrix.mat, &D_actor_135600_8013B060[pairIndex], &screenCorners[pairIndex]);
+        ApplyMatrixSV(&matrix, &D_actor_135600_8013B060[pairIndex], &screenCorners[pairIndex]);
         screenCorners[pairIndex].vx    += nearScreenX;
         screenCorners[pairIndex].vy    += nearScreenY;
         screenCorners[pairIndex + 2].vx = D_actor_135600_8013B060[pairIndex + 2].vx + farScreenX;
