@@ -10,7 +10,7 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
 #include "area_transitions.h"
-#include "captions.h"
+#include "gameflag.h"
 #include "companion_load.h"
 #include "gameplay/direction.h"
 #include "hud_sprites.h"
@@ -622,7 +622,7 @@ static void Gp_InitStageVisit(GameLocationKey* arg0)
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     if ((save->state.visitFlags & 1) == 0) {
         save->state.visitFlags = 1;
-        Gp_ClearAllFlagNibbles();
+        gameFlagClearLiveNibbles();
         Gp_ApplyNewGameAreaFlags();
         save->state.companionHpMax = 0x64;
         save->state.companionHp    = 0x64;

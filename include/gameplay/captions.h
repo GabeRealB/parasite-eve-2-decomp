@@ -85,10 +85,6 @@ void capSpawnEventIfIdle(s32 commandIndex, s32 eventFlags);
 /// `CAP_PLAYBACK_DISPLAY_TRANSITION`; it does not wait for playback or report success.
 void capRunCommandWithTransition(s32 commandIndex);
 
-void Gp_FillPlayerHpMp(void);
-
-void func_800E4028(Task* arg0);
-
 void func_800E7570(Task* arg0);
 
 extern u8 D_80115680;

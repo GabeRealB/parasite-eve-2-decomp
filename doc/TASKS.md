@@ -365,7 +365,7 @@ Several `func_*` rows are already matched C and only lack a role name.
 | `0C` | `20` | `evsScreenShakeTask` | Vertical display shake; packed `spawnArg2.value` holds signed amplitude above bit 7 and half-duration (1..255) in the low byte |
 | `0D` | `20` | `evsMusicVolumeFadeTask` | `spawnArg2` is `_EvsMusicVolumeFade*` (music volume: target level + duration) |
 | `0E` | `20` | `evsSoundAttenuationFadeTask` | `spawnArg2` is `_EvsSoundAttenuationFade*` (one sound's attenuation: target + duration) |
-| `11` | `20` | `func_800E4028` | Unnamed |
+| `11` | `20` | `objectTaskRoomTask` | Select the current room/area task; remain idle as the room message receiver when no descriptor matches |
 | `12` | `20` | NULL, `flags = 0xFFFF` | Sentinel |
 
 `CapActionRequest` is shared with CAP playback and lives in `src/gameplay/cap.h`.

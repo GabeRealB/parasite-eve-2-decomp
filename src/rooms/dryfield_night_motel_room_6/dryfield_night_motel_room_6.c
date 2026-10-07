@@ -17,6 +17,7 @@
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
 #include "gameplay/sound.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -942,7 +943,7 @@ void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
             arg0->state++;
             break;
         case 5:
-            Gp_FillPlayerHpMp();
+            playerStateRestoreFullHpMp();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             areaApplySavedUpdates(D_dryfield_night_motel_room_6_80186270);
             if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {

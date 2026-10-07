@@ -5,7 +5,6 @@
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/player_actor.h"
-#include "captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
@@ -46,8 +45,8 @@ TaskDesc* D_8010FABC[6] = {
 };
 
 TaskMessageEntry D_8010FAD4[3] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_800E3FF0 },
-    { 5105, func_800E4018 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, objectTaskResolveDefaultRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, objectTaskRefuseDefaultRoomKeyItemUse },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

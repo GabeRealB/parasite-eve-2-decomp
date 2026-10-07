@@ -15,6 +15,7 @@
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
 #include "gameplay/evs.h"
@@ -179,7 +180,7 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
         gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_1BA, 2);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, 2);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x36);
-        Gp_FillPlayerHpMp();
+        playerStateRestoreFullHpMp();
         areaApplySavedUpdates(D_shelter_1f_tent_801842D4);
         evsStartScriptWithSkip(D_actor_460200_801362B8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_460200_80137890);
         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {

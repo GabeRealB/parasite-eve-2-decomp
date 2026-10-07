@@ -2704,7 +2704,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                 gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
-                Gp_FillPlayerHpMp();
+                playerStateRestoreFullHpMp();
                 companionRestoreFullHp();
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD;

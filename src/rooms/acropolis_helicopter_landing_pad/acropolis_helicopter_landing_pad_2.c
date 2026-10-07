@@ -26,6 +26,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_state.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
@@ -1385,7 +1386,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
     temp_v1 = arg0->state;
     switch (temp_v1) {
         case 0:
-            Gp_FillPlayerHpMp();
+            playerStateRestoreFullHpMp();
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_PARTHENON_KEY);
             inventoryClearCollectedBit(0x102);
             itemSetIdentified(0x102, 1);

@@ -10,6 +10,13 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
+/// Restores the resident player's current HP and MP to their stored maxima.
+///
+/// Copies both signed-halfword point counts without clamping or recomputing
+/// the maxima. Requires the gameplay overlay, but no live player actor.
+/// Status effects, maximum values and the serialized backup are unchanged.
+void playerStateRestoreFullHpMp(void);
+
 /// Subtracts `amount` MP from the player, draining the remainder when it is insufficient.
 ///
 /// `amount` is a nonnegative count of Parasite Energy points. Returns 1 when

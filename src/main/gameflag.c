@@ -9,6 +9,7 @@
 
 #include "gameplay/captions.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/object_task.h"
 
 /// Bit layout of the two game flags stored in each payload byte.
 enum {
@@ -35,7 +36,7 @@ TaskDesc D_80067734[] = {
     { { { TASK_BODY_NONE, 0x20 } }, evsSoundAttenuationFadeTask },
     { { { TASK_BODY_NONE, 0xC0 } }, NULL },
     { { { TASK_BODY_NONE, 0xC0 } }, NULL },
-    { { { TASK_BODY_NONE, 0x20 } }, func_800E4028 },
+    { { { TASK_BODY_NONE, 0x20 } }, objectTaskRoomTask },
     { { { TASK_DESC_END, 0x20 } }, NULL },
 };
 

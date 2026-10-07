@@ -5,7 +5,6 @@
 
 #include "gameplay/cap.h"
 #include "cap.h"
-#include "gameplay/direction.h"
 
 #include "main/task_types.h"
 #include "main/text.h"
@@ -32,16 +31,7 @@ extern const char Gp_StrEvsFmt[];
 
 extern const TaskFuncTable3 Gp_CapTaskStates;
 
-void Gp_ClearAllFlagNibbles(void);
-
 void Gp_SpawnEvt1(s32 arg0, s32 arg1);
-
-/// Location-message fallback of `D_8010FAD4`, the table installed on pointer
-/// slot 7: copies the requested location onto the outgoing record and answers
-/// 1, leaving the decision to whoever reads the reply.
-s32 func_800E3FF0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst);
-
-s32 func_800E4018(Task* task, s32 msgId, s32 firstArg, s32 secondArg);
 
 extern s16 D_801156BC;
 

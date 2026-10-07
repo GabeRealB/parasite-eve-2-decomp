@@ -9,6 +9,7 @@
 #include "gameplay/direction.h"
 #include "gameplay/enemy.h"
 #include "gameplay/gameflag.h"
+#include "gameflag.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "gameplay/object_task.h"
@@ -61,7 +62,7 @@ static const TaskFuncTable3 D_800974C8;
 
 void Gp_EvtCapWeaponTask(Task* arg0);
 
-static void func_800E4020(Task* task);
+static void _objectTaskRoomIdleState(Task* unusedTask);
 
 TaskDesc Gp_EvtSpawnTable[3] = {
     { { { TASK_BODY_NONE, 32 } }, Gp_EvtCapTask, { NULL } },
@@ -98,7 +99,7 @@ s32 Gp_CapCaretDir = 0;
 
 static const TaskFuncTable3 D_800974C8 = { {
     func_800E31E8,
-    func_800E4020,
+    _objectTaskRoomIdleState,
     taskKill,
 } };
 
@@ -335,13 +336,13 @@ void companionWriteAnimationBankIndex(s32* bankIndexOut)
     *bankIndexOut = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
 }
 
-void Gp_FillPlayerHpMp(void)
+void playerStateRestoreFullHpMp(void)
 {
-    PlayerStatus* p;
+    PlayerStatus* status;
 
-    p     = &gPlayerStatus;
-    p->hp = p->hpMax;
-    p->mp = p->mpMax;
+    status     = &gPlayerStatus;
+    status->hp = status->hpMax;
+    status->mp = status->mpMax;
 }
 
 void companionRestoreFullHp(void)
@@ -415,38 +416,38 @@ s32 gameFlagGetPackedByte(s32 nibbleIndex)
     return gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[nibbleIndex / 2];
 }
 
-/// Location-message fallback of `D_8010FAD4`, the table installed on pointer
-/// slot 7: copies the requested location onto the outgoing record and answers
-/// 1, leaving the decision to whoever reads the reply.
-s32 func_800E3FF0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+s32 objectTaskResolveDefaultRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    return 1;
+    enum { OBJECT_TASK_ROOM_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return OBJECT_TASK_ROOM_TRANSITION_ALLOWED;
 }
 
-s32 func_800E4018(Task* task, s32 msgId, s32 firstArg, s32 secondArg)
+s32 objectTaskRefuseDefaultRoomKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-static void func_800E4020(Task* task)
+/// Keeps the room-selector task alive after setup, including its fallback message receiver.
+static void _objectTaskRoomIdleState(Task* unusedTask)
 {
 }
 
-void func_800E4028(Task* arg0)
+void objectTaskRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_800974C8;
-    sp.funcs[arg0->state](arg0);
+    stateHandlers = D_800974C8;
+    stateHandlers.funcs[task->state](task);
 }
 
-void Gp_ClearAllFlagNibbles(void)
+void gameFlagClearLiveNibbles(void)
 {
-    s32 i;
+    s32 flagId;
 
-    for (i = 0; i < GAME_FLAG_NIBBLE_COUNT; i++) {
-        gameFlagSetNibble(i, 0);
+    for (flagId = 0; flagId < GAME_FLAG_NIBBLE_COUNT; flagId++) {
+        gameFlagSetNibble(flagId, 0);
     }
 }
 
