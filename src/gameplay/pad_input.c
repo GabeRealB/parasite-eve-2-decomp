@@ -138,7 +138,7 @@ void Gp_UpdatePadInput(void)
         return;
     }
     actor = work->work;
-    Gp_ClearPadHalt();
+    padScriptClearHalt();
     if (Gp_MenuLockHold == 0) {
         if (actor->mode == GAME_ACTOR_MODE_NORMAL && gGameSession->eventState == 0 && gGameSession->cutsceneHold == 0 &&
             actor->state != 6 && cfg->hp > 0 && gGameSession->deathVariant == 0) {

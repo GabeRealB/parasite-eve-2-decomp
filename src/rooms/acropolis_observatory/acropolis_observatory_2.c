@@ -725,8 +725,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 
         case 1:
             if (queue->movieReady != 0) {
-                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_observatory_80183480,
-                                                                 D_acropolis_observatory_80183498);
+                work->padScriptTask           = padScriptSpawn(D_acropolis_observatory_80183480,
+                                                               D_acropolis_observatory_80183498);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
@@ -830,8 +830,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
 
         case 1:
             if (queue->movieReady != 0) {
-                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_observatory_801834A0,
-                                                                 D_acropolis_observatory_801834B8);
+                work->padScriptTask           = padScriptSpawn(D_acropolis_observatory_801834A0,
+                                                               D_acropolis_observatory_801834B8);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;

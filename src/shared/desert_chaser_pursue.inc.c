@@ -175,7 +175,7 @@ void desertChaserPursue(Task* arg0)
                     }
                     work->state = 0x25;
 #if DESERT_CHASER_RUN_SEQUENCE
-                    Gp_SpawnPadLerp(3, 0xFF, 8);
+                    padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
 #endif
                 } else {
 #if DESERT_CHASER_RUN_SEQUENCE
@@ -206,7 +206,7 @@ void desertChaserPursue(Task* arg0)
                     TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
                     work->state = 0x1E;
 #if DESERT_CHASER_RUN_SEQUENCE
-                    Gp_SpawnPadLerp(8, 0xFF, 8);
+                    padScriptSpawnVariableMotorRamp(8, 0xFF, 8);
 #endif
                 }
             }

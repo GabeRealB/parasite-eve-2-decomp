@@ -1034,7 +1034,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                     if (work->doorPlacements[0].pos.vx >= 0x36B0) {
                         work->doorPlacements[0].pos.vx = 0x36B0;
                         work->doorPlacements[1].pos.vx = 0x36B0;
-                        taskReparent(arg0, Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
+                        taskReparent(arg0, padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));
                         actor444000GluttonSetShakeLevel(3);
                         work->stagingMode = ACTOR_342000_STAGING_NONE;
                     }
@@ -1046,7 +1046,7 @@ static void func_actor_342000_80162F28(Task* arg0)
         case ACTOR_342000_STAGING_DOORS_SHUT:
             sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_DOORS_CLOSING, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_DOORS_SHUT, 0, 0);
-            taskReparent(arg0, Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
+            taskReparent(arg0, padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));
             actor444000GluttonSetShakeLevel(3);
             break;
         default:

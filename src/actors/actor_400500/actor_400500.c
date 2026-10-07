@@ -4370,11 +4370,11 @@ static void func_actor_400500_8013771C(Task* arg0)
         _actor400500PlaySound(arg0, 0x40050007);
     }
     if ((s16)work->stateFrames == 0x2A) {
-        Gp_SpawnPadLerp(8, 0xC0U, 8U);
+        padScriptSpawnVariableMotorRamp(8, 0xC0U, 8U);
         _actor400500PlaySound(arg0, 0x40050008);
     }
     if ((s16)work->stateFrames == 0x1F) {
-        Gp_SpawnPadLerp(6, 0xFFU, 0x80U);
+        padScriptSpawnVariableMotorRamp(6, 0xFFU, 0x80U);
         if (actorPlayerContactMessage(spawn, 1) != 0) {
             player->state    = 0xA;
             work->grabLanded = 1;

@@ -320,7 +320,7 @@ extern u16 D_dryfield_water_tower_80181C60[];
 /// and `8017FA5C` send `80181AD0` with the same message.
 extern ActorTransform D_dryfield_water_tower_80181AD0[2];
 
-/// The three `Gp_SpawnScript18` pairs the cap script's last three commands
+/// The three `padScriptSpawn` pairs the cap script's last three commands
 /// spawn into `padScriptTask`, and the sound each one queues: `0x52140006` with the
 /// extra `0x5214000C` for command 8, whose script `func_dryfield_water_tower_8017EB7C`
 /// and `func_dryfield_water_tower_8017F908` wait on through `runningSoundStarted`.
@@ -2411,21 +2411,21 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
 
         case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_RUN_RUMBLE:
             state->runningSoundStarted = 1;
-            state->padScriptTask       = Gp_SpawnScript18(D_dryfield_water_tower_80187628,
-                                                          D_dryfield_water_tower_8018763C);
+            state->padScriptTask       = padScriptSpawn(D_dryfield_water_tower_80187628,
+                                                        D_dryfield_water_tower_8018763C);
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0, 0);
             sndEvtRequestScriptStart(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
             break;
 
         case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK_RUMBLE:
-            state->padScriptTask = Gp_SpawnScript18(D_dryfield_water_tower_8018764C,
-                                                    D_dryfield_water_tower_80187660);
+            state->padScriptTask = padScriptSpawn(D_dryfield_water_tower_8018764C,
+                                                  D_dryfield_water_tower_80187660);
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 7), 0, 0);
             break;
 
         case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_DROP_RUMBLE:
-            state->padScriptTask = Gp_SpawnScript18(D_dryfield_water_tower_80187670,
-                                                    &D_dryfield_water_tower_80187678);
+            state->padScriptTask = padScriptSpawn(D_dryfield_water_tower_80187670,
+                                                  &D_dryfield_water_tower_80187678);
             sndEvtRequestScriptStart(SOUND_WATER_TOWER_CAP_DROP, 0, 0);
             break;
     }
@@ -2927,7 +2927,7 @@ void func_dryfield_water_tower_8017F908(void)
     gGameSession->viewDirty                                    = 1;
     TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
     state->slidingPropTask->state = 1;
-    Gp_HaltPadScripts();
+    padScriptHalt();
     sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 6), 0x1E);
 }
 
@@ -2952,7 +2952,7 @@ void func_dryfield_water_tower_8017F9AC(void)
     gGameSession->viewDirty                                    = 1;
     TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40, 0);
     state->slidingPropTask->state = 1;
-    Gp_HaltPadScripts();
+    padScriptHalt();
     sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 7), 0xA);
     sndEvtRequestScriptStop(SOUND_WATER_TOWER_CAP_RUNNING, 0xA);
     if (state->runResult == DRYFIELD_WATER_TOWER_RUN_COMPLETED) {
@@ -2972,7 +2972,7 @@ void func_dryfield_water_tower_8017FA5C(void)
     TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[2], 0);
     state->fallingPropTask->state = 1;
     TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AD0[0], 0);
-    Gp_HaltPadScripts();
+    padScriptHalt();
     sndEvtRequestScriptStop(SOUND_WATER_TOWER_CAP_DROP, 0xA);
     memCopyBytes(_gDryfieldWaterTowerCollision04550, (_gDryfieldWaterTowerCollision06004Normals + 2), sizeof(_gDryfieldWaterTowerCollision04550));
     memCopyBytes(_gDryfieldWaterTowerCollision045E0, (_gDryfieldWaterTowerCollision06004Faces + 2), sizeof(_gDryfieldWaterTowerCollision045E0));

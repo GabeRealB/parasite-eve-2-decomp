@@ -107,7 +107,7 @@ extern Task* D_actor_361100_80171BE0;
 
 extern TaskDesc D_actor_361100_80165C58[];
 
-/// Script pair handed to `Gp_SpawnScript18` on every even frame of the blink.
+/// Script pair handed to `padScriptSpawn` on every even frame of the blink.
 extern PadScriptCmd              D_actor_361100_80166AD0[2];
 extern PadScriptVibrationSegment D_actor_361100_80166AD8;
 
@@ -1556,7 +1556,7 @@ void func_actor_361100_80162A54(Task* arg0)
     arg0->spawnArg1.value = countdown;
     if (countdown > 0) {
         displaySetShakeY((countdown & 1) ? 0 : -1);
-        Gp_SpawnScript18(D_actor_361100_80166AD0, &D_actor_361100_80166AD8);
+        padScriptSpawn(D_actor_361100_80166AD0, &D_actor_361100_80166AD8);
     }
     if ((arg0->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
         displaySetShakeY(0);

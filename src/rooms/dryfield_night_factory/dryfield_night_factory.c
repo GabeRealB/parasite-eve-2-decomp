@@ -47,9 +47,6 @@
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/factory_lift.h"
 
-/// The two argument blocks one of the turn handlers hands `Gp_SpawnScript18`,
-/// one pair per stage variant.
-
 /// State handlers of the factory model task: set-up, the per-frame state and
 /// `taskKill`.
 static const TaskFuncTable3 _gFactoryLiftStates = {

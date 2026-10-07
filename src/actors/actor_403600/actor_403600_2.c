@@ -1444,7 +1444,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         sndEvtRequestScriptStart(temp_s4, temp_s0_6, (s32)(((temp_v0_6 >> 0x1F) + temp_v0_6) << 0x17) >> 0x18);
                     }
                     if ((D_actor_403600_801605DC.vy - 0x3E8) < work->worldCoord.coord.t[1]) {
-                        Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
+                        padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x50);
                         var_s2 = 0;
                         if (gPlayerStatus.coordMtx->t[1] < -0xF3B) {
                             temp_s4_4                     = &work->worldCoord;
@@ -1759,7 +1759,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     if (temp_v0_18 < 0x76DU) {
                         temp_s0_msg = &D_actor_403600_80160568;
                         if (temp_s0_msg->animationId == 0) {
-                            Gp_SpawnPadLerp(0x14, 0xFF, 0x50);
+                            padScriptSpawnVariableMotorRamp(0x14, 0xFF, 0x50);
                             work->knockbackFrame = 0;
                             var_v0_8             = (s16)func_actor_403600_8013E66C(&work->worldCoord);
                             if (var_v0_8 < 0) {
@@ -1907,7 +1907,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s1_3 = &D_actor_403600_80160568;
                         if (temp_s1_3->animationId == 0) {
                             if (work->actionParam == 0xFF) {
-                                Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
+                                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x50);
                                 D_actor_403600_801606A4.reaction = 0xA;
                                 temp_s1_3->animationId           = 1;
                                 D_actor_403600_801606A4.power    = (u16)D_actor_403600_80150EAC;
@@ -1921,7 +1921,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 sndEvtRequestScriptStart(temp_s4, temp_s0_21, (s32)(((temp_v0_22 >> 0x1F) + temp_v0_22) << 0x17) >> 0x18);
                                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_801606A4, 0), 0);
                             } else {
-                                Gp_SpawnPadLerp(0x14, 0xB0, 0x50);
+                                padScriptSpawnVariableMotorRamp(0x14, 0xB0, 0x50);
                                 work->knockbackFrame = 0;
                                 var_v0_10            = (s16)func_actor_403600_8013E66C(temp_s0_20);
                                 if (var_v0_10 < 0) {
@@ -1998,11 +1998,11 @@ static void func_actor_403600_8013A444(Task* arg0)
                     if (work->phaseFrame >= 8) {
                         work->phaseFrame = 0;
                         if (sp10 < 0x3E9U) {
-                            Gp_SpawnPadLerp(5, 0xB0, 0xB0);
+                            padScriptSpawnVariableMotorRamp(5, 0xB0, 0xB0);
                         } else if (sp10 < 0x7D1U) {
-                            Gp_SpawnPadLerp(5, 0x80, 0x80);
+                            padScriptSpawnVariableMotorRamp(5, 0x80, 0x80);
                         } else if (sp10 < 0xBB9U) {
-                            Gp_SpawnPadLerp(5, 0x50, 0x50);
+                            padScriptSpawnVariableMotorRamp(5, 0x50, 0x50);
                         }
                     }
                     if (work->actionDelay >= ((s16)work->actionCounter + 0x1E)) {
@@ -2119,7 +2119,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_a3                = (u16)work->phaseFrame;
                         work->screenDistortion = (u16)(work->screenDistortion + (0xC00 / (s16)work->actionParam));
                         if (work->phaseFrame == 0x30) {
-                            Gp_SpawnPadLerp((s16)(((u16)work->actionParam - temp_a3) + 0x23), 0x40, 0xFF);
+                            padScriptSpawnVariableMotorRamp((s16)(((u16)work->actionParam - temp_a3) + 0x23), 0x40, 0xFF);
                             sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, 0, 0);
                         }
                     }
@@ -2140,7 +2140,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     func_actor_403600_8013F608(arg0);
                     temp_v1_11 = work->phaseFrame;
                     if (temp_v1_11 == 0x23) {
-                        Gp_SpawnPadLerp(0xA, 0xFF, 0xFF);
+                        padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0xFF);
                         work->screenDistortion = 0x1000U;
                         temp_s4                = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                         temp_s0_26             = (s8)worldCoordGetOriginAudioPan(temp_s6);
@@ -2792,7 +2792,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
         work->mode            = ACTOR_403600_MODE_DYING;
         work->step            = 0;
         work->whiteout        = 0;
-        Gp_HaltPadScripts();
+        padScriptHalt();
         sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 }
@@ -3433,7 +3433,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             temp_v0              = work->knockbackFrame + 1;
             work->knockbackFrame = temp_v0;
             if ((s16)temp_v0 == 0xC) {
-                Gp_SpawnPadLerp(0xA, 0xFF, 0xFF);
+                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0xFF);
                 D_actor_403600_801606A4.power    = 0x14;
                 D_actor_403600_801606A4.reaction = 0;
                 temp_s2                          = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
@@ -4612,7 +4612,7 @@ static void func_actor_403600_80141B24(Task* arg0)
 {
     Actor403600Work* work = arg0->work;
 
-    Gp_HaltPadScripts();
+    padScriptHalt();
     sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     work->screenDistortion = 0;
 }

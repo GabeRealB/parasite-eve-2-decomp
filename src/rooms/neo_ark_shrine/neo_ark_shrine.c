@@ -611,7 +611,7 @@ static s16 func_neo_ark_shrine_8017E254(void)
         }
         gGameSession->roomObjsDirty = 1;
         sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);
-        Gp_SpawnPadLerp(0x28, 0x30, 0x60);
+        padScriptSpawnVariableMotorRamp(0x28, 0x30, 0x60);
     }
     if (D_neo_ark_shrine_8018686C[0] == 5 && D_neo_ark_shrine_8018686C[4] == 6 &&
         D_neo_ark_shrine_8018686C[8] == 7 && D_neo_ark_shrine_8018686C[12] == 8 &&

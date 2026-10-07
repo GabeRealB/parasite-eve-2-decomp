@@ -1029,7 +1029,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->effectArg.spawnArgLo = 0x120;
             work->effectArg.spawnArgHi = 2;
             effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[4], NULL, &work->effectArg);
-            Gp_SpawnScript18Ex(Actor01200_D04044, Actor01200_D04050, (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            padScriptSpawnDepthScaled(Actor01200_D04044, Actor01200_D04050, (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             work->burstAttackBody.radius = 0x320;
             work->burstWaveBody.radius   = 0xC8;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1162,7 +1162,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             work->burstAttackBody.radius = 0x320;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
-            Gp_SpawnScript18(Actor01200_D04044, Actor01200_D04050);
+            padScriptSpawn(Actor01200_D04044, Actor01200_D04050);
             work->effectArg.coord      = &arg1->extra.tmd->coords[4];
             work->effectArg.spawnArgLo = 0x120;
             work->effectArg.spawnArgHi = 2;

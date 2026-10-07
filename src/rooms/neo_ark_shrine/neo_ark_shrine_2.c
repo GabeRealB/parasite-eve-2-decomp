@@ -75,7 +75,7 @@ typedef struct {
     MATRIX light;            // The model's light matrix
     s16    fallAcceleration; // Added to `fallVelocity` every frame, in world units per frame squared; grows by the prop's own step each frame
     s16    fallVelocity;     // Added to the prop's height every frame, in world units per frame (positive is down)
-    s16    fallFrames;       // Frames the drop has lasted; times its sound and its pad effect
+    s16    fallFrames;       // Frames the drop has lasted; times its sound and variable-motor vibration ramp
 } _NeoArkShrineFallingPropWork;
 STATIC_ASSERT_SIZEOF(_NeoArkShrineFallingPropWork, 0x48);
 
@@ -1210,7 +1210,7 @@ static void func_neo_ark_shrine_8017EF68(Task* task)
     ActionPrompt*           prompt = D_80114D28;
     NeoArkShrinePuzzleWork* work   = task->work;
 
-    Gp_SpawnPadLerp(0x12, 0x30, 0x90);
+    padScriptSpawnVariableMotorRamp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 1;
     prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
@@ -1346,7 +1346,7 @@ static void func_neo_ark_shrine_8017F320(Task* task)
     ActionPrompt*           prompt = D_80114D28;
     NeoArkShrinePuzzleWork* work   = task->work;
 
-    Gp_SpawnPadLerp(0x12, 0x30, 0x90);
+    padScriptSpawnVariableMotorRamp(0x12, 0x30, 0x90);
     D_neo_ark_shrine_80186868 = 0;
     prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
@@ -1474,7 +1474,7 @@ static void func_neo_ark_shrine_8017F578(Task* task)
     coord = task->extra.tmd->coords;
     work->fallFrames++;
     if (work->fallFrames == 4) {
-        Gp_SpawnPadLerp(0x18, 0x40, 0xFF);
+        padScriptSpawnVariableMotorRamp(0x18, 0x40, 0xFF);
         sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PROP_1_FALL, 0, 0);
     }
     // The drop accelerates harder every frame, and stops dead at floor height.
@@ -1521,7 +1521,7 @@ static void func_neo_ark_shrine_8017F738(Task* task)
         sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PROP_2_FALL, 0, 0);
     }
     if (work->fallFrames == 0x12) {
-        Gp_SpawnPadLerp(0xA, 0xA0, 0xFF);
+        padScriptSpawnVariableMotorRamp(0xA, 0xA0, 0xFF);
     }
     // The drop accelerates harder every frame, and stops dead at floor height.
     work->fallAcceleration += 2;

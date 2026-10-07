@@ -73,7 +73,7 @@ void golemPawnRookBulletFly(Enemy* arg0, Task* arg1)
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         arg1->state = 2;
         if ((work->strikeContacts[0].key.value & 0xFFFF0080) == 0x10000) {
-            Gp_SpawnPadLerp(0xA, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(0xA, 0xFF, 8);
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(0x28);

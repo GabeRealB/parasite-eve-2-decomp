@@ -611,7 +611,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 effectSpawn(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
                 snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340004;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                Gp_SpawnPadLerp(10, 0xFF, 0x80);
+                padScriptSpawnVariableMotorRamp(10, 0xFF, 0x80);
             } else if (damage > 0) {
                 if (part->effectCooldown == 0) {
                     if ((damageGetPlayerAttackReaction(part->contacts[i].key.value) & 0xFFFF) == DAMAGE_PLAYER_REACTION_INCENDIARY) {

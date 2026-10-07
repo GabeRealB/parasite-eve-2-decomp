@@ -89,7 +89,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     sc->playerPlacement.rot.vy = work->targetYaw;
                     sc->playerPlacement.rot.vz = 0;
                     TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->playerPlacement, 0);
-                    Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
+                    padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x80);
                     snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                     sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(pcoord), (s8)worldCoordGetOriginAudioDepth(pcoord));
                 } else {
@@ -138,7 +138,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 work->auxTimer--;
             } else {
                 if (work->timer == 2) {
-                    Gp_SpawnPadLerp(5, 0xC0, 0x80);
+                    padScriptSpawnVariableMotorRamp(5, 0xC0, 0x80);
                 }
                 timer       = work->timer - 1;
                 work->timer = timer;
@@ -254,7 +254,7 @@ void golemKnightBishopGrabSeq(Task* arg0)
                 sc->operand.vx                    = 0;
                 sc->operand.vz                    = 0xC8;
                 effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4], &sc->operand, &gGolemKnightBishopGrabEffect);
-                Gp_SpawnPadLerp(0xA, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 8);
                 taskMessageDispatch(player, 0x400, 0, 0);
                 gPlayerStatus.hp = 0;
             }

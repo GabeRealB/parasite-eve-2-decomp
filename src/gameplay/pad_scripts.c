@@ -19,6 +19,30 @@ enum { PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS = 1 };
 /// offset of `_PadScriptLerpWork::intensity.bytes.whole`.
 #define PAD_SCRIPT_LERP_FRACTION_BITS 8
 
+/// Resident descriptor bank and entries for the script interpreter and its two motor tasks.
+enum {
+    PAD_SCRIPT_TASK_BANK                     = 2,
+    PAD_SCRIPT_BINARY_MOTOR_HOLD_TASK_TYPE   = 0xB,
+    PAD_SCRIPT_VARIABLE_MOTOR_RAMP_TASK_TYPE = 0xC,
+    PAD_SCRIPT_TASK_TYPE                     = 0xD,
+};
+
+/// Interpreter task phases, in dispatch order; the two motor lanes keep separate opcode states.
+enum {
+    PAD_SCRIPT_TASK_STATE_START  = 0,
+    PAD_SCRIPT_TASK_STATE_RUN    = 1,
+    PAD_SCRIPT_TASK_STATE_FINISH = 2,
+};
+
+/// Eight signed source-depth units per intensity divisor; zero after this shift uses divisor 1.
+enum { PAD_SCRIPT_DEPTH_DIVISOR_SHIFT = 3 };
+
+/// Byte positions of the opcode and operand in a packed lane halfword.
+enum {
+    PAD_SCRIPT_OPCODE_MASK   = 0xFF,
+    PAD_SCRIPT_OPERAND_SHIFT = 8,
+};
+
 /// Work block of one variable-intensity vibration ramp, owned through `Task::work`.
 ///
 /// The ramp drives the controller's variable-intensity motor from a start
@@ -53,19 +77,19 @@ STATIC_ASSERT_SIZEOF(_PadScriptLerpWork, 0xC);
 /// both lanes hold `PAD_SCRIPT_STOP`. The block is allocated zeroed, so both
 /// lanes start at step 0 with no loop pending.
 typedef struct {
-    PadScriptCmd*              commands;       // Borrowed step array both lanes walk
-    PadScriptVibrationSegment* segments;       // Borrowed segment table indexed by `PAD_SCRIPT_PLAY` operands
-    s16                        sourceDepth;    // Signed view depth of the vibration's source; an eighth of it, or 1 when that is 0, divides the lerp lane's intensities
-    PadScriptLane              holdCommand;    // Command word the hold lane last loaded
-    PadScriptLane              lerpCommand;    // Command word the lerp lane last loaded
-    u8                         holdStep;       // Index in `commands` of the hold lane's next step
-    u8                         lerpStep;       // Index in `commands` of the lerp lane's next step
-    u8                         holdWaitFrames; // Script frames before the hold lane steps again (a stored 0 waits 256)
-    u8                         lerpWaitFrames; // Script frames before the lerp lane steps again (a stored 0 waits 256)
-    u8                         holdSegment;    // Index in `segments` of the hold lane's last played segment
-    u8                         lerpSegment;    // Index in `segments` of the lerp lane's last played segment
-    u8                         holdLoopCount;  // Hold lane's loop counter: loaded when 0, else decremented, by `PAD_SCRIPT_LOOP`; `PAD_SCRIPT_JUMP` branches while it is nonzero
-    u8                         lerpLoopCount;  // Lerp lane's loop counter, used the same way
+    const PadScriptCmd*              commands;       // Borrowed step array both lanes walk
+    const PadScriptVibrationSegment* segments;       // Borrowed segment table indexed by `PAD_SCRIPT_PLAY` operands
+    s16                              sourceDepth;    // Signed view depth of the vibration's source; an eighth of it, or 1 when that is 0, divides the lerp lane's intensities
+    PadScriptLane                    holdCommand;    // Command word the hold lane last loaded
+    PadScriptLane                    lerpCommand;    // Command word the lerp lane last loaded
+    u8                               holdStep;       // Index in `commands` of the hold lane's next step
+    u8                               lerpStep;       // Index in `commands` of the lerp lane's next step
+    u8                               holdWaitFrames; // Script frames before the hold lane steps again (a stored 0 waits 256)
+    u8                               lerpWaitFrames; // Script frames before the lerp lane steps again (a stored 0 waits 256)
+    u8                               holdSegment;    // Index in `segments` of the hold lane's last played segment
+    u8                               lerpSegment;    // Index in `segments` of the lerp lane's last played segment
+    u8                               holdLoopCount;  // Hold lane's loop counter: loaded when 0, else decremented, by `PAD_SCRIPT_LOOP`; `PAD_SCRIPT_JUMP` branches while it is nonzero
+    u8                               lerpLoopCount;  // Lerp lane's loop counter, used the same way
 } _PadScriptWork;
 STATIC_ASSERT_SIZEOF(_PadScriptWork, 0x18);
 
@@ -81,202 +105,235 @@ static const TaskFuncTable5 Gp_ScriptAStates;
 
 static const TaskFuncTable5 Gp_ScriptBStates;
 
-static void Gp_StepScriptA(Task* task);
+static void _padScriptStepBinaryLane(Task* task);
 
-static void Gp_StepScriptB(Task* task);
+static void _padScriptStepVariableLane(Task* task);
 
-static void Gp_SpawnPadHold(s16 arg0);
+static void _padScriptSpawnBinaryMotorHold(s16 durationFrames);
 
-static void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
+static void _padScriptSpawnDepthScaledVariableMotorRamp(s16 durationFrames, u8 startIntensity, u8 endIntensity, s16 sourceDepth);
 
-static void Gp_KickScriptAB(Task* task);
+static void _padScriptStartLanes(Task* task);
 
-static void Gp_DispatchScript18(Task* task);
+static void _padScriptTickLanes(Task* task);
 
 static void _padScriptBinaryLaneStoppedState(Task* task);
 
 static void Gp_TickScriptADelay(Task* task);
 
-static void Gp_ScriptAState3(Task* task);
+static void _padScriptBinaryLaneLoopState(Task* task);
 
-static void Gp_ScriptAState4(Task* task);
+static void _padScriptBinaryLaneJumpState(Task* task);
 
 static void _padScriptVariableLaneStoppedState(Task* task);
 
 static void Gp_TickScriptBDelay(Task* task);
 
-static void Gp_ScriptBState3(Task* task);
+static void _padScriptVariableLaneLoopState(Task* task);
 
-static void Gp_ScriptBState4(Task* task);
+static void _padScriptVariableLaneJumpState(Task* task);
 
 static const TaskFuncTable3 Gp_Script18States;
 static const TaskFuncTable5 Gp_ScriptAStates;
 static const TaskFuncTable5 Gp_ScriptBStates;
 
-static void Gp_StepScriptA(Task* task)
+/// Initializes an owned ramp from Q8 endpoints and a nonzero signed frame count.
+///
+/// The signed span division truncates toward zero. The motor task posts before
+/// adding the step, so the endpoint supplies the slope without an extra post.
+static inline void _padScriptInitializeRamp(_PadScriptLerpWork* work, s16 durationFrames, s32 startQ8, s32 endQ8)
 {
-    _PadScriptWork*            state;
-    PadScriptCmd*              table;
-    PadScriptVibrationSegment* segments;
-    u16                        cmd;
-    s32                        opcode;
-    u8                         tmp;
+    work->framesRemaining = durationFrames;
+    work->intensity.q8    = startQ8;
+    work->intensityStep   = (endQ8 - startQ8) / durationFrames;
+}
 
-    state    = task->work;
-    table    = state->commands;
-    segments = state->segments;
-    cmd      = table[state->holdStep].holdCommand.command;
-    opcode   = cmd & 0xFF;
-    // The saved word's opcode is this lane's state until the next step.
-    state->holdCommand.command = cmd;
+/// Updates a lane's LOOP counter and advances its byte-sized command cursor.
+///
+/// Both pointers address distinct fields of the live script work. A zero
+/// counter loads the command's operand; a nonzero counter decrements instead.
+/// Cursor increment wraps modulo 256, leaving execution for the next frame.
+static inline void _padScriptAdvanceLoop(u8* counter, u8* nextStep, u16 commandWord)
+{
+    u8 loopCount;
+
+    loopCount = *counter;
+    if (loopCount == 0) {
+        loopCount = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
+        *counter  = loopCount;
+        (*nextStep)++;
+    } else {
+        loopCount--;
+        *counter = loopCount;
+        (*nextStep)++;
+    }
+}
+
+/// Executes the binary motor lane's next command in a live script task.
+///
+/// The borrowed arrays must cover every reachable byte-sized step and segment
+/// index. PLAY and WAIT advance the cursor and save an unsigned frame delay;
+/// zero wraps to a 256-frame wait in the delay callback. LOOP changes the
+/// counter once, leaving the next step for the following frame. JUMP steps
+/// recursively in the same frame, so an immediate jump chain must terminate.
+static void _padScriptStepBinaryLane(Task* task)
+{
+    _PadScriptWork*                  work;
+    const PadScriptCmd*              commands;
+    const PadScriptVibrationSegment* segments;
+    u16                              commandWord;
+    s32                              opcode;
+
+    work        = task->work;
+    commands    = work->commands;
+    segments    = work->segments;
+    commandWord = commands[work->holdStep].holdCommand.command;
+    opcode      = commandWord & PAD_SCRIPT_OPCODE_MASK;
+    // Save the opcode as this lane's dispatch state until the next command.
+    work->holdCommand.command = commandWord;
 
     if (opcode != PAD_SCRIPT_STOP) {
         if (opcode == PAD_SCRIPT_PLAY) {
-            state->holdSegment    = cmd >> 8;
-            state->holdWaitFrames = segments[state->holdSegment].durationFrames;
-            Gp_SpawnPadHold(state->holdWaitFrames);
-            state->holdStep++;
+            work->holdSegment    = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
+            work->holdWaitFrames = segments[work->holdSegment].durationFrames;
+            _padScriptSpawnBinaryMotorHold(work->holdWaitFrames);
+            work->holdStep++;
         } else if (opcode == PAD_SCRIPT_WAIT) {
-            state->holdWaitFrames = cmd >> 8;
-            state->holdStep++;
+            work->holdWaitFrames = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
+            work->holdStep++;
         } else if (opcode == PAD_SCRIPT_LOOP) {
-            tmp = state->holdLoopCount;
-            if (tmp == 0) {
-                tmp                  = cmd >> 8;
-                state->holdLoopCount = tmp;
-                state->holdStep++;
-            } else {
-                tmp--;
-                state->holdLoopCount = tmp;
-                state->holdStep++;
-            }
+            _padScriptAdvanceLoop(&work->holdLoopCount, &work->holdStep, commandWord);
         } else if (opcode == PAD_SCRIPT_JUMP) {
-            if (state->holdLoopCount == 0) {
-                state->holdStep++;
+            if (work->holdLoopCount == 0) {
+                work->holdStep++;
             } else {
-                state->holdStep = table[state->holdStep].holdCommand.command >> 8;
+                work->holdStep = commands[work->holdStep].holdCommand.command >> PAD_SCRIPT_OPERAND_SHIFT;
             }
-            Gp_StepScriptA(task);
+            _padScriptStepBinaryLane(task);
         }
     }
 }
 
-static void Gp_StepScriptB(Task* task)
+/// Executes the variable motor lane's next command in a live script task.
+///
+/// Uses the same unchecked byte-sized cursor, segment and wait domains as the
+/// binary lane. PLAY starts a depth-scaled ramp and waits for its duration;
+/// LOOP defers the next command by one frame and JUMP steps immediately.
+static void _padScriptStepVariableLane(Task* task)
 {
-    _PadScriptWork*            state;
-    PadScriptCmd*              table;
-    PadScriptVibrationSegment* segments;
-    u16                        cmd;
-    s32                        opcode;
-    u8                         tmp;
+    _PadScriptWork*                  work;
+    const PadScriptCmd*              commands;
+    const PadScriptVibrationSegment* segments;
+    u16                              commandWord;
+    s32                              opcode;
 
-    state    = task->work;
-    table    = state->commands;
-    segments = state->segments;
-    cmd      = table[state->lerpStep].lerpCommand.command;
-    opcode   = cmd & 0xFF;
-    // The saved word's opcode is this lane's state until the next step.
-    state->lerpCommand.command = cmd;
+    work        = task->work;
+    commands    = work->commands;
+    segments    = work->segments;
+    commandWord = commands[work->lerpStep].lerpCommand.command;
+    opcode      = commandWord & PAD_SCRIPT_OPCODE_MASK;
+    // Save the opcode as this lane's dispatch state until the next command.
+    work->lerpCommand.command = commandWord;
 
     if (opcode != PAD_SCRIPT_STOP) {
         if (opcode == PAD_SCRIPT_PLAY) {
-            state->lerpSegment    = cmd >> 8;
-            state->lerpWaitFrames = segments[state->lerpSegment].durationFrames;
-            Gp_SpawnPadLerpScaled(state->lerpWaitFrames, segments[state->lerpSegment].startIntensity, segments[state->lerpSegment].endIntensity, state->sourceDepth);
-            state->lerpStep++;
+            work->lerpSegment    = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
+            work->lerpWaitFrames = segments[work->lerpSegment].durationFrames;
+            _padScriptSpawnDepthScaledVariableMotorRamp(work->lerpWaitFrames, segments[work->lerpSegment].startIntensity, segments[work->lerpSegment].endIntensity, work->sourceDepth);
+            work->lerpStep++;
         } else if (opcode == PAD_SCRIPT_WAIT) {
-            state->lerpWaitFrames = cmd >> 8;
-            state->lerpStep++;
+            work->lerpWaitFrames = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
+            work->lerpStep++;
         } else if (opcode == PAD_SCRIPT_LOOP) {
-            tmp = state->lerpLoopCount;
-            if (tmp == 0) {
-                tmp                  = cmd >> 8;
-                state->lerpLoopCount = tmp;
-                state->lerpStep++;
-            } else {
-                tmp--;
-                state->lerpLoopCount = tmp;
-                state->lerpStep++;
-            }
+            _padScriptAdvanceLoop(&work->lerpLoopCount, &work->lerpStep, commandWord);
         } else if (opcode == PAD_SCRIPT_JUMP) {
-            if (state->lerpLoopCount == 0) {
-                state->lerpStep++;
+            if (work->lerpLoopCount == 0) {
+                work->lerpStep++;
             } else {
-                state->lerpStep = table[state->lerpStep].lerpCommand.command >> 8;
+                work->lerpStep = commands[work->lerpStep].lerpCommand.command >> PAD_SCRIPT_OPERAND_SHIFT;
             }
-            Gp_StepScriptB(task);
+            _padScriptStepVariableLane(task);
         }
     }
 }
 
-static void Gp_SpawnPadHold(s16 arg0)
+/// Starts a port-0 binary-motor hold for a nonzero signed frame count.
+///
+/// Normal playback requires a positive count; zero spawns nothing. The count
+/// is sign-extended into the bodyless task's first spawn argument. Spawn failure
+/// silently drops this hold, while the interpreter still waits its duration.
+static void _padScriptSpawnBinaryMotorHold(s16 durationFrames)
 {
-    if (arg0 != 0) {
-        taskSpawn(2, 0xB, (s32)(arg0), 0);
+    if (durationFrames != 0) {
+        taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_BINARY_MOTOR_HOLD_TASK_TYPE, (s32)durationFrames, 0);
     }
 }
 
-void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
+void padScriptSpawnVariableMotorRamp(s16 durationFrames, u8 startIntensity, u8 endIntensity)
 {
     Task*               task;
     _PadScriptLerpWork* work;
-    s32                 start;
-    s32                 end;
+    s32                 startQ8;
+    s32                 endQ8;
 
-    if (arg0 != 0) {
+    if (durationFrames != 0) {
         work = memCalloc(sizeof(*work), 0);
         if (work != NULL) {
-            task = taskSpawn(2, 0xC, 0, 0);
+            task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_VARIABLE_MOTOR_RAMP_TASK_TYPE, 0, 0);
             if (task == NULL) {
                 memFree(work);
             } else {
-                end                   = (arg2 & 0xFF) << PAD_SCRIPT_LERP_FRACTION_BITS;
-                start                 = (arg1 & 0xFF) << PAD_SCRIPT_LERP_FRACTION_BITS;
-                task->work            = work;
-                work->framesRemaining = arg0;
-                work->intensity.q8    = start;
-                work->intensityStep   = (end - start) / arg0;
-            }
-        }
-    }
-}
-
-static void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
-{
-    Task*               task;
-    _PadScriptLerpWork* work;
-    s32                 start;
-    s32                 end;
-    s16                 scale;
-    s32                 temp;
-
-    if (arg0 != 0) {
-        work = memCalloc(sizeof(*work), 0);
-        if (work != NULL) {
-            task = taskSpawn(2, 0xC, 0, 0);
-            if (task == NULL) {
-                memFree(work);
-            } else {
+                endQ8      = (endIntensity & 0xFF) << PAD_SCRIPT_LERP_FRACTION_BITS;
+                startQ8    = (startIntensity & 0xFF) << PAD_SCRIPT_LERP_FRACTION_BITS;
                 task->work = work;
-                temp       = arg3 >> 3;
-                if (temp == 0) {
-                    scale = 1;
-                } else {
-                    scale = temp;
-                }
-                end                   = (arg2 & 0xFF) / scale;
-                start                 = (arg1 & 0xFF) / scale;
-                end                 <<= PAD_SCRIPT_LERP_FRACTION_BITS;
-                start               <<= PAD_SCRIPT_LERP_FRACTION_BITS;
-                work->framesRemaining = arg0;
-                work->intensity.q8    = start;
-                work->intensityStep   = (end - start) / arg0;
+                _padScriptInitializeRamp(work, durationFrames, startQ8, endQ8);
             }
         }
     }
 }
 
-void Gp_HaltPadScripts(void)
+/// Starts a port-0 variable-motor ramp with signed source-depth attenuation.
+///
+/// Positive `durationFrames` gives ordinary playback; zero spawns nothing.
+/// Divides each byte intensity by `sourceDepth >> PAD_SCRIPT_DEPTH_DIVISOR_SHIFT`,
+/// substituting 1 only for a zero divisor, before Q8 conversion. Negative depths
+/// retain a negative divisor and signed truncation; the motor task posts the
+/// accumulated value's whole byte. Allocation or spawn failure drops the ramp.
+static void _padScriptSpawnDepthScaledVariableMotorRamp(s16 durationFrames, u8 startIntensity, u8 endIntensity, s16 sourceDepth)
+{
+    Task*               task;
+    _PadScriptLerpWork* work;
+    s32                 startQ8;
+    s32                 endQ8;
+    s16                 intensityDivisor;
+    s32                 shiftedDepth;
+
+    if (durationFrames != 0) {
+        work = memCalloc(sizeof(*work), 0);
+        if (work != NULL) {
+            task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_VARIABLE_MOTOR_RAMP_TASK_TYPE, 0, 0);
+            if (task == NULL) {
+                memFree(work);
+            } else {
+                // Attach ownership before deriving the signed, zero-protected divisor.
+                task->work   = work;
+                shiftedDepth = sourceDepth >> PAD_SCRIPT_DEPTH_DIVISOR_SHIFT;
+                if (shiftedDepth == 0) {
+                    intensityDivisor = 1;
+                } else {
+                    intensityDivisor = shiftedDepth;
+                }
+                endQ8     = (endIntensity & 0xFF) / intensityDivisor;
+                startQ8   = (startIntensity & 0xFF) / intensityDivisor;
+                endQ8   <<= PAD_SCRIPT_LERP_FRACTION_BITS;
+                startQ8 <<= PAD_SCRIPT_LERP_FRACTION_BITS;
+                _padScriptInitializeRamp(work, durationFrames, startQ8, endQ8);
+            }
+        }
+    }
+}
+
+void padScriptHalt(void)
 {
     Gp_PadScriptHalt             = 1;
     Gp_PadHoldHalt               = 1;
@@ -285,86 +342,92 @@ void Gp_HaltPadScripts(void)
     padClearVibrationRequests(0);
 }
 
-Task* Gp_SpawnScript18(PadScriptCmd* commands, PadScriptVibrationSegment* segments)
+Task* padScriptSpawn(const PadScriptCmd* commands, const PadScriptVibrationSegment* segments)
 {
     Task*           task;
-    _PadScriptWork* mem;
+    _PadScriptWork* work;
 
-    mem = memCalloc(sizeof(*mem), 0);
-    if (mem != NULL) {
-        task = taskSpawn(2, 0xD, 0, 0);
+    work = memCalloc(sizeof(*work), 0);
+    if (work != NULL) {
+        task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_TASK_TYPE, 0, 0);
         if (task != NULL) {
-            task->work       = mem;
-            mem->sourceDepth = 0;
-            mem->commands    = commands;
-            mem->segments    = segments;
+            task->work        = work;
+            work->sourceDepth = 0;
+            work->commands    = commands;
+            work->segments    = segments;
             return task;
         }
-        memFree(mem);
+        memFree(work);
     }
     return NULL;
 }
 
-static void Gp_KickScriptAB(Task* task)
+/// Starts both vibration lanes at their zero-initialized cursors, then enters per-frame dispatch.
+static void _padScriptStartLanes(Task* task)
 {
-    Gp_StepScriptA(task);
-    Gp_StepScriptB(task);
+    _padScriptStepBinaryLane(task);
+    _padScriptStepVariableLane(task);
     task->state++;
 }
 
-static void Gp_DispatchScript18(Task* task)
+/// Dispatches the binary lane before the variable lane and finishes once both have stopped.
+///
+/// Saved opcodes must be in `PAD_SCRIPT_STOP` through `PAD_SCRIPT_JUMP`.
+/// Completion selects teardown for the next eligible interpreter frame; the
+/// independently spawned motor tasks retain their own countdowns and lifetime.
+static void _padScriptTickLanes(Task* task)
 {
-    TaskFuncTable5  tableA;
-    TaskFuncTable5  tableB;
-    _PadScriptWork* state;
+    TaskFuncTable5  binaryLaneStates;
+    TaskFuncTable5  variableLaneStates;
+    _PadScriptWork* work;
 
-    state  = task->work;
-    tableA = Gp_ScriptAStates;
-    tableB = Gp_ScriptBStates;
-    tableA.funcs[state->holdCommand.bytes.opcode](task);
-    tableB.funcs[state->lerpCommand.bytes.opcode](task);
-    if (state->holdCommand.bytes.opcode == PAD_SCRIPT_STOP && state->lerpCommand.bytes.opcode == PAD_SCRIPT_STOP) {
+    work               = task->work;
+    binaryLaneStates   = Gp_ScriptAStates;
+    variableLaneStates = Gp_ScriptBStates;
+    binaryLaneStates.funcs[work->holdCommand.bytes.opcode](task);
+    variableLaneStates.funcs[work->lerpCommand.bytes.opcode](task);
+    if (work->holdCommand.bytes.opcode == PAD_SCRIPT_STOP && work->lerpCommand.bytes.opcode == PAD_SCRIPT_STOP) {
         task->state++;
     }
 }
 
-void Gp_ClearPadHalt(void)
+void padScriptClearHalt(void)
 {
     Gp_PadScriptHalt = 0;
     Gp_PadHoldHalt   = 0;
     Gp_PadLerpHalt   = 0;
 }
 
-Task* Gp_SpawnScript18Ex(PadScriptCmd* commands, PadScriptVibrationSegment* segments, s32 arg2)
+Task* padScriptSpawnDepthScaled(const PadScriptCmd* commands, const PadScriptVibrationSegment* segments, s32 sourceDepth)
 {
     Task*           task;
-    _PadScriptWork* mem;
+    _PadScriptWork* work;
 
-    mem = memCalloc(sizeof(*mem), 0);
-    if (mem != NULL) {
-        task = taskSpawn(2, 0xD, 0, 0);
+    work = memCalloc(sizeof(*work), 0);
+    if (work != NULL) {
+        task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_TASK_TYPE, 0, 0);
         if (task != NULL) {
-            task->work       = mem;
-            mem->sourceDepth = arg2;
-            mem->commands    = commands;
-            mem->segments    = segments;
+            task->work        = work;
+            work->sourceDepth = sourceDepth;
+            work->commands    = commands;
+            work->segments    = segments;
             return task;
         }
-        memFree(mem);
+        memFree(work);
     }
     return NULL;
 }
 
-void Gp_Script18Task(Task* arg0)
+void padScriptTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = Gp_Script18States;
+    states = Gp_Script18States;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
         if (Gp_PadScriptHalt != 0) {
-            arg0->state = 2;
+            task->state = PAD_SCRIPT_TASK_STATE_FINISH;
         }
-        sp.funcs[arg0->state](arg0);
+        states.funcs[task->state](task);
     }
 }
 
@@ -382,18 +445,23 @@ static void Gp_TickScriptADelay(Task* task)
 
     state = task->work;
     if (--state->holdWaitFrames == 0) {
-        Gp_StepScriptA(task);
+        _padScriptStepBinaryLane(task);
     }
 }
 
-static void Gp_ScriptAState3(Task* task)
+/// Advances the binary lane on the frame after its LOOP counter was updated.
+static void _padScriptBinaryLaneLoopState(Task* task)
 {
-    Gp_StepScriptA(task);
+    _padScriptStepBinaryLane(task);
 }
 
-static void Gp_ScriptAState4(Task* task)
+/// Continues the binary lane if an immediate jump chain leaves JUMP as its saved opcode.
+///
+/// Finite valid chains step through their destination immediately, replacing
+/// the saved opcode before this callback is selected.
+static void _padScriptBinaryLaneJumpState(Task* task)
 {
-    Gp_StepScriptA(task);
+    _padScriptStepBinaryLane(task);
 }
 
 /// Keeps the stopped variable-motor lane idle while the other script lane can continue.
@@ -410,18 +478,23 @@ static void Gp_TickScriptBDelay(Task* task)
 
     state = task->work;
     if (--state->lerpWaitFrames == 0) {
-        Gp_StepScriptB(task);
+        _padScriptStepVariableLane(task);
     }
 }
 
-static void Gp_ScriptBState3(Task* task)
+/// Advances the variable lane on the frame after its LOOP counter was updated.
+static void _padScriptVariableLaneLoopState(Task* task)
 {
-    Gp_StepScriptB(task);
+    _padScriptStepVariableLane(task);
 }
 
-static void Gp_ScriptBState4(Task* task)
+/// Continues the variable lane if an immediate jump chain leaves JUMP as its saved opcode.
+///
+/// Finite valid chains step through their destination immediately, replacing
+/// the saved opcode before this callback is selected.
+static void _padScriptVariableLaneJumpState(Task* task)
 {
-    Gp_StepScriptB(task);
+    _padScriptStepVariableLane(task);
 }
 
 void padScriptBinaryMotorHoldTask(Task* task)
@@ -458,8 +531,8 @@ void padScriptVariableMotorRampTask(Task* task)
 }
 
 static const TaskFuncTable3 Gp_Script18States = { {
-    Gp_KickScriptAB,
-    Gp_DispatchScript18,
+    _padScriptStartLanes,
+    _padScriptTickLanes,
     taskKill,
 } };
 
@@ -468,8 +541,8 @@ static const TaskFuncTable5 Gp_ScriptAStates = { {
     _padScriptBinaryLaneStoppedState,
     Gp_TickScriptADelay,
     Gp_TickScriptADelay,
-    Gp_ScriptAState3,
-    Gp_ScriptAState4,
+    _padScriptBinaryLaneLoopState,
+    _padScriptBinaryLaneJumpState,
 } };
 
 // Indexed by the lane opcode: stop, play, wait, loop, jump.
@@ -477,6 +550,6 @@ static const TaskFuncTable5 Gp_ScriptBStates = { {
     _padScriptVariableLaneStoppedState,
     Gp_TickScriptBDelay,
     Gp_TickScriptBDelay,
-    Gp_ScriptBState3,
-    Gp_ScriptBState4,
+    _padScriptVariableLaneLoopState,
+    _padScriptVariableLaneJumpState,
 } };

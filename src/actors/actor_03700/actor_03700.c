@@ -1410,7 +1410,7 @@ static void Actor03700_Fn01550(Task* task)
         case 0:
             taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&Actor03700_D07F08, 0), 0);
             effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, obj, NULL, &work->hitEffectArg);
-            Gp_SpawnPadLerp(5, 0xC0, 8);
+            padScriptSpawnVariableMotorRamp(5, 0xC0, 8);
             sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40250004;
             sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(obj), (s8)worldCoordGetOriginAudioDepth(obj));
             if (++work->attackCount >= 6) {

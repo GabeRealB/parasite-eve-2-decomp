@@ -51,7 +51,7 @@ void desertChaserStrike(Task* arg0)
             work->state = 5;
         }
 #else
-        Gp_SpawnPadLerp(3, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
 #endif
     }
     work->stateTimer += 1;

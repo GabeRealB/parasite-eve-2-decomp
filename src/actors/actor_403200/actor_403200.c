@@ -3571,7 +3571,7 @@ static void func_actor_403200_80134D40(Task* arg0)
         s32 pan;
 
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnScript18(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+        padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
         id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(id, pan,
@@ -3584,7 +3584,7 @@ static void func_actor_403200_80134D40(Task* arg0)
         s32 pan;
 
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnScript18(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+        padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
         id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(id, pan,
@@ -4627,7 +4627,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             break;
     }
     if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->stateTicks % sc->rumblePeriod) == 0)) {
-        Gp_SpawnScript18(D_actor_403200_80141C7C, D_actor_403200_80141C88);
+        padScriptSpawn(D_actor_403200_80141C7C, D_actor_403200_80141C88);
     }
 
     switch (work->phase) {
@@ -4963,7 +4963,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
     }
     if (work->animId == 0xE) {
         if (((work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x1E) && (work->prevSlot3Cue != (work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
-            Gp_SpawnPadLerp(4, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(4, 0xFF, 8);
         }
         if (((work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x23) && (work->prevSlot3Cue != (work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
             s32 sfx;
@@ -4973,7 +4973,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             sndEvtRequestScriptStart(sfx, pan,
                                      (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-            Gp_SpawnPadLerp(4, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(4, 0xFF, 8);
         }
         if (((work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x27) && (work->prevSlot3Cue != (work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
             s32 sfx;
@@ -4983,7 +4983,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
             pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             sndEvtRequestScriptStart(sfx, pan,
                                      (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-            Gp_SpawnPadLerp(4, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(4, 0xFF, 8);
         }
         work->prevSlot3Cue = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
@@ -5122,7 +5122,7 @@ static void func_actor_403200_8013D028(Task* arg0)
         work->prevSwipeCue != frame) {
         work->shakeLevel       = GLUTTON_SHAKE_LONG;
         work->swipeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        Gp_SpawnPadLerp(0x30, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(0x30, 0xFF, 8);
         swipeId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200019;
         swipePan = (s8)worldCoordGetOriginAudioPan(
             &work->escorts[0]->task->extra.tmd->coords[1]);
@@ -5147,7 +5147,7 @@ static void func_actor_403200_8013D028(Task* arg0)
         work->prevSwipeCue != frame2) {
         work->hostExposed = 0;
         work->shakeLevel  = GLUTTON_SHAKE_LONG;
-        Gp_SpawnPadLerp(0x20, 0x7F, 8);
+        padScriptSpawnVariableMotorRamp(0x20, 0x7F, 8);
         hitId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020001B;
         hitPan = (s8)worldCoordGetOriginAudioPan(
             &work->escorts[0]->task->extra.tmd->coords[1]);
@@ -5577,7 +5577,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x15 && work->clip.prevSlot2Cue != frame) {
             work->shakeLevel = GLUTTON_SHAKE_LONG;
-            Gp_SpawnScript18(D_actor_403200_80141C6C, D_actor_403200_80141C74);
+            padScriptSpawn(D_actor_403200_80141C6C, D_actor_403200_80141C74);
         }
         work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
@@ -5691,7 +5691,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
     state                                 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (state == 0x1C && work->clip.prevSlot2Cue != state) {
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnScript18(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+        padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
     }
     work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (work->animId == 0x12) {
@@ -6117,7 +6117,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             blastPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
             sndEvtRequestScriptStart(blastId, blastPan, (s8)(worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords) / 2));
             work->shakeLevel = GLUTTON_SHAKE_LONG;
-            Gp_SpawnScript18(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+            padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
         }
         if (work->stateTicks == 0x23) {
             work->viewSelector = 0;

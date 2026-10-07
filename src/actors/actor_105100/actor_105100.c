@@ -1626,7 +1626,7 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
                 work->chargeSound = 0;
                 snd               = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000B;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
-                Gp_SpawnPadLerp(0xF, 8, 0xFF);
+                padScriptSpawnVariableMotorRamp(0xF, 8, 0xFF);
             }
             if (work->timer == 0x5A) {
                 snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000A;
@@ -1637,7 +1637,7 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
             if (work->animFrame == 0xC) {
                 work->ringEffect        = NULL;
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 0x80);
             } else {
                 work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
@@ -1699,7 +1699,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch->playerAnim, 0);
                 work->knockbackStep  = 1;
                 work->knockbackFrame = 0;
-                Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
+                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x80);
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
                 sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 scratch->pushDirection.vx = 0;
@@ -1917,12 +1917,12 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             if (work->animFrame == 0xB) {
                 snd = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000E;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                Gp_SpawnPadLerp(0xA, 0xFF, 0x40);
+                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x40);
             }
             if (work->animFrame == 0x28) {
                 snd = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330003;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 0x80);
             }
             if (work->animFrame == 0x36) {
                 dir.vx = 0;

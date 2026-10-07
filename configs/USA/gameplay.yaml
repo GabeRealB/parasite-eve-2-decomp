@@ -167,7 +167,7 @@ segments:
       - [0x538AC, c, cap_script] # func_800E70AC
       - [0x539B0, c, cap_control] # Gp_InitCapTask
       - [0x53DC8, c, evs_scripts] # Gp_ScriptTaskState1
-      - [0x55290, c, pad_scripts] # Gp_StepScriptA; separate script-halt work
+      - [0x55290, c, pad_scripts] # _padScriptStepBinaryLane; separate script-halt work
       - [0x55D6C, c, pad_input] # pad input and menu suppression
       - [0x564C8, c, room_effects] # room effect state, presets and spawning
       - [0x592A8, c, effect_tasks] # Gp_EffCtlTask2B

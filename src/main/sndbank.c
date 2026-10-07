@@ -216,7 +216,7 @@ TaskDesc D_80067828[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, func_acropolis_security_room_80180294 },
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptBinaryMotorHoldTask },
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptVariableMotorRampTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, Gp_Script18Task },
+    { { { TASK_BODY_NONE, 0xC0 } }, padScriptTask },
     { { { TASK_BODY_NONE, 0xC0 } }, acropolisFountainClimbTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_acropolis_helicopter_landing_pad_8017EF8C },
     { { { TASK_BODY_TMD, 0x60 } }, Gp_EffAttachTask37 },

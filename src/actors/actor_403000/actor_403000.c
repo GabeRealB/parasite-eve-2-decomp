@@ -3980,7 +3980,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         D_actor_403000_80158DB0.push.displacement.vz   = scratch->offset.vz;
         D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
         D_actor_403000_80158DB0.push.keepControl       = 1;
-        Gp_SpawnPadLerp(5, 0xFF, 0x80);
+        padScriptSpawnVariableMotorRamp(5, 0xFF, 0x80);
         work->hitEffectArg.coord      = &player->extra.tmd->coords[3];
         work->hitEffectArg.spawnArgLo = 0x500;
         work->hitEffectArg.spawnArgHi = 3;
@@ -5122,7 +5122,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
             switch (work->playerAnimation.animationId) {
                 case 1:
                     if (work->catchFrame == 42) {
-                        Gp_SpawnPadLerp(0xC, 0xFF, 0x80);
+                        padScriptSpawnVariableMotorRamp(0xC, 0xFF, 0x80);
                     }
                     if (work->catchFrame == 52) {
                         sound   = arg0->placeKey;
@@ -5136,7 +5136,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
                     break;
                 case 3:
                     if (work->catchFrame == 4) {
-                        Gp_SpawnPadLerp(0xC, 0x58, 0xFF);
+                        padScriptSpawnVariableMotorRamp(0xC, 0x58, 0xFF);
                     }
                     if (work->catchFrame == 15) {
                         sound   = arg0->placeKey;
@@ -5150,7 +5150,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
                     break;
                 case 5:
                     if (work->catchFrame == 1) {
-                        Gp_SpawnPadLerp(0xC, 0x58, 0xFF);
+                        padScriptSpawnVariableMotorRamp(0xC, 0x58, 0xFF);
                     }
                     if (work->catchFrame == 10) {
                         sound   = arg0->placeKey;

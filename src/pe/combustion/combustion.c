@@ -131,7 +131,7 @@ void func_combustion_8012EF34(Task* arg0)
             effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             arg0->state = 1;
             mem->index  = Gp_StateC08.attachId % 10 - 1;
-            Gp_SpawnPadLerp(D_combustion_80130980[mem->index].emitterFrames, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(D_combustion_80130980[mem->index].emitterFrames, 0xFF, 8);
             /* fallthrough */
         case 1:
             actorRenderComposeCoord(coord);

@@ -488,9 +488,6 @@ static void func_actor_510900_8013BC80(Task* arg0);
 static void func_actor_510900_8013C380(Task* arg0);
 static void func_actor_510900_8013C430(Task* arg0);
 
-/// The script block pair `Gp_SpawnScript18` is handed at animation frame 0x58; both live
-/// in the room overlay, not here.
-
 /// `stateCounter` reload tables, indexed by four bits of `gRandomLcgState`.
 extern s16 D_actor_510900_80167990[];
 extern s16 D_actor_510900_801679B0[];
@@ -2076,7 +2073,7 @@ static void func_actor_510900_80137868(Task* arg0)
                 }
             }
             if (work->animationFrame == 0x58) {
-                Gp_SpawnScript18(D_acropolis_helicopter_landing_pad_80187D34, &D_acropolis_helicopter_landing_pad_80187D3C);
+                padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D34, &D_acropolis_helicopter_landing_pad_80187D3C);
             }
             if (work->animationFrame == 0x60) {
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

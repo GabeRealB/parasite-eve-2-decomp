@@ -177,7 +177,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             pan             = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            Gp_SpawnPadLerp((s16)(mem->index * 2 + 8), 0xFF, 8);
+            padScriptSpawnVariableMotorRamp((s16)(mem->index * 2 + 8), 0xFF, 8);
             if (mem->index == 1) {
                 arg0->spawnArg1.value = 1;
             } else if (arg0->spawnArg1.value == 1) {

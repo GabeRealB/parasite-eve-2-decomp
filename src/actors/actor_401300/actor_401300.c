@@ -4792,7 +4792,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 enemy->hp > 0) {
                 work->playerButtonHold.pressCount = 0x7F;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
-                    Gp_SpawnPadLerp(0x10, 8, 0xFF);
+                    padScriptSpawnVariableMotorRamp(0x10, 8, 0xFF);
                     work->playerHeld                   = 1;
                     work->playerAnim.source.sets       = D_actor_401300_801588F0;
                     work->playerMove.displacement.vz   = 0;
@@ -5013,7 +5013,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                 enemy->hp > 0) {
                 work->playerButtonHold.pressCount = 0x7F;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
-                    Gp_SpawnPadLerp(0x10, 8, 0xFF);
+                    padScriptSpawnVariableMotorRamp(0x10, 8, 0xFF);
                     sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
                                              (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
                     work->playerHeld             = 1;

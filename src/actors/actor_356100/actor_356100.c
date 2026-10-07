@@ -2612,21 +2612,21 @@ static void func_actor_356100_80169180(Task* arg0)
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_STRANGER_DEATH_IMPACT, pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
-        Gp_SpawnPadLerp(6, 0xFF, 0x80);
+        padScriptSpawnVariableMotorRamp(6, 0xFF, 0x80);
     }
     if (work->stateTimer == 0x4D) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 2), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
-        Gp_SpawnPadLerp(8, 0x7F, 0x30);
+        padScriptSpawnVariableMotorRamp(8, 0x7F, 0x30);
     }
     if (work->stateTimer == 0x58) {
         s32 pan;
 
         pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
         sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_356100, 1), pan, (s8)worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]));
-        Gp_SpawnPadLerp(6, 0x7F, 0x30);
+        padScriptSpawnVariableMotorRamp(6, 0x7F, 0x30);
     }
     if (work->stateTimer == 0xCE) {
         s32 pan;

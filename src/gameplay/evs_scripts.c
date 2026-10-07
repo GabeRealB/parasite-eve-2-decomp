@@ -392,7 +392,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_VIBRATION:
-                Gp_SpawnScript18(work->command->operand0.padCommands, work->command->operand1.vibrationSegments);
+                padScriptSpawn(work->command->operand0.padCommands, work->command->operand1.vibrationSegments);
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_SOUND:

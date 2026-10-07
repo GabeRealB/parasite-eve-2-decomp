@@ -1756,8 +1756,8 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 0x5C:
-            Gp_SpawnScript18Ex(Actor04000_D07094, Actor04000_D070A0,
-                               (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            padScriptSpawnDepthScaled(Actor04000_D07094, Actor04000_D070A0,
+                                      (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             work->burstAttackBody.radius = 0x3E8;
             work->burstWaveBody.radius   = 0xFA;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2004,8 +2004,8 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 0x2A:
-            Gp_SpawnScript18Ex(Actor04000_D07094, Actor04000_D070A0,
-                               (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            padScriptSpawnDepthScaled(Actor04000_D07094, Actor04000_D070A0,
+                                      (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
             work->burstAttackBody.radius = 0x3E8;
             work->burstWaveBody.radius   = 0xFA;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
@@ -2132,7 +2132,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
             work->burstAttackBody.radius = 0x3E8;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
-            Gp_SpawnScript18(Actor04000_D07094, Actor04000_D070A0);
+            padScriptSpawn(Actor04000_D07094, Actor04000_D070A0);
             break;
         case 0xF:
             sceneReleaseBattleRefWithRewards(arg1, 0xC);
@@ -3041,7 +3041,7 @@ static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
     }
     _animDriverTick(arg1);
     if (!(work->stateFrame & 7)) {
-        Gp_SpawnPadLerp(3, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(arg0, 0), 0);
     }
     work->stateFrame++;

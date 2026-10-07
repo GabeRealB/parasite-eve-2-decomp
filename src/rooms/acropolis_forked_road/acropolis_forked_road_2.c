@@ -1263,8 +1263,8 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 3:
             if (queue->movieReady != 0) {
-                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_forked_road_80185058,
-                                                                 D_acropolis_forked_road_80185070);
+                work->padScriptTask           = padScriptSpawn(D_acropolis_forked_road_80185058,
+                                                               D_acropolis_forked_road_80185070);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
@@ -1351,8 +1351,8 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 work->playerMtx->t[0]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
                 work->playerMtx->t[1]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
                 work->playerMtx->t[2]         = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
-                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_forked_road_80185038,
-                                                                 D_acropolis_forked_road_80185050);
+                work->padScriptTask           = padScriptSpawn(D_acropolis_forked_road_80185038,
+                                                               D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 SetDispMask(0);

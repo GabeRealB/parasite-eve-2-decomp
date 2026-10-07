@@ -31,10 +31,10 @@ s32 factoryLiftJamTurnBack(Task* task)
             if (work->yaw.word < 0x3800000) {
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     Gp_EnqueueStageSnd6(SOUND_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                    Gp_SpawnScript18(gFactoryDayJoltCmds, gFactoryDayJoltRecs);
+                    padScriptSpawn(gFactoryDayJoltCmds, gFactoryDayJoltRecs);
                 } else {
                     Gp_EnqueueStageSnd6(SOUND_NIGHT_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                    Gp_SpawnScript18(gFactoryNightJoltCmds, gFactoryNightJoltRecs);
+                    padScriptSpawn(gFactoryNightJoltCmds, gFactoryNightJoltRecs);
                 }
                 work->yawStep++;
             }

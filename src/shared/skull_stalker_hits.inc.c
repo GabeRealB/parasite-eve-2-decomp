@@ -58,7 +58,7 @@ void skullStalkerHits(Task* arg0)
                 effectSpawn(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
                 effectSpawn(EFFECT_030, arg0->extra.tmd->coords, 0x200, &gSkullStalkerSparkOffset);
                 effectSpawn(EFFECT_RED_GROUND_GLOW, arg0->extra.tmd->coords, 0, &gSkullStalkerHitFxOffset);
-                Gp_SpawnPadLerp(0xA, 0x60, 0x60);
+                padScriptSpawnVariableMotorRamp(0xA, 0x60, 0x60);
                 obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->flattenScaleY = 0x500;
                 work->animId        = SKULL_STALKER_ANIM_IDLE;

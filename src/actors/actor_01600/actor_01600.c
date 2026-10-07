@@ -2971,7 +2971,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         work->grabBiteCount = (u16)work->grabBiteCount + 1;
                         effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), effectCoord, &offset, &work->hitEffect);
                         if (work->grabTargetIndex == 0) {
-                            Gp_SpawnPadLerp(0xA, 0x80U, 0x80U);
+                            padScriptSpawnVariableMotorRamp(0xA, 0x80U, 0x80U);
                         }
                         id    = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000D;
                         pan25 = (s8)worldCoordGetOriginAudioPan(coord);
@@ -3066,7 +3066,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         pan26 = (s8)worldCoordGetOriginAudioPan(coord);
                         sndEvtRequestScriptStart(id, (s32)pan26, (s8)worldCoordGetOriginAudioDepth(coord));
                         if (work->grabTargetIndex == 0) {
-                            Gp_SpawnPadLerp(0xA, 0xD0U, 0xD0U);
+                            padScriptSpawnVariableMotorRamp(0xA, 0xD0U, 0xD0U);
                         }
                     }
                     if (work->animFrame == 0x1F) {

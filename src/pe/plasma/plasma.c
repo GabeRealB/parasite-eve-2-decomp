@@ -111,7 +111,7 @@ void func_plasma_8012EF34(Task* arg0)
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_plasma_8012FF48[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            Gp_SpawnPadLerp((s16)(mem->index * 4 + 0x10), 0xFF, 8);
+            padScriptSpawnVariableMotorRamp((s16)(mem->index * 4 + 0x10), 0xFF, 8);
             return;
         case 1:
             if (mem->scale < 9) {

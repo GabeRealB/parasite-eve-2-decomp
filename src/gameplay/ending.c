@@ -199,7 +199,7 @@ void Gp_EndingTask(Task* arg0)
             arg0->killCountdown = 0x5A;
         }
         sndEvtRequestScriptStart(SOUND_AREA_EXIT, 0, 0);
-        Gp_SpawnScript18(D_80114A24, D_80114A34);
+        padScriptSpawn(D_80114A24, D_80114A34);
         Gp_SetCurAreaFlag4();
         arg0->state++;
     } else if (arg0->state == 1) {

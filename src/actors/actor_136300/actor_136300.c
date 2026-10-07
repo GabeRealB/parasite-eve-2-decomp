@@ -1499,7 +1499,7 @@ void func_actor_136300_80132854(Task* arg0)
     s32 var_v0;
 
     if (arg0->state == 0) {
-        Gp_SpawnScript18(D_80114A24, D_80114A34);
+        padScriptSpawn(D_80114A24, D_80114A34);
         arg0->state += 1;
     }
     var_v0 = arg0->spawnArg1.value;

@@ -2235,7 +2235,7 @@ static void func_actor_405800_80134314(Task* arg0)
     }
     if (work->stateFrames == 1 || work->stateFrames == 0x10 || work->stateFrames == 0x25) {
         root = &gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords[4];
-        Gp_SpawnPadLerp(0xA, 0xC0, 8);
+        padScriptSpawnVariableMotorRamp(0xA, 0xC0, 8);
         id = 0x40050009;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0009;

@@ -837,7 +837,7 @@ void func_neo_ark_power_plant_2_8017D69C(void)
 
 void func_neo_ark_power_plant_2_8017D6D4(void)
 {
-    Gp_HaltPadScripts();
+    padScriptHalt();
 }
 
 static void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)

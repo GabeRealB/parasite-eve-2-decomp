@@ -263,7 +263,7 @@ void func_necrosis_8012EF34(Task* arg0)
             pan                  = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            Gp_SpawnPadLerp(D_necrosis_801306BC[mem->index].travelFrames + 0xC, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(D_necrosis_801306BC[mem->index].travelFrames + 0xC, 0xFF, 8);
             arg0->state = 1;
             /* fallthrough */
         case 1:

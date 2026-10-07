@@ -668,13 +668,13 @@ void func_actor_341900_80162708(Task* arg0)
                 cue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 if ((cue == 0x12) && (work->lastCue != cue)) {
                     taskReparent(arg0,
-                                 Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
+                                 padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));
                     actor444000GluttonSetShakeLevel(3);
                 }
                 cue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
                 if ((cue == 0x18) && (work->lastCue != cue)) {
                     taskReparent(arg0,
-                                 Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C));
+                                 padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C));
                     actor444000GluttonSetShakeLevel(3);
                 }
                 work->lastCue = work->rig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;

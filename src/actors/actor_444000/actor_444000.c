@@ -3141,7 +3141,7 @@ static void func_actor_444000_8013482C(Task* task)
         s32 pan;
 
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
+        padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C);
         id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(id, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
@@ -3153,7 +3153,7 @@ static void func_actor_444000_8013482C(Task* task)
         s32 pan;
 
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
+        padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C);
         id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
         pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(id, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
@@ -4981,7 +4981,7 @@ static void func_actor_444000_8013E058(Task* task)
             break;
     }
     if (((u32)((work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) - 0xA) < 9U) && ((work->stateTicks % sc->padScriptPeriod) == 0)) {
-        Gp_SpawnScript18(D_actor_444000_80144A94, D_actor_444000_80144AA0);
+        padScriptSpawn(D_actor_444000_80144A94, D_actor_444000_80144AA0);
     }
 
     switch (work->phase) {
@@ -5335,7 +5335,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         if (work->animId == 0xE) {
             frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (frame == 0x1D && work->prevSlot3Cue != frame) {
-                Gp_SpawnPadLerp(4, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(4, 0xFF, 8);
             }
             frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (frame == 0x23 && work->prevSlot3Cue != frame) {
@@ -5343,7 +5343,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
                 hitPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 sndEvtRequestScriptStart(hitId, hitPan,
                                          (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-                Gp_SpawnPadLerp(4, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(4, 0xFF, 8);
             }
             frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (frame == 0x27 && work->prevSlot3Cue != frame) {
@@ -5351,7 +5351,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
                 endPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
                 sndEvtRequestScriptStart(endId, endPan,
                                          (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-                Gp_SpawnPadLerp(4, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(4, 0xFF, 8);
             }
             work->prevSlot3Cue = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         }
@@ -5511,7 +5511,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
         actorRenderComposeCoord(coord);
         work->shakeLevel       = GLUTTON_SHAKE_LONG;
         work->swipeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        Gp_SpawnPadLerp(0x30, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(0x30, 0xFF, 8);
 
         swipeId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200019;
         swipePan = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
@@ -5531,7 +5531,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
     if (work->animId == 5 && (frame2 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x1C &&
         work->prevSwipeCue != frame2) {
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnPadLerp(0x20, 0x8F, 8);
+        padScriptSpawnVariableMotorRamp(0x20, 0x8F, 8);
 
         hitId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020001B;
         hitPan = (s8)worldCoordGetOriginAudioPan(&work->escorts[0]->task->extra.tmd->coords[1]);
@@ -5844,7 +5844,7 @@ static void func_actor_444000_80140BBC(Task* arg0)
         frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x15 && work->clip.prevSlot2Cue != frame) {
             work->shakeLevel = GLUTTON_SHAKE_LONG;
-            Gp_SpawnScript18(D_actor_444000_80144A84, D_actor_444000_80144A8C);
+            padScriptSpawn(D_actor_444000_80144A84, D_actor_444000_80144A8C);
         }
         work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
@@ -5938,7 +5938,7 @@ static void func_actor_444000_80140E28(Task* arg0)
     frame                                 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x1C && work->clip.prevSlot2Cue != frame) {
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
+        padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C);
     }
     work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 }
@@ -6226,7 +6226,7 @@ static void func_actor_444000_80141618(Task* task)
         blastPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(blastId, blastPan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
         work->shakeLevel = GLUTTON_SHAKE_LONG;
-        Gp_SpawnScript18(D_actor_444000_80144A74, D_actor_444000_80144A7C);
+        padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C);
     }
     if (work->stateTicks == 0x46 || work->stateTicks == 0x78) {
         if (work->stateTicks == 0x46) {

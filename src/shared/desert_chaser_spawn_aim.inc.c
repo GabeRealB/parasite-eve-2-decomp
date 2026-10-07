@@ -63,7 +63,7 @@ void desertChaserSpawnAim(Task* arg0)
         pan                                = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(SOUND_COMMON(7), (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
 #if !DESERT_CHASER_RUN_SEQUENCE
-        Gp_SpawnPadLerp(8, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(8, 0xFF, 8);
 #endif
     }
     tick             = work->stateTimer + 1;

@@ -7395,22 +7395,22 @@ div   zero, a0, v0
 ```
 
 ```c
-s16 scale;
-s32 temp;
+s16 intensityDivisor;
+s32 shiftedDepth;
 
-temp = arg >> 3;
-if (temp == 0) {
-    scale = 1;
+shiftedDepth = sourceDepth >> PAD_SCRIPT_DEPTH_DIVISOR_SHIFT;
+if (shiftedDepth == 0) {
+    intensityDivisor = 1;
 } else {
-    scale = temp;
+    intensityDivisor = shiftedDepth;
 }
-end = (byte & 0xFF) / scale;
+endQ8 = (byte & 0xFF) / intensityDivisor;
 ```
 
-Keeping `scale` as `s32` (or writing `(s16)s32_scale` after GCC already
+Keeping `intensityDivisor` as `s32` (or writing `(s16)shiftedDepth` after GCC already
 knows the value fits in 16 bits) drops the `sll`/`sra 16` recast, writes
 the shift into `$v1` instead of `$v0`, and swaps saved-arg registers.
-`Gp_SpawnPadLerpScaled` is the example.
+`_padScriptSpawnDepthScaledVariableMotorRamp` is the example.
 
 
 
@@ -28504,7 +28504,7 @@ if (tmp == 0) {
 }
 ```
 
-`Gp_StepScriptA` case 3 is the example. The shared-after-if form stuck at
+`_padScriptStepBinaryLane` case 3 (inlined from `_padScriptAdvanceLoop`) is the example. The shared-after-if form stuck at
 97% with only those two `lbu`s merged. The extra live ranges also
 swapped `cmd` / table-pointer coloring (`$v1`/`$a2`) without a pin.
 
@@ -55171,7 +55171,7 @@ every remaining difference a symbol *name* (`gMcSaveData+0x22` vs
 `D_8007218A`), i.e. already a match.
 
 Good discriminators to grep for: an unusual struct field offset, a rare callee
-(`Gp_SpawnScript18`, `taskPollKill`), or a distinctive constant. Do this before
+(`padScriptSpawn`, `taskPollKill`), or a distinctive constant. Do this before
 reshaping an m2c switch by hand — a matched twin gives you the struct, the
 payload types and the statement order for free.
 

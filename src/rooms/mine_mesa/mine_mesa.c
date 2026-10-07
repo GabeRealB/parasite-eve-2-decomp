@@ -3215,7 +3215,7 @@ void func_mine_mesa_8017EAC0(void)
 
 void func_mine_mesa_8017EB18(void)
 {
-    Gp_HaltPadScripts();
+    padScriptHalt();
 }
 
 static void func_mine_mesa_8017EB38(void)

@@ -21,7 +21,7 @@ void oddStrangerGrabHold(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, msg, 0);
         player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
-        Gp_SpawnPadLerp(5, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(5, 0xFF, 8);
     }
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
 #if ODD_STRANGER_VARIANT == 2

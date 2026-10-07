@@ -57,7 +57,7 @@ extern DamageAttack gSucklercephAttack;
 extern EnemyParams  gSucklercephParams;
 
 /// The two script arguments the first enemy's death hands to
-/// `Gp_SpawnScript18`.
+/// `padScriptSpawn`.
 extern PadScriptCmd              gSucklercephBurstScriptA[];
 extern PadScriptVibrationSegment gSucklercephBurstScriptB[];
 

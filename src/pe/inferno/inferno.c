@@ -200,7 +200,7 @@ void func_inferno_8012EF88(Task* arg0)
             effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 3, NULL);
             effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 5, NULL);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            Gp_SpawnPadLerp(0x10, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(0x10, 0xFF, 8);
             arg0->state = 0xC;
             return;
         case 5:
@@ -215,12 +215,12 @@ void func_inferno_8012EF88(Task* arg0)
                 effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 4, &mem->move);
             } while (i < 0x1200);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            Gp_SpawnPadLerp(0x14, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(0x14, 0xFF, 8);
             arg0->state = 0xC;
             return;
         case 9:
             effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
-            Gp_SpawnPadLerp(0xC, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(0xC, 0xFF, 8);
             arg0->state = 0xA;
             return;
         case 10:
@@ -237,7 +237,7 @@ void func_inferno_8012EF88(Task* arg0)
                 i           += 0x2AA;
                 effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 1, &mem->move);
             } while (i < 0x1151);
-            Gp_SpawnPadLerp(0xC, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(0xC, 0xFF, 8);
             arg0->state = 0xB;
             return;
         case 11:
@@ -257,7 +257,7 @@ void func_inferno_8012EF88(Task* arg0)
                 effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), coord, 2, &mem->move);
             } while (i < 0xFFC);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            Gp_SpawnPadLerp(0x18, 0xFF, 8);
+            padScriptSpawnVariableMotorRamp(0x18, 0xFF, 8);
             arg0->state = 0xC;
             mem->angle  = 0xFF;
             return;

@@ -1699,7 +1699,7 @@ static void func_actor_503500_80145C50(Task* arg0)
     switch (work->phase) {
         case ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE:
             if (gDisplayState.animFrame & 1) {
-                Gp_SpawnPadLerp(1, 0x96, 0x96);
+                padScriptSpawnVariableMotorRamp(1, 0x96, 0x96);
             }
             if (++work->phaseFrames < ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_FRAMES) {
                 return;
@@ -1715,7 +1715,7 @@ static void func_actor_503500_80145C50(Task* arg0)
             return;
         case ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE:
             if (gGameSession->eventState == 0) {
-                Gp_SpawnPadLerp(1, 0xFF, 0xFF);
+                padScriptSpawnVariableMotorRamp(1, 0xFF, 0xFF);
             }
             if (++work->phaseFrames < ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_FRAMES) {
                 return;

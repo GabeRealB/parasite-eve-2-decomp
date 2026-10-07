@@ -34,7 +34,7 @@ void sucklercephKill(Task* arg0, u8 arg1)
         work->blastBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 1, NULL);
         effectSpawn(EFFECT_030, arg0->extra.tmd->coords, 0x300, &gSucklercephBurstFxOffset);
-        Gp_SpawnScript18(gSucklercephBurstScriptA, gSucklercephBurstScriptB);
+        padScriptSpawn(gSucklercephBurstScriptA, gSucklercephBurstScriptB);
         work->hasBurst = 1;
     } else {
         if (work->variant != 0) {

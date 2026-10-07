@@ -2055,8 +2055,8 @@ void func_acropolis_promenade_8017DB9C(Task* task)
 
         case 1:
             if (queue->movieReady != 0) {
-                work->padScriptTask           = Gp_SpawnScript18(D_acropolis_promenade_80186224,
-                                                                 D_acropolis_promenade_8018623C);
+                work->padScriptTask           = padScriptSpawn(D_acropolis_promenade_80186224,
+                                                               D_acropolis_promenade_8018623C);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;

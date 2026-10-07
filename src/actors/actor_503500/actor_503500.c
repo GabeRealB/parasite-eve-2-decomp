@@ -40,7 +40,7 @@ STATIC_ASSERT_SIZEOF(_Actor503500SliderWork, 0x48);
 
 static void func_actor_503500_801324C4(Task* task);
 static void func_actor_503500_801324EC(Task* arg0);
-/// Script pair handed to `Gp_SpawnScript18` on every odd pulse frame.
+/// Script pair handed to `padScriptSpawn` on every odd pulse frame.
 extern PadScriptCmd              D_actor_503500_801468A8[2];
 extern PadScriptVibrationSegment D_actor_503500_801468B0[2];
 /// Two 360-entry X/Z paths `func_actor_503500_8013223C` walks the model along,
@@ -879,7 +879,7 @@ static void func_actor_503500_8013223C(Task* arg0)
             coord->coord.t[2] = p->vz;
             if (!(enemy->placeKey & 0xF)) {
                 if (work->timer & 1) {
-                    Gp_SpawnScript18(D_actor_503500_801468A8, D_actor_503500_801468B0);
+                    padScriptSpawn(D_actor_503500_801468A8, D_actor_503500_801468B0);
                     displaySetShakeY(-1);
                 } else {
                     displaySetShakeY(0);
@@ -896,7 +896,7 @@ static void func_actor_503500_8013223C(Task* arg0)
     } else if (work->timer > 0) {
         if (!(enemy->placeKey & 0xF)) {
             if (work->timer & 1) {
-                Gp_SpawnScript18(D_actor_503500_801468A8, D_actor_503500_801468B0);
+                padScriptSpawn(D_actor_503500_801468A8, D_actor_503500_801468B0);
                 displaySetShakeY(-1);
             } else {
                 displaySetShakeY(0);

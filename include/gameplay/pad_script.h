@@ -74,15 +74,46 @@ typedef struct PadScriptVibrationSegment {
 } PadScriptVibrationSegment;
 STATIC_ASSERT_SIZEOF(PadScriptVibrationSegment, 4);
 
-/// Suspends pad-driven scripting: raises the script, hold and lerp halt
-/// flags, clears `GameSession::padScriptFlags` and clears port 0's vibration requests.
-void Gp_HaltPadScripts(void);
+/// Requests teardown of vibration scripts and both motor tasks, and stops port 0's requests.
+///
+/// Raises all three halt gates and clears the session's vibration activity and
+/// freeze-override flags. Eligible callbacks perform teardown; actor-control
+/// freeze can defer it. Gameplay's input update clears the gates each frame
+/// while the player task exists. Clearing a gate does not recreate a killed task.
+void padScriptHalt(void);
 
-Task* Gp_SpawnScript18(PadScriptCmd* commands, PadScriptVibrationSegment* segments);
+/// Starts a two-lane port-0 vibration script without intensity attenuation.
+///
+/// Borrows `commands` and `segments` until the returned task is torn down;
+/// neither array is copied or modified. Both lanes begin at command index 0.
+/// All reachable command and PLAY segment indices must address live entries;
+/// byte-sized cursors wrap modulo 256, and opcodes must be in 0..4. Immediate
+/// JUMP chains must terminate. Both lanes must eventually STOP for completion.
+/// A zero PLAY duration or WAIT operand waits 256 eligible script frames.
+///
+/// Returns `NULL` on allocation or spawn failure. The task owns its primary-heap
+/// work; motor tasks are spawned independently, without parent attachment.
+Task* padScriptSpawn(const PadScriptCmd* commands, const PadScriptVibrationSegment* segments);
 
-void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2);
+/// Starts a linear port-0 variable-motor ramp over `durationFrames` eligible script frames.
+///
+/// Positive counts give ordinary playback; zero spawns nothing. Byte intensities
+/// are in 0..255. The signed Q8 step is the endpoint span divided by the count,
+/// truncated toward zero. Each frame posts the current whole byte before adding
+/// the step, beginning at `startIntensity`; there is no extra final endpoint post.
+/// Allocation or spawn failure silently drops the request. The task owns its
+/// primary-heap work and follows `padScriptVariableMotorRampTask`'s freeze gates.
+void padScriptSpawnVariableMotorRamp(s16 durationFrames, u8 startIntensity, u8 endIntensity);
 
-Task* Gp_SpawnScript18Ex(PadScriptCmd* commands, PadScriptVibrationSegment* segments, s32 arg2);
+/// Starts a two-lane port-0 vibration script with signed depth-scaled variable-motor intensities.
+///
+/// Uses `padScriptSpawn`'s borrowed-array, bounds, ownership and failure contract.
+/// Stores the low signed halfword of `sourceDepth`; spatial callers supply
+/// `worldCoordGetOriginAudioDepth` units (256 game-coordinate units). The variable
+/// lane divides each endpoint by that stored depth shifted right by three,
+/// using 1 only when the divisor is zero, before converting to Q8. Negative
+/// divisors and signed truncation are retained. The binary lane is unscaled.
+Task* padScriptSpawnDepthScaled(const PadScriptCmd* commands, const PadScriptVibrationSegment* segments, s32 sourceDepth);
 
 /// Holds port 0's binary vibration motor on for the task's remaining script frames.
 ///
@@ -102,7 +133,7 @@ void padScriptBinaryMotorHoldTask(Task* task);
 /// Ramps port 0's variable vibration motor once per eligible script frame.
 ///
 /// Bank 2, type 0x0C requires a live, bodyless `task` with the owned ramp work
-/// initialized by `Gp_SpawnPadLerp` or the script interpreter. Its signed
+/// initialized by `padScriptSpawnVariableMotorRamp` or the script interpreter. Its signed
 /// halfword frame count must be positive for ordinary playback. Each eligible
 /// callback decrements that count, posts the Q8 whole-intensity byte for two
 /// serviced controller polls, then adds the signed Q8 step. The first post is
@@ -117,6 +148,13 @@ void padScriptBinaryMotorHoldTask(Task* task);
 /// its work. Existing requests expire independently of this task.
 void padScriptVariableMotorRampTask(Task* task);
 
-void Gp_Script18Task(Task* arg0);
+/// Runs the two-lane vibration interpreter for a live bank-2, type-0x0D task.
+///
+/// Requires owned script work initialized by `padScriptSpawn` or
+/// `padScriptSpawnDepthScaled`. Starts both lanes, dispatches their saved opcodes
+/// per eligible frame, and tears down on a later frame once both STOP or the
+/// script halt gate is raised. Actor-control freeze pauses all three phases
+/// unless `GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE` permits execution.
+void padScriptTask(Task* task);
 
 #endif // GAMEPLAY_PAD_SCRIPT_H

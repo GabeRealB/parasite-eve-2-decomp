@@ -2190,7 +2190,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
             work->animationId   = 0xA;
             work->forwardSpeed  = 0;
             work->turnSpeed     = 0;
-            Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
+            padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x80);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(GameActorButtonPressHold);
@@ -2316,7 +2316,7 @@ static void func_actor_521100_80133104(Task* arg0)
     frame = work->animationFrame;
     if (frame == clip + 0x1A) {
         effectSpawn(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
-        Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
+        padScriptSpawnVariableMotorRamp(0xA, 0x40, 0xFF);
     } else if (frame == clip + 0x1E) {
         vec->vx = -0x320;
         vec->vy = 0x64;
@@ -2415,7 +2415,7 @@ static void func_actor_521100_8013334C(Task* arg0)
     frame = work->animationFrame;
     if (frame == clip + 0x23) {
         effectSpawn(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
-        Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
+        padScriptSpawnVariableMotorRamp(0xA, 0x40, 0xFF);
     } else if (frame == clip + 0x27) {
         vec->vx = -0x320;
         vec->vy = 0x64;
@@ -2542,7 +2542,7 @@ static void func_actor_521100_801335B4(Task* arg0)
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
                                          (s8)worldCoordGetOriginAudioDepth(coord));
                 effectSpawn(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 8, NULL);
-                Gp_SpawnPadLerp(0xA, 0x40, 0xFF);
+                padScriptSpawnVariableMotorRamp(0xA, 0x40, 0xFF);
             }
             if ((u32)((u16)work->animationFrame - 0x22) < 5) {
                 work->forwardSpeed = 0x64;
@@ -2693,7 +2693,7 @@ static void func_actor_521100_801339B0(Task* arg0)
         case 1:
             flag = 0;
             if (work->stateCounter == 2) {
-                Gp_SpawnPadLerp(5, 0xC0, 0x80);
+                padScriptSpawnVariableMotorRamp(5, 0xC0, 0x80);
             }
             timer              = work->stateCounter - 1;
             work->stateCounter = timer;
@@ -2750,7 +2750,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             break;
         case 2:
             if (work->animationFrame == 0x22) {
-                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 0x80);
             }
             if (work->animationFrame == 0x25) {
                 snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C000F;
@@ -2859,7 +2859,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 scratch->localOffset.vz           = 0xC8;
                 effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords + 4, &scratch->localOffset,
                                &D_actor_521100_8015F804);
-                Gp_SpawnPadLerp(0xA, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 8);
                 taskMessageDispatch(player, 0x400, 0, 0);
                 gPlayerStatus.hp = 0;
             }

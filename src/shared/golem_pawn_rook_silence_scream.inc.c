@@ -30,7 +30,7 @@ void golemPawnRookSilenceScreamState(Task* arg0)
             }
             work->shieldRaised = work->shieldHp > 0;
             if ((s16)(work->timer % 10) == 0) {
-                Gp_SpawnPadLerp(5, 0x80, 8);
+                padScriptSpawnVariableMotorRamp(5, 0x80, 8);
             }
             if (work->interruptDamage >= 0x29) {
                 work->screamActive = 0;
@@ -55,7 +55,7 @@ void golemPawnRookSilenceScreamState(Task* arg0)
                 work->screamActive = 0;
                 work->shieldRaised = 0;
                 work->screamEffect = NULL;
-                Gp_SpawnPadLerp(0xF, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 8);
             }
             break;
         case 1:

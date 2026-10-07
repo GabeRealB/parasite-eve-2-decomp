@@ -3,7 +3,10 @@
 
 // Gameplay-private pad-script entry points.
 
-/// Resume script, held-button and interpolated pad input.
-void Gp_ClearPadHalt(void);
+/// Clears the vibration interpreter and both motor tasks' halt gates.
+///
+/// Does not restore cleared requests, session flags or tasks already torn down.
+/// Gameplay's player-input update calls this once per frame with a player task.
+void padScriptClearHalt(void);
 
 #endif // GAMEPLAY_PRIVATE_PAD_SCRIPT_H

@@ -4771,7 +4771,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 *dst++ = *src++;
             }
             work->rotation.m[2][2] = ((MATRIX*)arg0->spawnArg2.pointer)->m[2][2];
-            Gp_SpawnScript18(D_actor_503500_8017159C, D_actor_503500_801715A4);
+            padScriptSpawn(D_actor_503500_8017159C, D_actor_503500_801715A4);
             work->shakeFrames = ACTOR_503500_KNOCKBACK_SHAKE_FRAMES;
             // An s32 temp: passed straight to the s8 parameter, the masked
             // expression is shortened into a byte load of the frame counter.

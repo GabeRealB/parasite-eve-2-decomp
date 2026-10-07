@@ -100,7 +100,7 @@ static Task* D_apobiosis_80130BA0;
 /// States 2..4 fade the flash out at 0x10 / 0xC / 8 a frame while spawning
 /// 0x600F7 sparks on random polar offsets - one in four frames in state 2, one
 /// a frame in state 3, two a frame in state 4 - and state 5 fades the last of
-/// the flash before releasing the work block. `Gp_SpawnPadLerp` rumbles at each
+/// the flash before releasing the work block. `padScriptSpawnVariableMotorRamp` rumbles at each
 /// state change, hardest on the widest row.
 void func_apobiosis_8012EF4C(Task* arg0)
 {
@@ -143,7 +143,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                     gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_apobiosis_80130B80[i] = (i << 10) + ((gRandomLcgState >> 16) & 0x3FF);
                 }
-                Gp_SpawnPadLerp(0xA, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 8);
                 /* fallthrough */
             case 1:
                 actorRenderComposeCoord(coord);
@@ -184,7 +184,7 @@ void func_apobiosis_8012EF4C(Task* arg0)
                     return;
                 }
                 arg0->state = 2;
-                Gp_SpawnPadLerp(0x14, 0xFF, 8);
+                padScriptSpawnVariableMotorRamp(0x14, 0xFF, 8);
                 return;
             case 2:
                 actorRenderComposeCoord(coord);
@@ -224,11 +224,11 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 if (mem->age == 0x1E) {
                     if (mem->index <= 0) {
                         arg0->state = 5;
-                        Gp_SpawnPadLerp(mem->index * 8 + 0x12, 0xFF, 8);
+                        padScriptSpawnVariableMotorRamp(mem->index * 8 + 0x12, 0xFF, 8);
                     } else {
                         mem->step   = 0xF0;
                         arg0->state = 4;
-                        Gp_SpawnPadLerp(0x22, 0xFF, 8);
+                        padScriptSpawnVariableMotorRamp(0x22, 0xFF, 8);
                     }
                 }
                 return;

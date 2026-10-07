@@ -1949,7 +1949,7 @@ void func_actor_503500_80132EF4(void)
 
 void func_actor_503500_80132F28(void)
 {
-    Gp_HaltPadScripts();
+    padScriptHalt();
     gGameSession->padScriptFlags = 0;
 }
 

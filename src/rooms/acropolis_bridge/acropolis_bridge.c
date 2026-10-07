@@ -282,8 +282,7 @@ extern SVECTOR          D_acropolis_bridge_80189A34[2];
 extern SVECTOR          D_acropolis_bridge_80189A44;
 extern SVECTOR          D_acropolis_bridge_80189A4C;
 
-/// The two 0x18-byte script work blocks `Gp_SpawnScript18` copies from when the
-/// bridge cutscene starts.
+/// Command and segment arrays `padScriptSpawn` borrows during the bridge cutscene.
 extern PadScriptCmd              D_acropolis_bridge_80190B8C[6];
 extern PadScriptVibrationSegment D_acropolis_bridge_80190BA4[6];
 
@@ -3055,7 +3054,7 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
             if (queue->movieReady == 0) {
                 break;
             }
-            taskReparent(task, Gp_SpawnScript18(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
+            taskReparent(task, padScriptSpawn(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
             task->state = task->state + 1;
             break;
         case 2:
@@ -5897,7 +5896,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[1], 1, NULL);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
         work->deathFrame       = 0;
-        Gp_SpawnPadLerp(3, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
     }
     if (work->deathFrame < 0x65) {
         work->deathFrame++;

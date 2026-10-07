@@ -1858,7 +1858,7 @@ static void func_actor_400600_801328A8(Task* arg0)
     work->moveSpeed    += work->moveAccel;
     coords->coord.t[1] += work->moveSpeed;
     if (coords->coord.t[1] >= -0x508) {
-        Gp_SpawnPadLerp(0xA, 0xC0, 0x80);
+        padScriptSpawnVariableMotorRamp(0xA, 0xC0, 0x80);
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531A0009;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -1924,7 +1924,7 @@ static void func_actor_400600_80132B3C(Task* arg0)
     work->moveSpeed    += work->moveAccel;
     coords->coord.t[1] += work->moveSpeed;
     if (coords->coord.t[1] >= 0) {
-        Gp_SpawnPadLerp(0x10, 0x80, 0x40);
+        padScriptSpawnVariableMotorRamp(0x10, 0x80, 0x40);
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531A000A;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
@@ -2116,7 +2116,7 @@ static void func_actor_400600_801332F4(Task* arg0)
     mode  = work->roomCommand;
     coord = model->coords;
     if (mode == 1) {
-        Gp_SpawnPadLerp(0x14, 0xFF, 0x80);
+        padScriptSpawnVariableMotorRamp(0x14, 0xFF, 0x80);
         coord->coord.t[0] = 0xCE4;
         coord->coord.t[1] = -0xBB8;
         coord->coord.t[2] = 0;
@@ -2613,7 +2613,7 @@ static void func_actor_400600_80134218(Task* arg0)
     }
     if (work->stateFrames == 0xD || work->stateFrames == 0x1A) {
         root = &gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords[4];
-        Gp_SpawnPadLerp(0xA, 0xC0, 8);
+        padScriptSpawnVariableMotorRamp(0xA, 0xC0, 8);
         id = 0x40060009;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0009;
@@ -5070,7 +5070,7 @@ static void func_actor_400600_8013ADA4(Task* arg0)
         y                 = coord->coord.t[1] + (s16)accum;
         coord->coord.t[1] = y;
         if (y >= 0) {
-            Gp_SpawnPadLerp(0x10, 0x80, 0x20);
+            padScriptSpawnVariableMotorRamp(0x10, 0x80, 0x20);
             work->stateFrames = 0;
             _stalkerZebraIvoryRequestClipRestart(arg0, 0x19, ANIMATION_RATE_ONE);
             coord->coord.t[1] = 0;
@@ -5298,7 +5298,7 @@ static void func_actor_400600_8013B520(Task* arg0)
     work = (_Actor400600ZebraStalkerWork*)arg0->work;
     work->stateFrames++;
     if (work->stateFrames == 1) {
-        Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
+        padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x80);
     }
     if ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
         soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;

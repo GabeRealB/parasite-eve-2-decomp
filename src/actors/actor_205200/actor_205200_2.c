@@ -632,7 +632,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch->playerAnim, 0);
                 work->knockbackStep  = ACTOR_205200_KNOCKBACK_PUSH;
                 work->knockbackFrame = 0;
-                Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
+                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 0x80);
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
                 sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 scratch->pushDirection.vx = 0;
