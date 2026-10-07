@@ -1148,7 +1148,7 @@ from the target. Grep the decomp trees for a rare literal in the function — an
 offset, a scale, a magic constant — and, when the brief's similar-body list
 names a candidate, read its source first. `grep -rn 0x171 src/` found
 `Actor01900_Fn05B4C` in `src/actors/lib/actor_101900_text.c` for
-`func_actor_356100_80165B30`; the two were instruction-for-instruction
+`_actor356100Sidestep`; the two were instruction-for-instruction
 identical (314 instructions, only the field offsets differing), so every
 codegen question the diff left open — which register a halfword lands in,
 whether a load hoists above an intervening store — was already answered.
@@ -1191,7 +1191,7 @@ base: `head` declared as the block pointer and `aim = head - 1`, then using
 both `head[-1].delta.vx` and `aim->delta.vy`. One name alone gives the same
 base register for all three stores.
 
-`func_actor_356100_80165B30`: 73.0% (m2c) → 93.5% (GTE blocks and scratch
+`_actor356100Sidestep`: 73.0% (m2c) → 93.5% (GTE blocks and scratch
 model restored) → 97.1% → 100.0%, the last being the twin ported
 field-for-field.
 
@@ -88293,7 +88293,7 @@ instead of `Actor01900_StepForwardHead`.
 
 ## A base-register + displacement residual at ≥99%: grep the corpus for the address, not the mechanism
 
-`func_actor_356100_801653F4` (actor_356100) sat at 99.881%, `regs=11`, with
+`_actor356100TurnAround` (actor_356100) sat at 99.881%, `regs=11`, with
 every instruction count, block and predicate matching and three changed sites:
 the scratch pop's released value staying live in `$s2` (target reloads into
 `$s2` and leaves the release in `$v0`), and the step's X read as `lh v1,
@@ -111433,9 +111433,8 @@ zero, so `(u16)x` becomes `x` and the `lhu` never appears - the instruction coun
 drops by two, `insert`/`delete` go non-zero and the score is ~7 points low even
 though nothing else changed.
 
-The field has to be *re-read* as a halfword: `((GpCoordXZ *)index)->field_18`,
-the overlay type `include/gameplay/1A8.h` already provides for exactly this
-("the low 16 bits of `coord.t[0]`/`coord.t[2]`"). Both adjustment arms then get
+The field needs unsigned-halfword read semantics, now spelled
+`(u16)arg0->coord.t[0]` in the coordinate-clipping body. Both adjustment arms then get
 their own `lhu`, matching the target. 84.63% -> 91.13% together with the operand
 order above.
 
@@ -112926,7 +112925,7 @@ SHA256 `9972e59abfff660c2fefcf39e0623ba79f72954553ff04a2d8b8d597cf2307c6`.
 
 ## A constant store written early only knows about the loads written before it
 
-**Problem.** `func_actor_356100_801666B4` matched at 99.589% with `reorder=1`: the
+**Problem.** `_actor356100GrabPull` matched at 99.589% with `reorder=1`: the
 single difference in the whole function was `sh zero, 0x12(sp)` (a `vec.vy = 0`
 component of a local `SVECTOR`) emitted six instructions early — right after the
 `&vec` materialisation, where the target has it after the loads feeding the other
@@ -113111,8 +113110,8 @@ out of `MATRIX::t[]` — a `long t[3]`, `0x14` in a bare `MATRIX` and `0x18` in 
     sh    v0,-0x10($a3)
 ```
 
-The natural reading — "the source must be reading these through a `u16` view
-like `GpCoordXZ`, so build one" — is wrong, and building one costs a rewrite of
+The natural reading — "the source must be reading these through an unsigned
+halfword view of the coordinate translations, so build one" — is wrong, and building one costs a rewrite of
 the whole helper chain for nothing.
 
 **Cause.** The destination is an `SVECTOR` field, a `short`, and GCC 2.8.1
@@ -113143,9 +113142,10 @@ replication — same `lhu` pair, same offsets, same matched source line.
 
 **Scope.** Any expression in a 16-bit field position whose operands are wider.
 Read the destination's type before reaching for a typed view of the source. This
-does not say a `u16` view is always wrong — where the *result* needs the unsigned
-value (the `GpCoordXZ` reads in `func_actor_356100_801666B4`) it is
-the only thing that works — only that a narrow destination explains the narrow
+does not say unsigned-halfword read semantics are always wrong where the
+*result* needs the unsigned value. `_actor356100GrabPull` also matches with
+plain 32-bit translation reads into its `SVECTOR` differences: its former
+explicit `(u16)` casts were redundant. A narrow destination explains the narrow
 load by itself.
 
 It covers a `short` *operand* as well. `Gp_YawToPosXZ` subtracts a `long`
@@ -113216,7 +113216,7 @@ load-delay `nop`, and the smaller block that follows) with `stack=0` and
 `branch=0`, not the register/scheduling leftovers a spill would leave. Before
 reaching for `volatile`, rule out the two other ways the target can have two
 loads: the same field read signed *and* unsigned (a real `sign_extend` vs
-`zero_extend` pair never merges — `func_actor_356100_80167584` does exactly
+`zero_extend` pair never merges — `_actor356100Dormant` does exactly
 that), and a cross-jumped or skipped block boundary. Neither applies here —
 the epilogue label has two `label_ref`s, so `cse`'s `skip_blocks` path (which
 needs `LABEL_NUSES == 1`) does not fire and the two reads really are in one
@@ -113232,9 +113232,9 @@ join (`m4a1PykeFlameTask`). From the 54.396% m2c seed. Compiler SHA256
 `base_10.i` SHA256
 `91c445af40512be33c9ac3edbd48bde713ef687821992194b9bcdc0df2975961`.
 
-## An exact `pri` tie hands the lower `$sN` to the earlier-created pseudo; a named local constant in one comparison is a one-instruction live-length knob (func_actor_356100_80168AFC, 2026-09-16)
+## An exact `pri` tie hands the lower `$sN` to the earlier-created pseudo; a named local constant in one comparison is a one-instruction live-length knob (_actor356100GrabWindup, 2026-09-16)
 
-**Problem.** `func_actor_356100_80168AFC` (actors) matched `Structure: match`,
+**Problem.** `_actor356100GrabWindup` (actors) matched `Structure: match`,
 `blocks=17/17 instructions=210/210` and 99.381% with `stack=branch=reorder=
 insert=delete=0` and `regs=26` — a single `$s1` ↔ `$s2` swap. The target keeps
 `work -> $s2`, `aim -> $s1`; the source, written in the style of its matched
@@ -113304,7 +113304,7 @@ Inputs: `base_1.i` (99.381%, tied) SHA256
 SHA256 `6396102f5c97dd87a812090f2aff1639afa455d2fc8cb4aaee05ad6f5504751f`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_356100_80168AFC-vacuum`. Related: the
+Scratch `nonmatchings/_actor356100GrabWindup-vacuum`. Related: the
 `_actor00400TurnTowardPointMaskedRange` entry above, where the same tie was *manufactured* by a
 control-flow change and then won with declaration order.
 
@@ -113313,7 +113313,7 @@ control-flow change and then won with declaration order.
 m2c renders a 0x20-byte struct copy as eight per-word `M2C_FIELD` assignments,
 and the two forms schedule differently: the target interleaves `4 lw` / `4 sw`
 twice, while the eight-statement form emits all eight loads before all eight
-stores. `func_actor_356100_80167584`'s init block and its matched sibling
+stores. `_actor356100Dormant`'s init block and its matched sibling
 `func_actor_401300_80139520` both save a `MATRIX`, and `work->savedColorMtx =
 work->colorMtx;` - one assignment - reproduces the 4+4 shape exactly.
 
@@ -113327,14 +113327,14 @@ Inputs: `base_1.i` (100%) SHA256
 SHA256 `ebd6168c820e94ce877a816d30ef44215214de27afffca7d1357f2eac9b4c8fd`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_356100_80167584-vacuum`.
+Scratch `nonmatchings/_actor356100Dormant-vacuum`.
 
 ## An `s16` field's `x++` already loads `lhu`, so a cast is not what produces it
 
 An increment of a `short` field is a HImode read-modify-write, and the MIPS
 backend emits `lhu` for a HImode load with no extension needed - so
 `work->field_6++` and `work->field_6 = (s16)((u16)work->field_6 + 1);` compile
-to the same `lhu` / `addiu` / `sh`, and `func_actor_356100_80167584` scores
+to the same `lhu` / `addiu` / `sh`, and `_actor356100Dormant` scores
 100% with either (the second is the house style, kept for that reason alone).
 A target `lhu` on an increment is therefore not evidence that the original cast
 through `u16` - look for the missing `lh` somewhere else. An `s32` context is
@@ -113387,9 +113387,9 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor356100Initialize-vacuum`.
 
-## `SCRATCH_STACK_CURSOR_SLOT` wants the address expanded at every use, not cached in a register (func_actor_356100_801668FC, 2026-09-16)
+## `SCRATCH_STACK_CURSOR_SLOT` wants the address expanded at every use, not cached in a register (_actor356100GrabRelease, 2026-09-16)
 
-**Superseded for this function (2026-10-04).** `func_actor_356100_801668FC`
+**Superseded for this function (2026-10-04).** `_actor356100GrabRelease`
 no longer carries the per-access copies described below: its two scratch
 blocks are `_actorMovementStepLocalZFromSave` and `_actorContactPushRootFromSave`,
 which expand to the same instructions once they are defined above it. See "A
@@ -113419,7 +113419,7 @@ sw     s0,0x3fc(at)         ; head - 8
 ```
 
 That is 6 more instructions across eight accesses — retail pays it, because the
-register is needed elsewhere: in `func_actor_356100_801668FC` the freed `$sN`
+register is needed elsewhere: in `_actor356100GrabRelease` the freed `$sN`
 is what lets `index->field_20` (the `Enemy*`) stay live for the whole tick.
 Without it the enemy pointer spills to the stack, the frame grows 0x38 -> 0x40,
 and every register in the function shifts: 85.4% -> 91.9% (base_7) from this
@@ -113486,8 +113486,8 @@ Inputs: `base_25.i` (99.012%) SHA256
 SHA256 `0eb3eb429c17ccd3426ac1ed9a56c8c1288003f17adacb78badd28028ebf6265`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_356100_801668FC-vacuum`; retry seed archived at
-`tools/giveups/func_actor_356100_801668FC/`.
+Scratch `nonmatchings/_actor356100GrabRelease-vacuum`; retry seed archived at
+`tools/giveups/_actor356100GrabRelease/`.
 
 ## Sibling slot-loops need per-block locals, and dbr picks a delay slot by the candidate's register home (_actor356100UpdateAnimation, 2026-09-16)
 
@@ -113652,9 +113652,9 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
 `nonmatchings/func_actor_356100_80166018-vacuum`; matching candidate `base_2.c`.
 
-## A hand-expanded scratch walk can be an inline helper defined below its caller (func_actor_356100_801668FC, 2026-10-04)
+## A hand-expanded scratch walk can be an inline helper defined below its caller (_actor356100GrabRelease, 2026-10-04)
 
-**Problem.** `func_actor_356100_801668FC` was matched with both of its scratch
+**Problem.** `_actor356100GrabRelease` was matched with both of its scratch
 blocks written out by hand: short-lived `scratchBase = PLAYSTATION_SCRATCHPAD_BASE;`
 copies killed after each access, a separate set of head/block locals per block,
 and a `collisionScratch`/`resolvedStep` pointer pair. Its sibling tick further
@@ -113662,7 +113662,7 @@ down the file does the same two steps as
 `_actorMovementStepLocalZFromSave(save, coord, n)` and
 `_actorContactPushRootFromSave(save, root, recs, 3, 0x10)` with no scaffolding.
 
-**Cause.** Both helpers were *defined* after `func_actor_356100_801668FC`,
+**Cause.** Both helpers were *defined* after `_actor356100GrabRelease`,
 with only prototypes above it. GCC 2.8.1 expands a `static __inline__` only
 where the definition precedes the call, so calling them there emitted two
 `jal`s and the checksum failed, which is what makes the hand expansion look
@@ -113735,7 +113735,7 @@ target than any unpinned one, which is exactly why the search router's
 reach the shape, because no unpinned spelling of an explicit temp keeps the
 pair. Reach for the reserve idiom, not a pin.
 
-Note the contrast with the `func_actor_356100_801668FC` entry above: that
+Note the contrast with the `_actor356100GrabRelease` entry above: that
 function needed the `PLAYSTATION_SCRATCHPAD_BASE` address kept unfolded per use. Here the plain
 `SCRATCH_STACK_CURSOR_SLOT` macro produced retail's `lui at,0x1f80` + `0x3fc($at)` store
 shape with no `base`/`slot` splitting at all — the address was never hoisted,
@@ -113795,7 +113795,7 @@ Writing the head into a local first, or splitting it as `tmp = head - N; turn = 
 collapse to the single `addiu` and lose the copy. Same family as "Combined
 `*scratch = tmp` assignment keeps the add in `$v0` without a pin" above: one
 expression so CSE cannot fold the store onto the longer-lived variable.
-`func_actor_356100_80167A7C`: 94.626% → 95.603%, and the first two blocks then
+`_actor356100Patrol`: 94.626% → 95.603%, and the first two blocks then
 match instruction for instruction.
 
 ## Repeated `coord = <expr>;` statements in one function are one pseudo with a union live range
@@ -113822,7 +113822,7 @@ Inputs: `base_9.i` (95.603%) SHA256
 `269463e28596865f3c5e04de1d4fccd85fcff39c22bef466d18aed92405e9332`; target SHA256
 `2b9a7a61cf18471ff8ef774845bf1096b5c0c846b1befb50fcb1c3a721ddd8c9`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_356100_80167A7C-vacuum`; best candidate
+Scratch `nonmatchings/_actor356100Patrol-vacuum`; best candidate
 `base_9.c` (unresolved: a `cse` jump-threading difference, see the session
 `LEARNINGS.md` there).
 
@@ -113858,12 +113858,12 @@ saved `void** scratch`: the saved pointer was what let `lreg` keep the
 does not have (2 `insert` penalties). A *matching* helper in the same TU can
 still use the saved pointer — this is register pressure, not a rule.
 
-`func_actor_356100_801684F0` `base_12.c` (100.000%). Inputs: `base_11.i`
+`_actor356100BackOff` `base_12.c` (100.000%). Inputs: `base_11.i`
 `1ffdc52579fd98a74a00a1ebcefd7f2235a55c1769e3031335c82f8e7c4a4443`,
 `base_12.i`
 `abc769b81b67f916292d0367477ca9905ef4c19e6b51a1128889e30160d9d538`; target
 `03233a375c70b55c2f3ab33fd13202401c1a74e2b5c77d6c6df9e253b4af5cc7`.
-Scratch `nonmatchings/func_actor_356100_801684F0-vacuum`.
+Scratch `nonmatchings/_actor356100BackOff-vacuum`.
 
 ## A local shared by two call sites merges two live ranges into one; the expression at each call site does not
 
@@ -113894,7 +113894,7 @@ alignment: the two objects differ in 7 instruction regions and one instruction
 of length, and dist.py scores the resulting address shift as hundreds of
 mismatches.
 
-For `func_actor_356100_80166CF0` the two spellings of one call site moved
+For `_actor356100Approach` the two spellings of one call site moved
 16.45%:
 
 ```c
@@ -113928,15 +113928,15 @@ directly. Read the similar-body candidate's *source* even when it is not a
 byte-identical twin — the constants differ, the call shape did not.
 
 The tail spelling that finishes the job (`vec->vx`, not `head[-1].vx`, so the
-release value stays an expression) is the same one the `func_actor_356100_801684F0`
+release value stays an expression) is the same one the `_actor356100BackOff`
 entry above describes; this function is a second instance of it, reached
 independently before that entry was consulted.
 
-`func_actor_356100_80166CF0` `base_9.c` (100.000%). Inputs: `base_7.i`
+`_actor356100Approach` `base_9.c` (100.000%). Inputs: `base_7.i`
 `fcf97c2d01994f1bdaefba73243effc500885c5c4b50a0e70c69875d2daec91c`, `base_9.i`
 `a693088194f54f04b21fe283dd1b33868b92ee69e71339a93a27b5386b03293c`; target
 `1032f066099e68f8cafdc52399aac250eb85432bd49e12a47d3e01c70044e529`.
-Scratch `nonmatchings/func_actor_356100_80166CF0-vacuum`.
+Scratch `nonmatchings/_actor356100Approach-vacuum`.
 
 Follow-up counterfactuals, all planned before their builds and all landing as
 predicted: `base_10.c`
@@ -114007,7 +114007,7 @@ Scratch `nonmatchings/func_actor_356100_80169854-vacuum`.
 
 ## One temp per `ABS()`-guarded condition: a shared one is a global allocno
 
-`func_actor_356100_80164158` has two `ABS()`-guarded conditions reading the same
+`_actor356100Chase` has two `ABS()`-guarded conditions reading the same
 pair of halfwords from an aim scratch:
 
 ```
@@ -114065,7 +114065,7 @@ SHA256 `94bc7c2176f13077f2baf7aa2152d46ab6f35402212509f05102eef12d4e527d`;
 target SHA256 `936361c9fb643493c264ace0fccfcc88b8e2419ded8e94980fd653419e015088`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_356100_80164158-vacuum`.
+Scratch `nonmatchings/_actor356100Chase-vacuum`.
 
 ## A TU-local `static __inline__` is only inlinable below its own definition
 
@@ -114092,7 +114092,7 @@ function's code; check the ones already above the new position do not call them
 first, and the move is free.
 
 Inputs: `base_2.i` (87.527%, helpers present) and `base_9.i` (100%); see the
-hashes above. Scratch `nonmatchings/func_actor_356100_80164158-vacuum`.
+hashes above. Scratch `nonmatchings/_actor356100Chase-vacuum`.
 
 ## Two equality tests on the same value with *different* targets are duplicate arm bodies, not a compound condition (func_actor_110600_80138448, 2026-09-16)
 
@@ -136767,7 +136767,7 @@ Both traces confirmed byte-identical assembly with and without observation.
 
 The archived 99.187% seed was stuck on init scheduling and `pad_A - pad_8` registers. Retrieval found two newer solutions. Transferring the two SOFT_BARRIER boundaries plus u16 speed preload from func_actor_401300_801365F8 fixed all init differences (99.972%, regs=4 only). Both flag chains now reuse v0; constant3 and speed reuse v1. As in that sibling, sched1 places the speed load after the first flag store, and sched2 moves it before the mask. Individual boundary minimality was not tested.
 
-The remaining shared `angle` used explicit if/negation twice and was global. Keeping the later angle unchanged and writing `diff = chase->pad_A - chase->pad_8; if (ABS(diff) < 0x44)` for the first condition reached 100%. This was a preplanned transfer from func_actor_356100_80164158, not another load-order permutation.
+The remaining shared `angle` used explicit if/negation twice and was global. Keeping the later angle unchanged and writing `diff = chase->pad_A - chase->pad_8; if (ABS(diff) < 0x44)` for the first condition reached 100%. This was a preplanned transfer from _actor356100Chase, not another load-order permutation.
 
 A tracer on the exact candidate observes block16 q1=[230,229,87,223], refs8/span10/priority24000 -> v0 (compare, abs, diff, pad_A load); q2=[226], refs2/span2/priority10000 -> v1 (pad_8 load). Both scheduler passes keep pad_A before pad_8. The older session's inference that the target needed reversed sched1 loads followed by a sched2 swap was false: tying the longer chain changes priority while preserving load order. `abssi2` with equal input/output registers emits the target bgez/nop/negu.
 
@@ -137030,7 +137030,7 @@ Predictions, selected RTL, compiler/input hashes and archive location:
 `b0b568f094d5d56115b645905373f09ef1a31de8d2e8f7fe1ab18a993fe4c701`;
 controlled matching input:
 `5a90d677218685bec8d548f711079525bb226f502a96f09454cb657bed222c7c`.
-## Reuse an already-global destination to remove a local hard-register conflict after splitting constant lifetimes (func_actor_356100_801668FC, 2026-09-20)
+## Reuse an already-global destination to remove a local hard-register conflict after splitting constant lifetimes (_actor356100GrabRelease, 2026-09-20)
 
 The archived seed was 99.012%, with matching topology and 253 instructions.
 CSE merged the final two comparison constants into one SI pseudo, keeping 1
@@ -137077,7 +137077,7 @@ that every reuse helps: check the destination's existing conflicts and that
 its older value is dead. No register pins or new empty asm were used.
 
 Evidence: retained findings under
-`tools/permuter_findings/func_actor_356100_801668FC/`, with plans, C sources,
+`tools/permuter_findings/_actor356100GrabRelease/`, with plans, C sources,
 function-scoped CSE/lreg/greg extracts, and PERMUTER_ANALYSIS.md. Input hashes:
 base_1 `ebd5570e3979e6b578a876ffd96f29dba6075343d894a30bb08348360c50f328`,
 base_2 `7017b7693bcd4b81c5603dfc8242196f0bf9c8b3d8298d89e464f69f006668d2`,
@@ -137087,7 +137087,7 @@ The permuter's separate 99.783% route used an entry constant rematerialized
 in t0; its exact reload choice remains unresolved and is not this finding.
 
 
-## Reserve the forward-vector address before retaining its alias (func_actor_356100_80167A7C, 2026-09-20)
+## Reserve the forward-vector address before retaining its alias (_actor356100Patrol, 2026-09-20)
 
 A rescale helper releases 0x34 scratch bytes immediately before a forward-step
 helper reserves eight. Keeping `head = *scratch; vec = head - 1` and reading
@@ -137117,7 +137117,7 @@ branch then retained the second check's label through CSE instead of threading
 to the final release. Its precise CSE eligibility mechanism was not traced.
 The final function and isolated forward helper passed unscoped verification.
 
-Evidence: nonmatchings/func_actor_356100_80167A7C-vacuum/LEARNINGS.md,
+Evidence: nonmatchings/_actor356100Patrol-vacuum/LEARNINGS.md,
 experiments.jsonl, and base_1 through base_4 RTL dumps. Input SHA256 values:
 base_1.i `12c81d34f9d77869c44d89a94f2300799bde36796e8236c61f7cda64cd5661b1`;
 base_2.i `1b06462b1305e46352e8ec5892ccc9fd8e9f34e68e5abfab567fa4bdfb07ba27`;
