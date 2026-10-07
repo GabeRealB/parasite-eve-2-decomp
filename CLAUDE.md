@@ -173,6 +173,15 @@ overlap another proposed object, revisit the boundaries and alias/aggregate
 model rather than accepting UB. Record unproved index ranges as unresolved;
 do not declare a gap to be padding until the reference constraints allow it.
 
+This rule guards against inventing object boundaries, so it does not apply
+when the boundaries are certain. Where each object's extent is established
+independently of the access - by its own contents and type, by where its
+neighbours start, by the same code in another build that has larger tables -
+and the access past it is the original program's own bug, declare the real
+extents and state the overrun at the declaration. `actor_421600`'s catch
+tables are the worked example: five entries each, written at entry 5 by a
+handler made for the regular build's nine.
+
 **Trace symbol bases and field offsets in assembly.** Follow the full address
 loaded for an object and the displacements from that base, including copies of
 the base register, derived pointers, indexed accesses, and uses in callees.
