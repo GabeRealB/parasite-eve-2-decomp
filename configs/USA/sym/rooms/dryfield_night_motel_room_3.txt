@@ -59,3 +59,5 @@ D_map_dryfield_full_8017B998 = 0x8017B998; // absolute:True owner=map_dryfield_f
 dryfieldNightMotelRoom3DrawFlaresTask = 0x8017D9B4; // type:func
 glowDrawFlareClipped = 0x8017D738; // type:func
 _roomVariantMainStreetMsg = 0x8017D5FC; // type:func
+_dryfieldNightMotelRoom3RejectKeyItemUse = 0x8017d5f4; // type:func
+_dryfieldNightMotelRoom3IgnoreRoomCommand = 0x8017d684; // type:func

@@ -14,31 +14,36 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[];
 
-s32 func_dryfield_night_motel_room_3_8017D5F4(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_3_8017D684(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_3_8017D68C(Task*, s32, s32, s32);
+static s32 _dryfieldNightMotelRoom3RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldNightMotelRoom3IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
+s32        func_dryfield_night_motel_room_3_8017D68C(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
-    { 5105, func_dryfield_night_motel_room_3_8017D5F4 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom3RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_3_8017D68C },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_room_3_8017D684 },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom3IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_dryfield_night_motel_room_3_8017D694(Task* task);
 static void func_dryfield_night_motel_room_3_8017D6D8(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D5F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in Dryfield night motel room 3.
+///
+/// Ignores the selected collected-item ID and returns `ROOM_KEY_ITEM_USE_REFUSED`
+/// for the item menu's refusal notice, without consuming an item or starting an event.
+static s32 _dryfieldNightMotelRoom3RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/room_variants_main_street.inc.c"
 
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D684(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands without starting an action.
+///
+/// Both command words are unused; the signed message result is always zero.
+static s32 _dryfieldNightMotelRoom3IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument)
 {
     return 0;
 }

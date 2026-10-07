@@ -27,6 +27,12 @@ extern SpriteView D_dryfield_motel_room_4_8017DF4C[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_4_8017E470[];
 
-void func_dryfield_motel_room_4_8017D65C(Task* task);
+/// Runs Dryfield motel room 4's room-message task.
+///
+/// `task` must be live with state 0..2: 0 registers its message table and room
+/// slot, then advances to 1; 1 idles; 2 releases the task. No body or work is
+/// allocated by this callback. The room overlay must remain loaded while its
+/// callback or message table is used, and room-slot users require a live task.
+void dryfieldMotelRoom4Task(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_MOTEL_ROOM_4_H

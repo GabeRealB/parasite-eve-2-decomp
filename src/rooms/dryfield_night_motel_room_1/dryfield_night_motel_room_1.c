@@ -30,37 +30,45 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_motel_room_1_8017DA2C[];
 
-s32 func_dryfield_night_motel_room_1_8017D5F0(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_1_8017D680(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_1_8017D688(Task*, s32, s32, s32);
+static s32 _dryfieldNightMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldNightMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
+static s32 _dryfieldNightMotelRoom1IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 TaskMessageEntry D_dryfield_night_motel_room_1_8017DA2C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
-    { 5105, func_dryfield_night_motel_room_1_8017D5F0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_1_8017D688 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_room_1_8017D680 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom1RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom1IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom1IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_dryfield_night_motel_room_1_8017D690(Task* task);
 static void func_dryfield_night_motel_room_1_8017D6D4(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_1_8017D5F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request in Dryfield night motel room 1.
+///
+/// Ignores the selected collected-item ID and returns `ROOM_KEY_ITEM_USE_REFUSED`
+/// for the item menu's refusal notice, without consuming an item or starting an event.
+static s32 _dryfieldNightMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/room_variants_main_street.inc.c"
 
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_1_8017D680(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands without starting an action.
+///
+/// Both command words are unused; the signed message result is always zero.
+static s32 _dryfieldNightMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument)
 {
     return 0;
 }
 
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_1_8017D688(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room actions requested by direction triggers.
+///
+/// The borrowed request is neither read nor retained. The sender supplies zero
+/// for the second payload and ignores the result, which is always zero.
+static s32 _dryfieldNightMotelRoom1IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }

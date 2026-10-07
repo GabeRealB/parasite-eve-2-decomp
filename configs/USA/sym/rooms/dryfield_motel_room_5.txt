@@ -30,3 +30,7 @@ D_dryfield_motel_room_5_8017E5A4 = 0x8017E5A4; // size:0x8 defined:True
 D_dryfield_motel_room_5_8017E5AC = 0x8017E5AC; // size:0x8 defined:True
 D_dryfield_motel_room_5_8017E5B4 = 0x8017E5B4; // size:0x8 defined:True
 D_dryfield_motel_room_5_8017E5BC = 0x8017E5BC; // size:0x20 defined:True
+_dryfieldMotelRoom5RejectKeyItemUse = 0x8017d5d0; // type:func
+_dryfieldMotelRoom5ResolveRoomEvent = 0x8017d5d8; // type:func
+_dryfieldMotelRoom5IgnoreRoomCommand = 0x8017d600; // type:func
+_dryfieldMotelRoom5IgnoreRoomAction = 0x8017d608; // type:func
