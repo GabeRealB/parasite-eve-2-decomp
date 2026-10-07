@@ -31032,7 +31032,7 @@ ruleOffsetBytes = columnIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetB
 rule            = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
 ```
 
-Inlining `arr[row][col]` stuck at 99.8%. `Gp_RunPairHandler` is the example
+Inlining `arr[row][col]` stuck at 99.8%. `_worldCollisionCollideListPairs` is the example
 (same addressing in `Gp_CollideLists`).
 
 ## Load both pair fields before the swap `if`
@@ -31052,7 +31052,7 @@ if (swapBodies == false) {
 }
 ```
 
-`Gp_RunPairHandler` is the example.
+`_worldCollisionCollideListPairs` is the example.
 
 ## Loop-invariant `0xFFFF` can steal `$a1` from a live location key
 
@@ -33388,9 +33388,9 @@ common source so each is `lw v0; mult v0,v0; mflo dest`), then write
 the compare as `sum < (b = rsum * rsum)` so the last `mflo` reuses the
 pin. A memory barrier after `centreDelta.vx = dx` keeps that store *before*
 `bgez` (not in the delay slot). On a hit, replay the call-arg and
-field setup in target order (`a0`/`a1`, truncated `centre1`, `a2 = block`,
-`radiusSum`, `ret = 1`, zeros) so `li s5, 1` sits after `lhu a3`.
-`Gp_PairHandler1` is the example.
+field setup in target order (`a0`/`a1`, truncated `centre1`, `a2 = scratch`,
+`radiusSum`, `overlaps = 1`, zeros) so `li s5, 1` sits after `lhu a3`.
+`_worldCollisionCollideSpherePair` is the example.
 
 ## Split `done` / `ret` so fill jumps to `move $v0` and found jumps to `jr ra`
 
@@ -40849,16 +40849,16 @@ written as `goto` to a label *past* the loop is not recognised as the loop's
 exit test, so the test stays at the top and the body just ends in `j <top>`.
 
 ```c
-for (;; cell++) {
-    id = *cell;
-    if (id == -1) {
+for (;; faceIds++) {
+    faceIndex = *faceIds;
+    if (faceIndex == WORLD_COLLISION_GRID_CELL_END) {
         goto done;   /* `break;` here duplicates the test at the loop end */
     }
     ...
 }
 ```
 
-`Gp_CollideObjGrid` needed this for both its cell walk and the inner free-slot
+`worldCollisionCollideSphereGrid` needed this for both its cell walk and the inner free-slot
 search; each `break` cost a duplicated three-instruction test plus the guard.
 
 ## Where the `continue` increment lands: `for (;; p++)` vs explicit `p++`
@@ -40885,35 +40885,35 @@ When the target has some other block in between, that block has to come from a
 `goto` label the source placed there, e.g.
 
 ```c
-    if ((u16)arg0->field_1C >= ABS((s16)dist)) {
+    if (body->radius >= ABS((s16)planeDistanceBits)) {
         goto edges;
     }
     continue;
 
 mark_outside:            /* jumped to from inside the edge loop below */
-    outside = 1;
+    isOutside = 1;
     goto edges_done;
 
 fill:                    /* jumped to from the slot search below */
-    slot->field_0 = flags | 1;
+    contact->flags = contactFlags | WORLD_COLLISION_CONTACT_OCCUPIED;
     ...
     continue;
 
 edges:
-    n = ...;
+    cornerCount = ...;
 ```
 
-`Gp_CollideObjGrid`'s layout only fell into place once the `fill` body lived at that
+`worldCollisionCollideSphereGrid`'s layout only fell into place once the `fill` body lived at that
 spot instead of after the loop that jumps to it.
 
 ## Evaluate the cheap operand first to control which load is scheduled first
 
 Computing an absolute value into a temp and then comparing it
-(`val = ABS((s16)dist); if ((u16)index->field_1C < val)`) emits the `lhu` of
-`field_1C` *after* the abs. Folding it back into the comparison
-(`if ((u16)index->field_1C >= ABS((s16)dist))`) makes GCC materialise the left
+(`absoluteDistance = ABS((s16)planeDistanceBits); if (body->radius < absoluteDistance)`) emits the `lhu` of
+`radius` *after* the abs. Folding it back into the comparison
+(`if (body->radius >= ABS((s16)planeDistanceBits))`) makes GCC materialise the left
 operand first, which is what puts the `lhu` in front of the `bgez` / `negu`
-pair. Worth ~1.5% on `Gp_CollideObjGrid`.
+pair. Worth ~1.5% on `worldCollisionCollideSphereGrid`.
 
 ## Reuse of a temp variable can hide a spill the target has
 
@@ -40930,7 +40930,7 @@ did not.
 register, so a load whose value the target drops immediately (`lw $v1, %lo(...)`
 / `lw $v1, 8($v1)`) stays pinned in a callee-saved-ish temp. Writing
 `Gp_GridParams->vertices[...]` inline creates a short-lived pseudo that dies into
-`$v1`. In `Gp_CollideObjGrid` every site had to be the direct form; introducing the
+`$v1`. In `worldCollisionCollideSphereGrid` every site had to be the direct form; introducing the
 local anywhere shifted `$a0`/`$a1` across the whole function.
 
 ## `gte_op12` real encoding
@@ -41395,23 +41395,23 @@ What works is pinning the short-lived value and making it opaque:
 The pin forces the `subu` to write `v0` and the assignment to become a real
 `move`; the barrier stops cse substituting `dist` back into the `sll`. The pin
 alone gets the `move` but leaves `sll v0, <dist>, 0x10`; the barrier alone
-leaves the two pseudos merged. Both are needed (`Gp_CollideObjGridDir`).
+leaves the two pseudos merged. Both are needed (`worldCollisionCollideMotionSphereGrid`).
 
 ## Inline one arm of a shared flag store to win a call-saved register
 
-`Gp_CollideObjGridDir` sets an `outside` flag from two places inside its edge loop and
+`worldCollisionCollideMotionSphereGrid` sets an `isOutside` flag from two places inside its edge loop and
 reads it after. Written as two `goto mark_outside;` with
 
 ```c
 mark_outside:
-    outside = 1;
+    isOutside = 1;
     goto edges_done;
 ```
 
-placed before the loop, `outside` has three references, all at the outer loop's
+placed before the loop, `isOutside` has three references, all at the outer loop's
 depth, and loses `global-alloc`'s priority race to the loop-invariant
 `&scratch->geometry.edgeDirection` / `&scratch->geometry.edgeWork` pointers — it ends up on the stack while they
-take `s6`/`s7`. Turning *both* sites into `outside = 1; break;` fixes the
+take `s6`/`s7`. Turning *both* sites into `isOutside = 1; break;` fixes the
 allocation (the refs are now at the inner loop's depth) but moves the merged
 block to the end of the function.
 
@@ -41419,7 +41419,7 @@ Inlining only *one* of the two sites gives both:
 
 ```c
     if (val - limit > 0) {
-        outside = 1;          /* inner-loop depth: raises the priority */
+        isOutside = 1;          /* inner-loop depth: raises the priority */
         goto edges_done;
     }
     if (val > 0) {
@@ -134856,7 +134856,7 @@ typedef struct { s16 endCornerIndex; s16 startCornerIndex; } WorldCollisionFaceE
 /* (u16)entry.endCornerIndex and (u16)entry.startCornerIndex compile lhu. */
 ```
 
-The corner-index table is the case: `Gp_CollideObjGrid`, `Gp_CollideObjGridDir` and
+The corner-index table is the case: `worldCollisionCollideSphereGrid`, `worldCollisionCollideMotionSphereGrid` and
 `worldCollisionIntersectGridFace` index it through the signed type and compile `lh`, while
 `func_800DEF80`, `worldCollisionTestViewBoundarySphere` and `worldCollisionTestOccluderSegment` reach the same table
 through unsigned scalar casts and compile `lhu`. `DamageAttack` only shares this
@@ -143144,17 +143144,17 @@ sees the register already holding `task->work` and deletes the re-read - the
 reloads a pointer and the only store in sight is *above* the first load, try
 moving that store after the load in the source before reaching for a barrier.
 
-## A result flag written *after* a call is hoisted above it when the flag already crosses a call (Gp_PairHandler1, 2026-09-26)
+## A result flag written *after* a call is hoisted above it when the flag already crosses a call (_worldCollisionCollideSpherePair, 2026-09-26)
 
-Symptom: `li s5,1` for `ret = 1` sits in the argument-setup block of the first
+Symptom: `li s5,1` for `overlaps = 1` sits in the argument-setup block of the first
 of two calls, but between the loads and the stores rather than at its head,
 and the argument moves `move a1` / `move a2` come earlier than a natural
-`ret = 1` written before the call produces (97.7%; the tree had pinned the
+`overlaps = 1` written before the call produces (97.7%; the tree had pinned the
 argument registers to fake it).
 
 Mechanism: the converse of the entry above. `sched_analyze_1` only makes a
 pseudo set depend on `last_function_call` when `REG_N_CALLS_CROSSED == 0`;
-`ret` is live across the second call, so a set written after the first call
+`overlaps` is live across the second call, so a set written after the first call
 has no dependence on it and sched1 (whose block spans both calls) hoists it.
 Its later LUID then wins the priority-1 tie against the argument moves, which
 puts it after them.
@@ -143162,11 +143162,11 @@ puts it after them.
 Fix: write the flag where the code means it - once the first record is filed:
 
 ```c
-        _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
-        ret = 1;
+        _worldCollisionRecordPairContact(firstBody, secondBody, &scratch->contact);
+        overlaps = 1;
 ```
 
-Moving `ret = 1` among the statements *before* the call changed nothing; only
+Moving `overlaps = 1` among the statements *before* the call changed nothing; only
 the post-call position does.
 
 ## A search loop that sets a found flag: `goto` the shared exit, not `break` or an inline helper (worldCollisionPlaceCapsuleSegment, 2026-09-26)
@@ -143937,11 +143937,11 @@ the arm's pseudos (`REG_N_REFS` by loop depth), which gave the target's
 allocation without the pins. The first switch had to stay an inline function
 outside the macro: with it inside a loop too, the barrier search skips it.
 
-Second instance, a pointer walk (Gp_CollideObjGridDir, 2026-09-26): a
-`for (;; cell++)` over a face list had `cell` pinned to `s5` and an empty-asm
-barrier after the first skip test. The trace put `cell` at priority 794, needing
-2962-3663 to take `s5` over two loop givs. Writing `cell++; continue;` on four
-skip paths and `cell++` at the end gave 24 weighted refs (3601), and the first
+Second instance, a pointer walk (worldCollisionCollideMotionSphereGrid, 2026-09-26): a
+`for (;; faceIds++)` over a face list had `faceIds` pinned to `s5` and an empty-asm
+barrier after the first skip test. The trace put `faceIds` at priority 794, needing
+2962-3663 to take `s5` over two loop givs. Writing `faceIds++; continue;` on four
+skip paths and `faceIds++` at the end gave 24 weighted refs (3601), and the first
 copy's label ended CSE's skip-block path, so the reload of the global the barrier
 forced came back on its own. One path, the test directly before an out-of-line
 block reached by `goto`, still had to `goto next` into the end copy. Duplicated
@@ -150324,8 +150324,8 @@ attempts; left as it was.
   ... }`, where the function-scope local gave the rotated loop (`j test` at
   the entry) and an 8-byte larger frame. A `return` from an inlined void
   function in that position is not an exit jump either and also leaves the
-  loop alone (`_worldCollisionCollideMovingSphereCell`).
-- **`Gp_CollideObjGridDir` (9 gotos) is the cell walk as a `static inline void`**
+  loop alone (`_worldCollisionCollideMotionSphereCell`).
+- **`worldCollisionCollideMotionSphereGrid` (9 gotos) is the cell walk as a `static inline void`**
   with `return` for both `goto done`, `if (radius < ABS(dist)) { cell++;
   continue; }` for the distance test, `outside = 1; break;` at both edge
   tests and `break` at both slot exits. The `mark_outside:` block sitting
@@ -150341,7 +150341,7 @@ attempts; left as it was.
   the first jump pass) fires on `condjump L1; X; jump L2; L1: Y; jump
   somewhere; BARRIER; L2:` when `L1` has one use and `L2` is the *next label*
   after `L1`: it swaps `X` and `Y`, so `X` lands behind the loop and falls
-  into the code after it. `Gp_CollideObjGrid` has `X` (the contact fill)
+  into the code after it. `worldCollisionCollideSphereGrid` has `X` (the contact fill)
   where only loop.c puts it, next to `mark_outside` behind the distance test,
   so in the original the rule did not fire. It does not fire when `Y`
   contains a label, e.g. `if (flags & LAST) { release; return; }` instead of

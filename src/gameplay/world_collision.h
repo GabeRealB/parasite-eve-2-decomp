@@ -12,12 +12,12 @@
 
 // Collision lists, contact records, room grids and collision updates.
 
-/// Pair-handler table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
-/// Indexed by `WorldCollisionPairRule::handlerIndex` (`worldCollisionPairNop` / `Gp_PairHandler1` /
-/// `Gp_PairHandler3`).
+/// Pair-handler table used by `_worldCollisionCollideListPairs` / `Gp_CollideLists`.
+/// Indexed by `WorldCollisionPairRule::handlerIndex` (`worldCollisionPairNop` / `_worldCollisionCollideSpherePair` /
+/// `_worldCollisionCollideSphereCapsulePair`).
 extern WorldCollisionPairHandler Gp_PairHandlers[5];
 
-/// Pair-rule table used by `Gp_RunPairHandler` / `Gp_CollideLists`, one rule
+/// Pair-rule table used by `_worldCollisionCollideListPairs` / `Gp_CollideLists`, one rule
 /// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
 extern WorldCollisionPairRule D_8010FA4C[4][4];
 
@@ -25,9 +25,47 @@ extern WorldCollisionPairRule D_8010FA4C[4][4];
 /// `Gp_TickWorldCollision` then calls `worldCollisionClearActionHits` to clear those flags.
 extern s32 Gp_PendingObj4CFlag;
 
-void Gp_CollideObjGrid(WorldCollisionBody* arg0);
+/// Appends grid-face overlap contacts for an ordinary sphere's centre cell.
+///
+/// Requires a kind-1 body with a live composed transform, writable initialized
+/// LAST-terminated contacts and an active grid with a composed view transform.
+/// Both transforms must use the same query frame; geometry indices and cell
+/// face lists must be valid, with CELL_END terminating each non-NULL list.
+/// Tests only the centre's cell, ignoring out-of-range cells and disabled faces
+/// whose first two vertex indices are zero. Normals use 4096 per unit; edges
+/// must be nonzero with signed-halfword deltas meeting SDK normalization bounds.
+///
+/// Accepts either side of a face within the sphere radius and 10 game units
+/// of outward edge slack. Plane distances narrow to signed halfwords. Each
+/// accepted face takes the first free slot, preserving flags and setting
+/// OCCUPIED; exhaustion stops the walk. Writes radius minus signed plane
+/// distance, the surface/grid key, a zero point and the original grid normal.
+/// Existing contacts remain, including repeated normals. Direct calls bypass
+/// GRID_ENABLED. Storage must be clear of the initialized scratch stack's
+/// 136-byte block and nested queries. Releases its block on every exit,
+/// changes GTE state and retains no pointers.
+void worldCollisionCollideSphereGrid(const WorldCollisionBody* body);
 
-void Gp_CollideObjGridDir(WorldCollisionBody* arg0);
+/// Records direction-filtered grid overlaps for a motion sphere's centre cell.
+///
+/// Requires a kind-4 body and live motion context with a writable initialized
+/// LAST-terminated contact table. Body, direction and active grid must share
+/// the cached transforms' query frame. Cell lists and triangle/quad geometry
+/// meet worldCollisionCollideSphereGrid's bounds. Tests only the centre cell;
+/// out-of-range cells, NULL lists and disabled faces produce no new contacts.
+/// Direct calls bypass GRID_ENABLED and perform no separate floor query.
+///
+/// Rejects grid-normal Y below -3546 (4096 per unit) and direction/rotated-normal
+/// dot products above 2621440 (24 fractional bits). Requires face-plane overlap
+/// within the radius. Outward edge slack is the radius; a centre outside an
+/// edge also needs nonnegative signed face distance and gets GRID_EDGE.
+/// Plane distances narrow to signed halfwords. Matching grid/edge contacts
+/// with the same original normal keep the larger penetration and the earlier
+/// surface key; otherwise fills the first free entry with a zero point and
+/// original grid normal. Exhaustion stops the scan. Reserves/releases a
+/// 136-byte scratch block around nested queries, changes GTE state and retains
+/// no pointers. All borrowed storage must be live and clear of that stack.
+void worldCollisionCollideMotionSphereGrid(const WorldCollisionBody* body);
 
 /// Tests a directed segment against one active-grid triangle or quad.
 ///

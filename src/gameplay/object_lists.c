@@ -339,7 +339,7 @@ void Gp_CollideListGrid(WorldCollisionBody* node)
                     case WORLD_COLLISION_BODY_NONE:
                         break;
                     case WORLD_COLLISION_BODY_SPHERE:
-                        Gp_CollideObjGrid(node);
+                        worldCollisionCollideSphereGrid(node);
                         break;
                     case WORLD_COLLISION_BODY_CONTACT_PROXY:
                         break;
@@ -350,7 +350,7 @@ void Gp_CollideListGrid(WorldCollisionBody* node)
                         if (node->flags & WORLD_COLLISION_BODY_FLOOR_QUERY) {
                             func_800DD940(node);
                         }
-                        Gp_CollideObjGridDir(node);
+                        worldCollisionCollideMotionSphereGrid(node);
                         break;
                 }
             }

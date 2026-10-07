@@ -198,13 +198,81 @@ typedef struct {
 } _WorldCollisionGridSphereScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionGridSphereScratch, 0x88);
 
+// Sphere-query normals, directions and taper ratios use 12 fractional bits.
+enum {
+    WORLD_COLLISION_SPHERE_FRACTION_BITS         = 12,
+    WORLD_COLLISION_SPHERE_UNIT                  = 1 << WORLD_COLLISION_SPHERE_FRACTION_BITS,
+    WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS = 3
+};
+
+/// Builds an outward edge-plane normal in a sphere query's geometry scratch.
+///
+/// `sphereScratch` is a live `_WorldCollisionGridSphereScratch` pointer with face
+/// corners and normal initialized in one query frame. `edgePairIndex` selects
+/// `Gp_FaceEdgePairs`: 0..2 for triangles or 1..4 for quads. Edge XYZ deltas must
+/// fit signed halfwords with squared length in 1..0x7FFFFFFF for normalization.
+/// Writes the Q12 unit edge direction and outward cross-product normal into
+/// geometry.edgeDirection/edgeWork; pad words are untouched. Clobbers GTE
+/// rotation and arithmetic state. Both arguments must be stable expressions,
+/// as they are evaluated repeatedly. Expands to multiple statements: invoke
+/// only within a braced block. No caller-local identifiers are captured.
+#define WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(sphereScratch, edgePairIndex)                                                                                                         \
+    (sphereScratch)->geometry.edgeWork.vx =                                                                                                                                                \
+        (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].endCornerIndex].vx - (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].startCornerIndex].vx; \
+    (sphereScratch)->geometry.edgeWork.vy =                                                                                                                                                \
+        (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].endCornerIndex].vy - (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].startCornerIndex].vy; \
+    (sphereScratch)->geometry.edgeWork.vz =                                                                                                                                                \
+        (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].endCornerIndex].vz - (sphereScratch)->geometry.corners[Gp_FaceEdgePairs[(edgePairIndex)].startCornerIndex].vz; \
+    VectorNormal(&(sphereScratch)->geometry.edgeWork, &(sphereScratch)->geometry.edgeDirection);                                                                                           \
+    gte_ldopv1(&(sphereScratch)->geometry.faceNormal);                                                                                                                                     \
+    gte_ldopv2(&(sphereScratch)->geometry.edgeDirection);                                                                                                                                  \
+    gte_op12();                                                                                                                                                                            \
+    gte_stlvnl(&(sphereScratch)->geometry.edgeWork);
+
+/// Prepares the other sphere's centre and radius sum for a pair-contact writer.
+///
+/// `contact` is writable `_WorldCollisionPairContact` storage, `otherCentre` a
+/// disjoint `VECTOR` in the receiving body's query frame, and `radiusSum` game
+/// units. Narrows XYZ/radius to signed halfwords and zeroes response XYZ;
+/// pad halfwords are untouched. Arguments must be stable, side-effect-free
+/// expressions; evaluated repeatedly. Expands to multiple statements: invoke
+/// only within a braced block. Captures no caller-local identifiers.
+#define WORLD_COLLISION_PREPARE_SPHERE_PAIR_CONTACT(contact, otherCentre, radiusSum) \
+    (contact)->point.vx              = (otherCentre)->vx;                            \
+    (contact)->point.vy              = (otherCentre)->vy;                            \
+    (contact)->point.vz              = (otherCentre)->vz;                            \
+    (contact)->response.direction.vx = 0;                                            \
+    (contact)->response.direction.vy = 0;                                            \
+    (contact)->response.direction.vz = 0;                                            \
+    (contact)->distance              = (radiusSum);
+
+/// Extends a placed capsule segment by the sphere radius along its reverse axis.
+///
+/// `capsuleScratch` is writable `_WorldCollisionCapsuleScratch` storage with the
+/// placed ends and Q12 axis initialized; `sphereRadius` is in game units and
+/// disjoint from the output. The axis displacement narrows to signed halfwords
+/// before extending the VECTOR endpoints. Pad components are untouched.
+/// Arguments must be stable, side-effect-free expressions; evaluated repeatedly.
+/// Expands to multiple statements: invoke only within a braced block. Captures
+/// no caller-local identifiers.
+#define WORLD_COLLISION_EXTEND_CAPSULE_SEGMENT(capsuleScratch, sphereRadius)                                                                         \
+    (capsuleScratch)->work.radiusAlongSegment.vx = ((capsuleScratch)->segmentDirection.vx * (sphereRadius)) >> WORLD_COLLISION_SPHERE_FRACTION_BITS; \
+    (capsuleScratch)->work.radiusAlongSegment.vy = ((capsuleScratch)->segmentDirection.vy * (sphereRadius)) >> WORLD_COLLISION_SPHERE_FRACTION_BITS; \
+    (capsuleScratch)->work.radiusAlongSegment.vz = ((capsuleScratch)->segmentDirection.vz * (sphereRadius)) >> WORLD_COLLISION_SPHERE_FRACTION_BITS; \
+    (capsuleScratch)->extendedEnd0.vx            = (capsuleScratch)->ends[0].vx + (capsuleScratch)->work.radiusAlongSegment.vx;                      \
+    (capsuleScratch)->extendedEnd0.vy            = (capsuleScratch)->ends[0].vy + (capsuleScratch)->work.radiusAlongSegment.vy;                      \
+    (capsuleScratch)->extendedEnd0.vz            = (capsuleScratch)->ends[0].vz + (capsuleScratch)->work.radiusAlongSegment.vz;                      \
+    (capsuleScratch)->extendedEnd1.vx            = (capsuleScratch)->ends[1].vx - (capsuleScratch)->work.radiusAlongSegment.vx;                      \
+    (capsuleScratch)->extendedEnd1.vy            = (capsuleScratch)->ends[1].vy - (capsuleScratch)->work.radiusAlongSegment.vy;                      \
+    (capsuleScratch)->extendedEnd1.vz            = (capsuleScratch)->ends[1].vz - (capsuleScratch)->work.radiusAlongSegment.vz;
+
 s32 Gp_PendingObj4CFlag;
 
-s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind);
+static s32 _worldCollisionCollideSpherePair(WorldCollisionBody* firstBody, WorldCollisionBody* secondBody, s32 handlerIndex);
 
-s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind);
+static s32 _worldCollisionCollideSphereCapsulePair(WorldCollisionBody* sphereBody, WorldCollisionBody* capsuleBody, s32 handlerIndex);
 
-static void Gp_RunPairHandler(WorldCollisionBody* node);
+static void _worldCollisionCollideListPairs(WorldCollisionBody* body);
 
 static void _worldCollisionRecordPairContact(const WorldCollisionBody* receivingBody, const WorldCollisionBody* contactedBody, const _WorldCollisionPairContact* pairContact);
 
@@ -239,9 +307,9 @@ static inline WorldCollisionContact* _worldCollisionGetBodyContacts(const WorldC
 
 WorldCollisionPairHandler Gp_PairHandlers[5] = {
     worldCollisionPairNop,
-    Gp_PairHandler1,
+    _worldCollisionCollideSpherePair,
     worldCollisionPairNop,
-    Gp_PairHandler3,
+    _worldCollisionCollideSphereCapsulePair,
     worldCollisionPairNop,
 };
 WorldCollisionPairRule D_8010FA4C[4][4] = {
@@ -307,13 +375,13 @@ void Gp_TickWorldCollision(Task* unused)
         Gp_CollideLists(Gp_ObjList0, Gp_ObjList3);
         Gp_CollideLists(Gp_ObjList0, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList0, Gp_ObjList8);
-        Gp_RunPairHandler(Gp_ObjList0);
+        _worldCollisionCollideListPairs(Gp_ObjList0);
         Gp_CollideLists(Gp_ObjList1, Gp_ObjList2);
         Gp_CollideLists(Gp_ObjList1, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList1, Gp_ObjList6);
         Gp_CollideLists(Gp_ObjList2, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList2, Gp_ObjList8);
-        Gp_RunPairHandler(Gp_ObjList2);
+        _worldCollisionCollideListPairs(Gp_ObjList2);
         Gp_CollideLists(Gp_ObjList3, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList4, Gp_ObjList8);
         if (Gp_PendingObj4CFlag != 0) {
@@ -328,7 +396,14 @@ void Gp_TickWorldCollision(Task* unused)
     }
 }
 
-static void Gp_RunPairHandler(WorldCollisionBody* node)
+/// Tests each unordered pair of enabled bodies within one collision list.
+///
+/// The borrowed list must be live and acyclic, and enabled bodies must have
+/// kinds 1..4 with initialized shape/context storage. Each body is compared
+/// only with its successors, excluding itself and avoiding duplicate tests.
+/// Rules choose the callback and argument order; callback results are ignored.
+/// The callbacks may write contacts but must preserve this list's links.
+static void _worldCollisionCollideListPairs(WorldCollisionBody* body)
 {
     WorldCollisionBody*           other;
     const WorldCollisionPairRule* rule;
@@ -340,11 +415,11 @@ static void Gp_RunPairHandler(WorldCollisionBody* node)
     u8                            rowIndex;
     u8                            columnIndex;
 
-    for (; node != NULL; node = node->next) {
-        flags = node->flags;
-        other = node->next;
+    for (; body != NULL; body = body->next) {
+        flags = body->flags;
+        other = body->next;
         if (flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
-            rowIndex = (node->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
+            rowIndex = (body->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
             if (other != NULL) {
                 rowOffsetBytes = rowIndex * (s32)sizeof(D_8010FA4C[0]);
                 for (; other != NULL; other = other->next) {
@@ -356,9 +431,9 @@ static void Gp_RunPairHandler(WorldCollisionBody* node)
                         swapBodies   = rule->swapBodies;
                         handlerIndex = rule->handlerIndex;
                         if (swapBodies == false) {
-                            Gp_PairHandlers[handlerIndex](node, other, handlerIndex);
+                            Gp_PairHandlers[handlerIndex](body, other, handlerIndex);
                         } else {
-                            Gp_PairHandlers[handlerIndex](other, node, handlerIndex);
+                            Gp_PairHandlers[handlerIndex](other, body, handlerIndex);
                         }
                     }
                 }
@@ -400,257 +475,265 @@ static void _worldCollisionRecordPairContact(const WorldCollisionBody* receiving
     contactSlot->response  = pairContact->response;
 }
 
-s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
+/// Tests two spherical bodies and offers a reciprocal contact on overlap.
+///
+/// Both bodies may be spheres or motion spheres; their live composed transforms
+/// must use the same frame. Centres and radii use game units. Rejects X/Z
+/// separation above 32767 before comparing squared separation strictly below
+/// the squared radius sum. Returns 1 for overlap even when a zero key, missing
+/// table or exhausted table prevents a contact write; tangency returns 0.
+/// Each receiving entry gets the other centre, zero response and the radius
+/// sum, narrowed to signed halfwords. `handlerIndex` is unused dispatch metadata.
+/// Squared distance and squared radius sum must fit signed 32-bit arithmetic.
+/// Inputs and live contact tables must be clear of the initialized scratch
+/// stack's 72-byte block and nested position-query reservations. Releases its
+/// block on every exit, changes GTE state and retains no new storage.
+static s32 _worldCollisionCollideSpherePair(WorldCollisionBody* firstBody, WorldCollisionBody* secondBody, s32 handlerIndex)
 {
-    u8*                           head;
-    _WorldCollisionSphereScratch* block;
-    s32                           ret;
+    enum { WORLD_COLLISION_SPHERE_PAIR_MAX_HORIZONTAL_DELTA = 0x7FFF };
+    _WorldCollisionSphereScratch* scratch;
+    s32                           overlaps;
 
-    // Reserve the scratch and place both centres in world space.
-    head                                               = SCRATCH_STACK_CURSOR(u8);
-    block                                              = (_WorldCollisionSphereScratch*)(head - sizeof(_WorldCollisionSphereScratch));
-    SCRATCH_STACK_CURSOR(_WorldCollisionSphereScratch) = block;
-    worldCollisionGetBodyComposedPosition(arg0, &block->centre0);
-    worldCollisionGetBodyComposedPosition(arg1, &block->centre1);
+    // Place both centres in their shared cached-transform frame.
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionSphereScratch);
+    worldCollisionGetBodyComposedPosition(firstBody, &scratch->centre0);
+    worldCollisionGetBodyComposedPosition(secondBody, &scratch->centre1);
 
-    ret                   = 0;
-    block->centreDelta.vx = block->centre0.vx - block->centre1.vx;
-    block->centreDelta.vy = block->centre0.vy - block->centre1.vy;
-    block->centreDelta.vz = block->centre0.vz - block->centre1.vz;
+    overlaps                = 0;
+    scratch->centreDelta.vx = scratch->centre0.vx - scratch->centre1.vx;
+    scratch->centreDelta.vy = scratch->centre0.vy - scratch->centre1.vy;
+    scratch->centreDelta.vz = scratch->centre0.vz - scratch->centre1.vz;
     // Reject an X or Z separation beyond a signed halfword.
-    if ((ABS(block->centreDelta.vx) > 0x7FFF) || (ABS(block->centreDelta.vz) > 0x7FFF)) {
+    if ((ABS(scratch->centreDelta.vx) > WORLD_COLLISION_SPHERE_PAIR_MAX_HORIZONTAL_DELTA) || (ABS(scratch->centreDelta.vz) > WORLD_COLLISION_SPHERE_PAIR_MAX_HORIZONTAL_DELTA)) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionSphereScratch);
         return 0;
     }
 
-    block->radiusSum = arg0->radius + arg1->radius;
-    if (block->centreDelta.vx * block->centreDelta.vx + block->centreDelta.vy * block->centreDelta.vy + block->centreDelta.vz * block->centreDelta.vz < block->radiusSum * block->radiusSum) {
+    scratch->radiusSum = firstBody->radius + secondBody->radius;
+    if (scratch->centreDelta.vx * scratch->centreDelta.vx + scratch->centreDelta.vy * scratch->centreDelta.vy + scratch->centreDelta.vz * scratch->centreDelta.vz < scratch->radiusSum * scratch->radiusSum) {
         // Each body records the other centre, a zero response and the radius sum.
-        block->contact.point.vx              = block->centre1.vx;
-        block->contact.point.vy              = block->centre1.vy;
-        block->contact.point.vz              = block->centre1.vz;
-        block->contact.response.direction.vx = 0;
-        block->contact.response.direction.vy = 0;
-        block->contact.response.direction.vz = 0;
-        block->contact.distance              = block->radiusSum;
-        _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
-        ret = 1;
+        WORLD_COLLISION_PREPARE_SPHERE_PAIR_CONTACT(&scratch->contact, &scratch->centre1, scratch->radiusSum);
+        _worldCollisionRecordPairContact(firstBody, secondBody, &scratch->contact);
+        overlaps = 1;
 
-        block->contact.point.vx              = block->centre0.vx;
-        block->contact.point.vy              = block->centre0.vy;
-        block->contact.point.vz              = block->centre0.vz;
-        block->contact.response.direction.vx = 0;
-        block->contact.response.direction.vy = 0;
-        block->contact.response.direction.vz = 0;
-        block->contact.distance              = block->radiusSum;
-        _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
+        WORLD_COLLISION_PREPARE_SPHERE_PAIR_CONTACT(&scratch->contact, &scratch->centre0, scratch->radiusSum);
+        _worldCollisionRecordPairContact(secondBody, firstBody, &scratch->contact);
     }
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionSphereScratch);
-    return ret;
+    return overlaps;
 }
 
-s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
+/// Tests a spherical body against a capsule segment or taper and offers contacts.
+///
+/// `sphereBody` may be a sphere or motion sphere; `capsuleBody` must be kind 3 with
+/// a live capsule. Both cached transforms and any clipping contact must share
+/// a composition frame. Positions/radii use game units; axis products and taper
+/// ratios use 12 fractional bits. Segment placement may substitute an earlier
+/// contact for endpoint 0. The centre must pass the axial bounds extended by
+/// the sphere radius and the strict combined-radius test about the axis.
+/// A taper requires a nonzero endpoint-1 radius and geometric segment length.
+/// Segment deltas must meet the SDK normalization bounds; arithmetic must fit
+/// its signed 32-bit intermediates. Returns 1 for geometric overlap regardless
+/// of whether the contact tables accept writes; `handlerIndex` is unused.
+///
+/// The sphere receives endpoint 1 and the reverse segment axis. The capsule
+/// receives the nearest axis point, or the sphere centre for a taper, and the
+/// sphere body's encoded address in SINGLE_CONTACT mode. Contact components
+/// narrow to signed halfwords. Both LAST-terminated tables and any retained
+/// reciprocal body address must remain live. Storage must be clear of the
+/// initialized scratch stack's 140-byte block and nested queries; the block
+/// is released on every exit. Changes GTE state and borrows all input storage.
+static s32 _worldCollisionCollideSphereCapsulePair(WorldCollisionBody* sphereBody, WorldCollisionBody* capsuleBody, s32 handlerIndex)
 {
-    _WorldCollisionBodyAddress     sourceAddress;
-    u8*                            head;
-    _WorldCollisionCapsuleScratch* block;
-    WorldCollisionCapsule*         rec;
-    s32                            proj;
-    s32                            ret;
-    s32                            tapered;
+    _WorldCollisionCapsuleScratch* scratchEnd;
+    _WorldCollisionCapsuleScratch* scratch;
+    const WorldCollisionCapsule*   capsule;
+    s32                            axisWork; // Axis distance, segment length, Q12 taper fraction, then combined radius
+    s32                            overlaps;
+    s32                            isTapered;
     VECTOR*                        sphereCenter;
     s32                            radiusSquared;
-    s32                            dx0;
-    s32                            dy0;
-    s32                            dz0;
-    s32                            dx1;
-    s32                            dy1;
-    s32                            dz1;
-    s32                            dx2;
-    s32                            dy2;
-    s32                            dz2;
-    s32                            dx3;
-    s32                            dy3;
-    s32                            dz3;
-    s32                            dx4;
-    s32                            dy4;
-    s32                            dz4;
-    s32                            len;
-    s32                            plen;
-    s32                            r0;
-    s32                            r1;
-    s32                            tmp; // combined radius on a straight capsule, taper ratio less 1.0 on a tapered one
+    s32                            end0ProjectionX;
+    s32                            end0ProjectionY;
+    s32                            end0ProjectionZ;
+    s32                            end1ProjectionX;
+    s32                            end1ProjectionY;
+    s32                            end1ProjectionZ;
+    s32                            segmentSquareX;
+    s32                            segmentSquareY;
+    s32                            segmentSquareZ;
+    s32                            projectionSquareX;
+    s32                            projectionSquareY;
+    s32                            projectionSquareZ;
+    s32                            separationSquareX;
+    s32                            separationSquareY;
+    s32                            separationSquareZ;
+    s32                            segmentLength;
+    s32                            projectionLength;
+    s32                            radiusRatioQ12;
+    s32                            radiusWork;    // Capsule endpoint-0 radius, then sphere radius; game units
+    s32                            radiusOrSlope; // Combined radius in game units, or Q12 taper slope
 
     // Address the centre from the cursor before the reservation is stored.
-    // Taking &block->sphereCenter after that store does not keep this order.
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    sphereCenter               = &((_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch)))->sphereCenter;
-    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionCapsuleScratch);
-    rec                        = arg1->context.capsule;
-    block                      = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
-    // Place the sphere centre and the capsule segment in world space.
-    worldCollisionGetBodyComposedPosition(arg0, sphereCenter);
-    worldCollisionPlaceCapsuleSegment(arg1, block->ends, &block->segmentDirection, WORLD_COLLISION_CAPSULE_SEGMENT_PAIR_TEST);
+    // Taking &scratch->sphereCenter after that store does not keep this order.
+    scratchEnd                                          = SCRATCH_STACK_CURSOR(_WorldCollisionCapsuleScratch);
+    sphereCenter                                        = &(scratchEnd - 1)->sphereCenter;
+    SCRATCH_STACK_CURSOR(_WorldCollisionCapsuleScratch) = scratchEnd - 1;
+    capsule                                             = capsuleBody->context.capsule;
+    scratch                                             = scratchEnd - 1;
+    // Place the sphere and segment in their shared cached-transform frame.
+    worldCollisionGetBodyComposedPosition(sphereBody, sphereCenter);
+    worldCollisionPlaceCapsuleSegment(capsuleBody, scratch->ends, &scratch->segmentDirection, WORLD_COLLISION_CAPSULE_SEGMENT_PAIR_TEST);
 
-    block->work.radiusAlongSegment.vx = (block->segmentDirection.vx * arg0->radius) >> 12;
-    block->work.radiusAlongSegment.vy = (block->segmentDirection.vy * arg0->radius) >> 12;
-    block->work.radiusAlongSegment.vz = (block->segmentDirection.vz * arg0->radius) >> 12;
-
-    block->extendedEnd0.vx = block->ends[0].vx + block->work.radiusAlongSegment.vx;
-    block->extendedEnd0.vy = block->ends[0].vy + block->work.radiusAlongSegment.vy;
-    block->extendedEnd0.vz = block->ends[0].vz + block->work.radiusAlongSegment.vz;
-    block->extendedEnd1.vx = block->ends[1].vx - block->work.radiusAlongSegment.vx;
-    block->extendedEnd1.vy = block->ends[1].vy - block->work.radiusAlongSegment.vy;
-    block->extendedEnd1.vz = block->ends[1].vz - block->work.radiusAlongSegment.vz;
+    WORLD_COLLISION_EXTEND_CAPSULE_SEGMENT(scratch, sphereBody->radius);
 
     // Reject a centre outside the segment extended by the sphere radius.
-    dx0 = (block->sphereCenter.vx - block->extendedEnd0.vx) * block->segmentDirection.vx;
-    dy0 = (block->sphereCenter.vy - block->extendedEnd0.vy) * block->segmentDirection.vy;
-    dz0 = (block->sphereCenter.vz - block->extendedEnd0.vz) * block->segmentDirection.vz;
-    ret = 0;
-    if (dx0 + dy0 + dz0 > 0) {
+    end0ProjectionX = (scratch->sphereCenter.vx - scratch->extendedEnd0.vx) * scratch->segmentDirection.vx;
+    end0ProjectionY = (scratch->sphereCenter.vy - scratch->extendedEnd0.vy) * scratch->segmentDirection.vy;
+    end0ProjectionZ = (scratch->sphereCenter.vz - scratch->extendedEnd0.vz) * scratch->segmentDirection.vz;
+    overlaps        = 0;
+    if (end0ProjectionX + end0ProjectionY + end0ProjectionZ > 0) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
         return 0;
     }
 
-    dx1  = (block->sphereCenter.vx - block->extendedEnd1.vx) * block->segmentDirection.vx;
-    dy1  = (block->sphereCenter.vy - block->extendedEnd1.vy) * block->segmentDirection.vy;
-    dz1  = (block->sphereCenter.vz - block->extendedEnd1.vz) * block->segmentDirection.vz;
-    proj = (dx1 + dy1 + dz1) >> 12;
-    if (proj <= 0) {
+    end1ProjectionX = (scratch->sphereCenter.vx - scratch->extendedEnd1.vx) * scratch->segmentDirection.vx;
+    end1ProjectionY = (scratch->sphereCenter.vy - scratch->extendedEnd1.vy) * scratch->segmentDirection.vy;
+    end1ProjectionZ = (scratch->sphereCenter.vz - scratch->extendedEnd1.vz) * scratch->segmentDirection.vz;
+    axisWork        = (end1ProjectionX + end1ProjectionY + end1ProjectionZ) >> WORLD_COLLISION_SPHERE_FRACTION_BITS;
+    if (axisWork <= 0) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
         return 0;
     }
 
-    r1      = rec->end0Radius;
-    tapered = r1 != rec->end1Radius;
+    radiusWork = capsule->end0Radius;
+    isTapered  = radiusWork != capsule->end1Radius;
     // Equal radii share one combined radius. A taper restores geometric
     // endpoint 0 when a contact replaced it, then interpolates the radius.
-    if (!tapered) {
-        tmp                 = arg0->radius + r1;
-        block->axisPoint.vx = (u16)block->extendedEnd1.vx + ((block->segmentDirection.vx * proj) >> 12);
-        block->axisPoint.vy = (u16)block->extendedEnd1.vy + ((block->segmentDirection.vy * proj) >> 12);
-        block->axisPoint.vz = (u16)block->extendedEnd1.vz + ((block->segmentDirection.vz * proj) >> 12);
-        proj                = tmp;
+    // Narrow translated positions before halfword sums, avoiding full-word overflow.
+    if (!isTapered) {
+        radiusOrSlope         = sphereBody->radius + radiusWork;
+        scratch->axisPoint.vx = (u16)scratch->extendedEnd1.vx + ((scratch->segmentDirection.vx * axisWork) >> WORLD_COLLISION_SPHERE_FRACTION_BITS);
+        scratch->axisPoint.vy = (u16)scratch->extendedEnd1.vy + ((scratch->segmentDirection.vy * axisWork) >> WORLD_COLLISION_SPHERE_FRACTION_BITS);
+        scratch->axisPoint.vz = (u16)scratch->extendedEnd1.vz + ((scratch->segmentDirection.vz * axisWork) >> WORLD_COLLISION_SPHERE_FRACTION_BITS);
+        axisWork              = radiusOrSlope;
     } else {
-        if (arg1->flags & (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT)) {
-            gte_SetRotMatrix(&arg1->coord->workm);
-            block->work.localEndpoint.vx = (u16)rec->ends[0].vx + (u16)arg1->pos.vx;
-            block->work.localEndpoint.vy = (u16)rec->ends[0].vy + (u16)arg1->pos.vy;
-            block->work.localEndpoint.vz = (u16)rec->ends[0].vz + (u16)arg1->pos.vz;
-            gte_ldv0(&block->work.localEndpoint);
+        if (capsuleBody->flags & (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT)) {
+            gte_SetRotMatrix(&capsuleBody->coord->workm);
+            scratch->work.localEndpoint.vx = capsule->ends[0].vx + capsuleBody->pos.vx;
+            scratch->work.localEndpoint.vy = capsule->ends[0].vy + capsuleBody->pos.vy;
+            scratch->work.localEndpoint.vz = capsule->ends[0].vz + capsuleBody->pos.vz;
+            gte_ldv0(&scratch->work.localEndpoint);
             gte_rtv0();
-            gte_stlvnl(&block->ends[0]);
-            block->ends[0].vx += (arg1->coord)->workm.t[0];
-            block->ends[0].vy += (arg1->coord)->workm.t[1];
-            block->ends[0].vz += (arg1->coord)->workm.t[2];
+            gte_stlvnl(&scratch->ends[0]);
+            scratch->ends[0].vx += capsuleBody->coord->workm.t[0];
+            scratch->ends[0].vy += capsuleBody->coord->workm.t[1];
+            scratch->ends[0].vz += capsuleBody->coord->workm.t[2];
         }
 
-        block->segmentDelta.vx = block->ends[0].vx - block->ends[1].vx;
-        block->segmentDelta.vy = block->ends[0].vy - block->ends[1].vy;
-        block->segmentDelta.vz = block->ends[0].vz - block->ends[1].vz;
-        dx2                    = block->segmentDelta.vx * block->segmentDelta.vx;
-        dy2                    = block->segmentDelta.vy * block->segmentDelta.vy;
-        dz2                    = block->segmentDelta.vz * block->segmentDelta.vz;
-        len                    = SquareRoot0(dx2 + dy2 + dz2);
+        scratch->segmentDelta.vx = scratch->ends[0].vx - scratch->ends[1].vx;
+        scratch->segmentDelta.vy = scratch->ends[0].vy - scratch->ends[1].vy;
+        scratch->segmentDelta.vz = scratch->ends[0].vz - scratch->ends[1].vz;
+        segmentSquareX           = scratch->segmentDelta.vx * scratch->segmentDelta.vx;
+        segmentSquareY           = scratch->segmentDelta.vy * scratch->segmentDelta.vy;
+        segmentSquareZ           = scratch->segmentDelta.vz * scratch->segmentDelta.vz;
+        segmentLength            = SquareRoot0(segmentSquareX + segmentSquareY + segmentSquareZ);
 
-        block->work.projectionOffset.vx = (block->segmentDirection.vx * proj) >> 12;
-        block->work.projectionOffset.vy = (block->segmentDirection.vy * proj) >> 12;
-        block->work.projectionOffset.vz = (block->segmentDirection.vz * proj) >> 12;
-        dx3                             = block->work.projectionOffset.vx * block->work.projectionOffset.vx;
-        dy3                             = block->work.projectionOffset.vy * block->work.projectionOffset.vy;
-        dz3                             = block->work.projectionOffset.vz * block->work.projectionOffset.vz;
-        proj                            = len;
-        plen                            = SquareRoot0(dx3 + dy3 + dz3);
+        scratch->work.projectionOffset.vx = (scratch->segmentDirection.vx * axisWork) >> WORLD_COLLISION_SPHERE_FRACTION_BITS;
+        scratch->work.projectionOffset.vy = (scratch->segmentDirection.vy * axisWork) >> WORLD_COLLISION_SPHERE_FRACTION_BITS;
+        scratch->work.projectionOffset.vz = (scratch->segmentDirection.vz * axisWork) >> WORLD_COLLISION_SPHERE_FRACTION_BITS;
+        projectionSquareX                 = scratch->work.projectionOffset.vx * scratch->work.projectionOffset.vx;
+        projectionSquareY                 = scratch->work.projectionOffset.vy * scratch->work.projectionOffset.vy;
+        projectionSquareZ                 = scratch->work.projectionOffset.vz * scratch->work.projectionOffset.vz;
+        axisWork                          = segmentLength;
+        projectionLength                  = SquareRoot0(projectionSquareX + projectionSquareY + projectionSquareZ);
 
-        r0                  = (rec->end0Radius << 12) / rec->end1Radius;
-        proj                = (plen << 12) / proj;
-        tmp                 = r0 - 0x1000;
-        r1                  = arg0->radius;
-        proj                = r1 + ((((tmp * proj) >> 12) * rec->end1Radius >> 12) + rec->end1Radius);
-        block->axisPoint.vx = (u16)block->work.projectionOffset.vx + (u16)block->extendedEnd1.vx;
-        block->axisPoint.vy = (u16)block->work.projectionOffset.vy + (u16)block->extendedEnd1.vy;
-        block->axisPoint.vz = (u16)block->work.projectionOffset.vz + (u16)block->extendedEnd1.vz;
+        radiusRatioQ12        = (capsule->end0Radius << WORLD_COLLISION_SPHERE_FRACTION_BITS) / capsule->end1Radius;
+        axisWork              = (projectionLength << WORLD_COLLISION_SPHERE_FRACTION_BITS) / axisWork;
+        radiusOrSlope         = radiusRatioQ12 - WORLD_COLLISION_SPHERE_UNIT;
+        radiusWork            = sphereBody->radius;
+        axisWork              = radiusWork + ((((radiusOrSlope * axisWork) >> WORLD_COLLISION_SPHERE_FRACTION_BITS) * capsule->end1Radius >> WORLD_COLLISION_SPHERE_FRACTION_BITS) + capsule->end1Radius);
+        scratch->axisPoint.vx = scratch->work.projectionOffset.vx + (u16)scratch->extendedEnd1.vx;
+        scratch->axisPoint.vy = scratch->work.projectionOffset.vy + (u16)scratch->extendedEnd1.vy;
+        scratch->axisPoint.vz = scratch->work.projectionOffset.vz + (u16)scratch->extendedEnd1.vz;
     }
 
-    block->work.centreToAxis.vx = (u16)block->axisPoint.vx - (u16)block->sphereCenter.vx;
-    block->work.centreToAxis.vy = (u16)block->axisPoint.vy - (u16)block->sphereCenter.vy;
-    block->work.centreToAxis.vz = (u16)block->axisPoint.vz - (u16)block->sphereCenter.vz;
-    dx4                         = block->work.centreToAxis.vx * block->work.centreToAxis.vx;
-    dy4                         = block->work.centreToAxis.vy * block->work.centreToAxis.vy;
-    dz4                         = block->work.centreToAxis.vz * block->work.centreToAxis.vz;
-    radiusSquared               = proj * proj;
-    if (dx4 + dy4 + dz4 < radiusSquared) {
+    scratch->work.centreToAxis.vx = scratch->axisPoint.vx - (u16)scratch->sphereCenter.vx;
+    scratch->work.centreToAxis.vy = scratch->axisPoint.vy - (u16)scratch->sphereCenter.vy;
+    scratch->work.centreToAxis.vz = scratch->axisPoint.vz - (u16)scratch->sphereCenter.vz;
+    separationSquareX             = scratch->work.centreToAxis.vx * scratch->work.centreToAxis.vx;
+    separationSquareY             = scratch->work.centreToAxis.vy * scratch->work.centreToAxis.vy;
+    separationSquareZ             = scratch->work.centreToAxis.vz * scratch->work.centreToAxis.vz;
+    radiusSquared                 = axisWork * axisWork;
+    if (separationSquareX + separationSquareY + separationSquareZ < radiusSquared) {
         // The sphere records endpoint 1 and the segment direction. The capsule
         // records the axis point, or the sphere centre when the capsule tapers.
-        block->contact.distance              = 0;
-        block->contact.point.vx              = (u16)block->ends[1].vx;
-        block->contact.point.vy              = (u16)block->ends[1].vy;
-        block->contact.point.vz              = (u16)block->ends[1].vz;
-        block->contact.response.direction.vx = (u16)block->segmentDirection.vx;
-        block->contact.response.direction.vy = (u16)block->segmentDirection.vy;
-        block->contact.response.direction.vz = (u16)block->segmentDirection.vz;
-        _worldCollisionRecordPairContact(arg0, arg1, &block->contact);
-        if (!tapered) {
-            block->contact.point = block->axisPoint;
+        scratch->contact.distance              = 0;
+        scratch->contact.point.vx              = scratch->ends[1].vx;
+        scratch->contact.point.vy              = scratch->ends[1].vy;
+        scratch->contact.point.vz              = scratch->ends[1].vz;
+        scratch->contact.response.direction.vx = scratch->segmentDirection.vx;
+        scratch->contact.response.direction.vy = scratch->segmentDirection.vy;
+        scratch->contact.response.direction.vz = scratch->segmentDirection.vz;
+        _worldCollisionRecordPairContact(sphereBody, capsuleBody, &scratch->contact);
+        if (!isTapered) {
+            scratch->contact.point = scratch->axisPoint;
         } else {
-            block->contact.point.vx = (u16)block->sphereCenter.vx;
-            block->contact.point.vy = (u16)block->sphereCenter.vy;
-            block->contact.point.vz = (u16)block->sphereCenter.vz;
+            scratch->contact.point.vx = scratch->sphereCenter.vx;
+            scratch->contact.point.vy = scratch->sphereCenter.vy;
+            scratch->contact.point.vz = scratch->sphereCenter.vz;
         }
-        if (arg1->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
-            sourceAddress.object                     = arg0;
-            block->contact.response.bodyAddress.low  = sourceAddress.address;
-            block->contact.response.bodyAddress.high = sourceAddress.address >> 16;
+        if (capsuleBody->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
+            s32 sphereAddress                          = (s32)sphereBody;
+            scratch->contact.response.bodyAddress.low  = sphereAddress;
+            scratch->contact.response.bodyAddress.high = sphereAddress >> 16;
         } else {
-            block->contact.response.direction.vx = 0;
-            block->contact.response.direction.vy = 0;
+            scratch->contact.response.direction.vx = 0;
+            scratch->contact.response.direction.vy = 0;
         }
-        block->contact.response.direction.vz = 0;
-        block->contact.distance              = 0;
-        _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
-        ret = 1;
+        scratch->contact.response.direction.vz = 0;
+        scratch->contact.distance              = 0;
+        _worldCollisionRecordPairContact(capsuleBody, sphereBody, &scratch->contact);
+        overlaps = 1;
     }
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
-    return ret;
+    return overlaps;
 }
 
-void Gp_CollideObjGrid(WorldCollisionBody* arg0)
+void worldCollisionCollideSphereGrid(const WorldCollisionBody* body)
 {
-    u8*                               head;
+    enum { WORLD_COLLISION_SPHERE_GRID_EDGE_TOLERANCE = 10 };
     _WorldCollisionGridSphereScratch* scratch;
-    WorldCollisionGridFace*           face;
-    WorldCollisionContact*            slot;
-    s16*                              cell;
-    s32                               id;
-    s32                               i;
-    s32                               n;
-    s32                               outside;
-    s32                               val;
-    s32                               faceDot;
-    s32                               edgeDot;
-    u16                               dist;
-    u16                               flags;
+    const WorldCollisionGridFace*     face;
+    WorldCollisionContact*            contact;
+    const s16*                        faceIds;
+    s32                               faceIndex;
+    s32                               geometryIndex;
+    s32                               cornerCount;
+    s32                               isOutside;
+    s32                               edgeDistance;
+    s32                               facePlaneOffset;
+    s32                               edgePlaneOffset;
+    u16                               planeDistanceBits;
+    u16                               contactFlags;
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
-    scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
-    worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridSphereScratch);
+    worldCollisionGetBodyComposedPosition(body, &scratch->centre);
     worldCollisionViewToCell(&scratch->centre, &scratch->gridCell);
 
     if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
-        cell = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
-        if (cell != NULL) {
+        faceIds = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
+        if (faceIds != NULL) {
             for (;;) {
-                id = *cell;
-                if (id == WORLD_COLLISION_GRID_CELL_END) {
+                faceIndex = *faceIds;
+                if (faceIndex == WORLD_COLLISION_GRID_CELL_END) {
                     goto done;
                 }
-                face = &Gp_GridParams->faces[id];
+                face = &Gp_GridParams->faces[faceIndex];
                 if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
-                    cell++;
+                    faceIds++;
                     continue;
                 }
 
@@ -667,90 +750,80 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
                 gte_rtv0();
                 gte_stlvnl(&scratch->geometry.faceNormal);
 
-                faceDot = (scratch->geometry.faceNormal.vx * scratch->geometry.corners[0].vx + scratch->geometry.faceNormal.vy * scratch->geometry.corners[0].vy +
-                           scratch->geometry.faceNormal.vz * scratch->geometry.corners[0].vz) >>
-                          12;
-                dist = ((scratch->geometry.faceNormal.vx * scratch->centre.vx + scratch->geometry.faceNormal.vy * scratch->centre.vy +
-                         scratch->geometry.faceNormal.vz * scratch->centre.vz) >>
-                        12) -
-                       faceDot;
-                if (arg0->radius >= ABS((s16)dist)) {
+                facePlaneOffset = (scratch->geometry.faceNormal.vx * scratch->geometry.corners[0].vx + scratch->geometry.faceNormal.vy * scratch->geometry.corners[0].vy +
+                                   scratch->geometry.faceNormal.vz * scratch->geometry.corners[0].vz) >>
+                                  12;
+                planeDistanceBits = ((scratch->geometry.faceNormal.vx * scratch->centre.vx + scratch->geometry.faceNormal.vy * scratch->centre.vy +
+                                      scratch->geometry.faceNormal.vz * scratch->centre.vz) >>
+                                     12) -
+                                    facePlaneOffset;
+                if (body->radius >= ABS((s16)planeDistanceBits)) {
                     goto edges;
                 }
                 goto next_face;
 
             mark_outside:
-                outside = 1;
+                isOutside = 1;
                 goto edges_done;
 
             fill:
-                slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                slot->distance           = arg0->radius - dist;
-                slot->key.value          = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                slot->point.vx           = 0;
-                slot->point.vy           = 0;
-                slot->point.vz           = 0;
-                slot->response.direction = Gp_GridParams->normals[face->normalIndex];
+                contact->flags              = contactFlags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                contact->distance           = body->radius - planeDistanceBits;
+                contact->key.value          = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                contact->point.vx           = 0;
+                contact->point.vy           = 0;
+                contact->point.vz           = 0;
+                contact->response.direction = Gp_GridParams->normals[face->normalIndex];
                 goto next_face;
 
             edges:
-                n = (face->vertexIndices[3] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 4 : 3;
-                for (i = 1; i < n; i++) {
-                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
+                cornerCount = (face->vertexIndices[ARRAY_SIZE(face->vertexIndices) - 1] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? (s32)ARRAY_SIZE(face->vertexIndices) : WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS;
+                for (geometryIndex = 1; geometryIndex < cornerCount; geometryIndex++) {
+                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[geometryIndex]]);
                     gte_rtv0();
-                    gte_stlvnl(&scratch->geometry.corners[i]);
-                    scratch->geometry.corners[i].vx += Gp_GridParams->viewCoord->workm.t[0];
-                    scratch->geometry.corners[i].vy += Gp_GridParams->viewCoord->workm.t[1];
-                    scratch->geometry.corners[i].vz += Gp_GridParams->viewCoord->workm.t[2];
+                    gte_stlvnl(&scratch->geometry.corners[geometryIndex]);
+                    scratch->geometry.corners[geometryIndex].vx += Gp_GridParams->viewCoord->workm.t[0];
+                    scratch->geometry.corners[geometryIndex].vy += Gp_GridParams->viewCoord->workm.t[1];
+                    scratch->geometry.corners[geometryIndex].vz += Gp_GridParams->viewCoord->workm.t[2];
                 }
 
-                outside = 0;
-                // Reuse the displacement slot for each edge's outward Q12 plane normal.
-                for (i = n - 3; i < n * 2 - 3; i++) {
-                    scratch->geometry.edgeWork.vx =
-                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vx;
-                    scratch->geometry.edgeWork.vy =
-                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vy;
-                    scratch->geometry.edgeWork.vz =
-                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vz;
-                    VectorNormal(&scratch->geometry.edgeWork, &scratch->geometry.edgeDirection);
-                    gte_ldopv1(&scratch->geometry.faceNormal);
-                    gte_ldopv2(&scratch->geometry.edgeDirection);
-                    gte_op12();
-                    gte_stlvnl(&scratch->geometry.edgeWork);
+                isOutside = 0;
+                // Test the centre against the outward planes of the face edges.
+                for (geometryIndex = cornerCount - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex < cornerCount * 2 - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex++) {
+                    WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(scratch, geometryIndex);
 
-                    edgeDot = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx +
-                               scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy +
-                               scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
-                              12;
-                    val = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
-                                  scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
-                                 12) -
-                                edgeDot);
-                    if (val - 10 > 0) {
+                    edgePlaneOffset = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vx +
+                                       scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vy +
+                                       scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vz) >>
+                                      12;
+                    edgeDistance = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
+                                           scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
+                                          12) -
+                                         edgePlaneOffset);
+                    if (edgeDistance - WORLD_COLLISION_SPHERE_GRID_EDGE_TOLERANCE > 0) {
                         goto mark_outside;
                     }
                 }
             edges_done:
-                if (outside) {
-                    cell++;
+                if (isOutside) {
+                    faceIds++;
                     continue;
                 }
 
-                slot = arg0->context.contacts;
+                contact = body->context.contacts;
                 for (;;) {
-                    flags = slot->flags;
-                    if (!(flags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
+                    contactFlags = contact->flags;
+                    if (!(contactFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
                         goto fill;
                     }
-                    if (flags & WORLD_COLLISION_CONTACT_LAST) {
+                    if (contactFlags & WORLD_COLLISION_CONTACT_LAST) {
                         goto done;
                     }
-                    slot++;
+                    contact++;
                 }
 
             next_face:
-                cell++;
+                faceIds++;
             }
         }
     }
@@ -759,42 +832,57 @@ done:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionGridSphereScratch));
 }
 
-/// Tests the moving sphere of `arg0` against every face listed for its grid
-/// cell and records or deepens a contact for each face it touches; stops when
-/// the contact slots run out.
-static inline void _worldCollisionCollideMovingSphereCell(WorldCollisionBody* arg0, _WorldCollisionGridSphereScratch* scratch,
-                                                          WorldCollisionMotionContext* motionContext)
+/// Tests a motion sphere against its prepared grid cell and merges its contacts.
+///
+/// `body` must be kind 4 and `motionContext` its live context. `scratch` belongs to
+/// the caller: its centre and gridCell are initialized, with centre, direction
+/// and the grid's composed view transform in one query frame. This walk borrows
+/// the geometry tail without reserving or releasing the caller's block.
+/// Out-of-range cells and NULL lists are ignored. Face lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`;
+/// mesh indices and triangle/quad edges must be valid and nondegenerate, with
+/// edge deltas meeting the SDK normalization bounds. Contacts are writable and
+/// LAST-terminated. Stops on exhaustion; changes GTE state, retains no pointers.
+static inline void _worldCollisionCollideMotionSphereCell(const WorldCollisionBody* body, _WorldCollisionGridSphereScratch* scratch,
+                                                          const WorldCollisionMotionContext* motionContext)
 {
-    WorldCollisionGridFace* face;
-    WorldCollisionContact*  slot;
-    s16*                    cell;
-    s32                     id;
-    s32                     i;
-    s32                     n;
-    s32                     outside;
-    s32                     val;
-    s32                     faceDot;
-    s32                     edgeDot;
-    u16                     dist;
-    s32                     extra;
-    s32                     faceKind;
-    u16                     flags;
+    // The direction/normal dot is Q24; the grid-normal component is Q12.
+    // Contact matching ignores the low-byte surface class but retains response bits.
+    enum {
+        WORLD_COLLISION_MOTION_SPHERE_MIN_GRID_NORMAL_Y  = -0xDDA,
+        WORLD_COLLISION_MOTION_SPHERE_MAX_RECEDING_DOT   = 0x280000,
+        WORLD_COLLISION_MOTION_SPHERE_CONTACT_CLASS_MASK = ~0xFF
+    };
+    const WorldCollisionGridFace* face;
+    WorldCollisionContact*        contact;
+    const s16*                    faceIds;
+    s32                           faceIndex;
+    s32                           geometryIndex;
+    s32                           cornerCount;
+    s32                           isOutside;
+    s32                           edgeDistance;
+    s32                           facePlaneOffset;
+    s32                           edgePlaneOffset;
+    u16                           planeDistanceBits;
+    s32                           edgeContactFlag;
+    s32                           faceContactKey;
+    u16                           contactFlags;
 
     if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
-        cell = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
-        if (cell != NULL) {
+        faceIds = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
+        if (faceIds != NULL) {
             for (;;) {
-                id = *cell;
-                if (id == WORLD_COLLISION_GRID_CELL_END) {
+                faceIndex = *faceIds;
+                if (faceIndex == WORLD_COLLISION_GRID_CELL_END) {
                     return;
                 }
-                face = &Gp_GridParams->faces[id];
+                face = &Gp_GridParams->faces[faceIndex];
                 if (face->vertexIndices[0] == 0 && face->vertexIndices[1] == 0) {
-                    cell++;
+                    faceIds++;
                     continue;
                 }
-                if (Gp_GridParams->normals[face->normalIndex].vy < -0xDDA) {
-                    cell++;
+                if (Gp_GridParams->normals[face->normalIndex].vy < WORLD_COLLISION_MOTION_SPHERE_MIN_GRID_NORMAL_Y) {
+                    faceIds++;
                     continue;
                 }
 
@@ -813,121 +901,109 @@ static inline void _worldCollisionCollideMovingSphereCell(WorldCollisionBody* ar
 
                 if (motionContext->motionDirection.vx * scratch->geometry.faceNormal.vx + motionContext->motionDirection.vy * scratch->geometry.faceNormal.vy +
                         motionContext->motionDirection.vz * scratch->geometry.faceNormal.vz >
-                    0x280000) {
-                    cell++;
+                    WORLD_COLLISION_MOTION_SPHERE_MAX_RECEDING_DOT) {
+                    faceIds++;
                     continue;
                 }
 
-                faceDot = (scratch->geometry.faceNormal.vx * scratch->geometry.corners[0].vx + scratch->geometry.faceNormal.vy * scratch->geometry.corners[0].vy +
-                           scratch->geometry.faceNormal.vz * scratch->geometry.corners[0].vz) >>
-                          12;
-                dist = ((scratch->geometry.faceNormal.vx * scratch->centre.vx + scratch->geometry.faceNormal.vy * scratch->centre.vy +
-                         scratch->geometry.faceNormal.vz * scratch->centre.vz) >>
-                        12) -
-                       faceDot;
-                if (arg0->radius < ABS((s16)dist)) {
-                    cell++;
+                facePlaneOffset = (scratch->geometry.faceNormal.vx * scratch->geometry.corners[0].vx + scratch->geometry.faceNormal.vy * scratch->geometry.corners[0].vy +
+                                   scratch->geometry.faceNormal.vz * scratch->geometry.corners[0].vz) >>
+                                  12;
+                planeDistanceBits = ((scratch->geometry.faceNormal.vx * scratch->centre.vx + scratch->geometry.faceNormal.vy * scratch->centre.vy +
+                                      scratch->geometry.faceNormal.vz * scratch->centre.vz) >>
+                                     12) -
+                                    facePlaneOffset;
+                if (body->radius < ABS((s16)planeDistanceBits)) {
+                    faceIds++;
                     continue;
                 }
 
-                n = (face->vertexIndices[3] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? 4 : 3;
-                for (i = 1; i < n; i++) {
-                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[i]]);
+                cornerCount = (face->vertexIndices[ARRAY_SIZE(face->vertexIndices) - 1] != WORLD_COLLISION_GRID_FACE_NO_VERTEX) ? (s32)ARRAY_SIZE(face->vertexIndices) : WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS;
+                for (geometryIndex = 1; geometryIndex < cornerCount; geometryIndex++) {
+                    gte_ldv0(&Gp_GridParams->vertices[face->vertexIndices[geometryIndex]]);
                     gte_rtv0();
-                    gte_stlvnl(&scratch->geometry.corners[i]);
-                    scratch->geometry.corners[i].vx += Gp_GridParams->viewCoord->workm.t[0];
-                    scratch->geometry.corners[i].vy += Gp_GridParams->viewCoord->workm.t[1];
-                    scratch->geometry.corners[i].vz += Gp_GridParams->viewCoord->workm.t[2];
+                    gte_stlvnl(&scratch->geometry.corners[geometryIndex]);
+                    scratch->geometry.corners[geometryIndex].vx += Gp_GridParams->viewCoord->workm.t[0];
+                    scratch->geometry.corners[geometryIndex].vy += Gp_GridParams->viewCoord->workm.t[1];
+                    scratch->geometry.corners[geometryIndex].vz += Gp_GridParams->viewCoord->workm.t[2];
                 }
 
-                extra   = 0;
-                outside = 0;
-                // Reuse the displacement slot for each edge's outward Q12 plane normal.
-                for (i = n - 3; i < n * 2 - 3; i++) {
-                    scratch->geometry.edgeWork.vx =
-                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vx;
-                    scratch->geometry.edgeWork.vy =
-                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vy;
-                    scratch->geometry.edgeWork.vz =
-                        scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz - scratch->geometry.corners[Gp_FaceEdgePairs[i].startCornerIndex].vz;
-                    VectorNormal(&scratch->geometry.edgeWork, &scratch->geometry.edgeDirection);
-                    gte_ldopv1(&scratch->geometry.faceNormal);
-                    gte_ldopv2(&scratch->geometry.edgeDirection);
-                    gte_op12();
-                    gte_stlvnl(&scratch->geometry.edgeWork);
+                edgeContactFlag = 0;
+                isOutside       = 0;
+                // Test the centre against the outward planes of the face edges.
+                for (geometryIndex = cornerCount - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex < cornerCount * 2 - WORLD_COLLISION_SPHERE_GRID_TRIANGLE_CORNERS; geometryIndex++) {
+                    WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(scratch, geometryIndex);
 
-                    edgeDot = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vx +
-                               scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vy +
-                               scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[i].endCornerIndex].vz) >>
-                              12;
-                    val = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
-                                  scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
-                                 12) -
-                                edgeDot);
-                    if (val - arg0->radius > 0) {
-                        outside = 1;
+                    edgePlaneOffset = (scratch->geometry.edgeWork.vx * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vx +
+                                       scratch->geometry.edgeWork.vy * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vy +
+                                       scratch->geometry.edgeWork.vz * scratch->geometry.corners[Gp_FaceEdgePairs[geometryIndex].endCornerIndex].vz) >>
+                                      12;
+                    edgeDistance = (s16)(((scratch->geometry.edgeWork.vx * scratch->centre.vx + scratch->geometry.edgeWork.vy * scratch->centre.vy +
+                                           scratch->geometry.edgeWork.vz * scratch->centre.vz) >>
+                                          12) -
+                                         edgePlaneOffset);
+                    if (edgeDistance - body->radius > 0) {
+                        isOutside = 1;
                         break;
                     }
-                    if (val > 0) {
-                        if ((s16)dist < 0) {
-                            outside = 1;
+                    if (edgeDistance > 0) {
+                        if ((s16)planeDistanceBits < 0) {
+                            isOutside = 1;
                             break;
                         }
-                        extra = WORLD_COLLISION_CONTACT_GRID_EDGE;
+                        edgeContactFlag = WORLD_COLLISION_CONTACT_GRID_EDGE;
                     }
                 }
-                if (!outside) {
-                    slot = arg0->context.motion->contacts;
+                // Merge equal normal/response classes, retaining the first surface key.
+                if (!isOutside) {
+                    contact = body->context.motion->contacts;
                     for (;;) {
-                        flags = slot->flags;
-                        if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                            if ((slot->key.value & -0x100) == (extra | WORLD_COLLISION_CONTACT_GRID)) {
-                                if (slot->response.direction.vx == Gp_GridParams->normals[face->normalIndex].vx &&
-                                    slot->response.direction.vy == Gp_GridParams->normals[face->normalIndex].vy &&
-                                    slot->response.direction.vz == Gp_GridParams->normals[face->normalIndex].vz) {
-                                    if (slot->distance < (s32)arg0->radius - (s16)dist) {
-                                        slot->distance = arg0->radius - dist;
+                        contactFlags = contact->flags;
+                        if (contactFlags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                            if ((contact->key.value & WORLD_COLLISION_MOTION_SPHERE_CONTACT_CLASS_MASK) == (edgeContactFlag | WORLD_COLLISION_CONTACT_GRID)) {
+                                if (contact->response.direction.vx == Gp_GridParams->normals[face->normalIndex].vx &&
+                                    contact->response.direction.vy == Gp_GridParams->normals[face->normalIndex].vy &&
+                                    contact->response.direction.vz == Gp_GridParams->normals[face->normalIndex].vz) {
+                                    if (contact->distance < (s32)body->radius - (s16)planeDistanceBits) {
+                                        contact->distance = body->radius - planeDistanceBits;
                                     }
                                     break;
                                 }
                             }
                         } else {
-                            slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                            slot->distance           = arg0->radius - dist;
-                            faceKind                 = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                            slot->key.value          = extra | faceKind;
-                            slot->point.vx           = 0;
-                            slot->point.vy           = 0;
-                            slot->point.vz           = 0;
-                            slot->response.direction = Gp_GridParams->normals[face->normalIndex];
+                            contact->flags              = contactFlags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                            contact->distance           = body->radius - planeDistanceBits;
+                            faceContactKey              = face->surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+                            contact->key.value          = edgeContactFlag | faceContactKey;
+                            contact->point.vx           = 0;
+                            contact->point.vy           = 0;
+                            contact->point.vz           = 0;
+                            contact->response.direction = Gp_GridParams->normals[face->normalIndex];
                             break;
                         }
-                        if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
+                        if (contact->flags & WORLD_COLLISION_CONTACT_LAST) {
                             return;
                         }
-                        slot++;
+                        contact++;
                     }
                 }
-                cell++;
+                faceIds++;
             }
         }
     }
 }
 
-void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
+void worldCollisionCollideMotionSphereGrid(const WorldCollisionBody* body)
 {
-    u8*                               head;
-    _WorldCollisionGridSphereScratch* scratch;
-    WorldCollisionMotionContext*      motionContext;
+    _WorldCollisionGridSphereScratch*  scratch;
+    const WorldCollisionMotionContext* motionContext;
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
-    scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
-    motionContext              = arg0->context.motion;
-    worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionGridSphereScratch);
+    motionContext = body->context.motion;
+    worldCollisionGetBodyComposedPosition(body, &scratch->centre);
     worldCollisionViewToCell(&scratch->centre, &scratch->gridCell);
 
-    _worldCollisionCollideMovingSphereCell(arg0, scratch, motionContext);
+    _worldCollisionCollideMotionSphereCell(body, scratch, motionContext);
 
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_WorldCollisionGridSphereScratch));
 }
