@@ -213,18 +213,33 @@ void Gp_ItemMenuTask(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Draws the first two encoded prompt lines with the panel's normal text color.
+/// Draws two item-menu prompt rows from a borrowed encoded text stream.
 ///
-/// Borrows text under `textDrawUiLine` and `textSkipLines`'s stream contracts.
-static inline void _itemMenuDrawTwoLinePrompt(const UiObject* object, const u8* text)
+/// Each row starts with large, left-aligned outlined text and the shared normal
+/// UI color. X is contentLeft + 2; Y is contentTop + 15 and contentTop + 30,
+/// in panel-content pixels. Inline styling starts afresh on the second row.
+/// That row follows the first LF or escaped N/n; CR does not advance the
+/// scanner. Without a break it draws an empty row at the terminating NUL.
+/// Hidden panels suppress drawing but still scan for the second row.
+///
+/// Requires a live object and non-NULL text under `textDrawUiLine` and
+/// `textSkipLines`'s stream/resource contracts, including a readable predecessor
+/// byte if promptText starts with N/n. Neither input is modified or retained.
+static inline void _itemMenuDrawTwoLinePrompt(const UiObject* object, const u8* promptText)
 {
+    enum {
+        ITEM_MENU_PROMPT_LEFT_INSET_PIXELS = 2,
+        ITEM_MENU_PROMPT_ROW_HEIGHT_PIXELS = 15
+    };
     const u8* secondLine;
     u32       textColorRgb;
 
     textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 15, text, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    secondLine = textSkipLines(text, 1);
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 30, secondLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + ITEM_MENU_PROMPT_LEFT_INSET_PIXELS,
+                   object->panel.contentTop.signedValue + ITEM_MENU_PROMPT_ROW_HEIGHT_PIXELS, promptText, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    secondLine = textSkipLines(promptText, 1);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + ITEM_MENU_PROMPT_LEFT_INSET_PIXELS,
+                   object->panel.contentTop.signedValue + 2 * ITEM_MENU_PROMPT_ROW_HEIGHT_PIXELS, secondLine, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 void itemMenuDrawTaskPrompt(UiObject* object, const Task* task)
