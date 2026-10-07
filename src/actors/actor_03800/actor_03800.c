@@ -820,10 +820,6 @@ static void Actor03800_Fn003B8(Task* arg0)
     _Actor03800Work* work;
     Enemy*           ctx;
     GfxCoord*        src;
-    GfxMatrix*       mtx;
-    GfxMatrix*       srcmtx;
-    GfxMatrix*       mtx2;
-    GfxMatrix*       srcmtx2;
     SVECTOR          rot;
     MATRIX           mat;
     s16              mode;
@@ -865,12 +861,7 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->alerted      = 0;
             work->savedRootMtx = src->coord;
 
-            mtx                       = (GfxMatrix*)&work->perchCoord.coord;
-            mtx->rotationWords.m00M01 = ONE;
-            mtx->rotationWords.m02M10 = 0;
-            mtx->rotationWords.m11M12 = ONE;
-            mtx->rotationWords.m20M21 = 0;
-            mtx->rotationWords.m22    = ONE;
+            gfxSetRotIdentity(&work->perchCoord.coord);
 
             work->perchCoord.parent     = &gGfxViewCoord;
             work->perchCoord.coord      = src->coord;
@@ -878,12 +869,7 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->perchCoord.coord.t[1] = src->coord.t[1];
             work->perchCoord.coord.t[2] = src->coord.t[2];
 
-            srcmtx                       = (GfxMatrix*)&src->coord;
-            srcmtx->rotationWords.m00M01 = ONE;
-            srcmtx->rotationWords.m02M10 = 0;
-            srcmtx->rotationWords.m11M12 = ONE;
-            srcmtx->rotationWords.m20M21 = 0;
-            srcmtx->rotationWords.m22    = ONE;
+            gfxSetRotIdentity(&src->coord);
 
             src->parent     = &work->perchCoord;
             src->coord.t[0] = 0;
@@ -915,12 +901,7 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->alerted      = 0;
             work->savedRootMtx = src->coord;
 
-            mtx2                       = (GfxMatrix*)&work->perchCoord.coord;
-            mtx2->rotationWords.m00M01 = ONE;
-            mtx2->rotationWords.m02M10 = 0;
-            mtx2->rotationWords.m11M12 = ONE;
-            mtx2->rotationWords.m20M21 = 0;
-            mtx2->rotationWords.m22    = ONE;
+            gfxSetRotIdentity(&work->perchCoord.coord);
 
             work->perchCoord.parent     = &gGfxViewCoord;
             work->perchCoord.coord      = src->coord;
@@ -928,12 +909,7 @@ static void Actor03800_Fn003B8(Task* arg0)
             work->perchCoord.coord.t[1] = src->coord.t[1];
             work->perchCoord.coord.t[2] = src->coord.t[2];
 
-            srcmtx2                       = (GfxMatrix*)&src->coord;
-            srcmtx2->rotationWords.m00M01 = ONE;
-            srcmtx2->rotationWords.m02M10 = 0;
-            srcmtx2->rotationWords.m11M12 = ONE;
-            srcmtx2->rotationWords.m20M21 = 0;
-            srcmtx2->rotationWords.m22    = ONE;
+            gfxSetRotIdentity(&src->coord);
 
             src->parent     = &work->perchCoord;
             src->coord.t[0] = 0;
