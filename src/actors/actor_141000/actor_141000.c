@@ -57,6 +57,30 @@ enum {
     ACTOR_141000_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
 };
 
+/// Texture regions within Aya's page; X/width are VRAM words, Y/height are rows.
+enum {
+    ACTOR_141000_EYES_X_WORDS      = 0,
+    ACTOR_141000_EYES_Y_ROWS       = 64,
+    ACTOR_141000_EYES_WIDTH_WORDS  = 25,
+    ACTOR_141000_FACE_HEIGHT_ROWS  = 20,
+    ACTOR_141000_MOUTH_X_WORDS     = 12,
+    ACTOR_141000_MOUTH_Y_ROWS      = 96,
+    ACTOR_141000_MOUTH_WIDTH_WORDS = 14,
+};
+
+/// Initial walk step, driven-slot range and blend duration shared by Aya's handlers.
+enum {
+    ACTOR_141000_WALK_FACE_TARGET  = 0,
+    ACTOR_141000_FIRST_DRIVEN_SLOT = 1,
+    ACTOR_141000_WALK_BLEND_FRAMES = 5,
+};
+
+/// Four screen rings of six vertices, consumed together by the beam drawer.
+enum { ACTOR_141000_BEAM_SCREEN_POINT_COUNT = 24 };
+
+/// Actor-specific facial texture request, carried in the first message argument.
+enum { ACTOR_141000_MESSAGE_SET_TEXTURE_MODE = 0x7E0 };
+
 /// Work block of Aya Brea's body, the package's scripted walker.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
@@ -119,8 +143,8 @@ extern SVECTOR D_actor_141000_801348A8[];
 /// spawns later, every eighth frame.
 extern TaskDesc D_actor_141000_801348D8[];
 
-/// The texture uploads `func_actor_141000_801335D4` walks, one per value of
-/// `_Actor141000AyaBreaWork::blinkStep`, and `func_actor_141000_80133FA8` picks from:
+/// The texture uploads `_actor141000TickAyaBreaBlink` walks, one per value of
+/// `_Actor141000AyaBreaWork::blinkStep`, and `_actor141000SetAyaBreaTextureMode` picks from:
 /// each a terminated `GpuImageUpload` list whose `destination` carries the VRAM
 /// rectangle and whose `pixels` points at the packed texture words.
 
@@ -130,7 +154,7 @@ extern AnimationSet*  D_actor_141000_8013D74C[11];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `func_actor_141000_8013392C`; terminator id `TASK_MESSAGE_TABLE_END`.
+/// `_actor141000SpawnAyaBreaWalker`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -147,16 +171,16 @@ static s32  func_actor_141000_80132FD0(GfxCoord* arg0, s32 arg1);
 static void func_actor_141000_8013308C(GfxCoord* arg0, s32 arg1);
 static void func_actor_141000_80133204(Task* task);
 static void func_actor_141000_80133260(Task* arg0);
-static void func_actor_141000_801332A0(Task* task);
-static void func_actor_141000_801335D4(Task* arg0);
-static void func_actor_141000_8013392C(Task* arg0);
-static void func_actor_141000_801339BC(Task* arg0);
-static void func_actor_141000_801339DC(Task* arg0);
-static void func_actor_141000_801339F8(Task* arg0);
-static void func_actor_141000_80133A00(Task* arg0);
-static void func_actor_141000_80133A68(Task* task);
-static void func_actor_141000_80133B28(Task* arg0);
-static void func_actor_141000_80133BD8(Task* arg0);
+static void _actor141000UpdateAyaBreaWalker(Task* task);
+static void _actor141000TickAyaBreaBlink(Task* task);
+static void _actor141000SpawnAyaBreaWalker(Task* task);
+static void _actor141000ExitAyaBreaWalker(Task* task);
+static void _actor141000BindAyaBreaLighting(Task* task);
+static void _actor141000IdleAyaBreaWalk(Task* task);
+static void _actor141000RunAyaBreaWalkStep(Task* task);
+static void _actor141000FaceAyaBreaWalkTarget(Task* task);
+static void _actor141000BeginAyaBreaWalk(Task* task);
+static void _actor141000TurnAyaBreaToYaw(Task* task);
 
 /// The model actor's attach states: chain under the spawner, then draw the
 /// sixteen quads every frame, then `taskKill`. Dispatched by
@@ -186,23 +210,23 @@ static const TaskFuncTable4 D_actor_141000_80131E3C = { {
 } };
 
 /// The model actor's three states - spawn, per-frame tick and exit -
-/// dispatched by `func_actor_141000_801338C0`.
+/// dispatched by `_actor141000AyaBreaWalkerTask`.
 static const TaskFuncTable3 D_actor_141000_80131E4C = { {
-    func_actor_141000_8013392C,
-    func_actor_141000_801332A0,
-    func_actor_141000_801339BC,
+    _actor141000SpawnAyaBreaWalker,
+    _actor141000UpdateAyaBreaWalker,
+    _actor141000ExitAyaBreaWalker,
 } };
 
 /// The model actor's four main-body states, dispatched by
-/// `func_actor_141000_80133A00` through `_Actor141000AyaBreaWork::walk.motionStep`.
+/// `_actor141000RunAyaBreaWalkStep` through `_Actor141000AyaBreaWork::walk.motionStep`.
 static const TaskFuncTable4 D_actor_141000_80131E58 = { {
-    func_actor_141000_80133A68,
-    func_actor_141000_80133B28,
+    _actor141000FaceAyaBreaWalkTarget,
+    _actor141000BeginAyaBreaWalk,
     _actorMotionArrive19,
-    func_actor_141000_80133BD8,
+    _actor141000TurnAyaBreaToYaw,
 } };
 
-/// The local-space offset the main body's state 1 (`func_actor_141000_80133B28`)
+/// The local-space offset the main body's state 1 (`_actor141000BeginAyaBreaWalk`)
 /// rotates into `_Actor141000AyaBreaWork::walk.velocity`: straight ahead along the
 /// part's own axis, halved first while `fastPace` is clear.
 static const VECTOR D_actor_141000_80131E68 = { 0, 0, 0x300000 };
@@ -228,11 +252,11 @@ static AnimationSet _gActor141000Animation0A448;
 static AnimationSet _gActor141000Animation0A5FC;
 static AnimationSet _gActor141000Animation0A84C;
 static TmdSource    _gActor141000AyaBreaBody;
-s32                 func_actor_141000_801336DC(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
-s32                 func_actor_141000_80133E8C(Task*, s32, s32, s32);
-s32                 func_actor_141000_80133F6C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32                 func_actor_141000_80133FA8(Task*, s32, s32, s32);
-void                func_actor_141000_801338C0(Task*);
+static s32          _actor141000StartAyaBreaWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips);
+static s32          _actor141000SetAyaBreaDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32          _actor141000SetAyaBreaWalkPace(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+static s32          _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 textureMode, s32 unusedArg);
+static void         _actor141000AyaBreaWalkerTask(Task* task);
 
 static TmdBone _gActor141000Model0230CSkeleton[1] = {
 #include "assets/actor_141000_model_0230C_skeleton.inc"
@@ -1863,135 +1887,161 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_141000_8013D74C,
 };
 
-TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &_gActor141000AyaBreaBody } };
+TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor141000AyaBreaWalkerTask, { .model = &_gActor141000AyaBreaBody } };
 
 TaskMessageEntry D_actor_141000_8013D788[7] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_141000_80133E8C },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_141000_801336DC },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_141000_80133F6C },
-    { 2016, func_actor_141000_80133FA8 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor141000SetAyaBreaDrawMode },
+    { ACTOR_MESSAGE_WALK_TO, _actor141000StartAyaBreaWalk },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor141000SetAyaBreaWalkPace },
+    { ACTOR_141000_MESSAGE_SET_TEXTURE_MODE, _actor141000SetAyaBreaTextureMode },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32* arg3);
+static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACTOR_141000_BEAM_SCREEN_POINT_COUNT], s32* startDepth, s32* projectionFlags);
 
 #define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((Actor141000CtrlWork*)((Task*)(t)->spawnArg2.pointer)->work)->beamLevel
 #define GLOW_DRAW_RING_BEAM_OT_OFFSET     (-20)
 #define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000425
 #include "../../shared/glow_draw_ring_beam.inc.c"
 
-static void func_actor_141000_801323F0(Task* arg0, SVECTOR* arg1, s32* arg2, s32* arg3)
+/// Initializes a beam matrix's rotation to 4.12 identity, preserving translation.
+static inline void _actor141000InitBeamRotation(MATRIX* rotation)
 {
-    SVECTOR           a;
-    SVECTOR           b;
-    MATRIX            rot;
-    s32               sxy0;
-    s32               depthCue;
-    s32               sxy1;
-    s32               otz1;
-    Task*             parent;
-    MATRIX*           mtx;
-    SVECTOR*          src;
-    s16               t;
-    s16               r;
-    s32               scale;
     GfxRotationWords* words;
-    s32               i;
-    u16               f;
-    s16               x0;
-    s32               y0;
-    s16               x1;
-    s32               y1;
-    s32               dx;
-    s32               dy;
 
-    parent = arg0->spawnArg2.pointer;
-    mtx    = &parent->extra.tmd->coords->coord;
-    f      = ((Actor141000CtrlWork*)parent->work)->beamLevel;
-    a.vx   = D_actor_141000_80134868[0].vx;
-    a.vy   = D_actor_141000_80134868[0].vy;
-    a.vz   = D_actor_141000_80134868[0].vz;
-    src    = &D_actor_141000_80134868[1];
-    b.vx   = src->vx;
-    b.vy   = src->vy;
-    b.vz   = src->vz;
-    gte_SetRotMatrix(mtx);
-    gte_ldv0(&a);
+    ((GfxRotationWords*)rotation)->m00M01 = ONE;
+    ((GfxRotationWords*)rotation)->m02M10 = 0;
+    words                                 = (GfxRotationWords*)rotation;
+    words->m11M12                         = ONE;
+    ((GfxRotationWords*)rotation)->m20M21 = 0;
+    words->m22                            = ONE;
+}
+
+/// Builds the attached beam's four six-point screen rings for its core and halo.
+///
+/// Requires a live TMD parent in `spawnArg2.pointer` with controller work.
+/// `screenPoints` supplies 24 writable SVECTORs; only X/Y are written, in pixels.
+/// `startDepth` receives the first end's GTE depth, used by the drawer for sorting;
+/// `projectionFlags` receives the second projection's FLAG word. All outputs are
+/// borrowed for this call and must be disjoint. Both projected depths must be
+/// nonzero for the ring-size divisions. End positions narrow to signed halfwords.
+/// The parent's signed low-halfword 4.12 beam level shortens the segment; the
+/// 4096-unit `killCountdown` angle selects an outer-ring size from one to three
+/// times the core size. The builder leaves that angle unchanged.
+static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACTOR_141000_BEAM_SCREEN_POINT_COUNT], s32* startDepth, s32* projectionFlags)
+{
+    enum { ACTOR_141000_BEAM_SCALE_FRACTION_BITS = 12 };
+    SVECTOR                    offset;
+    SVECTOR                    rotated;
+    MATRIX                     screenRotation;
+    s32                        startScreen;
+    s32                        depthCue;
+    s32                        endScreen;
+    s32                        endDepth;
+    Task*                      parentTask;
+    const Actor141000CtrlWork* controllerWork;
+    const MATRIX*              parentMatrix;
+    const SVECTOR*             endPoint;
+    s16                        lengthScale;
+    s16                        haloScale;
+    s32                        screenDistance;
+
+    s32 pointIndex;
+    s32 screenAngle;
+    u16 beamLevel;
+    s16 startX;
+    s32 startY;
+    s16 endX;
+    s32 endY;
+    s32 screenDeltaX;
+    s32 screenDeltaY;
+
+    parentTask     = task->spawnArg2.pointer;
+    parentMatrix   = &parentTask->extra.tmd->coords->coord;
+    controllerWork = parentTask->work;
+    beamLevel      = controllerWork->beamLevel;
+    offset.vx      = D_actor_141000_80134868[0].vx;
+    offset.vy      = D_actor_141000_80134868[0].vy;
+    offset.vz      = D_actor_141000_80134868[0].vz;
+    endPoint       = &D_actor_141000_80134868[1];
+    rotated.vx     = endPoint->vx;
+    rotated.vy     = endPoint->vy;
+    rotated.vz     = endPoint->vz;
+    // Transform the segment, then shorten it before adding parent translation.
+    gte_SetRotMatrix(parentMatrix);
+    gte_ldv0(&offset);
     gte_rtv0();
-    gte_stsv(&a);
-    gte_ldv0(&b);
+    gte_stsv(&offset);
+    gte_ldv0(&rotated);
     gte_rtv0();
-    gte_stsv(&b);
-    t     = (double)(s16)f;
-    b.vx  = a.vx + (b.vx - a.vx) * t / 4096;
-    b.vy  = a.vy + (b.vy - a.vy) * t / 4096;
-    b.vz  = a.vz + (b.vz - a.vz) * t / 4096;
-    a.vx += mtx->t[0];
-    a.vy += mtx->t[1];
-    a.vz += mtx->t[2];
-    b.vx += mtx->t[0];
-    b.vy += mtx->t[1];
-    b.vz += mtx->t[2];
+    gte_stsv(&rotated);
+    // The original performs this signed scale conversion through double.
+    lengthScale = (double)(s16)beamLevel;
+    rotated.vx  = offset.vx + (rotated.vx - offset.vx) * lengthScale / ONE;
+    rotated.vy  = offset.vy + (rotated.vy - offset.vy) * lengthScale / ONE;
+    rotated.vz  = offset.vz + (rotated.vz - offset.vz) * lengthScale / ONE;
+    offset.vx  += parentMatrix->t[0];
+    offset.vy  += parentMatrix->t[1];
+    offset.vz  += parentMatrix->t[2];
+    rotated.vx += parentMatrix->t[0];
+    rotated.vy += parentMatrix->t[1];
+    rotated.vz += parentMatrix->t[2];
     // Project both ends. Each screen point comes back packed, x in the low
     // half and y in the high; the depth-cue coefficient is not used.
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_RotTransPers(&a, &sxy0, &depthCue, arg3, arg2);
-    gte_RotTransPers(&b, &sxy1, &depthCue, arg3, &otz1);
-    dy                                = (sxy0 >> 16) - (sxy1 >> 16);
-    x0                                = sxy0;
-    x1                                = sxy1;
-    dx                                = x1 - x0;
-    y0                                = sxy0 >> 16;
-    y1                                = sxy1 >> 16;
-    i                                 = ratan2(dx, dy);
-    scale                             = gDisplayState.screenDistance;
-    ((GfxRotationWords*)&rot)->m00M01 = ONE;
-    ((GfxRotationWords*)&rot)->m02M10 = 0;
-    words                             = (GfxRotationWords*)&rot;
-    words->m11M12                     = ONE;
-    ((GfxRotationWords*)&rot)->m20M21 = 0;
-    words->m22                        = ONE;
-    RotMatrixZ(i, &rot);
-    gte_SetRotMatrix(&rot);
-    for (i = 0; i < 6; i++) {
-        a.vx = D_actor_141000_80134878[i].vx * scale / *arg2;
-        a.vy = D_actor_141000_80134878[i].vy * scale / *arg2;
-        gte_ldv0(&a);
+    gte_RotTransPers(&offset, &startScreen, &depthCue, projectionFlags, startDepth);
+    gte_RotTransPers(&rotated, &endScreen, &depthCue, projectionFlags, &endDepth);
+    screenDeltaY   = (startScreen >> 16) - (endScreen >> 16);
+    startX         = startScreen;
+    endX           = endScreen;
+    screenDeltaX   = endX - startX;
+    startY         = startScreen >> 16;
+    endY           = endScreen >> 16;
+    screenAngle    = ratan2(screenDeltaX, screenDeltaY);
+    screenDistance = gDisplayState.screenDistance;
+    _actor141000InitBeamRotation(&screenRotation);
+    RotMatrixZ(screenAngle, &screenRotation);
+    gte_SetRotMatrix(&screenRotation);
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_80134878); pointIndex++) {
+        offset.vx = D_actor_141000_80134878[pointIndex].vx * screenDistance / *startDepth;
+        offset.vy = D_actor_141000_80134878[pointIndex].vy * screenDistance / *startDepth;
+        gte_ldv0(&offset);
         gte_rtv0();
-        gte_stsv(&b);
-        arg1[i].vx = b.vx + x0;
-        arg1[i].vy = b.vy + y0;
+        gte_stsv(&rotated);
+        screenPoints[pointIndex].vx = rotated.vx + startX;
+        screenPoints[pointIndex].vy = rotated.vy + startY;
     }
-    for (i = 0; i < 6; i++) {
-        a.vx = D_actor_141000_801348A8[i].vx * scale / otz1;
-        a.vy = D_actor_141000_801348A8[i].vy * scale / otz1;
-        gte_ldv0(&a);
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_801348A8); pointIndex++) {
+        offset.vx = D_actor_141000_801348A8[pointIndex].vx * screenDistance / endDepth;
+        offset.vy = D_actor_141000_801348A8[pointIndex].vy * screenDistance / endDepth;
+        gte_ldv0(&offset);
         gte_rtv0();
-        gte_stsv(&b);
-        arg1[i + 6].vx = b.vx + x1;
-        arg1[i + 6].vy = b.vy + y1;
+        gte_stsv(&rotated);
+        screenPoints[pointIndex + (s32)ARRAY_SIZE(D_actor_141000_80134878)].vx = rotated.vx + endX;
+        screenPoints[pointIndex + (s32)ARRAY_SIZE(D_actor_141000_80134878)].vy = rotated.vy + endY;
     }
-    r = 0x2000 - rsin(arg0->killCountdown);
-    for (i = 0; i < 6; i++) {
-        a.vx = ((D_actor_141000_80134878[i].vx * r) >> 12) * scale / *arg2;
-        a.vy = ((D_actor_141000_80134878[i].vy * r) >> 12) * scale / *arg2;
-        gte_ldv0(&a);
+    // Scale the outer rings independently of the fixed core rings.
+    haloScale = 2 * ONE - rsin(task->killCountdown);
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_80134878); pointIndex++) {
+        offset.vx = ((D_actor_141000_80134878[pointIndex].vx * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / *startDepth;
+        offset.vy = ((D_actor_141000_80134878[pointIndex].vy * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / *startDepth;
+        gte_ldv0(&offset);
         gte_rtv0();
-        gte_stsv(&b);
-        arg1[i + 12].vx = b.vx + x0;
-        arg1[i + 12].vy = b.vy + y0;
+        gte_stsv(&rotated);
+        screenPoints[pointIndex + 2 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vx = rotated.vx + startX;
+        screenPoints[pointIndex + 2 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vy = rotated.vy + startY;
     }
-    for (i = 0; i < 6; i++) {
-        a.vx = ((D_actor_141000_801348A8[i].vx * r) >> 12) * scale / otz1;
-        a.vy = ((D_actor_141000_801348A8[i].vy * r) >> 12) * scale / otz1;
-        gte_ldv0(&a);
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_801348A8); pointIndex++) {
+        offset.vx = ((D_actor_141000_801348A8[pointIndex].vx * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / endDepth;
+        offset.vy = ((D_actor_141000_801348A8[pointIndex].vy * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / endDepth;
+        gte_ldv0(&offset);
         gte_rtv0();
-        gte_stsv(&b);
-        arg1[i + 18].vx = b.vx + x1;
-        arg1[i + 18].vy = b.vy + y1;
+        gte_stsv(&rotated);
+        screenPoints[pointIndex + 3 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vx = rotated.vx + endX;
+        screenPoints[pointIndex + 3 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vy = rotated.vy + endY;
     }
 }
 
@@ -2244,56 +2294,71 @@ static void func_actor_141000_80133204(Task* task)
 
 static void func_actor_141000_80133260(Task* arg0)
 {
-    SVECTOR sp10[24];
-    s32     spD0;
-    s32     spD4;
+    SVECTOR screenPoints[ACTOR_141000_BEAM_SCREEN_POINT_COUNT];
+    s32     startDepth;
+    s32     projectionFlags;
 
-    func_actor_141000_801323F0(arg0, sp10, &spD0, &spD4);
-    glowDrawRingBeam(arg0, sp10, spD0);
+    _actor141000BuildRingBeamPoints(arg0, screenPoints, &startDepth, &projectionFlags);
+    glowDrawRingBeam(arg0, screenPoints, startDepth);
 }
 
-/// Per-frame tick of the model actor: runs the motion handler `walk.motion` selects, steps the 16.16 accumulators
-/// by `velocity` and moves the coordinate by their integer part, ticks the
-/// animation slots and ground shadow while visible, runs the texture-upload
-/// state, and counts `freeCountdown` down to the buffer free.
-static void func_actor_141000_801332A0(Task* task)
+/// Applies one frame's signed 16.16 XYZ velocity, retaining unsigned fractions.
+///
+/// Requires live writable work and root coordinate. Composition is invalidated
+/// even when stationary; the integer halves are signed and remaining fractions
+/// are zero-extended back into the accumulators.
+static inline void _actor141000IntegrateAyaBreaWalkVelocity(_Actor141000AyaBreaWork* work, GfxCoord* rootCoord)
 {
-    TmdObject*               ext      = task->extra.tmd;
-    _Actor141000AyaBreaWork* work     = task->work;
-    TaskFunc                 funcs[2] = { func_actor_141000_801339F8, func_actor_141000_80133A00 };
-    VECTOR3                  pos;
-    GfxCoord*                coord;
-    s32                      i;
-
-    funcs[work->walk.motion](task);
-    coord                     = task->extra.tmd->coords;
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
-    coord->coord.t[0]        += work->walk.carry[0].halves.integer;
-    coord->coord.t[1]        += work->walk.carry[1].halves.integer;
-    coord->coord.t[2]        += work->walk.carry[2].halves.integer;
-    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
     work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
     work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
     work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+}
+
+/// Updates Aya's walk, animation, visible-body lighting, blink and buffer release.
+///
+/// Requires initialized work and the nineteen-part TMD body. `walk.motion` must
+/// be 0 (idle) or 1 (walking); it indexes two callbacks without a bounds check.
+/// Integration and slots 1..18 continue while hidden. Shadows sample the previous
+/// composed part-1 position before lighting recomposes it. A nonnegative buffer
+/// countdown frees on the tick that finds zero, then becomes inactive at -1.
+static void _actor141000UpdateAyaBreaWalker(Task* task)
+{
+    enum { ACTOR_141000_SHADOW_HALF_SIZE = 512 };
+    TmdObject*               model             = task->extra.tmd;
+    _Actor141000AyaBreaWork* work              = task->work;
+    TaskFunc                 motionHandlers[2] = { _actor141000IdleAyaBreaWalk, _actor141000RunAyaBreaWalkStep };
+    VECTOR3                  shadowPosition;
+    GfxCoord*                rootCoord;
+    s32                      slotIndex;
+
+    motionHandlers[work->walk.motion](task);
+    rootCoord = task->extra.tmd->coords;
+    _actor141000IntegrateAyaBreaWalkVelocity(work, rootCoord);
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = ACTOR_141000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
+    // Hidden bodies still move, animate and blink; only visual work is gated.
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &shadowPosition) != 0) {
+            effectDrawGroundShadow(&shadowPosition, ACTOR_141000_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
-    func_actor_141000_801335D4(task);
+    _actor141000TickAyaBreaBlink(task);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
@@ -2301,434 +2366,529 @@ static void func_actor_141000_801332A0(Task* task)
 
 #include "../../shared/actor_motion_arrive19.inc.c"
 
-/// Blink state of the actor: runs `_Actor141000AyaBreaWork::blinkCountdown`
-/// down one a frame while `blinkStep` names the eye image due next, and on the
-/// frame it goes below zero posts that image over the 0x19x0x14 eye rect at
-/// (0, 0x40) -- restarting the countdown from `blinkFrameDelay` and advancing
-/// `blinkStep` after the closed and half-open eyes, or clearing `blinkStep`
-/// after the open ones, which ends the blink. The first two steps share their
-/// whole tail, which is what makes the compiler emit one copy of it that the
-/// first jumps into; the last only differs in clearing the step instead of
-/// advancing it.
-static void func_actor_141000_801335D4(Task* arg0)
+/// Posts the next closed or half-open eye image and advances its timed dwell.
+///
+/// Requires initialized work in the closed or half-open step and a live TMD.
+/// The terminated upload list is writable; its eye pixels remain borrowed until
+/// GPU transfer completes. The rectangle is borrowed only through this call.
+/// The caller decrements the countdown; this resets it from the signed delay.
+static inline void _actor141000AdvanceAyaBreaBlinkImage(Task* task, _Actor141000AyaBreaWork* work,
+                                                        GpuImageUpload* uploadList, const RECT* eyeRect)
+{
+    actorRenderUploadTexture(task, uploadList, eyeRect);
+    work->blinkCountdown = work->blinkFrameDelay;
+    work->blinkStep      = work->blinkStep + 1;
+}
+
+/// Advances Aya's timed closed, half-open and open eye sequence once.
+///
+/// Each active step decrements the signed-halfword countdown and posts its image
+/// when that stored value is negative. Closed and half-open restart it from
+/// `blinkFrameDelay`, so a nonnegative delay gives that many ticks plus one.
+/// Open ends the blink without resetting the countdown; inactive steps do nothing.
+/// Requires initialized work and a live body. Pixel storage stays borrowed until
+/// the GPU transfer completes; no wait or automatic next blink is scheduled.
+static void _actor141000TickAyaBreaBlink(Task* task)
 {
     _Actor141000AyaBreaWork* work;
-    RECT                     rect;
+    RECT                     eyeRect;
 
-    work   = arg0->work;
-    rect.x = 0;
-    rect.y = 0x40;
-    rect.w = 0x19;
-    rect.h = 0x14;
+    work      = task->work;
+    eyeRect.x = ACTOR_141000_EYES_X_WORDS;
+    eyeRect.y = ACTOR_141000_EYES_Y_ROWS;
+    eyeRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
+    eyeRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
 
     switch (work->blinkStep) {
         case ACTOR_141000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_141000_8013D28C[0], &rect);
-                work->blinkCountdown = work->blinkFrameDelay;
-                work->blinkStep      = work->blinkStep + 1;
+                _actor141000AdvanceAyaBreaBlinkImage(task, work, &D_actor_141000_8013D28C[0], &eyeRect);
             }
             break;
         case ACTOR_141000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_141000_8013CE84[0], &rect);
-                work->blinkCountdown = work->blinkFrameDelay;
-                work->blinkStep      = work->blinkStep + 1;
+                _actor141000AdvanceAyaBreaBlinkImage(task, work, &D_actor_141000_8013CE84[0], &eyeRect);
             }
             break;
         case ACTOR_141000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(arg0, &D_actor_141000_8013CA7C[0], &rect);
+                actorRenderUploadTexture(task, &D_actor_141000_8013CA7C[0], &eyeRect);
                 work->blinkStep = ACTOR_141000_BLINK_NONE;
             }
             break;
     }
 }
 
-/// Placement handler: stores the spawn position and rotation, resets the body
-/// state, then applies a start preset exactly as `_actorMotionPlayAnim19`
-/// does (inlined here). The default anim id is chosen by `fastPace`; writing
-/// it as an if/else into the preset (not a ternary) is what keeps CSE from
-/// reusing the earlier constant 1 for the `model.nextAnimId` store.
-s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
+/// Binds and applies a changed bank-0 walk clip to Aya's nineteen-part rig.
+///
+/// Requires a live TMD task with initialized Aya work. Request is borrowed
+/// through the call and must not overlap playback state. Bank and clip must index loaded animation tables.
+/// Driven slots exclude root 0. Rebinding invalidates the old clip; an unchanged
+/// clip in the same bank leaves ticking and its current poses intact.
+static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const AnimationPlayRequest* request)
 {
     _Actor141000AyaBreaWork* work;
-    _Actor141000AyaBreaWork* w;
-    AnimationPlayRequest     preset;
-    AnimationPlayRequest*    msg;
-    s32                      i;
-    TmdObject*               ext;
+    TmdObject*               model;
+    s32                      slotIndex;
 
-    w                    = task->work;
-    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
-    w->walk.motionStep   = 0;
-    w->walk.target.vx    = place->pos.vx;
-    w->walk.target.vy    = place->pos.vy;
-    w->walk.target.vz    = place->pos.vz;
-    w->walk.targetRot.vx = place->rot.vx;
-    w->walk.targetRot.vy = place->rot.vy;
-    w->walk.targetRot.vz = place->rot.vz;
-    preset.source.index  = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->animationId;
-        w->model.nextAnimId = anim->nextAnimId;
-    } else {
-        if (w->fastPace != 0) {
-            preset.animationId = 2;
-        } else {
-            preset.animationId = 0xA;
-        }
-        w->model.nextAnimId = 1;
-    }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-
-    msg  = &preset;
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
+    work  = task->work;
+    model = task->extra.tmd;
+    if (request->source.index != work->model.bank) {
+        work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+    if (request->animationId != work->model.animId) {
+        work->model.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+            for (slotIndex = ACTOR_141000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
             }
         } else {
-            for (i = 1; i < 0x13; i++) {
-                animationResetSlot(&work->rig.anim, i, work->model.animId);
+            for (slotIndex = ACTOR_141000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
             }
         }
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = ACTOR_141000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
         work->model.ticking = 1;
     }
+}
+
+/// Starts Aya's scripted walk toward a borrowed destination and final rotation.
+///
+/// Copies parent-frame positions and 4096-unit Euler angles into work, then starts
+/// step 0. Optional clips select the starting and queued arrival clips in bank 0;
+/// without them, pace chooses clip 2 (fast) or 10 (slow), followed by clip 1.
+/// Clip IDs must select loaded entries 1..10. Changed clips blend for five frames
+/// when already ticking, or reset otherwise. Carry and current velocity survive
+/// until the following walk steps replace them. Payloads are borrowed only during
+/// dispatch; the message ID is ignored. Requires initialized work; returns 0.
+static s32 _actor141000StartAyaBreaWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips)
+{
+    enum {
+        ACTOR_141000_ANIM_DEFAULT_ARRIVAL = 1,
+        ACTOR_141000_ANIM_FAST_WALK       = 2,
+        ACTOR_141000_ANIM_SLOW_WALK       = 10,
+    };
+    _Actor141000AyaBreaWork* work;
+
+    AnimationPlayRequest walkRequest;
+
+    work                     = task->work;
+    work->walk.motion        = ACTOR_WALK_MOTION_WALKING;
+    work->walk.motionStep    = ACTOR_141000_WALK_FACE_TARGET;
+    work->walk.target.vx     = destination->pos.vx;
+    work->walk.target.vy     = destination->pos.vy;
+    work->walk.target.vz     = destination->pos.vz;
+    work->walk.targetRot.vx  = destination->rot.vx;
+    work->walk.targetRot.vy  = destination->rot.vy;
+    work->walk.targetRot.vz  = destination->rot.vz;
+    walkRequest.source.index = 0;
+    if (clips != NULL) {
+        walkRequest.animationId = clips->animationId;
+        work->model.nextAnimId  = clips->nextAnimId;
+    } else {
+        if (work->fastPace != 0) {
+            walkRequest.animationId = ACTOR_141000_ANIM_FAST_WALK;
+        } else {
+            walkRequest.animationId = ACTOR_141000_ANIM_SLOW_WALK;
+        }
+        work->model.nextAnimId = ACTOR_141000_ANIM_DEFAULT_ARRIVAL;
+    }
+    walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+    walkRequest.blendFrames          = ACTOR_141000_WALK_BLEND_FRAMES;
+    walkRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+
+    _actor141000ApplyAyaBreaWalkAnimation(task, &walkRequest);
     return 0;
 }
 
-/// Per-frame dispatcher of the model actor: runs its spawn, tick or exit
-/// state from `D_actor_141000_80131E4C`, skipping the frame while the global
-/// freeze byte is set.
-void func_actor_141000_801338C0(Task* task)
+/// Dispatches Aya's walker initialization, update or exit while actors are running.
+///
+/// Requires the descriptor-created nineteen-part TMD body and task state 0..2;
+/// the state indexes the table without a bounds check. The body and Enemy passed
+/// in `spawnArg2.pointer` belong to the task until teardown.
+static void _actor141000AyaBreaWalkerTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_141000_80131E4C;
+    handlers = D_actor_141000_80131E4C;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        handlers.funcs[task->state](task);
     }
 }
 
-/// Spawn state of the enemy actor: allocates the 0x4CC-byte work block that
-/// every later handler reads through `Task::work`, seeds the three -1 bytes
-/// and three cleared words the work's own init expects, republishes the light
-/// and colour matrices onto the display object, then installs the message
-/// table and the exit callback `func_actor_141000_801339BC`. An allocation failure ends the task
-/// instead of leaving a half-built actor behind.
-static void func_actor_141000_8013392C(Task* arg0)
+/// Allocates and initializes Aya's scripted walker, then enables its message table.
+///
+/// The zeroed work belongs to the task until teardown. Bank and clip sentinels
+/// force the first animation request to bind the rig; no buffer release is pending.
+/// The model borrows the work's lighting matrices. Allocation failure releases the
+/// Enemy and ends the task before any later state can use absent work.
+static void _actor141000SpawnAyaBreaWalker(Task* task)
 {
+    enum { ACTOR_141000_BUFFER_RELEASE_NONE = -1 };
     _Actor141000AyaBreaWork* work;
 
-    work = memCalloc(sizeof(_Actor141000AyaBreaWork), false);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work               = work;
+    task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = ACTOR_141000_BUFFER_RELEASE_NONE;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    func_actor_141000_801339DC(arg0);
+    _actor141000BindAyaBreaLighting(task);
 
-    arg0->msgTable     = D_actor_141000_8013D788;
-    arg0->exitCallback = func_actor_141000_801339BC;
-    arg0->state++;
+    task->msgTable     = D_actor_141000_8013D788;
+    task->exitCallback = _actor141000ExitAyaBreaWalker;
+    task->state++;
 }
 
-/// `Task::exitCallback` the model actor's spawn state installs: it only hands
-/// the task to `enemyTaskExit`.
-static void func_actor_141000_801339BC(Task* arg0)
+/// Releases Aya's enemy record and tears down her walker task and work.
+///
+/// Requires the task-owned live Enemy in `spawnArg2.pointer`. Used as both the
+/// exit state and the teardown callback; direct `taskKill` teardown bypasses
+/// this replacement callback, so release does not recurse.
+static void _actor141000ExitAyaBreaWalker(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-static void func_actor_141000_801339DC(Task* arg0)
+/// Lends the walker's lighting matrices to its TMD body.
+///
+/// Requires initialized work and a live model. The matrices remain owned by the
+/// work block, which must outlive every model update using them.
+static void _actor141000BindAyaBreaLighting(Task* task)
 {
-    TmdObject*               ext;
+    TmdObject*               model;
     _Actor141000AyaBreaWork* work;
 
-    ext           = arg0->extra.tmd;
-    work          = arg0->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
 }
 
-static void func_actor_141000_801339F8(Task* arg0)
+/// Leaves walk state unchanged while no scripted walk is active.
+///
+/// This empty motion callback does not stop velocity integration, animation,
+/// lighting or blinking in the enclosing update.
+static void _actor141000IdleAyaBreaWalk(Task* task)
 {
 }
 
-/// Dispatches the actor's four main-body handlers by state.
-static void func_actor_141000_80133A00(Task* arg0)
+/// Runs Aya's current scripted-walk step.
+///
+/// Requires initialized work with `walk.motionStep` in 0..3: face the destination,
+/// begin moving, test arrival, or turn to the requested final yaw. No bounds check
+/// is performed; each step controls its own transition.
+static void _actor141000RunAyaBreaWalkStep(Task* task)
 {
     TaskFuncTable4           handlers;
     _Actor141000AyaBreaWork* work;
 
-    work     = arg0->work;
+    work     = task->work;
     handlers = D_actor_141000_80131E58;
-    handlers.funcs[work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](task);
 }
 
-/// State 0 of the main-body table `D_actor_141000_80131E58`: turns the root
-/// part to face `work->walk.target`, the position the placement handler stored.
-/// Normalises the offset from the part's own translation, takes its yaw with
-/// `ratan2` and rebuilds the local matrix from that yaw alone, then clears
-/// `composeStamp` so the world matrix is recomputed and advances the state.
-static void func_actor_141000_80133A68(Task* task)
+/// Faces Aya's root coordinate toward the copied walk destination, then advances.
+///
+/// Positions are in the root's parent frame; yaw uses 4096 units per turn.
+/// Replaces pitch, roll and scale with a yaw-only rotation and marks composition
+/// dirty. Requires a live model and initialized walker work.
+static void _actor141000FaceAyaBreaWalkTarget(Task* task)
 {
     _Actor141000AyaBreaWork* work;
-    GfxCoord*                coord;
-    VECTOR                   delta;
-    SVECTOR                  dir;
-    SVECTOR                  rot;
+    GfxCoord*                rootCoord;
+    VECTOR                   targetOffset;
+    SVECTOR                  direction;
+    SVECTOR                  rotation;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
 
-    delta.vx = work->walk.target.vx - coord->coord.t[0];
-    delta.vy = work->walk.target.vy - coord->coord.t[1];
-    delta.vz = work->walk.target.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
+    targetOffset.vx = work->walk.target.vx - rootCoord->coord.t[0];
+    targetOffset.vy = work->walk.target.vy - rootCoord->coord.t[1];
+    targetOffset.vz = work->walk.target.vz - rootCoord->coord.t[2];
+    VectorNormalS(&targetOffset, &direction);
 
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
+    rotation.vx = 0;
+    rotation.vy = ratan2(direction.vx, direction.vz);
+    rotation.vz = 0;
 
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->param.rot.vx = rotation.vx;
+    rootCoord->param.rot.vy = rotation.vy;
+    rootCoord->param.rot.vz = rotation.vz;
+    RotMatrix(&rootCoord->param.rot, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->walk.motionStep++;
 }
 
-/// State 1 of the actor's main-body table `D_actor_141000_80131E58`, the step
-/// after the turn-to-face state. Rotates the constant
-/// local-space offset `D_actor_141000_80131E68` through the root part's matrix
-/// into `work->walk.velocity`, halving it first while `fastPace` is clear -- the
-/// pace `func_actor_141000_80133F6C` latches through message 0x7DB -- then
-/// seeds `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances the
-/// state.
-static void func_actor_141000_80133B28(Task* arg0)
+/// Sets Aya's walk velocity from the selected pace and current root rotation.
+///
+/// Rotates the local forward displacement into signed 16.16 parent-frame units
+/// per tick: 48 whole units at fast pace or 24 at slow pace. Seeds the arrival
+/// distance sentinel and advances to the arrival test; existing carry survives.
+static void _actor141000BeginAyaBreaWalk(Task* task)
 {
     _Actor141000AyaBreaWork* work;
-    GfxCoord*                coord;
-    VECTOR                   vec;
+    GfxCoord*                rootCoord;
+    VECTOR                   localVelocity;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    vec = D_actor_141000_80131E68;
+    localVelocity = D_actor_141000_80131E68;
     if (work->fastPace == 0) {
-        vec.vx >>= 1;
-        vec.vy >>= 1;
-        vec.vz >>= 1;
+        localVelocity.vx >>= 1;
+        localVelocity.vy >>= 1;
+        localVelocity.vz >>= 1;
     }
-    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
     work->walk.motionStep      = work->walk.motionStep + 1;
 }
 
-/// State 3 of the main-body table `D_actor_141000_80131E58`, after the approach
-/// test: turns the root part to the placement yaw. Euler-extracts the root coordinate into `vec`, and
-/// while the yaw gap to the target `work->walk.targetRot.vy` is at least 0x41 it steps
-/// `vec.vy` toward it by 0x40 -- the step is taken on an `s32` widening of the
-/// extracted yaw, which the common tail adds to -- and otherwise snaps the yaw
-/// to the target and plays anim 0x7D3 with a preset carrying the `model.nextAnimId`
-/// byte, clearing the two body counters. Either way the root coordinate is
-/// rebuilt as the identity matrix rotated by `vec`.
-static void func_actor_141000_80133BD8(Task* arg0)
+/// Rebuilds Aya's root rotation at unit 4.12 scale while retaining translation.
+///
+/// Requires writable coordinate and a borrowed Euler triple in 4096-unit angles.
+/// Invalidates world composition after installing the rotation.
+static inline void _actor141000RebuildAyaBreaRotation(GfxCoord* rootCoord, SVECTOR* rotation)
 {
+    GfxRotationWords* rotationWords;
+
+    // Rebuild rotation while preserving root translation.
+    rotationWords         = (GfxRotationWords*)&rootCoord->coord;
+    rotationWords->m00M01 = ONE;
+    rotationWords->m02M10 = 0;
+    rotationWords->m11M12 = ONE;
+    rotationWords->m20M21 = 0;
+    rotationWords->m22    = ONE;
+    RotMatrix(rotation, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Turns Aya to the walk's final yaw and returns her motion dispatcher to idle.
+///
+/// Yaw uses 4096 units per turn. The signed-halfword target difference selects a
+/// 64-unit step, without turn-period normalization; a gap of at most 64 snaps
+/// to the target and blends to the queued bank-0 clip for five frames.
+/// Requires initialized walker work and a valid queued clip (1..10). Translation
+/// survives the rotation rebuild; velocity has already been cleared on arrival.
+static void _actor141000TurnAyaBreaToYaw(Task* task)
+{
+    enum { ACTOR_141000_YAW_STEP = 64 };
     _Actor141000AyaBreaWork* work;
-    GfxRotationWords*        words;
-    GfxCoord*                coord;
-    SVECTOR                  vec;
-    AnimationPlayRequest     preset;
-    s32                      vy;
-    s16                      diff;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    GfxCoord*            rootCoord;
+    SVECTOR              rotation;
+    AnimationPlayRequest arrivalRequest;
+    s32                  currentYaw;
+    s16                  yawDelta;
 
-    gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
-    if (ABS(diff) >= 0x41) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x40;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
+
+    gfxExtractSmallestEuler(&rotation, &rootCoord->coord);
+    yawDelta = (u16)work->walk.targetRot.vy - (u16)rotation.vy;
+    if (ABS(yawDelta) > ACTOR_141000_YAW_STEP) {
+        currentYaw = rotation.vy;
+        if (yawDelta < 0) {
+            rotation.vy = currentYaw - ACTOR_141000_YAW_STEP;
         } else {
-            vec.vy = vy + 0x40;
+            rotation.vy = currentYaw + ACTOR_141000_YAW_STEP;
         }
     } else {
-        vec.vy                      = work->walk.targetRot.vy;
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+        rotation.vy                         = work->walk.targetRot.vy;
+        arrivalRequest.source.index         = 0;
+        arrivalRequest.animationId          = work->model.nextAnimId;
+        arrivalRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+        arrivalRequest.blendFrames          = ACTOR_141000_WALK_BLEND_FRAMES;
+        arrivalRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &arrivalRequest, 0);
         work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
-        work->walk.motionStep = 0;
+        work->walk.motionStep = ACTOR_141000_WALK_FACE_TARGET;
     }
 
-    words         = (GfxRotationWords*)&coord->coord;
-    words->m00M01 = ONE;
-    words->m02M10 = 0;
-    words->m11M12 = ONE;
-    words->m20M21 = 0;
-    words->m22    = ONE;
-    RotMatrix(&vec, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor141000RebuildAyaBreaRotation(rootCoord, &rotation);
 }
 
 #include "../../shared/actor_motion_play19.inc.c"
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// `taskMessageDispatch` handler: the four-way visibility/mode switch on the
-/// message's mode word, run against the `TmdObject` parked in `Task::extra`.
-/// Mode 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows it,
-/// allocates the buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it,
-/// sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts `freeCountdown` at two ticks,
-/// and 3 shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
-/// returns 1 and leaves the object alone; the handled modes return 0.
-s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Changes Aya's visibility and automatic primitive-buffer recovery mode.
+///
+/// Requires a live TMD body and initialized work. Mode 0 hides with recovery
+/// allowed; 1 shows, attempts buffer allocation and allows recovery; 2 hides,
+/// disables recovery and schedules a release on the third subsequent update;
+/// 3 shows with recovery disabled. Other modes change nothing and return 1;
+/// handled modes return 0 even if allocation fails. Modes 0, 1 and 3 retain any
+/// pending release. The message ID and second payload are ignored.
+static s32 _actor141000SetAyaBreaDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject* obj;
-    s32        ret;
+    enum { ACTOR_141000_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject* model;
+    s32        result;
 
-    obj = task->extra.tmd;
-    ret = 0;
+    model  = task->extra.tmd;
+    result = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags                                           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((_Actor141000AyaBreaWork*)task->work)->freeCountdown = mode;
-            obj->flags                                           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER: {
+            _Actor141000AyaBreaWork* work;
+
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work                = task->work;
+            work->freeCountdown = mode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        }
+        case ACTOR_141000_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-s32 func_actor_141000_80133F6C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Selects Aya's pace for subsequent scripted walks from an actor command.
+///
+/// Command 1 selects half displacement and default clip 10; command 2 selects
+/// full displacement and default clip 2. An ongoing walk's velocity and clip
+/// remain unchanged. Requires initialized work and a borrowed non-NULL command.
+/// Other commands do nothing; all return 0. Ignores ID and second payload.
+static s32 _actor141000SetAyaBreaWalkPace(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_141000_COMMAND_SLOW_WALK = 1,
+        ACTOR_141000_COMMAND_FAST_WALK = 2,
+    };
     _Actor141000AyaBreaWork* work;
 
     work = task->work;
-    switch (msg->command) {
-        case 1:
+    switch (command->command) {
+        case ACTOR_141000_COMMAND_SLOW_WALK:
             work->fastPace = 0;
             break;
-        case 2:
+        case ACTOR_141000_COMMAND_FAST_WALK:
             work->fastPace = 1;
             break;
     }
     return 0;
 }
 
-/// Image-load handler: picks one of the overlay's texture uploads by `mode`
-/// and posts it through `actorRenderUploadTexture` over a scratch `RECT` -- the
-/// 0x19x0x14 rect at (0, 0x40) for modes 0-3, the 0xEx0x14 rect at (0xC, 0x60)
-/// for 4 and 5. Mode 3 also starts a blink, `blinkStep` at the closed eyes and
-/// `blinkFrameDelay` at 1. Unknown modes load nothing and return 0.
-s32 func_actor_141000_80133FA8(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Selects Aya's facial texture mode for message 0x7E0.
+///
+/// Requires a live body and initialized work. Modes 0/1 post open/closed eyes;
+/// 4/5 post open/closed mouth. Modes 2/3 retain the original mouth-list uploads
+/// to the eye rectangle: each requests 250 words (1000 bytes) from a 140-word
+/// (560-byte) pixel array, reading 440 bytes past its end. Mode 3 also reads
+/// 292 bytes beyond the initialized overlay image. Their intended visual meaning
+/// is unproven. Mode 3 also starts closed,
+/// half-open, then open eyes, with a two-tick dwell between the first two images.
+/// Starting a blink retains its countdown; other modes do not cancel it.
+/// The writable lists and pixels stay live through GPU transfer. Returns the
+/// upload result, or 0 for unknown modes; ignores ID and the second payload.
+static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 textureMode, s32 unusedArg)
 {
-    RECT            rect;
+    enum {
+        ACTOR_141000_TEXTURE_EYES_OPEN                    = 0,
+        ACTOR_141000_TEXTURE_EYES_CLOSED                  = 1,
+        ACTOR_141000_TEXTURE_CLOSED_MOUTH_IN_EYES         = 2,
+        ACTOR_141000_TEXTURE_OPEN_MOUTH_IN_EYES_AND_BLINK = 3,
+        ACTOR_141000_TEXTURE_MOUTH_OPEN                   = 4,
+        ACTOR_141000_TEXTURE_MOUTH_CLOSED                 = 5,
+        ACTOR_141000_BLINK_FRAME_DELAY                    = 1,
+    };
+    RECT            textureRect;
     GpuImageUpload* uploadList;
-    s32             ret;
+    s32             result;
 
-    ret = 0;
-    switch (mode) {
-        case 0:
-            uploadList = &D_actor_141000_8013CA7C[0];
-            rect.y     = 0x40;
-            rect.w     = 0x19;
-            rect.x     = 0;
-            rect.h     = 0x14;
+    result = 0;
+    switch (textureMode) {
+        case ACTOR_141000_TEXTURE_EYES_OPEN:
+            uploadList    = &D_actor_141000_8013CA7C[0];
+            textureRect.y = ACTOR_141000_EYES_Y_ROWS;
+            textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
+            textureRect.x = ACTOR_141000_EYES_X_WORDS;
+            textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
-        case 1:
-            uploadList = &D_actor_141000_8013D28C[0];
-            rect.y     = 0x40;
-            rect.w     = 0x19;
-            rect.x     = 0;
-            rect.h     = 0x14;
+        case ACTOR_141000_TEXTURE_EYES_CLOSED:
+            uploadList    = &D_actor_141000_8013D28C[0];
+            textureRect.y = ACTOR_141000_EYES_Y_ROWS;
+            textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
+            textureRect.x = ACTOR_141000_EYES_X_WORDS;
+            textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
-        case 2:
-            uploadList = &D_actor_141000_8013D4DC[0];
-            rect.y     = 0x40;
-            rect.w     = 0x19;
-            rect.x     = 0;
-            rect.h     = 0x14;
+        // Retained request: this reads 1000 bytes from a 560-byte mouth array.
+        case ACTOR_141000_TEXTURE_CLOSED_MOUTH_IN_EYES:
+            uploadList    = &D_actor_141000_8013D4DC[0];
+            textureRect.y = ACTOR_141000_EYES_Y_ROWS;
+            textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
+            textureRect.x = ACTOR_141000_EYES_X_WORDS;
+            textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
-        case 3:
-            uploadList                                              = &D_actor_141000_8013D72C[0];
-            rect.y                                                  = 0x40;
-            rect.w                                                  = 0x19;
-            rect.x                                                  = 0;
-            rect.h                                                  = 0x14;
-            ((_Actor141000AyaBreaWork*)task->work)->blinkStep       = ACTOR_141000_BLINK_CLOSED;
-            ((_Actor141000AyaBreaWork*)task->work)->blinkFrameDelay = 1;
+        case ACTOR_141000_TEXTURE_OPEN_MOUTH_IN_EYES_AND_BLINK: {
+            _Actor141000AyaBreaWork* stepWork;
+            _Actor141000AyaBreaWork* delayWork;
+            uploadList                 = &D_actor_141000_8013D72C[0];
+            textureRect.y              = ACTOR_141000_EYES_Y_ROWS;
+            textureRect.w              = ACTOR_141000_EYES_WIDTH_WORDS;
+            textureRect.x              = ACTOR_141000_EYES_X_WORDS;
+            textureRect.h              = ACTOR_141000_FACE_HEIGHT_ROWS;
+            stepWork                   = task->work;
+            stepWork->blinkStep        = ACTOR_141000_BLINK_CLOSED;
+            delayWork                  = task->work;
+            delayWork->blinkFrameDelay = ACTOR_141000_BLINK_FRAME_DELAY;
             break;
-        case 4:
-            uploadList = &D_actor_141000_8013D72C[0];
-            rect.x     = 0xC;
-            rect.y     = 0x60;
-            rect.w     = 0xE;
-            rect.h     = 0x14;
+        }
+        case ACTOR_141000_TEXTURE_MOUTH_OPEN:
+            uploadList    = &D_actor_141000_8013D72C[0];
+            textureRect.x = ACTOR_141000_MOUTH_X_WORDS;
+            textureRect.y = ACTOR_141000_MOUTH_Y_ROWS;
+            textureRect.w = ACTOR_141000_MOUTH_WIDTH_WORDS;
+            textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
-        case 5:
-            uploadList = &D_actor_141000_8013D4DC[0];
-            rect.x     = 0xC;
-            rect.y     = 0x60;
-            rect.w     = 0xE;
-            rect.h     = 0x14;
+        case ACTOR_141000_TEXTURE_MOUTH_CLOSED:
+            uploadList    = &D_actor_141000_8013D4DC[0];
+            textureRect.x = ACTOR_141000_MOUTH_X_WORDS;
+            textureRect.y = ACTOR_141000_MOUTH_Y_ROWS;
+            textureRect.w = ACTOR_141000_MOUTH_WIDTH_WORDS;
+            textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
         default:
             uploadList = NULL;
             break;
     }
     if (uploadList != NULL) {
-        ret = actorRenderUploadTexture(task, uploadList, &rect);
+        result = actorRenderUploadTexture(task, uploadList, &textureRect);
     }
-    return ret;
+    return result;
 }

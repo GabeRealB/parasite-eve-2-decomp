@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_141000_801323F0",
+  "function": "_actor141000BuildRingBeamPoints",
   "date": "2026-09-20",
   "scope": "Primary pointer-alias search result, controlled base_2 reproduction, and final alternative member/keep-live fix.",
   "trace_manifest": {

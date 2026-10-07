@@ -773,7 +773,7 @@ The rule for reading a target: a comparison chain that tests a *middle* value
 first and then splits on a range is a switch, whatever source shape it suggests.
 Source case order does not matter (GCC sorts the values); what stays in source
 order is the case *bodies*, which is how the family of four-way visibility
-handlers is spelled throughout the actors (`func_actor_141000_80133E8C`,
+handlers is spelled throughout the actors (`_actor141000SetAyaBreaDrawMode`,
 `func_actor_503500_80132584`, `_actor511000SetRupertModelDraw`) - read a matched one
 before writing the next.
 
@@ -10011,7 +10011,7 @@ jal overlay-local functions; match first, or write the `shared` span by hand.
 Matching cures only the first of those two: an overlay-local `jal` is refused
 after the body is C as well, because the copies name different callees
 (`_actorMotionPlayAnim19` against `_actor335800FlintPlayAnimation` in the
-`func_actor_141000_80133BD8` / `_actor335800FlintTurnToYaw` pair - otherwise the
+`_actor141000TurnAyaBreaToYaw` / `_actor335800FlintTurnToYaw` pair - otherwise the
 same 64 instructions, one `~` body), so the twin has to be matched in its own
 overlay with the local name.
 
@@ -48689,7 +48689,7 @@ nop
 30: addu v0,zero,zero  <- join, shared by the case paths
 34: .LFA0: jr ra
 ```
-Dropping the `default` arm (`func_actor_141000_80133F6C`) matches exactly.
+Dropping the `default` arm (`_actor141000SetAyaBreaWalkPace`) matches exactly.
 `expand_end_case` still emits an unconditional jump for the no-match path, but
 to the break label, which it gives its own `code_label` directly in front of
 the switch-exit block - and that block starts with the trailing return's
@@ -67436,8 +67436,8 @@ Two ways out:
 
 ```c
 const TaskFuncTable4 D_actor_141000_80131E58 = { {
-    func_actor_141000_80133A68, func_actor_141000_80133B28,
-    func_actor_141000_80133490, func_actor_141000_80133BD8,
+    _actor141000FaceAyaBreaWalkTarget, _actor141000BeginAyaBreaWalk,
+    func_actor_141000_80133490, _actor141000TurnAyaBreaToYaw,
 } };
 ```
 
@@ -81815,7 +81815,7 @@ Both arms then read one SImode pseudo, the pair lands in the dominator (delayed
 branch moves the `sra` into the `bgez` delay slot), and - because the assignment
 sits in the same extended basic block as the earlier `vec.vy` read, ahead of any
 store to the field - cse shares a single `lhu` with the yaw subtraction rather
-than emitting one per arm. 93.172% -> 100% on `func_actor_141000_80133BD8` from
+than emitting one per arm. 93.172% -> 100% on `_actor141000TurnAyaBreaToYaw` from
 that one change: the register rotation it also fixed (`$a0`/`$v1` swapped) was a
 consequence of the shared load, not something to pin. This is the assignment-vs-
 use rule of the `s8`-cast entry above, and the mirror of "An in-place
@@ -82071,8 +82071,8 @@ handlers.funcs[(s16)work->field_4C2](arg0);
 work->field_4C2 = work->field_4C2 + 1;
 ```
 
-`_Actor141000AyaBreaWork::walk.motionStep` is the worked example: `func_actor_141000_80133A00`
-indexes `D_actor_141000_80131E58` with it while `func_actor_141000_80133B28`
+`_Actor141000AyaBreaWork::walk.motionStep` is the worked example: `_actor141000RunAyaBreaWalkStep`
+indexes `D_actor_141000_80131E58` with it while `_actor141000BeginAyaBreaWalk`
 bumps it. Changing the field to `u16` and adding the cast in the dispatcher
 keeps both matching; `actor_341700` 0x422 and `actor_403100` 0x5FA are the same
 pair already in the tree. A scratch env that only ever compiles one of the two
@@ -82087,7 +82087,7 @@ work block -- `actors_shared_80132920.h` documents the sibling
 overlay's state-1 handler is a variant of, and supplies the field names, the
 `u16` state counter and the `(VECTOR*)&work->step` cast directly.
 
-Example: `func_actor_141000_80133B28` (scratch `base_1.c`, first distinct build,
+Example: `_actor141000BeginAyaBreaWalk` (scratch `base_1.c`, first distinct build,
 100%). Input `base_1.i`
 `28d9ecbc7256465d3a506a6b166343e890be5b2f5644e1e903735ab8ff018d88`.
 
@@ -82143,7 +82143,7 @@ case 2:  lhu/addiu/sh/sll/bgez ; lui a1,%hi(D_...CE84) ; addiu a1,a1,%lo(D_...CE
 
 So the shared block sits between the *second* arm's body and the next case, and
 nothing in the source has to say so: writing the three arms out honestly, each
-with its own full call, produces it (`func_actor_141000_801335D4` is the worked
+with its own full call, produces it (`_actor141000TickAyaBreaBlink` is the worked
 example; the third arm's tail differs -- it clears the step instead of bumping
 it -- so it is a block of its own). Both `goto` spellings score worse: a label
 in front of the call keeps the tail as one block but is also where the address
@@ -82159,7 +82159,7 @@ locals lose three dead stores), and the underflow test is the signed truncation
 of the decremented `u16` (`lhu / addiu -1 / sh / sll 16 / bgez`), not a bit test
 on an `s32` temp.
 
-Example: `func_actor_141000_801335D4` (scratch `base_2.c`, 100%; `base_1.c`,
+Example: `_actor141000TickAyaBreaBlink` (scratch `base_2.c`, 100%; `base_1.c`,
 the `goto` spelling, 99.697%). Input `base_2.i`
 `1520622cbff766666797221e9862f0afe6034a224a669ab40fbf0c8da24c11c6`.
 ## func_actor_113100_80132BDC: a wrong `addiu` displacement sizes the pointer, and a matched sibling names it
@@ -85946,7 +85946,7 @@ The brief's "Similar matched bodies" is labelled *candidates to read, not
 equalities*, and `overlay_dup_index.py similar` only does generate candidates.
 But `shape: 1.00` on a short function is not a resemblance: it means the opcode
 order with operands dropped is identical. `func_actor_350500_80162ABC` is 15
-instructions, and its `shape: 1.00` entry `func_actor_141000_80133F6C` turned
+instructions, and its `shape: 1.00` entry `_actor141000SetAyaBreaWalkPace` turned
 out to be the *same 15 instructions in the same order*, differing in exactly one
 displacement — the latched store, `sb $zero, 0x4C4($a0)` against
 `sb $zero, 0x4C8($a0)`. Reading the sibling's matched C and changing only that
@@ -99243,7 +99243,7 @@ Count the pseudo's references before reaching for the call.
 
 ## An m2c stack temp that aliases the struct field it was extracted from makes the target's stores dead (func_actor_335800_801631A4, 2026-09-16)
 
-`BRIEF.md` ranked `func_actor_141000_80133BD8` 1.00 in **both** `shape` and
+`BRIEF.md` ranked `_actor141000TurnAyaBreaToYaw` 1.00 in **both** `shape` and
 `cflow`. Porting that matched body literally -- declarations, statement order,
 structs and all, changing only names -- hit 100% on the first build. When two
 similar-body classes agree at 1.00, read the sibling's source as *this*
@@ -101071,7 +101071,7 @@ this only surfaces on a repeated one.
 ## The turn-to-face seed's second fault is the argument block, not the aliased local (func_actor_350700_80162764, 2026-09-16)
 
 `actor_350700` carries its own copy of the body the entry above matched in
-`actor_335800`. `BRIEF.md` again ranked `func_actor_141000_80133BD8` 1.00 in
+`actor_335800`. `BRIEF.md` again ranked `_actor141000TurnAyaBreaToYaw` 1.00 in
 `shape` and `cflow`, and again that sibling *is* this function: the m2c seed
 scored 77.365% with the structure already matching, and the whole gap was two
 source-shape differences. Porting the sibling's declaration list and statement
@@ -111707,7 +111707,7 @@ source `base_3.c` `dd5ad9488c048d4700a7b2155651a9ed7617f6341278e713c05808cfa4ebc
 ## A pointer load sitting in the entry block means the source read it *before* the `switch`
 
 `_actor511000SetRupertModelDraw`, the message-0x7D5 handler, is the same four-way
-mode dispatch as the already-matched `func_actor_141000_80133E8C` and
+mode dispatch as the already-matched `_actor141000SetAyaBreaDrawMode` and
 `func_actor_503500_80132584`, which both name the work pointer inline in the one
 arm that uses it (`((Worker*)task->work)->field_44 = mode;`). Here the target
 loads it once, in the entry block, *above* the dispatch test:
@@ -120245,10 +120245,10 @@ pins, no empty asm, no permuter run (the router skipped: the frame difference
 made the block connections differ). Scratch
 `nonmatchings/func_neo_ark_altar_8017DF0C-vacuum`.
 
-## A two-value default written as a ternary becomes a skip block cse follows; an if/else into a stack field ends the path (func_actor_141000_801336DC, 2026-09-17)
+## A two-value default written as a ternary becomes a skip block cse follows; an if/else into a stack field ends the path (_actor141000StartAyaBreaWalk, 2026-09-17)
 
-**Symptom.** `w->field_4C0 = 1;` at the top, then in the `anim == NULL` arm
-`preset.animationId = w->field_4C8 == 0 ? 0xA : 2; w->model.nextAnimId = 1;`. Everything
+**Symptom.** `work->walk.motion = 1;` at the top, then in the `clips == NULL` arm
+`walkRequest.animationId = work->fastPace == 0 ? 0xA : 2; work->model.nextAnimId = 1;`. Everything
 matched except the `model.nextAnimId` store: ours reused the first `li 1` register
 (`sb t0,0x43f`), the target reloads `li v0,1`.
 
@@ -120256,18 +120256,18 @@ matched except the `model.nextAnimId` store: ours reused the first `li 1` regist
 `v = 2; if (!x) v = 10;`, a one-insn block cse's `-fcse-skip-blocks` path
 skips over, so the table from the function entry still holds `(reg:HI) = 1`
 and the QImode store picks it up through the wider-mode lookup (cse.c ~6697).
-Declaring `model.nextAnimId` `u8`, `if (anim == NULL)` as a second `if`, or pre-setting
+Declaring `model.nextAnimId` `u8`, `if (clips == NULL)` as a second `if`, or pre-setting
 the temp all leave that path intact.
 
 **Fix.** Assign both arms straight into the stack field:
 
 ```c
-if (w->field_4C8 != 0) {
-    preset.animationId = 2;
+if (work->fastPace != 0) {
+    walkRequest.animationId = 2;
 } else {
-    preset.animationId = 0xA;
+    walkRequest.animationId = 0xA;
 }
-w->model.nextAnimId = 1;
+work->model.nextAnimId = 1;
 ```
 
 jump1 cannot if-convert a MEM destination, so the if/else keeps its join label
@@ -120275,7 +120275,7 @@ jump1 cannot if-convert a MEM destination, so the if/else keeps its join label
 jumping and dbr later fold the two stores to the same `bnez; li 2 (slot); li 10;
 sw` shape the ternary produced. Either arm order matches.
 
-### Mixed sp/pointer identity stores: only the pointer-written fields go register-relative (func_actor_141000_801323F0, 2026-09-17)
+### Mixed sp/pointer identity stores: only the pointer-written fields go register-relative (_actor141000BuildRingBeamPoints, 2026-09-17)
 
 Target splats an identity rotation as `sw v0,0x20(sp)` / `sw zero,0x24(sp)` / `sw v0,8(s0)` /
 `sw zero,0x2c(sp)` / `sh v0,0x10(s0)`, with `s0 = &rot` also the `RotMatrixZ` argument.
@@ -125985,7 +125985,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 The 0x7DD placement handler is the 0x7D3 handler `func_actor_113100_801331E8`
 written out inline against a stack preset, and the brief's `calls` tier reaches
-its cross-family twin `func_actor_141000_801336DC` at 1.00 -- the same body for
+its cross-family twin `_actor141000StartAyaBreaWalk` at 1.00 -- the same body for
 actor_141000. Porting it is mechanical except that its `anim == NULL` arm is one
 branch longer:
 
@@ -126013,7 +126013,7 @@ sb    $a1,0x477($v1)           addiu $v0,$zero,0x1     <- rematerialised
                                sb    $v0,0x43F($v1)
 ```
 
-That is the same cse path the note on `func_actor_141000_801336DC` describes
+That is the same cse path the note on `_actor141000StartAyaBreaWalk` describes
 from the other side: a branch between the two stores ends cse's skip-block
 walk, so the constant cannot be carried across and is rematerialised. Keeping
 the twin's branch to "preserve the shape", or adding a temp to force a fresh
@@ -126593,7 +126593,7 @@ spelling of the last two arguments —
 `s32 func_actor_317000_80162CA0(Task* task, s32 value, ActorCommand* msg)`.
 
 The body then came straight from the family's already-matched near-twin,
-`func_actor_141000_801336DC` (`overlay_dup_index.py similar` ranks it 1.00 on
+`_actor141000StartAyaBreaWalk` (`overlay_dup_index.py similar` ranks it 1.00 on
 the call sequence, 0.97 shape): 115 instructions against 121, the difference
 being one `field_4C2` store this carrier does not make and one `field_4C8` test
 its else-branch does not. Transcribing the matched C verbatim — including its
@@ -127320,7 +127320,7 @@ pins, no empty asm, no permuter run; `.cse` dumps retained in the scratch.
 "A twin of a matched sibling is provable before you write any C" uses the
 four-class `1.00`/asterisk signal, but the method needs no asterisk: a sibling at
 `shape 0.98 / fields 0.90 / cflow 1.00` is one instruction away.
-`func_actor_141000_80133E8C` (matched) is this actor's 4-way model-mode switch on
+`_actor141000SetAyaBreaDrawMode` (matched) is this actor's 4-way model-mode switch on
 `TmdObject::flags`; diffing its `matchings/` `.s` against the target's left
 one differing instruction out of 56:
 
@@ -127349,7 +127349,7 @@ Inputs: scratch `nonmatchings/_actor135400FlintSetDrawMode-vacuum`, `base.c`
 ## A switch's identical case tails are one block the compiler made: keep the two statements separate (_actor135400GaryDouglasSetDrawMode, 2026-09-17)
 
 The 4-way `TmdObject::flags` switch this body shares with
-`_actor135400FlintSetDrawMode` / `func_actor_141000_80133E8C` writes case 0 as
+`_actor135400FlintSetDrawMode` / `_actor141000SetAyaBreaDrawMode` writes case 0 as
 
 ```c
         case 0:
@@ -128031,7 +128031,7 @@ forms changed the block graph and the branch count; m2c's rendering of the same 
 the tail from a case that `return`s) scores 59.030% with `insert=9 delete=15`.
 
 This is one of a family: `func_actor_511000_80132048` and
-`func_actor_141000_801335D4` are the same state over their own image trios and
+`_actor141000TickAyaBreaBlink` are the same state over their own image trios and
 assemble to the identical instruction sequence, so a sibling's matched source is
 the fastest route to the shape. What differs between them is the work struct:
 the countdown is a halfword (so `lhu`, then an `sll $v0,16` / `bgez` test for the
@@ -137749,7 +137749,7 @@ matching prediction `c17bc97dcd99747374a72c8ef3a9f3749caa0073f9c976bd039849c8bee
 Selected observations and source/input fingerprints are retained in
 `tools/compiler_evidence/2026-09-20-actor102400-3277c.json`.
 
-## A rematerialized table pointer can change a different load's register and sched2 hazards (func_actor_141000_801323F0, 2026-09-20)
+## A rematerialized table pointer can change a different load's register and sched2 hazards (_actor141000BuildRingBeamPoints, 2026-09-20)
 
 A controlled normal-header port of a permuter discovery (`base_2`) improved
 345 -> 90 distance. It only assigned D_actor_141000_80134878 to an SVECTOR
@@ -137801,7 +137801,7 @@ that named table pointers improve codegen.
 The production port subsequently passed the unscoped
 `./tools/build-and-verify.sh` with `✅ BUILD SUCCEEDED`; the lost-match check
 also passed. Final scratch and integration evidence are preserved in
-`tools/permuter_findings/func_actor_141000_801323F0/sessions/5c4f47d0e4554bffabe46aeeb773071a/cdf68c94da0eb0773bb9`.
+`tools/permuter_findings/_actor141000BuildRingBeamPoints/sessions/5c4f47d0e4554bffabe46aeeb773071a/cdf68c94da0eb0773bb9`.
 
 
 ### A post-store tied asm preserves both the original store register and the saved loop copy (func_actor_160900_80132844, 2026-09-20)
@@ -145994,7 +145994,7 @@ store pass non-QI struct stores and sinks the push below them (see "The
 scratch-head store separates two reads for cse but not for the scheduler").
 A push the target shows after some stores may have been written before them.
 
-## A `USE_REG(x)` that only adds a ref is a derived value the original computed from `x` (func_actor_141000_801323F0, 2026-09-27)
+## A `USE_REG(x)` that only adds a ref is a derived value the original computed from `x` (_actor141000BuildRingBeamPoints, 2026-09-27)
 
 Two screen points are split into `x0`/`y0`/`x1`/`y1` locals and `ratan2(dx, dy)`.
 Without `USE_REG(x0)` between two loops, `x0` loses its callee-saved register to
