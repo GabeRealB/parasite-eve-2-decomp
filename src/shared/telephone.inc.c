@@ -422,7 +422,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     if (((arg1->panel.control.word >> 16) == one) || (arg1->panel.control.word == one)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
-            Gp_SetHolderItemText(item);
+            itemMenuSetItemDescriptionPrompt(item);
         }
     }
     if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {

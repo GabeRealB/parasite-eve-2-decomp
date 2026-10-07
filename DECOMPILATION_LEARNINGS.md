@@ -23828,7 +23828,7 @@ if (id == 0) {
 ```
 
 GCC CSE's the two calls into one `jal` and materializes `K` directly in `$a0`,
-jumping past `move a0, v0`. `Gp_SetHolderItemText` is the pure example (`Gp_StrEmpty`
+jumping past `move a0, v0`. `itemMenuSetItemDescriptionPrompt` is the pure example (`Gp_StrEmpty`
 empty string + `itemGetText` + `func_80049D34`).
 
 ## If/else stores of two constants keep `bnez; nop; j join`
@@ -36765,7 +36765,7 @@ expression:
 rec2 = recs + (u8)i;
 ```
 
-`func_800D0C34` is the example (best 95.6%, not a match).
+`_menuMapDrawFlagMarkers` is the example (best 95.6%, not a match).
 
 ## Store 3 packed `SVECTOR3` rows in a `MATRIX` so the next `VECTOR[]` lands on 0x10
 
@@ -39051,7 +39051,7 @@ if (flagIds[(u8)i] == 0xFF) break;
 ret = _menuMapPageIsAvailable((u8)i, flagIds[(u8)i]);
 ```
 
-`func_800D15D0`'s two scan loops went from 93.7% to 95.4% with this alone.
+`_menuMapDrawPageArrows`'s two scan loops went from 93.7% to 95.4% with this alone.
 
 ## `register u8 x asm("v1")` is silently ignored; declare the pin as `s32`
 
@@ -39089,7 +39089,7 @@ the store scalar blocks the hoist but then also invalidates the cached
 `gGpuCurrentOt`, adding a reload the target does not have. `_menuMapDrawAreaIcons` in
 the same file is matched *with* the hoist, so source order does not decide it
 (`dr = ...` before, between or after the two `setaddr`s compiles byte for byte
-identically). No formulation found yet; `func_800D15D0` stalls at 95.4% on
+identically). No formulation found yet; `_menuMapDrawPageArrows` stalls at 95.4% on
 exactly these two blocks.
 
 ## `mflo v1` + a `move s5, v1` in the loop preheader means the divisor is `s16`
@@ -50768,7 +50768,7 @@ A neighbouring symbol (`D_8007106B` here) is the usual hint that the address is
 inside a small flag block rather than a standalone scalar, so the array form is
 an honest declaration and not just a codegen trick. Reach for it whenever a
 global scalar store and a following struct load are in the wrong order, and try
-it on the `gGpuPrimCursor` hoist in `func_800D15D0` — there the fixed-address
+it on the `gGpuPrimCursor` hoist in `_menuMapDrawPageArrows` — there the fixed-address
 scalar is on the *load* side, but the same exemption is what moves it.
 
 ## The same array trick stops `dbr` stealing a store into a branch delay slot
@@ -66181,7 +66181,7 @@ alignment bytes that are not part of the function.
 
 ## Halfword return across a room check: inspect allocation before pinning
 
-`func_800D0C34` (GCC 2.8.1, `-O2 -mips1`) reached 99.778% unpinned with
+`_menuMapDrawFlagMarkers` (GCC 2.8.1, `-O2 -mips1`) reached 99.778% unpinned with
 no branch, insertion, deletion, or scheduling penalties. The source narrowed
 an `s16` call result to `(u16)` before a room comparison. In `.sched`, that
 narrowing preceded the branch while the room byte was still live. `.lreg`
@@ -66205,7 +66205,7 @@ order alone hides which conflict caused the extra copy.
 
 ## Split independent draw-page pointers to restore local allocation
 
-`func_800D15D0` started at 95.377% with `stack=16 branch=0 regs=44
+`_menuMapDrawPageArrows` started at 95.377% with `stack=16 branch=0 regs=44
 reorder=4 insert=4 delete=4`. Both arrow-drawing blocks reused one
 `DR_TPAGE* dr`. Its `.lreg` entry had 28 uses across 56 instructions in
 multiple blocks, and `.greg` assigned it `$a3`. The draw-page cursor load
@@ -143877,7 +143877,7 @@ parameter) and field reads split between `base->` and `light->` - makes the
 sits among the opening statements. When only the order of a parameter `move`
 at the top differs, look for a member-at-offset-0 alias local.
 
-## `i++; continue;` on every skip path of a `for (;;)`: one cross-jumped tail that keeps a field re-read and lifts the counter's priority (func_800D0C34, 2026-09-26)
+## `i++; continue;` on every skip path of a `for (;;)`: one cross-jumped tail that keeps a field re-read and lifts the counter's priority (_menuMapDrawFlagMarkers, 2026-09-26)
 The target re-read a byte field in the fall-through arm of a test on it
 (`lbu a0,1(v1)` for the compares, `lbu v0,1(v1)` again in the arm) and gave the
 `u8` loop counter `s2` over a hoisted `0xFFFFFF` mask. The old body got both with

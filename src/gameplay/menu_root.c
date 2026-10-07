@@ -234,7 +234,7 @@ TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, Gp_MenuExitCallback, { NULL 
 
 AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-UiListRowCallback Gp_MainMenuCmds[6] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow, Gp_DrawPeEnergyCmd, Gp_DrawMapCmd, Gp_DrawOptionCmd, Gp_DrawExitCmd };
+UiListRowCallback Gp_MainMenuCmds[6] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow, itemMenuDrawPeCommandRow, itemMenuDrawMapCommandRow, Gp_DrawOptionCmd, itemMenuDrawExitCommandRow };
 
 UiList D_8010E820 = { Gp_MainMenuCmds, 6, { 6 }, 1, 8, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 

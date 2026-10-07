@@ -184,7 +184,7 @@ static void _menuMapDrawPicture(Task* mapTask);
 
 static void _menuMapDrawAreas(const Task* mapTask);
 
-static void func_800D0C34(Task* arg0);
+static void _menuMapDrawFlagMarkers(const Task* mapTask);
 
 static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited);
 
@@ -192,7 +192,7 @@ static void _menuMapLoadPage(void);
 
 static s8 _menuMapPageIsAvailable(u32 page, u8 flagId);
 
-static void func_800D15D0(Task* arg0);
+static void _menuMapDrawPageArrows(const Task* mapTask);
 
 static void _menuMapPrepareClosing(Task* mapTask);
 
@@ -281,42 +281,52 @@ char Gp_StrCheckMap[]      = "Check the map.";
 // "EXP"
 // "MP"
 
-void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1)
-{
-    TextDrawReq req;
-    u32         textColorRgb;
-    s32         status;
-    s32         one;
+/// Fills a command-label request in list-row pixels relative to panel content.
+///
+/// The request is a writable lvalue; list/object are live pointers. Arguments
+/// must have no side effects: request, list and object are evaluated repeatedly.
+/// Colour, font and draw mode retain their destination widths. Uses the text
+/// alignment constant from the text interface; no local identifiers are captured.
+#define ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, textColor, font, mode)                          \
+    {                                                                                                         \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + (list)->rowTextX.unsignedValue; \
+        (request).y          = (object)->panel.contentOriginY.unsignedValue + (list)->rowTextY.unsignedValue; \
+        (request).otIndex    = (object)->panel.otIndex.signedValue + 1;                                       \
+        (request).colorRgb   = (textColor);                                                                   \
+        (request).glyphTable = (font);                                                                        \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                                           \
+        (request).drawMode   = (mode);                                                                        \
+    }
 
-    textColorRgb = arg0->colorRgb;
+void itemMenuDrawPeCommandRow(UiList* list, UiObject* object)
+{
+    enum { ITEM_MENU_COMMAND_PARASITE_ENERGY = 12 };
+    TextDrawReq request;
+    u32         textColorRgb;
+    s32         panelControl;
+
+    textColorRgb = list->colorRgb;
     if (attachmentIsTrainingMode() != 0) {
-        textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
     } else {
-        status = arg1->panel.control.word;
-        one    = 1;
-        if (((status >> 16) == one) || (status == one)) {
-            if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-                uiSetPromptText(Gp_StrReleasePe, 0, 0);
+        panelControl = object->panel.control.word;
+        if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+            if (list->selectedItemIndex == list->currentItemIndex) {
+                uiSetPromptText((const u8*)Gp_StrReleasePe, 0, 0);
             }
         }
     }
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = textColorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, Gp_StrPEnergy);
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
+    textDrawString(&request, (const u8*)Gp_StrPEnergy);
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (attachmentIsTrainingMode() != 0) {
-            arg0->actionResult = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
+            list->actionResult = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg1->resultValue = 0xC;
-            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = ITEM_MENU_COMMAND_PARASITE_ENERGY;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -363,32 +373,25 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
     }
 }
 
-void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawExitCommandRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    s32         status;
-    s32         one;
+    TextDrawReq request;
+    s32         panelControl;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, Gp_StrExit);
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
+    textDrawString(&request, (const u8*)Gp_StrExit);
 
-    status = arg1->panel.control.word;
-    one    = 1;
-    if (((status >> 16) == one) || (status == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            uiSetPromptText(Gp_StrReturnGame, 0, 0);
+    panelControl = object->panel.control.word;
+
+    if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            uiSetPromptText((const u8*)Gp_StrReturnGame, 0, 0);
         }
     }
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            arg1->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }
@@ -457,12 +460,12 @@ void Gp_WeaponSummaryTask(Task* arg0)
     uiDrawTitle(&(obj)->panel, Gp_StrWeaponTitle);
 }
 
-void Gp_SetHolderItemText(s32 arg0)
+void itemMenuSetItemDescriptionPrompt(s32 itemId)
 {
-    if (arg0 == 0) {
-        uiSetPromptText(Gp_StrEmpty, 0, 0);
+    if (itemId == INVENTORY_ITEM_NONE) {
+        uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
     } else {
-        uiSetPromptText(itemGetText(arg0, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+        uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
     }
 }
 
@@ -1071,10 +1074,10 @@ void Gp_MapTaskState2(Task* arg0)
     obj   = arg0->spawnArg2.pointer;
     flags = Gp_MapFlagIds[gGameSession->location.loc.stage - 1];
     _menuMapDrawPlayerCursor(arg0);
-    func_800D0C34(arg0);
+    _menuMapDrawFlagMarkers(arg0);
     _menuMapDrawPicture(arg0);
     _menuMapDrawAreas(arg0);
-    func_800D15D0(arg0);
+    _menuMapDrawPageArrows(arg0);
     if (gDisplayState.keepGraphics != 0) {
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
     } else {
@@ -1160,42 +1163,45 @@ void Gp_MapTaskState2(Task* arg0)
 
 /// Selects one of eight cursor sprites for a yaw in 4096 units per turn.
 ///
-/// Requires a yaw in 0..4095. Tests keep the original 16-bit subtraction wrap;
-/// values outside that domain can leave the sprite's UV coordinates untouched.
+/// Borrows a writable 16x16 sprite and changes only its UV coordinates. Requires
+/// a yaw in 0..4095; sector zero straddles the turn boundary, and ties enter the
+/// next sector. Tests retain 16-bit subtraction wrap; values outside that
+/// domain can leave UV unchanged. All eight cells use the same texture row.
 static inline void _menuMapSetPlayerCursorHeading(SPRT_16* cursor, s32 heading)
 {
     enum {
         MENU_MAP_CURSOR_HALF_SECTOR_ANGLE     = ACTOR_TRANSFORM_ANGLE_TURN / 16,
         MENU_MAP_CURSOR_SECTOR_ANGLE          = ACTOR_TRANSFORM_ANGLE_TURN / 8,
-        MENU_MAP_CURSOR_HEADING_ENCODING_MASK = 0xFFFF
+        MENU_MAP_CURSOR_HEADING_ENCODING_MASK = 0xFFFF,
+        MENU_MAP_CURSOR_TEXTURE_FIRST_U       = 0x40,
+        MENU_MAP_CURSOR_TEXTURE_V             = 0x10,
+        MENU_MAP_CURSOR_TEXTURE_STEP          = 16
     };
-    if (((heading - (ACTOR_TRANSFORM_ANGLE_TURN - MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_HALF_SECTOR_ANGLE) {
-        cursor->u0 = 0x40;
-        cursor->v0 = 0x10;
-    } else if (heading < (u32)MENU_MAP_CURSOR_HALF_SECTOR_ANGLE) {
-        cursor->u0 = 0x40;
-        cursor->v0 = 0x10;
+    if ((((heading - (ACTOR_TRANSFORM_ANGLE_TURN - MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_HALF_SECTOR_ANGLE) ||
+        (heading < (u32)MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) {
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     } else if (((heading - MENU_MAP_CURSOR_HALF_SECTOR_ANGLE) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_SECTOR_ANGLE) {
-        cursor->u0 = 0x50;
-        cursor->v0 = 0x10;
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U + MENU_MAP_CURSOR_TEXTURE_STEP;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     } else if (((heading - (3 * MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_SECTOR_ANGLE) {
-        cursor->u0 = 0x60;
-        cursor->v0 = 0x10;
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U + 2 * MENU_MAP_CURSOR_TEXTURE_STEP;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     } else if (((heading - (5 * MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_SECTOR_ANGLE) {
-        cursor->u0 = 0x70;
-        cursor->v0 = 0x10;
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U + 3 * MENU_MAP_CURSOR_TEXTURE_STEP;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     } else if (((heading - (7 * MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_SECTOR_ANGLE) {
-        cursor->u0 = 0x80;
-        cursor->v0 = 0x10;
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U + 4 * MENU_MAP_CURSOR_TEXTURE_STEP;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     } else if (((heading - (9 * MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_SECTOR_ANGLE) {
-        cursor->u0 = 0x90;
-        cursor->v0 = 0x10;
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U + 5 * MENU_MAP_CURSOR_TEXTURE_STEP;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     } else if (((heading - (11 * MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_SECTOR_ANGLE) {
-        cursor->u0 = 0xA0;
-        cursor->v0 = 0x10;
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U + 6 * MENU_MAP_CURSOR_TEXTURE_STEP;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     } else if (((heading - (13 * MENU_MAP_CURSOR_HALF_SECTOR_ANGLE)) & MENU_MAP_CURSOR_HEADING_ENCODING_MASK) < (u32)MENU_MAP_CURSOR_SECTOR_ANGLE) {
-        cursor->u0 = 0xB0;
-        cursor->v0 = 0x10;
+        cursor->u0 = MENU_MAP_CURSOR_TEXTURE_FIRST_U + 7 * MENU_MAP_CURSOR_TEXTURE_STEP;
+        cursor->v0 = MENU_MAP_CURSOR_TEXTURE_V;
     }
 }
 
@@ -1438,89 +1444,124 @@ static void _menuMapDrawAreas(const Task* mapTask)
     }
 }
 
-static void func_800D0C34(Task* arg0)
+/// Queues the selected map page's markers whose game-flag state is visible.
+///
+/// Borrows the live UiObject in spawnArg2, current-stage visit bank and loaded
+/// marker/flag tables for stage 1..5. The page-zero terminator must occur before
+/// the byte index wraps; area gates are 1..64, ANY or NEVER. Coordinates are
+/// signed pixels from the picture centre, staged as their 16-bit encoding.
+/// Uses 16x16 raw semitransparent sprites at panel OT base -27; packets belong
+/// to the current GPU buffer, and scratch storage is released for each marker.
+static void _menuMapDrawFlagMarkers(const Task* mapTask)
 {
-    UiObject*              obj;
-    MenuMapMarker*         markers;
-    GameFlagStageHeader*   bank;
-    _MenuMapCentreScratch* centre;
-    SPRT_16*               p;
-    DR_TPAGE*              dr;
-    s32                    flags[2];
-    u8                     i;
-    s16                    which;
-    s32                    bit;
-    u16                    markerState;
-    u8                     stage;
-    u8                     area;
+    enum {
+        MENU_MAP_MARKER_PAGE_END         = 0,
+        MENU_MAP_MARKER_HALF_SIZE_PIXELS = 8,
+        MENU_MAP_MARKER_OT_OFFSET        = 27,
+        MENU_MAP_MARKER_TEXTURE_PAGE     = getTPage(0, 0, 0x380, 0),
+        MENU_MAP_MARKER_PRIMARY_CLUT_X   = 0x30,
+        MENU_MAP_MARKER_ALTERNATE_CLUT_X = 0x60,
+        MENU_MAP_MARKER_CLUT_Y           = 0x101,
+        MENU_MAP_MARKER_PRIMARY_U        = 0x60,
+        MENU_MAP_MARKER_ALTERNATE_U      = 0x90,
+        MENU_MAP_MARKER_TEXTURE_V        = 0,
+        MENU_MAP_MARKER_SPRITE_CODE      = 0x7F // Raw, semitransparent 16x16 sprite
+    };
 
-    i        = 0;
-    stage    = gGameSession->location.loc.stage;
-    obj      = arg0->spawnArg2.pointer;
-    markers  = D_8010F0E0[stage - 1];
-    bank     = Gp_FlagBanks[stage];
-    flags[0] = bank->visitedAreas[0];
-    flags[1] = bank->visitedAreas[1];
+    /// Queues one visible flag marker and its texture-page packet.
+    ///
+    /// object is live; marker is a loaded record lvalue and state selects one of
+    /// the two visible pictures. centreBlock/sprite/pagePacket are writable
+    /// pointer lvalues. Arguments must have no side effects: uses are repeated.
+    /// Captures the MENU_MAP_MARKER constants, scratch stack and GPU cursor/OT;
+    /// releases its scratch block after advancing the cursor by both packets.
+#define MENU_MAP_QUEUE_FLAG_MARKER(object, marker, state, centreBlock, sprite, pagePacket)                      \
+    {                                                                                                           \
+        (centreBlock)           = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);                           \
+        (centreBlock)->field_10 = (centreBlock)->field_12 = (centreBlock)->field_14 = 0;                        \
+        (centreBlock)->x                                                            = (marker).x;               \
+        (sprite)                                                                    = gGpuPrimCursor;           \
+        gGpuPrimCursor                                                              = (sprite) + 1;             \
+        (centreBlock)->y                                                            = (marker).y;               \
+        setlen((sprite), sizeof(*(sprite)) / sizeof(u32) - 1);                                                  \
+        setcode((sprite), MENU_MAP_MARKER_SPRITE_CODE);                                                         \
+        if ((state) == MENU_MAP_MARKER_STATE_VISIBLE) {                                                         \
+            (sprite)->clut = GetClut(MENU_MAP_MARKER_PRIMARY_CLUT_X, MENU_MAP_MARKER_CLUT_Y);                   \
+            (sprite)->u0   = MENU_MAP_MARKER_PRIMARY_U;                                                         \
+            (sprite)->v0   = MENU_MAP_MARKER_TEXTURE_V;                                                         \
+        } else if ((state) == (MENU_MAP_MARKER_STATE_VISIBLE + MENU_MAP_MARKER_ALTERNATE_PICTURE)) {            \
+            (sprite)->clut = GetClut(MENU_MAP_MARKER_ALTERNATE_CLUT_X, MENU_MAP_MARKER_CLUT_Y);                 \
+            (sprite)->u0   = MENU_MAP_MARKER_ALTERNATE_U;                                                       \
+            (sprite)->v0   = MENU_MAP_MARKER_TEXTURE_V;                                                         \
+        }                                                                                                       \
+        (sprite)->x0 = (centreBlock)->x - MENU_MAP_MARKER_HALF_SIZE_PIXELS;                                     \
+        (sprite)->y0 = (centreBlock)->y - MENU_MAP_MARKER_HALF_SIZE_PIXELS;                                     \
+        addPrim(&gGpuCurrentOt[(object)->panel.otIndex.signedValue - MENU_MAP_MARKER_OT_OFFSET], (sprite));     \
+        (pagePacket)   = gGpuPrimCursor;                                                                        \
+        gGpuPrimCursor = (pagePacket) + 1;                                                                      \
+        setDrawTPage((pagePacket), 0, 0, MENU_MAP_MARKER_TEXTURE_PAGE);                                         \
+        addPrim(&gGpuCurrentOt[(object)->panel.otIndex.signedValue - MENU_MAP_MARKER_OT_OFFSET], (pagePacket)); \
+        SCRATCH_STACK_RELEASE_BLOCK(_MenuMapCentreScratch);                                                     \
+    }
+
+    const UiObject*            mapObject;
+    const MenuMapMarker*       markers;
+    const GameFlagStageHeader* flagBank;
+    _MenuMapCentreScratch*     centre;
+    SPRT_16*                   markerSprite;
+    DR_TPAGE*                  texturePage;
+    s32                        visited[2];
+    u8                         markerIndex;
+    s16                        visitedWord;
+    s32                        areaMask;
+    u16                        markerState;
+    u8                         stage;
+    u8                         area;
+
+    markerIndex = 0;
+    stage       = gGameSession->location.loc.stage;
+    mapObject   = mapTask->spawnArg2.pointer;
+    markers     = D_8010F0E0[stage - 1];
+    flagBank    = Gp_FlagBanks[stage];
+    // Marker visibility uses this stage's visit bits without merging daytime visits.
+    visited[0] = flagBank->visitedAreas[0];
+    visited[1] = flagBank->visitedAreas[1];
     for (;;) {
-        if (markers[i].page == 0) {
+        if (markers[markerIndex].page == MENU_MAP_MARKER_PAGE_END) {
             return;
         }
-        area = markers[i].area;
+        area = markers[markerIndex].area;
         if (area == MENU_MAP_MARKER_AREA_NEVER) {
-            i++;
+            markerIndex++;
             continue;
         }
         if (area != MENU_MAP_MARKER_AREA_ANY) {
             // Show the marker only once its area has been visited.
-            if (area >= 0x21) {
-                bit   = 1 << (markers[i].area - 0x21);
-                which = 1;
+            if (area >= MENU_MAP_VISITED_SECOND_WORD_FIRST_AREA) {
+                areaMask    = 1 << (markers[markerIndex].area - MENU_MAP_VISITED_SECOND_WORD_FIRST_AREA);
+                visitedWord = 1;
             } else {
-                bit   = 1 << (markers[i].area - 1);
-                which = 0;
+                areaMask    = 1 << (markers[markerIndex].area - 1);
+                visitedWord = 0;
             }
-            if (!(bit & flags[which])) {
-                i++;
+            if (!(areaMask & visited[visitedWord])) {
+                markerIndex++;
                 continue;
             }
         }
-        markerState = menuMapGetMarkerState(i);
-        if (markers[i].page != (s8)Gp_MapRoomId) {
-            i++;
+        markerState = menuMapGetMarkerState(markerIndex);
+        if (markers[markerIndex].page != (s8)Gp_MapRoomId) {
+            markerIndex++;
             continue;
         }
+        // A flag value of two enables one of the two marker pictures.
         if (markerState == MENU_MAP_MARKER_STATE_VISIBLE || markerState == (MENU_MAP_MARKER_STATE_VISIBLE + MENU_MAP_MARKER_ALTERNATE_PICTURE)) {
-            centre           = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);
-            centre->field_14 = 0;
-            centre->field_12 = 0;
-            centre->field_10 = 0;
-            centre->x        = markers[i].x;
-            p                = gGpuPrimCursor;
-            gGpuPrimCursor   = p + 1;
-            centre->y        = markers[i].y;
-            setlen(p, 3);
-            setcode(p, 0x7F);
-            if (markerState == MENU_MAP_MARKER_STATE_VISIBLE) {
-                p->clut = GetClut(0x30, 0x101);
-                p->u0   = 0x60;
-                p->v0   = 0;
-            } else if (markerState == (MENU_MAP_MARKER_STATE_VISIBLE + MENU_MAP_MARKER_ALTERNATE_PICTURE)) {
-                p->clut = GetClut(0x60, 0x101);
-                p->u0   = 0x90;
-                p->v0   = 0;
-            }
-            p->x0 = centre->x - 8;
-            p->y0 = centre->y - 8;
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1B], p);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 0, 0xE);
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1B], dr);
-            SCRATCH_STACK_RELEASE_BLOCK(_MenuMapCentreScratch);
+            MENU_MAP_QUEUE_FLAG_MARKER(mapObject, markers[markerIndex], markerState, centre, markerSprite, texturePage);
         }
-        i++;
+        markerIndex++;
     }
 }
+#undef MENU_MAP_QUEUE_FLAG_MARKER
 
 /// Draws an area's enabled icons on the selected map page and reports an objective marker.
 ///
@@ -1753,100 +1794,124 @@ static s8 _menuMapPageIsAvailable(u32 page, u8 flagId)
     return 0;
 }
 
-static void func_800D15D0(Task* arg0)
+/// Queues a pulsing arrow for each direction with an available map page.
+///
+/// Borrows the live UiObject in spawnArg2 and loaded stage/page tables. The
+/// selected page is one-based and within the stage's declared maximum. Neo Ark
+/// and a current-page 0xFF entry suppress both arrows; scans stop at 0 or 0xFF.
+/// Candidate indices narrow to bytes before lookup. Each 8x16 arrow is placed
+/// in picture-centred pixels and queued at panel OT base -28, with brightness
+/// 0..255 from the Q12 sine clock. The caller supplies packet and OT capacity.
+static void _menuMapDrawPageArrows(const Task* mapTask)
 {
-    UiObject* obj;
-    u8*       flagIds;
-    SPRT*     p;
-    DR_TPAGE* dr;
-    DR_TPAGE* rightDr;
-    s32       i;
-    s32       lum;
-    s8        ret;
-    u8        stage;
+    enum {
+        MENU_MAP_ARROW_PAGE_BOUNDARY     = 0,
+        MENU_MAP_ARROW_PAGE_END          = 0xFF,
+        MENU_MAP_ARROW_BRIGHTNESS_LIMIT  = 256,
+        MENU_MAP_ARROW_BRIGHTNESS_MAX    = 255,
+        MENU_MAP_ARROW_WIDTH_PIXELS      = 8,
+        MENU_MAP_ARROW_HEIGHT_PIXELS     = 16,
+        MENU_MAP_ARROW_LEFT_X_PIXELS     = -137,
+        MENU_MAP_ARROW_RIGHT_X_PIXELS    = 130,
+        MENU_MAP_ARROW_TOP_PIXELS        = -7,
+        MENU_MAP_ARROW_OT_OFFSET         = 28,
+        MENU_MAP_ARROW_TEXTURE_PAGE      = getTPage(0, 0, 0x380, 0),
+        MENU_MAP_ARROW_CLUT_X            = 0x50,
+        MENU_MAP_ARROW_CLUT_Y            = 0x101,
+        MENU_MAP_ARROW_LEFT_TEXTURE_U    = 0x88,
+        MENU_MAP_ARROW_RIGHT_TEXTURE_U   = 0x80,
+        MENU_MAP_ARROW_TEXTURE_V         = 0,
+        MENU_MAP_ARROW_PULSE_ANGLE_SHIFT = 5,
+        MENU_MAP_ARROW_BRIGHTNESS_SHIFT  = 5,
+        MENU_MAP_ARROW_SPRITE_CODE       = 0x66 // Modulated, semitransparent variable-size sprite
+    };
 
-    stage   = gGameSession->location.loc.stage;
-    obj     = arg0->spawnArg2.pointer;
-    flagIds = Gp_MapFlagIds[stage - 1];
-    if (stage == 5) {
+    /// Queues one 8x16 page arrow and its texture-page packet in the live GPU buffer.
+    ///
+    /// sprite/texturePage/brightnessValue are writable caller-local lvalues;
+    /// object is live and textureU/leftPixels are atlas/picture-centred pixels.
+    /// Arguments must have no side effects because they are evaluated repeatedly.
+    /// Captures this function's MENU_MAP_ARROW constants, gDisplayState's sine
+    /// clock and the GPU primitive cursor/OT; advances the cursor by both packets.
+#define MENU_MAP_QUEUE_PAGE_ARROW(object, sprite, texturePage, brightnessValue, textureU, leftPixels)                                                  \
+    {                                                                                                                                                  \
+        (sprite)          = gGpuPrimCursor;                                                                                                            \
+        gGpuPrimCursor    = (sprite) + 1;                                                                                                              \
+        (brightnessValue) = (rsin(gDisplayState.loopCount << MENU_MAP_ARROW_PULSE_ANGLE_SHIFT) + ONE) >> MENU_MAP_ARROW_BRIGHTNESS_SHIFT;              \
+        if ((brightnessValue) == MENU_MAP_ARROW_BRIGHTNESS_LIMIT) {                                                                                    \
+            (brightnessValue) = MENU_MAP_ARROW_BRIGHTNESS_MAX;                                                                                         \
+        }                                                                                                                                              \
+        GPU_PRIMITIVE_COLOR_WORD((sprite), 0) = (((brightnessValue) & 0xFF) << 0x10) | (((brightnessValue) & 0xFF) << 8) | ((brightnessValue) & 0xFF); \
+        setlen((sprite), sizeof(*(sprite)) / sizeof(u32) - 1);                                                                                         \
+        setcode((sprite), MENU_MAP_ARROW_SPRITE_CODE);                                                                                                 \
+        (sprite)->clut = GetClut(MENU_MAP_ARROW_CLUT_X, MENU_MAP_ARROW_CLUT_Y);                                                                        \
+        (sprite)->u0   = (textureU);                                                                                                                   \
+        (sprite)->w    = MENU_MAP_ARROW_WIDTH_PIXELS;                                                                                                  \
+        (sprite)->h    = MENU_MAP_ARROW_HEIGHT_PIXELS;                                                                                                 \
+        (sprite)->x0   = (leftPixels);                                                                                                                 \
+        (sprite)->v0   = MENU_MAP_ARROW_TEXTURE_V;                                                                                                     \
+        (sprite)->y0   = MENU_MAP_ARROW_TOP_PIXELS;                                                                                                    \
+        addPrim(&gGpuCurrentOt[(object)->panel.otIndex.signedValue - MENU_MAP_ARROW_OT_OFFSET], (sprite));                                             \
+        (texturePage)  = gGpuPrimCursor;                                                                                                               \
+        gGpuPrimCursor = (texturePage) + 1;                                                                                                            \
+        setDrawTPage((texturePage), 0, 0, MENU_MAP_ARROW_TEXTURE_PAGE);                                                                                \
+        addPrim(&gGpuCurrentOt[(object)->panel.otIndex.signedValue - MENU_MAP_ARROW_OT_OFFSET], (texturePage));                                        \
+    }
+
+    const UiObject* mapObject;
+    const u8*       pageFlagIds;
+    SPRT*           arrowSprite;
+    DR_TPAGE*       leftTexturePage;
+    DR_TPAGE*       rightTexturePage;
+    s32             pageIndex;
+    s32             brightness;
+    s8              pageAvailable;
+    u8              stage;
+
+    stage       = gGameSession->location.loc.stage;
+    mapObject   = mapTask->spawnArg2.pointer;
+    pageFlagIds = Gp_MapFlagIds[stage - 1];
+    if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
         return;
     }
-    if (flagIds[Gp_MapRoomId] == 0xFF) {
+    if (pageFlagIds[Gp_MapRoomId] == MENU_MAP_ARROW_PAGE_END) {
         return;
     }
 
-    i = Gp_MapRoomId - 1;
-    while ((u8)i != 0) {
-        if (flagIds[(u8)i] == 0) {
+    // Each direction shows one arrow if any reachable page exists before a boundary.
+    pageIndex = Gp_MapRoomId - 1;
+    while ((u8)pageIndex != MENU_MAP_ARROW_PAGE_BOUNDARY) {
+        if (pageFlagIds[(u8)pageIndex] == MENU_MAP_ARROW_PAGE_BOUNDARY) {
             break;
         }
-        if (flagIds[(u8)i] == 0xFF) {
+        if (pageFlagIds[(u8)pageIndex] == MENU_MAP_ARROW_PAGE_END) {
             break;
         }
-        ret = _menuMapPageIsAvailable((u8)i, flagIds[(u8)i]);
-        if (ret == 1) {
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            lum            = (rsin(gDisplayState.loopCount << 5) + 0x1000) >> 5;
-            if (lum == 0x100) {
-                lum = 0xFF;
-            }
-            GPU_PRIMITIVE_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
-            setlen(p, 4);
-            setcode(p, 0x66);
-            p->clut = GetClut(0x50, 0x101);
-            p->u0   = 0x88;
-            p->w    = 8;
-            p->h    = 0x10;
-            p->x0   = -0x89;
-            p->v0   = 0;
-            p->y0   = -7;
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1C], p);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 0, 0xE);
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1C], dr);
+        pageAvailable = _menuMapPageIsAvailable((u8)pageIndex, pageFlagIds[(u8)pageIndex]);
+        if (pageAvailable == 1) {
+            MENU_MAP_QUEUE_PAGE_ARROW(mapObject, arrowSprite, leftTexturePage, brightness, MENU_MAP_ARROW_LEFT_TEXTURE_U, MENU_MAP_ARROW_LEFT_X_PIXELS);
             break;
         }
-        i--;
+        pageIndex--;
     }
 
-    i = Gp_MapRoomId + 1;
-    while ((u8)i <= D_8010F130[gGameSession->location.loc.stage - 1]) {
-        if (flagIds[(u8)i] == 0) {
+    pageIndex = Gp_MapRoomId + 1;
+    while ((u8)pageIndex <= D_8010F130[gGameSession->location.loc.stage - 1]) {
+        if (pageFlagIds[(u8)pageIndex] == MENU_MAP_ARROW_PAGE_BOUNDARY) {
             return;
         }
-        if (flagIds[(u8)i] == 0xFF) {
+        if (pageFlagIds[(u8)pageIndex] == MENU_MAP_ARROW_PAGE_END) {
             return;
         }
-        ret = _menuMapPageIsAvailable((u8)i, flagIds[(u8)i]);
-        if (ret == 1) {
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            lum            = (rsin(gDisplayState.loopCount << 5) + 0x1000) >> 5;
-            if (lum == 0x100) {
-                lum = 0xFF;
-            }
-            GPU_PRIMITIVE_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
-            setlen(p, 4);
-            setcode(p, 0x66);
-            p->clut = GetClut(0x50, 0x101);
-            p->u0   = 0x80;
-            p->w    = 8;
-            p->h    = 0x10;
-            p->x0   = 0x82;
-            p->v0   = 0;
-            p->y0   = -7;
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1C], p);
-            rightDr        = gGpuPrimCursor;
-            gGpuPrimCursor = rightDr + 1;
-            setDrawTPage(rightDr, 0, 0, 0xE);
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1C], rightDr);
+        pageAvailable = _menuMapPageIsAvailable((u8)pageIndex, pageFlagIds[(u8)pageIndex]);
+        if (pageAvailable == 1) {
+            MENU_MAP_QUEUE_PAGE_ARROW(mapObject, arrowSprite, rightTexturePage, brightness, MENU_MAP_ARROW_RIGHT_TEXTURE_U, MENU_MAP_ARROW_RIGHT_X_PIXELS);
             return;
         }
-        i++;
+        pageIndex++;
     }
 }
+#undef MENU_MAP_QUEUE_PAGE_ARROW
 
 void menuMapHelpTask(Task* task)
 {
@@ -1984,10 +2049,10 @@ void Gp_MapFirstDrawTask(Task* arg0)
     if (cdCmdIsIdle() & 0xFFFF) {
         obj->panel.animationTicks = 1;
         _menuMapDrawPlayerCursor(arg0);
-        func_800D0C34(arg0);
+        _menuMapDrawFlagMarkers(arg0);
         _menuMapDrawPicture(arg0);
         _menuMapDrawAreas(arg0);
-        func_800D15D0(arg0);
+        _menuMapDrawPageArrows(arg0);
         arg0->state = arg0->state + 1;
     } else {
         obj->panel.animationTicks = (u16)obj->panel.animationTicks + 1;
@@ -2015,7 +2080,7 @@ void Gp_MapDrawTask(Task* arg0)
         arg0->spawnArg1.value++;
     } else if (arg0->killCountdown >= 2) {
         _menuMapDrawPlayerCursor(arg0);
-        func_800D0C34(arg0);
+        _menuMapDrawFlagMarkers(arg0);
         _menuMapDrawPicture(arg0);
         _menuMapDrawAreas(arg0);
     }
@@ -3520,34 +3585,28 @@ void itemMenuDrawPeCancelRow(UiList* list, UiObject* object)
     }
 }
 
-void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawMapCommandRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    s32         status;
-    s32         one;
+    enum { ITEM_MENU_COMMAND_MAP = 0x100 };
+    TextDrawReq request;
+    s32         panelControl;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, Gp_StrMap);
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
+    textDrawString(&request, (const u8*)Gp_StrMap);
 
-    status = arg1->panel.control.word;
-    one    = 1;
-    if (((status >> 16) == one) || (status == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            uiSetPromptText(Gp_StrCheckMap, 0, 0);
+    panelControl = object->panel.control.word;
+
+    if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            uiSetPromptText((const u8*)Gp_StrCheckMap, 0, 0);
         }
     }
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg1->resultValue = 0x100;
-            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = ITEM_MENU_COMMAND_MAP;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -3693,35 +3752,30 @@ void itemMenuPeSpecificationsTask(Task* task)
     }
 }
 
-void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    char*       text;
-    s32         one;
-    s32         confirm;
+    enum { ACTION_PROMPT_COMMAND_PUSH = 1 };
+    TextDrawReq request;
+    const u8*   label;
+    s32         rowInputEnabled;
 
-    text = Gp_StrExamine;
-    one  = 1;
-    if (arg1->owner->spawnArg1.value == one) {
-        text = Gp_StrPush;
+    label = (const u8*)Gp_StrExamine;
+    if (object->owner->spawnArg1.value == ACTION_PROMPT_COMMAND_PUSH) {
+        label = (const u8*)Gp_StrPush;
     }
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = one;
-    textDrawString(&req, text);
-    confirm = arg0->rowInputEnabled;
-    if (confirm == one) {
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
+    textDrawString(&request, label);
+    rowInputEnabled = list->rowInputEnabled;
+    if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            D_80114E88   = confirm;
-            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
+            D_80114E88     = rowInputEnabled;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
+
+#undef ITEM_MENU_PREPARE_COMMAND_TEXT
 
 void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
 {

@@ -440,11 +440,21 @@ void Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1);
 
 void func_800CF6E8(UiObject* arg0, s32 arg1);
 
-void Gp_DrawPeEnergyCmd(UiList* arg0, UiObject* arg1);
+/// Draws the main menu's P. Energy command and opens its ability list on Confirm.
+///
+/// Training mode dims and skips the row. Otherwise a selected row supplies help
+/// while the panel is active or suspends active input. Confirmation publishes
+/// command 12 and CONFIRM; coordinates are pixels relative to panel content.
+void itemMenuDrawPeCommandRow(UiList* list, UiObject* object);
 
 void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1);
 
-void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1);
+/// Draws the main menu's Exit command and cancels the menu on active Confirm.
+///
+/// A selected row supplies help while the panel is active or suspends active
+/// input. Coordinates are pixels relative to panel content. Sets CANCEL
+/// without a command id or a sound request.
+void itemMenuDrawExitCommandRow(UiList* list, UiObject* object);
 
 void Gp_WeaponSummaryTask(Task* arg0);
 
@@ -592,7 +602,12 @@ void itemMenuDrawKeyItemCommandRow(UiList* list, UiObject* object);
 /// Writes the object's result, without publishing a list command id.
 void itemMenuDrawPeCancelRow(UiList* list, UiObject* object);
 
-void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1);
+/// Draws the main menu's Map command and requests the map screen on Confirm.
+///
+/// A selected row supplies help while the panel is active or suspends active
+/// input. Active Confirm publishes command 0x100 and CONFIRM; coordinates are
+/// pixels relative to panel content.
+void itemMenuDrawMapCommandRow(UiList* list, UiObject* object);
 
 /// Draws Discard and opens the selected stack's discard dialog on active Confirm.
 ///
@@ -622,7 +637,13 @@ void itemMenuHealingTask(Task* task);
 /// Active Confirm/Cancel/Triangle returns CONFIRM; Menu returns CANCEL.
 void itemMenuPeSpecificationsTask(Task* task);
 
-void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1);
+/// Draws and accepts the hotspot menu's Examine or Push action.
+///
+/// The live object's owner carries the action kind in spawnArg1: 1 selects
+/// Push, 0 and other values select Examine. Active Confirm latches acceptance
+/// until the next hotspot menu starts and sets the object's result to CONFIRM.
+/// Coordinates are list-row pixels relative to panel content.
+void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object);
 
 void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1);
 

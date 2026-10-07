@@ -531,7 +531,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->selectedItemIndex == arg0->currentItemIndex) {
             itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
-            Gp_SetHolderItemText(item);
+            itemMenuSetItemDescriptionPrompt(item);
         }
     }
     if (arg1->owner->spawnArg1.value == 0) {

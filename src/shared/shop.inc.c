@@ -430,7 +430,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         status = obj->panel.control.word;
         if (((status >> 16) == 1) || (status == 1)) {
             if (prompt->selectedItemIndex == prompt->currentItemIndex) {
-                Gp_SetHolderItemText(itemId);
+                itemMenuSetItemDescriptionPrompt(itemId);
                 itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
             }
         }

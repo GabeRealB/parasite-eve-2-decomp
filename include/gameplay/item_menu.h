@@ -157,7 +157,13 @@ void itemMenuDrawPreview(const UiObject* object, s32 left, s32 top, s32 flags);
 
 extern ActionPrompt D_80114D28[2];
 
-void Gp_SetHolderItemText(s32 arg0);
+/// Sets the shared prompt to an item's first description, or Empty for item id 0.
+///
+/// Nonzero ids must satisfy `itemGetText`'s catalogue contract; identification
+/// selects the description form. The prompt borrows the returned text, so its
+/// defining image must remain loaded until the prompt is replaced or closed.
+/// Does nothing if no prompt panel is registered.
+void itemMenuSetItemDescriptionPrompt(s32 itemId);
 
 /// Notice text indices used by item-menu and save-result notices.
 enum {

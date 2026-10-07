@@ -150,7 +150,7 @@ segments:
       - [0x35E54, c, attachment_menu] # Gp_AttachListTask
       - [0x375FC, c, item_panels] # item command lists and panels
       - [0x3AA2C, c, pickup_dispatch] # func_800CE22C
-      - [0x3ADF0, c, menu_actions] # Gp_DrawPeEnergyCmd
+      - [0x3ADF0, c, menu_actions] # itemMenuDrawPeCommandRow
       - [0x42314, c, item_use] # Gp_ApplyItemUse
       - [0x43320, c, world_coords] # worldCoordUpdateRoomLightsTask
       - [0x465FC, c, world_targets] # worldTargetDrawOverlay

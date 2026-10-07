@@ -260,7 +260,7 @@ UiObjectDesc D_8010F7C0[2] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -72, 176, 112 }, 8, 0, TASK_BODY_NONE, 192, itemMenuHealingTask, 0 },
 };
 UiObjectDesc      D_8010F7F8          = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -104, 192, 208 }, 8, 0, TASK_BODY_NONE, 192, itemMenuPeSpecificationsTask, 0 };
-UiListRowCallback Gp_ItemCmdRows[2]   = { Gp_DrawExaminePushCmd, Gp_DrawItemCmd };
+UiListRowCallback Gp_ItemCmdRows[2]   = { itemMenuDrawHotspotActionRow, Gp_DrawItemCmd };
 UiList            D_8010F81C          = { Gp_ItemCmdRows, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 UiObjectDesc      D_8010F840          = { 3, { 0, 0, 70, 64 }, 60, 0, TASK_BODY_NONE, 192, Gp_MapMenuListTask, 0 };
 TaskDesc          D_8010F85C          = { { { TASK_BODY_NONE, 192 } }, Gp_MapScreenTask, { NULL } };
