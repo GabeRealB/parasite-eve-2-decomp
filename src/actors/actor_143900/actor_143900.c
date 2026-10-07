@@ -38,6 +38,25 @@
 #define SCRIPTED_WALK_WORK_T _Actor143900Work
 #include "../../shared/scripted_walk.h"
 
+/// Draw-request bits shared by this package's two walker message handlers.
+enum {
+    ACTOR_143900_WALKER_DRAW_SHOW             = 1,
+    ACTOR_143900_WALKER_DRAW_SKIP_AUTO_BUFFER = 2,
+};
+
+/// Results of either walker's play-animation request, without validating the loaded-clip domain.
+enum {
+    ACTOR_143900_PLAY_ANIMATION_APPLIED  = 0,
+    ACTOR_143900_PLAY_ANIMATION_REJECTED = -1,
+};
+
+/// Both walkers start on clip 1 and sample three lights 800 coordinate units above the root.
+enum {
+    ACTOR_143900_WALKER_INITIAL_CLIP   = 1,
+    ACTOR_143900_WALKER_LIGHT_Y_OFFSET = 800,
+    ACTOR_143900_WALKER_LIGHT_COUNT    = 3,
+};
+
 static s16 _gScriptedWalkModeStorage[2];
 
 /// Signed-halfword approach mode at the start of the first walker's storage.
@@ -105,10 +124,10 @@ extern TaskDesc D_actor_143900_80149664[];
 extern u8 D_actor_143900_80149688[];
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
-static void func_actor_143900_80132404(Task* task);
+static void _actor143900ExitScriptedWalker(Task* task);
 static void _scriptedWalkUpdateSecond(Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
-static void func_actor_143900_80132ECC(Task* task);
+static void _actor143900ExitSecondScriptedWalker(Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 static void _scriptedWalkTickSecondAnim(void);
@@ -118,18 +137,20 @@ static void _scriptedWalkBlendSecondAnim(void);
 static TmdSource _gActor143900Body2;
 static TmdSource _gActor143900Model173A8;
 static TmdSource _gActor143900Model17688;
-s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_143900_80133254(Task*, s32, s32, s32);
+static s32       _actor143900PlaySecondScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32       _actor143900SetSecondScriptedWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument);
 static s32       _scriptedWalkPlaceSecond(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
-s32              func_actor_143900_80133360(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32       _actor143900SelectSecondScriptedWalkerAttachment(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument);
 static s32       _scriptedWalkToSecond(Task* task, s32 messageId, const VECTOR* target, s32 mode);
-void             func_actor_143900_80132DEC(Task*);
-void             func_actor_143900_80132FB0(Task*);
+static void      _actor143900SecondScriptedWalkerTask(Task* task);
+static void      _actor143900ScriptedWalkerAttachmentTask(Task* task);
+static void      _actor143900SpawnSecondScriptedWalker(Enemy* enemy, Task* task);
 
-s32  func_actor_143900_80132624(Task*, s32, AnimationPlayRequest*, s32);
-s32  func_actor_143900_801326B4(Task*, s32, s32, s32);
-s32  func_actor_143900_80132778(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void func_actor_143900_80132324(Task*);
+static s32  _actor143900PlayScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32  _actor143900SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument);
+static s32  _actor143900ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument);
+static void _actor143900ScriptedWalkerTask(Task* task);
+static void _actor143900SpawnScriptedWalker(Enemy* enemy, Task* task);
 
 void func_actor_143900_80131E24(void);
 
@@ -676,15 +697,15 @@ static AnimationSet _gActor143900Animation0F570 = {
 static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_143900_801413BC[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_80132624 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_801326B4 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor143900PlayScriptedWalkerAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor143900SetScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, SCRIPTED_WALK_PLACE },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80132778 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor143900ApplyScriptedWalkerCommand },
     { ACTOR_MESSAGE_WALK_TO, SCRIPTED_WALK_TO },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_143900_801413EC = { { { TASK_BODY_TMD, 192 } }, func_actor_143900_80132324, { .model = &_gActor143900Body1 } };
+TaskDesc D_actor_143900_801413EC = { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerTask, { .model = &_gActor143900Body1 } };
 
 u8 D_actor_143900_801413F8[80] = {
     0,
@@ -1095,18 +1116,18 @@ static TmdSource _gActor143900Model17688 = {
 static s16 _gScriptedWalkSecondBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_143900_80149634[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_801331C4 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_80133254 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor143900PlaySecondScriptedWalkerAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor143900SetSecondScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlaceSecond },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80133360 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor143900SelectSecondScriptedWalkerAttachment },
     { ACTOR_MESSAGE_WALK_TO, _scriptedWalkToSecond },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_143900_80149664[3] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_143900_80132DEC, { .model = &_gActor143900Body2 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_143900_80132FB0, { .model = &_gActor143900Model173A8 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_143900_80132FB0, { .model = &_gActor143900Model17688 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor143900SecondScriptedWalkerTask, { .model = &_gActor143900Body2 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model173A8 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model17688 } },
 };
 
 u8 D_actor_143900_80149688[48] = {
@@ -1188,9 +1209,6 @@ static ScriptedWalkAttachmentsWork* _gScriptedWalkSecondWork = NULL;
 
 Task* D_actor_143900_801496C8;
 
-static void func_actor_143900_80131E70(Enemy* enemy, Task* task);
-static void func_actor_143900_801328D4(Enemy* enemy, Task* task);
-
 /// Arms `sceneEvent` and starts the room's spawn-table task, unless
 /// `demoScene` is 9, so this story trigger is skipped while the attract demo
 /// plays.
@@ -1202,51 +1220,53 @@ void func_actor_143900_80131E24(void)
     }
 }
 
-/// Spawn routine of the first variant (state 0 of `func_actor_143900_80132324`):
-/// allocates the work block and publishes it in `_gScriptedWalkWork` and
-/// the task's `work` slot, binds the model's coordinate to the view and hands
-/// the object its light and colour matrices out of the block, publishes the
-/// task in `D_actor_143900_801496BC`, relights the model from a point 0x320
-/// above its translation, binds the animation stream and runs the first update
-/// with the reset mode 2 / id 1 it seeds.
+/// Initializes the package's first scripted walker and starts its initial clip.
 ///
-/// Every access to the block after the allocation goes through the global
-/// rather than the `memCalloc` result, which is why the pointer is reloaded at
-/// each use instead of staying in a callee-saved register.
-static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
+/// State 0 requires a live owned enemy and twenty-part TMD model. Allocates
+/// zeroed primary-heap work, publishes it for the singleton handlers, and lends
+/// its matrices and playback buffers to the model/rig until task teardown.
+/// Allocation failure destroys the enemy and task without advancing state.
+/// The root is parented to the view and made untargetable. Initial lighting
+/// reads its cached translation with Y reduced by 800 coordinate units;
+/// this does not compose the root or convert the sample to world space.
+/// Requires loaded clips and the lighting/animation helpers' scratch/GTE state.
+static void _actor143900SpawnScriptedWalker(Enemy* enemy, Task* task)
 {
-    VECTOR            vec;
-    _Actor143900Work* work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
+    enum { ACTOR_143900_WALKER_OT_OFFSET = 1 };
+    VECTOR            lightSample;
+    _Actor143900Work* walkerWork;
+    TmdObject*        walkerModel;
+    GfxCoord*         rootCoord;
 
-    obj                = task->extra.tmd;
-    coord              = obj->coords;
-    work               = memCalloc(sizeof(_Actor143900Work), false);
-    _gScriptedWalkWork = work;
-    task->work         = work;
-    if (work == NULL) {
+    walkerModel = task->extra.tmd;
+    rootCoord   = walkerModel->coords;
+    // Publish the owned allocation before lending any of its storage.
+    walkerWork         = memCalloc(sizeof(*walkerWork), false);
+    _gScriptedWalkWork = walkerWork;
+    task->work         = walkerWork;
+    if (walkerWork == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_143900_80132404;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    task->exitCallback               = _actor143900ExitScriptedWalker;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
-    obj->lightMtx                    = &_gScriptedWalkWork->light;
-    obj->colorMtx                    = &_gScriptedWalkWork->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
+    walkerModel->otOffset            = ACTOR_143900_WALKER_OT_OFFSET;
+    walkerModel->flags               = 0;
+    walkerModel->lightMtx            = &_gScriptedWalkWork->light;
+    walkerModel->colorMtx            = &_gScriptedWalkWork->color;
+    lightSample.vx                   = rootCoord->workm.t[0];
+    lightSample.vy                   = rootCoord->workm.t[1] - ACTOR_143900_WALKER_LIGHT_Y_OFFSET;
     D_actor_143900_801496BC          = task;
-    vec.vz                           = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_143900_801413F8, obj,
+    lightSample.vz                   = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(walkerModel, &lightSample, 0, ACTOR_143900_WALKER_LIGHT_COUNT);
+    // Seed the child tracks now; the next task state performs ordinary updates.
+    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_143900_801413F8, walkerModel,
                          _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
-    _gScriptedWalkWork->st.animId  = 1;
+    _gScriptedWalkWork->st.animId  = ACTOR_143900_WALKER_INITIAL_CLIP;
     _gScriptedWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     _gScriptedWalkWork->st.travel  = 0;
     _gScriptedWalkWork->turnFrames = 0;
@@ -1257,18 +1277,21 @@ static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
 
 #include "../../shared/scripted_walk_update.inc.c"
 
-/// Two-state dispatcher of the first variant: publishes the task's work block
-/// in `_gScriptedWalkWork` on the way through, then calls the handler its
-/// state selects from a table built on the stack.
-void func_actor_143900_80132324(Task* task)
+/// Dispatches initialization or one frame of the first scripted walker.
+///
+/// `task->state` must be 0 (spawn) or 1 (frame); indexing is unchecked.
+/// The task owns its enemy in `spawnArg2.pointer`, TMD model and initialized
+/// work. Republishes that work for the singleton animation/message handlers
+/// before dispatch. State 0 creates the work and may destroy the task on failure.
+static void _actor143900ScriptedWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_143900_80131E70,
+    EnemyTaskFunc stateHandlers[] = {
+        _actor143900SpawnScriptedWalker,
         _actorRenderWalkerFrame,
     };
 
     _gScriptedWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
@@ -1290,9 +1313,12 @@ void func_actor_143900_80132324(Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// `Task::exitCallback` of the first variant: hands the task's `Enemy`
-/// (parked in `Task::spawnArg2`) back to `enemyDestroy`.
-static void func_actor_143900_80132404(Task* task)
+/// Releases the first scripted walker's enemy and begins task/model teardown.
+///
+/// Requires a live task owning its enemy in `spawnArg2.pointer` and its work.
+/// The published task/work pointers are left stale and must not be used again.
+/// Model release follows the resident task system's immediate/deferred policy.
+static void _actor143900ExitScriptedWalker(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -1311,113 +1337,149 @@ static void func_actor_143900_80132404(Task* task)
 
 #include "../../shared/scripted_walk_blend_anim.inc.c"
 
-/// Message 0x7D3 handler of the first variant: adopts `preset`'s animation id
-/// when it is one of the first 0x14, latches the reset mode and the blend
-/// duration, then hands the published task to the per-frame
-/// update. Ids past the range are rejected with -1 and leave the work block
-/// untouched.
-s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
+/// Reseeds the published first scripted walker from a borrowed animation request.
+///
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION`; receiver, message ID, second payload
+/// and other request words are ignored. Requires a live walker and initialized
+/// rig with loaded child-part tracks. Playable table keys are 1..19. The signed
+/// check rejects IDs >= 20 with -1 but accepts zero and negative IDs; an accepted
+/// ID narrows to `s16` and must select a loaded clip after narrowing.
+/// Nonzero blend latches the low signed halfword of `blendFrames` in whole
+/// normal-rate frames (0..2047 keeps playback nonnegative); zero blend restarts
+/// and leaves that latch intact. Applies the reseed immediately, returns 0 on
+/// acceptance and retains no request pointer.
+static s32 _actor143900PlayScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    if (preset->animationId < 0x14) {
-        _gScriptedWalkWork->st.animId = preset->animationId;
-        if (preset->blend != ANIMATION_BLEND_RESET) {
+    enum { ACTOR_143900_WALKER_CLIP_COUNT = (s32)(sizeof(D_actor_143900_801413F8) / sizeof(AnimationSet*)) };
+
+    if (request->animationId < ACTOR_143900_WALKER_CLIP_COUNT) {
+        _gScriptedWalkWork->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            _gScriptedWalkBlendFrames    = preset->blendFrames;
+            _gScriptedWalkBlendFrames    = request->blendFrames;
         } else {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_6 = 0;
+        // Apply the restart now; ordinary movement waits for a later update.
         SCRIPTED_WALK_UPDATE(D_actor_143900_801496BC);
-        return 0;
+        return ACTOR_143900_PLAY_ANIMATION_APPLIED;
     }
-    return -1;
+    return ACTOR_143900_PLAY_ANIMATION_REJECTED;
 }
 
-/// Message 0x7D5 handler of the first variant: applies `arg2` to the model of the
-/// task published in `D_actor_143900_801496BC` - bit 0 selects
-/// `TmdObject.flags` 0 (shown) vs 0x80 (hidden), bit 1 ORs in 0x4.
-s32 func_actor_143900_801326B4(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces the published first scripted walker's model draw flags.
+///
+/// Requires a live published task/model. `ACTOR_MESSAGE_SET_MODEL_DRAW` bit 0
+/// enables active drawing; bit 1 suppresses automatic primitive-buffer allocation.
+/// Clears all other model flags and ignores other request bits. Allocates and
+/// releases no buffers. Receiver, message ID and second payload are ignored;
+/// returns 0.
+static s32 _actor143900SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument)
 {
-    TmdObject* obj;
+    TmdObject* walkerModel;
 
-    obj = D_actor_143900_801496BC->extra.tmd;
-    if (arg2 & 1) {
-        obj->flags = 0;
+    walkerModel = D_actor_143900_801496BC->extra.tmd;
+    if (drawFlags & ACTOR_143900_WALKER_DRAW_SHOW) {
+        walkerModel->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        walkerModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_143900_WALKER_DRAW_SKIP_AUTO_BUFFER) {
+        walkerModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
 
 #include "../../shared/scripted_walk_place.inc.c"
 
-/// Message 0x7DB handler of the first variant: when the payload's halfword at
-/// 0x2 is zero, starts a 0x14-step turn, which the update performs while the
-/// model plays animation 3.
-s32 func_actor_143900_80132778(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Schedules twenty turning updates for the published first scripted walker.
+///
+/// Requires live work and a command borrowed through `ACTOR_COMMAND_MESSAGE_APPLY`.
+/// Command 0 arms the countdown consumed while turn clip 3 plays; it does not
+/// select that clip. Each turn adds 51/4096 turns to the root yaw independently
+/// of actor freezing. Other commands do nothing. Context tags, receiver, message
+/// ID and second payload are ignored; returns 0 and retains no request pointer.
+static s32 _actor143900ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument)
 {
-    if (msg->command == 0) {
-        _gScriptedWalkWork->turnFrames = 0x14;
+    enum {
+        ACTOR_143900_WALKER_COMMAND_TURN = 0,
+        ACTOR_143900_WALKER_TURN_UPDATES = 20,
+    };
+
+    if (request->command == ACTOR_143900_WALKER_COMMAND_TURN) {
+        _gScriptedWalkWork->turnFrames = ACTOR_143900_WALKER_TURN_UPDATES;
     }
     return 0;
 }
 
 #include "../../shared/scripted_walk_to.inc.c"
 
-/// Spawn routine of the second variant (state 0 of `func_actor_143900_80132DEC`):
-/// allocates the work block and publishes it in `_gScriptedWalkSecondWork`
-/// and the task's `work` slot, binds the model's coordinate to the view and
-/// hands the object its light and colour matrices out of the block, publishes
-/// the task in `D_actor_143900_801496C8`, relights the model from a point 0x320
-/// above its translation and binds the animation stream. It then starts the two
-/// attachment tasks from the overlay's spawn table and runs the first update with
-/// the reset mode 2 / id 1 it seeds.
-static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
+/// Initializes the second scripted walker, its initial clip and two model attachments.
+///
+/// State 0 requires a live owned enemy and twenty-part TMD model. Allocates
+/// zeroed primary-heap work and publishes it for the singleton handlers, lending
+/// its matrices and rig storage until teardown. Allocation failure destroys the
+/// enemy and task. The root becomes view-parented and untargetable; lighting uses
+/// its cached translation with Y reduced by 800 coordinate units, without
+/// composition or conversion to world space. Requires loaded clips and the
+/// lighting/animation helpers' scratch/GTE state.
+/// Attachment entries 1/2 borrow model parts 1/12 for their lifetime. Failed
+/// attachment spawns leave NULL handles; later draw/command/exit handlers require
+/// both spawns to have succeeded. The attachment tasks are owned separately from
+/// the walker's task tree and killed explicitly by its exit callback.
+static void _actor143900SpawnSecondScriptedWalker(Enemy* enemy, Task* task)
 {
-    VECTOR                       vec;
-    ScriptedWalkAttachmentsWork* work;
-    GfxCoord*                    coord;
-    TmdObject*                   obj;
-    Task*                        helper;
+    enum {
+        ACTOR_143900_SECOND_WALKER_OT_OFFSET = 16,
+        ACTOR_143900_ATTACHMENT1_ENTRY       = 1,
+        ACTOR_143900_ATTACHMENT2_ENTRY       = 2,
+        ACTOR_143900_ATTACHMENT1_PART        = 1,
+        ACTOR_143900_ATTACHMENT2_PART        = 12,
+    };
+    VECTOR                       lightSample;
+    ScriptedWalkAttachmentsWork* walkerWork;
+    GfxCoord*                    rootCoord;
+    TmdObject*                   walkerModel;
+    Task*                        attachmentTask;
 
-    obj                      = task->extra.tmd;
-    coord                    = obj->coords;
-    work                     = memCalloc(sizeof(ScriptedWalkAttachmentsWork), false);
-    _gScriptedWalkSecondWork = work;
-    task->work               = work;
-    if (work == NULL) {
+    walkerModel = task->extra.tmd;
+    rootCoord   = walkerModel->coords;
+    // Publish the owned allocation before lending its matrices and rig storage.
+    walkerWork               = memCalloc(sizeof(*walkerWork), false);
+    _gScriptedWalkSecondWork = walkerWork;
+    task->work               = walkerWork;
+    if (walkerWork == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_143900_80132ECC;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    task->exitCallback               = _actor143900ExitSecondScriptedWalker;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
-    obj->otOffset                    = 0x10;
-    obj->lightMtx                    = &_gScriptedWalkSecondWork->light;
-    obj->colorMtx                    = &_gScriptedWalkSecondWork->color;
-    obj->flags                       = 0;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    vec.vz                           = coord->workm.t[2];
+    walkerModel->otOffset            = ACTOR_143900_SECOND_WALKER_OT_OFFSET;
+    walkerModel->lightMtx            = &_gScriptedWalkSecondWork->light;
+    walkerModel->colorMtx            = &_gScriptedWalkSecondWork->color;
+    walkerModel->flags               = 0;
+    lightSample.vx                   = rootCoord->workm.t[0];
+    lightSample.vy                   = rootCoord->workm.t[1] - ACTOR_143900_WALKER_LIGHT_Y_OFFSET;
+    lightSample.vz                   = rootCoord->workm.t[2];
     D_actor_143900_801496C8          = task;
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gScriptedWalkSecondWork->rig.anim, (AnimationSet**)D_actor_143900_80149688, obj,
+    worldCoordSetModelLighting(walkerModel, &lightSample, 0, ACTOR_143900_WALKER_LIGHT_COUNT);
+    animationInitContext(&_gScriptedWalkSecondWork->rig.anim, (AnimationSet**)D_actor_143900_80149688, walkerModel,
                          _gScriptedWalkSecondWork->rig.poses, _gScriptedWalkSecondWork->rig.slots);
-    _gScriptedWalkSecondWork->st.animId = 1;
+    _gScriptedWalkSecondWork->st.animId = ACTOR_143900_WALKER_INITIAL_CLIP;
     _gScriptedWalkSecondWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    helper                              = taskSpawnFromTable(D_actor_143900_80149664, 1, 1, 0);
-    if (helper != NULL) {
-        _gScriptedWalkSecondWork->attachment1 = helper;
+    // The attachments borrow coordinates, but do not join the walker's task tree.
+    attachmentTask = taskSpawnFromTable(D_actor_143900_80149664, ACTOR_143900_ATTACHMENT1_ENTRY, ACTOR_143900_ATTACHMENT1_PART, 0);
+    if (attachmentTask != NULL) {
+        _gScriptedWalkSecondWork->attachment1 = attachmentTask;
     }
-    helper = taskSpawnFromTable(D_actor_143900_80149664, 2, 0xC, 0);
-    if (helper != NULL) {
-        _gScriptedWalkSecondWork->attachment2 = helper;
+    attachmentTask = taskSpawnFromTable(D_actor_143900_80149664, ACTOR_143900_ATTACHMENT2_ENTRY, ACTOR_143900_ATTACHMENT2_PART, 0);
+    if (attachmentTask != NULL) {
+        _gScriptedWalkSecondWork->attachment2 = attachmentTask;
     }
     _gScriptedWalkSecondWork->st.travel  = 0;
     _gScriptedWalkSecondWork->turnFrames = 0;
@@ -1477,19 +1539,23 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #undef SCRIPTED_WALK_WORK_T
 #define SCRIPTED_WALK_WORK_T _Actor143900Work
 
-/// Two-state dispatcher of the second variant: publishes the task's work block
-/// in `_gScriptedWalkSecondWork` on the way through, then calls the handler its
-/// state selects from a table built on the stack.
-void func_actor_143900_80132DEC(Task* task)
+/// Dispatches initialization or one frame of the second scripted walker.
+///
+/// `task->state` must be 0 (spawn) or 1 (frame); indexing is unchecked.
+/// Owns its enemy in `spawnArg2.pointer`, TMD model and initialized attachment
+/// work. Republishes that work before the selected singleton update. State 0
+/// allocates work and may destroy the task on failure.
+static void _actor143900SecondScriptedWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_143900_801328D4,
+    EnemyTaskFunc stateHandlers[] = {
+        _actor143900SpawnSecondScriptedWalker,
         _actorRenderWalkerFrameSecond,
     };
-    u8 scratch[0x40]; /* never referenced; only reserves the frame */
+    // Retain the original 0x60-byte frame; these 64 bytes are never accessed.
+    u8 reservedFrame[0x40]; // Original purpose unproven.
 
     _gScriptedWalkSecondWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
@@ -1510,16 +1576,21 @@ void func_actor_143900_80132DEC(Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// `Task::exitCallback` of the second variant: hands the task's `Enemy`
-/// (parked in `Task::spawnArg2`) back to `enemyDestroy`, then kills the two
-/// attachment tasks the spawn routine started.
-static void func_actor_143900_80132ECC(Task* task)
+/// Begins teardown of the second scripted walker and its two attachment tasks.
+///
+/// Requires a live task with its owned enemy in `spawnArg2.pointer` and two
+/// live, non-NULL attachment handles in its work. Published work/task pointers
+/// remain stale. `enemyDestroy` frees that work before the attachment handles
+/// are read; the retained order relies on those released bytes remaining readable.
+/// The models follow the task system's immediate/deferred release policy.
+static void _actor143900ExitSecondScriptedWalker(Task* task)
 {
-    ScriptedWalkAttachmentsWork* work = task->work;
+    ScriptedWalkAttachmentsWork* walkerWork = task->work;
 
     enemyDestroy(task->spawnArg2.pointer, task);
-    taskKill(work->attachment1);
-    taskKill(work->attachment2);
+    // Preserve the post-release handle reads and teardown order.
+    taskKill(walkerWork->attachment1);
+    taskKill(walkerWork->attachment2);
 }
 
 /// Selects this overlay's private second-walker ground-shadow drawer.
@@ -1530,31 +1601,52 @@ static void func_actor_143900_80132ECC(Task* task)
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-/// Attachment-task handler of the second variant: state 0 hangs the task's own
-/// coordinate frame off part `spawnArg1` of the second variant's model and
-/// steps to state 1; every later tick relights the attachment's model from a point
-/// 0x320 above that model's root translation.
-void func_actor_143900_80132FB0(Task* task)
+/// Initializes a drawable attachment root beneath a borrowed live walker part.
+///
+/// `model` owns `root`; the coordinate parent must remain live until model
+/// teardown. Clears all model flags and sets the attachment's OT-entry offset.
+static __inline__ void _actor143900AttachWalkerModel(TmdObject* model, GfxCoord* root, GfxCoord* parentPart)
 {
-    TmdObject* extra = task->extra.tmd;
-    GfxCoord*  coord = extra->coords;
-    GfxCoord*  parts = D_actor_143900_801496C8->extra.tmd->coords;
-    GfxCoord*  part  = parts + task->spawnArg1.value;
-    VECTOR     vec;
+    enum { ACTOR_143900_ATTACHMENT_OT_OFFSET = 15 };
+
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->flags       = 0;
+    model->otOffset    = ACTOR_143900_ATTACHMENT_OT_OFFSET;
+    root->parent       = parentPart;
+}
+
+/// Parents a model to the second scripted walker and refreshes its room lighting.
+///
+/// Requires live models on this task and the published walker. `spawnArg1.value`
+/// is a coordinate index in that twenty-part model; the two spawns use 1 and 12.
+/// State 0 attaches the root and enters state 1, which samples three lights at
+/// the walker root's cached translation with Y reduced by 800 coordinate units.
+/// The sample keeps that cache's composition frame; this function does not
+/// compose coordinates or convert the sample to world space. Other states do
+/// nothing. The task borrows its parent coordinate until model teardown and
+/// requires the lighting helper's initialized matrices, scratch and GTE state.
+static void _actor143900ScriptedWalkerAttachmentTask(Task* task)
+{
+    enum {
+        ACTOR_143900_ATTACHMENT_INITIALIZE = 0,
+        ACTOR_143900_ATTACHMENT_LIGHT      = 1,
+    };
+    TmdObject* attachmentModel = task->extra.tmd;
+    GfxCoord*  attachmentRoot  = attachmentModel->coords;
+    GfxCoord*  walkerCoords    = D_actor_143900_801496C8->extra.tmd->coords;
+    GfxCoord*  parentPart      = walkerCoords + task->spawnArg1.value;
+    VECTOR     lightSample;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            extra->flags        = 0;
-            extra->otOffset     = 0xF;
-            coord->parent       = part;
+        case ACTOR_143900_ATTACHMENT_INITIALIZE:
+            _actor143900AttachWalkerModel(attachmentModel, attachmentRoot, parentPart);
             task->state++;
             break;
-        case 1:
-            vec.vx = parts->workm.t[0];
-            vec.vy = parts->workm.t[1] - 0x320;
-            vec.vz = parts->workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
+        case ACTOR_143900_ATTACHMENT_LIGHT:
+            lightSample.vx = walkerCoords->workm.t[0];
+            lightSample.vy = walkerCoords->workm.t[1] - ACTOR_143900_WALKER_LIGHT_Y_OFFSET;
+            lightSample.vz = walkerCoords->workm.t[2];
+            worldCoordSetModelLighting(attachmentModel, &lightSample, 0, ACTOR_143900_WALKER_LIGHT_COUNT);
             break;
     }
 }
@@ -1595,50 +1687,63 @@ void func_actor_143900_80132FB0(Task* task)
 #undef SCRIPTED_WALK_BLEND_FRAMES
 #define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkBlendFrames)
 
-/// Message 0x7D3 handler of the second variant: adopts `preset`'s animation id
-/// when it is one of the first 0xC, latches the reset mode and the blend
-/// duration, then hands the published task to the per-frame
-/// update. Ids past the range are rejected with -1 and leave the work block
-/// untouched.
-s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
+/// Reseeds the published second scripted walker from a borrowed animation request.
+///
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION`; receiver, message ID, second payload
+/// and other request words are ignored. Requires a live walker and initialized
+/// rig with loaded child-part tracks. Playable keys are 1..10. The signed check
+/// rejects IDs >= 12 with -1 but accepts negative IDs and NULL entries 0/11;
+/// an accepted ID narrows to `s16` and must select a loaded clip after narrowing.
+/// Nonzero blend latches the low signed halfword of `blendFrames` in whole
+/// normal-rate frames (0..2047 keeps playback nonnegative); zero blend restarts
+/// and leaves that latch intact. Reseeding runs immediately. Returns 0 on
+/// acceptance and retains no request pointer.
+static s32 _actor143900PlaySecondScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    if (preset->animationId < 0xC) {
-        _gScriptedWalkSecondWork->st.animId = preset->animationId;
-        if (preset->blend != ANIMATION_BLEND_RESET) {
+    enum { ACTOR_143900_WALKER_CLIP_COUNT = (s32)(sizeof(D_actor_143900_80149688) / sizeof(AnimationSet*)) };
+
+    if (request->animationId < ACTOR_143900_WALKER_CLIP_COUNT) {
+        _gScriptedWalkSecondWork->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkSecondWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            _gScriptedWalkSecondBlendFrames    = preset->blendFrames;
+            _gScriptedWalkSecondBlendFrames    = request->blendFrames;
         } else {
             _gScriptedWalkSecondWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkSecondWork->st.field_6 = 0;
+        // Apply the restart now; ordinary movement waits for a later update.
         _scriptedWalkUpdateSecond(D_actor_143900_801496C8);
-        return 0;
+        return ACTOR_143900_PLAY_ANIMATION_APPLIED;
     }
-    return -1;
+    return ACTOR_143900_PLAY_ANIMATION_REJECTED;
 }
 
-/// Message 0x7D5 handler of the second variant: applies `arg2` to the three
-/// models it owns - its own task's and the two attachment tasks'. Bit 0 selects
-/// `TmdObject.flags` 0 (shown) vs 0x80 (hidden); bit 1 ORs in 0x4.
-s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces the second scripted walker and both attachment models' draw flags.
+///
+/// Requires live published task/work and two non-NULL attachment models.
+/// `ACTOR_MESSAGE_SET_MODEL_DRAW` bit 0 enables active drawing; bit 1 suppresses
+/// automatic primitive-buffer allocation. Clears all other model flags and
+/// ignores other request bits, allocating and releasing no buffers. Receiver,
+/// message ID and second payload are ignored; returns 0.
+static s32 _actor143900SetSecondScriptedWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument)
 {
-    TmdObject* own    = D_actor_143900_801496C8->extra.tmd;
-    TmdObject* first  = _gScriptedWalkSecondWork->attachment1->extra.tmd;
-    TmdObject* second = _gScriptedWalkSecondWork->attachment2->extra.tmd;
+    TmdObject* walkerModel      = D_actor_143900_801496C8->extra.tmd;
+    TmdObject* attachment1Model = _gScriptedWalkSecondWork->attachment1->extra.tmd;
+    TmdObject* attachment2Model = _gScriptedWalkSecondWork->attachment2->extra.tmd;
 
-    if (arg2 & 1) {
-        own->flags    = 0;
-        first->flags  = 0;
-        second->flags = 0;
+    if (drawFlags & ACTOR_143900_WALKER_DRAW_SHOW) {
+        walkerModel->flags      = 0;
+        attachment1Model->flags = 0;
+        attachment2Model->flags = 0;
     } else {
-        own->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        first->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        second->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        walkerModel->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        attachment1Model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        attachment2Model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
-        own->flags    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        first->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        second->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_143900_WALKER_DRAW_SKIP_AUTO_BUFFER) {
+        walkerModel->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        attachment1Model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        attachment2Model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
@@ -1657,25 +1762,33 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2, s32 arg3)
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 
-/// Message 0x7DB handler of the second variant: the payload's halfword at 0x2
-/// picks which of the two attachment tasks' models is shown - 0 shows the second
-/// (`attachment2`) and hides the first, 1 the reverse; any other value leaves
-/// both.
-s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Selects which of the second scripted walker's two attachment models is shown.
+///
+/// Requires live published work and both non-NULL attachment models. The borrowed
+/// `ACTOR_COMMAND_MESSAGE_APPLY` command selects attachment 2 with 0 or attachment
+/// 1 with 1, clearing that model's flags and replacing the other's with active-draw
+/// suppression. Other commands leave both models unchanged. Context tags,
+/// receiver, message ID and second payload are ignored; returns 0 and retains
+/// no request pointer. This changes flags only and manages no primitive buffers.
+static s32 _actor143900SelectSecondScriptedWalkerAttachment(Task* unusedTask, s32 messageId, const ActorCommand* request, s32 unusedArgument)
 {
-    TmdObject* first;
-    TmdObject* second;
+    enum {
+        ACTOR_143900_WALKER_COMMAND_SHOW_ATTACHMENT2 = 0,
+        ACTOR_143900_WALKER_COMMAND_SHOW_ATTACHMENT1 = 1,
+    };
+    TmdObject* attachment1Model;
+    TmdObject* attachment2Model;
 
-    first  = _gScriptedWalkSecondWork->attachment1->extra.tmd;
-    second = _gScriptedWalkSecondWork->attachment2->extra.tmd;
-    switch (msg->command) {
-        case 0:
-            second->flags = 0;
-            first->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    attachment1Model = _gScriptedWalkSecondWork->attachment1->extra.tmd;
+    attachment2Model = _gScriptedWalkSecondWork->attachment2->extra.tmd;
+    switch (request->command) {
+        case ACTOR_143900_WALKER_COMMAND_SHOW_ATTACHMENT2:
+            attachment2Model->flags = 0;
+            attachment1Model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 1:
-            first->flags  = 0;
-            second->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_143900_WALKER_COMMAND_SHOW_ATTACHMENT1:
+            attachment1Model->flags = 0;
+            attachment2Model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     return 0;

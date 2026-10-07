@@ -1255,7 +1255,7 @@ m2c names a parameter after the register the target reads it from, so a seed wit
 **one** parameter called `arg2` is the target's `$a2`, with two unused ones in
 front of it. Dropping them makes GCC assign that pointer to `$a0`, and the seed
 still compiles - so the whole difference arrives as register and scheduling
-leftovers and looks like a body problem. `func_actor_143900_80132624` read
+leftovers and looks like a body problem. `_actor143900PlayScriptedWalkerAnimation` read
 87.184% (`stack=6 branch=1 regs=4 reorder=1 insert=3 delete=1`) with all 7 blocks
 and both predicates already matching.
 
@@ -1263,7 +1263,7 @@ Restoring the arity is the entire fix - 100.000% on the first build, every
 penalty zero:
 
 ```c
-s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* preset)
+s32 _actor143900PlayScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request)
 ```
 
 The register identity is what drives the schedule, not the other way round. With
@@ -1429,7 +1429,7 @@ it, both marked `Insn is in multiple basic blocks`. That is why the target's
 default path reaches the bare `jr ra` while the arms reach the `v0 = 0` above it,
 and why the `0x80` lands in `$v0` rather than `$v1`.
 
-`func_actor_143900_80133360`: m2c's per-arm `return 0` scored 68.8%, and 77.0%
+`_actor143900SelectSecondScriptedWalkerAttachment`: m2c's per-arm `return 0` scored 68.8%, and 77.0%
 once the locals were typed; the `break` + single `return 0` form is 100%.
 Inputs: `base_1.i`
 `4dff7709c7d058a09fc83a1c184c3103badf8052ddcfe6981a09af3e756933f7`,
@@ -62753,7 +62753,7 @@ candidate cleared the floor", not "no twin". `rank()` then narrows further with
 `0.6 * words <= f["words"] <= 1.6 * words`, so a nine-instruction target is left
 comparing against ten- to fourteen-instruction bodies it cannot resemble.
 
-`func_actor_143900_80132778` is the worked example. Nine instructions; `find`
+`_actor143900ApplyScriptedWalkerCommand` is the worked example. Nine instructions; `find`
 listed only itself, because its twin touches a different global and the two
 symbol operands make the disassembly text unequal. What found the twin was
 grepping `src/` for the constant the body writes:
@@ -64424,7 +64424,7 @@ are an initializer.
 
 ## A local initializer over 8 bytes is a `.rodata` copy, so it cannot supply the clobber
 
-`func_actor_143900_80132DEC` needs both halves of the pattern above at once: the
+`_actor143900SecondScriptedWalkerTask` needs both halves of the pattern above at once: the
 8-byte handler table at `0x10` with the `store_constructor` clobber that keeps
 `sw $ra` first, and a `0x60` frame whose `$ra` sits at `0x58` — 0x40 bytes more
 local than the table needs. Growing the table to fill the frame is the obvious
@@ -64463,8 +64463,8 @@ the two requirements across two objects instead: a small initialized table for
 the clobber and the schedule, and an unused local *after* it for the frame.
 
 ```c
-void (*fns[2])(Enemy*, Task*) = { h0, h1 };
-u8 scratch[0x40];   /* never referenced; only reserves the frame */
+EnemyTaskFunc stateHandlers[2] = { h0, h1 };
+u8 reservedFrame[0x40];   /* never referenced; only reserves the frame */
 ```
 
 The table takes `0x10..0x18`, the dead local `0x18..0x58` and `$ra` lands at
@@ -100982,7 +100982,7 @@ Inputs: `base.i`
 
 ## m2c writes a value at its one use site, so a sum the target computes *before* the branch must become a named local
 
-`func_actor_143900_80132FB0` seeds at 58.196% (`regs=19 delete=11 insert=6
+`_actor143900ScriptedWalkerAttachmentTask` seeds at 58.196% (`regs=19 delete=11 insert=6
 stack=6 branch=2 reorder=2`) and matches at 100% with the body of
 `_actor461800ScriptedWalkerAttachmentTask`, its twin (see the worked example below). The one
 delta that carried the score is a placement rule, and it is worth checking on
@@ -100993,7 +100993,7 @@ The seed computed the parts base where m2c saw its only use:
 ```c
     case 0:
         ...
-        coord->parent = parts + task->spawnArg1;   /* evaluated in the taken arm */
+        attachmentRoot->parent = walkerCoords + task->spawnArg1.value;   /* evaluated in the taken arm */
 ```
 
 The target instead has `addu $t0, $v1, $v0` in the **`beqz` delay slot** of the
@@ -101001,9 +101001,9 @@ state test - so the source evaluated it unconditionally, before the switch.
 Hoist it into a named local declared with the others:
 
 ```c
-    GfxCoord* part = parts + task->spawnArg1;   /* before the switch */
+    GfxCoord* parentPart = walkerCoords + task->spawnArg1.value;   /* before the switch */
     ...
-    coord->parent = part;
+    attachmentRoot->parent = parentPart;
 ```
 
 Controlled pair, same typed structs and same `Task*` parameter, that one change
@@ -124143,11 +124143,11 @@ Worked example: `_actor361100TickTentacle`, whose matched twin
 groups swapped -- 88.79% -> 100.00% in one edit, `stack` never penalised.
 
 **Second worked example, and the tell is not always the frame.**
-`func_actor_143900_801328D4` had the same seed shape (`s32 sp18; s32 sp1C;
+`_actor143900SpawnSecondScriptedWalker` had the same seed shape (`s32 sp18; s32 sp1C;
 s32 sp20;` handed to `worldCoordSetModelLighting` as a three-word position), but the deleted stores did
 not show up as a `stack` penalty: `.diagnosis.json` reported the *instruction
 count* 5 short (2 `lw`, 2 `sw`, 1 `addiu`) with `regs: 40` on the remaining
-register work, which reads like an allocation problem. A `VECTOR vec;` local
+register work, which reads like an allocation problem. A `VECTOR lightSample;` local
 with member assignments restored all five and took 92.263% -> 95.351%. Check the
 m2c seed's scalar declarations whenever the candidate is short whole load/store
 pairs and the topology still matches, whatever the penalty mix says -- the two
